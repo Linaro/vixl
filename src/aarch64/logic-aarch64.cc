@@ -6233,19 +6233,17 @@ LogicPRegister Simulator::SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
   return pd;
 }
 
-LogicVRegister Simulator::SVEBitwiseImmHelper(SVEBitwiseImmOp op,
-                                              VectorFormat vform,
-                                              LogicVRegister zd,
-                                              uint64_t imm) {
+LogicVRegister Simulator::SVEBitwiseImmHelper(
+    SVEBitwiseLogicalWithImm_UnpredicatedOp op,
+    VectorFormat vform,
+    LogicVRegister zd,
+    uint64_t imm) {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     uint64_t op1 = zd.Uint(vform, i);
     uint64_t result;
     switch (op) {
       case AND_z_zi:
         result = op1 & imm;
-        break;
-      case DUPM_z_i:
-        result = imm;
         break;
       case EOR_z_zi:
         result = op1 ^ imm;

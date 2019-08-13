@@ -3824,7 +3824,8 @@ class Simulator : public DecoderVisitor {
                                            const LogicPRegister& pn,
                                            const LogicPRegister& pm,
                                            FlagsUpdate flags);
-  LogicVRegister SVEBitwiseImmHelper(SVEBitwiseImmOp op,
+
+  LogicVRegister SVEBitwiseImmHelper(SVEBitwiseLogicalWithImm_UnpredicatedOp op,
                                      VectorFormat vform,
                                      LogicVRegister zd,
                                      uint64_t imm);

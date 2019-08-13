@@ -7110,9 +7110,9 @@ void Simulator::VisitSVEAddressGeneration(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEBitwiseImm(const Instruction* instr) {
-  USE(instr);
-  Instr op = instr->Mask(SVEBitwiseImmMask);
+void Simulator::VisitSVEBitwiseLogicalWithImm_Unpredicated(
+    const Instruction* instr) {
+  Instr op = instr->Mask(SVEBitwiseLogicalWithImm_UnpredicatedMask);
   switch (op) {
     case AND_z_zi:
     case DUPM_z_i:
@@ -7122,10 +7122,28 @@ void Simulator::VisitSVEBitwiseImm(const Instruction* instr) {
       uint64_t imm = instr->GetSVEImmLogical();
       // Valid immediate is a non-zero bits
       VIXL_ASSERT(imm != 0);
-      SVEBitwiseImmHelper(static_cast<SVEBitwiseImmOp>(op),
+      SVEBitwiseImmHelper(static_cast<SVEBitwiseLogicalWithImm_UnpredicatedOp>(
+                              op),
                           SVEFormatFromLaneSizeInBytesLog2(lane_size),
                           ReadVRegister(instr->GetRd()),
                           imm);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastBitmaskImm(const Instruction* instr) {
+  switch (instr->Mask(SVEBroadcastBitmaskImmMask)) {
+    case DUPM_z_i: {
+      /* DUPM uses the same lane size and immediate encoding as bitwise logical
+       * immediate instructions. */
+      int lane_size = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+      uint64_t imm = instr->GetSVEImmLogical();
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+      dup_immediate(vform, ReadVRegister(instr->GetRd()), imm);
       break;
     }
     default:
@@ -7165,19 +7183,32 @@ void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
   SVEBitwiseLogicalUnpredicatedHelper(logical_op, kFormatVnD, zd, zn, zm);
 }
 
-void Simulator::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
+void Simulator::VisitSVEBitwiseShiftByImm_Predicated(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEBitwiseShiftPredicatedMask)) {
+  switch (instr->Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
     case ASRD_z_p_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case ASRR_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
     case ASR_z_p_zi:
       VIXL_UNIMPLEMENTED();
       break;
-    case ASR_z_p_zw:
+    case LSL_z_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSR_z_p_zi:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBitwiseShiftByVector_Predicated(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
+    case ASRR_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
     case ASR_z_p_zz:
@@ -7186,25 +7217,32 @@ void Simulator::VisitSVEBitwiseShiftPredicated(const Instruction* instr) {
     case LSLR_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case LSL_z_p_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LSL_z_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LSL_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
     case LSRR_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case LSR_z_p_zi:
+    case LSR_z_p_zz:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBitwiseShiftByWideElements_Predicated(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEBitwiseShiftByWideElements_PredicatedMask)) {
+    case ASR_z_p_zw:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LSL_z_p_zw:
       VIXL_UNIMPLEMENTED();
       break;
     case LSR_z_p_zw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LSR_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
     default:
@@ -7240,40 +7278,19 @@ void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEElementCount(const Instruction* instr) {
+void Simulator::VisitSVEIncDecRegisterByElementCount(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEElementCountMask)) {
-    case CNTB_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CNTD_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CNTH_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CNTW_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
+  switch (instr->Mask(SVEIncDecRegisterByElementCountMask)) {
     case DECB_r_rs:
       VIXL_UNIMPLEMENTED();
       break;
     case DECD_r_rs:
       VIXL_UNIMPLEMENTED();
       break;
-    case DECD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECH_r_rs:
       VIXL_UNIMPLEMENTED();
       break;
-    case DECH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECW_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case DECW_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case INCB_r_rs:
@@ -7282,21 +7299,49 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
     case INCD_r_rs:
       VIXL_UNIMPLEMENTED();
       break;
-    case INCD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INCH_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case INCH_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case INCW_r_rs:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIncDecVectorByElementCount(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEIncDecVectorByElementCountMask)) {
+    case DECD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case DECW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case INCH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
     case INCW_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVESaturatingIncDecRegisterByElementCount(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVESaturatingIncDecRegisterByElementCountMask)) {
     case SQDECB_r_rs_sx:
       VIXL_UNIMPLEMENTED();
       break;
@@ -7309,25 +7354,16 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
     case SQDECD_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case SQDECD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECH_r_rs_sx:
       VIXL_UNIMPLEMENTED();
       break;
     case SQDECH_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case SQDECH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECW_r_rs_sx:
       VIXL_UNIMPLEMENTED();
       break;
     case SQDECW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECW_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case SQINCB_r_rs_sx:
@@ -7342,25 +7378,16 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
     case SQINCD_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case SQINCD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCH_r_rs_sx:
       VIXL_UNIMPLEMENTED();
       break;
     case SQINCH_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case SQINCH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCW_r_rs_sx:
       VIXL_UNIMPLEMENTED();
       break;
     case SQINCW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCW_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case UQDECB_r_rs_uw:
@@ -7375,25 +7402,16 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
     case UQDECD_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case UQDECD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECH_r_rs_uw:
       VIXL_UNIMPLEMENTED();
       break;
     case UQDECH_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case UQDECH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECW_r_rs_uw:
       VIXL_UNIMPLEMENTED();
       break;
     case UQDECW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECW_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case UQINCB_r_rs_uw:
@@ -7408,16 +7426,10 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
     case UQINCD_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
-    case UQINCD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQINCH_r_rs_uw:
       VIXL_UNIMPLEMENTED();
       break;
     case UQINCH_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCH_z_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case UQINCW_r_rs_uw:
@@ -7426,7 +7438,71 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
     case UQINCW_r_rs_x:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVESaturatingIncDecVectorByElementCount(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVESaturatingIncDecVectorByElementCountMask)) {
+    case SQDECD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQDECW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SQINCW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQDECW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCD_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case UQINCH_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
     case UQINCW_z_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEElementCount(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEElementCountMask)) {
+    case CNTB_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNTD_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNTH_r_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CNTW_r_s:
       VIXL_UNIMPLEMENTED();
       break;
     default:
@@ -7447,13 +7523,10 @@ void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
+void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEFPArithmeticPredicatedMask)) {
+  switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
     case FABD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FADD_z_p_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case FADD_z_p_zz:
@@ -7465,25 +7538,13 @@ void Simulator::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
     case FDIV_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case FMAXNM_z_p_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case FMAXNM_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMAX_z_p_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case FMAX_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case FMINNM_z_p_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case FMINNM_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMIN_z_p_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case FMIN_z_p_zz:
@@ -7492,27 +7553,61 @@ void Simulator::VisitSVEFPArithmeticPredicated(const Instruction* instr) {
     case FMULX_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case FMUL_z_p_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case FMUL_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
     case FSCALE_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case FSUBR_z_p_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case FSUBR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FSUB_z_p_zs:
       VIXL_UNIMPLEMENTED();
       break;
     case FSUB_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPArithmeticWithImm_Predicated(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
+    case FADD_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAXNM_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMAX_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMINNM_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMIN_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FMUL_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUBR_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case FSUB_z_p_zs:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFPTrigMulAddCoefficientMask)) {
     case FTMAD_z_zzi:
       VIXL_UNIMPLEMENTED();
       break;
@@ -7747,9 +7842,9 @@ void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
+void Simulator::VisitSVEFPConvertToInt(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEFPUnaryOpPredicatedMask)) {
+  switch (instr->Mask(SVEFPConvertToIntMask)) {
     case FCVTZS_z_p_z_d2w:
       VIXL_UNIMPLEMENTED();
       break;
@@ -7792,6 +7887,15 @@ void Simulator::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
     case FCVTZU_z_p_z_s2x:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPConvertPrecision(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFPConvertPrecisionMask)) {
     case FCVT_z_p_z_d2h:
       VIXL_UNIMPLEMENTED();
       break;
@@ -7810,9 +7914,30 @@ void Simulator::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
     case FCVT_z_p_z_s2h:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFPUnaryOpMask)) {
     case FRECPX_z_p_z:
       VIXL_UNIMPLEMENTED();
       break;
+    case FSQRT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPRoundToIntegralValue(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
     case FRINTA_z_p_z:
       VIXL_UNIMPLEMENTED();
       break;
@@ -7834,9 +7959,15 @@ void Simulator::VisitSVEFPUnaryOpPredicated(const Instruction* instr) {
     case FRINTZ_z_p_z:
       VIXL_UNIMPLEMENTED();
       break;
-    case FSQRT_z_p_z:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+}
+
+void Simulator::VisitSVEIntConvertToFP(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEIntConvertToFPMask)) {
     case SCVTF_z_p_z_h2fp16:
       VIXL_UNIMPLEMENTED();
       break;
@@ -8070,19 +8201,39 @@ void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEIntBinaryArithmeticPredicated(
+void Simulator::VisitSVEIntAddSubtractVectors_Predicated(
     const Instruction* instr) {
-  USE(instr);
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
   SimVRegister& zm = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   SimVRegister result;
 
-  switch (instr->Mask(SVEIntBinaryArithmeticPredicatedMask)) {
+  switch (instr->Mask(SVEIntAddSubtractVectors_PredicatedMask)) {
     case ADD_z_p_zz:
       add(vform, result, zdn, zm);
       break;
+    case SUBR_z_p_zz:
+      sub(vform, result, zm, zdn);
+      break;
+    case SUB_z_p_zz:
+      sub(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEBitwiseLogical_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEBitwiseLogical_PredicatedMask)) {
     case AND_z_p_zz:
       SVEBitwiseLogicalUnpredicatedHelper(AND, vform, result, zdn, zm);
       break;
@@ -8092,54 +8243,29 @@ void Simulator::VisitSVEIntBinaryArithmeticPredicated(
     case EOR_z_p_zz:
       SVEBitwiseLogicalUnpredicatedHelper(EOR, vform, result, zdn, zm);
       break;
-    case MUL_z_p_zz:
-      mul(vform, result, zdn, zm);
-      break;
     case ORR_z_p_zz:
       SVEBitwiseLogicalUnpredicatedHelper(ORR, vform, result, zdn, zm);
       break;
-    case SABD_z_p_zz:
-      absdiff(vform, result, zdn, zm, true);
+    default:
+      VIXL_UNIMPLEMENTED();
       break;
-    case SDIVR_z_p_zz:
-      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
-      sdiv(vform, result, zm, zdn);
-      break;
-    case SDIV_z_p_zz:
-      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
-      sdiv(vform, result, zdn, zm);
-      break;
-    case SMAX_z_p_zz:
-      smax(vform, result, zdn, zm);
-      break;
-    case SMIN_z_p_zz:
-      smin(vform, result, zdn, zm);
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMulVectors_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEIntMulVectors_PredicatedMask)) {
+    case MUL_z_p_zz:
+      mul(vform, result, zdn, zm);
       break;
     case SMULH_z_p_zz:
       smulh(vform, result, zdn, zm);
-      break;
-    case SUBR_z_p_zz:
-      sub(vform, result, zm, zdn);
-      break;
-    case SUB_z_p_zz:
-      sub(vform, result, zdn, zm);
-      break;
-    case UABD_z_p_zz:
-      absdiff(vform, result, zdn, zm, false);
-      break;
-    case UDIVR_z_p_zz:
-      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
-      udiv(vform, result, zm, zdn);
-      break;
-    case UDIV_z_p_zz:
-      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
-      udiv(vform, result, zdn, zm);
-      break;
-    case UMAX_z_p_zz:
-      umax(vform, result, zdn, zm);
-      break;
-    case UMIN_z_p_zz:
-      umin(vform, result, zdn, zm);
       break;
     case UMULH_z_p_zz:
       umulh(vform, result, zdn, zm);
@@ -8151,68 +8277,178 @@ void Simulator::VisitSVEIntBinaryArithmeticPredicated(
   mov_merging(vform, zdn, pg, result);
 }
 
-void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
-  USE(instr);
+void Simulator::VisitSVEIntMinMaxDifference_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEIntMinMaxDifference_PredicatedMask)) {
+    case SABD_z_p_zz:
+      absdiff(vform, result, zdn, zm, true);
+      break;
+    case SMAX_z_p_zz:
+      smax(vform, result, zdn, zm);
+      break;
+    case SMIN_z_p_zz:
+      smin(vform, result, zdn, zm);
+      break;
+    case UABD_z_p_zz:
+      absdiff(vform, result, zdn, zm, false);
+      break;
+    case UMAX_z_p_zz:
+      umax(vform, result, zdn, zm);
+      break;
+    case UMIN_z_p_zz:
+      umin(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMulImm_Unpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+
+  switch (instr->Mask(SVEIntMulImm_UnpredicatedMask)) {
+    case MUL_z_zi:
+      dup_immediate(vform, scratch, instr->GetImmSVEIntWideSigned());
+      mul(vform, zd, zd, scratch);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntDivideVectors_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
+
+  switch (instr->Mask(SVEIntDivideVectors_PredicatedMask)) {
+    case SDIVR_z_p_zz:
+      sdiv(vform, result, zm, zdn);
+      break;
+    case SDIV_z_p_zz:
+      sdiv(vform, result, zdn, zm);
+      break;
+    case UDIVR_z_p_zz:
+      udiv(vform, result, zm, zdn);
+      break;
+    case UDIV_z_p_zz:
+      udiv(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMinMaxImm_Unpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+
+  uint64_t unsigned_imm = instr->GetImmSVEIntWideUnsigned();
+  int64_t signed_imm = instr->GetImmSVEIntWideSigned();
+
+  switch (instr->Mask(SVEIntMinMaxImm_UnpredicatedMask)) {
+    case SMAX_z_zi:
+      dup_immediate(vform, scratch, signed_imm);
+      smax(vform, zd, zd, scratch);
+      break;
+    case SMIN_z_zi:
+      dup_immediate(vform, scratch, signed_imm);
+      smin(vform, zd, zd, scratch);
+      break;
+    case UMAX_z_zi:
+      dup_immediate(vform, scratch, unsigned_imm);
+      umax(vform, zd, zd, scratch);
+      break;
+    case UMIN_z_zi:
+      dup_immediate(vform, scratch, unsigned_imm);
+      umin(vform, zd, zd, scratch);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntCompareScalarCountAndLimit(
+    const Instruction* instr) {
   unsigned rn_code = instr->GetRn();
   unsigned rm_code = instr->GetRm();
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  bool is_64_bit = instr->ExtractBit(12) == 1;
+  int64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
+  int64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
 
-  if (instr->Mask(SVEIntCompareCountAndLimitScalarsFMask) ==
-      SVEIntCompareCountAndLimitScalarsFixed) {
-    SimPRegister& pd = ReadPRegister(instr->GetPd());
-    VectorFormat vform = instr->GetSVEVectorFormat();
-    bool is_64_bit = instr->ExtractBit(12) == 1;
-    int64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
-    int64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
-
-    bool last = true;
-    for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
-      bool cond = false;
-      switch (instr->Mask(SVEIntCompareCountAndLimitScalarsMask)) {
-        case WHILELT_p_p_rr:
-          cond = src1 < src2;
-          break;
-        case WHILELE_p_p_rr:
-          cond = src1 <= src2;
-          break;
-        case WHILELO_p_p_rr:
-          cond = static_cast<uint64_t>(src1) < static_cast<uint64_t>(src2);
-          break;
-        case WHILELS_p_p_rr:
-          cond = static_cast<uint64_t>(src1) <= static_cast<uint64_t>(src2);
-          break;
-        default:
-          VIXL_UNIMPLEMENTED();
-          break;
-      }
-      last = last && cond;
-      LogicPRegister dst(pd);
-      dst.SetActive(vform, lane, last);
-      src1 += 1;
-    }
-
-    PredTest(vform, GetPTrue(), pd);
-  } else {
-    VIXL_ASSERT(instr->Mask(SVEIntCompareCondTerminateScalarsFMask) ==
-                SVEIntCompareCondTerminateScalarsFixed);
-    bool is_64_bit = instr->ExtractBit(22) == 1;
-    uint64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
-    uint64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
-    bool term;
-    switch (instr->Mask(SVEIntCompareCondTerminateScalarsMask)) {
-      case CTERMEQ_rr:
-        term = src1 == src2;
+  bool last = true;
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    bool cond = false;
+    switch (instr->Mask(SVEIntCompareScalarCountAndLimitMask)) {
+      case WHILELE_p_p_rr:
+        cond = src1 <= src2;
         break;
-      case CTERMNE_rr:
-        term = src1 != src2;
+      case WHILELO_p_p_rr:
+        cond = static_cast<uint64_t>(src1) < static_cast<uint64_t>(src2);
+        break;
+      case WHILELS_p_p_rr:
+        cond = static_cast<uint64_t>(src1) <= static_cast<uint64_t>(src2);
+        break;
+      case WHILELT_p_p_rr:
+        cond = src1 < src2;
         break;
       default:
-        term = false;
         VIXL_UNIMPLEMENTED();
         break;
     }
-    ReadNzcv().SetN(term ? 1 : 0);
-    ReadNzcv().SetV(term ? 0 : !ReadC());
+    last = last && cond;
+    LogicPRegister dst(pd);
+    dst.SetActive(vform, lane, last);
+    src1 += 1;
   }
+
+  PredTest(vform, GetPTrue(), pd);
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::VisitSVEConditionallyTerminateScalars(
+    const Instruction* instr) {
+  unsigned rn_code = instr->GetRn();
+  unsigned rm_code = instr->GetRm();
+  bool is_64_bit = instr->ExtractBit(22) == 1;
+  uint64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
+  uint64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+  bool term;
+  switch (instr->Mask(SVEConditionallyTerminateScalarsMask)) {
+    case CTERMEQ_rr:
+      term = src1 == src2;
+      break;
+    case CTERMNE_rr:
+      term = src1 != src2;
+      break;
+    default:
+      term = false;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  ReadNzcv().SetN(term ? 1 : 0);
+  ReadNzcv().SetV(term ? 0 : !ReadC());
   LogSystemRegister(NZCV);
 }
 
@@ -8373,19 +8609,36 @@ void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
                              is_wide_elements);
 }
 
-void Simulator::VisitSVEIntMiscUnpredicated(const Instruction* instr) {
+void Simulator::VisitSVEFPExponentialAccelerator(const Instruction* instr) {
   USE(instr);
-
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-
-  switch (instr->Mask(SVEIntMiscUnpredicatedMask)) {
+  switch (instr->Mask(SVEFPExponentialAcceleratorMask)) {
     case FEXPA_z_z:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPTrigSelectCoefficient(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFPTrigSelectCoefficientMask)) {
     case FTSSEL_z_zz:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEConstructivePrefix_Unpredicated(
+    const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  switch (instr->Mask(SVEConstructivePrefix_UnpredicatedMask)) {
     case MOVPRFX_z_z:
       mov(kFormatVnD, zd, zn);  // The lane size is arbitrary.
       // Record the movprfx, so the next ExecuteInstruction() can check it.
@@ -8450,8 +8703,6 @@ void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEMovprfx(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
@@ -8464,6 +8715,7 @@ void Simulator::VisitSVEMovprfx(const Instruction* instr) {
       } else {
         mov_zeroing(vform, zd, pg, zn);
       }
+
       // Record the movprfx, so the next ExecuteInstruction() can check it.
       movprfx_ = instr;
       break;
@@ -8474,8 +8726,6 @@ void Simulator::VisitSVEMovprfx(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIntReduction(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& vd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
@@ -8578,12 +8828,9 @@ void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
   mov_merging(vform, zd, pg, result);
 }
 
-void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {
+void Simulator::VisitSVECopyFPImm_Predicated(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEIntWideImmPredicatedMask)) {
-    case CPY_z_p_i:
-      VIXL_UNIMPLEMENTED();
-      break;
+  switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {
     case FCPY_z_p_i:
       VIXL_UNIMPLEMENTED();
       break;
@@ -8593,48 +8840,64 @@ void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
-  USE(instr);
+void Simulator::VisitSVEIntAddSubtractImm_Unpredicated(
+    const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister scratch;
 
-  int shift = (instr->ExtractBit(13) == 0) ? 0 : 8;
-  uint64_t unsigned_imm = instr->GetImmSVEIntWideUnsigned();
-  int64_t signed_imm = instr->GetImmSVEIntWideSigned();
+  uint64_t imm = instr->GetImmSVEIntWideUnsigned();
+  imm <<= instr->ExtractBit(13) * 8;
 
-  switch (instr->Mask(SVEIntWideImmShiftUnpredicatedMask)) {
+  switch (instr->Mask(SVEIntAddSubtractImm_UnpredicatedMask)) {
     case ADD_z_zi:
-      add_uint(vform, zd, zd, unsigned_imm << shift);
-      return;
-    case DUP_z_i:
-      dup_immediate(vform, zd, signed_imm << shift);
-      return;
+      add_uint(vform, zd, zd, imm);
+      break;
     case SQADD_z_zi:
-      add_uint(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
-      return;
+      add_uint(vform, zd, zd, imm).SignedSaturate(vform);
+      break;
     case SQSUB_z_zi:
-      sub_uint(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
-      return;
+      sub_uint(vform, zd, zd, imm).SignedSaturate(vform);
+      break;
     case SUBR_z_zi:
-      dup_immediate(vform, scratch, unsigned_imm << shift);
+      dup_immediate(vform, scratch, imm);
       sub(vform, zd, scratch, zd);
-      return;
+      break;
     case SUB_z_zi:
-      sub_uint(vform, zd, zd, unsigned_imm << shift);
-      return;
+      sub_uint(vform, zd, zd, imm);
+      break;
     case UQADD_z_zi:
-      add_uint(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
-      return;
+      add_uint(vform, zd, zd, imm).UnsignedSaturate(vform);
+      break;
     case UQSUB_z_zi:
-      sub_uint(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
-      return;
+      sub_uint(vform, zd, zd, imm).UnsignedSaturate(vform);
+      break;
     default:
-      // Pass through.
       break;
   }
+}
 
-  switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
+void Simulator::VisitSVEBroadcastIntImm_Unpredicated(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  int64_t imm = instr->GetImmSVEIntWideSigned();
+  imm <<= instr->ExtractBit(13) * 8;
+
+  switch (instr->Mask(SVEBroadcastIntImm_UnpredicatedMask)) {
+    case DUP_z_i:
+      dup_immediate(instr->GetSVEVectorFormat(), zd, imm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastFPImm_Unpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  switch (instr->Mask(SVEBroadcastFPImm_UnpredicatedMask)) {
     case FDUP_z_i:
       switch (vform) {
         case kFormatVnH:
@@ -8650,25 +8913,28 @@ void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
           VIXL_UNIMPLEMENTED();
       }
       break;
-    case MUL_z_zi:
-      dup_immediate(vform, scratch, signed_imm);
-      mul(vform, zd, zd, scratch);
+    default:
+      VIXL_UNIMPLEMENTED();
       break;
-    case SMAX_z_zi:
-      dup_immediate(vform, scratch, signed_imm);
-      smax(vform, zd, zd, scratch);
+  }
+}
+
+void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(
+      SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
+    case LD1H_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
       break;
-    case SMIN_z_zi:
-      dup_immediate(vform, scratch, signed_imm);
-      smin(vform, zd, zd, scratch);
+    case LD1SH_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
       break;
-    case UMAX_z_zi:
-      dup_immediate(vform, scratch, unsigned_imm);
-      umax(vform, zd, zd, scratch);
+    case LDFF1H_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
       break;
-    case UMIN_z_zi:
-      dup_immediate(vform, scratch, unsigned_imm);
-      umin(vform, zd, zd, scratch);
+    case LDFF1SH_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -8676,320 +8942,564 @@ void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEMem32BitGatherAndUnsizedContiguous(
+void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
     const Instruction* instr) {
   USE(instr);
-  if (instr->Mask(SVEMemUnsizedContiguousLoadPMask) == LDR_p_bi) {
-    SimPRegister& pt = ReadPRegister(instr->GetPt());
-    int pl = GetPredicateLengthInBytes();
-    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
-    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
-    for (int i = 0; i < pl; i++) {
-      pt.Insert(i, Memory::Read<uint8_t>(address + i));
-    }
-    LogPRead(address, instr->GetPt());
-  } else if (instr->Mask(SVEMemUnsizedContiguousLoadZMask) == LDR_z_bi) {
-    SimVRegister& zt = ReadVRegister(instr->GetRt());
-    int vl = GetVectorLengthInBytes();
-    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
-    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
-    for (int i = 0; i < vl; i++) {
-      zt.Insert(i, Memory::Read<uint8_t>(address + i));
-    }
-    LogZRead(address, instr->GetRt());
-  } else {
-    // TODO: This switch doesn't work because the mask needs to vary on a finer
-    // granularity. Early implementations have already been pulled out, but we
-    // need to re-organise the instruction groups.
-    switch (instr->Mask(SVEMem32BitGatherAndUnsizedContiguousMask)) {
-      case LD1B_z_p_ai_s:
-      case LD1B_z_p_bz_s_x32_unscaled:
-      case LD1H_z_p_ai_s:
-      case LD1H_z_p_bz_s_x32_scaled:
-      case LD1H_z_p_bz_s_x32_unscaled:
-      case LD1RB_z_p_bi_u16:
-      case LD1RB_z_p_bi_u32:
-      case LD1RB_z_p_bi_u64:
-      case LD1RB_z_p_bi_u8:
-      case LD1RD_z_p_bi_u64:
-      case LD1RH_z_p_bi_u16:
-      case LD1RH_z_p_bi_u32:
-      case LD1RH_z_p_bi_u64:
-      case LD1RSB_z_p_bi_s16:
-      case LD1RSB_z_p_bi_s32:
-      case LD1RSB_z_p_bi_s64:
-      case LD1RSH_z_p_bi_s32:
-      case LD1RSH_z_p_bi_s64:
-      case LD1RSW_z_p_bi_s64:
-      case LD1RW_z_p_bi_u32:
-      case LD1RW_z_p_bi_u64:
-      case LD1SB_z_p_ai_s:
-      case LD1SB_z_p_bz_s_x32_unscaled:
-      case LD1SH_z_p_ai_s:
-      case LD1SH_z_p_bz_s_x32_scaled:
-      case LD1SH_z_p_bz_s_x32_unscaled:
-      case LD1W_z_p_ai_s:
-      case LD1W_z_p_bz_s_x32_scaled:
-      case LD1W_z_p_bz_s_x32_unscaled:
-      case LDFF1B_z_p_ai_s:
-      case LDFF1B_z_p_bz_s_x32_unscaled:
-      case LDFF1H_z_p_ai_s:
-      case LDFF1H_z_p_bz_s_x32_scaled:
-      case LDFF1H_z_p_bz_s_x32_unscaled:
-      case LDFF1SB_z_p_ai_s:
-      case LDFF1SB_z_p_bz_s_x32_unscaled:
-      case LDFF1SH_z_p_ai_s:
-      case LDFF1SH_z_p_bz_s_x32_scaled:
-      case LDFF1SH_z_p_bz_s_x32_unscaled:
-      case LDFF1W_z_p_ai_s:
-      case LDFF1W_z_p_bz_s_x32_scaled:
-      case LDFF1W_z_p_bz_s_x32_unscaled:
-      case PRFB_i_p_ai_s:
-      case PRFB_i_p_bi_s:
-      case PRFB_i_p_br_s:
-      case PRFB_i_p_bz_s_x32_scaled:
-      case PRFD_i_p_ai_s:
-      case PRFD_i_p_bi_s:
-      case PRFD_i_p_br_s:
-      case PRFD_i_p_bz_s_x32_scaled:
-      case PRFH_i_p_ai_s:
-      case PRFH_i_p_bi_s:
-      case PRFH_i_p_br_s:
-      case PRFH_i_p_bz_s_x32_scaled:
-      case PRFW_i_p_ai_s:
-      case PRFW_i_p_bi_s:
-      case PRFW_i_p_br_s:
-      case PRFW_i_p_bz_s_x32_scaled:
-      default:
-        VIXL_UNIMPLEMENTED();
-        break;
-    }
+  switch (instr->Mask(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask)) {
+    case LD1B_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
   }
-  // TODO: LogRead
 }
 
-void Simulator::VisitSVEMem64BitGather(const Instruction* instr) {
+void Simulator::VisitSVE32BitGatherLoad_VectorPlusImm(
+    const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEMem64BitGatherMask)) {
-    case LD1B_z_p_ai_d:
+  switch (instr->Mask(SVE32BitGatherLoad_VectorPlusImmMask)) {
+    case LD1B_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1B_z_p_bz_d_64_unscaled:
+    case LD1H_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1B_z_p_bz_d_x32_unscaled:
+    case LD1SB_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1D_z_p_ai_d:
+    case LD1SH_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1D_z_p_bz_d_64_scaled:
+    case LD1W_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1D_z_p_bz_d_64_unscaled:
+    case LDFF1B_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
       break;
+    case LDFF1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (
+      instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
+    case LD1W_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (
+      instr->Mask(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsMask)) {
+    case PRFB_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitGatherPrefetch_VectorPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE32BitGatherPrefetch_VectorPlusImmMask)) {
+    case PRFB_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousPrefetch_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusImmMask)) {
+    case PRFB_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_bi_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousPrefetch_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
+    case PRFB_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFW_i_p_br_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadAndBroadcastElement(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVELoadAndBroadcastElementMask)) {
+    case LD1RB_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RB_z_p_bi_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RD_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RH_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RH_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RH_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSB_z_p_bi_s16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSB_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSB_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSH_z_p_bi_s32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSH_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RSW_z_p_bi_s64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RW_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RW_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {
+  switch (instr->Mask(SVELoadPredicateRegisterMask)) {
+    case LDR_p_bi: {
+      SimPRegister& pt = ReadPRegister(instr->GetPt());
+      int pl = GetPredicateLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+      for (int i = 0; i < pl; i++) {
+        pt.Insert(i, Memory::Read<uint8_t>(address + i));
+      }
+      LogPRead(address, instr->GetPt());
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVELoadVectorRegisterMask)) {
+    case LDR_z_bi: {
+      SimVRegister& zt = ReadVRegister(instr->GetRt());
+      int vl = GetVectorLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+      for (int i = 0; i < vl; i++) {
+        zt.Insert(i, Memory::Read<uint8_t>(address + i));
+      }
+      LogZRead(address, instr->GetRt());
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(
+      SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
     case LD1D_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1D_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bz_d_64_unscaled:
       VIXL_UNIMPLEMENTED();
       break;
     case LD1H_z_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1H_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SW_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SW_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SW_z_p_bz_d_64_unscaled:
       VIXL_UNIMPLEMENTED();
       break;
     case LD1SW_z_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1SW_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1D_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1D_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1D_z_p_bz_d_64_unscaled:
       VIXL_UNIMPLEMENTED();
       break;
     case LDFF1D_z_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDFF1D_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1H_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SB_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SB_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SB_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_d_64_unscaled:
       VIXL_UNIMPLEMENTED();
       break;
     case LDFF1SH_z_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDFF1SH_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SW_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_bz_d_64_unscaled:
       VIXL_UNIMPLEMENTED();
       break;
     case LDFF1W_z_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)) {
+    case LD1D_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask)) {
+    case LD1B_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(
+      SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
+    case LD1B_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
     case LDFF1W_z_p_bz_d_x32_unscaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case PRFB_i_p_ai_d:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherLoad_VectorPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE64BitGatherLoad_VectorPlusImmMask)) {
+    case LD1B_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1D_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SW_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1D_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SW_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (
+      instr->Mask(SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsMask)) {
     case PRFB_i_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFB_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFD_i_p_ai_d:
       VIXL_UNIMPLEMENTED();
       break;
     case PRFD_i_p_bz_d_64_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case PRFD_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFH_i_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_bz_d_64_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case PRFH_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case PRFW_i_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::
+    VisitSVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets(
+        const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(
+      SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
+    case PRFB_i_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFD_i_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case PRFH_i_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
     case PRFW_i_p_bz_d_x32_scaled:
@@ -9001,105 +9511,32 @@ void Simulator::VisitSVEMem64BitGather(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
+void Simulator::VisitSVE64BitGatherPrefetch_VectorPlusImm(
+    const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEMemContiguousLoadMask)) {
-    case LD1RQB_z_p_bi_u8:
+  switch (instr->Mask(SVE64BitGatherPrefetch_VectorPlusImmMask)) {
+    case PRFB_i_p_ai_d:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1RQB_z_p_br_contiguous:
+    case PRFD_i_p_ai_d:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1RQD_z_p_bi_u64:
+    case PRFH_i_p_ai_d:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1RQD_z_p_br_contiguous:
+    case PRFW_i_p_ai_d:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1RQH_z_p_bi_u16:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
-    case LD1RQH_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RQW_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RQW_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD2W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD3W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD4W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousFirstFaultLoad_ScalarPlusScalarMask)) {
     case LDFF1B_z_p_br_u16:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9148,6 +9585,16 @@ void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
     case LDFF1W_z_p_br_u64:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousNonFaultLoad_ScalarPlusImmMask)) {
     case LDNF1B_z_p_bi_u16:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9196,25 +9643,45 @@ void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
     case LDNF1W_z_p_bi_u64:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDNT1B_z_p_bi_contiguous:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDNT1B_z_p_br_contiguous:
+  }
+}
+
+void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusImmMask)) {
+    case LDNT1B_z_p_bi_contiguous:
       VIXL_UNIMPLEMENTED();
       break;
     case LDNT1D_z_p_bi_contiguous:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDNT1D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNT1H_z_p_bi_contiguous:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDNT1H_z_p_br_contiguous:
+    case LDNT1W_z_p_bi_contiguous:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDNT1W_z_p_bi_contiguous:
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusScalarMask)) {
+    case LDNT1B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDNT1H_z_p_br_contiguous:
       VIXL_UNIMPLEMENTED();
       break;
     case LDNT1W_z_p_br_contiguous:
@@ -9226,125 +9693,549 @@ void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEMemStore(const Instruction* instr) {
+void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
+    const Instruction* instr) {
   USE(instr);
-  if (instr->Mask(SVEMemStorePMask) == STR_p_bi) {
-    SimPRegister& pt = ReadPRegister(instr->GetPt());
-    int pl = GetPredicateLengthInBytes();
-    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
-    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
-    for (int i = 0; i < pl; i++) {
-      Memory::Write(address + i, pt.GetLane<uint8_t>(i));
-    }
-    LogPWrite(address, instr->GetPt());
-  } else if (instr->Mask(SVEMemStoreZMask) == STR_z_bi) {
-    SimVRegister& zt = ReadVRegister(instr->GetRt());
-    int vl = GetVectorLengthInBytes();
-    int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
-    uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-    uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
-    for (int i = 0; i < vl; i++) {
-      Memory::Write(address + i, zt.GetLane<uint8_t>(i));
-    }
-    LogZWrite(address, instr->GetRt());
-  } else if (instr->Mask(SVEContiguousStore_ScalarPlusImmediateFMask) ==
-             SVEContiguousStore_ScalarPlusImmediateFixed) {
-    // ST1B_z_p_bi, ST1H_z_p_bi, ST1S_z_p_bi, ST1D_z_p_bi
-    int vl = GetVectorLengthInBytes();
-    uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
-    VectorFormat vform =
-        SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
-    LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
-    SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
-                             vform,
-                             ReadPRegister(instr->GetPgLow8()),
-                             instr->GetRt(),
-                             1,
-                             addr);
-  } else if (instr->Mask(SVEContiguousStore_ScalarPlusScalarFMask) ==
-             SVEContiguousStore_ScalarPlusScalarFixed) {
-    // ST1B_z_p_br, ST1H_z_p_br, ST1S_z_p_br, ST1D_z_p_br
-    uint64_t offset = ReadXRegister(instr->GetRm());
-    offset <<= instr->ExtractBits(24, 23);
-    VectorFormat vform =
-        SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
-    LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
-    SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
-                             vform,
-                             ReadPRegister(instr->GetPgLow8()),
-                             instr->GetRt(),
-                             1,
-                             addr);
-  } else {
-    // TODO: This switch doesn't work because the mask needs to vary on a finer
-    // granularity. Early implementations have already been pulled out, but we
-    // need to re-organise the instruction groups.
-    switch (instr->Mask(SVEMemStoreMask)) {
-      case ST1B_z_p_ai_d:
-      case ST1B_z_p_ai_s:
-      case ST1B_z_p_bz_d_64_unscaled:
-      case ST1B_z_p_bz_d_x32_unscaled:
-      case ST1B_z_p_bz_s_x32_unscaled:
-      case ST1D_z_p_ai_d:
-      case ST1D_z_p_bz_d_64_scaled:
-      case ST1D_z_p_bz_d_64_unscaled:
-      case ST1D_z_p_bz_d_x32_scaled:
-      case ST1D_z_p_bz_d_x32_unscaled:
-      case ST1H_z_p_ai_d:
-      case ST1H_z_p_ai_s:
-      case ST1H_z_p_bz_d_64_scaled:
-      case ST1H_z_p_bz_d_64_unscaled:
-      case ST1H_z_p_bz_d_x32_scaled:
-      case ST1H_z_p_bz_d_x32_unscaled:
-      case ST1H_z_p_bz_s_x32_scaled:
-      case ST1H_z_p_bz_s_x32_unscaled:
-      case ST1W_z_p_ai_d:
-      case ST1W_z_p_ai_s:
-      case ST1W_z_p_bz_d_64_scaled:
-      case ST1W_z_p_bz_d_64_unscaled:
-      case ST1W_z_p_bz_d_x32_scaled:
-      case ST1W_z_p_bz_d_x32_unscaled:
-      case ST1W_z_p_bz_s_x32_scaled:
-      case ST1W_z_p_bz_s_x32_unscaled:
-      case ST2B_z_p_bi_contiguous:
-      case ST2B_z_p_br_contiguous:
-      case ST2D_z_p_bi_contiguous:
-      case ST2D_z_p_br_contiguous:
-      case ST2H_z_p_bi_contiguous:
-      case ST2H_z_p_br_contiguous:
-      case ST2W_z_p_bi_contiguous:
-      case ST2W_z_p_br_contiguous:
-      case ST3B_z_p_bi_contiguous:
-      case ST3B_z_p_br_contiguous:
-      case ST3D_z_p_bi_contiguous:
-      case ST3D_z_p_br_contiguous:
-      case ST3H_z_p_bi_contiguous:
-      case ST3H_z_p_br_contiguous:
-      case ST3W_z_p_bi_contiguous:
-      case ST3W_z_p_br_contiguous:
-      case ST4B_z_p_bi_contiguous:
-      case ST4B_z_p_br_contiguous:
-      case ST4D_z_p_bi_contiguous:
-      case ST4D_z_p_br_contiguous:
-      case ST4H_z_p_bi_contiguous:
-      case ST4H_z_p_br_contiguous:
-      case ST4W_z_p_bi_contiguous:
-      case ST4W_z_p_br_contiguous:
-      case STNT1B_z_p_bi_contiguous:
-      case STNT1B_z_p_br_contiguous:
-      case STNT1D_z_p_bi_contiguous:
-      case STNT1D_z_p_br_contiguous:
-      case STNT1H_z_p_bi_contiguous:
-      case STNT1H_z_p_br_contiguous:
-      case STNT1W_z_p_bi_contiguous:
-      case STNT1W_z_p_br_contiguous:
-      default:
-        VIXL_UNIMPLEMENTED();
-        break;
-    }
+  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
+    case LD1RQB_z_p_bi_u8:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQD_z_p_bi_u64:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQH_z_p_bi_u16:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQW_z_p_bi_u32:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
   }
-  // TODO: LogWrite
+}
+
+void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
+    case LD1RQB_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQD_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQH_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1RQW_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
+    case LD2B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadMultipleStructures_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusScalarMask)) {
+    case LD2B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD2W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD3W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD4W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
+    case ST1H_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_s_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (
+      instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
+    case ST1B_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitScatterStore_VectorPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE32BitScatterStore_VectorPlusImmMask)) {
+    case ST1B_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
+    case ST1D_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_64_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (
+      instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
+    case ST1B_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(
+      SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
+    case ST1D_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_x32_scaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::
+    VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets(
+        const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(
+      SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
+    case ST1B_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_bz_d_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_VectorPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVE64BitScatterStore_VectorPlusImmMask)) {
+    case ST1B_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1D_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1H_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST1W_z_p_ai_d:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusImmMask)) {
+    case STNT1B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusScalarMask)) {
+    case STNT1B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case STNT1W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousStore_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousStore_ScalarPlusImmMask)) {
+    case ST1B_z_p_bi:
+    case ST1D_z_p_bi:
+    case ST1H_z_p_bi:
+    case ST1W_z_p_bi: {
+      int vl = GetVectorLengthInBytes();
+      uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+      VectorFormat vform =
+          SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
+      LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+      SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
+                               vform,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               1,
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousStore_ScalarPlusScalar(
+    const Instruction* instr) {
+  switch (instr->Mask(SVEContiguousStore_ScalarPlusScalarMask)) {
+    case ST1B_z_p_br:
+    case ST1D_z_p_br:
+    case ST1H_z_p_br:
+    case ST1W_z_p_br: {
+      uint64_t offset = ReadXRegister(instr->GetRm());
+      offset <<= instr->ExtractBits(24, 23);
+      VectorFormat vform =
+          SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
+      LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+      SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
+                               vform,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               1,
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVECopySIMDFPScalarRegisterToVector_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister z_result;
+
+  switch (instr->Mask(SVECopySIMDFPScalarRegisterToVector_PredicatedMask)) {
+    case CPY_z_p_v:
+      dup_element(vform, z_result, ReadVRegister(instr->GetRn()), 0);
+      mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStoreMultipleStructures_ScalarPlusImm(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusImmMask)) {
+    case ST2B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4B_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4D_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4H_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4W_z_p_bi_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStoreMultipleStructures_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusScalarMask)) {
+    case ST2B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST2W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST3W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4B_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4D_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4H_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case ST4W_z_p_br_contiguous:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStorePredicateRegister(const Instruction* instr) {
+  switch (instr->Mask(SVEStorePredicateRegisterMask)) {
+    case STR_p_bi: {
+      SimPRegister& pt = ReadPRegister(instr->GetPt());
+      int pl = GetPredicateLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+      for (int i = 0; i < pl; i++) {
+        Memory::Write(address + i, pt.GetLane<uint8_t>(i));
+      }
+      LogPWrite(address, instr->GetPt());
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStoreVectorRegister(const Instruction* instr) {
+  switch (instr->Mask(SVEStoreVectorRegisterMask)) {
+    case STR_z_bi: {
+      SimVRegister& zt = ReadVRegister(instr->GetRt());
+      int vl = GetVectorLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+      for (int i = 0; i < vl; i++) {
+        Memory::Write(address + i, zt.GetLane<uint8_t>(i));
+      }
+      LogZWrite(address, instr->GetRt());
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 void Simulator::VisitSVEMulIndex(const Instruction* instr) {
@@ -9368,9 +10259,9 @@ void Simulator::VisitSVEMulIndex(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEPartitionBreak(const Instruction* instr) {
+void Simulator::VisitSVEPartitionBreakCondition(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEPartitionBreakMask)) {
+  switch (instr->Mask(SVEPartitionBreakConditionMask)) {
     case BRKAS_p_p_p_z:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9383,6 +10274,16 @@ void Simulator::VisitSVEPartitionBreak(const Instruction* instr) {
     case BRKB_p_p_p:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPropagateBreakToNextPartition(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEPropagateBreakToNextPartitionMask)) {
     case BRKNS_p_p_pp:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9395,18 +10296,24 @@ void Simulator::VisitSVEPartitionBreak(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEPermutePredicate(const Instruction* instr) {
+void Simulator::VisitSVEUnpackPredicateElements(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEPermutePredicateMask)) {
+  switch (instr->Mask(SVEUnpackPredicateElementsMask)) {
     case PUNPKHI_p_p:
       VIXL_UNIMPLEMENTED();
       break;
     case PUNPKLO_p_p:
       VIXL_UNIMPLEMENTED();
       break;
-    case REV_p_p:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+}
+
+void Simulator::VisitSVEPermutePredicateElements(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEPermutePredicateElementsMask)) {
     case TRN1_p_pp:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9423,6 +10330,18 @@ void Simulator::VisitSVEPermutePredicate(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case ZIP2_p_pp:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEReversePredicateElements(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEReversePredicateElementsMask)) {
+    case REV_p_p:
       VIXL_UNIMPLEMENTED();
       break;
     default:
@@ -9470,55 +10389,132 @@ void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
+void Simulator::VisitSVEConditionallyBroadcastElementToVector(
+    const Instruction* instr) {
   USE(instr);
-
-  VectorFormat vform = instr->GetSVEVectorFormat();
-
-  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  SimVRegister z_result;
-
-  switch (instr->Mask(SVEPermuteVectorPredicatedMask)) {
-    case CLASTA_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CLASTA_v_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
+  switch (instr->Mask(SVEConditionallyBroadcastElementToVectorMask)) {
     case CLASTA_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CLASTB_r_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case CLASTB_v_p_z:
       VIXL_UNIMPLEMENTED();
       break;
     case CLASTB_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEConditionallyExtractElementToSIMDFPScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEConditionallyExtractElementToSIMDFPScalarMask)) {
+    case CLASTA_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTB_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEConditionallyExtractElementToGeneralRegister(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEConditionallyExtractElementToGeneralRegisterMask)) {
+    case CLASTA_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case CLASTB_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEExtractElementToSIMDFPScalarRegister(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEExtractElementToSIMDFPScalarRegisterMask)) {
+    case LASTA_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LASTB_v_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEExtractElementToGeneralRegister(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEExtractElementToGeneralRegisterMask)) {
+    case LASTA_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LASTB_r_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVECompressActiveElements(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVECompressActiveElementsMask)) {
+    case COMPACT_z_p_z:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVECopyGeneralRegisterToVector_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister z_result;
+
+  switch (instr->Mask(SVECopyGeneralRegisterToVector_PredicatedMask)) {
     case CPY_z_p_r:
       dup_immediate(vform,
                     z_result,
                     ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
       mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
       break;
-    case CPY_z_p_v:
-      dup_element(vform, z_result, ReadVRegister(instr->GetRn()), 0);
-      mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
-      break;
-    case LASTA_r_p_z:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
-    case LASTA_v_p_z:
+  }
+}
+
+void Simulator::VisitSVECopyIntImm_Predicated(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVECopyIntImm_PredicatedMask)) {
+    case CPY_z_p_i:
       VIXL_UNIMPLEMENTED();
       break;
-    case LASTB_r_p_z:
+    default:
       VIXL_UNIMPLEMENTED();
       break;
-    case LASTB_v_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
+  }
+}
+
+void Simulator::VisitSVEReverseWithinElements(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEReverseWithinElementsMask)) {
     case RBIT_z_p_z:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9531,25 +10527,67 @@ void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
     case REVW_z_z:
       VIXL_UNIMPLEMENTED();
       break;
-    case SPLICE_z_p_zz_des:
-      VIXL_UNIMPLEMENTED();
-      break;
     default:
-      // Handle oddballs.
-      if (instr->Mask(SVEPermuteVectorPredicated_CompactMask) ==
-          COMPACT_z_p_z) {
-      } else {
-        VIXL_UNIMPLEMENTED();
-      }
+      VIXL_UNIMPLEMENTED();
       break;
   }
 }
 
-void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
+void Simulator::VisitSVEVectorSplice_Destructive(const Instruction* instr) {
   USE(instr);
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVEVectorSplice_DestructiveMask)) {
+    case SPLICE_z_p_zz_des:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
 
-  switch (instr->Mask(SVEPermuteVectorUnpredicatedDupTBLMask)) {
+void Simulator::VisitSVEBroadcastGeneralRegister(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVEBroadcastGeneralRegisterMask)) {
+    case DUP_z_r:
+      dup_immediate(instr->GetSVEVectorFormat(),
+                    zd,
+                    ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEInsertSIMDFPScalarRegister(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEInsertSIMDFPScalarRegisterMask)) {
+    case INSR_z_v:
+      insr(vform, zd, ReadDRegisterBits(instr->GetRn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEInsertGeneralRegister(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEInsertGeneralRegisterMask)) {
+    case INSR_z_r:
+      insr(vform, zd, ReadXRegister(instr->GetRn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastIndexElement(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVEBroadcastIndexElementMask)) {
     case DUP_z_zi: {
       std::pair<int, int> index_and_lane_size =
           instr->GetSVEPermuteIndexAndLaneSizeLog2();
@@ -9565,32 +10603,29 @@ void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
       }
       return;
     }
-    case TBL_z_zz_1:
-      Table(instr->GetSVEVectorFormat(),
-            zd,
-            ReadVRegister(instr->GetRn()),
-            ReadVRegister(instr->GetRm()));
-      return;
     default:
+      VIXL_UNIMPLEMENTED();
       break;
   }
+}
 
+void Simulator::VisitSVEReverseVectorElements(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
   VectorFormat vform = instr->GetSVEVectorFormat();
-  switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
-    case DUP_z_r:
-      dup_immediate(vform,
-                    zd,
-                    ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
-      break;
-    case INSR_z_r:
-      insr(vform, zd, ReadXRegister(instr->GetRn()));
-      break;
-    case INSR_z_v:
-      insr(vform, zd, ReadDRegisterBits(instr->GetRn()));
-      break;
+  switch (instr->Mask(SVEReverseVectorElementsMask)) {
     case REV_z_z:
       rev(vform, zd, ReadVRegister(instr->GetRn()));
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEUnpackVectorElements(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEUnpackVectorElementsMask)) {
     case SUNPKHI_z_z:
       unpk(vform, zd, ReadVRegister(instr->GetRn()), kHiHalf, kSignedExtend);
       break;
@@ -9603,13 +10638,22 @@ void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
     case UUNPKLO_z_z:
       unpk(vform, zd, ReadVRegister(instr->GetRn()), kLoHalf, kUnsignedExtend);
       break;
-    case TBL_z_zz_1:
-    case DUP_z_zi:
-      // Should be handled above.
-      VIXL_UNREACHABLE();
-      break;
     default:
       VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVETableLookup(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVETableLookupMask)) {
+    case TBL_z_zz_1:
+      Table(instr->GetSVEVectorFormat(),
+            zd,
+            ReadVRegister(instr->GetRn()),
+            ReadVRegister(instr->GetRm()));
+      return;
+    default:
       break;
   }
 }
@@ -9632,9 +10676,8 @@ void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEPredicateLogicalOp(const Instruction* instr) {
-  USE(instr);
-  Instr op = instr->Mask(SVEPredicateLogicalOpMask);
+void Simulator::VisitSVEPredicateLogical(const Instruction* instr) {
+  Instr op = instr->Mask(SVEPredicateLogicalMask);
   switch (op) {
     case ANDS_p_p_pp_z:
     case AND_p_p_pp_z:
@@ -9788,33 +10831,35 @@ void Simulator::VisitSVEPropagateBreak(const Instruction* instr) {
   }
 }
 
-void Simulator::VisitSVEStackAllocation(const Instruction* instr) {
-  USE(instr);
-
-  int64_t scale = instr->GetImmSVEVLScale();
-  switch (instr->Mask(SVEStackAllocationSizeMask)) {
-    case RDVL_r_i:  // Rd = VL * scale
-      WriteXRegister(instr->GetRd(), GetVectorLengthInBytes() * scale);
-      return;
+void Simulator::VisitSVEStackFrameAdjustment(const Instruction* instr) {
+  uint64_t length = 0;
+  switch (instr->Mask(SVEStackFrameAdjustmentMask)) {
+    case ADDPL_r_ri:
+      length = GetPredicateLengthInBytes();
+      break;
+    case ADDVL_r_ri:
+      length = GetVectorLengthInBytes();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
   }
-
   uint64_t base = ReadXRegister(instr->GetRm(), Reg31IsStackPointer);
-  switch (instr->Mask(SVEStackAllocationMask)) {
-    case ADDPL_r_ri:  // Rd = Rn + (PL * scale)
-      WriteXRegister(instr->GetRd(),
-                     base + (GetPredicateLengthInBytes() * scale),
-                     LogRegWrites,
-                     Reg31IsStackPointer);
-      return;
-    case ADDVL_r_ri:  // Rd = Rn + (VL * scale)
-      WriteXRegister(instr->GetRd(),
-                     base + (GetVectorLengthInBytes() * scale),
-                     LogRegWrites,
-                     Reg31IsStackPointer);
-      return;
-  }
+  WriteXRegister(instr->GetRd(),
+                 base + (length * instr->GetImmSVEVLScale()),
+                 LogRegWrites,
+                 Reg31IsStackPointer);
+}
 
-  VIXL_UNIMPLEMENTED();
+void Simulator::VisitSVEStackFrameSize(const Instruction* instr) {
+  int64_t scale = instr->GetImmSVEVLScale();
+
+  switch (instr->Mask(SVEStackFrameSizeMask)) {
+    case RDVL_r_i:
+      WriteXRegister(instr->GetRd(), GetVectorLengthInBytes() * scale);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
 }
 
 void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
@@ -9833,12 +10878,21 @@ void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
   sel(vform, zd, pg, zn, zm);
 }
 
-void Simulator::VisitSVEWriteFFR(const Instruction* instr) {
+void Simulator::VisitSVEFFRInitialise(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEWriteFFRMask)) {
+  switch (instr->Mask(SVEFFRInitialiseMask)) {
     case SETFFR_f:
       VIXL_UNIMPLEMENTED();
       break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFFRWriteFromPredicate(const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEFFRWriteFromPredicateMask)) {
     case WRFFR_f_p:
       VIXL_UNIMPLEMENTED();
       break;

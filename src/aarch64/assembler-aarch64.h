@@ -7013,9 +7013,7 @@ class Assembler : public vixl::internal::AssemblerBase {
                const PRegister& pm,
                SVEPredicateLogicalOp op);
 
-  void SVELogicalImmediate(const ZRegister& zd,
-                           uint64_t imm,
-                           SVEBitwiseImmOp op);
+  void SVELogicalImmediate(const ZRegister& zd, uint64_t imm, Instr op);
 
   void LogicalImmediate(const Register& rd,
                         const Register& rn,
@@ -7054,10 +7052,11 @@ class Assembler : public vixl::internal::AssemblerBase {
                       unsigned imm,
                       SVEIntCompareUnsignedImmOp op);
 
-  void SVEIntWideImmUnpredicatedHelper(SVEIntWideImmUnpredicatedOp op,
-                                       const ZRegister& zd,
-                                       int imm8,
-                                       int shift);
+  void SVEIntAddSubtractImmUnpredicatedHelper(
+      SVEIntAddSubtractImm_UnpredicatedOp op,
+      const ZRegister& zd,
+      int imm8,
+      int shift);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

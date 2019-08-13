@@ -71,6 +71,8 @@ static void CheckAndMaybeDisassembleMovprfxPairs(const CodeBuffer* buffer,
   VIXL_CHECK(!any_failures);
 }
 
+// Disable some movprfx tests until CanTakeSVEMovprfx() is updated.
+#if 0
 TEST(movprfx_negative_aliasing) {
   // Test that CanTakeSVEMovprfx() checks that the movprfx destination does not
   // alias an input to the prefixed instruction.
@@ -1427,6 +1429,7 @@ TEST(movprfx_negative_predication_fp) {
 
   CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), false);
 }
+#endif
 
 TEST(movprfx_positive) {
   Assembler assm;

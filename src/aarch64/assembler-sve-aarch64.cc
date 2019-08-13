@@ -49,7 +49,7 @@ void Assembler::adr(const ZRegister& zd,
 
 void Assembler::SVELogicalImmediate(const ZRegister& zdn,
                                     uint64_t imm,
-                                    SVEBitwiseImmOp op) {
+                                    Instr op) {
   unsigned bit_n, imm_s, imm_r;
   unsigned lane_size = zdn.GetLaneSizeInBits();
   // Check that the immediate can be encoded in the instruction.
@@ -70,6 +70,9 @@ void Assembler::and_(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
 
 void Assembler::dupm(const ZRegister& zd, uint64_t imm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  // DUPM_z_i is an SVEBroadcastBitmaskImmOp, but its encoding and constraints
+  // are similar enough to SVEBitwiseLogicalWithImm_UnpredicatedOp, that we can
+  // use the logical immediate encoder to get the correct behaviour.
   SVELogicalImmediate(zd, imm, DUPM_z_i);
 }
 
@@ -3794,12 +3797,13 @@ void Assembler::fcpy(const ZRegister& zd, const PRegisterM& pg) {
   Emit(FCPY_z_p_i | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg));
 }
 
-// SVEIntWideImmUnpredicated.
+// SVEIntAddSubtractImmUnpredicated.
 
-void Assembler::SVEIntWideImmUnpredicatedHelper(SVEIntWideImmUnpredicatedOp op,
-                                                const ZRegister& zd,
-                                                int imm8,
-                                                int shift) {
+void Assembler::SVEIntAddSubtractImmUnpredicatedHelper(
+    SVEIntAddSubtractImm_UnpredicatedOp op,
+    const ZRegister& zd,
+    int imm8,
+    int shift) {
   if (shift < 0) {
     VIXL_ASSERT(shift == -1);
     // Derive the shift amount from the immediate.
@@ -3831,7 +3835,7 @@ void Assembler::add(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(ADD_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(ADD_z_zi, zd, imm8, shift);
 }
 
 void Assembler::dup(const ZRegister& zd, int imm8, int shift) {
@@ -3947,7 +3951,7 @@ void Assembler::sqadd(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(SQADD_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(SQADD_z_zi, zd, imm8, shift);
 }
 
 void Assembler::sqsub(const ZRegister& zd,
@@ -3963,7 +3967,7 @@ void Assembler::sqsub(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(SQSUB_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(SQSUB_z_zi, zd, imm8, shift);
 }
 
 void Assembler::sub(const ZRegister& zd,
@@ -3979,7 +3983,7 @@ void Assembler::sub(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(SUB_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(SUB_z_zi, zd, imm8, shift);
 }
 
 void Assembler::subr(const ZRegister& zd,
@@ -3995,7 +3999,7 @@ void Assembler::subr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(SUBR_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(SUBR_z_zi, zd, imm8, shift);
 }
 
 void Assembler::umax(const ZRegister& zd, const ZRegister& zn, int imm8) {
@@ -4037,7 +4041,7 @@ void Assembler::uqadd(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(UQADD_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(UQADD_z_zi, zd, imm8, shift);
 }
 
 void Assembler::uqsub(const ZRegister& zd,
@@ -4053,7 +4057,7 @@ void Assembler::uqsub(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  SVEIntWideImmUnpredicatedHelper(UQSUB_z_zi, zd, imm8, shift);
+  SVEIntAddSubtractImmUnpredicatedHelper(UQSUB_z_zi, zd, imm8, shift);
 }
 
 // SVEMemLoad.
@@ -4255,7 +4259,10 @@ void Assembler::ldr(const CPURegister& rt, const SVEMemOperand& addr) {
   Instr imm9l = ExtractUnsignedBitfield32(2, 0, imm9) << 10;
   Instr imm9h = ExtractUnsignedBitfield32(8, 3, imm9) << 16;
 
-  Instr op = rt.IsPRegister() ? LDR_p_bi : LDR_z_bi;
+  Instr op = LDR_z_bi;
+  if (rt.IsPRegister()) {
+    op = LDR_p_bi;
+  }
   Emit(op | Rt(rt) | RnSP(addr.GetScalarBase()) | imm9h | imm9l);
 }
 
@@ -6718,7 +6725,10 @@ void Assembler::str(const CPURegister& rt, const SVEMemOperand& addr) {
   Instr imm9l = ExtractUnsignedBitfield32(2, 0, imm9) << 10;
   Instr imm9h = ExtractUnsignedBitfield32(8, 3, imm9) << 16;
 
-  Instr op = rt.IsPRegister() ? STR_p_bi : STR_z_bi;
+  Instr op = STR_z_bi;
+  if (rt.IsPRegister()) {
+    op = STR_p_bi;
+  }
   Emit(op | Rt(rt) | RnSP(addr.GetScalarBase()) | imm9h | imm9l);
 }
 
@@ -7720,7 +7730,7 @@ void Assembler::brkpbs(const PRegisterWithLaneSize& pd,
   Emit(BRKPBS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
 }
 
-// SVEStackAllocation.
+// SVEStackFrameAdjustment.
 
 void Assembler::addpl(const Register& xd, const Register& xn, int imm6) {
   // ADDPL <Xd|SP>, <Xn|SP>, #<imm>
@@ -7745,6 +7755,8 @@ void Assembler::addvl(const Register& xd, const Register& xn, int imm6) {
 
   Emit(ADDVL_r_ri | RdSP(xd) | RmSP(xn) | ImmField<10, 5>(imm6));
 }
+
+// SVEStackFrameSize.
 
 void Assembler::rdvl(const Register& xd, int imm6) {
   // RDVL <Xd>, #<imm>

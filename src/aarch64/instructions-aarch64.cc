@@ -46,44 +46,53 @@ static uint64_t RepeatBitsAcrossReg(unsigned reg_size,
 
 
 bool Instruction::CanTakeSVEMovprfx(Instruction const* movprfx) const {
-  bool movprfx_is_predicated = (movprfx->Mask(SVEMovprfxMask) == MOVPRFX_z_p_z);
-  bool movprfx_is_unpredicated =
-      (movprfx->Mask(SVEIntMiscUnpredicatedMask) == MOVPRFX_z_z);
+  USE(movprfx);
+  // TODO: This code depends on some instruction enumerations that are no
+  // longer defined. Fix and re-enable tests.
 
-  VIXL_ASSERT(movprfx_is_predicated != movprfx_is_unpredicated);
+  /*
+    bool movprfx_is_predicated = (movprfx->Mask(SVEMovprfxMask) ==
+  MOVPRFX_z_p_z);
+    bool movprfx_is_unpredicated =
+        (movprfx->Mask(SVEIntMiscUnpredicatedMask) == MOVPRFX_z_z);
 
-  int32_t zd = movprfx->GetRd();
-  int32_t pg = movprfx_is_predicated ? movprfx->GetPgLow8() : -1;
-  VectorFormat vector_format =
-      movprfx_is_predicated ? movprfx->GetSVEVectorFormat() : kFormatUndefined;
+    VIXL_ASSERT(movprfx_is_predicated != movprfx_is_unpredicated);
 
-  bool pg_19_16_mismatch = (static_cast<uint32_t>(pg) != ExtractBits(19, 16));
-  bool pg_mismatch = (pg != GetPgLow8());
-  bool zd_is_not_zm = (zd != GetRm());
-  bool zd_is_not_zm_18_16 = (static_cast<uint32_t>(zd) != ExtractBits(18, 16));
-  bool zd_is_not_zm_19_16 = (static_cast<uint32_t>(zd) != ExtractBits(19, 16));
-  bool zd_is_not_zn = (zd != GetRn());
-  bool zd_matches = (zd == GetRd());
+    int32_t zd = movprfx->GetRd();
+    int32_t pg = movprfx_is_predicated ? movprfx->GetPgLow8() : -1;
+    VectorFormat vector_format =
+        movprfx_is_predicated ? movprfx->GetSVEVectorFormat() :
+    kFormatUndefined;
 
-  if (IsMaskedValue<SVEBitwiseImmFMask, SVEBitwiseImmFixed>() ||
-      IsMaskedValue<SVEElementCountFMask, SVEElementCountFixed>() ||
-      IsMaskedValue<SVEIncDecByPredicateCountFMask,
-                    SVEIncDecByPredicateCountFixed>() ||
-      IsMaskedValue<SVEIntWideImmUnpredicatedFMask,
-                    SVEIntWideImmUnpredicatedFixed>()) {
-    return movprfx_is_unpredicated && zd_matches;
-  }
+    bool pg_19_16_mismatch = (static_cast<uint32_t>(pg) != ExtractBits(19, 16));
+    bool pg_mismatch = (pg != GetPgLow8());
+    bool zd_is_not_zm = (zd != GetRm());
+    bool zd_is_not_zm_18_16 = (static_cast<uint32_t>(zd) != ExtractBits(18,
+    16));
+    bool zd_is_not_zm_19_16 = (static_cast<uint32_t>(zd) != ExtractBits(19,
+    16));
+    bool zd_is_not_zn = (zd != GetRn());
+    bool zd_matches = (zd == GetRd());
 
-  if (IsMaskedValue<SVEFPComplexMulAddFMask, SVEFPComplexMulAddFixed>() ||
-      IsMaskedValue<SVEFPMulAddFMask, SVEFPMulAddFixed>() ||
-      IsMaskedValue<SVEIntMulAddPredicatedFMask,
-                    SVEIntMulAddPredicatedFixed>()) {
-    if (movprfx_is_predicated) {
-      if (pg_mismatch) return false;
-      if (vector_format != GetSVEVectorFormat()) return false;
+    if (IsMaskedValue<SVEBitwiseImmFMask, SVEBitwiseImmFixed>() ||
+        IsMaskedValue<SVEElementCountFMask, SVEElementCountFixed>() ||
+        IsMaskedValue<SVEIncDecByPredicateCountFMask,
+                      SVEIncDecByPredicateCountFixed>() ||
+        IsMaskedValue<SVEIntWideImmUnpredicatedFMask,
+                      SVEIntWideImmUnpredicatedFixed>()) {
+      return movprfx_is_unpredicated && zd_matches;
     }
-    return zd_matches && zd_is_not_zn && zd_is_not_zm;
-  }
+
+    if (IsMaskedValue<SVEFPComplexMulAddFMask, SVEFPComplexMulAddFixed>() ||
+        IsMaskedValue<SVEFPMulAddFMask, SVEFPMulAddFixed>() ||
+        IsMaskedValue<SVEIntMulAddPredicatedFMask,
+                      SVEIntMulAddPredicatedFixed>()) {
+      if (movprfx_is_predicated) {
+        if (pg_mismatch) return false;
+        if (vector_format != GetSVEVectorFormat()) return false;
+      }
+      return zd_matches && zd_is_not_zn && zd_is_not_zm;
+    }
 
   if (IsMaskedValue<SVEFPComplexAdditionFMask, SVEFPComplexAdditionFixed>() ||
       IsMaskedValue<SVEIntBinaryArithmeticPredicatedFMask,
@@ -107,268 +116,266 @@ bool Instruction::CanTakeSVEMovprfx(Instruction const* movprfx) const {
           break;
       }
     }
-    return zd_matches && zd_is_not_zn;
-  }
 
-  if (IsMaskedValue<SVEIntWideImmPredicatedFMask,
-                    SVEIntWideImmPredicatedFixed>()) {
-    // Exclude zeroing unary operations (CPY <Zd>.<T>, <Pg>/Z, <imm>).
-    if (!ExtractBit(14)) return false;
-    if (movprfx_is_predicated) {
-      if (pg_19_16_mismatch) return false;
-      if (vector_format != GetSVEVectorFormat()) return false;
+    if (IsMaskedValue<SVEIntWideImmPredicatedFMask,
+                      SVEIntWideImmPredicatedFixed>()) {
+      // Exclude zeroing unary operations (CPY <Zd>.<T>, <Pg>/Z, <imm>).
+      if (!ExtractBit(14)) return false;
+      if (movprfx_is_predicated) {
+        if (pg_19_16_mismatch) return false;
+        if (vector_format != GetSVEVectorFormat()) return false;
+      }
+      return zd_matches;
     }
-    return zd_matches;
-  }
 
-  if (IsMaskedValue<SVEIntMulAddUnpredicatedFMask,
-                    SVEIntMulAddUnpredicatedFixed>()) {
-    return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-           zd_is_not_zm;
-  }
-
-  if (IsMaskedValue<SVEPermuteVectorExtractFMask,
-                    SVEPermuteVectorExtractFixed>()) {
-    return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
-  }
-
-  if (IsMaskedValue<SVEBitwiseShiftPredicatedFMask,
-                    SVEBitwiseShiftPredicatedFixed>()) {
-    switch (Mask(SVEBitwiseShiftPredicatedMask)) {
-      case ASR_z_p_zw:
-      case ASR_z_p_zz:
-      case ASRR_z_p_zz:
-      case LSL_z_p_zw:
-      case LSL_z_p_zz:
-      case LSLR_z_p_zz:
-      case LSR_z_p_zw:
-      case LSR_z_p_zz:
-      case LSRR_z_p_zz:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches && zd_is_not_zn;
-      case ASR_z_p_zi:
-      case ASRD_z_p_zi:
-      case LSL_z_p_zi:
-      case LSR_z_p_zi:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          uint32_t tsz = ExtractBits<0x00c00300>();
-          VectorFormat instr_vector_format =
-              SVEFormatFromLaneSizeInBytesLog2(HighestSetBitPosition(tsz));
-          if (vector_format != instr_vector_format) return false;
-        }
-        return zd_matches;
-      default:
-        return false;
+    if (IsMaskedValue<SVEIntMulAddUnpredicatedFMask,
+                      SVEIntMulAddUnpredicatedFixed>()) {
+      return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+             zd_is_not_zm;
     }
-  }
 
-  if (IsMaskedValue<SVEFPArithmeticPredicatedFMask,
-                    SVEFPArithmeticPredicatedFixed>()) {
-    switch (Mask(SVEFPArithmeticPredicatedMask)) {
-      case FABD_z_p_zz:
-      case FADD_z_p_zz:
-      case FDIV_z_p_zz:
-      case FDIVR_z_p_zz:
-      case FMAX_z_p_zz:
-      case FMAXNM_z_p_zz:
-      case FMIN_z_p_zz:
-      case FMINNM_z_p_zz:
-      case FMUL_z_p_zz:
-      case FMULX_z_p_zz:
-      case FSCALE_z_p_zz:
-      case FSUB_z_p_zz:
-      case FSUBR_z_p_zz:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches && zd_is_not_zn;
-      case FADD_z_p_zs:
-      case FMAX_z_p_zs:
-      case FMAXNM_z_p_zs:
-      case FMIN_z_p_zs:
-      case FMINNM_z_p_zs:
-      case FMUL_z_p_zs:
-      case FSUB_z_p_zs:
-      case FSUBR_z_p_zs:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches;
-      case FTMAD_z_zzi:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
-      default:
-        return false;
+    if (IsMaskedValue<SVEPermuteVectorExtractFMask,
+                      SVEPermuteVectorExtractFixed>()) {
+      return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
     }
-  }
 
-  if (IsMaskedValue<SVEFPComplexMulAddIndexFMask,
-                    SVEFPComplexMulAddIndexFixed>()) {
-    switch (Mask(SVEFPComplexMulAddIndexMask)) {
-      case FCMLA_z_zzzi_h:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-               zd_is_not_zm_18_16;
-      case FCMLA_z_zzzi_s:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-               zd_is_not_zm_19_16;
-      default:
-        return false;
+    if (IsMaskedValue<SVEBitwiseShiftPredicatedFMask,
+                      SVEBitwiseShiftPredicatedFixed>()) {
+      switch (Mask(SVEBitwiseShiftPredicatedMask)) {
+        case ASR_z_p_zw:
+        case ASR_z_p_zz:
+        case ASRR_z_p_zz:
+        case LSL_z_p_zw:
+        case LSL_z_p_zz:
+        case LSLR_z_p_zz:
+        case LSR_z_p_zw:
+        case LSR_z_p_zz:
+        case LSRR_z_p_zz:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case ASR_z_p_zi:
+        case ASRD_z_p_zi:
+        case LSL_z_p_zi:
+        case LSR_z_p_zi:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            uint32_t tsz = ExtractBits<0x00c00300>();
+            VectorFormat instr_vector_format =
+                SVEFormatFromLaneSizeInBytesLog2(HighestSetBitPosition(tsz));
+            if (vector_format != instr_vector_format) return false;
+          }
+          return zd_matches;
+        default:
+          return false;
+      }
     }
-  }
 
-  if (IsMaskedValue<SVEFPMulAddIndexFMask, SVEFPMulAddIndexFixed>()) {
-    switch (Mask(SVEFPMulAddIndexMask)) {
-      case FMLA_z_zzzi_h:
-      case FMLA_z_zzzi_s:
-      case FMLS_z_zzzi_h:
-      case FMLS_z_zzzi_s:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-               zd_is_not_zm_18_16;
-      case FMLA_z_zzzi_d:
-      case FMLS_z_zzzi_d:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-               zd_is_not_zm_19_16;
-      default:
-        return false;
+    if (IsMaskedValue<SVEFPArithmeticPredicatedFMask,
+                      SVEFPArithmeticPredicatedFixed>()) {
+      switch (Mask(SVEFPArithmeticPredicatedMask)) {
+        case FABD_z_p_zz:
+        case FADD_z_p_zz:
+        case FDIV_z_p_zz:
+        case FDIVR_z_p_zz:
+        case FMAX_z_p_zz:
+        case FMAXNM_z_p_zz:
+        case FMIN_z_p_zz:
+        case FMINNM_z_p_zz:
+        case FMUL_z_p_zz:
+        case FMULX_z_p_zz:
+        case FSCALE_z_p_zz:
+        case FSUB_z_p_zz:
+        case FSUBR_z_p_zz:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case FADD_z_p_zs:
+        case FMAX_z_p_zs:
+        case FMAXNM_z_p_zs:
+        case FMIN_z_p_zs:
+        case FMINNM_z_p_zs:
+        case FMUL_z_p_zs:
+        case FSUB_z_p_zs:
+        case FSUBR_z_p_zs:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches;
+        case FTMAD_z_zzi:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+        default:
+          return false;
+      }
     }
-  }
 
-  if (IsMaskedValue<SVEFPUnaryOpPredicatedFMask,
-                    SVEFPUnaryOpPredicatedFixed>()) {
-    switch (Mask(SVEFPUnaryOpPredicatedMask)) {
-      case FCVT_z_p_z_d2h:
-      case FCVT_z_p_z_d2s:
-      case FCVT_z_p_z_h2d:
-      case FCVT_z_p_z_h2s:
-      case FCVT_z_p_z_s2d:
-      case FCVT_z_p_z_s2h:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          // For movprfx, we only care about the maximum encoded element size,
-          // which is encoded in the same way as the conventional SVE vector
-          // format.
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches && zd_is_not_zn;
-      case FCVTZS_z_p_z_d2w:
-      case FCVTZS_z_p_z_d2x:
-      case FCVTZS_z_p_z_fp162h:
-      case FCVTZS_z_p_z_fp162w:
-      case FCVTZS_z_p_z_fp162x:
-      case FCVTZS_z_p_z_s2w:
-      case FCVTZS_z_p_z_s2x:
-      case FCVTZU_z_p_z_d2w:
-      case FCVTZU_z_p_z_d2x:
-      case FCVTZU_z_p_z_fp162h:
-      case FCVTZU_z_p_z_fp162w:
-      case FCVTZU_z_p_z_fp162x:
-      case FCVTZU_z_p_z_s2w:
-      case FCVTZU_z_p_z_s2x:
-      case SCVTF_z_p_z_h2fp16:
-      case SCVTF_z_p_z_w2d:
-      case SCVTF_z_p_z_w2fp16:
-      case SCVTF_z_p_z_w2s:
-      case SCVTF_z_p_z_x2d:
-      case SCVTF_z_p_z_x2fp16:
-      case SCVTF_z_p_z_x2s:
-      case UCVTF_z_p_z_h2fp16:
-      case UCVTF_z_p_z_w2d:
-      case UCVTF_z_p_z_w2fp16:
-      case UCVTF_z_p_z_w2s:
-      case UCVTF_z_p_z_x2d:
-      case UCVTF_z_p_z_x2fp16:
-      case UCVTF_z_p_z_x2s:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          // For movprfx, we only care about the maximum encoded element size.
-          // We have to partially decode the opc and opc2 fields to find this.
-          int opc = ExtractBits(23, 22);
-          int opc2 = ExtractBits(18, 17);
-          VectorFormat instr_vector_format =
-              SVEFormatFromLaneSizeInBytesLog2(std::max(opc, opc2));
-          if (vector_format != instr_vector_format) return false;
-        }
-        return zd_matches && zd_is_not_zn;
-      case FRECPX_z_p_z:
-      case FRINTA_z_p_z:
-      case FRINTI_z_p_z:
-      case FRINTM_z_p_z:
-      case FRINTN_z_p_z:
-      case FRINTP_z_p_z:
-      case FRINTX_z_p_z:
-      case FRINTZ_z_p_z:
-      case FSQRT_z_p_z:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches && zd_is_not_zn;
-      default:
-        return false;
+    if (IsMaskedValue<SVEFPComplexMulAddIndexFMask,
+                      SVEFPComplexMulAddIndexFixed>()) {
+      switch (Mask(SVEFPComplexMulAddIndexMask)) {
+        case FCMLA_z_zzzi_h:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_18_16;
+        case FCMLA_z_zzzi_s:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_19_16;
+        default:
+          return false;
+      }
     }
-  }
 
-  if (IsMaskedValue<SVEMulIndexFMask, SVEMulIndexFixed>()) {
-    switch (Mask(SVEMulIndexMask)) {
-      case SDOT_z_zzzi_s:
-      case UDOT_z_zzzi_s:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-               zd_is_not_zm_18_16;
-      case SDOT_z_zzzi_d:
-      case UDOT_z_zzzi_d:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
-               zd_is_not_zm_19_16;
-      default:
-        return false;
+    if (IsMaskedValue<SVEFPMulAddIndexFMask, SVEFPMulAddIndexFixed>()) {
+      switch (Mask(SVEFPMulAddIndexMask)) {
+        case FMLA_z_zzzi_h:
+        case FMLA_z_zzzi_s:
+        case FMLS_z_zzzi_h:
+        case FMLS_z_zzzi_s:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_18_16;
+        case FMLA_z_zzzi_d:
+        case FMLS_z_zzzi_d:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_19_16;
+        default:
+          return false;
+      }
     }
-  }
 
-  if (IsMaskedValue<SVEPermuteVectorPredicatedFMask,
-                    SVEPermuteVectorPredicatedFixed>()) {
-    switch (Mask(SVEPermuteVectorPredicatedMask)) {
-      case CLASTA_z_p_zz:
-      case CLASTB_z_p_zz:
-      case CPY_z_p_v:
-      case RBIT_z_p_z:
-      case SPLICE_z_p_zz_des:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches && zd_is_not_zn;
-      case CPY_z_p_r:
-        if (movprfx_is_predicated) {
-          if (pg_mismatch) return false;
-          if (vector_format != GetSVEVectorFormat()) return false;
-        }
-        return zd_matches;
-      case REVB_z_z:
-      case REVH_z_z:
-      case REVW_z_z:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
-      default:
-        return false;
+    if (IsMaskedValue<SVEFPUnaryOpPredicatedFMask,
+                      SVEFPUnaryOpPredicatedFixed>()) {
+      switch (Mask(SVEFPUnaryOpPredicatedMask)) {
+        case FCVT_z_p_z_d2h:
+        case FCVT_z_p_z_d2s:
+        case FCVT_z_p_z_h2d:
+        case FCVT_z_p_z_h2s:
+        case FCVT_z_p_z_s2d:
+        case FCVT_z_p_z_s2h:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            // For movprfx, we only care about the maximum encoded element size,
+            // which is encoded in the same way as the conventional SVE vector
+            // format.
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case FCVTZS_z_p_z_d2w:
+        case FCVTZS_z_p_z_d2x:
+        case FCVTZS_z_p_z_fp162h:
+        case FCVTZS_z_p_z_fp162w:
+        case FCVTZS_z_p_z_fp162x:
+        case FCVTZS_z_p_z_s2w:
+        case FCVTZS_z_p_z_s2x:
+        case FCVTZU_z_p_z_d2w:
+        case FCVTZU_z_p_z_d2x:
+        case FCVTZU_z_p_z_fp162h:
+        case FCVTZU_z_p_z_fp162w:
+        case FCVTZU_z_p_z_fp162x:
+        case FCVTZU_z_p_z_s2w:
+        case FCVTZU_z_p_z_s2x:
+        case SCVTF_z_p_z_h2fp16:
+        case SCVTF_z_p_z_w2d:
+        case SCVTF_z_p_z_w2fp16:
+        case SCVTF_z_p_z_w2s:
+        case SCVTF_z_p_z_x2d:
+        case SCVTF_z_p_z_x2fp16:
+        case SCVTF_z_p_z_x2s:
+        case UCVTF_z_p_z_h2fp16:
+        case UCVTF_z_p_z_w2d:
+        case UCVTF_z_p_z_w2fp16:
+        case UCVTF_z_p_z_w2s:
+        case UCVTF_z_p_z_x2d:
+        case UCVTF_z_p_z_x2fp16:
+        case UCVTF_z_p_z_x2s:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            // For movprfx, we only care about the maximum encoded element size.
+            // We have to partially decode the opc and opc2 fields to find this.
+            int opc = ExtractBits(23, 22);
+            int opc2 = ExtractBits(18, 17);
+            VectorFormat instr_vector_format =
+                SVEFormatFromLaneSizeInBytesLog2(std::max(opc, opc2));
+            if (vector_format != instr_vector_format) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case FRECPX_z_p_z:
+        case FRINTA_z_p_z:
+        case FRINTI_z_p_z:
+        case FRINTM_z_p_z:
+        case FRINTN_z_p_z:
+        case FRINTP_z_p_z:
+        case FRINTX_z_p_z:
+        case FRINTZ_z_p_z:
+        case FSQRT_z_p_z:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        default:
+          return false;
+      }
     }
-  }
 
-  if (IsMaskedValue<SVEPermuteVectorUnpredicatedFMask,
-                    SVEPermuteVectorUnpredicatedFixed>()) {
-    switch (Mask(SVEPermuteVectorUnpredicatedMask)) {
-      case INSR_z_v:
-        return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
-      case INSR_z_r:
-        return movprfx_is_unpredicated && zd_matches;
-      default:
-        return false;
+    if (IsMaskedValue<SVEMulIndexFMask, SVEMulIndexFixed>()) {
+      switch (Mask(SVEMulIndexMask)) {
+        case SDOT_z_zzzi_s:
+        case UDOT_z_zzzi_s:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_18_16;
+        case SDOT_z_zzzi_d:
+        case UDOT_z_zzzi_d:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_19_16;
+        default:
+          return false;
+      }
     }
-  }
 
-  return false;
+    if (IsMaskedValue<SVEPermuteVectorPredicatedFMask,
+                      SVEPermuteVectorPredicatedFixed>()) {
+      switch (Mask(SVEPermuteVectorPredicatedMask)) {
+        case CLASTA_z_p_zz:
+        case CLASTB_z_p_zz:
+        case CPY_z_p_v:
+        case RBIT_z_p_z:
+        case SPLICE_z_p_zz_des:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case CPY_z_p_r:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches;
+        case REVB_z_z:
+        case REVH_z_z:
+        case REVW_z_z:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEPermuteVectorUnpredicatedFMask,
+                      SVEPermuteVectorUnpredicatedFixed>()) {
+      switch (Mask(SVEPermuteVectorUnpredicatedMask)) {
+        case INSR_z_v:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+        case INSR_z_r:
+          return movprfx_is_unpredicated && zd_matches;
+        default:
+          return false;
+      }
+    }
+  */
+  return true;
 }
 
 

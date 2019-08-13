@@ -2759,23 +2759,279 @@ enum NEONScalarShiftImmediateOp {
   NEON_FCVTZU_imm_scalar = NEON_Q | NEONScalar | NEON_FCVTZU_imm
 };
 
+enum SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsOp {
+  SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed = 0x84A00000,
+  SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFMask = 0xFFA08000,
+  SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask = 0xFFA0E000,
+  LD1SH_z_p_bz_s_x32_scaled = SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed,
+  LDFF1SH_z_p_bz_s_x32_scaled = SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed | 0x00002000,
+  LD1H_z_p_bz_s_x32_scaled = SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed | 0x00004000,
+  LDFF1H_z_p_bz_s_x32_scaled = SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed | 0x00006000
+};
+
+enum SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsOp {
+  SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed = 0x85200000,
+  SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFMask = 0xFFA08000,
+  SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask = 0xFFA0E000,
+  LD1W_z_p_bz_s_x32_scaled = SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed | 0x00004000,
+  LDFF1W_z_p_bz_s_x32_scaled = SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed | 0x00006000
+};
+
+enum SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsOp {
+  SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed = 0x84000000,
+  SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFMask = 0xFE208000,
+  SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask = 0xFFA0E000,
+  LD1SB_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed,
+  LDFF1SB_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00002000,
+  LD1B_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00004000,
+  LDFF1B_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00006000,
+  LD1SH_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00800000,
+  LDFF1SH_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00802000,
+  LD1H_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00804000,
+  LDFF1H_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x00806000,
+  LD1W_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x01004000,
+  LDFF1W_z_p_bz_s_x32_unscaled = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed | 0x01006000
+};
+
+enum SVE32BitGatherLoad_VectorPlusImmOp {
+  SVE32BitGatherLoad_VectorPlusImmFixed = 0x84208000,
+  SVE32BitGatherLoad_VectorPlusImmFMask = 0xFE608000,
+  SVE32BitGatherLoad_VectorPlusImmMask = 0xFFE0E000,
+  LD1SB_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed,
+  LDFF1SB_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00002000,
+  LD1B_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00004000,
+  LDFF1B_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00006000,
+  LD1SH_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00800000,
+  LDFF1SH_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00802000,
+  LD1H_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00804000,
+  LDFF1H_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x00806000,
+  LD1W_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x01004000,
+  LDFF1W_z_p_ai_s = SVE32BitGatherLoad_VectorPlusImmFixed | 0x01006000
+};
+
+enum SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsOp {
+  SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsFixed = 0x84200000,
+  SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsFMask = 0xFFA08010,
+  SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsMask = 0xFFA0E010,
+  PRFB_i_p_bz_s_x32_scaled = SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsFixed,
+  PRFH_i_p_bz_s_x32_scaled = SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsFixed | 0x00002000,
+  PRFW_i_p_bz_s_x32_scaled = SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsFixed | 0x00004000,
+  PRFD_i_p_bz_s_x32_scaled = SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsFixed | 0x00006000
+};
+
+enum SVE32BitGatherPrefetch_VectorPlusImmOp {
+  SVE32BitGatherPrefetch_VectorPlusImmFixed = 0x8400E000,
+  SVE32BitGatherPrefetch_VectorPlusImmFMask = 0xFE60E010,
+  SVE32BitGatherPrefetch_VectorPlusImmMask = 0xFFE0E010,
+  PRFB_i_p_ai_s = SVE32BitGatherPrefetch_VectorPlusImmFixed,
+  PRFH_i_p_ai_s = SVE32BitGatherPrefetch_VectorPlusImmFixed | 0x00800000,
+  PRFW_i_p_ai_s = SVE32BitGatherPrefetch_VectorPlusImmFixed | 0x01000000,
+  PRFD_i_p_ai_s = SVE32BitGatherPrefetch_VectorPlusImmFixed | 0x01800000
+};
+
+enum SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsOp {
+  SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsFixed = 0xE4608000,
+  SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsFMask = 0xFE60A000,
+  SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask = 0xFFE0A000,
+  ST1H_z_p_bz_s_x32_scaled = SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsFixed | 0x00800000,
+  ST1W_z_p_bz_s_x32_scaled = SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsFixed | 0x01000000
+};
+
+enum SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsOp {
+  SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsFixed = 0xE4408000,
+  SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsFMask = 0xFE60A000,
+  SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask = 0xFFE0A000,
+  ST1B_z_p_bz_s_x32_unscaled = SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsFixed,
+  ST1H_z_p_bz_s_x32_unscaled = SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsFixed | 0x00800000,
+  ST1W_z_p_bz_s_x32_unscaled = SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsFixed | 0x01000000
+};
+
+enum SVE32BitScatterStore_VectorPlusImmOp {
+  SVE32BitScatterStore_VectorPlusImmFixed = 0xE460A000,
+  SVE32BitScatterStore_VectorPlusImmFMask = 0xFE60E000,
+  SVE32BitScatterStore_VectorPlusImmMask = 0xFFE0E000,
+  ST1B_z_p_ai_s = SVE32BitScatterStore_VectorPlusImmFixed,
+  ST1H_z_p_ai_s = SVE32BitScatterStore_VectorPlusImmFixed | 0x00800000,
+  ST1W_z_p_ai_s = SVE32BitScatterStore_VectorPlusImmFixed | 0x01000000
+};
+
+enum SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsOp {
+  SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed = 0xC4200000,
+  SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFMask = 0xFE208000,
+  SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask = 0xFFA0E000,
+  LD1SH_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x00800000,
+  LDFF1SH_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x00802000,
+  LD1H_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x00804000,
+  LDFF1H_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x00806000,
+  LD1SW_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x01000000,
+  LDFF1SW_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x01002000,
+  LD1W_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x01004000,
+  LDFF1W_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x01006000,
+  LD1D_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x01804000,
+  LDFF1D_z_p_bz_d_x32_scaled = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed | 0x01806000
+};
+
+enum SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsOp {
+  SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed = 0xC4608000,
+  SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFMask = 0xFE608000,
+  SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask = 0xFFE0E000,
+  LD1SH_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x00800000,
+  LDFF1SH_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x00802000,
+  LD1H_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x00804000,
+  LDFF1H_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x00806000,
+  LD1SW_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x01000000,
+  LDFF1SW_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x01002000,
+  LD1W_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x01004000,
+  LDFF1W_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x01006000,
+  LD1D_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x01804000,
+  LDFF1D_z_p_bz_d_64_scaled = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed | 0x01806000
+};
+
+enum SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsOp {
+  SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed = 0xC4408000,
+  SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFMask = 0xFE608000,
+  SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask = 0xFFE0E000,
+  LD1SB_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed,
+  LDFF1SB_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00002000,
+  LD1B_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00004000,
+  LDFF1B_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00006000,
+  LD1SH_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00800000,
+  LDFF1SH_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00802000,
+  LD1H_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00804000,
+  LDFF1H_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x00806000,
+  LD1SW_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x01000000,
+  LDFF1SW_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x01002000,
+  LD1W_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x01004000,
+  LDFF1W_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x01006000,
+  LD1D_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x01804000,
+  LDFF1D_z_p_bz_d_64_unscaled = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed | 0x01806000
+};
+
+enum SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsOp {
+  SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed = 0xC4000000,
+  SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFMask = 0xFE208000,
+  SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask = 0xFFA0E000,
+  LD1SB_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed,
+  LDFF1SB_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00002000,
+  LD1B_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00004000,
+  LDFF1B_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00006000,
+  LD1SH_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00800000,
+  LDFF1SH_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00802000,
+  LD1H_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00804000,
+  LDFF1H_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00806000,
+  LD1SW_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01000000,
+  LDFF1SW_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01002000,
+  LD1W_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01004000,
+  LDFF1W_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01006000,
+  LD1D_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01804000,
+  LDFF1D_z_p_bz_d_x32_unscaled = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01806000
+};
+
+enum SVE64BitGatherLoad_VectorPlusImmOp {
+  SVE64BitGatherLoad_VectorPlusImmFixed = 0xC4208000,
+  SVE64BitGatherLoad_VectorPlusImmFMask = 0xFE608000,
+  SVE64BitGatherLoad_VectorPlusImmMask = 0xFFE0E000,
+  LD1SB_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed,
+  LDFF1SB_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00002000,
+  LD1B_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00004000,
+  LDFF1B_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00006000,
+  LD1SH_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00800000,
+  LDFF1SH_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00802000,
+  LD1H_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00804000,
+  LDFF1H_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x00806000,
+  LD1SW_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x01000000,
+  LDFF1SW_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x01002000,
+  LD1W_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x01004000,
+  LDFF1W_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x01006000,
+  LD1D_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x01804000,
+  LDFF1D_z_p_ai_d = SVE64BitGatherLoad_VectorPlusImmFixed | 0x01806000
+};
+
+enum SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsOp {
+  SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsFixed = 0xC4608000,
+  SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsFMask = 0xFFE08010,
+  SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsMask = 0xFFE0E010,
+  PRFB_i_p_bz_d_64_scaled = SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsFixed,
+  PRFH_i_p_bz_d_64_scaled = SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsFixed | 0x00002000,
+  PRFW_i_p_bz_d_64_scaled = SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsFixed | 0x00004000,
+  PRFD_i_p_bz_d_64_scaled = SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsFixed | 0x00006000
+};
+
+enum SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsOp {
+  SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsFixed = 0xC4200000,
+  SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsFMask = 0xFFA08010,
+  SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsMask = 0xFFA0E010,
+  PRFB_i_p_bz_d_x32_scaled = SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsFixed,
+  PRFH_i_p_bz_d_x32_scaled = SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsFixed | 0x00002000,
+  PRFW_i_p_bz_d_x32_scaled = SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsFixed | 0x00004000,
+  PRFD_i_p_bz_d_x32_scaled = SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsFixed | 0x00006000
+};
+
+enum SVE64BitGatherPrefetch_VectorPlusImmOp {
+  SVE64BitGatherPrefetch_VectorPlusImmFixed = 0xC400E000,
+  SVE64BitGatherPrefetch_VectorPlusImmFMask = 0xFE60E010,
+  SVE64BitGatherPrefetch_VectorPlusImmMask = 0xFFE0E010,
+  PRFB_i_p_ai_d = SVE64BitGatherPrefetch_VectorPlusImmFixed,
+  PRFH_i_p_ai_d = SVE64BitGatherPrefetch_VectorPlusImmFixed | 0x00800000,
+  PRFW_i_p_ai_d = SVE64BitGatherPrefetch_VectorPlusImmFixed | 0x01000000,
+  PRFD_i_p_ai_d = SVE64BitGatherPrefetch_VectorPlusImmFixed | 0x01800000
+};
+
+enum SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsOp {
+  SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed = 0xE420A000,
+  SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFMask = 0xFE60E000,
+  SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask = 0xFFE0E000,
+  ST1H_z_p_bz_d_64_scaled = SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed | 0x00800000,
+  ST1W_z_p_bz_d_64_scaled = SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed | 0x01000000,
+  ST1D_z_p_bz_d_64_scaled = SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed | 0x01800000
+};
+
+enum SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsOp {
+  SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed = 0xE400A000,
+  SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFMask = 0xFE60E000,
+  SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask = 0xFFE0E000,
+  ST1B_z_p_bz_d_64_unscaled = SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed,
+  ST1H_z_p_bz_d_64_unscaled = SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed | 0x00800000,
+  ST1W_z_p_bz_d_64_unscaled = SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed | 0x01000000,
+  ST1D_z_p_bz_d_64_unscaled = SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed | 0x01800000
+};
+
+enum SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsOp {
+  SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsFixed = 0xE4208000,
+  SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsFMask = 0xFE60A000,
+  SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask = 0xFFE0A000,
+  ST1H_z_p_bz_d_x32_scaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsFixed | 0x00800000,
+  ST1W_z_p_bz_d_x32_scaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsFixed | 0x01000000,
+  ST1D_z_p_bz_d_x32_scaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsFixed | 0x01800000
+};
+
+enum SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsOp {
+  SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFixed = 0xE4008000,
+  SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFMask = 0xFE60A000,
+  SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask = 0xFFE0A000,
+  ST1B_z_p_bz_d_x32_unscaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFixed,
+  ST1H_z_p_bz_d_x32_unscaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x00800000,
+  ST1W_z_p_bz_d_x32_unscaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01000000,
+  ST1D_z_p_bz_d_x32_unscaled = SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFixed | 0x01800000
+};
+
+enum SVE64BitScatterStore_VectorPlusImmOp {
+  SVE64BitScatterStore_VectorPlusImmFixed = 0xE440A000,
+  SVE64BitScatterStore_VectorPlusImmFMask = 0xFE60E000,
+  SVE64BitScatterStore_VectorPlusImmMask = 0xFFE0E000,
+  ST1B_z_p_ai_d = SVE64BitScatterStore_VectorPlusImmFixed,
+  ST1H_z_p_ai_d = SVE64BitScatterStore_VectorPlusImmFixed | 0x00800000,
+  ST1W_z_p_ai_d = SVE64BitScatterStore_VectorPlusImmFixed | 0x01000000,
+  ST1D_z_p_ai_d = SVE64BitScatterStore_VectorPlusImmFixed | 0x01800000
+};
+
 enum SVEAddressGenerationOp {
   SVEAddressGenerationFixed = 0x0420A000,
   SVEAddressGenerationFMask = 0xFF20F000,
-  SVEAddressGenerationMask = 0xFFE0F000,
+  SVEAddressGenerationMask = 0xFFA0F000,
   ADR_z_az_d_s32_scaled = SVEAddressGenerationFixed,
   ADR_z_az_d_u32_scaled = SVEAddressGenerationFixed | 0x00400000,
   ADR_z_az_sd_same_scaled = SVEAddressGenerationFixed | 0x00800000
-};
-
-enum SVEBitwiseImmOp {
-  SVEBitwiseImmFixed = 0x05000000,
-  SVEBitwiseImmFMask = 0xFF300000,
-  SVEBitwiseImmMask = 0xFFFC0000,
-  ORR_z_zi = SVEBitwiseImmFixed,
-  EOR_z_zi = SVEBitwiseImmFixed | 0x00400000,
-  AND_z_zi = SVEBitwiseImmFixed | 0x00800000,
-  DUPM_z_i = SVEBitwiseImmFixed | 0x00C00000
 };
 
 enum SVEBitwiseLogicalUnpredicatedOp {
@@ -2788,23 +3044,54 @@ enum SVEBitwiseLogicalUnpredicatedOp {
   BIC_z_zz = SVEBitwiseLogicalUnpredicatedFixed | 0x00C01000
 };
 
-enum SVEBitwiseShiftPredicatedOp {
-  SVEBitwiseShiftPredicatedFixed = 0x04008000,
-  SVEBitwiseShiftPredicatedFMask = 0xFF20E000,
-  SVEBitwiseShiftPredicatedMask = 0xFF3FE000,
-  ASR_z_p_zi = SVEBitwiseShiftPredicatedFixed,
-  LSR_z_p_zi = SVEBitwiseShiftPredicatedFixed | 0x00010000,
-  LSL_z_p_zi = SVEBitwiseShiftPredicatedFixed | 0x00030000,
-  ASRD_z_p_zi = SVEBitwiseShiftPredicatedFixed | 0x00040000,
-  ASR_z_p_zz = SVEBitwiseShiftPredicatedFixed | 0x00100000,
-  LSR_z_p_zz = SVEBitwiseShiftPredicatedFixed | 0x00110000,
-  LSL_z_p_zz = SVEBitwiseShiftPredicatedFixed | 0x00130000,
-  ASRR_z_p_zz = SVEBitwiseShiftPredicatedFixed | 0x00140000,
-  LSRR_z_p_zz = SVEBitwiseShiftPredicatedFixed | 0x00150000,
-  LSLR_z_p_zz = SVEBitwiseShiftPredicatedFixed | 0x00170000,
-  ASR_z_p_zw = SVEBitwiseShiftPredicatedFixed | 0x00180000,
-  LSR_z_p_zw = SVEBitwiseShiftPredicatedFixed | 0x00190000,
-  LSL_z_p_zw = SVEBitwiseShiftPredicatedFixed | 0x001B0000
+enum SVEBitwiseLogicalWithImm_UnpredicatedOp {
+  SVEBitwiseLogicalWithImm_UnpredicatedFixed = 0x05000000,
+  SVEBitwiseLogicalWithImm_UnpredicatedFMask = 0xFF3C0000,
+  SVEBitwiseLogicalWithImm_UnpredicatedMask = 0xFFFC0000,
+  ORR_z_zi = SVEBitwiseLogicalWithImm_UnpredicatedFixed,
+  EOR_z_zi = SVEBitwiseLogicalWithImm_UnpredicatedFixed | 0x00400000,
+  AND_z_zi = SVEBitwiseLogicalWithImm_UnpredicatedFixed | 0x00800000
+};
+
+enum SVEBitwiseLogical_PredicatedOp {
+  SVEBitwiseLogical_PredicatedFixed = 0x04180000,
+  SVEBitwiseLogical_PredicatedFMask = 0xFF38E000,
+  SVEBitwiseLogical_PredicatedMask = 0xFF3FE000,
+  ORR_z_p_zz = SVEBitwiseLogical_PredicatedFixed,
+  EOR_z_p_zz = SVEBitwiseLogical_PredicatedFixed | 0x00010000,
+  AND_z_p_zz = SVEBitwiseLogical_PredicatedFixed | 0x00020000,
+  BIC_z_p_zz = SVEBitwiseLogical_PredicatedFixed | 0x00030000
+};
+
+enum SVEBitwiseShiftByImm_PredicatedOp {
+  SVEBitwiseShiftByImm_PredicatedFixed = 0x04008000,
+  SVEBitwiseShiftByImm_PredicatedFMask = 0xFF30E000,
+  SVEBitwiseShiftByImm_PredicatedMask = 0xFF3FE000,
+  ASR_z_p_zi = SVEBitwiseShiftByImm_PredicatedFixed,
+  LSR_z_p_zi = SVEBitwiseShiftByImm_PredicatedFixed | 0x00010000,
+  LSL_z_p_zi = SVEBitwiseShiftByImm_PredicatedFixed | 0x00030000,
+  ASRD_z_p_zi = SVEBitwiseShiftByImm_PredicatedFixed | 0x00040000
+};
+
+enum SVEBitwiseShiftByVector_PredicatedOp {
+  SVEBitwiseShiftByVector_PredicatedFixed = 0x04108000,
+  SVEBitwiseShiftByVector_PredicatedFMask = 0xFF38E000,
+  SVEBitwiseShiftByVector_PredicatedMask = 0xFF3FE000,
+  ASR_z_p_zz = SVEBitwiseShiftByVector_PredicatedFixed,
+  LSR_z_p_zz = SVEBitwiseShiftByVector_PredicatedFixed | 0x00010000,
+  LSL_z_p_zz = SVEBitwiseShiftByVector_PredicatedFixed | 0x00030000,
+  ASRR_z_p_zz = SVEBitwiseShiftByVector_PredicatedFixed | 0x00040000,
+  LSRR_z_p_zz = SVEBitwiseShiftByVector_PredicatedFixed | 0x00050000,
+  LSLR_z_p_zz = SVEBitwiseShiftByVector_PredicatedFixed | 0x00070000
+};
+
+enum SVEBitwiseShiftByWideElements_PredicatedOp {
+  SVEBitwiseShiftByWideElements_PredicatedFixed = 0x04188000,
+  SVEBitwiseShiftByWideElements_PredicatedFMask = 0xFF38E000,
+  SVEBitwiseShiftByWideElements_PredicatedMask = 0xFF3FE000,
+  ASR_z_p_zw = SVEBitwiseShiftByWideElements_PredicatedFixed,
+  LSR_z_p_zw = SVEBitwiseShiftByWideElements_PredicatedFixed | 0x00010000,
+  LSL_z_p_zw = SVEBitwiseShiftByWideElements_PredicatedFixed | 0x00030000
 };
 
 enum SVEBitwiseShiftUnpredicatedOp {
@@ -2819,72 +3106,321 @@ enum SVEBitwiseShiftUnpredicatedOp {
   LSL_z_zi = SVEBitwiseShiftUnpredicatedFixed | 0x00001C00
 };
 
+enum SVEBroadcastBitmaskImmOp {
+  SVEBroadcastBitmaskImmFixed = 0x05C00000,
+  SVEBroadcastBitmaskImmFMask = 0xFFFC0000,
+  SVEBroadcastBitmaskImmMask = 0xFFFC0000,
+  DUPM_z_i = SVEBroadcastBitmaskImmFixed
+};
+
+enum SVEBroadcastFPImm_UnpredicatedOp {
+  SVEBroadcastFPImm_UnpredicatedFixed = 0x2539C000,
+  SVEBroadcastFPImm_UnpredicatedFMask = 0xFF39C000,
+  SVEBroadcastFPImm_UnpredicatedMask = 0xFF3FE000,
+  FDUP_z_i = SVEBroadcastFPImm_UnpredicatedFixed
+};
+
+enum SVEBroadcastGeneralRegisterOp {
+  SVEBroadcastGeneralRegisterFixed = 0x05203800,
+  SVEBroadcastGeneralRegisterFMask = 0xFF3FFC00,
+  SVEBroadcastGeneralRegisterMask = 0xFF3FFC00,
+  DUP_z_r = SVEBroadcastGeneralRegisterFixed
+};
+
+enum SVEBroadcastIndexElementOp {
+  SVEBroadcastIndexElementFixed = 0x05202000,
+  SVEBroadcastIndexElementFMask = 0xFF20FC00,
+  SVEBroadcastIndexElementMask = 0xFF20FC00,
+  DUP_z_zi = SVEBroadcastIndexElementFixed
+};
+
+enum SVEBroadcastIntImm_UnpredicatedOp {
+  SVEBroadcastIntImm_UnpredicatedFixed = 0x2538C000,
+  SVEBroadcastIntImm_UnpredicatedFMask = 0xFF39C000,
+  SVEBroadcastIntImm_UnpredicatedMask = 0xFF3FC000,
+  DUP_z_i = SVEBroadcastIntImm_UnpredicatedFixed
+};
+
+enum SVECompressActiveElementsOp {
+  SVECompressActiveElementsFixed = 0x05A18000,
+  SVECompressActiveElementsFMask = 0xFFBFE000,
+  SVECompressActiveElementsMask = 0xFFBFE000,
+  COMPACT_z_p_z = SVECompressActiveElementsFixed
+};
+
+enum SVEConditionallyBroadcastElementToVectorOp {
+  SVEConditionallyBroadcastElementToVectorFixed = 0x05288000,
+  SVEConditionallyBroadcastElementToVectorFMask = 0xFF3EE000,
+  SVEConditionallyBroadcastElementToVectorMask = 0xFF3FE000,
+  CLASTA_z_p_zz = SVEConditionallyBroadcastElementToVectorFixed,
+  CLASTB_z_p_zz = SVEConditionallyBroadcastElementToVectorFixed | 0x00010000
+};
+
+enum SVEConditionallyExtractElementToGeneralRegisterOp {
+  SVEConditionallyExtractElementToGeneralRegisterFixed = 0x0530A000,
+  SVEConditionallyExtractElementToGeneralRegisterFMask = 0xFF3EE000,
+  SVEConditionallyExtractElementToGeneralRegisterMask = 0xFF3FE000,
+  CLASTA_r_p_z = SVEConditionallyExtractElementToGeneralRegisterFixed,
+  CLASTB_r_p_z = SVEConditionallyExtractElementToGeneralRegisterFixed | 0x00010000
+};
+
+enum SVEConditionallyExtractElementToSIMDFPScalarOp {
+  SVEConditionallyExtractElementToSIMDFPScalarFixed = 0x052A8000,
+  SVEConditionallyExtractElementToSIMDFPScalarFMask = 0xFF3EE000,
+  SVEConditionallyExtractElementToSIMDFPScalarMask = 0xFF3FE000,
+  CLASTA_v_p_z = SVEConditionallyExtractElementToSIMDFPScalarFixed,
+  CLASTB_v_p_z = SVEConditionallyExtractElementToSIMDFPScalarFixed | 0x00010000
+};
+
+enum SVEConditionallyTerminateScalarsOp {
+  SVEConditionallyTerminateScalarsFixed = 0x25202000,
+  SVEConditionallyTerminateScalarsFMask = 0xFF20FC0F,
+  SVEConditionallyTerminateScalarsMask = 0xFFA0FC1F,
+  CTERMEQ_rr = SVEConditionallyTerminateScalarsFixed | 0x00800000,
+  CTERMNE_rr = SVEConditionallyTerminateScalarsFixed | 0x00800010
+};
+
+enum SVEConstructivePrefix_UnpredicatedOp {
+  SVEConstructivePrefix_UnpredicatedFixed = 0x0420BC00,
+  SVEConstructivePrefix_UnpredicatedFMask = 0xFF20FC00,
+  SVEConstructivePrefix_UnpredicatedMask = 0xFFFFFC00,
+  MOVPRFX_z_z = SVEConstructivePrefix_UnpredicatedFixed
+};
+
+enum SVEContiguousFirstFaultLoad_ScalarPlusScalarOp {
+  SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed = 0xA4006000,
+  SVEContiguousFirstFaultLoad_ScalarPlusScalarFMask = 0xFE00E000,
+  SVEContiguousFirstFaultLoad_ScalarPlusScalarMask = 0xFFE0E000,
+  LDFF1B_z_p_br_u8 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed,
+  LDFF1B_z_p_br_u16 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00200000,
+  LDFF1B_z_p_br_u32 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00400000,
+  LDFF1B_z_p_br_u64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00600000,
+  LDFF1SW_z_p_br_s64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00800000,
+  LDFF1H_z_p_br_u16 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00A00000,
+  LDFF1H_z_p_br_u32 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00C00000,
+  LDFF1H_z_p_br_u64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x00E00000,
+  LDFF1SH_z_p_br_s64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01000000,
+  LDFF1SH_z_p_br_s32 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01200000,
+  LDFF1W_z_p_br_u32 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01400000,
+  LDFF1W_z_p_br_u64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01600000,
+  LDFF1SB_z_p_br_s64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01800000,
+  LDFF1SB_z_p_br_s32 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01A00000,
+  LDFF1SB_z_p_br_s16 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01C00000,
+  LDFF1D_z_p_br_u64 = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed | 0x01E00000
+};
+
+enum SVEContiguousLoad_ScalarPlusImmOp {
+  SVEContiguousLoad_ScalarPlusImmFixed = 0xA400A000,
+  SVEContiguousLoad_ScalarPlusImmFMask = 0xFE10E000,
+  SVEContiguousLoad_ScalarPlusImmMask = 0xFFF0E000,
+  LD1B_z_p_bi_u8 = SVEContiguousLoad_ScalarPlusImmFixed,
+  LD1B_z_p_bi_u16 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00200000,
+  LD1B_z_p_bi_u32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00400000,
+  LD1B_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00600000,
+  LD1SW_z_p_bi_s64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00800000,
+  LD1H_z_p_bi_u16 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00A00000,
+  LD1H_z_p_bi_u32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00C00000,
+  LD1H_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00E00000,
+  LD1SH_z_p_bi_s64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01000000,
+  LD1SH_z_p_bi_s32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01200000,
+  LD1W_z_p_bi_u32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01400000,
+  LD1W_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01600000,
+  LD1SB_z_p_bi_s64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01800000,
+  LD1SB_z_p_bi_s32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01A00000,
+  LD1SB_z_p_bi_s16 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01C00000,
+  LD1D_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01E00000
+};
+
+enum SVEContiguousLoad_ScalarPlusScalarOp {
+  SVEContiguousLoad_ScalarPlusScalarFixed = 0xA4004000,
+  SVEContiguousLoad_ScalarPlusScalarFMask = 0xFE00E000,
+  SVEContiguousLoad_ScalarPlusScalarMask = 0xFFE0E000,
+  LD1B_z_p_br_u8 = SVEContiguousLoad_ScalarPlusScalarFixed,
+  LD1B_z_p_br_u16 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00200000,
+  LD1B_z_p_br_u32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00400000,
+  LD1B_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00600000,
+  LD1SW_z_p_br_s64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00800000,
+  LD1H_z_p_br_u16 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00A00000,
+  LD1H_z_p_br_u32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00C00000,
+  LD1H_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00E00000,
+  LD1SH_z_p_br_s64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01000000,
+  LD1SH_z_p_br_s32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01200000,
+  LD1W_z_p_br_u32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01400000,
+  LD1W_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01600000,
+  LD1SB_z_p_br_s64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01800000,
+  LD1SB_z_p_br_s32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01A00000,
+  LD1SB_z_p_br_s16 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01C00000,
+  LD1D_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01E00000
+};
+
+enum SVEContiguousNonFaultLoad_ScalarPlusImmOp {
+  SVEContiguousNonFaultLoad_ScalarPlusImmFixed = 0xA410A000,
+  SVEContiguousNonFaultLoad_ScalarPlusImmFMask = 0xFE10E000,
+  SVEContiguousNonFaultLoad_ScalarPlusImmMask = 0xFFF0E000,
+  LDNF1B_z_p_bi_u8 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed,
+  LDNF1B_z_p_bi_u16 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00200000,
+  LDNF1B_z_p_bi_u32 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00400000,
+  LDNF1B_z_p_bi_u64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00600000,
+  LDNF1SW_z_p_bi_s64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00800000,
+  LDNF1H_z_p_bi_u16 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00A00000,
+  LDNF1H_z_p_bi_u32 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00C00000,
+  LDNF1H_z_p_bi_u64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x00E00000,
+  LDNF1SH_z_p_bi_s64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01000000,
+  LDNF1SH_z_p_bi_s32 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01200000,
+  LDNF1W_z_p_bi_u32 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01400000,
+  LDNF1W_z_p_bi_u64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01600000,
+  LDNF1SB_z_p_bi_s64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01800000,
+  LDNF1SB_z_p_bi_s32 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01A00000,
+  LDNF1SB_z_p_bi_s16 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01C00000,
+  LDNF1D_z_p_bi_u64 = SVEContiguousNonFaultLoad_ScalarPlusImmFixed | 0x01E00000
+};
+
+enum SVEContiguousNonTemporalLoad_ScalarPlusImmOp {
+  SVEContiguousNonTemporalLoad_ScalarPlusImmFixed = 0xA400E000,
+  SVEContiguousNonTemporalLoad_ScalarPlusImmFMask = 0xFE70E000,
+  SVEContiguousNonTemporalLoad_ScalarPlusImmMask = 0xFFF0E000,
+  LDNT1B_z_p_bi_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusImmFixed,
+  LDNT1H_z_p_bi_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusImmFixed | 0x00800000,
+  LDNT1W_z_p_bi_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusImmFixed | 0x01000000,
+  LDNT1D_z_p_bi_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusImmFixed | 0x01800000
+};
+
+enum SVEContiguousNonTemporalLoad_ScalarPlusScalarOp {
+  SVEContiguousNonTemporalLoad_ScalarPlusScalarFixed = 0xA400C000,
+  SVEContiguousNonTemporalLoad_ScalarPlusScalarFMask = 0xFE60E000,
+  SVEContiguousNonTemporalLoad_ScalarPlusScalarMask = 0xFFE0E000,
+  LDNT1B_z_p_br_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusScalarFixed,
+  LDNT1H_z_p_br_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusScalarFixed | 0x00800000,
+  LDNT1W_z_p_br_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusScalarFixed | 0x01000000,
+  LDNT1D_z_p_br_contiguous = SVEContiguousNonTemporalLoad_ScalarPlusScalarFixed | 0x01800000
+};
+
+enum SVEContiguousNonTemporalStore_ScalarPlusImmOp {
+  SVEContiguousNonTemporalStore_ScalarPlusImmFixed = 0xE410E000,
+  SVEContiguousNonTemporalStore_ScalarPlusImmFMask = 0xFE70E000,
+  SVEContiguousNonTemporalStore_ScalarPlusImmMask = 0xFFF0E000,
+  STNT1B_z_p_bi_contiguous = SVEContiguousNonTemporalStore_ScalarPlusImmFixed,
+  STNT1H_z_p_bi_contiguous = SVEContiguousNonTemporalStore_ScalarPlusImmFixed | 0x00800000,
+  STNT1W_z_p_bi_contiguous = SVEContiguousNonTemporalStore_ScalarPlusImmFixed | 0x01000000,
+  STNT1D_z_p_bi_contiguous = SVEContiguousNonTemporalStore_ScalarPlusImmFixed | 0x01800000
+};
+
+enum SVEContiguousNonTemporalStore_ScalarPlusScalarOp {
+  SVEContiguousNonTemporalStore_ScalarPlusScalarFixed = 0xE4006000,
+  SVEContiguousNonTemporalStore_ScalarPlusScalarFMask = 0xFE60E000,
+  SVEContiguousNonTemporalStore_ScalarPlusScalarMask = 0xFFE0E000,
+  STNT1B_z_p_br_contiguous = SVEContiguousNonTemporalStore_ScalarPlusScalarFixed,
+  STNT1H_z_p_br_contiguous = SVEContiguousNonTemporalStore_ScalarPlusScalarFixed | 0x00800000,
+  STNT1W_z_p_br_contiguous = SVEContiguousNonTemporalStore_ScalarPlusScalarFixed | 0x01000000,
+  STNT1D_z_p_br_contiguous = SVEContiguousNonTemporalStore_ScalarPlusScalarFixed | 0x01800000
+};
+
+enum SVEContiguousPrefetch_ScalarPlusImmOp {
+  SVEContiguousPrefetch_ScalarPlusImmFixed = 0x85C00000,
+  SVEContiguousPrefetch_ScalarPlusImmFMask = 0xFFC08010,
+  SVEContiguousPrefetch_ScalarPlusImmMask = 0xFFC0E010,
+  PRFB_i_p_bi_s = SVEContiguousPrefetch_ScalarPlusImmFixed,
+  PRFH_i_p_bi_s = SVEContiguousPrefetch_ScalarPlusImmFixed | 0x00002000,
+  PRFW_i_p_bi_s = SVEContiguousPrefetch_ScalarPlusImmFixed | 0x00004000,
+  PRFD_i_p_bi_s = SVEContiguousPrefetch_ScalarPlusImmFixed | 0x00006000
+};
+
+enum SVEContiguousPrefetch_ScalarPlusScalarOp {
+  SVEContiguousPrefetch_ScalarPlusScalarFixed = 0x8400C000,
+  SVEContiguousPrefetch_ScalarPlusScalarFMask = 0xFE60E010,
+  SVEContiguousPrefetch_ScalarPlusScalarMask = 0xFFE0E010,
+  PRFB_i_p_br_s = SVEContiguousPrefetch_ScalarPlusScalarFixed,
+  PRFH_i_p_br_s = SVEContiguousPrefetch_ScalarPlusScalarFixed | 0x00800000,
+  PRFW_i_p_br_s = SVEContiguousPrefetch_ScalarPlusScalarFixed | 0x01000000,
+  PRFD_i_p_br_s = SVEContiguousPrefetch_ScalarPlusScalarFixed | 0x01800000
+};
+
+enum SVEContiguousStore_ScalarPlusImmOp {
+  SVEContiguousStore_ScalarPlusImmFixed = 0xE400E000,
+  SVEContiguousStore_ScalarPlusImmFMask = 0xFE10E000,
+  SVEContiguousStore_ScalarPlusImmMask = 0xFF90E000,
+  ST1B_z_p_bi = SVEContiguousStore_ScalarPlusImmFixed,
+  ST1H_z_p_bi = SVEContiguousStore_ScalarPlusImmFixed | 0x00800000,
+  ST1W_z_p_bi = SVEContiguousStore_ScalarPlusImmFixed | 0x01000000,
+  ST1D_z_p_bi = SVEContiguousStore_ScalarPlusImmFixed | 0x01800000
+};
+
+enum SVEContiguousStore_ScalarPlusScalarOp {
+  SVEContiguousStore_ScalarPlusScalarFixed = 0xE4004000,
+  SVEContiguousStore_ScalarPlusScalarFMask = 0xFE00E000,
+  SVEContiguousStore_ScalarPlusScalarMask = 0xFF80E000,
+  ST1B_z_p_br = SVEContiguousStore_ScalarPlusScalarFixed,
+  ST1H_z_p_br = SVEContiguousStore_ScalarPlusScalarFixed | 0x00800000,
+  ST1W_z_p_br = SVEContiguousStore_ScalarPlusScalarFixed | 0x01000000,
+  ST1D_z_p_br = SVEContiguousStore_ScalarPlusScalarFixed | 0x01800000
+};
+
+enum SVECopyFPImm_PredicatedOp {
+  SVECopyFPImm_PredicatedFixed = 0x0510C000,
+  SVECopyFPImm_PredicatedFMask = 0xFF30E000,
+  SVECopyFPImm_PredicatedMask = 0xFF30E000,
+  FCPY_z_p_i = SVECopyFPImm_PredicatedFixed
+};
+
+enum SVECopyGeneralRegisterToVector_PredicatedOp {
+  SVECopyGeneralRegisterToVector_PredicatedFixed = 0x0528A000,
+  SVECopyGeneralRegisterToVector_PredicatedFMask = 0xFF3FE000,
+  SVECopyGeneralRegisterToVector_PredicatedMask = 0xFF3FE000,
+  CPY_z_p_r = SVECopyGeneralRegisterToVector_PredicatedFixed
+};
+
+enum SVECopyIntImm_PredicatedOp {
+  SVECopyIntImm_PredicatedFixed = 0x05100000,
+  SVECopyIntImm_PredicatedFMask = 0xFF308000,
+  SVECopyIntImm_PredicatedMask = 0xFF308000,
+  CPY_z_p_i = SVECopyIntImm_PredicatedFixed
+};
+
+enum SVECopySIMDFPScalarRegisterToVector_PredicatedOp {
+  SVECopySIMDFPScalarRegisterToVector_PredicatedFixed = 0x05208000,
+  SVECopySIMDFPScalarRegisterToVector_PredicatedFMask = 0xFF3FE000,
+  SVECopySIMDFPScalarRegisterToVector_PredicatedMask = 0xFF3FE000,
+  CPY_z_p_v = SVECopySIMDFPScalarRegisterToVector_PredicatedFixed
+};
+
 enum SVEElementCountOp {
-  SVEElementCountFixed = 0x0420C000,
-  SVEElementCountFMask = 0xFF20C000,
+  SVEElementCountFixed = 0x0420E000,
+  SVEElementCountFMask = 0xFF30F800,
   SVEElementCountMask = 0xFFF0FC00,
-  CNTB_r_s = SVEElementCountFixed | 0x00002000,
-  SQINCB_r_rs_sx = SVEElementCountFixed | 0x00003000,
-  UQINCB_r_rs_uw = SVEElementCountFixed | 0x00003400,
-  SQDECB_r_rs_sx = SVEElementCountFixed | 0x00003800,
-  UQDECB_r_rs_uw = SVEElementCountFixed | 0x00003C00,
-  INCB_r_rs = SVEElementCountFixed | 0x00102000,
-  DECB_r_rs = SVEElementCountFixed | 0x00102400,
-  SQINCB_r_rs_x = SVEElementCountFixed | 0x00103000,
-  UQINCB_r_rs_x = SVEElementCountFixed | 0x00103400,
-  SQDECB_r_rs_x = SVEElementCountFixed | 0x00103800,
-  UQDECB_r_rs_x = SVEElementCountFixed | 0x00103C00,
-  SQINCH_z_zs = SVEElementCountFixed | 0x00400000,
-  UQINCH_z_zs = SVEElementCountFixed | 0x00400400,
-  SQDECH_z_zs = SVEElementCountFixed | 0x00400800,
-  UQDECH_z_zs = SVEElementCountFixed | 0x00400C00,
-  CNTH_r_s = SVEElementCountFixed | 0x00402000,
-  SQINCH_r_rs_sx = SVEElementCountFixed | 0x00403000,
-  UQINCH_r_rs_uw = SVEElementCountFixed | 0x00403400,
-  SQDECH_r_rs_sx = SVEElementCountFixed | 0x00403800,
-  UQDECH_r_rs_uw = SVEElementCountFixed | 0x00403C00,
-  INCH_z_zs = SVEElementCountFixed | 0x00500000,
-  DECH_z_zs = SVEElementCountFixed | 0x00500400,
-  INCH_r_rs = SVEElementCountFixed | 0x00502000,
-  DECH_r_rs = SVEElementCountFixed | 0x00502400,
-  SQINCH_r_rs_x = SVEElementCountFixed | 0x00503000,
-  UQINCH_r_rs_x = SVEElementCountFixed | 0x00503400,
-  SQDECH_r_rs_x = SVEElementCountFixed | 0x00503800,
-  UQDECH_r_rs_x = SVEElementCountFixed | 0x00503C00,
-  SQINCW_z_zs = SVEElementCountFixed | 0x00800000,
-  UQINCW_z_zs = SVEElementCountFixed | 0x00800400,
-  SQDECW_z_zs = SVEElementCountFixed | 0x00800800,
-  UQDECW_z_zs = SVEElementCountFixed | 0x00800C00,
-  CNTW_r_s = SVEElementCountFixed | 0x00802000,
-  SQINCW_r_rs_sx = SVEElementCountFixed | 0x00803000,
-  UQINCW_r_rs_uw = SVEElementCountFixed | 0x00803400,
-  SQDECW_r_rs_sx = SVEElementCountFixed | 0x00803800,
-  UQDECW_r_rs_uw = SVEElementCountFixed | 0x00803C00,
-  INCW_z_zs = SVEElementCountFixed | 0x00900000,
-  DECW_z_zs = SVEElementCountFixed | 0x00900400,
-  INCW_r_rs = SVEElementCountFixed | 0x00902000,
-  DECW_r_rs = SVEElementCountFixed | 0x00902400,
-  SQINCW_r_rs_x = SVEElementCountFixed | 0x00903000,
-  UQINCW_r_rs_x = SVEElementCountFixed | 0x00903400,
-  SQDECW_r_rs_x = SVEElementCountFixed | 0x00903800,
-  UQDECW_r_rs_x = SVEElementCountFixed | 0x00903C00,
-  SQINCD_z_zs = SVEElementCountFixed | 0x00C00000,
-  UQINCD_z_zs = SVEElementCountFixed | 0x00C00400,
-  SQDECD_z_zs = SVEElementCountFixed | 0x00C00800,
-  UQDECD_z_zs = SVEElementCountFixed | 0x00C00C00,
-  CNTD_r_s = SVEElementCountFixed | 0x00C02000,
-  SQINCD_r_rs_sx = SVEElementCountFixed | 0x00C03000,
-  UQINCD_r_rs_uw = SVEElementCountFixed | 0x00C03400,
-  SQDECD_r_rs_sx = SVEElementCountFixed | 0x00C03800,
-  UQDECD_r_rs_uw = SVEElementCountFixed | 0x00C03C00,
-  INCD_z_zs = SVEElementCountFixed | 0x00D00000,
-  DECD_z_zs = SVEElementCountFixed | 0x00D00400,
-  INCD_r_rs = SVEElementCountFixed | 0x00D02000,
-  DECD_r_rs = SVEElementCountFixed | 0x00D02400,
-  SQINCD_r_rs_x = SVEElementCountFixed | 0x00D03000,
-  UQINCD_r_rs_x = SVEElementCountFixed | 0x00D03400,
-  SQDECD_r_rs_x = SVEElementCountFixed | 0x00D03800,
-  UQDECD_r_rs_x = SVEElementCountFixed | 0x00D03C00
+  CNTB_r_s = SVEElementCountFixed,
+  CNTH_r_s = SVEElementCountFixed | 0x00400000,
+  CNTW_r_s = SVEElementCountFixed | 0x00800000,
+  CNTD_r_s = SVEElementCountFixed | 0x00C00000
+};
+
+enum SVEExtractElementToGeneralRegisterOp {
+  SVEExtractElementToGeneralRegisterFixed = 0x0520A000,
+  SVEExtractElementToGeneralRegisterFMask = 0xFF3EE000,
+  SVEExtractElementToGeneralRegisterMask = 0xFF3FE000,
+  LASTA_r_p_z = SVEExtractElementToGeneralRegisterFixed,
+  LASTB_r_p_z = SVEExtractElementToGeneralRegisterFixed | 0x00010000
+};
+
+enum SVEExtractElementToSIMDFPScalarRegisterOp {
+  SVEExtractElementToSIMDFPScalarRegisterFixed = 0x05228000,
+  SVEExtractElementToSIMDFPScalarRegisterFMask = 0xFF3EE000,
+  SVEExtractElementToSIMDFPScalarRegisterMask = 0xFF3FE000,
+  LASTA_v_p_z = SVEExtractElementToSIMDFPScalarRegisterFixed,
+  LASTB_v_p_z = SVEExtractElementToSIMDFPScalarRegisterFixed | 0x00010000
+};
+
+enum SVEFFRInitialiseOp {
+  SVEFFRInitialiseFixed = 0x252C9000,
+  SVEFFRInitialiseFMask = 0xFF3FFFFF,
+  SVEFFRInitialiseMask = 0xFFFFFFFF,
+  SETFFR_f = SVEFFRInitialiseFixed
+};
+
+enum SVEFFRWriteFromPredicateOp {
+  SVEFFRWriteFromPredicateFixed = 0x25289000,
+  SVEFFRWriteFromPredicateFMask = 0xFF3FFE1F,
+  SVEFFRWriteFromPredicateMask = 0xFFFFFE1F,
+  WRFFR_f_p = SVEFFRWriteFromPredicateFixed
 };
 
 enum SVEFPAccumulatingReductionOp {
@@ -2892,34 +3428,6 @@ enum SVEFPAccumulatingReductionOp {
   SVEFPAccumulatingReductionFMask = 0xFF38E000,
   SVEFPAccumulatingReductionMask = 0xFF3FE000,
   FADDA_v_p_z = SVEFPAccumulatingReductionFixed
-};
-
-enum SVEFPArithmeticPredicatedOp {
-  SVEFPArithmeticPredicatedFixed = 0x65008000,
-  SVEFPArithmeticPredicatedFMask = 0xFF20E000,
-  SVEFPArithmeticPredicatedMask = 0xFF3FFFC0,
-  FADD_z_p_zz = SVEFPArithmeticPredicatedFixed,
-  FSUB_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00010000,
-  FMUL_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00020000,
-  FSUBR_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00030000,
-  FMAXNM_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00040000,
-  FMINNM_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00050000,
-  FMAX_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00060000,
-  FMIN_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00070000,
-  FABD_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00080000,
-  FSCALE_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x00090000,
-  FMULX_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x000A0000,
-  FDIVR_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x000C0000,
-  FDIV_z_p_zz = SVEFPArithmeticPredicatedFixed | 0x000D0000,
-  FTMAD_z_zzi = SVEFPArithmeticPredicatedFixed | 0x00100000,
-  FADD_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x00180000,
-  FSUB_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x00190000,
-  FMUL_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x001A0000,
-  FSUBR_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x001B0000,
-  FMAXNM_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x001C0000,
-  FMINNM_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x001D0000,
-  FMAX_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x001E0000,
-  FMIN_z_p_zs = SVEFPArithmeticPredicatedFixed | 0x001F0000
 };
 
 enum SVEFPArithmeticUnpredicatedOp {
@@ -2932,6 +3440,39 @@ enum SVEFPArithmeticUnpredicatedOp {
   FTSMUL_z_zz = SVEFPArithmeticUnpredicatedFixed | 0x00000C00,
   FRECPS_z_zz = SVEFPArithmeticUnpredicatedFixed | 0x00001800,
   FRSQRTS_z_zz = SVEFPArithmeticUnpredicatedFixed | 0x00001C00
+};
+
+enum SVEFPArithmeticWithImm_PredicatedOp {
+  SVEFPArithmeticWithImm_PredicatedFixed = 0x65188000,
+  SVEFPArithmeticWithImm_PredicatedFMask = 0xFF38E3C0,
+  SVEFPArithmeticWithImm_PredicatedMask = 0xFF3FE3C0,
+  FADD_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed,
+  FSUB_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00010000,
+  FMUL_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00020000,
+  FSUBR_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00030000,
+  FMAXNM_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00040000,
+  FMINNM_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00050000,
+  FMAX_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00060000,
+  FMIN_z_p_zs = SVEFPArithmeticWithImm_PredicatedFixed | 0x00070000
+};
+
+enum SVEFPArithmetic_PredicatedOp {
+  SVEFPArithmetic_PredicatedFixed = 0x65008000,
+  SVEFPArithmetic_PredicatedFMask = 0xFF30E000,
+  SVEFPArithmetic_PredicatedMask = 0xFF3FE000,
+  FADD_z_p_zz = SVEFPArithmetic_PredicatedFixed,
+  FSUB_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00010000,
+  FMUL_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00020000,
+  FSUBR_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00030000,
+  FMAXNM_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00040000,
+  FMINNM_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00050000,
+  FMAX_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00060000,
+  FMIN_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00070000,
+  FABD_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00080000,
+  FSCALE_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x00090000,
+  FMULX_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x000A0000,
+  FDIVR_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x000C0000,
+  FDIV_z_p_zz = SVEFPArithmetic_PredicatedFixed | 0x000D0000
 };
 
 enum SVEFPCompareVectorsOp {
@@ -2981,6 +3522,45 @@ enum SVEFPComplexMulAddIndexOp {
   FCMLA_z_zzzi_s = SVEFPComplexMulAddIndexFixed | 0x00C00000
 };
 
+enum SVEFPConvertPrecisionOp {
+  SVEFPConvertPrecisionFixed = 0x6508A000,
+  SVEFPConvertPrecisionFMask = 0xFF3CE000,
+  SVEFPConvertPrecisionMask = 0xFFFFE000,
+  FCVT_z_p_z_s2h = SVEFPConvertPrecisionFixed | 0x00800000,
+  FCVT_z_p_z_h2s = SVEFPConvertPrecisionFixed | 0x00810000,
+  FCVT_z_p_z_d2h = SVEFPConvertPrecisionFixed | 0x00C00000,
+  FCVT_z_p_z_h2d = SVEFPConvertPrecisionFixed | 0x00C10000,
+  FCVT_z_p_z_d2s = SVEFPConvertPrecisionFixed | 0x00C20000,
+  FCVT_z_p_z_s2d = SVEFPConvertPrecisionFixed | 0x00C30000
+};
+
+enum SVEFPConvertToIntOp {
+  SVEFPConvertToIntFixed = 0x6518A000,
+  SVEFPConvertToIntFMask = 0xFF38E000,
+  SVEFPConvertToIntMask = 0xFFFFE000,
+  FCVTZS_z_p_z_fp162h = SVEFPConvertToIntFixed | 0x00420000,
+  FCVTZU_z_p_z_fp162h = SVEFPConvertToIntFixed | 0x00430000,
+  FCVTZS_z_p_z_fp162w = SVEFPConvertToIntFixed | 0x00440000,
+  FCVTZU_z_p_z_fp162w = SVEFPConvertToIntFixed | 0x00450000,
+  FCVTZS_z_p_z_fp162x = SVEFPConvertToIntFixed | 0x00460000,
+  FCVTZU_z_p_z_fp162x = SVEFPConvertToIntFixed | 0x00470000,
+  FCVTZS_z_p_z_s2w = SVEFPConvertToIntFixed | 0x00840000,
+  FCVTZU_z_p_z_s2w = SVEFPConvertToIntFixed | 0x00850000,
+  FCVTZS_z_p_z_d2w = SVEFPConvertToIntFixed | 0x00C00000,
+  FCVTZU_z_p_z_d2w = SVEFPConvertToIntFixed | 0x00C10000,
+  FCVTZS_z_p_z_s2x = SVEFPConvertToIntFixed | 0x00C40000,
+  FCVTZU_z_p_z_s2x = SVEFPConvertToIntFixed | 0x00C50000,
+  FCVTZS_z_p_z_d2x = SVEFPConvertToIntFixed | 0x00C60000,
+  FCVTZU_z_p_z_d2x = SVEFPConvertToIntFixed | 0x00C70000
+};
+
+enum SVEFPExponentialAcceleratorOp {
+  SVEFPExponentialAcceleratorFixed = 0x0420B800,
+  SVEFPExponentialAcceleratorFMask = 0xFF20FC00,
+  SVEFPExponentialAcceleratorMask = 0xFF3FFC00,
+  FEXPA_z_z = SVEFPExponentialAcceleratorFixed
+};
+
 enum SVEFPFastReductionOp {
   SVEFPFastReductionFixed = 0x65002000,
   SVEFPFastReductionFMask = 0xFF38E000,
@@ -3009,7 +3589,7 @@ enum SVEFPMulAddOp {
 enum SVEFPMulAddIndexOp {
   SVEFPMulAddIndexFixed = 0x64200000,
   SVEFPMulAddIndexFMask = 0xFF20F800,
-  SVEFPMulAddIndexMask = 0xFFE0FC00,
+  SVEFPMulAddIndexMask = 0xFFA0FC00,
   FMLA_z_zzzi_h = SVEFPMulAddIndexFixed,
   FMLS_z_zzzi_h = SVEFPMulAddIndexFixed | 0x00000400,
   FMLA_z_zzzi_s = SVEFPMulAddIndexFixed | 0x00800000,
@@ -3021,59 +3601,45 @@ enum SVEFPMulAddIndexOp {
 enum SVEFPMulIndexOp {
   SVEFPMulIndexFixed = 0x64202000,
   SVEFPMulIndexFMask = 0xFF20FC00,
-  SVEFPMulIndexMask = 0xFFE0FC00,
+  SVEFPMulIndexMask = 0xFFA0FC00,
   FMUL_z_zzi_h = SVEFPMulIndexFixed,
   FMUL_z_zzi_s = SVEFPMulIndexFixed | 0x00800000,
   FMUL_z_zzi_d = SVEFPMulIndexFixed | 0x00C00000
 };
 
-enum SVEFPUnaryOpPredicatedOp {
-  SVEFPUnaryOpPredicatedFixed = 0x6500A000,
-  SVEFPUnaryOpPredicatedFMask = 0xFF20E000,
-  SVEFPUnaryOpPredicatedMask = 0xFFFFE000,
-  FRINTN_z_p_z = SVEFPUnaryOpPredicatedFixed,
-  FRINTP_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x00010000,
-  FRINTM_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x00020000,
-  FRINTZ_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x00030000,
-  FRINTA_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x00040000,
-  FRINTX_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x00060000,
-  FRINTI_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x00070000,
-  FRECPX_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x000C0000,
-  FSQRT_z_p_z = SVEFPUnaryOpPredicatedFixed | 0x000D0000,
-  SCVTF_z_p_z_h2fp16 = SVEFPUnaryOpPredicatedFixed | 0x00520000,
-  UCVTF_z_p_z_h2fp16 = SVEFPUnaryOpPredicatedFixed | 0x00530000,
-  SCVTF_z_p_z_w2fp16 = SVEFPUnaryOpPredicatedFixed | 0x00540000,
-  UCVTF_z_p_z_w2fp16 = SVEFPUnaryOpPredicatedFixed | 0x00550000,
-  SCVTF_z_p_z_x2fp16 = SVEFPUnaryOpPredicatedFixed | 0x00560000,
-  UCVTF_z_p_z_x2fp16 = SVEFPUnaryOpPredicatedFixed | 0x00570000,
-  FCVTZS_z_p_z_fp162h = SVEFPUnaryOpPredicatedFixed | 0x005A0000,
-  FCVTZU_z_p_z_fp162h = SVEFPUnaryOpPredicatedFixed | 0x005B0000,
-  FCVTZS_z_p_z_fp162w = SVEFPUnaryOpPredicatedFixed | 0x005C0000,
-  FCVTZU_z_p_z_fp162w = SVEFPUnaryOpPredicatedFixed | 0x005D0000,
-  FCVTZS_z_p_z_fp162x = SVEFPUnaryOpPredicatedFixed | 0x005E0000,
-  FCVTZU_z_p_z_fp162x = SVEFPUnaryOpPredicatedFixed | 0x005F0000,
-  FCVT_z_p_z_s2h = SVEFPUnaryOpPredicatedFixed | 0x00880000,
-  FCVT_z_p_z_h2s = SVEFPUnaryOpPredicatedFixed | 0x00890000,
-  SCVTF_z_p_z_w2s = SVEFPUnaryOpPredicatedFixed | 0x00940000,
-  UCVTF_z_p_z_w2s = SVEFPUnaryOpPredicatedFixed | 0x00950000,
-  FCVTZS_z_p_z_s2w = SVEFPUnaryOpPredicatedFixed | 0x009C0000,
-  FCVTZU_z_p_z_s2w = SVEFPUnaryOpPredicatedFixed | 0x009D0000,
-  FCVT_z_p_z_d2h = SVEFPUnaryOpPredicatedFixed | 0x00C80000,
-  FCVT_z_p_z_h2d = SVEFPUnaryOpPredicatedFixed | 0x00C90000,
-  FCVT_z_p_z_d2s = SVEFPUnaryOpPredicatedFixed | 0x00CA0000,
-  FCVT_z_p_z_s2d = SVEFPUnaryOpPredicatedFixed | 0x00CB0000,
-  SCVTF_z_p_z_w2d = SVEFPUnaryOpPredicatedFixed | 0x00D00000,
-  UCVTF_z_p_z_w2d = SVEFPUnaryOpPredicatedFixed | 0x00D10000,
-  SCVTF_z_p_z_x2s = SVEFPUnaryOpPredicatedFixed | 0x00D40000,
-  UCVTF_z_p_z_x2s = SVEFPUnaryOpPredicatedFixed | 0x00D50000,
-  SCVTF_z_p_z_x2d = SVEFPUnaryOpPredicatedFixed | 0x00D60000,
-  UCVTF_z_p_z_x2d = SVEFPUnaryOpPredicatedFixed | 0x00D70000,
-  FCVTZS_z_p_z_d2w = SVEFPUnaryOpPredicatedFixed | 0x00D80000,
-  FCVTZU_z_p_z_d2w = SVEFPUnaryOpPredicatedFixed | 0x00D90000,
-  FCVTZS_z_p_z_s2x = SVEFPUnaryOpPredicatedFixed | 0x00DC0000,
-  FCVTZU_z_p_z_s2x = SVEFPUnaryOpPredicatedFixed | 0x00DD0000,
-  FCVTZS_z_p_z_d2x = SVEFPUnaryOpPredicatedFixed | 0x00DE0000,
-  FCVTZU_z_p_z_d2x = SVEFPUnaryOpPredicatedFixed | 0x00DF0000
+enum SVEFPRoundToIntegralValueOp {
+  SVEFPRoundToIntegralValueFixed = 0x6500A000,
+  SVEFPRoundToIntegralValueFMask = 0xFF38E000,
+  SVEFPRoundToIntegralValueMask = 0xFF3FE000,
+  FRINTN_z_p_z = SVEFPRoundToIntegralValueFixed,
+  FRINTP_z_p_z = SVEFPRoundToIntegralValueFixed | 0x00010000,
+  FRINTM_z_p_z = SVEFPRoundToIntegralValueFixed | 0x00020000,
+  FRINTZ_z_p_z = SVEFPRoundToIntegralValueFixed | 0x00030000,
+  FRINTA_z_p_z = SVEFPRoundToIntegralValueFixed | 0x00040000,
+  FRINTX_z_p_z = SVEFPRoundToIntegralValueFixed | 0x00060000,
+  FRINTI_z_p_z = SVEFPRoundToIntegralValueFixed | 0x00070000
+};
+
+enum SVEFPTrigMulAddCoefficientOp {
+  SVEFPTrigMulAddCoefficientFixed = 0x65108000,
+  SVEFPTrigMulAddCoefficientFMask = 0xFF38FC00,
+  SVEFPTrigMulAddCoefficientMask = 0xFF38FC00,
+  FTMAD_z_zzi = SVEFPTrigMulAddCoefficientFixed
+};
+
+enum SVEFPTrigSelectCoefficientOp {
+  SVEFPTrigSelectCoefficientFixed = 0x0420B000,
+  SVEFPTrigSelectCoefficientFMask = 0xFF20F800,
+  SVEFPTrigSelectCoefficientMask = 0xFF20FC00,
+  FTSSEL_z_zz = SVEFPTrigSelectCoefficientFixed
+};
+
+enum SVEFPUnaryOpOp {
+  SVEFPUnaryOpFixed = 0x650CA000,
+  SVEFPUnaryOpFMask = 0xFF3CE000,
+  SVEFPUnaryOpMask = 0xFF3FE000,
+  FRECPX_z_p_z = SVEFPUnaryOpFixed,
+  FSQRT_z_p_z = SVEFPUnaryOpFixed | 0x00010000
 };
 
 enum SVEFPUnaryOpUnpredicatedOp {
@@ -3106,6 +3672,32 @@ enum SVEIncDecByPredicateCountOp {
   DECP_r_p_r = SVEIncDecByPredicateCountFixed | 0x00050800
 };
 
+enum SVEIncDecRegisterByElementCountOp {
+  SVEIncDecRegisterByElementCountFixed = 0x0430E000,
+  SVEIncDecRegisterByElementCountFMask = 0xFF30F800,
+  SVEIncDecRegisterByElementCountMask = 0xFFF0FC00,
+  INCB_r_rs = SVEIncDecRegisterByElementCountFixed,
+  DECB_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00000400,
+  INCH_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00400000,
+  DECH_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00400400,
+  INCW_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00800000,
+  DECW_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00800400,
+  INCD_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00C00000,
+  DECD_r_rs = SVEIncDecRegisterByElementCountFixed | 0x00C00400
+};
+
+enum SVEIncDecVectorByElementCountOp {
+  SVEIncDecVectorByElementCountFixed = 0x0430C000,
+  SVEIncDecVectorByElementCountFMask = 0xFF30F800,
+  SVEIncDecVectorByElementCountMask = 0xFFF0FC00,
+  INCH_z_zs = SVEIncDecVectorByElementCountFixed | 0x00400000,
+  DECH_z_zs = SVEIncDecVectorByElementCountFixed | 0x00400400,
+  INCW_z_zs = SVEIncDecVectorByElementCountFixed | 0x00800000,
+  DECW_z_zs = SVEIncDecVectorByElementCountFixed | 0x00800400,
+  INCD_z_zs = SVEIncDecVectorByElementCountFixed | 0x00C00000,
+  DECD_z_zs = SVEIncDecVectorByElementCountFixed | 0x00C00400
+};
+
 enum SVEIndexGenerationOp {
   SVEIndexGenerationFixed = 0x04204000,
   SVEIndexGenerationFMask = 0xFF20F000,
@@ -3114,6 +3706,42 @@ enum SVEIndexGenerationOp {
   INDEX_z_ri = SVEIndexGenerationFixed | 0x00000400,
   INDEX_z_ir = SVEIndexGenerationFixed | 0x00000800,
   INDEX_z_rr = SVEIndexGenerationFixed | 0x00000C00
+};
+
+enum SVEInsertGeneralRegisterOp {
+  SVEInsertGeneralRegisterFixed = 0x05243800,
+  SVEInsertGeneralRegisterFMask = 0xFF3FFC00,
+  SVEInsertGeneralRegisterMask = 0xFF3FFC00,
+  INSR_z_r = SVEInsertGeneralRegisterFixed
+};
+
+enum SVEInsertSIMDFPScalarRegisterOp {
+  SVEInsertSIMDFPScalarRegisterFixed = 0x05343800,
+  SVEInsertSIMDFPScalarRegisterFMask = 0xFF3FFC00,
+  SVEInsertSIMDFPScalarRegisterMask = 0xFF3FFC00,
+  INSR_z_v = SVEInsertSIMDFPScalarRegisterFixed
+};
+
+enum SVEIntAddSubtractImm_UnpredicatedOp {
+  SVEIntAddSubtractImm_UnpredicatedFixed = 0x2520C000,
+  SVEIntAddSubtractImm_UnpredicatedFMask = 0xFF38C000,
+  SVEIntAddSubtractImm_UnpredicatedMask = 0xFF3FC000,
+  ADD_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed,
+  SUB_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed | 0x00010000,
+  SUBR_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed | 0x00030000,
+  SQADD_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed | 0x00040000,
+  UQADD_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed | 0x00050000,
+  SQSUB_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed | 0x00060000,
+  UQSUB_z_zi = SVEIntAddSubtractImm_UnpredicatedFixed | 0x00070000
+};
+
+enum SVEIntAddSubtractVectors_PredicatedOp {
+  SVEIntAddSubtractVectors_PredicatedFixed = 0x04000000,
+  SVEIntAddSubtractVectors_PredicatedFMask = 0xFF38E000,
+  SVEIntAddSubtractVectors_PredicatedMask = 0xFF3FE000,
+  ADD_z_p_zz = SVEIntAddSubtractVectors_PredicatedFixed,
+  SUB_z_p_zz = SVEIntAddSubtractVectors_PredicatedFixed | 0x00010000,
+  SUBR_z_p_zz = SVEIntAddSubtractVectors_PredicatedFixed | 0x00030000
 };
 
 enum SVEIntArithmeticUnpredicatedOp {
@@ -3128,54 +3756,14 @@ enum SVEIntArithmeticUnpredicatedOp {
   UQSUB_z_zz = SVEIntArithmeticUnpredicatedFixed | 0x00001C00
 };
 
-enum SVEIntBinaryArithmeticPredicatedOp {
-  SVEIntBinaryArithmeticPredicatedFixed = 0x04000000,
-  SVEIntBinaryArithmeticPredicatedFMask = 0xFF20E000,
-  SVEIntBinaryArithmeticPredicatedMask = 0xFF3FE000,
-  ADD_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed,
-  SUB_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00010000,
-  SUBR_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00030000,
-  SMAX_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00080000,
-  UMAX_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00090000,
-  SMIN_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x000A0000,
-  UMIN_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x000B0000,
-  SABD_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x000C0000,
-  UABD_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x000D0000,
-  MUL_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00100000,
-  SMULH_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00120000,
-  UMULH_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00130000,
-  SDIV_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00140000,
-  UDIV_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00150000,
-  SDIVR_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00160000,
-  UDIVR_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00170000,
-  ORR_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00180000,
-  EOR_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x00190000,
-  AND_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x001A0000,
-  BIC_z_p_zz = SVEIntBinaryArithmeticPredicatedFixed | 0x001B0000
-};
-
-enum SVEIntCompareScalarsOp {
-  SVEIntCompareScalarsFixed = 0x25200000,
-  SVEIntCompareScalarsFMask = 0xFF20C000,
-  SVEIntCompareScalarsMask = 0xFFA0FC1F
-};
-
-enum SVEIntCompareCondTerminateScalarsOp {
-  SVEIntCompareCondTerminateScalarsFixed = 0x25202000,
-  SVEIntCompareCondTerminateScalarsFMask = 0xFF20FC0F,
-  SVEIntCompareCondTerminateScalarsMask = 0xFFA0FC1F,
-  CTERMEQ_rr = SVEIntCompareCondTerminateScalarsFixed | 0x00800000,
-  CTERMNE_rr = SVEIntCompareCondTerminateScalarsFixed | 0x00800010
-};
-
-enum SVEIntCompareCountAndLimitScalarsOp {
-  SVEIntCompareCountAndLimitScalarsFixed = 0x25200000,
-  SVEIntCompareCountAndLimitScalarsFMask = 0xFF20E000,
-  SVEIntCompareCountAndLimitScalarsMask = 0xFF20EC10,
-  WHILELT_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000400,
-  WHILELE_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000410,
-  WHILELO_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000C00,
-  WHILELS_p_p_rr = SVEIntCompareCountAndLimitScalarsFixed | 0x00000C10
+enum SVEIntCompareScalarCountAndLimitOp {
+  SVEIntCompareScalarCountAndLimitFixed = 0x25200000,
+  SVEIntCompareScalarCountAndLimitFMask = 0xFF20E000,
+  SVEIntCompareScalarCountAndLimitMask = 0xFF20EC10,
+  WHILELT_p_p_rr = SVEIntCompareScalarCountAndLimitFixed | 0x00000400,
+  WHILELE_p_p_rr = SVEIntCompareScalarCountAndLimitFixed | 0x00000410,
+  WHILELO_p_p_rr = SVEIntCompareScalarCountAndLimitFixed | 0x00000C00,
+  WHILELS_p_p_rr = SVEIntCompareScalarCountAndLimitFixed | 0x00000C10
 };
 
 enum SVEIntCompareSignedImmOp {
@@ -3222,13 +3810,56 @@ enum SVEIntCompareVectorsOp {
   CMPLS_p_p_zw = SVEIntCompareVectorsFixed | 0x0000E010
 };
 
-enum SVEIntMiscUnpredicatedOp {
-  SVEIntMiscUnpredicatedFixed = 0x0420B000,
-  SVEIntMiscUnpredicatedFMask = 0xFF20F000,
-  SVEIntMiscUnpredicatedMask = 0xFFFFFC00,
-  FTSSEL_z_zz = SVEIntMiscUnpredicatedFixed,
-  FEXPA_z_z = SVEIntMiscUnpredicatedFixed | 0x00000800,
-  MOVPRFX_z_z = SVEIntMiscUnpredicatedFixed | 0x00000C00
+enum SVEIntConvertToFPOp {
+  SVEIntConvertToFPFixed = 0x6510A000,
+  SVEIntConvertToFPFMask = 0xFF38E000,
+  SVEIntConvertToFPMask = 0xFFFFE000,
+  SCVTF_z_p_z_h2fp16 = SVEIntConvertToFPFixed | 0x00420000,
+  UCVTF_z_p_z_h2fp16 = SVEIntConvertToFPFixed | 0x00430000,
+  SCVTF_z_p_z_w2fp16 = SVEIntConvertToFPFixed | 0x00440000,
+  UCVTF_z_p_z_w2fp16 = SVEIntConvertToFPFixed | 0x00450000,
+  SCVTF_z_p_z_x2fp16 = SVEIntConvertToFPFixed | 0x00460000,
+  UCVTF_z_p_z_x2fp16 = SVEIntConvertToFPFixed | 0x00470000,
+  SCVTF_z_p_z_w2s = SVEIntConvertToFPFixed | 0x00840000,
+  UCVTF_z_p_z_w2s = SVEIntConvertToFPFixed | 0x00850000,
+  SCVTF_z_p_z_w2d = SVEIntConvertToFPFixed | 0x00C00000,
+  UCVTF_z_p_z_w2d = SVEIntConvertToFPFixed | 0x00C10000,
+  SCVTF_z_p_z_x2s = SVEIntConvertToFPFixed | 0x00C40000,
+  UCVTF_z_p_z_x2s = SVEIntConvertToFPFixed | 0x00C50000,
+  SCVTF_z_p_z_x2d = SVEIntConvertToFPFixed | 0x00C60000,
+  UCVTF_z_p_z_x2d = SVEIntConvertToFPFixed | 0x00C70000
+};
+
+enum SVEIntDivideVectors_PredicatedOp {
+  SVEIntDivideVectors_PredicatedFixed = 0x04140000,
+  SVEIntDivideVectors_PredicatedFMask = 0xFF3CE000,
+  SVEIntDivideVectors_PredicatedMask = 0xFF3FE000,
+  SDIV_z_p_zz = SVEIntDivideVectors_PredicatedFixed,
+  UDIV_z_p_zz = SVEIntDivideVectors_PredicatedFixed | 0x00010000,
+  SDIVR_z_p_zz = SVEIntDivideVectors_PredicatedFixed | 0x00020000,
+  UDIVR_z_p_zz = SVEIntDivideVectors_PredicatedFixed | 0x00030000
+};
+
+enum SVEIntMinMaxDifference_PredicatedOp {
+  SVEIntMinMaxDifference_PredicatedFixed = 0x04080000,
+  SVEIntMinMaxDifference_PredicatedFMask = 0xFF38E000,
+  SVEIntMinMaxDifference_PredicatedMask = 0xFF3FE000,
+  SMAX_z_p_zz = SVEIntMinMaxDifference_PredicatedFixed,
+  UMAX_z_p_zz = SVEIntMinMaxDifference_PredicatedFixed | 0x00010000,
+  SMIN_z_p_zz = SVEIntMinMaxDifference_PredicatedFixed | 0x00020000,
+  UMIN_z_p_zz = SVEIntMinMaxDifference_PredicatedFixed | 0x00030000,
+  SABD_z_p_zz = SVEIntMinMaxDifference_PredicatedFixed | 0x00040000,
+  UABD_z_p_zz = SVEIntMinMaxDifference_PredicatedFixed | 0x00050000
+};
+
+enum SVEIntMinMaxImm_UnpredicatedOp {
+  SVEIntMinMaxImm_UnpredicatedFixed = 0x2528C000,
+  SVEIntMinMaxImm_UnpredicatedFMask = 0xFF38C000,
+  SVEIntMinMaxImm_UnpredicatedMask = 0xFF3FE000,
+  SMAX_z_zi = SVEIntMinMaxImm_UnpredicatedFixed,
+  UMAX_z_zi = SVEIntMinMaxImm_UnpredicatedFixed | 0x00010000,
+  SMIN_z_zi = SVEIntMinMaxImm_UnpredicatedFixed | 0x00020000,
+  UMIN_z_zi = SVEIntMinMaxImm_UnpredicatedFixed | 0x00030000
 };
 
 enum SVEIntMulAddPredicatedOp {
@@ -3247,6 +3878,22 @@ enum SVEIntMulAddUnpredicatedOp {
   SVEIntMulAddUnpredicatedMask = 0xFF20FC00,
   SDOT_z_zzz = SVEIntMulAddUnpredicatedFixed,
   UDOT_z_zzz = SVEIntMulAddUnpredicatedFixed | 0x00000400
+};
+
+enum SVEIntMulImm_UnpredicatedOp {
+  SVEIntMulImm_UnpredicatedFixed = 0x2530C000,
+  SVEIntMulImm_UnpredicatedFMask = 0xFF38C000,
+  SVEIntMulImm_UnpredicatedMask = 0xFF3FE000,
+  MUL_z_zi = SVEIntMulImm_UnpredicatedFixed
+};
+
+enum SVEIntMulVectors_PredicatedOp {
+  SVEIntMulVectors_PredicatedFixed = 0x04100000,
+  SVEIntMulVectors_PredicatedFMask = 0xFF3CE000,
+  SVEIntMulVectors_PredicatedMask = 0xFF3FE000,
+  MUL_z_p_zz = SVEIntMulVectors_PredicatedFixed,
+  SMULH_z_p_zz = SVEIntMulVectors_PredicatedFixed | 0x00020000,
+  UMULH_z_p_zz = SVEIntMulVectors_PredicatedFixed | 0x00030000
 };
 
 enum SVEMovprfxOp {
@@ -3298,398 +3945,96 @@ enum SVEIntUnaryArithmeticPredicatedOp {
   NOT_z_p_z = SVEIntUnaryArithmeticPredicatedFixed | 0x001E0000
 };
 
-enum SVEIntWideImmPredicatedOp {
-  SVEIntWideImmPredicatedFixed = 0x05100000,
-  SVEIntWideImmPredicatedFMask = 0xFF300000,
-  SVEIntWideImmPredicatedMask = 0xFF30E000,
-  CPY_z_p_i = SVEIntWideImmPredicatedFixed,
-  FCPY_z_p_i = SVEIntWideImmPredicatedFixed | 0x0000C000
+enum SVELoadAndBroadcastElementOp {
+  SVELoadAndBroadcastElementFixed = 0x84408000,
+  SVELoadAndBroadcastElementFMask = 0xFE408000,
+  SVELoadAndBroadcastElementMask = 0xFFC0E000,
+  LD1RB_z_p_bi_u8 = SVELoadAndBroadcastElementFixed,
+  LD1RB_z_p_bi_u16 = SVELoadAndBroadcastElementFixed | 0x00002000,
+  LD1RB_z_p_bi_u32 = SVELoadAndBroadcastElementFixed | 0x00004000,
+  LD1RB_z_p_bi_u64 = SVELoadAndBroadcastElementFixed | 0x00006000,
+  LD1RSW_z_p_bi_s64 = SVELoadAndBroadcastElementFixed | 0x00800000,
+  LD1RH_z_p_bi_u16 = SVELoadAndBroadcastElementFixed | 0x00802000,
+  LD1RH_z_p_bi_u32 = SVELoadAndBroadcastElementFixed | 0x00804000,
+  LD1RH_z_p_bi_u64 = SVELoadAndBroadcastElementFixed | 0x00806000,
+  LD1RSH_z_p_bi_s64 = SVELoadAndBroadcastElementFixed | 0x01000000,
+  LD1RSH_z_p_bi_s32 = SVELoadAndBroadcastElementFixed | 0x01002000,
+  LD1RW_z_p_bi_u32 = SVELoadAndBroadcastElementFixed | 0x01004000,
+  LD1RW_z_p_bi_u64 = SVELoadAndBroadcastElementFixed | 0x01006000,
+  LD1RSB_z_p_bi_s64 = SVELoadAndBroadcastElementFixed | 0x01800000,
+  LD1RSB_z_p_bi_s32 = SVELoadAndBroadcastElementFixed | 0x01802000,
+  LD1RSB_z_p_bi_s16 = SVELoadAndBroadcastElementFixed | 0x01804000,
+  LD1RD_z_p_bi_u64 = SVELoadAndBroadcastElementFixed | 0x01806000
 };
 
-enum SVEIntWideImmUnpredicatedOp {
-  SVEIntWideImmUnpredicatedFixed = 0x2520C000,
-  SVEIntWideImmUnpredicatedFMask = 0xFF20C000,
-  SVEIntWideImmUnpredicatedMask = 0xFF3FE000,
-  SMAX_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00080000,
-  UMAX_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00090000,
-  SMIN_z_zi = SVEIntWideImmUnpredicatedFixed | 0x000A0000,
-  UMIN_z_zi = SVEIntWideImmUnpredicatedFixed | 0x000B0000,
-  MUL_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00100000,
-  FDUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00190000,
-  // TODO: SVEIntWideImmUnpredicatedMask doesn't work here because it mask in
-  // the shift bit of the following instructions.
-  SVEIntWideImmShiftUnpredicatedMask = 0xFF3FC000,
-  ADD_z_zi = SVEIntWideImmUnpredicatedFixed,
-  DUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00180000,
-  SUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00010000,
-  SUBR_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00030000,
-  SQADD_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00040000,
-  UQADD_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00050000,
-  SQSUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00060000,
-  UQSUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00070000
+enum SVELoadAndBroadcastQuadword_ScalarPlusImmOp {
+  SVELoadAndBroadcastQuadword_ScalarPlusImmFixed = 0xA4002000,
+  SVELoadAndBroadcastQuadword_ScalarPlusImmFMask = 0xFE10E000,
+  SVELoadAndBroadcastQuadword_ScalarPlusImmMask = 0xFFF0E000,
+  LD1RQB_z_p_bi_u8 = SVELoadAndBroadcastQuadword_ScalarPlusImmFixed,
+  LD1RQH_z_p_bi_u16 = SVELoadAndBroadcastQuadword_ScalarPlusImmFixed | 0x00800000,
+  LD1RQW_z_p_bi_u32 = SVELoadAndBroadcastQuadword_ScalarPlusImmFixed | 0x01000000,
+  LD1RQD_z_p_bi_u64 = SVELoadAndBroadcastQuadword_ScalarPlusImmFixed | 0x01800000
 };
 
-enum SVEMem32BitGatherAndUnsizedContiguousOp {
-  SVEMem32BitGatherAndUnsizedContiguousFixed = 0x84000000,
-  SVEMem32BitGatherAndUnsizedContiguousFMask = 0xFE000000,
-  SVEMem32BitGatherAndUnsizedContiguousMask = 0xFFE0E010,
-  LD1SB_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed,
-  LDFF1SB_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00002000,
-  LD1B_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00004000,
-  LDFF1B_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00006000,
-  PRFB_i_p_br_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0000C000,
-  PRFB_i_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0000E000,
-  PRFB_i_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00200000,
-  PRFH_i_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00202000,
-  PRFW_i_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00204000,
-  PRFD_i_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00206000,
-  LD1SB_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00208000,
-  LDFF1SB_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0020A000,
-  LD1B_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0020C000,
-  LDFF1B_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0020E000,
-  LD1RB_z_p_bi_u8 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00408000,
-  LD1RB_z_p_bi_u16 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0040A000,
-  LD1RB_z_p_bi_u32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0040C000,
-  LD1RB_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0040E000,
-  LD1SH_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00800000,
-  LDFF1SH_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00802000,
-  LD1H_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00804000,
-  LDFF1H_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00806000,
-  PRFH_i_p_br_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0080C000,
-  PRFH_i_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0080E000,
-  LD1SH_z_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A00000,
-  LDFF1SH_z_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A02000,
-  LD1H_z_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A04000,
-  LDFF1H_z_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A06000,
-  LD1SH_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A08000,
-  LDFF1SH_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A0A000,
-  LD1H_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A0C000,
-  LDFF1H_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00A0E000,
-  LD1RSW_z_p_bi_s64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00C08000,
-  LD1RH_z_p_bi_u16 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00C0A000,
-  LD1RH_z_p_bi_u32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00C0C000,
-  LD1RH_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x00C0E000,
-  LD1W_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01004000,
-  LDFF1W_z_p_bz_s_x32_unscaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01006000,
-  PRFW_i_p_br_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0100C000,
-  PRFW_i_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0100E000,
-  LD1W_z_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01204000,
-  LDFF1W_z_p_bz_s_x32_scaled = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01206000,
-  LD1W_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0120C000,
-  LDFF1W_z_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0120E000,
-  LD1RSH_z_p_bi_s64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01408000,
-  LD1RSH_z_p_bi_s32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140A000,
-  LD1RW_z_p_bi_u32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140C000,
-  LD1RW_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0140E000,
-  PRFD_i_p_br_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0180C000,
-  PRFD_i_p_ai_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x0180E000,
-  PRFB_i_p_bi_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C00000,
-  PRFH_i_p_bi_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C02000,
-  PRFW_i_p_bi_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C04000,
-  PRFD_i_p_bi_s = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C06000,
-  LD1RSB_z_p_bi_s64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C08000,
-  LD1RSB_z_p_bi_s32 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0A000,
-  LD1RSB_z_p_bi_s16 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0C000,
-  LD1RD_z_p_bi_u64 = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01C0E000,
-
-  // TODO: SVEMem32BitGatherAndUnsizedContiguousFixed doesn't work here because
-  // the fixed bits vary between instruction groups. We should re-organise the
-  // enum groups to avoid this.
-  SVEMemUnsizedContiguousLoadPMask = 0xFFC0E010,
-  LDR_p_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01800000,
-
-  SVEMemUnsizedContiguousLoadZMask = 0xFFC0E000,
-  LDR_z_bi = SVEMem32BitGatherAndUnsizedContiguousFixed | 0x01804000
+enum SVELoadAndBroadcastQuadword_ScalarPlusScalarOp {
+  SVELoadAndBroadcastQuadword_ScalarPlusScalarFixed = 0xA4000000,
+  SVELoadAndBroadcastQuadword_ScalarPlusScalarFMask = 0xFE00E000,
+  SVELoadAndBroadcastQuadword_ScalarPlusScalarMask = 0xFFE0E000,
+  LD1RQB_z_p_br_contiguous = SVELoadAndBroadcastQuadword_ScalarPlusScalarFixed,
+  LD1RQH_z_p_br_contiguous = SVELoadAndBroadcastQuadword_ScalarPlusScalarFixed | 0x00800000,
+  LD1RQW_z_p_br_contiguous = SVELoadAndBroadcastQuadword_ScalarPlusScalarFixed | 0x01000000,
+  LD1RQD_z_p_br_contiguous = SVELoadAndBroadcastQuadword_ScalarPlusScalarFixed | 0x01800000
 };
 
-enum SVEMem64BitGatherOp {
-  SVEMem64BitGatherFixed = 0xC4000000,
-  SVEMem64BitGatherFMask = 0xFE000000,
-  SVEMem64BitGatherMask = 0xFFE0E010,
-  LD1SB_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed,
-  LDFF1SB_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00002000,
-  LD1B_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00004000,
-  LDFF1B_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00006000,
-  PRFB_i_p_ai_d = SVEMem64BitGatherFixed | 0x0000E000,
-  PRFB_i_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00200000,
-  PRFH_i_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00202000,
-  PRFW_i_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00204000,
-  PRFD_i_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00206000,
-  LD1SB_z_p_ai_d = SVEMem64BitGatherFixed | 0x00208000,
-  LDFF1SB_z_p_ai_d = SVEMem64BitGatherFixed | 0x0020A000,
-  LD1B_z_p_ai_d = SVEMem64BitGatherFixed | 0x0020C000,
-  LDFF1B_z_p_ai_d = SVEMem64BitGatherFixed | 0x0020E000,
-  LD1SB_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x00408000,
-  LDFF1SB_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x0040A000,
-  LD1B_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x0040C000,
-  LDFF1B_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x0040E000,
-  PRFB_i_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x00608000,
-  PRFH_i_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x0060A000,
-  PRFW_i_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x0060C000,
-  PRFD_i_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x0060E000,
-  LD1SH_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00800000,
-  LDFF1SH_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00802000,
-  LD1H_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00804000,
-  LDFF1H_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x00806000,
-  PRFH_i_p_ai_d = SVEMem64BitGatherFixed | 0x0080E000,
-  LD1SH_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00A00000,
-  LDFF1SH_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00A02000,
-  LD1H_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00A04000,
-  LDFF1H_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x00A06000,
-  LD1SH_z_p_ai_d = SVEMem64BitGatherFixed | 0x00A08000,
-  LDFF1SH_z_p_ai_d = SVEMem64BitGatherFixed | 0x00A0A000,
-  LD1H_z_p_ai_d = SVEMem64BitGatherFixed | 0x00A0C000,
-  LDFF1H_z_p_ai_d = SVEMem64BitGatherFixed | 0x00A0E000,
-  LD1SH_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x00C08000,
-  LDFF1SH_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x00C0A000,
-  LD1H_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x00C0C000,
-  LDFF1H_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x00C0E000,
-  LD1SH_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x00E08000,
-  LDFF1SH_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x00E0A000,
-  LD1H_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x00E0C000,
-  LDFF1H_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x00E0E000,
-  LD1SW_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x01000000,
-  LDFF1SW_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x01002000,
-  LD1W_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x01004000,
-  LDFF1W_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x01006000,
-  PRFW_i_p_ai_d = SVEMem64BitGatherFixed | 0x0100E000,
-  LD1SW_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x01200000,
-  LDFF1SW_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x01202000,
-  LD1W_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x01204000,
-  LDFF1W_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x01206000,
-  LD1SW_z_p_ai_d = SVEMem64BitGatherFixed | 0x01208000,
-  LDFF1SW_z_p_ai_d = SVEMem64BitGatherFixed | 0x0120A000,
-  LD1W_z_p_ai_d = SVEMem64BitGatherFixed | 0x0120C000,
-  LDFF1W_z_p_ai_d = SVEMem64BitGatherFixed | 0x0120E000,
-  LD1SW_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x01408000,
-  LDFF1SW_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x0140A000,
-  LD1W_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x0140C000,
-  LDFF1W_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x0140E000,
-  LD1SW_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x01608000,
-  LDFF1SW_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x0160A000,
-  LD1W_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x0160C000,
-  LDFF1W_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x0160E000,
-  LD1D_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x01804000,
-  LDFF1D_z_p_bz_d_x32_unscaled = SVEMem64BitGatherFixed | 0x01806000,
-  PRFD_i_p_ai_d = SVEMem64BitGatherFixed | 0x0180E000,
-  LD1D_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x01A04000,
-  LDFF1D_z_p_bz_d_x32_scaled = SVEMem64BitGatherFixed | 0x01A06000,
-  LD1D_z_p_ai_d = SVEMem64BitGatherFixed | 0x01A0C000,
-  LDFF1D_z_p_ai_d = SVEMem64BitGatherFixed | 0x01A0E000,
-  LD1D_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x01C0C000,
-  LDFF1D_z_p_bz_d_64_unscaled = SVEMem64BitGatherFixed | 0x01C0E000,
-  LD1D_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x01E0C000,
-  LDFF1D_z_p_bz_d_64_scaled = SVEMem64BitGatherFixed | 0x01E0E000
+enum SVELoadMultipleStructures_ScalarPlusImmOp {
+  SVELoadMultipleStructures_ScalarPlusImmFixed = 0xA400E000,
+  SVELoadMultipleStructures_ScalarPlusImmFMask = 0xFE10E000,
+  SVELoadMultipleStructures_ScalarPlusImmMask = 0xFFF0E000,
+  LD2B_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x00200000,
+  LD3B_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x00400000,
+  LD4B_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x00600000,
+  LD2H_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x00A00000,
+  LD3H_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x00C00000,
+  LD4H_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x00E00000,
+  LD2W_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x01200000,
+  LD3W_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x01400000,
+  LD4W_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x01600000,
+  LD2D_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x01A00000,
+  LD3D_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x01C00000,
+  LD4D_z_p_bi_contiguous = SVELoadMultipleStructures_ScalarPlusImmFixed | 0x01E00000
 };
 
-enum SVEMemContiguousLoadOp {
-  SVEMemContiguousLoadFixed = 0xA4000000,
-  SVEMemContiguousLoadFMask = 0xFE000000,
-  SVEMemContiguousLoadMask = 0xFFF0E000,
-  LD1RQB_z_p_br_contiguous = SVEMemContiguousLoadFixed,
-  LD1RQB_z_p_bi_u8 = SVEMemContiguousLoadFixed | 0x00002000,
-  LDFF1B_z_p_br_u8 = SVEMemContiguousLoadFixed | 0x00006000,
-  LDNT1B_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0000C000,
-  LDNT1B_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0000E000,
-  LDNF1B_z_p_bi_u8 = SVEMemContiguousLoadFixed | 0x0010A000,
-  LDFF1B_z_p_br_u16 = SVEMemContiguousLoadFixed | 0x00206000,
-  LD2B_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0020C000,
-  LD2B_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0020E000,
-  LDNF1B_z_p_bi_u16 = SVEMemContiguousLoadFixed | 0x0030A000,
-  LDFF1B_z_p_br_u32 = SVEMemContiguousLoadFixed | 0x00406000,
-  LD3B_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0040C000,
-  LD3B_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0040E000,
-  LDNF1B_z_p_bi_u32 = SVEMemContiguousLoadFixed | 0x0050A000,
-  LDFF1B_z_p_br_u64 = SVEMemContiguousLoadFixed | 0x00606000,
-  LD4B_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0060C000,
-  LD4B_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0060E000,
-  LDNF1B_z_p_bi_u64 = SVEMemContiguousLoadFixed | 0x0070A000,
-  LD1RQH_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x00800000,
-  LD1RQH_z_p_bi_u16 = SVEMemContiguousLoadFixed | 0x00802000,
-  LDFF1SW_z_p_br_s64 = SVEMemContiguousLoadFixed | 0x00806000,
-  LDNT1H_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0080C000,
-  LDNT1H_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0080E000,
-  LDNF1SW_z_p_bi_s64 = SVEMemContiguousLoadFixed | 0x0090A000,
-  LDFF1H_z_p_br_u16 = SVEMemContiguousLoadFixed | 0x00A06000,
-  LD2H_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x00A0C000,
-  LD2H_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x00A0E000,
-  LDNF1H_z_p_bi_u16 = SVEMemContiguousLoadFixed | 0x00B0A000,
-  LDFF1H_z_p_br_u32 = SVEMemContiguousLoadFixed | 0x00C06000,
-  LD3H_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x00C0C000,
-  LD3H_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x00C0E000,
-  LDNF1H_z_p_bi_u32 = SVEMemContiguousLoadFixed | 0x00D0A000,
-  LDFF1H_z_p_br_u64 = SVEMemContiguousLoadFixed | 0x00E06000,
-  LD4H_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x00E0C000,
-  LD4H_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x00E0E000,
-  LDNF1H_z_p_bi_u64 = SVEMemContiguousLoadFixed | 0x00F0A000,
-  LD1RQW_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x01000000,
-  LD1RQW_z_p_bi_u32 = SVEMemContiguousLoadFixed | 0x01002000,
-  LDFF1SH_z_p_br_s64 = SVEMemContiguousLoadFixed | 0x01006000,
-  LDNT1W_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0100C000,
-  LDNT1W_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0100E000,
-  LDNF1SH_z_p_bi_s64 = SVEMemContiguousLoadFixed | 0x0110A000,
-  LDFF1SH_z_p_br_s32 = SVEMemContiguousLoadFixed | 0x01206000,
-  LD2W_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0120C000,
-  LD2W_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0120E000,
-  LDNF1SH_z_p_bi_s32 = SVEMemContiguousLoadFixed | 0x0130A000,
-  LDFF1W_z_p_br_u32 = SVEMemContiguousLoadFixed | 0x01406000,
-  LD3W_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0140C000,
-  LD3W_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0140E000,
-  LDNF1W_z_p_bi_u32 = SVEMemContiguousLoadFixed | 0x0150A000,
-  LDFF1W_z_p_br_u64 = SVEMemContiguousLoadFixed | 0x01606000,
-  LD4W_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0160C000,
-  LD4W_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0160E000,
-  LDNF1W_z_p_bi_u64 = SVEMemContiguousLoadFixed | 0x0170A000,
-  LD1RQD_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x01800000,
-  LD1RQD_z_p_bi_u64 = SVEMemContiguousLoadFixed | 0x01802000,
-  LDFF1SB_z_p_br_s64 = SVEMemContiguousLoadFixed | 0x01806000,
-  LDNT1D_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x0180C000,
-  LDNT1D_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x0180E000,
-  LDNF1SB_z_p_bi_s64 = SVEMemContiguousLoadFixed | 0x0190A000,
-  LDFF1SB_z_p_br_s32 = SVEMemContiguousLoadFixed | 0x01A06000,
-  LD2D_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x01A0C000,
-  LD2D_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x01A0E000,
-  LDNF1SB_z_p_bi_s32 = SVEMemContiguousLoadFixed | 0x01B0A000,
-  LDFF1SB_z_p_br_s16 = SVEMemContiguousLoadFixed | 0x01C06000,
-  LD3D_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x01C0C000,
-  LD3D_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x01C0E000,
-  LDNF1SB_z_p_bi_s16 = SVEMemContiguousLoadFixed | 0x01D0A000,
-  LDFF1D_z_p_br_u64 = SVEMemContiguousLoadFixed | 0x01E06000,
-  LD4D_z_p_br_contiguous = SVEMemContiguousLoadFixed | 0x01E0C000,
-  LD4D_z_p_bi_contiguous = SVEMemContiguousLoadFixed | 0x01E0E000,
-  LDNF1D_z_p_bi_u64 = SVEMemContiguousLoadFixed | 0x01F0A000
+enum SVELoadMultipleStructures_ScalarPlusScalarOp {
+  SVELoadMultipleStructures_ScalarPlusScalarFixed = 0xA400C000,
+  SVELoadMultipleStructures_ScalarPlusScalarFMask = 0xFE00E000,
+  SVELoadMultipleStructures_ScalarPlusScalarMask = 0xFFE0E000,
+  LD2B_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x00200000,
+  LD3B_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x00400000,
+  LD4B_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x00600000,
+  LD2H_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x00A00000,
+  LD3H_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x00C00000,
+  LD4H_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x00E00000,
+  LD2W_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x01200000,
+  LD3W_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x01400000,
+  LD4W_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x01600000,
+  LD2D_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x01A00000,
+  LD3D_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x01C00000,
+  LD4D_z_p_br_contiguous = SVELoadMultipleStructures_ScalarPlusScalarFixed | 0x01E00000
 };
 
-enum SVEContiguousLoad_ScalarPlusImmOp {
-  SVEContiguousLoad_ScalarPlusImmFixed = 0xA400A000,
-  SVEContiguousLoad_ScalarPlusImmFMask = 0xFE10E000,
-  SVEContiguousLoad_ScalarPlusImmMask = 0xFFF0E000,
-  LD1B_z_p_bi_u8 = SVEContiguousLoad_ScalarPlusImmFixed,
-  LD1B_z_p_bi_u16 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00200000,
-  LD1B_z_p_bi_u32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00400000,
-  LD1B_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00600000,
-  LD1H_z_p_bi_u16 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00A00000,
-  LD1H_z_p_bi_u32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00C00000,
-  LD1H_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00E00000,
-  LD1W_z_p_bi_u32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01400000,
-  LD1W_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01600000,
-  LD1D_z_p_bi_u64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01E00000,
-  LD1SB_z_p_bi_s64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01800000,
-  LD1SB_z_p_bi_s32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01A00000,
-  LD1SB_z_p_bi_s16 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01C00000,
-  LD1SH_z_p_bi_s64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01000000,
-  LD1SH_z_p_bi_s32 = SVEContiguousLoad_ScalarPlusImmFixed | 0x01200000,
-  LD1SW_z_p_bi_s64 = SVEContiguousLoad_ScalarPlusImmFixed | 0x00800000
+enum SVELoadPredicateRegisterOp {
+  SVELoadPredicateRegisterFixed = 0x85800000,
+  SVELoadPredicateRegisterFMask = 0xFFC0E010,
+  SVELoadPredicateRegisterMask = 0xFFC0E010,
+  LDR_p_bi = SVELoadPredicateRegisterFixed
 };
 
-enum SVEContiguousLoad_ScalarPlusScalarOp {
-  SVEContiguousLoad_ScalarPlusScalarFixed = 0xA4004000,
-  SVEContiguousLoad_ScalarPlusScalarFMask = 0xFE00E000,
-  SVEContiguousLoad_ScalarPlusScalarMask = 0xFFE0E000,
-  LD1B_z_p_br_u8 = SVEContiguousLoad_ScalarPlusScalarFixed,
-  LD1B_z_p_br_u16 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00200000,
-  LD1B_z_p_br_u32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00400000,
-  LD1B_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00600000,
-  LD1H_z_p_br_u16 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00A00000,
-  LD1H_z_p_br_u32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00C00000,
-  LD1H_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00E00000,
-  LD1W_z_p_br_u32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01400000,
-  LD1W_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01600000,
-  LD1D_z_p_br_u64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01E00000,
-  LD1SB_z_p_br_s64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01800000,
-  LD1SB_z_p_br_s32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01A00000,
-  LD1SB_z_p_br_s16 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01C00000,
-  LD1SH_z_p_br_s64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01000000,
-  LD1SH_z_p_br_s32 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x01200000,
-  LD1SW_z_p_br_s64 = SVEContiguousLoad_ScalarPlusScalarFixed | 0x00800000
-};
-
-enum SVEMemStoreOp {
-  SVEMemStoreFixed = 0xE4000000,
-  SVEMemStoreFMask = 0xFE000000,
-  SVEMemStoreMask = 0xFFF0E010,
-  STNT1B_z_p_br_contiguous = SVEMemStoreFixed | 0x00006000,
-  ST1B_z_p_bz_d_x32_unscaled = SVEMemStoreFixed | 0x00008000,
-  ST1B_z_p_bz_d_64_unscaled = SVEMemStoreFixed | 0x0000A000,
-  STNT1B_z_p_bi_contiguous = SVEMemStoreFixed | 0x0010E000,
-  ST2B_z_p_br_contiguous = SVEMemStoreFixed | 0x00206000,
-  ST2B_z_p_bi_contiguous = SVEMemStoreFixed | 0x0030E000,
-  ST3B_z_p_br_contiguous = SVEMemStoreFixed | 0x00406000,
-  ST1B_z_p_bz_s_x32_unscaled = SVEMemStoreFixed | 0x00408000,
-  ST1B_z_p_ai_d = SVEMemStoreFixed | 0x0040A000,
-  ST3B_z_p_bi_contiguous = SVEMemStoreFixed | 0x0050E000,
-  ST4B_z_p_br_contiguous = SVEMemStoreFixed | 0x00606000,
-  ST1B_z_p_ai_s = SVEMemStoreFixed | 0x0060A000,
-  ST4B_z_p_bi_contiguous = SVEMemStoreFixed | 0x0070E000,
-  STNT1H_z_p_br_contiguous = SVEMemStoreFixed | 0x00806000,
-  ST1H_z_p_bz_d_x32_unscaled = SVEMemStoreFixed | 0x00808000,
-  ST1H_z_p_bz_d_64_unscaled = SVEMemStoreFixed | 0x0080A000,
-  STNT1H_z_p_bi_contiguous = SVEMemStoreFixed | 0x0090E000,
-  ST2H_z_p_br_contiguous = SVEMemStoreFixed | 0x00A06000,
-  ST1H_z_p_bz_d_x32_scaled = SVEMemStoreFixed | 0x00A08000,
-  ST1H_z_p_bz_d_64_scaled = SVEMemStoreFixed | 0x00A0A000,
-  ST2H_z_p_bi_contiguous = SVEMemStoreFixed | 0x00B0E000,
-  ST3H_z_p_br_contiguous = SVEMemStoreFixed | 0x00C06000,
-  ST1H_z_p_bz_s_x32_unscaled = SVEMemStoreFixed | 0x00C08000,
-  ST1H_z_p_ai_d = SVEMemStoreFixed | 0x00C0A000,
-  ST3H_z_p_bi_contiguous = SVEMemStoreFixed | 0x00D0E000,
-  ST4H_z_p_br_contiguous = SVEMemStoreFixed | 0x00E06000,
-  ST1H_z_p_bz_s_x32_scaled = SVEMemStoreFixed | 0x00E08000,
-  ST1H_z_p_ai_s = SVEMemStoreFixed | 0x00E0A000,
-  ST4H_z_p_bi_contiguous = SVEMemStoreFixed | 0x00F0E000,
-  STNT1W_z_p_br_contiguous = SVEMemStoreFixed | 0x01006000,
-  ST1W_z_p_bz_d_x32_unscaled = SVEMemStoreFixed | 0x01008000,
-  ST1W_z_p_bz_d_64_unscaled = SVEMemStoreFixed | 0x0100A000,
-  STNT1W_z_p_bi_contiguous = SVEMemStoreFixed | 0x0110E000,
-  ST2W_z_p_br_contiguous = SVEMemStoreFixed | 0x01206000,
-  ST1W_z_p_bz_d_x32_scaled = SVEMemStoreFixed | 0x01208000,
-  ST1W_z_p_bz_d_64_scaled = SVEMemStoreFixed | 0x0120A000,
-  ST2W_z_p_bi_contiguous = SVEMemStoreFixed | 0x0130E000,
-  ST3W_z_p_br_contiguous = SVEMemStoreFixed | 0x01406000,
-  ST1W_z_p_bz_s_x32_unscaled = SVEMemStoreFixed | 0x01408000,
-  ST1W_z_p_ai_d = SVEMemStoreFixed | 0x0140A000,
-  ST3W_z_p_bi_contiguous = SVEMemStoreFixed | 0x0150E000,
-  ST4W_z_p_br_contiguous = SVEMemStoreFixed | 0x01606000,
-  ST1W_z_p_bz_s_x32_scaled = SVEMemStoreFixed | 0x01608000,
-  ST1W_z_p_ai_s = SVEMemStoreFixed | 0x0160A000,
-  ST4W_z_p_bi_contiguous = SVEMemStoreFixed | 0x0170E000,
-  STNT1D_z_p_br_contiguous = SVEMemStoreFixed | 0x01806000,
-  ST1D_z_p_bz_d_x32_unscaled = SVEMemStoreFixed | 0x01808000,
-  ST1D_z_p_bz_d_64_unscaled = SVEMemStoreFixed | 0x0180A000,
-  STNT1D_z_p_bi_contiguous = SVEMemStoreFixed | 0x0190E000,
-  ST2D_z_p_br_contiguous = SVEMemStoreFixed | 0x01A06000,
-  ST1D_z_p_bz_d_x32_scaled = SVEMemStoreFixed | 0x01A08000,
-  ST1D_z_p_bz_d_64_scaled = SVEMemStoreFixed | 0x01A0A000,
-  ST2D_z_p_bi_contiguous = SVEMemStoreFixed | 0x01B0E000,
-  ST3D_z_p_br_contiguous = SVEMemStoreFixed | 0x01C06000,
-  ST1D_z_p_ai_d = SVEMemStoreFixed | 0x01C0A000,
-  ST3D_z_p_bi_contiguous = SVEMemStoreFixed | 0x01D0E000,
-  ST4D_z_p_br_contiguous = SVEMemStoreFixed | 0x01E06000,
-  ST4D_z_p_bi_contiguous = SVEMemStoreFixed | 0x01F0E000,
-
-  SVEContiguousStore_ScalarPlusImmediateFixed = 0xE400E000,
-  SVEContiguousStore_ScalarPlusImmediateFMask = 0xFE10E000,
-  SVEContiguousStore_ScalarPlusImmediateMask = 0xFF90E000,
-  ST1B_z_p_bi = SVEMemStoreFixed | 0x0000E000,
-  ST1H_z_p_bi = SVEMemStoreFixed | 0x0080E000,
-  ST1W_z_p_bi = SVEMemStoreFixed | 0x0100E000,
-  ST1D_z_p_bi = SVEMemStoreFixed | 0x0180E000,
-
-  SVEContiguousStore_ScalarPlusScalarFixed = 0xE4004000,
-  SVEContiguousStore_ScalarPlusScalarFMask = 0xFE00E000,
-  SVEContiguousStore_ScalarPlusScalarMask = 0xFF80E000,
-  ST1B_z_p_br = SVEMemStoreFixed | 0x00004000,
-  ST1H_z_p_br = SVEMemStoreFixed | 0x00804000,
-  ST1W_z_p_br = SVEMemStoreFixed | 0x01004000,
-  ST1D_z_p_br = SVEMemStoreFixed | 0x01804000,
-
-  // TODO: SVEMemStoreMask doesn't work here because the fixed bits vary between
-  // instruction groups. We should re-organise the enum groups to avoid this.
-  SVEMemStorePMask = 0xFFC0E010,
-  STR_p_bi = SVEMemStoreFixed | 0x01800000,
-
-  SVEMemStoreZMask = 0xFFC0E000,
-  STR_z_bi = SVEMemStoreFixed | 0x01804000
+enum SVELoadVectorRegisterOp {
+  SVELoadVectorRegisterFixed = 0x85804000,
+  SVELoadVectorRegisterFMask = 0xFFC0E000,
+  SVELoadVectorRegisterMask = 0xFFC0E000,
+  LDR_z_bi = SVELoadVectorRegisterFixed
 };
 
 enum SVEMulIndexOp {
@@ -3702,31 +4047,26 @@ enum SVEMulIndexOp {
   UDOT_z_zzzi_d = SVEMulIndexFixed | 0x00C00400
 };
 
-enum SVEPartitionBreakOp {
-  SVEPartitionBreakFixed = 0x25104000,
-  SVEPartitionBreakFMask = 0xFF30C000,
-  SVEPartitionBreakMask = 0xFFFFC210,
-  BRKA_p_p_p = SVEPartitionBreakFixed,
-  BRKN_p_p_pp = SVEPartitionBreakFixed | 0x00080000,
-  BRKAS_p_p_p_z = SVEPartitionBreakFixed | 0x00400000,
-  BRKNS_p_p_pp = SVEPartitionBreakFixed | 0x00480000,
-  BRKB_p_p_p = SVEPartitionBreakFixed | 0x00800000,
-  BRKBS_p_p_p_z = SVEPartitionBreakFixed | 0x00C00000
+enum SVEPartitionBreakConditionOp {
+  SVEPartitionBreakConditionFixed = 0x25104000,
+  SVEPartitionBreakConditionFMask = 0xFF3FC200,
+  SVEPartitionBreakConditionMask = 0xFFFFC200,
+  BRKA_p_p_p = SVEPartitionBreakConditionFixed,
+  BRKAS_p_p_p_z = SVEPartitionBreakConditionFixed | 0x00400000,
+  BRKB_p_p_p = SVEPartitionBreakConditionFixed | 0x00800000,
+  BRKBS_p_p_p_z = SVEPartitionBreakConditionFixed | 0x00C00000
 };
 
-enum SVEPermutePredicateOp {
-  SVEPermutePredicateFixed = 0x05204000,
-  SVEPermutePredicateFMask = 0xFF20E000,
-  SVEPermutePredicateMask = 0xFFFFFE10,
-  ZIP1_p_pp = SVEPermutePredicateFixed,
-  ZIP2_p_pp = SVEPermutePredicateFixed | 0x00000400,
-  UZP1_p_pp = SVEPermutePredicateFixed | 0x00000800,
-  UZP2_p_pp = SVEPermutePredicateFixed | 0x00000C00,
-  TRN1_p_pp = SVEPermutePredicateFixed | 0x00001000,
-  TRN2_p_pp = SVEPermutePredicateFixed | 0x00001400,
-  PUNPKLO_p_p = SVEPermutePredicateFixed | 0x00100000,
-  PUNPKHI_p_p = SVEPermutePredicateFixed | 0x00110000,
-  REV_p_p = SVEPermutePredicateFixed | 0x00140000
+enum SVEPermutePredicateElementsOp {
+  SVEPermutePredicateElementsFixed = 0x05204000,
+  SVEPermutePredicateElementsFMask = 0xFF30E210,
+  SVEPermutePredicateElementsMask = 0xFF30FE10,
+  ZIP1_p_pp = SVEPermutePredicateElementsFixed,
+  ZIP2_p_pp = SVEPermutePredicateElementsFixed | 0x00000400,
+  UZP1_p_pp = SVEPermutePredicateElementsFixed | 0x00000800,
+  UZP2_p_pp = SVEPermutePredicateElementsFixed | 0x00000C00,
+  TRN1_p_pp = SVEPermutePredicateElementsFixed | 0x00001000,
+  TRN2_p_pp = SVEPermutePredicateElementsFixed | 0x00001400
 };
 
 enum SVEPermuteVectorExtractOp {
@@ -3748,78 +4088,11 @@ enum SVEPermuteVectorInterleavingOp {
   TRN2_z_zz = SVEPermuteVectorInterleavingFixed | 0x00001400
 };
 
-enum SVEPermuteVectorPredicatedOp {
-  SVEPermuteVectorPredicatedFixed = 0x05208000,
-  SVEPermuteVectorPredicatedFMask = 0xFF20C000,
-  SVEPermuteVectorPredicatedMask = 0xFF3FE000,
-  CPY_z_p_v = SVEPermuteVectorPredicatedFixed,
-  LASTA_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00002000,
-  LASTB_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00012000,
-  LASTA_v_p_z = SVEPermuteVectorPredicatedFixed | 0x00020000,
-  LASTB_v_p_z = SVEPermuteVectorPredicatedFixed | 0x00030000,
-  REVB_z_z = SVEPermuteVectorPredicatedFixed | 0x00040000,
-  REVH_z_z = SVEPermuteVectorPredicatedFixed | 0x00050000,
-  REVW_z_z = SVEPermuteVectorPredicatedFixed | 0x00060000,
-  RBIT_z_p_z = SVEPermuteVectorPredicatedFixed | 0x00070000,
-  CLASTA_z_p_zz = SVEPermuteVectorPredicatedFixed | 0x00080000,
-  CPY_z_p_r = SVEPermuteVectorPredicatedFixed | 0x00082000,
-  CLASTB_z_p_zz = SVEPermuteVectorPredicatedFixed | 0x00090000,
-  CLASTA_v_p_z = SVEPermuteVectorPredicatedFixed | 0x000A0000,
-  CLASTB_v_p_z = SVEPermuteVectorPredicatedFixed | 0x000B0000,
-  SPLICE_z_p_zz_des = SVEPermuteVectorPredicatedFixed | 0x000C0000,
-  CLASTA_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00102000,
-  CLASTB_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00112000,
-
-  SVEPermuteVectorPredicated_CompactMask = 0xFFBFE000,
-  COMPACT_z_p_z = SVEPermuteVectorPredicatedFixed | 0x00810000
-};
-
-enum SVEPermuteVectorUnpredicatedOp {
-  SVEPermuteVectorUnpredicatedFixed = 0x05202000,
-  SVEPermuteVectorUnpredicatedFMask = 0xFF20E000,
-  SVEPermuteVectorUnpredicatedMask = 0xFF3FFC00,
-  DUP_z_r = SVEPermuteVectorUnpredicatedFixed | 0x00001800,
-  INSR_z_r = SVEPermuteVectorUnpredicatedFixed | 0x00041800,
-  SUNPKLO_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00101800,
-  SUNPKHI_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00111800,
-  UUNPKLO_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00121800,
-  UUNPKHI_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00131800,
-  INSR_z_v = SVEPermuteVectorUnpredicatedFixed | 0x00141800,
-  REV_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00181800,
-  // SVEPermuteVectorUnpredicatedMask doesn't work since it might be
-  // interfered by immediate field.
-  SVEPermuteVectorUnpredicatedDupTBLMask = 0xFF20FC00,
-  DUP_z_zi = SVEPermuteVectorUnpredicatedFixed,
-  TBL_z_zz_1 = SVEPermuteVectorUnpredicatedFixed | 0x00001000
-};
-
 enum SVEPredicateCountOp {
   SVEPredicateCountFixed = 0x25208000,
   SVEPredicateCountFMask = 0xFF38C000,
   SVEPredicateCountMask = 0xFF3FC200,
   CNTP_r_p_p = SVEPredicateCountFixed
-};
-
-enum SVEPredicateLogicalOp {
-  SVEPredicateLogicalOpFixed = 0x25004000,
-  SVEPredicateLogicalOpFMask = 0xFF30C000,
-  SVEPredicateLogicalOpMask = 0xFFF0C210,
-  SVEPredicateLogicalSetFlagsBit = 0x00400000,
-  AND_p_p_pp_z = SVEPredicateLogicalOpFixed,
-  ANDS_p_p_pp_z = AND_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  BIC_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00000010,
-  BICS_p_p_pp_z = BIC_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  EOR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00000200,
-  EORS_p_p_pp_z = EOR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  ORR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800000,
-  ORRS_p_p_pp_z = ORR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  ORN_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800010,
-  ORNS_p_p_pp_z = ORN_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  NAND_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800210,
-  NANDS_p_p_pp_z = NAND_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  NOR_p_p_pp_z = SVEPredicateLogicalOpFixed | 0x00800200,
-  NORS_p_p_pp_z = NOR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
-  SEL_p_p_pp = SVEPredicateLogicalOpFixed | 0x00000210
 };
 
 enum SVEPredicateFirstActiveOp {
@@ -3838,27 +4111,48 @@ enum SVEPredicateInitializeOp {
   PTRUES_p_s = SVEPredicateInitializeFixed | SVEPredicateInitializeSetFlagsBit
 };
 
+enum SVEPredicateLogicalOp {
+  SVEPredicateLogicalFixed = 0x25004000,
+  SVEPredicateLogicalFMask = 0xFF30C000,
+  SVEPredicateLogicalMask = 0xFFF0C210,
+  SVEPredicateLogicalSetFlagsBit = 0x00400000,
+  AND_p_p_pp_z = SVEPredicateLogicalFixed,
+  ANDS_p_p_pp_z = AND_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  BIC_p_p_pp_z = SVEPredicateLogicalFixed | 0x00000010,
+  BICS_p_p_pp_z = BIC_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  EOR_p_p_pp_z = SVEPredicateLogicalFixed | 0x00000200,
+  EORS_p_p_pp_z = EOR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  ORR_p_p_pp_z = SVEPredicateLogicalFixed | 0x00800000,
+  ORRS_p_p_pp_z = ORR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  ORN_p_p_pp_z = SVEPredicateLogicalFixed | 0x00800010,
+  ORNS_p_p_pp_z = ORN_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  NAND_p_p_pp_z = SVEPredicateLogicalFixed | 0x00800210,
+  NANDS_p_p_pp_z = NAND_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  NOR_p_p_pp_z = SVEPredicateLogicalFixed | 0x00800200,
+  NORS_p_p_pp_z = NOR_p_p_pp_z | SVEPredicateLogicalSetFlagsBit,
+  SEL_p_p_pp = SVEPredicateLogicalFixed | 0x00000210
+};
+
 enum SVEPredicateNextActiveOp {
   SVEPredicateNextActiveFixed = 0x2519C400,
   SVEPredicateNextActiveFMask = 0xFF3FFE10,
   SVEPredicateNextActiveMask = 0xFF3FFE10,
-  PNEXT_p_p_p = SVEPredicateNextActiveFixed | 0x00000000
+  PNEXT_p_p_p = SVEPredicateNextActiveFixed
 };
 
 enum SVEPredicateReadFromFFR_PredicatedOp {
   SVEPredicateReadFromFFR_PredicatedFixed = 0x2518F000,
   SVEPredicateReadFromFFR_PredicatedFMask = 0xFF3FFE10,
   SVEPredicateReadFromFFR_PredicatedMask = 0xFFFFFE10,
-  SVEPredicateReadFromFFR_PredicatedSetFlagsBit = 0x00400000,
-  RDFFR_p_p_f = SVEPredicateReadFromFFR_PredicatedFixed | 0x00000000,
-  RDFFRS_p_p_f = SVEPredicateReadFromFFR_PredicatedFixed | SVEPredicateReadFromFFR_PredicatedSetFlagsBit
+  RDFFR_p_p_f = SVEPredicateReadFromFFR_PredicatedFixed,
+  RDFFRS_p_p_f = SVEPredicateReadFromFFR_PredicatedFixed | 0x00400000
 };
 
 enum SVEPredicateReadFromFFR_UnpredicatedOp {
   SVEPredicateReadFromFFR_UnpredicatedFixed = 0x2519F000,
   SVEPredicateReadFromFFR_UnpredicatedFMask = 0xFF3FFFF0,
   SVEPredicateReadFromFFR_UnpredicatedMask = 0xFFFFFFF0,
-  RDFFR_p_f = SVEPredicateReadFromFFR_UnpredicatedFixed | 0x00000000
+  RDFFR_p_f = SVEPredicateReadFromFFR_UnpredicatedFixed
 };
 
 enum SVEPredicateTestOp {
@@ -3872,7 +4166,7 @@ enum SVEPredicateZeroOp {
   SVEPredicateZeroFixed = 0x2518E400,
   SVEPredicateZeroFMask = 0xFF3FFFF0,
   SVEPredicateZeroMask = 0xFFFFFFF0,
-  PFALSE_p = SVEPredicateZeroFixed | 0x00000000
+  PFALSE_p = SVEPredicateZeroFixed
 };
 
 enum SVEPropagateBreakOp {
@@ -3885,17 +4179,182 @@ enum SVEPropagateBreakOp {
   BRKPBS_p_p_pp = SVEPropagateBreakFixed | 0x00400010
 };
 
-enum SVEStackAllocationOp {
-  SVEStackAllocationFixed = 0x04205000,
-  SVEStackAllocationFMask = 0xFF20F000,
-  SVEStackAllocationMask = 0xFFE0F800,
-  ADDVL_r_ri = SVEStackAllocationFixed,
-  ADDPL_r_ri = SVEStackAllocationFixed | 0x00400000,
+enum SVEPropagateBreakToNextPartitionOp {
+  SVEPropagateBreakToNextPartitionFixed = 0x25184000,
+  SVEPropagateBreakToNextPartitionFMask = 0xFFBFC210,
+  SVEPropagateBreakToNextPartitionMask = 0xFFFFC210,
+  BRKN_p_p_pp = SVEPropagateBreakToNextPartitionFixed,
+  BRKNS_p_p_pp = SVEPropagateBreakToNextPartitionFixed | 0x00400000
+};
 
-  // SVEStackAllocationMask doesn't work here because we need to examine the
-  // `opc2` field to identify RDVL.
-  SVEStackAllocationSizeMask = 0xFFFFF800,
-  RDVL_r_i = SVEStackAllocationFixed | 0x009F0000
+enum SVEReversePredicateElementsOp {
+  SVEReversePredicateElementsFixed = 0x05344000,
+  SVEReversePredicateElementsFMask = 0xFF3FFE10,
+  SVEReversePredicateElementsMask = 0xFF3FFE10,
+  REV_p_p = SVEReversePredicateElementsFixed
+};
+
+enum SVEReverseVectorElementsOp {
+  SVEReverseVectorElementsFixed = 0x05383800,
+  SVEReverseVectorElementsFMask = 0xFF3FFC00,
+  SVEReverseVectorElementsMask = 0xFF3FFC00,
+  REV_z_z = SVEReverseVectorElementsFixed
+};
+
+enum SVEReverseWithinElementsOp {
+  SVEReverseWithinElementsFixed = 0x05248000,
+  SVEReverseWithinElementsFMask = 0xFF3CE000,
+  SVEReverseWithinElementsMask = 0xFF3FE000,
+  REVB_z_z = SVEReverseWithinElementsFixed,
+  REVH_z_z = SVEReverseWithinElementsFixed | 0x00010000,
+  REVW_z_z = SVEReverseWithinElementsFixed | 0x00020000,
+  RBIT_z_p_z = SVEReverseWithinElementsFixed | 0x00030000
+};
+
+enum SVESaturatingIncDecRegisterByElementCountOp {
+  SVESaturatingIncDecRegisterByElementCountFixed = 0x0420F000,
+  SVESaturatingIncDecRegisterByElementCountFMask = 0xFF20F000,
+  SVESaturatingIncDecRegisterByElementCountMask = 0xFFF0FC00,
+  SQINCB_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed,
+  UQINCB_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00000400,
+  SQDECB_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00000800,
+  UQDECB_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00000C00,
+  SQINCB_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00100000,
+  UQINCB_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00100400,
+  SQDECB_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00100800,
+  UQDECB_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00100C00,
+  SQINCH_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00400000,
+  UQINCH_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00400400,
+  SQDECH_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00400800,
+  UQDECH_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00400C00,
+  SQINCH_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00500000,
+  UQINCH_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00500400,
+  SQDECH_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00500800,
+  UQDECH_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00500C00,
+  SQINCW_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00800000,
+  UQINCW_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00800400,
+  SQDECW_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00800800,
+  UQDECW_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00800C00,
+  SQINCW_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00900000,
+  UQINCW_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00900400,
+  SQDECW_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00900800,
+  UQDECW_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00900C00,
+  SQINCD_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00C00000,
+  UQINCD_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00C00400,
+  SQDECD_r_rs_sx = SVESaturatingIncDecRegisterByElementCountFixed | 0x00C00800,
+  UQDECD_r_rs_uw = SVESaturatingIncDecRegisterByElementCountFixed | 0x00C00C00,
+  SQINCD_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00D00000,
+  UQINCD_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00D00400,
+  SQDECD_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00D00800,
+  UQDECD_r_rs_x = SVESaturatingIncDecRegisterByElementCountFixed | 0x00D00C00
+};
+
+enum SVESaturatingIncDecVectorByElementCountOp {
+  SVESaturatingIncDecVectorByElementCountFixed = 0x0420C000,
+  SVESaturatingIncDecVectorByElementCountFMask = 0xFF30F000,
+  SVESaturatingIncDecVectorByElementCountMask = 0xFFF0FC00,
+  SQINCH_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00400000,
+  UQINCH_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00400400,
+  SQDECH_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00400800,
+  UQDECH_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00400C00,
+  SQINCW_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00800000,
+  UQINCW_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00800400,
+  SQDECW_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00800800,
+  UQDECW_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00800C00,
+  SQINCD_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00C00000,
+  UQINCD_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00C00400,
+  SQDECD_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00C00800,
+  UQDECD_z_zs = SVESaturatingIncDecVectorByElementCountFixed | 0x00C00C00
+};
+
+enum SVEStackFrameAdjustmentOp {
+  SVEStackFrameAdjustmentFixed = 0x04205000,
+  SVEStackFrameAdjustmentFMask = 0xFFA0F800,
+  SVEStackFrameAdjustmentMask = 0xFFE0F800,
+  ADDVL_r_ri = SVEStackFrameAdjustmentFixed,
+  ADDPL_r_ri = SVEStackFrameAdjustmentFixed | 0x00400000
+};
+
+enum SVEStackFrameSizeOp {
+  SVEStackFrameSizeFixed = 0x04BF5000,
+  SVEStackFrameSizeFMask = 0xFFFFF800,
+  SVEStackFrameSizeMask = 0xFFFFF800,
+  RDVL_r_i = SVEStackFrameSizeFixed
+};
+
+enum SVEStoreMultipleStructures_ScalarPlusImmOp {
+  SVEStoreMultipleStructures_ScalarPlusImmFixed = 0xE410E000,
+  SVEStoreMultipleStructures_ScalarPlusImmFMask = 0xFE10E000,
+  SVEStoreMultipleStructures_ScalarPlusImmMask = 0xFFF0E000,
+  ST2B_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x00200000,
+  ST3B_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x00400000,
+  ST4B_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x00600000,
+  ST2H_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x00A00000,
+  ST3H_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x00C00000,
+  ST4H_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x00E00000,
+  ST2W_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x01200000,
+  ST3W_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x01400000,
+  ST4W_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x01600000,
+  ST2D_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x01A00000,
+  ST3D_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x01C00000,
+  ST4D_z_p_bi_contiguous = SVEStoreMultipleStructures_ScalarPlusImmFixed | 0x01E00000
+};
+
+enum SVEStoreMultipleStructures_ScalarPlusScalarOp {
+  SVEStoreMultipleStructures_ScalarPlusScalarFixed = 0xE4006000,
+  SVEStoreMultipleStructures_ScalarPlusScalarFMask = 0xFE00E000,
+  SVEStoreMultipleStructures_ScalarPlusScalarMask = 0xFFE0E000,
+  ST2B_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x00200000,
+  ST3B_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x00400000,
+  ST4B_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x00600000,
+  ST2H_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x00A00000,
+  ST3H_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x00C00000,
+  ST4H_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x00E00000,
+  ST2W_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x01200000,
+  ST3W_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x01400000,
+  ST4W_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x01600000,
+  ST2D_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x01A00000,
+  ST3D_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x01C00000,
+  ST4D_z_p_br_contiguous = SVEStoreMultipleStructures_ScalarPlusScalarFixed | 0x01E00000
+};
+
+enum SVEStorePredicateRegisterOp {
+  SVEStorePredicateRegisterFixed = 0xE5800000,
+  SVEStorePredicateRegisterFMask = 0xFFC0E010,
+  SVEStorePredicateRegisterMask = 0xFFC0E010,
+  STR_p_bi = SVEStorePredicateRegisterFixed
+};
+
+enum SVEStoreVectorRegisterOp {
+  SVEStoreVectorRegisterFixed = 0xE5804000,
+  SVEStoreVectorRegisterFMask = 0xFFC0E000,
+  SVEStoreVectorRegisterMask = 0xFFC0E000,
+  STR_z_bi = SVEStoreVectorRegisterFixed
+};
+
+enum SVETableLookupOp {
+  SVETableLookupFixed = 0x05203000,
+  SVETableLookupFMask = 0xFF20FC00,
+  SVETableLookupMask = 0xFF20FC00,
+  TBL_z_zz_1 = SVETableLookupFixed
+};
+
+enum SVEUnpackPredicateElementsOp {
+  SVEUnpackPredicateElementsFixed = 0x05304000,
+  SVEUnpackPredicateElementsFMask = 0xFFFEFE10,
+  SVEUnpackPredicateElementsMask = 0xFFFFFE10,
+  PUNPKLO_p_p = SVEUnpackPredicateElementsFixed,
+  PUNPKHI_p_p = SVEUnpackPredicateElementsFixed | 0x00010000
+};
+
+enum SVEUnpackVectorElementsOp {
+  SVEUnpackVectorElementsFixed = 0x05303800,
+  SVEUnpackVectorElementsFMask = 0xFF3CFC00,
+  SVEUnpackVectorElementsMask = 0xFF3FFC00,
+  SUNPKLO_z_z = SVEUnpackVectorElementsFixed,
+  SUNPKHI_z_z = SVEUnpackVectorElementsFixed | 0x00010000,
+  UUNPKLO_z_z = SVEUnpackVectorElementsFixed | 0x00020000,
+  UUNPKHI_z_z = SVEUnpackVectorElementsFixed | 0x00030000
 };
 
 enum SVEVectorSelectOp {
@@ -3905,12 +4364,11 @@ enum SVEVectorSelectOp {
   SEL_z_p_zz = SVEVectorSelectFixed
 };
 
-enum SVEWriteFFROp {
-  SVEWriteFFRFixed = 0x25289000,
-  SVEWriteFFRFMask = 0xFF38F000,
-  SVEWriteFFRMask = 0xFFFFFFFF,
-  WRFFR_f_p = SVEWriteFFRFixed,
-  SETFFR_f = SVEWriteFFRFixed | 0x00040000
+enum SVEVectorSplice_DestructiveOp {
+  SVEVectorSplice_DestructiveFixed = 0x052C8000,
+  SVEVectorSplice_DestructiveFMask = 0xFF3FE000,
+  SVEVectorSplice_DestructiveMask = 0xFF3FE000,
+  SPLICE_z_p_zz_des = SVEVectorSplice_DestructiveFixed
 };
 
 enum ReservedOp {
