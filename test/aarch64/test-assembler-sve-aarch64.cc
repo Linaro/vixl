@@ -4806,5 +4806,133 @@ TEST_SVE(ldr_str_p_bi) {
   delete[] data;
 }
 
+template <typename T>
+static void MemoryWrite(uint8_t* base, int64_t offset, int64_t index, T data) {
+  memcpy(base + offset + (index * sizeof(data)), &data, sizeof(data));
+}
+
+TEST_SVE(sve_ld1_st1_contiguous) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+
+  // The immediate can address [-8, 7] times the VL, so allocate enough space to
+  // exceed that in both directions.
+  int data_size = vl * 128;
+
+  uint8_t* data = new uint8_t[data_size];
+  memset(data, 0, data_size);
+
+  // Set the base half-way through the buffer so we can use negative indeces.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  __ Index(z7.VnB(), 7, 3);
+  __ Index(z8.VnB(), 8, 5);
+  __ Index(z9.VnB(), 9, 7);
+
+  // Encodable scalar-plus-immediate cases.
+  __ Index(z1.VnB(), 1, -3);
+  __ Ptrue(p1.VnB());
+  __ St1b(z1.VnB(), p1, SVEMemOperand(x0));
+
+  __ Index(z2.VnH(), -2, 5);
+  __ Ptrue(p2.VnH(), SVE_MUL3);
+  __ St1b(z2.VnH(), p2, SVEMemOperand(x0, 7, SVE_MUL_VL));
+
+  __ Index(z3.VnS(), 3, -7);
+  __ Ptrue(p3.VnS(), SVE_POW2);
+  __ St1h(z3.VnS(), p3, SVEMemOperand(x0, -8, SVE_MUL_VL));
+
+  // Encodable scalar-plus-scalar cases.
+  __ Index(z4.VnD(), -4, 11);
+  __ Ptrue(p4.VnD(), SVE_VL3);
+  __ Addvl(x1, x0, 8);  // Try not to overlap with VL-dependent cases.
+  __ Mov(x2, 17);
+  __ St1b(z4.VnD(), p4, SVEMemOperand(x1, x2));
+
+  __ Index(z5.VnD(), 6, -2);
+  __ Ptrue(p5.VnD(), SVE_VL16);
+  __ Addvl(x1, x0, 10);  // Try not to overlap with VL-dependent cases.
+  __ Mov(x2, 6);
+  __ St1d(z5.VnD(), p5, SVEMemOperand(x1, x2, LSL, 3));
+
+  // Unencodable cases fall back on `Adr`.
+  __ Index(z6.VnS(), -7, 3);
+  // Setting SVE_ALL on B lanes checks that the Simulator ignores irrelevant
+  // predicate bits when handling larger lanes.
+  __ Ptrue(p6.VnB(), SVE_ALL);
+  __ St1w(z6.VnS(), p6, SVEMemOperand(x0, 42, SVE_MUL_VL));
+
+
+  // TODO: Add ld1 loads and check results as in the "ldr_str_z_bi" test.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint8_t* expected = new uint8_t[data_size];
+    memset(expected, 0, data_size);
+    uint8_t* middle = &expected[data_size / 2];
+
+    int vl_b = vl / kBRegSizeInBytes;
+    int vl_h = vl / kHRegSizeInBytes;
+    int vl_s = vl / kSRegSizeInBytes;
+    int vl_d = vl / kDRegSizeInBytes;
+
+    // Encodable cases.
+
+    // st1b { z1.b }, SVE_ALL
+    for (int i = 0; i < vl_b; i++) {
+      MemoryWrite(middle, 0, i, static_cast<uint8_t>(1 - (3 * i)));
+    }
+
+    // st1b { z2.h }, SVE_MUL3
+    int vl_h_mul3 = vl_h - (vl_h % 3);
+    for (int i = 0; i < vl_h_mul3; i++) {
+      MemoryWrite(middle, 7 * vl, i, static_cast<uint8_t>(-2 + (5 * i)));
+    }
+
+    // st1h { z3.s }, SVE_POW2
+    int vl_s_pow2 = 1 << HighestSetBitPosition(vl_s);
+    for (int i = 0; i < vl_s_pow2; i++) {
+      MemoryWrite(middle, -8 * vl, i, static_cast<uint16_t>(3 - (7 * i)));
+    }
+
+    // st1b { z4.d }, SVE_VL3
+    if (vl_d >= 3) {
+      for (int i = 0; i < 3; i++) {
+        MemoryWrite(middle,
+                    (8 * vl) + 17,
+                    i,
+                    static_cast<uint8_t>(-4 + (11 * i)));
+      }
+    }
+
+    // st1d { z5.d }, SVE_VL16
+    if (vl_d >= 16) {
+      for (int i = 0; i < 16; i++) {
+        MemoryWrite(middle,
+                    (10 * vl) + (6 * kDRegSizeInBytes),
+                    i,
+                    static_cast<uint64_t>(6 - (2 * i)));
+      }
+    }
+
+    // Unencodable cases.
+
+    // st1w { z6.s }, SVE_ALL
+    for (int i = 0; i < vl_s; i++) {
+      MemoryWrite(middle, 42 * vl, i, static_cast<uint32_t>(-7 + (3 * i)));
+    }
+
+    ASSERT_EQUAL_MEMORY(expected, data, data_size);
+
+    delete[] expected;
+  }
+  delete[] data;
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -6124,131 +6124,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void St1b(const ZRegister& zt,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1b(zt, pg, xn, rm);
-  }
-  void St1b(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1b(zt, pg, xn, zm);
-  }
-  void St1b(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1b(zt, pg, xn, imm4);
-  }
-  void St1b(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1b(zt, pg, zn, imm5);
-  }
-  void St1d(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1d(zt, pg, xn, rm);
-  }
-  void St1d(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1d(zt, pg, xn, zm);
-  }
-  void St1d(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1d(zt, pg, xn, imm4);
-  }
-  void St1d(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1d(zt, pg, zn, imm5);
+    SVELoadStore1Helper(kBRegSizeInBytesLog2, zt, pg, addr, &Assembler::st1b);
   }
   void St1h(const ZRegister& zt,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1h(zt, pg, xn, rm);
-  }
-  void St1h(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1h(zt, pg, xn, zm);
-  }
-  void St1h(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1h(zt, pg, xn, imm4);
-  }
-  void St1h(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1h(zt, pg, zn, imm5);
+    SVELoadStore1Helper(kHRegSizeInBytesLog2, zt, pg, addr, &Assembler::st1h);
   }
   void St1w(const ZRegister& zt,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1w(zt, pg, xn, rm);
+    SVELoadStore1Helper(kSRegSizeInBytesLog2, zt, pg, addr, &Assembler::st1w);
   }
-  void St1w(const ZRegister& zt,
+  void St1d(const ZRegister& zt,
             const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1w(zt, pg, xn, zm);
-  }
-  void St1w(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1w(zt, pg, xn, imm4);
-  }
-  void St1w(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    st1w(zt, pg, zn, imm5);
+    SVELoadStore1Helper(kDRegSizeInBytesLog2, zt, pg, addr, &Assembler::st1d);
   }
   void St2b(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -7290,12 +7186,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                      const ZRegister& zn,
                      IntegerOperand imm);
 
+  // E.g. ldr/str
   typedef void (Assembler::*SVELoadStoreFn)(const CPURegister& rt,
                                             const SVEMemOperand& addr);
+
+  // E.g. ld1b/st1b
+  typedef void (Assembler::*SVELoadStore1Fn)(const ZRegister& zt,
+                                             const PRegister& pg,
+                                             const SVEMemOperand& addr);
 
   void SVELoadStoreScalarImmHelper(const CPURegister& rt,
                                    const SVEMemOperand& addr,
                                    SVELoadStoreFn fn);
+
+  void SVELoadStore1Helper(int msize_in_bytes_log2,
+                           const ZRegister& rt,
+                           const PRegister& pg,
+                           const SVEMemOperand& addr,
+                           SVELoadStore1Fn fn);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

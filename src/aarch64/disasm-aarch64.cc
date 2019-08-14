@@ -8039,9 +8039,53 @@ void Disassembler::VisitSVEMemStore(const Instruction *instr) {
     } else {
       form = "'Zt, ['Xns, #'s2116:1210, MUL VL]";
     }
+  } else if (instr->Mask(SVEContiguousStore_ScalarPlusImmediateFMask) ==
+             SVEContiguousStore_ScalarPlusImmediateFixed) {
+    // The 'size' field isn't in the usual place here.
+    if (instr->ExtractBits(19, 16) == 0) {
+      form = "{ 'Zt.'tls }, p'u1210, ['Xns]";
+    } else {
+      form = "{ 'Zt.'tls }, p'u1210, ['Xns, #'s1916, MUL VL]";
+    }
+    switch (instr->Mask(SVEContiguousStore_ScalarPlusImmediateMask)) {
+      case ST1B_z_p_bi:
+        mnemonic = "st1b";
+        break;
+      case ST1H_z_p_bi:
+        mnemonic = "st1h";
+        break;
+      case ST1W_z_p_bi:
+        mnemonic = "st1w";
+        break;
+      case ST1D_z_p_bi:
+        mnemonic = "st1d";
+        break;
+    }
+  } else if (instr->Mask(SVEContiguousStore_ScalarPlusScalarFMask) ==
+             SVEContiguousStore_ScalarPlusScalarFixed) {
+    // The 'size' field isn't in the usual place here.
+    if (instr->ExtractBits(24, 23) == 0) {
+      form = "{ 'Zt.'tls }, p'u1210, ['Xns, 'Xm]";
+    } else {
+      form = "{ 'Zt.'tls }, p'u1210, ['Xns, 'Xm, LSL #'u2423]";
+    }
+    switch (instr->Mask(SVEContiguousStore_ScalarPlusScalarMask)) {
+      case ST1B_z_p_br:
+        mnemonic = "st1b";
+        break;
+      case ST1H_z_p_br:
+        mnemonic = "st1h";
+        break;
+      case ST1W_z_p_br:
+        mnemonic = "st1w";
+        break;
+      case ST1D_z_p_br:
+        mnemonic = "st1d";
+        break;
+    }
   } else {
     switch (instr->Mask(SVEMemStoreMask)) {
-      // ST1B { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
+      // ST1B { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]p
       case ST1B_z_p_ai_d:
         mnemonic = "st1b";
         break;
@@ -8049,11 +8093,6 @@ void Disassembler::VisitSVEMemStore(const Instruction *instr) {
       case ST1B_z_p_ai_s:
         mnemonic = "st1b";
         form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
-        break;
-      // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-      case ST1B_z_p_bi:
-        mnemonic = "st1b";
-        form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
         break;
       // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>]
       case ST1B_z_p_br:
@@ -8078,11 +8117,6 @@ void Disassembler::VisitSVEMemStore(const Instruction *instr) {
       // ST1D { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
       case ST1D_z_p_ai_d:
         mnemonic = "st1d";
-        break;
-      // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-      case ST1D_z_p_bi:
-        mnemonic = "st1d";
-        form = "{ 'Zt.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
         break;
       // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
       // TODO: fix encoding alias issue with enum above.
@@ -8118,11 +8152,6 @@ void Disassembler::VisitSVEMemStore(const Instruction *instr) {
       case ST1H_z_p_ai_s:
         mnemonic = "st1h";
         form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
-        break;
-      // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-      case ST1H_z_p_bi:
-        mnemonic = "st1h";
-        form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
         break;
       // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
       case ST1H_z_p_br:
@@ -8167,11 +8196,6 @@ void Disassembler::VisitSVEMemStore(const Instruction *instr) {
       case ST1W_z_p_ai_s:
         mnemonic = "st1w";
         form = "{ 'Zt.s }, p'u1210, ['Zn.s{, #'u2016}]";
-        break;
-      // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-      case ST1W_z_p_bi:
-        mnemonic = "st1w";
-        form = "{ 'Zt.<T> }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
         break;
       // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
       case ST1W_z_p_br:
@@ -10247,8 +10271,15 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
   switch (format[1]) {
     case 'l':
       // Encoding of logical operations.
-      size_in_bytes_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
       placeholder_length++;
+      if (format[2] == 's') {
+        // 'tls: Loads and stores
+        size_in_bytes_log2 = instr->ExtractBits(22, 21);
+        placeholder_length++;
+      } else {
+        // 'tl: Logical operations
+        size_in_bytes_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+      }
       break;
     case 's':
       if (format[2] == 'z') {

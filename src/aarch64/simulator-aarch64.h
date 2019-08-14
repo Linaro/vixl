@@ -643,6 +643,52 @@ class LogicVRegister {
   bool round_[kZRegMaxSizeInBytes];
 };
 
+// Represent an SVE addressing mode and abstract per-lane address generation to
+// make iteration easy.
+class LogicSVEAddressVector {
+ public:
+  explicit LogicSVEAddressVector(uint64_t base) : base_(base) {}
+
+  LogicSVEAddressVector(uint64_t base, const SimVRegister& vector)
+      : base_(base) {
+    USE(vector);
+    VIXL_UNIMPLEMENTED();
+  }
+
+  // Full per-element calculation for structured accesses.
+  //
+  // Note that the register number argument (`reg`) is zero-based.
+  uint64_t GetElementAddress(unsigned msize_in_bytes,
+                             unsigned reg_count,
+                             unsigned lane,
+                             unsigned reg) const {
+    VIXL_ASSERT(reg < reg_count);
+    if (IsContiguous()) {
+      // Contiguous elements are interleaved as follows:
+      //
+      //    ...
+      //    base + (6 * msize_in_bytes): zt[2]
+      //    base + (5 * msize_in_bytes): zt3[1]
+      //    base + (4 * msize_in_bytes): zt2[1]
+      //    base + (3 * msize_in_bytes): zt[1]
+      //    base + (2 * msize_in_bytes): zt3[0]
+      //    base + (1 * msize_in_bytes): zt2[0]
+      //    base + (0 * msize_in_bytes): zt[0]
+      uint64_t index = (lane * reg_count) + reg;
+      return base_ + (index * msize_in_bytes);
+    } else {
+      VIXL_UNIMPLEMENTED();
+      return 0;
+    }
+  }
+
+  // TODO: Update this once we support scatter-gather modes.
+  bool IsContiguous() const { return true; }
+
+ private:
+  uint64_t base_;
+};
+
 // The proper way to initialize a simulated system register (such as NZCV) is as
 // follows:
 //  SimSystemRegister nzcv = SimSystemRegister::DefaultValueFor(NZCV);
@@ -3651,6 +3697,19 @@ class Simulator : public DecoderVisitor {
                                             const LogicVRegister& src1,
                                             const LogicVRegister& src2,
                                             bool is_wide_elements = false);
+
+  // Store each active zt<i>[lane] to `addr + scatter[lane] + i`.
+  //
+  // `zt_code` specifies the code of the first register (zt<i>). Each additional
+  // register (up to `reg_count`) is `(zt_code + i) % 32`.
+  //
+  // This helper calls LogZWrite in the proper way, according to `addr`.
+  void SVEStructuredStoreHelper(int msize_in_bytes_log2,
+                                VectorFormat vform,
+                                const LogicPRegister& pg,
+                                unsigned zt_code,
+                                unsigned reg_count,
+                                const LogicSVEAddressVector& addr);
 
   // Return the first or last active lane, or -1 if none are active.
   int GetFirstActive(VectorFormat vform, const LogicPRegister& pg) const;

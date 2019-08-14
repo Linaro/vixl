@@ -5650,11 +5650,27 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Signed saturating subtract immediate (unpredicated).
   void sqsub(const ZRegister& zd, const ZRegister& zn, int imm8);
 
-  // Contiguous store bytes from vector (scalar index).
+  // Contiguous/scatter store bytes from vector.
   void st1b(const ZRegister& zt,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
+
+  // Contiguous/scatter store halfwords from vector.
+  void st1h(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/scatter store words from vector.
+  void st1w(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/scatter store doublewords from vector.
+  void st1d(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // TODO: Merge other stores into the SVEMemOperand versions.
 
   // Scatter store bytes from a vector (vector index).
   void st1b(const ZRegister& zt,
@@ -5662,23 +5678,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Contiguous store bytes from vector (immediate index).
-  void st1b(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
   // Scatter store bytes from a vector (immediate index).
   void st1b(const ZRegister& zt,
             const PRegister& pg,
             const ZRegister& zn,
             int imm5);
-
-  // Contiguous store doublewords from vector (scalar index).
-  void st1d(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
 
   // Scatter store doublewords from a vector (vector index).
   void st1d(const ZRegister& zt,
@@ -5686,23 +5690,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Contiguous store doublewords from vector (immediate index).
-  void st1d(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
   // Scatter store doublewords from a vector (immediate index).
   void st1d(const ZRegister& zt,
             const PRegister& pg,
             const ZRegister& zn,
             int imm5);
-
-  // Contiguous store halfwords from vector (scalar index).
-  void st1h(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
 
   // Scatter store halfwords from a vector (vector index).
   void st1h(const ZRegister& zt,
@@ -5710,35 +5702,17 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Contiguous store halfwords from vector (immediate index).
-  void st1h(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
   // Scatter store halfwords from a vector (immediate index).
   void st1h(const ZRegister& zt,
             const PRegister& pg,
             const ZRegister& zn,
             int imm5);
 
-  // Contiguous store words from vector (scalar index).
-  void st1w(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
-
   // Scatter store words from a vector (vector index).
   void st1w(const ZRegister& zt,
             const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
-
-  // Contiguous store words from vector (immediate index).
-  void st1w(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
 
   // Scatter store words from a vector (immediate index).
   void st1w(const ZRegister& zt,
@@ -6386,7 +6360,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Generic immediate encoding.
   template <int hibit, int lobit>
-  static Instr ImmField(int imm) {
+  static Instr ImmField(int64_t imm) {
     VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
     VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
     int fieldsize = hibit - lobit + 1;
@@ -6397,7 +6371,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // For unsigned immediate encoding.
   // TODO: Handle signed and unsigned immediate in satisfactory way.
   template <int hibit, int lobit>
-  static Instr ImmUnsignedField(unsigned imm) {
+  static Instr ImmUnsignedField(uint64_t imm) {
     VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
     VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
     VIXL_ASSERT(IsUintN(hibit - lobit + 1, imm));
@@ -6475,6 +6449,37 @@ class Assembler : public vixl::internal::AssemblerBase {
   static Instr SVEBitN(unsigned bitn) {
     VIXL_ASSERT(IsUint1(bitn));
     return bitn << SVEBitN_offset;
+  }
+
+  static Instr SVEDtype(unsigned msize_in_bytes_log2,
+                        unsigned esize_in_bytes_log2,
+                        bool is_signed,
+                        int dtype_h_lsb = 23,
+                        int dtype_l_lsb = 21) {
+    VIXL_ASSERT(msize_in_bytes_log2 <= kDRegSizeInBytesLog2);
+    VIXL_ASSERT(esize_in_bytes_log2 <= kDRegSizeInBytesLog2);
+    Instr dtype_h = msize_in_bytes_log2;
+    Instr dtype_l = esize_in_bytes_log2;
+    // Signed forms use the encodings where msize would be greater than esize.
+    if (is_signed) {
+      dtype_h = dtype_h ^ 0x3;
+      dtype_l = dtype_l ^ 0x3;
+    }
+    VIXL_ASSERT(IsUint2(dtype_h));
+    VIXL_ASSERT(IsUint2(dtype_l));
+    VIXL_ASSERT((dtype_h > dtype_l) == is_signed);
+
+    return (dtype_h << dtype_h_lsb) | (dtype_l << dtype_l_lsb);
+  }
+
+  static Instr SVEDtypeSplit(unsigned msize_in_bytes_log2,
+                             unsigned esize_in_bytes_log2,
+                             bool is_signed) {
+    return SVEDtype(msize_in_bytes_log2,
+                    esize_in_bytes_log2,
+                    is_signed,
+                    23,
+                    13);
   }
 
   static Instr ImmS(unsigned imms, unsigned reg_size) {
@@ -7001,6 +7006,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   void LoadStoreStructVerify(const VRegister& vt,
                              const MemOperand& addr,
                              Instr op);
+
+  void SVESt1Helper(unsigned msize_in_bytes_log2,
+                    const ZRegister& zt,
+                    const PRegister& pg,
+                    const SVEMemOperand& addr);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,

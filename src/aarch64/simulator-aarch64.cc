@@ -669,6 +669,15 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormat(
       return kPrintReg1S;
     case kFormatD:
       return kPrintReg1D;
+
+    case kFormatVnB:
+      return kPrintRegLaneSizeB;
+    case kFormatVnH:
+      return kPrintRegLaneSizeH;
+    case kFormatVnS:
+      return kPrintRegLaneSizeS;
+    case kFormatVnD:
+      return kPrintRegLaneSizeD;
   }
 }
 
@@ -1350,7 +1359,7 @@ void Simulator::PrintZWrite(uintptr_t address,
   }
 
   const int last_byte = start_byte + bytes - 1;
-  while (start_byte < last_byte) {
+  while (start_byte <= last_byte) {
     PrintZRegisterRawHelper(reg_code,
                             lane_size,
                             data_size,
@@ -9291,6 +9300,34 @@ void Simulator::VisitSVEMemStore(const Instruction* instr) {
       Memory::Write(address + i, zt.GetLane<uint8_t>(i));
     }
     LogZWrite(address, instr->GetRt());
+  } else if (instr->Mask(SVEContiguousStore_ScalarPlusImmediateFMask) ==
+             SVEContiguousStore_ScalarPlusImmediateFixed) {
+    // ST1B_z_p_bi, ST1H_z_p_bi, ST1S_z_p_bi, ST1D_z_p_bi
+    int vl = GetVectorLengthInBytes();
+    uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+    VectorFormat vform =
+        SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
+    LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+    SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
+                             vform,
+                             ReadPRegister(instr->GetPgLow8()),
+                             instr->GetRt(),
+                             1,
+                             addr);
+  } else if (instr->Mask(SVEContiguousStore_ScalarPlusScalarFMask) ==
+             SVEContiguousStore_ScalarPlusScalarFixed) {
+    // ST1B_z_p_br, ST1H_z_p_br, ST1S_z_p_br, ST1D_z_p_br
+    uint64_t offset = ReadXRegister(instr->GetRm());
+    offset <<= instr->ExtractBits(24, 23);
+    VectorFormat vform =
+        SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
+    LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+    SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
+                             vform,
+                             ReadPRegister(instr->GetPgLow8()),
+                             instr->GetRt(),
+                             1,
+                             addr);
   } else {
     // TODO: This switch doesn't work because the mask needs to vary on a finer
     // granularity. Early implementations have already been pulled out, but we
@@ -9298,23 +9335,16 @@ void Simulator::VisitSVEMemStore(const Instruction* instr) {
     switch (instr->Mask(SVEMemStoreMask)) {
       case ST1B_z_p_ai_d:
       case ST1B_z_p_ai_s:
-      case ST1B_z_p_bi:
-      case ST1B_z_p_br:
       case ST1B_z_p_bz_d_64_unscaled:
       case ST1B_z_p_bz_d_x32_unscaled:
       case ST1B_z_p_bz_s_x32_unscaled:
       case ST1D_z_p_ai_d:
-      case ST1D_z_p_bi:
-      // TODO: fix encoding alias issue with enum above.
-      //    case ST1D_z_p_br:
       case ST1D_z_p_bz_d_64_scaled:
       case ST1D_z_p_bz_d_64_unscaled:
       case ST1D_z_p_bz_d_x32_scaled:
       case ST1D_z_p_bz_d_x32_unscaled:
       case ST1H_z_p_ai_d:
       case ST1H_z_p_ai_s:
-      case ST1H_z_p_bi:
-      case ST1H_z_p_br:
       case ST1H_z_p_bz_d_64_scaled:
       case ST1H_z_p_bz_d_64_unscaled:
       case ST1H_z_p_bz_d_x32_scaled:
@@ -9323,8 +9353,6 @@ void Simulator::VisitSVEMemStore(const Instruction* instr) {
       case ST1H_z_p_bz_s_x32_unscaled:
       case ST1W_z_p_ai_d:
       case ST1W_z_p_ai_s:
-      case ST1W_z_p_bi:
-      case ST1W_z_p_br:
       case ST1W_z_p_bz_d_64_scaled:
       case ST1W_z_p_bz_d_64_unscaled:
       case ST1W_z_p_bz_d_x32_scaled:

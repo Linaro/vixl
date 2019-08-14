@@ -618,6 +618,15 @@ class SVEMemOperand {
   SVEOffsetModifier GetOffsetModifier() const { return mod_; }
   unsigned GetShiftAmount() const { return shift_amount_; }
 
+  bool IsEquivalentToLSL(unsigned amount) const {
+    if (shift_amount_ != amount) return false;
+    if (amount == 0) {
+      // No-shift is equivalent to "LSL #0".
+      return ((mod_ == SVE_LSL) || (mod_ == NO_SVE_OFFSET_MODIFIER));
+    }
+    return mod_ == SVE_LSL;
+  }
+
   // Usually, SVEMemOperands are access-size-agnostic, but the behaviour of
   // "MUL VL" depends on the access size.
   bool IsMulVlForZReg() const { return mod_ == SVE_MUL_VL_FOR_ZREG; }

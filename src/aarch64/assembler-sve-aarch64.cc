@@ -6070,17 +6070,57 @@ void Assembler::ldnt1w(const ZRegister& zt,
 
 // SVEMemStore.
 
+void Assembler::SVESt1Helper(unsigned msize_in_bytes_log2,
+                             const ZRegister& zt,
+                             const PRegister& pg,
+                             const SVEMemOperand& addr) {
+  Instr op;
+  VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
+  if (addr.IsScalarPlusImmediate()) {
+    VIXL_ASSERT(addr.IsScalar() || addr.IsMulVl());
+    op = ST1B_z_p_bi | RnSP(addr.GetScalarBase()) |
+         ImmField<19, 16>(addr.GetImmediateOffset());
+  } else if (addr.IsScalarPlusScalar()) {
+    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());  // Rm must not be xzr.
+    VIXL_ASSERT(addr.IsEquivalentToLSL(msize_in_bytes_log2));
+    op = ST1B_z_p_br | Rn(addr.GetScalarBase()) | Rm(addr.GetScalarOffset());
+  } else {
+    // TODO: Handle scatter forms here.
+    VIXL_UNIMPLEMENTED();
+    op = 0xffffffff;
+  }
+
+  Instr dtype =
+      SVEDtype(msize_in_bytes_log2, zt.GetLaneSizeInBytesLog2(), false);
+  Emit(op | Rt(zt) | PgLow8(pg) | dtype);
+}
+
 void Assembler::st1b(const ZRegister& zt,
                      const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>]
-  //  1110 0100 0... .... 010. .... .... ....
-  //  msz<24:23> = 00 | size<22:21> | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                     const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVESt1Helper(kBRegSizeInBytesLog2, zt, pg, addr);
+}
 
-  Emit(ST1B_z_p_br | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
+void Assembler::st1h(const ZRegister& zt,
+                     const PRegister& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVESt1Helper(kHRegSizeInBytesLog2, zt, pg, addr);
+}
+
+void Assembler::st1w(const ZRegister& zt,
+                     const PRegister& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVESt1Helper(kSRegSizeInBytesLog2, zt, pg, addr);
+}
+
+void Assembler::st1d(const ZRegister& zt,
+                     const PRegister& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVESt1Helper(kDRegSizeInBytesLog2, zt, pg, addr);
 }
 
 // This prototype maps to 3 instruction encodings:
@@ -6100,21 +6140,6 @@ void Assembler::st1b(const ZRegister& zt,
   Emit(ST1B_z_p_bz_d_64_unscaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
 }
 
-void Assembler::st1b(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm4) {
-  // ST1B { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0100 0..0 .... 111. .... .... ....
-  //  msz<24:23> = 00 | size<22:21> | imm4<19:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1B_z_p_bi | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
 // This prototype maps to 2 instruction encodings:
 //  ST1B_z_p_ai_d
 //  ST1B_z_p_ai_s
@@ -6130,19 +6155,6 @@ void Assembler::st1b(const ZRegister& zt,
 
   Emit(ST1B_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
        ImmField<20, 16>(imm5));
-}
-
-void Assembler::st1d(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-  //  1110 0101 1... .... 010. .... .... ....
-  //  msz<24:23> = 11 | size<22:21> | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1D_z_p_bi | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 // This prototype maps to 4 instruction encodings:
@@ -6165,21 +6177,6 @@ void Assembler::st1d(const ZRegister& zt,
 
 void Assembler::st1d(const ZRegister& zt,
                      const PRegister& pg,
-                     const Register& xn,
-                     int imm4) {
-  // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0101 1..0 .... 111. .... .... ....
-  //  msz<24:23> = 11 | size<22:21> | imm4<19:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1D_z_p_bi | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
-void Assembler::st1d(const ZRegister& zt,
-                     const PRegister& pg,
                      const ZRegister& zn,
                      int imm5) {
   // ST1D { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
@@ -6190,19 +6187,6 @@ void Assembler::st1d(const ZRegister& zt,
 
   Emit(ST1D_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
        ImmField<20, 16>(imm5));
-}
-
-void Assembler::st1h(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-  //  1110 0100 1... .... 010. .... .... ....
-  //  msz<24:23> = 01 | size<22:21> | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1H_z_p_br | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 // This prototype maps to 6 instruction encodings:
@@ -6225,21 +6209,6 @@ void Assembler::st1h(const ZRegister& zt,
   Emit(ST1H_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
 }
 
-void Assembler::st1h(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm4) {
-  // ST1H { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0100 1..0 .... 111. .... .... ....
-  //  msz<24:23> = 01 | size<22:21> | imm4<19:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1H_z_p_bi | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
 // This prototype maps to 2 instruction encodings:
 //  ST1H_z_p_ai_d
 //  ST1H_z_p_ai_s
@@ -6255,19 +6224,6 @@ void Assembler::st1h(const ZRegister& zt,
 
   Emit(ST1H_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
        ImmField<20, 16>(imm5));
-}
-
-void Assembler::st1w(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-  //  1110 0101 0... .... 010. .... .... ....
-  //  msz<24:23> = 10 | size<22:21> | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1W_z_p_br | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 // This prototype maps to 6 instruction encodings:
@@ -6288,21 +6244,6 @@ void Assembler::st1w(const ZRegister& zt,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(ST1W_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-void Assembler::st1w(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm4) {
-  // ST1W { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0101 0..0 .... 111. .... .... ....
-  //  msz<24:23> = 10 | size<22:21> | imm4<19:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1W_z_p_bi | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
 }
 
 // This prototype maps to 2 instruction encodings:

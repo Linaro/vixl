@@ -140,6 +140,7 @@ class CPURegister {
   unsigned GetLaneSizeInBits() const { return DecodeSizeInBits(lane_size_); }
   unsigned GetLaneSizeInBytes() const { return DecodeSizeInBytes(lane_size_); }
   unsigned GetLaneSizeInBytesLog2() const {
+    VIXL_ASSERT(HasLaneSize());
     return DecodeSizeInBytesLog2(lane_size_);
   }
 
@@ -453,9 +454,9 @@ class CPURegister {
   static int DecodeSizeInBytesLog2(EncodedSize encoded_size) {
     switch (encoded_size) {
       case kEncodedUnknownSize:
-        // Log2 of B-sized lane in bytes is 0.
+        // Log2 of B-sized lane in bytes is 0, so we can't just return 0 here.
         VIXL_UNREACHABLE();
-        return kUnknownSize;
+        return -1;
       case kEncodedBRegSize:
         return kBRegSizeInBytesLog2;
       case kEncodedHRegSize:

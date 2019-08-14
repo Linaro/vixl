@@ -526,5 +526,44 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
   (this->*fn)(rt, SVEMemOperand(scratch));
 }
 
+void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
+                                         const ZRegister& zt,
+                                         const PRegister& pg,
+                                         const SVEMemOperand& addr,
+                                         SVELoadStore1Fn fn) {
+  if (addr.IsScalar() ||
+      (addr.IsScalarPlusScalar() && !addr.GetScalarOffset().IsZero() &&
+       addr.IsEquivalentToLSL(msize_in_bytes_log2)) ||
+      (addr.IsScalarPlusImmediate() && IsInt4(addr.GetImmediateOffset()) &&
+       addr.IsMulVl())) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, addr);
+    return;
+  }
+
+  if (addr.IsEquivalentToScalar()) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, SVEMemOperand(addr.GetScalarBase()));
+    return;
+  }
+
+  // TODO: Handle scatter-gather forms.
+
+  UseScratchRegisterScope temps(this);
+  if (addr.IsScatterGather()) {
+    // TODO: Use Adr(ZRegister, ...) to synthesise the address in the same way
+    // as the non-scatter-gather forms.
+    VIXL_UNIMPLEMENTED();
+  } else {
+    Register scratch = temps.AcquireX();
+    // TODO: If we have an immediate offset that is a multiple of
+    // msize_in_bytes, we can use Rdvl/Rdpl and a scalar-plus-scalar form to
+    // save an instruction.
+    Adr(scratch, addr.ForZRegAccess());
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, SVEMemOperand(scratch));
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

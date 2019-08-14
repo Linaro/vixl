@@ -6039,6 +6039,62 @@ LogicVRegister Simulator::SVEBitwiseImmHelper(SVEBitwiseImmOp op,
   return zd;
 }
 
+void Simulator::SVEStructuredStoreHelper(int msize_in_bytes_log2,
+                                         VectorFormat vform,
+                                         const LogicPRegister& pg,
+                                         unsigned zt_code,
+                                         unsigned reg_count,
+                                         const LogicSVEAddressVector& addr) {
+  VIXL_ASSERT(zt_code < kNumberOfZRegisters);
+
+  int esize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  int msize_in_bytes = 1 << msize_in_bytes_log2;
+
+  VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
+  VIXL_ASSERT((reg_count >= 1) && (reg_count <= 4));
+
+  unsigned zt_codes[4] = {zt_code,
+                          (zt_code + 1) % kNumberOfZRegisters,
+                          (zt_code + 2) % kNumberOfZRegisters,
+                          (zt_code + 3) % kNumberOfZRegisters};
+
+  LogicVRegister zt[4] = {
+      ReadVRegister(zt_codes[0]),
+      ReadVRegister(zt_codes[1]),
+      ReadVRegister(zt_codes[2]),
+      ReadVRegister(zt_codes[3]),
+  };
+
+  // For unpacked forms (e.g. `st1b { z0.h }, ...`, the upper parts of the lanes
+  // are ignored, so read the source register using the VectorFormat that
+  // corresponds with the storage format, and multiply the index accordingly.
+  VectorFormat unpack_vform =
+      SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
+  int unpack_shift = esize_in_bytes_log2 - msize_in_bytes_log2;
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    for (unsigned r = 0; r < reg_count; r++) {
+      uint64_t element_address =
+          addr.GetElementAddress(msize_in_bytes, reg_count, i, r);
+      zt[r].WriteUintToMem(unpack_vform, i << unpack_shift, element_address);
+    }
+  }
+
+  // TODO: Come up with a better trace format, and update NEON to match.
+  // This implementation matches the NEON format, for contiguous, unpredicated
+  // stores. It doesn't work for non-contiguous addressing, and doesn't take
+  // predication into account.
+  VIXL_ASSERT(addr.IsContiguous());
+  for (unsigned r = 0; r < reg_count; r++) {
+    LogZWrite(addr.GetElementAddress(msize_in_bytes, reg_count, 0, r),
+              zt_codes[r],
+              GetPrintRegisterFormat(vform),
+              msize_in_bytes);
+  }
+}
+
 int Simulator::GetFirstActive(VectorFormat vform,
                               const LogicPRegister& pg) const {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
