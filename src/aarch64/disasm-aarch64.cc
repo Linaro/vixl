@@ -8654,59 +8654,77 @@ void Disassembler::VisitSVEPermuteVectorPredicated(const Instruction *instr) {
 
 void Disassembler::VisitSVEPermuteVectorUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.<T>, <Zn>.<Tb>
-  const char *form = "'Zd.'t, 'Zn";
+  const char *form = "(PermuteVectorUnpredicated)";
 
-  switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
-    // DUP <Zd>.<T>, <R><n|SP>
-    case DUP_z_r:
-      mnemonic = "dup";
-      form = "'Zd.'t, 'Xns";
-      break;
-    // DUP <Zd>.<T>, <Zn>.<T>[<imm>]
-    case DUP_z_zi:
-      mnemonic = "dup";
-      form = "'Zd.<T>, <Zn>.<T>[<imm>]";
-      break;
-    // INSR <Zdn>.<T>, <R><m>
-    case INSR_z_r:
-      mnemonic = "insr";
-      form = "'Zd.'t, 'Rn";
-      break;
-    // INSR <Zdn>.<T>, <V><m>
-    case INSR_z_v:
-      mnemonic = "insr";
-      form = "'Zd.'t, 'Vn";
-      break;
-    // REV <Zd>.<T>, <Zn>.<T>
-    case REV_z_z:
-      mnemonic = "rev";
-      form = "'Zd.'t, 'Zn.'t";
-      break;
-    // SUNPKHI <Zd>.<T>, <Zn>.<Tb>
-    case SUNPKHI_z_z:
-      mnemonic = "sunpkhi";
-      break;
-    // SUNPKLO <Zd>.<T>, <Zn>.<Tb>
-    case SUNPKLO_z_z:
-      mnemonic = "sunpklo";
-      break;
-    // TBL <Zd>.<T>, { <Zn>.<T> }, <Zm>.<T>
-    case TBL_z_zz_1:
-      mnemonic = "tbl";
-      form = "'Zd.'t, { 'Zn.'t }, 'Zm.'t";
-      break;
-    // UUNPKHI <Zd>.<T>, <Zn>.<Tb>
-    case UUNPKHI_z_z:
-      mnemonic = "uunpkhi";
-      break;
-    // UUNPKLO <Zd>.<T>, <Zn>.<Tb>
-    case UUNPKLO_z_z:
-      mnemonic = "uunpklo";
-      break;
-    default:
-      break;
+  Instr op = instr->Mask(SVEPermuteVectorUnpredicatedDupTBLMask);
+  if (op == DUP_z_zi) {
+    mnemonic = "dup";
+    form = "'Zd.'tsz, 'Zn.'tsz['IVInsSVEIndex]";
+  } else if (op == TBL_z_zz_1) {
+    mnemonic = "tbl";
+    form = "'Zd.'t, { 'Zn.'t }, 'Zm.'t";
+  } else {
+    switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
+      case DUP_z_r:
+        mnemonic = "dup";
+        if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
+          form = "'Zd.'t, 'Xns.'t";
+        } else {
+          form = "'Zd.'t, 'Wns.'t";
+        }
+        break;
+      case INSR_z_r:
+        mnemonic = "insr";
+        if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
+          form = "'Zd.'t, 'Xn.'t";
+        } else {
+          form = "'Zd.'t, 'Wn.'t";
+        }
+        break;
+      case INSR_z_v:
+        mnemonic = "insr";
+        form = "'Zd.'t, 'Vnv.'t";
+        break;
+      case REV_z_z:
+        mnemonic = "rev";
+        form = "'Zd.'t, 'Zn.'t";
+        break;
+      case SUNPKHI_z_z:
+        mnemonic = "sunpkhi";
+        form = "'Zd.'t, 'Zn.'th";
+        break;
+      case SUNPKLO_z_z:
+        mnemonic = "sunpklo";
+        form = "'Zd.'t, 'Zn.'th";
+        break;
+      case UUNPKHI_z_z:
+        mnemonic = "uunpkhi";
+        form = "'Zd.'t, 'Zn.'th";
+        break;
+      case UUNPKLO_z_z:
+        mnemonic = "uunpklo";
+        form = "'Zd.'t, 'Zn.'th";
+        break;
+      default:
+        break;
+    }
+
+    switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
+      case SUNPKHI_z_z:
+      case SUNPKLO_z_z:
+      case UUNPKHI_z_z:
+      case UUNPKLO_z_z:
+        if (instr->GetSVESize() == 0) {
+          // The lowest lane size of the destination vector is H-sized lane.
+          mnemonic = "unallocated";
+          form = "(PermuteVectorUnpredicated)";
+        }
+        break;
+      default:
+        break;
+    }
   }
+
   Format(instr, mnemonic, form);
 }
 
@@ -9374,6 +9392,12 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
       reg_size = kQRegSize;
       break;
     case 'V':
+      if (format[2] == 'v') {
+        reg_type = CPURegister::kVRegister;
+        reg_size = 1 << (instr->GetSVESize() + 3);
+        field_len++;
+        break;
+      }
       AppendToOutput("v%d", reg_num);
       return field_len;
     case 'Z':
@@ -9649,6 +9673,13 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
               }
             }
             return 0;
+          } else if (strncmp(format,
+                             "IVInsSVEIndex",
+                             strlen("IVInsSVEIndex")) == 0) {
+            std::pair<int, int> index_and_lane_size =
+                instr->GetSVEPermuteIndexAndLaneSizeLog2();
+            AppendToOutput("%d", index_and_lane_size.first);
+            return strlen("IVInsSVEIndex");
           }
           VIXL_FALLTHROUGH();
         }
@@ -10178,21 +10209,38 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
   USE(format);
   VIXL_ASSERT(format[0] == 't');
 
-  static const char sizes[] = {'b', 'h', 's', 'd'};
-  unsigned size_in_byte_log2;
+  static const char sizes[] = {'b', 'h', 's', 'd', 'q'};
+  // TODO: only the most common case for <size> is supported at the moment,
+  // and even then, the RESERVED values are handled as if they're not
+  // reserved.
+  unsigned size_in_bytes_log2 = instr->GetSVESize();
   int placeholder_length = 1;
-
-  if (format[1] == 'l') {  // Logical operations
-    size_in_byte_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
-    placeholder_length++;
-  } else {
-    // TODO: only the most common case for <size> is supported at the moment,
-    // and even then, the RESERVED values are handled as if they're not
-    // reserved.
-    size_in_byte_log2 = instr->GetSVESize();
+  switch (format[1]) {
+    case 'l':
+      // Encoding of logical operations.
+      size_in_bytes_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+      placeholder_length++;
+      break;
+    case 's':
+      if (format[2] == 'z') {
+        // tsz encoding.
+        std::pair<int, int> index_and_lane_size =
+            instr->GetSVEPermuteIndexAndLaneSizeLog2();
+        size_in_bytes_log2 = index_and_lane_size.second;
+        placeholder_length += 2;
+      }
+      break;
+    case 'h':
+      // Half size of the lane size field.
+      size_in_bytes_log2 -= 1;
+      placeholder_length++;
+      break;
+    default:
+      break;
   }
-  VIXL_ASSERT(size_in_byte_log2 < ArrayLength(sizes));
-  AppendToOutput("%c", sizes[size_in_byte_log2]);
+
+  VIXL_ASSERT(size_in_bytes_log2 < ArrayLength(sizes));
+  AppendToOutput("%c", sizes[size_in_bytes_log2]);
 
   return placeholder_length;
 }

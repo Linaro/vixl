@@ -4011,7 +4011,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void dup(const ZRegister& zd, const Register& xn);
 
   // Broadcast indexed element to vector (unpredicated).
-  void dup(const ZRegister& zd, const ZRegister& zn);
+  void dup(const ZRegister& zd, const ZRegister& zn, unsigned index);
 
   // As for movz/movk/movn, if the default shift of -1 is specified to dup, the
   // assembler will pick an appropriate immediate and left shift that is

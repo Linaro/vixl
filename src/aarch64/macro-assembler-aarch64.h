@@ -4007,10 +4007,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     dup(zd, xn);
   }
-  void Dup(const ZRegister& zd, const ZRegister& zn) {
+  void Dup(const ZRegister& zd, const ZRegister& zn, int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    dup(zd, zn);
+    dup(zd, zn, index);
   }
   void Dup(const ZRegister& zd, IntegerOperand imm);
   void Eor(const PRegisterWithLaneSize& pd,

@@ -338,6 +338,8 @@ class Instruction {
                             int32_t imm_r,
                             int32_t size) const;
 
+  std::pair<int, int> GetSVEPermuteIndexAndLaneSizeLog2() const;
+
   unsigned GetImmNEONabcdefgh() const;
   VIXL_DEPRECATED("GetImmNEONabcdefgh", unsigned ImmNEONabcdefgh() const) {
     return GetImmNEONabcdefgh();

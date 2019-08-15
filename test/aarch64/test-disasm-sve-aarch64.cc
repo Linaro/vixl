@@ -2215,41 +2215,43 @@ TEST(sve_permute_vector_predicated) {
 TEST(sve_permute_vector_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(dup(z7.VnB(), xn), "dup <Zd>.<T>, <R><n|SP>");
-  COMPARE_PREFIX(dup(z7.VnH(), xn), "dup <Zd>.<T>, <R><n|SP>");
-  COMPARE_PREFIX(dup(z7.VnS(), xn), "dup <Zd>.<T>, <R><n|SP>");
-  COMPARE_PREFIX(dup(z7.VnD(), xn), "dup <Zd>.<T>, <R><n|SP>");
-  COMPARE_PREFIX(dup(z25.Vn?(), z28.Vn?()), "dup <Zd>.<T>, <Zn>.<T>[<imm>]");
-  COMPARE_PREFIX(insr(z25.VnB(), r13), "insr <Zdn>.<T>, <R><m>");
-  COMPARE_PREFIX(insr(z25.VnH(), r13), "insr <Zdn>.<T>, <R><m>");
-  COMPARE_PREFIX(insr(z25.VnS(), r13), "insr <Zdn>.<T>, <R><m>");
-  COMPARE_PREFIX(insr(z25.VnD(), r13), "insr <Zdn>.<T>, <R><m>");
-  COMPARE_PREFIX(insr(z5.VnB(), vm), "insr <Zdn>.<T>, <V><m>");
-  COMPARE_PREFIX(insr(z5.VnH(), vm), "insr <Zdn>.<T>, <V><m>");
-  COMPARE_PREFIX(insr(z5.VnS(), vm), "insr <Zdn>.<T>, <V><m>");
-  COMPARE_PREFIX(insr(z5.VnD(), vm), "insr <Zdn>.<T>, <V><m>");
-  COMPARE_PREFIX(rev(z13.VnB(), z10.VnB()), "rev <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(rev(z13.VnH(), z10.VnH()), "rev <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(rev(z13.VnS(), z10.VnS()), "rev <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(rev(z13.VnD(), z10.VnD()), "rev <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(sunpkhi(z18.VnH(), z11), "sunpkhi <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(sunpkhi(z18.VnS(), z11), "sunpkhi <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(sunpkhi(z18.VnD(), z11), "sunpkhi <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(sunpklo(z21.VnH(), z12), "sunpklo <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(sunpklo(z21.VnS(), z12), "sunpklo <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(sunpklo(z21.VnD(), z12), "sunpklo <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(tbl(z7.VnB(), z29.VnB(), z3.VnB()), "tbl <Zd>.<T>, { <Zn>.<T> }, <Zm>.<T>");
-  COMPARE_PREFIX(tbl(z7.VnH(), z29.VnH(), z3.VnH()), "tbl <Zd>.<T>, { <Zn>.<T> }, <Zm>.<T>");
-  COMPARE_PREFIX(tbl(z7.VnS(), z29.VnS(), z3.VnS()), "tbl <Zd>.<T>, { <Zn>.<T> }, <Zm>.<T>");
-  COMPARE_PREFIX(tbl(z7.VnD(), z29.VnD(), z3.VnD()), "tbl <Zd>.<T>, { <Zn>.<T> }, <Zm>.<T>");
-  COMPARE_PREFIX(uunpkhi(z19.VnH(), z14), "uunpkhi <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(uunpkhi(z19.VnS(), z14), "uunpkhi <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(uunpkhi(z19.VnD(), z14), "uunpkhi <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(uunpklo(z29.VnH(), z6), "uunpklo <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(uunpklo(z29.VnS(), z6), "uunpklo <Zd>.<T>, <Zn>.<Tb>");
-  COMPARE_PREFIX(uunpklo(z29.VnD(), z6), "uunpklo <Zd>.<T>, <Zn>.<Tb>");
-#endif
+  COMPARE_PREFIX(dup(z4.VnB(), w7), "dup z4.b, w7");
+  COMPARE_PREFIX(dup(z5.VnH(), w6), "dup z5.h, w6");
+  COMPARE_PREFIX(dup(z6.VnS(), sp), "dup z6.s, wsp");
+  COMPARE_PREFIX(dup(z7.VnD(), x4), "dup z7.d, x4");
+  COMPARE_PREFIX(dup(z25.VnQ(), z28.VnQ(), 2), "dup z25.q, z28.q[2]");
+  COMPARE_PREFIX(insr(z15.VnB(), w13), "insr z15.b, w13");
+  COMPARE_PREFIX(insr(z16.VnH(), w14), "insr z16.h, w14");
+  COMPARE_PREFIX(insr(z17.VnS(), w15), "insr z17.s, w15");
+  COMPARE_PREFIX(insr(z18.VnD(), x16), "insr z18.d, x16");
+  COMPARE_PREFIX(insr(z5.VnB(), b3), "insr z5.b, b3");
+  COMPARE_PREFIX(insr(z6.VnH(), h15), "insr z6.h, h15");
+  COMPARE_PREFIX(insr(z7.VnS(), s22), "insr z7.s, s22");
+  COMPARE_PREFIX(insr(z8.VnD(), d30), "insr z8.d, d30");
+  COMPARE_PREFIX(rev(z13.VnB(), z10.VnB()), "rev z13.b, z10.b");
+  COMPARE_PREFIX(rev(z14.VnH(), z10.VnH()), "rev z14.h, z10.h");
+  COMPARE_PREFIX(rev(z15.VnS(), z10.VnS()), "rev z15.s, z10.s");
+  COMPARE_PREFIX(rev(z16.VnD(), z10.VnD()), "rev z16.d, z10.d");
+  COMPARE_PREFIX(sunpkhi(z10.VnH(), z11.VnB()), "sunpkhi z10.h, z11.b");
+  COMPARE_PREFIX(sunpkhi(z11.VnS(), z11.VnH()), "sunpkhi z11.s, z11.h");
+  COMPARE_PREFIX(sunpkhi(z12.VnD(), z11.VnS()), "sunpkhi z12.d, z11.s");
+  COMPARE_PREFIX(sunpklo(z20.VnH(), z12.VnB()), "sunpklo z20.h, z12.b");
+  COMPARE_PREFIX(sunpklo(z21.VnS(), z12.VnH()), "sunpklo z21.s, z12.h");
+  COMPARE_PREFIX(sunpklo(z22.VnD(), z12.VnS()), "sunpklo z22.d, z12.s");
+  COMPARE_PREFIX(uunpkhi(z17.VnH(), z14.VnB()), "uunpkhi z17.h, z14.b");
+  COMPARE_PREFIX(uunpkhi(z18.VnS(), z14.VnH()), "uunpkhi z18.s, z14.h");
+  COMPARE_PREFIX(uunpkhi(z19.VnD(), z14.VnS()), "uunpkhi z19.d, z14.s");
+  COMPARE_PREFIX(uunpklo(z27.VnH(), z6.VnB()), "uunpklo z27.h, z6.b");
+  COMPARE_PREFIX(uunpklo(z28.VnS(), z6.VnH()), "uunpklo z28.s, z6.h");
+  COMPARE_PREFIX(uunpklo(z29.VnD(), z6.VnS()), "uunpklo z29.d, z6.s");
+  COMPARE_PREFIX(tbl(z24.VnB(), z29.VnB(), z0.VnB()),
+                 "tbl z24.b, { z29.b }, z0.b");
+  COMPARE_PREFIX(tbl(z25.VnH(), z29.VnH(), z1.VnH()),
+                 "tbl z25.h, { z29.h }, z1.h");
+  COMPARE_PREFIX(tbl(z26.VnS(), z29.VnS(), z2.VnS()),
+                 "tbl z26.s, { z29.s }, z2.s");
+  COMPARE_PREFIX(tbl(z27.VnD(), z29.VnD(), z3.VnD()),
+                 "tbl z27.d, { z29.d }, z3.d");
 
   CLEANUP();
 }

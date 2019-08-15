@@ -139,6 +139,9 @@ class CPURegister {
   // TODO: Make these return 'int'.
   unsigned GetLaneSizeInBits() const { return DecodeSizeInBits(lane_size_); }
   unsigned GetLaneSizeInBytes() const { return DecodeSizeInBytes(lane_size_); }
+  unsigned GetLaneSizeInBytesLog2() const {
+    return DecodeSizeInBytesLog2(lane_size_);
+  }
 
   int GetLanes() const {
     if (HasSize() && HasLaneSize()) {
@@ -447,23 +450,32 @@ class CPURegister {
     return kEncodedUnknownSize;
   }
 
-  static int DecodeSizeInBytes(EncodedSize encoded_size) {
+  static int DecodeSizeInBytesLog2(EncodedSize encoded_size) {
     switch (encoded_size) {
       case kEncodedUnknownSize:
+        // Log2 of B-sized lane in bytes is 0.
+        VIXL_UNREACHABLE();
         return kUnknownSize;
       case kEncodedBRegSize:
-        return kBRegSizeInBytes;
+        return kBRegSizeInBytesLog2;
       case kEncodedHRegSize:
-        return kHRegSizeInBytes;
+        return kHRegSizeInBytesLog2;
       case kEncodedSRegSize:
-        return kSRegSizeInBytes;
+        return kSRegSizeInBytesLog2;
       case kEncodedDRegSize:
-        return kDRegSizeInBytes;
+        return kDRegSizeInBytesLog2;
       case kEncodedQRegSize:
-        return kQRegSizeInBytes;
+        return kQRegSizeInBytesLog2;
     }
     VIXL_UNREACHABLE();
     return kUnknownSize;
+  }
+
+  static int DecodeSizeInBytes(EncodedSize encoded_size) {
+    if (encoded_size == kEncodedUnknownSize) {
+      return kUnknownSize;
+    }
+    return 1 << DecodeSizeInBytesLog2(encoded_size);
   }
 
   static int DecodeSizeInBits(EncodedSize encoded_size) {

@@ -4268,5 +4268,356 @@ TEST_SVE(sve_adr_x) {
   }
 }
 
+TEST_SVE(sve_permute_vector_unpredicated) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Mov(x0, 0x0123456789abcdef);
+  __ Fmov(d0, RawbitsToDouble(0x7ffaaaaa22223456));
+  __ Insr(z1.VnS(), w0);
+  __ Insr(z2.VnD(), x0);
+  __ Insr(z3.VnH(), h0);
+  __ Insr(z4.VnD(), d0);
+
+  uint64_t inputs[] = {0xfedcba9876543210,
+                       0x0123456789abcdef,
+                       0x8f8e8d8c8b8a8988,
+                       0x8786858483828180};
+
+  // Initialize a distinguishable value throughout the register first.
+  __ Dup(z9.VnB(), 0xff);
+  InsrHelper(&masm, z9.VnD(), inputs);
+
+  __ Rev(z5.VnB(), z9.VnB());
+  __ Rev(z6.VnH(), z9.VnH());
+  __ Rev(z7.VnS(), z9.VnS());
+  __ Rev(z8.VnD(), z9.VnD());
+
+  int index[7] = {22, 7, 7, 3, 1, 1, 63};
+  // Broadcasting an data within the input array.
+  __ Dup(z10.VnB(), z9.VnB(), index[0]);
+  __ Dup(z11.VnH(), z9.VnH(), index[1]);
+  __ Dup(z12.VnS(), z9.VnS(), index[2]);
+  __ Dup(z13.VnD(), z9.VnD(), index[3]);
+  __ Dup(z14.VnQ(), z9.VnQ(), index[4]);
+  // Test dst == src
+  __ Mov(z15, z9);
+  __ Dup(z15.VnS(), z15.VnS(), index[5]);
+  // Selecting an data beyond the input array.
+  __ Dup(z16.VnB(), z9.VnB(), index[6]);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Insr
+    uint64_t z1_expected[] = {0x7f80f0017ff0f001, 0x7f80f00089abcdef};
+    uint64_t z2_expected[] = {0x7ff0f0027f80f000, 0x0123456789abcdef};
+    uint64_t z3_expected[] = {0xf0037f80f0017ff0, 0xf0037f80f0003456};
+    uint64_t z4_expected[] = {0x7ff0f0047f80f000, 0x7ffaaaaa22223456};
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+
+    // Rev
+    int lane_count = core.GetSVELaneCount(kBRegSize);
+    for (int i = 0; i < lane_count; i++) {
+      uint64_t expected =
+          core.zreg_lane(z5.GetCode(), kBRegSize, lane_count - i - 1);
+      uint64_t input = core.zreg_lane(z9.GetCode(), kBRegSize, i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kHRegSize);
+    for (int i = 0; i < lane_count; i++) {
+      uint64_t expected =
+          core.zreg_lane(z6.GetCode(), kHRegSize, lane_count - i - 1);
+      uint64_t input = core.zreg_lane(z9.GetCode(), kHRegSize, i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    for (int i = 0; i < lane_count; i++) {
+      uint64_t expected =
+          core.zreg_lane(z7.GetCode(), kSRegSize, lane_count - i - 1);
+      uint64_t input = core.zreg_lane(z9.GetCode(), kSRegSize, i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    for (int i = 0; i < lane_count; i++) {
+      uint64_t expected =
+          core.zreg_lane(z8.GetCode(), kDRegSize, lane_count - i - 1);
+      uint64_t input = core.zreg_lane(z9.GetCode(), kDRegSize, i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    // Dup
+    unsigned vl = config->sve_vl_in_bits();
+    lane_count = core.GetSVELaneCount(kBRegSize);
+    uint64_t expected_z10 = (vl > (index[0] * kBRegSize)) ? 0x23 : 0;
+    for (int i = 0; i < lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(expected_z10, z10.VnB(), i);
+    }
+
+    lane_count = core.GetSVELaneCount(kHRegSize);
+    uint64_t expected_z11 = (vl > (index[1] * kHRegSize)) ? 0x8f8e : 0;
+    for (int i = 0; i < lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(expected_z11, z11.VnH(), i);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    uint64_t expected_z12 = (vl > (index[2] * kSRegSize)) ? 0xfedcba98 : 0;
+    for (int i = 0; i < lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(expected_z12, z12.VnS(), i);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    uint64_t expected_z13 =
+        (vl > (index[3] * kDRegSize)) ? 0xfedcba9876543210 : 0;
+    for (int i = 0; i < lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(expected_z13, z13.VnD(), i);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    uint64_t expected_z14_lo = 0;
+    uint64_t expected_z14_hi = 0;
+    if (vl > (index[4] * kQRegSize)) {
+      expected_z14_lo = 0x0123456789abcdef;
+      expected_z14_hi = 0xfedcba9876543210;
+    }
+    for (int i = 0; i < lane_count; i += 2) {
+      ASSERT_EQUAL_SVE_LANE(expected_z14_lo, z14.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(expected_z14_hi, z14.VnD(), i + 1);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    uint64_t expected_z15 = (vl > (index[5] * kSRegSize)) ? 0x87868584 : 0;
+    for (int i = 0; i < lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(expected_z15, z15.VnS(), i);
+    }
+
+    lane_count = core.GetSVELaneCount(kBRegSize);
+    uint64_t expected_z16 = (vl > (index[6] * kBRegSize)) ? 0xff : 0;
+    for (int i = 0; i < lane_count; i++) {
+      ASSERT_EQUAL_SVE_LANE(expected_z16, z16.VnB(), i);
+    }
+  }
+}
+
+TEST_SVE(sve_permute_vector_unpredicated_uppack_vector_elements) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t z9_inputs[] = {0xfedcba9876543210,
+                          0x0123456789abcdef,
+                          0x8f8e8d8c8b8a8988,
+                          0x8786858483828180};
+  InsrHelper(&masm, z9.VnD(), z9_inputs);
+
+  __ Sunpkhi(z10.VnH(), z9.VnB());
+  __ Sunpkhi(z11.VnS(), z9.VnH());
+  __ Sunpkhi(z12.VnD(), z9.VnS());
+
+  __ Sunpklo(z13.VnH(), z9.VnB());
+  __ Sunpklo(z14.VnS(), z9.VnH());
+  __ Sunpklo(z15.VnD(), z9.VnS());
+
+  __ Uunpkhi(z16.VnH(), z9.VnB());
+  __ Uunpkhi(z17.VnS(), z9.VnH());
+  __ Uunpkhi(z18.VnD(), z9.VnS());
+
+  __ Uunpklo(z19.VnH(), z9.VnB());
+  __ Uunpklo(z20.VnS(), z9.VnH());
+  __ Uunpklo(z21.VnD(), z9.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Suunpkhi
+    int lane_count = core.GetSVELaneCount(kHRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint16_t expected = core.zreg_lane<uint16_t>(z10.GetCode(), i);
+      uint8_t b_lane = core.zreg_lane<uint8_t>(z9.GetCode(), i + lane_count);
+      uint16_t input = SignExtend<int16_t>(b_lane, kBRegSize);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint32_t expected = core.zreg_lane<uint32_t>(z11.GetCode(), i);
+      uint16_t h_lane = core.zreg_lane<uint16_t>(z9.GetCode(), i + lane_count);
+      uint32_t input = SignExtend<int32_t>(h_lane, kHRegSize);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint64_t expected = core.zreg_lane<uint64_t>(z12.GetCode(), i);
+      uint32_t s_lane = core.zreg_lane<uint32_t>(z9.GetCode(), i + lane_count);
+      uint64_t input = SignExtend<int64_t>(s_lane, kSRegSize);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    // Suunpklo
+    lane_count = core.GetSVELaneCount(kHRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint16_t expected = core.zreg_lane<uint16_t>(z13.GetCode(), i);
+      uint8_t b_lane = core.zreg_lane<uint8_t>(z9.GetCode(), i);
+      uint16_t input = SignExtend<int16_t>(b_lane, kBRegSize);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint32_t expected = core.zreg_lane<uint32_t>(z14.GetCode(), i);
+      uint16_t h_lane = core.zreg_lane<uint16_t>(z9.GetCode(), i);
+      uint32_t input = SignExtend<int32_t>(h_lane, kHRegSize);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint64_t expected = core.zreg_lane<uint64_t>(z15.GetCode(), i);
+      uint32_t s_lane = core.zreg_lane<uint32_t>(z9.GetCode(), i);
+      uint64_t input = SignExtend<int64_t>(s_lane, kSRegSize);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    // Uuunpkhi
+    lane_count = core.GetSVELaneCount(kHRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint16_t expected = core.zreg_lane<uint16_t>(z16.GetCode(), i);
+      uint16_t input = core.zreg_lane<uint8_t>(z9.GetCode(), i + lane_count);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint32_t expected = core.zreg_lane<uint32_t>(z17.GetCode(), i);
+      uint32_t input = core.zreg_lane<uint16_t>(z9.GetCode(), i + lane_count);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint64_t expected = core.zreg_lane<uint64_t>(z18.GetCode(), i);
+      uint64_t input = core.zreg_lane<uint32_t>(z9.GetCode(), i + lane_count);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    // Uuunpklo
+    lane_count = core.GetSVELaneCount(kHRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint16_t expected = core.zreg_lane<uint16_t>(z19.GetCode(), i);
+      uint16_t input = core.zreg_lane<uint8_t>(z9.GetCode(), i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kSRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint32_t expected = core.zreg_lane<uint32_t>(z20.GetCode(), i);
+      uint32_t input = core.zreg_lane<uint16_t>(z9.GetCode(), i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+
+    lane_count = core.GetSVELaneCount(kDRegSize);
+    for (int i = lane_count - 1; i >= 0; i--) {
+      uint64_t expected = core.zreg_lane<uint64_t>(z21.GetCode(), i);
+      uint64_t input = core.zreg_lane<uint32_t>(z9.GetCode(), i);
+      ASSERT_EQUAL_64(expected, input);
+    }
+  }
+}
+
+TEST_SVE(sve_permute_vector_unpredicated_table_lookup) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t table_inputs[] = {0xffeeddccbbaa9988, 0x7766554433221100};
+
+  int index_b[] = {255, 255, 11, 10, 15, 14, 13, 12, 1, 0, 4, 3, 7, 6, 5, 4};
+
+  int index_h[] = {5, 6, 7, 8, 2, 3, 6, 4};
+
+  int index_s[] = {1, 3, 2, 31, -1};
+
+  int index_d[] = {31, 1};
+
+  // Initialize the register with a value that doesn't existed in the table.
+  __ Dup(z9.VnB(), 0x1f);
+  InsrHelper(&masm, z9.VnD(), table_inputs);
+
+  ZRegister ind_b = z0.WithLaneSize(kBRegSize);
+  ZRegister ind_h = z1.WithLaneSize(kHRegSize);
+  ZRegister ind_s = z2.WithLaneSize(kSRegSize);
+  ZRegister ind_d = z3.WithLaneSize(kDRegSize);
+
+  InsrHelper(&masm, ind_b, index_b);
+  InsrHelper(&masm, ind_h, index_h);
+  InsrHelper(&masm, ind_s, index_s);
+  InsrHelper(&masm, ind_d, index_d);
+
+  __ Tbl(z26.VnB(), z9.VnB(), ind_b);
+
+  __ Tbl(z27.VnH(), z9.VnH(), ind_h);
+
+  __ Tbl(z28.VnS(), z9.VnS(), ind_s);
+
+  __ Tbl(z29.VnD(), z9.VnD(), ind_d);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // clang-format off
+    unsigned z26_expected[] = {0x1f, 0x1f, 0xbb, 0xaa, 0xff, 0xee, 0xdd, 0xcc,
+                               0x11, 0x00, 0x44, 0x33, 0x77, 0x66, 0x55, 0x44};
+
+    unsigned z27_expected[] = {0xbbaa, 0xddcc, 0xffee, 0x1f1f,
+                               0x5544, 0x7766, 0xddcc, 0x9988};
+
+    unsigned z28_expected[] =
+       {0x77665544, 0xffeeddcc, 0xbbaa9988, 0x1f1f1f1f, 0x1f1f1f1f};
+
+    uint64_t z29_expected[] = {0x1f1f1f1f1f1f1f1f, 0xffeeddccbbaa9988};
+    // clang-format on
+
+    unsigned vl = config->sve_vl_in_bits();
+    for (size_t i = 0; i < ArrayLength(index_b); i++) {
+      int lane = static_cast<int>(ArrayLength(index_b) - i - 1);
+      if (!core.HasSVELane(z26.VnB(), lane)) break;
+      uint64_t expected = (vl > (index_b[i] * kBRegSize)) ? z26_expected[i] : 0;
+      ASSERT_EQUAL_SVE_LANE(expected, z26.VnB(), lane);
+    }
+
+    for (size_t i = 0; i < ArrayLength(index_h); i++) {
+      int lane = static_cast<int>(ArrayLength(index_h) - i - 1);
+      if (!core.HasSVELane(z27.VnH(), lane)) break;
+      uint64_t expected = (vl > (index_h[i] * kHRegSize)) ? z27_expected[i] : 0;
+      ASSERT_EQUAL_SVE_LANE(expected, z27.VnH(), lane);
+    }
+
+    for (size_t i = 0; i < ArrayLength(index_s); i++) {
+      int lane = static_cast<int>(ArrayLength(index_s) - i - 1);
+      if (!core.HasSVELane(z28.VnS(), lane)) break;
+      uint64_t expected = (vl > (index_s[i] * kSRegSize)) ? z28_expected[i] : 0;
+      ASSERT_EQUAL_SVE_LANE(expected, z28.VnS(), lane);
+    }
+
+    for (size_t i = 0; i < ArrayLength(index_d); i++) {
+      int lane = static_cast<int>(ArrayLength(index_d) - i - 1);
+      if (!core.HasSVELane(z29.VnD(), lane)) break;
+      uint64_t expected = (vl > (index_d[i] * kDRegSize)) ? z29_expected[i] : 0;
+      ASSERT_EQUAL_SVE_LANE(expected, z29.VnD(), lane);
+    }
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

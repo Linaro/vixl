@@ -432,6 +432,16 @@ bool Instruction::IsStore() const {
 }
 
 
+std::pair<int, int> Instruction::GetSVEPermuteIndexAndLaneSizeLog2() const {
+  uint32_t imm_2 = ExtractBits<0x00C00000>();
+  uint32_t tsz_5 = ExtractBits<0x001F0000>();
+  uint32_t imm_7 = (imm_2 << 5) | tsz_5;
+  int lane_size_in_byte_log_2 = CountTrailingZeros(tsz_5);
+  int index = ExtractUnsignedBitfield32(6, lane_size_in_byte_log_2 + 1, imm_7);
+  return std::make_pair(index, lane_size_in_byte_log_2);
+}
+
+
 // Logical immediates can't encode zero, so a return value of zero is used to
 // indicate a failure case. Specifically, where the constraints on imm_s are
 // not met.
@@ -793,8 +803,6 @@ void Instruction::SetImmLLiteral(const Instruction* source) {
 
 
 VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
-  VIXL_ASSERT(vform == kFormat8H || vform == kFormat4S || vform == kFormat2D ||
-              vform == kFormatH || vform == kFormatS || vform == kFormatD);
   switch (vform) {
     case kFormat8H:
       return kFormat8B;
@@ -808,6 +816,13 @@ VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
       return kFormatH;
     case kFormatD:
       return kFormatS;
+    case kFormatVnH:
+      return kFormatVnB;
+    case kFormatVnS:
+      return kFormatVnH;
+    case kFormatVnD:
+      return kFormatVnS;
+      break;
     default:
       VIXL_UNREACHABLE();
       return kFormatUndefined;

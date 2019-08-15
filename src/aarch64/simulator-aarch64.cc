@@ -9506,38 +9506,65 @@ void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
 void Simulator::VisitSVEPermuteVectorUnpredicated(const Instruction* instr) {
   USE(instr);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  switch (instr->Mask(SVEPermuteVectorUnpredicatedDupTBLMask)) {
+    case DUP_z_zi: {
+      std::pair<int, int> index_and_lane_size =
+          instr->GetSVEPermuteIndexAndLaneSizeLog2();
+      int index = index_and_lane_size.first;
+      int lane_size_in_bytes_log_2 = index_and_lane_size.second;
+      VectorFormat vform =
+          SVEFormatFromLaneSizeInBytesLog2(lane_size_in_bytes_log_2);
+      if ((index < 0) || (index >= LaneCountFromFormat(vform))) {
+        // Out of bounds, set the destination register to zero.
+        dup_immediate(kFormatVnD, zd, 0);
+      } else {
+        dup_element(vform, zd, ReadVRegister(instr->GetRn()), index);
+      }
+      return;
+    }
+    case TBL_z_zz_1:
+      Table(instr->GetSVEVectorFormat(),
+            zd,
+            ReadVRegister(instr->GetRn()),
+            ReadVRegister(instr->GetRm()));
+      return;
+    default:
+      break;
+  }
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
   switch (instr->Mask(SVEPermuteVectorUnpredicatedMask)) {
     case DUP_z_r:
-      dup_immediate(instr->GetSVEVectorFormat(),
+      dup_immediate(vform,
                     zd,
                     ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
       break;
-    case DUP_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INSR_z_r:
-      insr(instr->GetSVEVectorFormat(), zd, ReadXRegister(instr->GetRn()));
+      insr(vform, zd, ReadXRegister(instr->GetRn()));
       break;
     case INSR_z_v:
-      VIXL_UNIMPLEMENTED();
+      insr(vform, zd, ReadDRegisterBits(instr->GetRn()));
       break;
     case REV_z_z:
-      VIXL_UNIMPLEMENTED();
+      rev(vform, zd, ReadVRegister(instr->GetRn()));
       break;
     case SUNPKHI_z_z:
-      VIXL_UNIMPLEMENTED();
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kHiHalf, kSignedExtend);
       break;
     case SUNPKLO_z_z:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case TBL_z_zz_1:
-      VIXL_UNIMPLEMENTED();
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kLoHalf, kSignedExtend);
       break;
     case UUNPKHI_z_z:
-      VIXL_UNIMPLEMENTED();
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kHiHalf, kUnsignedExtend);
       break;
     case UUNPKLO_z_z:
-      VIXL_UNIMPLEMENTED();
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kLoHalf, kUnsignedExtend);
+      break;
+    case TBL_z_zz_1:
+    case DUP_z_zi:
+      // Should be handled above.
+      VIXL_UNREACHABLE();
       break;
     default:
       VIXL_UNIMPLEMENTED();

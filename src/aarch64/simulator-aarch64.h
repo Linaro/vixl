@@ -2626,8 +2626,11 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src);
   LogicVRegister rev(VectorFormat vform,
                      LogicVRegister dst,
-                     const LogicVRegister& src,
-                     int revSize);
+                     const LogicVRegister& src);
+  LogicVRegister rev_byte(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src,
+                          int revSize);
   LogicVRegister rev16(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src);
@@ -2828,6 +2831,10 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& tab3,
                      const LogicVRegister& tab4,
                      const LogicVRegister& ind);
+  LogicVRegister Table(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src,
+                       const LogicVRegister& tab);
   LogicVRegister Table(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& ind,
@@ -3613,11 +3620,17 @@ class Simulator : public DecoderVisitor {
                                            const LogicPRegister& pn,
                                            const LogicPRegister& pm,
                                            FlagsUpdate flags);
-
   LogicVRegister SVEBitwiseImmHelper(SVEBitwiseImmOp op,
                                      VectorFormat vform,
                                      LogicVRegister zd,
                                      uint64_t imm);
+  enum UnpackType { kHiHalf, kLoHalf };
+  enum ExtendType { kSignedExtend, kUnsignedExtend };
+  LogicVRegister unpk(VectorFormat vform,
+                      LogicVRegister zd,
+                      const LogicVRegister& zn,
+                      UnpackType unpack_type,
+                      ExtendType extend_type);
 
   LogicPRegister SVEIntCompareVectorsHelper(Condition cc,
                                             VectorFormat vform,

@@ -3316,8 +3316,12 @@ enum SVEIntWideImmUnpredicatedOp {
   SMIN_z_zi = SVEIntWideImmUnpredicatedFixed | 0x000A0000,
   UMIN_z_zi = SVEIntWideImmUnpredicatedFixed | 0x000B0000,
   MUL_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00100000,
-  DUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00180000,
-  FDUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00190000
+  FDUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00190000,
+
+  // TODO: SVEIntWideImmUnpredicatedMask doesn't work here because it mask in
+  // the shift bit of dup.
+  SVEIntWideImmUnpredicatedDupMask = 0xFF3FC000,
+  DUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00180000
 };
 
 enum SVEMem32BitGatherAndUnsizedContiguousOp {
@@ -3745,8 +3749,6 @@ enum SVEPermuteVectorUnpredicatedOp {
   SVEPermuteVectorUnpredicatedFixed = 0x05202000,
   SVEPermuteVectorUnpredicatedFMask = 0xFF20E000,
   SVEPermuteVectorUnpredicatedMask = 0xFF3FFC00,
-  DUP_z_zi = SVEPermuteVectorUnpredicatedFixed,
-  TBL_z_zz_1 = SVEPermuteVectorUnpredicatedFixed | 0x00001000,
   DUP_z_r = SVEPermuteVectorUnpredicatedFixed | 0x00001800,
   INSR_z_r = SVEPermuteVectorUnpredicatedFixed | 0x00041800,
   SUNPKLO_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00101800,
@@ -3754,7 +3756,12 @@ enum SVEPermuteVectorUnpredicatedOp {
   UUNPKLO_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00121800,
   UUNPKHI_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00131800,
   INSR_z_v = SVEPermuteVectorUnpredicatedFixed | 0x00141800,
-  REV_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00181800
+  REV_z_z = SVEPermuteVectorUnpredicatedFixed | 0x00181800,
+  // SVEPermuteVectorUnpredicatedMask doesn't work since it might be
+  // interfered by immediate field.
+  SVEPermuteVectorUnpredicatedDupTBLMask = 0xFF20FC00,
+  DUP_z_zi = SVEPermuteVectorUnpredicatedFixed,
+  TBL_z_zz_1 = SVEPermuteVectorUnpredicatedFixed | 0x00001000
 };
 
 enum SVEPredicateCountOp {
