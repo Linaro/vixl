@@ -8511,56 +8511,57 @@ void Simulator::VisitSVEIntReduction(const Instruction* instr) {
 
 void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
   USE(instr);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  SimVRegister result;
   switch (instr->Mask(SVEIntUnaryArithmeticPredicatedMask)) {
     case ABS_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      abs(vform, result, zn);
       break;
     case CLS_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      cls(vform, result, zn);
       break;
     case CLZ_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      clz(vform, result, zn);
       break;
     case CNOT_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      cnot(vform, result, zn);
       break;
     case CNT_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      cnt(vform, result, zn);
       break;
     case FABS_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fabs_(vform, result, zn);
       break;
     case FNEG_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fneg(vform, result, zn);
       break;
     case NEG_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      neg(vform, result, zn);
       break;
     case NOT_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      not_(vform, result, zn);
       break;
     case SXTB_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SXTH_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SXTW_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      sxt(vform, result, zn, (kBitsPerByte << instr->ExtractBits(18, 17)));
       break;
     case UXTB_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UXTH_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UXTW_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      uxt(vform, result, zn, (kBitsPerByte << instr->ExtractBits(18, 17)));
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {

@@ -1808,15 +1808,18 @@ LogicVRegister Simulator::ursra(VectorFormat vform,
 LogicVRegister Simulator::cls(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
-  uint64_t result[16];
-  int laneSizeInBits = LaneSizeInBitsFromFormat(vform);
-  int laneCount = LaneCountFromFormat(vform);
-  for (int i = 0; i < laneCount; i++) {
-    result[i] = CountLeadingSignBits(src.Int(vform, i), laneSizeInBits);
+  int lane_size_in_bits = LaneSizeInBitsFromFormat(vform);
+  int lane_count = LaneCountFromFormat(vform);
+
+  // Ensure that we can store one result per lane.
+  int result[kZRegMaxSizeInBytes];
+
+  for (int i = 0; i < lane_count; i++) {
+    result[i] = CountLeadingSignBits(src.Int(vform, i), lane_size_in_bits);
   }
 
   dst.ClearForWrite(vform);
-  for (int i = 0; i < laneCount; ++i) {
+  for (int i = 0; i < lane_count; ++i) {
     dst.SetUint(vform, i, result[i]);
   }
   return dst;
@@ -1826,16 +1829,31 @@ LogicVRegister Simulator::cls(VectorFormat vform,
 LogicVRegister Simulator::clz(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
-  uint64_t result[16];
-  int laneSizeInBits = LaneSizeInBitsFromFormat(vform);
-  int laneCount = LaneCountFromFormat(vform);
-  for (int i = 0; i < laneCount; i++) {
-    result[i] = CountLeadingZeros(src.Uint(vform, i), laneSizeInBits);
+  int lane_size_in_bits = LaneSizeInBitsFromFormat(vform);
+  int lane_count = LaneCountFromFormat(vform);
+
+  // Ensure that we can store one result per lane.
+  int result[kZRegMaxSizeInBytes];
+
+  for (int i = 0; i < lane_count; i++) {
+    result[i] = CountLeadingZeros(src.Uint(vform, i), lane_size_in_bits);
   }
 
   dst.ClearForWrite(vform);
-  for (int i = 0; i < laneCount; ++i) {
+  for (int i = 0; i < lane_count; ++i) {
     dst.SetUint(vform, i, result[i]);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::cnot(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src) {
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t value = (src.Uint(vform, i) == 0) ? 1 : 0;
+    dst.SetUint(vform, i, value);
   }
   return dst;
 }
@@ -1844,20 +1862,18 @@ LogicVRegister Simulator::clz(VectorFormat vform,
 LogicVRegister Simulator::cnt(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src) {
-  uint64_t result[16];
-  int laneSizeInBits = LaneSizeInBitsFromFormat(vform);
-  int laneCount = LaneCountFromFormat(vform);
-  for (int i = 0; i < laneCount; i++) {
-    uint64_t value = src.Uint(vform, i);
-    result[i] = 0;
-    for (int j = 0; j < laneSizeInBits; j++) {
-      result[i] += (value & 1);
-      value >>= 1;
-    }
+  int lane_size_in_bits = LaneSizeInBitsFromFormat(vform);
+  int lane_count = LaneCountFromFormat(vform);
+
+  // Ensure that we can store one result per lane.
+  int result[kZRegMaxSizeInBytes];
+
+  for (int i = 0; i < lane_count; i++) {
+    result[i] = CountSetBits(src.Uint(vform, i), lane_size_in_bits);
   }
 
   dst.ClearForWrite(vform);
-  for (int i = 0; i < laneCount; ++i) {
+  for (int i = 0; i < lane_count; ++i) {
     dst.SetUint(vform, i, result[i]);
   }
   return dst;
@@ -2799,6 +2815,37 @@ LogicVRegister Simulator::sxtl2(VectorFormat vform,
   dst.ClearForWrite(vform);
   for (int i = 0; i < lane_count; i++) {
     dst.SetInt(vform, i, src.Int(vform_half, lane_count + i));
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::uxt(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src,
+                              unsigned from_size_in_bits) {
+  int lane_count = LaneCountFromFormat(vform);
+  uint64_t mask = GetUintMask(from_size_in_bits);
+
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < lane_count; i++) {
+    dst.SetInt(vform, i, src.Uint(vform, i) & mask);
+  }
+  return dst;
+}
+
+
+LogicVRegister Simulator::sxt(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src,
+                              unsigned from_size_in_bits) {
+  int lane_count = LaneCountFromFormat(vform);
+
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < lane_count; i++) {
+    uint64_t value =
+        ExtractSignedBitfield64(from_size_in_bits - 1, 0, src.Uint(vform, i));
+    dst.SetInt(vform, i, value);
   }
   return dst;
 }

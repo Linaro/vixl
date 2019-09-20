@@ -3619,6 +3619,7 @@ class Assembler : public vixl::internal::AssemblerBase {
              int rot);
 
   // Scalable Vector Extensions.
+
   // Absolute value (predicated).
   void abs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
@@ -6011,13 +6012,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Signed unpack and extend half of vector.
   void sunpklo(const ZRegister& zd, const ZRegister& zn);
 
-  // Signed byte / halfword / word extend (predicated).
+  // Signed byte extend (predicated).
   void sxtb(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
-  // Signed byte / halfword / word extend (predicated).
+  // Signed halfword extend (predicated).
   void sxth(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
-  // Signed byte / halfword / word extend (predicated).
+  // Signed word extend (predicated).
   void sxtw(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Programmable table lookup/permute using vector of indices into a
@@ -6186,13 +6187,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Unsigned unpack and extend half of vector.
   void uunpklo(const ZRegister& zd, const ZRegister& zn);
 
-  // Unsigned byte / halfword / word extend (predicated).
+  // Unsigned byte extend (predicated).
   void uxtb(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
-  // Unsigned byte / halfword / word extend (predicated).
+  // Unsigned halfword extend (predicated).
   void uxth(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
-  // Unsigned byte / halfword / word extend (predicated).
+  // Unsigned word extend (predicated).
   void uxtw(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Concatenate even or odd elements from two predicates.

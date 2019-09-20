@@ -2673,6 +2673,9 @@ class Simulator : public DecoderVisitor {
   LogicVRegister clz(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src);
+  LogicVRegister cnot(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src);
   LogicVRegister cnt(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src);
@@ -2867,6 +2870,14 @@ class Simulator : public DecoderVisitor {
   LogicVRegister sxtl2(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src);
+  LogicVRegister uxt(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src,
+                     unsigned from_size_in_bits);
+  LogicVRegister sxt(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src,
+                     unsigned from_size_in_bits);
   LogicVRegister tbl(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& tab,

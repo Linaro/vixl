@@ -4534,6 +4534,523 @@ TEST_SVE(sve_permute_vector_unpredicated_uppack_vector_elements) {
   }
 }
 
+TEST_SVE(sve_cnot_not) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0x0000000000000000, 0x00000000e1c30000, 0x123456789abcdef0};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  // These are merging operations, so we have to initialise the result register.
+  // We use a mixture of constructive and destructive operations.
+
+  InsrHelper(&masm, z31.VnD(), in);
+  // Make a copy so we can check that constructions operations preserve zn.
+  __ Mov(z30, z31);
+
+  // For constructive operations, use a different initial result value.
+  __ Index(z29.VnB(), 0, -1);
+
+  __ Mov(z0, z31);
+  __ Cnot(z0.VnB(), pg, z0.VnB());  // destructive
+  __ Mov(z1, z29);
+  __ Cnot(z1.VnH(), pg, z31.VnH());
+  __ Mov(z2, z31);
+  __ Cnot(z2.VnS(), pg, z2.VnS());  // destructive
+  __ Mov(z3, z29);
+  __ Cnot(z3.VnD(), pg, z31.VnD());
+
+  __ Mov(z4, z29);
+  __ Not(z4.VnB(), pg, z31.VnB());
+  __ Mov(z5, z31);
+  __ Not(z5.VnH(), pg, z5.VnH());  // destructive
+  __ Mov(z6, z29);
+  __ Not(z6.VnS(), pg, z31.VnS());
+  __ Mov(z7, z31);
+  __ Not(z7.VnD(), pg, z7.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Check that constructive operations preserve their inputs.
+    ASSERT_EQUAL_SVE(z30, z31);
+
+    // clang-format off
+
+    // Cnot (B) destructive
+    uint64_t expected_z0[] =
+    // pg:  0 0 0 0 1 0 1 1     1 0 0 1 0 1 1 1     0 0 1 0 1 1 1 0
+        {0x0000000001000101, 0x01000001e1000101, 0x12340078000000f0};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    // Cnot (H)
+    uint64_t expected_z1[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0xe9eaebecedee0001, 0xf1f2000100000001, 0xf9fafbfc0000ff00};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    // Cnot (S) destructive
+    uint64_t expected_z2[] =
+    // pg:        0       1           1       1           0       0
+        {0x0000000000000001, 0x0000000100000000, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    // Cnot (D)
+    uint64_t expected_z3[] =
+    // pg:                1                   1                   0
+        {0x0000000000000001, 0x0000000000000000, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // Not (B)
+    uint64_t expected_z4[] =
+    // pg:  0 0 0 0 1 0 1 1     1 0 0 1 0 1 1 1     0 0 1 0 1 1 1 0
+        {0xe9eaebecffeeffff, 0xfff2f3fff53cffff, 0xf9faa9fc65432100};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    // Not (H) destructive
+    uint64_t expected_z5[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0x000000000000ffff, 0x0000ffff1e3cffff, 0x123456786543def0};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    // Not (S)
+    uint64_t expected_z6[] =
+    // pg:        0       1           1       1           0       0
+        {0xe9eaebecffffffff, 0xffffffff1e3cffff, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+
+    // Not (D) destructive
+    uint64_t expected_z7[] =
+    // pg:                1                   1                   0
+        {0xffffffffffffffff, 0xffffffff1e3cffff, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+
+    // clang-format on
+  }
+}
+
+TEST_SVE(sve_fabs_fneg) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Include FP64, FP32 and FP16 signalling NaNs. Most FP operations quieten
+  // NaNs, but fabs and fneg do not.
+  uint64_t in[] = {0xc04500004228d140,  // Recognisable (+/-42) values.
+                   0xfff00000ff80fc01,  // Signalling NaNs.
+                   0x123456789abcdef0};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  // These are merging operations, so we have to initialise the result register.
+  // We use a mixture of constructive and destructive operations.
+
+  InsrHelper(&masm, z31.VnD(), in);
+  // Make a copy so we can check that constructions operations preserve zn.
+  __ Mov(z30, z31);
+
+  // For constructive operations, use a different initial result value.
+  __ Index(z29.VnB(), 0, -1);
+
+  __ Mov(z0, z29);
+  __ Fabs(z0.VnH(), pg, z31.VnH());
+  __ Mov(z1, z31);
+  __ Fabs(z1.VnS(), pg, z1.VnS());  // destructive
+  __ Mov(z2, z29);
+  __ Fabs(z2.VnD(), pg, z31.VnD());
+
+  __ Mov(z3, z31);
+  __ Fneg(z3.VnH(), pg, z3.VnH());  // destructive
+  __ Mov(z4, z29);
+  __ Fneg(z4.VnS(), pg, z31.VnS());
+  __ Mov(z5, z31);
+  __ Fneg(z5.VnD(), pg, z5.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Check that constructive operations preserve their inputs.
+    ASSERT_EQUAL_SVE(z30, z31);
+
+    // clang-format off
+
+    // Fabs (H)
+    uint64_t expected_z0[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0xe9eaebecedee5140, 0xf1f200007f807c01, 0xf9fafbfc1abcff00};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    // Fabs (S) destructive
+    uint64_t expected_z1[] =
+    // pg:        0       1           1       1           0       0
+        {0xc04500004228d140, 0x7ff000007f80fc01, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    // Fabs (D)
+    uint64_t expected_z2[] =
+    // pg:                1                   1                   0
+        {0x404500004228d140, 0x7ff00000ff80fc01, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    // Fneg (H) destructive
+    uint64_t expected_z3[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0xc045000042285140, 0xfff080007f807c01, 0x123456781abcdef0};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // Fneg (S)
+    uint64_t expected_z4[] =
+    // pg:        0       1           1       1           0       0
+        {0xe9eaebecc228d140, 0x7ff000007f80fc01, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    // Fneg (D) destructive
+    uint64_t expected_z5[] =
+    // pg:                1                   1                   0
+        {0x404500004228d140, 0x7ff00000ff80fc01, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    // clang-format on
+  }
+}
+
+TEST_SVE(sve_cls_clz_cnt) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0x0000000000000000, 0xfefcf8f0e1c3870f, 0x123456789abcdef0};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  // These are merging operations, so we have to initialise the result register.
+  // We use a mixture of constructive and destructive operations.
+
+  InsrHelper(&masm, z31.VnD(), in);
+  // Make a copy so we can check that constructions operations preserve zn.
+  __ Mov(z30, z31);
+
+  // For constructive operations, use a different initial result value.
+  __ Index(z29.VnB(), 0, -1);
+
+  __ Mov(z0, z29);
+  __ Cls(z0.VnB(), pg, z31.VnB());
+  __ Mov(z1, z31);
+  __ Clz(z1.VnH(), pg, z1.VnH());  // destructive
+  __ Mov(z2, z29);
+  __ Cnt(z2.VnS(), pg, z31.VnS());
+  __ Mov(z3, z31);
+  __ Cnt(z3.VnD(), pg, z3.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // Check that non-destructive operations preserve their inputs.
+    ASSERT_EQUAL_SVE(z30, z31);
+
+    // clang-format off
+
+    // cls (B)
+    uint8_t expected_z0[] =
+    // pg:  0     0     0     0     1     0     1     1
+    // pg:  1     0     0     1     0     1     1     1
+    // pg:  0     0     1     0     1     1     1     0
+        {0xe9, 0xea, 0xeb, 0xec,    7, 0xee,    7,    7,
+            6, 0xf2, 0xf3,    3, 0xf5,    1,    0,    3,
+         0xf9, 0xfa,    0, 0xfc,    0,    0,    1, 0x00};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnB());
+
+    // clz (H) destructive
+    uint16_t expected_z1[] =
+    // pg:    0       0       0       1
+    // pg:    0       1       1       1
+    // pg:    0       0       1       0
+        {0x0000, 0x0000, 0x0000,     16,
+         0xfefc,      0,      0,      0,
+         0x1234, 0x5678,      0, 0xdef0};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnH());
+
+    // cnt (S)
+    uint32_t expected_z2[] =
+    // pg:        0           1
+    // pg:        1           1
+    // pg:        0           0
+        {0xe9eaebec,          0,
+                 22,         16,
+         0xf9fafbfc, 0xfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnS());
+
+    // cnt (D) destructive
+    uint64_t expected_z3[] =
+    // pg:                1                   1                   0
+        {                 0,                 38, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // clang-format on
+  }
+}
+
+TEST_SVE(sve_sxt) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0x01f203f405f607f8, 0xfefcf8f0e1c3870f, 0x123456789abcdef0};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  // These are merging operations, so we have to initialise the result register.
+  // We use a mixture of constructive and destructive operations.
+
+  InsrHelper(&masm, z31.VnD(), in);
+  // Make a copy so we can check that constructions operations preserve zn.
+  __ Mov(z30, z31);
+
+  // For constructive operations, use a different initial result value.
+  __ Index(z29.VnB(), 0, -1);
+
+  __ Mov(z0, z31);
+  __ Sxtb(z0.VnH(), pg, z0.VnH());  // destructive
+  __ Mov(z1, z29);
+  __ Sxtb(z1.VnS(), pg, z31.VnS());
+  __ Mov(z2, z31);
+  __ Sxtb(z2.VnD(), pg, z2.VnD());  // destructive
+  __ Mov(z3, z29);
+  __ Sxth(z3.VnS(), pg, z31.VnS());
+  __ Mov(z4, z31);
+  __ Sxth(z4.VnD(), pg, z4.VnD());  // destructive
+  __ Mov(z5, z29);
+  __ Sxtw(z5.VnD(), pg, z31.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // Check that constructive operations preserve their inputs.
+    ASSERT_EQUAL_SVE(z30, z31);
+
+    // clang-format off
+
+    // Sxtb (H) destructive
+    uint64_t expected_z0[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0x01f203f405f6fff8, 0xfefcfff0ffc3000f, 0x12345678ffbcdef0};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    // Sxtb (S)
+    uint64_t expected_z1[] =
+    // pg:        0       1           1       1           0       0
+        {0xe9eaebecfffffff8, 0xfffffff00000000f, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    // Sxtb (D) destructive
+    uint64_t expected_z2[] =
+    // pg:                1                   1                   0
+        {0xfffffffffffffff8, 0x000000000000000f, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    // Sxth (S)
+    uint64_t expected_z3[] =
+    // pg:        0       1           1       1           0       0
+        {0xe9eaebec000007f8, 0xfffff8f0ffff870f, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // Sxth (D) destructive
+    uint64_t expected_z4[] =
+    // pg:                1                   1                   0
+        {0x00000000000007f8, 0xffffffffffff870f, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    // Sxtw (D)
+    uint64_t expected_z5[] =
+    // pg:                1                   1                   0
+        {0x0000000005f607f8, 0xffffffffe1c3870f, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    // clang-format on
+  }
+}
+
+TEST_SVE(sve_uxt) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0x01f203f405f607f8, 0xfefcf8f0e1c3870f, 0x123456789abcdef0};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  // These are merging operations, so we have to initialise the result register.
+  // We use a mixture of constructive and destructive operations.
+
+  InsrHelper(&masm, z31.VnD(), in);
+  // Make a copy so we can check that constructions operations preserve zn.
+  __ Mov(z30, z31);
+
+  // For constructive operations, use a different initial result value.
+  __ Index(z29.VnB(), 0, -1);
+
+  __ Mov(z0, z29);
+  __ Uxtb(z0.VnH(), pg, z31.VnH());
+  __ Mov(z1, z31);
+  __ Uxtb(z1.VnS(), pg, z1.VnS());  // destructive
+  __ Mov(z2, z29);
+  __ Uxtb(z2.VnD(), pg, z31.VnD());
+  __ Mov(z3, z31);
+  __ Uxth(z3.VnS(), pg, z3.VnS());  // destructive
+  __ Mov(z4, z29);
+  __ Uxth(z4.VnD(), pg, z31.VnD());
+  __ Mov(z5, z31);
+  __ Uxtw(z5.VnD(), pg, z5.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // clang-format off
+
+    // Uxtb (H)
+    uint64_t expected_z0[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0xe9eaebecedee00f8, 0xf1f200f000c3000f, 0xf9fafbfc00bcff00};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    // Uxtb (S) destructive
+    uint64_t expected_z1[] =
+    // pg:        0       1           1       1           0       0
+        {0x01f203f4000000f8, 0x000000f00000000f, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    // Uxtb (D)
+    uint64_t expected_z2[] =
+    // pg:                1                   1                   0
+        {0x00000000000000f8, 0x000000000000000f, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    // Uxth (S) destructive
+    uint64_t expected_z3[] =
+    // pg:        0       1           1       1           0       0
+        {0x01f203f4000007f8, 0x0000f8f00000870f, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // Uxth (D)
+    uint64_t expected_z4[] =
+    // pg:                1                   1                   0
+        {0x00000000000007f8, 0x000000000000870f, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    // Uxtw (D) destructive
+    uint64_t expected_z5[] =
+    // pg:                1                   1                   0
+        {0x0000000005f607f8, 0x00000000e1c3870f, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    // clang-format on
+  }
+}
+
+TEST_SVE(sve_abs_neg) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0x01f203f405f607f8, 0xfefcf8f0e1c3870f, 0x123456789abcdef0};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  InsrHelper(&masm, z31.VnD(), in);
+
+  // These are merging operations, so we have to initialise the result register.
+  // We use a mixture of constructive and destructive operations.
+
+  InsrHelper(&masm, z31.VnD(), in);
+  // Make a copy so we can check that constructions operations preserve zn.
+  __ Mov(z30, z31);
+
+  // For constructive operations, use a different initial result value.
+  __ Index(z29.VnB(), 0, -1);
+
+  __ Mov(z0, z31);
+  __ Abs(z0.VnD(), pg, z0.VnD());  // destructive
+  __ Mov(z1, z29);
+  __ Abs(z1.VnB(), pg, z31.VnB());
+
+  __ Mov(z2, z31);
+  __ Neg(z2.VnH(), pg, z2.VnH());  // destructive
+  __ Mov(z3, z29);
+  __ Neg(z3.VnS(), pg, z31.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // clang-format off
+
+    // Abs (D) destructive
+    uint64_t expected_z0[] =
+    // pg:                1                   1                   0
+        {0x01f203f405f607f8, 0x0103070f1e3c78f1, 0x123456789abcdef0};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    // Abs (B)
+    uint64_t expected_z1[] =
+    // pg:  0 0 0 0 1 0 1 1     1 0 0 1 0 1 1 1     0 0 1 0 1 1 1 0
+        {0xe9eaebec05ee0708, 0x02f2f310f53d790f, 0xf9fa56fc66442200};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    // Neg (H) destructive
+    uint64_t expected_z2[] =
+    // pg:    0   0   0   1       0   1   1   1       0   0   1   0
+        {0x01f203f405f6f808, 0xfefc07101e3d78f1, 0x123456786544def0};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    // Neg (S)
+    uint64_t expected_z3[] =
+    // pg:        0       1           1       1           0       0
+        {0xe9eaebecfa09f808, 0x010307101e3c78f1, 0xf9fafbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // clang-format on
+  }
+}
+
 TEST_SVE(sve_permute_vector_unpredicated_table_lookup) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

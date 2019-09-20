@@ -41,15 +41,15 @@ namespace vixl {
 namespace aarch64 {
 
 
-// This value is a signalling NaN as both a double and as a float (taking the
-// least-significant word).
-const double kFP64SignallingNaN = RawbitsToDouble(UINT64_C(0x7ff000007f800001));
-const float kFP32SignallingNaN = RawbitsToFloat(0x7f800001);
+// This value is a signalling NaN as FP64, and also as FP32 or FP16 (taking the
+// least-significant bits).
+const double kFP64SignallingNaN = RawbitsToDouble(UINT64_C(0x7ff000007f807c01));
+const float kFP32SignallingNaN = RawbitsToFloat(0x7f807c01);
 const Float16 kFP16SignallingNaN = RawbitsToFloat16(0x7c01);
 
 // A similar value, but as a quiet NaN.
-const double kFP64QuietNaN = RawbitsToDouble(UINT64_C(0x7ff800007fc00001));
-const float kFP32QuietNaN = RawbitsToFloat(0x7fc00001);
+const double kFP64QuietNaN = RawbitsToDouble(UINT64_C(0x7ff800007fc07e01));
+const float kFP32QuietNaN = RawbitsToFloat(0x7fc07e01);
 const Float16 kFP16QuietNaN = RawbitsToFloat16(0x7e01);
 
 

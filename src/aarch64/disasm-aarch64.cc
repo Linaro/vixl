@@ -6642,69 +6642,50 @@ void Disassembler::VisitSVEIntUnaryArithmeticPredicated(
   const char *form = "'Zd.'t, p'u1210/m, 'Zn.'t";
 
   switch (instr->Mask(SVEIntUnaryArithmeticPredicatedMask)) {
-    // ABS <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case ABS_z_p_z:
       mnemonic = "abs";
       break;
-    // CLS <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case CLS_z_p_z:
       mnemonic = "cls";
       break;
-    // CLZ <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case CLZ_z_p_z:
       mnemonic = "clz";
       break;
-    // CNOT <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case CNOT_z_p_z:
       mnemonic = "cnot";
       break;
-    // CNT <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case CNT_z_p_z:
       mnemonic = "cnt";
       break;
-    // FABS <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FABS_z_p_z:
       mnemonic = "fabs";
       break;
-    // FNEG <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FNEG_z_p_z:
       mnemonic = "fneg";
       break;
-    // NEG <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case NEG_z_p_z:
       mnemonic = "neg";
       break;
-    // NOT <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case NOT_z_p_z:
       mnemonic = "not";
       break;
-    // SXTB <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case SXTB_z_p_z:
       mnemonic = "sxtb";
       break;
-    // SXTH <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case SXTH_z_p_z:
       mnemonic = "sxth";
-      form = "'Zd.<T>, p'u1210/m, 'Zn.<T>";
       break;
-    // SXTW <Zd>.D, <Pg>/M, <Zn>.D
     case SXTW_z_p_z:
       mnemonic = "sxtw";
-      form = "'Zd.d, p'u1210/m, 'Zn.d";
       break;
-    // UXTB <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case UXTB_z_p_z:
       mnemonic = "uxtb";
       break;
-    // UXTH <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case UXTH_z_p_z:
       mnemonic = "uxth";
-      form = "'Zd.<T>, p'u1210/m, 'Zn.<T>";
       break;
-    // UXTW <Zd>.D, <Pg>/M, <Zn>.D
     case UXTW_z_p_z:
       mnemonic = "uxtw";
-      form = "'Zd.d, p'u1210/m, 'Zn.d";
       break;
     default:
       break;
