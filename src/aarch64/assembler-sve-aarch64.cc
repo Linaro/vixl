@@ -4030,6 +4030,67 @@ void Assembler::uqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
   Emit(UQSUB_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
 }
 
+// SVEMemLoad.
+
+void Assembler::SVELd1Helper(unsigned msize_in_bytes_log2,
+                             const ZRegister& zt,
+                             const PRegisterZ& pg,
+                             const SVEMemOperand& addr,
+                             bool is_signed) {
+  Instr op;
+  VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
+  VIXL_ASSERT(!(is_signed && zt.IsLaneSizeB()));
+  if (addr.IsScalarPlusImmediate()) {
+    VIXL_ASSERT((addr.GetImmediateOffset() == 0) || addr.IsMulVl());
+    op = LD1B_z_p_bi_u8 | RnSP(addr.GetScalarBase()) |
+         ImmField<19, 16>(addr.GetImmediateOffset());
+  } else if (addr.IsScalarPlusScalar()) {
+    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());  // Rm must not be xzr.
+    VIXL_ASSERT(addr.IsEquivalentToLSL(msize_in_bytes_log2));
+    op = LD1B_z_p_br_u8 | Rn(addr.GetScalarBase()) | Rm(addr.GetScalarOffset());
+  } else {
+    // TODO: Handle scatter forms here.
+    VIXL_UNIMPLEMENTED();
+    op = 0xffffffff;
+  }
+
+  VIXL_ASSERT(IsUint2(msize_in_bytes_log2));
+  Instr dtype =
+      SVEDtype(msize_in_bytes_log2, zt.GetLaneSizeInBytesLog2(), is_signed);
+
+  Emit(op | Rt(zt) | PgLow8(pg) | dtype);
+}
+
+// SVEMemContiguousLoad.
+
+void Assembler::ld1b(const ZRegister& zt,
+                     const PRegisterZ& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVELd1Helper(kBRegSizeInBytesLog2, zt, pg, addr, false);
+}
+
+void Assembler::ld1h(const ZRegister& zt,
+                     const PRegisterZ& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVELd1Helper(kHRegSizeInBytesLog2, zt, pg, addr, false);
+}
+
+void Assembler::ld1w(const ZRegister& zt,
+                     const PRegisterZ& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVELd1Helper(kSRegSizeInBytesLog2, zt, pg, addr, false);
+}
+
+void Assembler::ld1d(const ZRegister& zt,
+                     const PRegisterZ& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVELd1Helper(kDRegSizeInBytesLog2, zt, pg, addr, false);
+}
+
 // SVEMem32BitGatherAndUnsizedContiguous.
 
 // This prototype maps to 4 instruction encodings:
@@ -4945,107 +5006,6 @@ void Assembler::prfw(int prfop,
        ImmField<20, 16>(imm5));
 }
 
-// SVEMemContiguousLoad.
-
-// This prototype maps to 4 instruction encodings:
-//  LD1B_z_p_br_u16
-//  LD1B_z_p_br_u32
-//  LD1B_z_p_br_u64
-//  LD1B_z_p_br_u8
-void Assembler::ld1b(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD1B { <Zt>.H }, <Pg>/Z, [<Xn|SP>, <Xm>]
-  //  1010 0100 001. .... 010. .... .... ....
-  //  dtype<24:21> = 0001 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1B_z_p_br_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 4 instruction encodings:
-//  LD1B_z_p_bi_u16
-//  LD1B_z_p_bi_u32
-//  LD1B_z_p_bi_u64
-//  LD1B_z_p_bi_u8
-void Assembler::ld1b(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     int imm4) {
-  // LD1B { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0100 0010 .... 101. .... .... ....
-  //  dtype<24:21> = 0001 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1B_z_p_bi_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
-void Assembler::ld1d(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #3]
-  //  1010 0101 111. .... 010. .... .... ....
-  //  dtype<24:21> = 1111 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1D_z_p_br_u64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld1d(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     int imm4) {
-  // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 1110 .... 101. .... .... ....
-  //  dtype<24:21> = 1111 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1D_z_p_bi_u64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
-// This prototype maps to 3 instruction encodings:
-//  LD1H_z_p_br_u16
-//  LD1H_z_p_br_u32
-//  LD1H_z_p_br_u64
-void Assembler::ld1h(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD1H { <Zt>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]
-  //  1010 0100 101. .... 010. .... .... ....
-  //  dtype<24:21> = 0101 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1H_z_p_br_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 3 instruction encodings:
-//  LD1H_z_p_bi_u16
-//  LD1H_z_p_bi_u32
-//  LD1H_z_p_bi_u64
-void Assembler::ld1h(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     int imm4) {
-  // LD1H { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0100 1010 .... 101. .... .... ....
-  //  dtype<24:21> = 0101 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1H_z_p_bi_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
 void Assembler::ld1rqb(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const Register& xn,
@@ -5162,132 +5122,25 @@ void Assembler::ld1rqw(const ZRegister& zt,
        ImmField<19, 16>(imm4));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  LD1SB_z_p_br_s16
-//  LD1SB_z_p_br_s32
-//  LD1SB_z_p_br_s64
 void Assembler::ld1sb(const ZRegister& zt,
                       const PRegisterZ& pg,
-                      const Register& xn,
-                      const Register& rm) {
-  // LD1SB { <Zt>.H }, <Pg>/Z, [<Xn|SP>, <Xm>]
-  //  1010 0101 110. .... 010. .... .... ....
-  //  dtype<24:21> = 1110 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                      const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SB_z_p_br_s16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
+  SVELd1Helper(kBRegSizeInBytesLog2, zt, pg, addr, true);
 }
 
-// This prototype maps to 3 instruction encodings:
-//  LD1SB_z_p_bi_s16
-//  LD1SB_z_p_bi_s32
-//  LD1SB_z_p_bi_s64
-void Assembler::ld1sb(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm4) {
-  // LD1SB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 1100 .... 101. .... .... ....
-  //  dtype<24:21> = 1110 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SB_z_p_bi_s16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LD1SH_z_p_br_s32
-//  LD1SH_z_p_br_s64
 void Assembler::ld1sh(const ZRegister& zt,
                       const PRegisterZ& pg,
-                      const Register& xn,
-                      const Register& rm) {
-  // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]
-  //  1010 0101 001. .... 010. .... .... ....
-  //  dtype<24:21> = 1001 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                      const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SH_z_p_br_s32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LD1SH_z_p_bi_s32
-//  LD1SH_z_p_bi_s64
-void Assembler::ld1sh(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm4) {
-  // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 0010 .... 101. .... .... ....
-  //  dtype<24:21> = 1001 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SH_z_p_bi_s32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELd1Helper(kHRegSizeInBytesLog2, zt, pg, addr, true);
 }
 
 void Assembler::ld1sw(const ZRegister& zt,
                       const PRegisterZ& pg,
-                      const Register& xn,
-                      const Register& rm) {
-  // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]
-  //  1010 0100 100. .... 010. .... .... ....
-  //  dtype<24:21> = 0100 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                      const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SW_z_p_br_s64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld1sw(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm4) {
-  // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0100 1000 .... 101. .... .... ....
-  //  dtype<24:21> = 0100 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SW_z_p_bi_s64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LD1W_z_p_br_u32
-//  LD1W_z_p_br_u64
-void Assembler::ld1w(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]
-  //  1010 0101 010. .... 010. .... .... ....
-  //  dtype<24:21> = 1010 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1W_z_p_br_u32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LD1W_z_p_bi_u32
-//  LD1W_z_p_bi_u64
-void Assembler::ld1w(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     int imm4) {
-  // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 0100 .... 101. .... .... ....
-  //  dtype<24:21> = 1010 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1W_z_p_bi_u32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELd1Helper(kSRegSizeInBytesLog2, zt, pg, addr, true);
 }
 
 void Assembler::ld2b(const ZRegister& zt1,
@@ -6085,7 +5938,7 @@ void Assembler::SVESt1Helper(unsigned msize_in_bytes_log2,
   Instr op;
   VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
   if (addr.IsScalarPlusImmediate()) {
-    VIXL_ASSERT(addr.IsScalar() || addr.IsMulVl());
+    VIXL_ASSERT((addr.GetImmediateOffset() == 0) || addr.IsMulVl());
     op = ST1B_z_p_bi | RnSP(addr.GetScalarBase()) |
          ImmField<19, 16>(addr.GetImmediateOffset());
   } else if (addr.IsScalarPlusScalar()) {

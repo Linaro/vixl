@@ -9036,6 +9036,111 @@ void Disassembler::VisitSVEWriteFFR(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::VisitSVEContiguousLoad_ScalarPlusImm(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  bool is_signed = false;
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusImmMask)) {
+    case LD1B_z_p_bi_u16:
+    case LD1B_z_p_bi_u32:
+    case LD1B_z_p_bi_u64:
+    case LD1B_z_p_bi_u8:
+      mnemonic = "ld1b";
+      break;
+    case LD1D_z_p_bi_u64:
+      mnemonic = "ld1d";
+      break;
+    case LD1H_z_p_bi_u16:
+    case LD1H_z_p_bi_u32:
+    case LD1H_z_p_bi_u64:
+      mnemonic = "ld1h";
+      break;
+    case LD1SB_z_p_bi_s16:
+    case LD1SB_z_p_bi_s32:
+    case LD1SB_z_p_bi_s64:
+      mnemonic = "ld1sb";
+      is_signed = true;
+      break;
+    case LD1SH_z_p_bi_s32:
+    case LD1SH_z_p_bi_s64:
+      mnemonic = "ld1sh";
+      is_signed = true;
+      break;
+    case LD1SW_z_p_bi_s64:
+      mnemonic = "ld1sw";
+      is_signed = true;
+      break;
+    case LD1W_z_p_bi_u32:
+    case LD1W_z_p_bi_u64:
+      mnemonic = "ld1w";
+      break;
+    default:
+      break;
+  }
+
+  const char *form;
+  // The 'size' field isn't in the usual place here.
+  if (instr->ExtractBits(19, 16) == 0) {
+    form = is_signed ? "{ 'Zt.'tlss }, p'u1210/z, ['Xns]"
+                     : "{ 'Zt.'tls }, p'u1210/z, ['Xns]";
+  } else {
+    form = is_signed ? "{ 'Zt.'tlss }, p'u1210/z, ['Xns, #'s1916, MUL VL]"
+                     : "{ 'Zt.'tls }, p'u1210/z, ['Xns, #'s1916, MUL VL]";
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitSVEContiguousLoad_ScalarPlusScalar(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEContiguousLoad_ScalarPlusScalar)";
+
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
+    case LD1B_z_p_br_u16:
+    case LD1B_z_p_br_u32:
+    case LD1B_z_p_br_u64:
+    case LD1B_z_p_br_u8:
+      mnemonic = "ld1b";
+      form = "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm]";
+      break;
+    case LD1D_z_p_br_u64:
+      mnemonic = "ld1d";
+      form = "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm, LSL #'u2423]";
+      break;
+    case LD1H_z_p_br_u16:
+    case LD1H_z_p_br_u32:
+    case LD1H_z_p_br_u64:
+      mnemonic = "ld1h";
+      form = "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm, LSL #'u2423]";
+      break;
+    case LD1SB_z_p_br_s16:
+    case LD1SB_z_p_br_s32:
+    case LD1SB_z_p_br_s64:
+      mnemonic = "ld1sb";
+      form = "{ 'Zt.'tlss }, p'u1210/z, ['Xns, 'Xm]";
+      break;
+    case LD1SH_z_p_br_s32:
+    case LD1SH_z_p_br_s64:
+      mnemonic = "ld1sh";
+      form = "{ 'Zt.'tlss }, p'u1210/z, ['Xns, 'Xm, LSL #1]";
+      break;
+    case LD1SW_z_p_br_s64:
+      mnemonic = "ld1sw";
+      form = "{ 'Zt.'tlss }, p'u1210/z, ['Xns, 'Xm, LSL #2]";
+      break;
+    case LD1W_z_p_br_u32:
+    case LD1W_z_p_br_u64:
+      mnemonic = "ld1w";
+      form = "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm, LSL #'u2423]";
+      break;
+    default:
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
 void Disassembler::VisitReserved(const Instruction *instr) {
   // UDF is the only instruction in this group, and the Decoder is precise.
   VIXL_ASSERT(instr->Mask(ReservedMask) == UDF);
@@ -10251,12 +10356,16 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
   int placeholder_length = 1;
   switch (format[1]) {
     case 'l':
-      // Encoding of logical operations.
       placeholder_length++;
       if (format[2] == 's') {
         // 'tls: Loads and stores
         size_in_bytes_log2 = instr->ExtractBits(22, 21);
         placeholder_length++;
+        if (format[3] == 's') {
+          // Sign extension load.
+          size_in_bytes_log2 ^= 0x3;
+          placeholder_length++;
+        }
       } else {
         // 'tl: Logical operations
         size_in_bytes_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();

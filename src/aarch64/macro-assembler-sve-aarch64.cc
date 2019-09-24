@@ -526,11 +526,20 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
   (this->*fn)(rt, SVEMemOperand(scratch));
 }
 
+// E.g. ld1b/st1b
+typedef void (Assembler::*SVELoad1Fn)(const ZRegister& zt,
+                                      const PRegisterZ& pg,
+                                      const SVEMemOperand& addr);
+typedef void (Assembler::*SVEStore1Fn)(const ZRegister& zt,
+                                       const PRegister& pg,
+                                       const SVEMemOperand& addr);
+
+template <typename Tg, typename Tf>
 void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
                                          const ZRegister& zt,
-                                         const PRegister& pg,
+                                         const Tg& pg,
                                          const SVEMemOperand& addr,
-                                         SVELoadStore1Fn fn) {
+                                         Tf fn) {
   if (addr.IsScalar() ||
       (addr.IsScalarPlusScalar() && !addr.GetScalarOffset().IsZero() &&
        addr.IsEquivalentToLSL(msize_in_bytes_log2)) ||
@@ -563,6 +572,127 @@ void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
     SingleEmissionCheckScope guard(this);
     (this->*fn)(zt, pg, SVEMemOperand(scratch));
   }
+}
+
+void MacroAssembler::Ld1b(const ZRegister& zt,
+                          const PRegisterZ& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kBRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1b));
+}
+
+void MacroAssembler::Ld1h(const ZRegister& zt,
+                          const PRegisterZ& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kHRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1h));
+}
+
+void MacroAssembler::Ld1w(const ZRegister& zt,
+                          const PRegisterZ& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kWRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1w));
+}
+
+void MacroAssembler::Ld1d(const ZRegister& zt,
+                          const PRegisterZ& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kDRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1d));
+}
+
+void MacroAssembler::Ld1sb(const ZRegister& zt,
+                           const PRegisterZ& pg,
+                           const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kBRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1sb));
+}
+
+void MacroAssembler::Ld1sh(const ZRegister& zt,
+                           const PRegisterZ& pg,
+                           const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kHRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1sh));
+}
+
+void MacroAssembler::Ld1sw(const ZRegister& zt,
+                           const PRegisterZ& pg,
+                           const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kSRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVELoad1Fn>(&Assembler::ld1sw));
+}
+
+void MacroAssembler::St1b(const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kBRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVEStore1Fn>(&Assembler::st1b));
+}
+
+void MacroAssembler::St1h(const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kHRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVEStore1Fn>(&Assembler::st1h));
+}
+
+void MacroAssembler::St1w(const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kSRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVEStore1Fn>(&Assembler::st1w));
+}
+
+void MacroAssembler::St1d(const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStore1Helper(kDRegSizeInBytesLog2,
+                      zt,
+                      pg,
+                      addr,
+                      static_cast<SVEStore1Fn>(&Assembler::st1d));
 }
 
 }  // namespace aarch64

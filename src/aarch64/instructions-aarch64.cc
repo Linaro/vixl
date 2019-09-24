@@ -474,6 +474,22 @@ uint64_t Instruction::GetSVEImmLogical() const {
   }
 }
 
+int Instruction::GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb) const {
+  Instr dtype_h = ExtractBits(dtype_h_lsb + 1, dtype_h_lsb);
+  if (is_signed) {
+    dtype_h = dtype_h ^ 0x3;
+  }
+  return dtype_h;
+}
+
+int Instruction::GetSVEEsizeFromDtype(bool is_signed, int dtype_l_lsb) const {
+  Instr dtype_l = ExtractBits(dtype_l_lsb + 1, dtype_l_lsb);
+  if (is_signed) {
+    dtype_l = dtype_l ^ 0x3;
+  }
+  return dtype_l;
+}
+
 int Instruction::GetSVEBitwiseImmLaneSizeInBytesLog2() const {
   int n = GetSVEBitN();
   int imm_s = GetSVEImmSetBits();

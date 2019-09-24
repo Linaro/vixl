@@ -383,6 +383,8 @@ void Instrument::Disable() {
   V("SVE", SVEStackAllocation)                          \
   V("SVE", SVEVectorSelect)                             \
   V("SVE", SVEWriteFFR)                                 \
+  V("SVE", SVEContiguousLoad_ScalarPlusImm)             \
+  V("SVE", SVEContiguousLoad_ScalarPlusScalar)          \
   V("Test and Branch", TestBranch)                      \
   V("Unconditional Branch", UnconditionalBranch)        \
   V("Unconditional Branch", UnconditionalBranchToRegister)

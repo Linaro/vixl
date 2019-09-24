@@ -178,6 +178,8 @@
   V(Unallocated)                           \
   V(UnconditionalBranch)                   \
   V(UnconditionalBranchToRegister)         \
+  V(SVEContiguousLoad_ScalarPlusImm)       \
+  V(SVEContiguousLoad_ScalarPlusScalar)    \
   V(Unimplemented)
 
 #define VISITOR_LIST_THAT_DONT_RETURN(V) V(Reserved)
@@ -310,7 +312,7 @@ class Decoder {
 };
 
 const int kMaxDecodeSampledBits = 16;
-const int kMaxDecodeMappings = 43;
+const int kMaxDecodeMappings = 45;
 typedef void (Decoder::*DecodeFnPtr)(const Instruction*);
 typedef uint32_t (Instruction::*BitExtractFn)(void) const;
 

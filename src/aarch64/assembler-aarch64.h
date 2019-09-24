@@ -4478,11 +4478,27 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Extract last element to SIMD&FP scalar register.
   void lastb(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
-  // Contiguous load unsigned bytes to vector (scalar index).
+  // Contiguous/gather load bytes to vector.
   void ld1b(const ZRegister& zt,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
+
+  // Contiguous/gather load halfwords to vector.
+  void ld1h(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/gather load words to vector.
+  void ld1w(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/gather load doublewords to vector.
+  void ld1d(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // TODO: Merge other loads into the SVEMemOperand versions.
 
   // Gather load unsigned bytes to vector (vector index).
   void ld1b(const ZRegister& zt,
@@ -4490,23 +4506,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Contiguous load unsigned bytes to vector (immediate index).
-  void ld1b(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
   // Gather load unsigned bytes to vector (immediate index).
   void ld1b(const ZRegister& zt,
             const PRegisterZ& pg,
             const ZRegister& zn,
             int imm5);
-
-  // Contiguous load doublewords to vector (scalar index).
-  void ld1d(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
 
   // Gather load doublewords to vector (vector index).
   void ld1d(const ZRegister& zt,
@@ -4514,23 +4518,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Contiguous load doublewords to vector (immediate index).
-  void ld1d(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
   // Gather load doublewords to vector (immediate index).
   void ld1d(const ZRegister& zt,
             const PRegisterZ& pg,
             const ZRegister& zn,
             int imm5);
-
-  // Contiguous load unsigned halfwords to vector (scalar index).
-  void ld1h(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
 
   // Gather load unsigned halfwords to vector (vector index).
   void ld1h(const ZRegister& zt,
@@ -4538,14 +4530,20 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Contiguous load unsigned halfwords to vector (immediate index).
-  void ld1h(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
   // Gather load unsigned halfwords to vector (immediate index).
   void ld1h(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const ZRegister& zn,
+            int imm5);
+
+  // Gather load unsigned words to vector (vector index).
+  void ld1w(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const Register& xn,
+            const ZRegister& zm);
+
+  // Gather load unsigned words to vector (immediate index).
+  void ld1w(const ZRegister& zt,
             const PRegisterZ& pg,
             const ZRegister& zn,
             int imm5);
@@ -4640,11 +4638,22 @@ class Assembler : public vixl::internal::AssemblerBase {
              const Register& xn,
              int imm6);
 
-  // Contiguous load signed bytes to vector (scalar index).
+  // Contiguous/gather load signed bytes to vector.
   void ld1sb(const ZRegister& zt,
              const PRegisterZ& pg,
-             const Register& xn,
-             const Register& rm);
+             const SVEMemOperand& addr);
+
+  // Contiguous/gather load signed halfwords to vector.
+  void ld1sh(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Contiguous/gather load signed words to vector.
+  void ld1sw(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // TODO: Merge other loads into the SVEMemOperand versions.
 
   // Gather load signed bytes to vector (vector index).
   void ld1sb(const ZRegister& zt,
@@ -4652,23 +4661,11 @@ class Assembler : public vixl::internal::AssemblerBase {
              const Register& xn,
              const ZRegister& zm);
 
-  // Contiguous load signed bytes to vector (immediate index).
-  void ld1sb(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm4);
-
   // Gather load signed bytes to vector (immediate index).
   void ld1sb(const ZRegister& zt,
              const PRegisterZ& pg,
              const ZRegister& zn,
              int imm5);
-
-  // Contiguous load signed halfwords to vector (scalar index).
-  void ld1sh(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             const Register& rm);
 
   // Gather load signed halfwords to vector (vector index).
   void ld1sh(const ZRegister& zt,
@@ -4676,23 +4673,11 @@ class Assembler : public vixl::internal::AssemblerBase {
              const Register& xn,
              const ZRegister& zm);
 
-  // Contiguous load signed halfwords to vector (immediate index).
-  void ld1sh(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm4);
-
   // Gather load signed halfwords to vector (immediate index).
   void ld1sh(const ZRegister& zt,
              const PRegisterZ& pg,
              const ZRegister& zn,
              int imm5);
-
-  // Contiguous load signed words to vector (scalar index).
-  void ld1sw(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             const Register& rm);
 
   // Gather load signed words to vector (vector index).
   void ld1sw(const ZRegister& zt,
@@ -4700,41 +4685,11 @@ class Assembler : public vixl::internal::AssemblerBase {
              const Register& xn,
              const ZRegister& zm);
 
-  // Contiguous load signed words to vector (immediate index).
-  void ld1sw(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm4);
-
   // Gather load signed words to vector (immediate index).
   void ld1sw(const ZRegister& zt,
              const PRegisterZ& pg,
              const ZRegister& zn,
              int imm5);
-
-  // Contiguous load unsigned words to vector (scalar index).
-  void ld1w(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
-
-  // Gather load unsigned words to vector (vector index).
-  void ld1w(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Contiguous load unsigned words to vector (immediate index).
-  void ld1w(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Gather load unsigned words to vector (immediate index).
-  void ld1w(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const ZRegister& zn,
-            int imm5);
 
   // Contiguous load two-byte structures to two vectors (scalar index).
   void ld2b(const ZRegister& zt1,
@@ -7012,6 +6967,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                     const ZRegister& zt,
                     const PRegister& pg,
                     const SVEMemOperand& addr);
+
+  void SVELd1Helper(unsigned msize_in_bytes_log2,
+                    const ZRegister& zt,
+                    const PRegisterZ& pg,
+                    const SVEMemOperand& addr,
+                    bool is_signed);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,

@@ -122,6 +122,8 @@ class SwitchAddSubRegisterSources : public vixl::aarch64::DecoderVisitor {
   V(NEONShiftImmediate)                    \
   V(NEONTable)                             \
   V(NEONPerm)                              \
+  V(SVEContiguousLoad_ScalarPlusImm)       \
+  V(SVEContiguousLoad_ScalarPlusScalar)    \
   V(SVEAddressGeneration)                  \
   V(SVEBitwiseImm)                         \
   V(SVEBitwiseLogicalUnpredicated)         \

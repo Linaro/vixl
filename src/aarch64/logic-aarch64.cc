@@ -6142,6 +6142,74 @@ void Simulator::SVEStructuredStoreHelper(int msize_in_bytes_log2,
   }
 }
 
+void Simulator::SVEStructuredLoadHelper(int msize_in_bytes_log2,
+                                        VectorFormat vform,
+                                        const LogicPRegister& pg,
+                                        unsigned zt_code,
+                                        unsigned reg_count,
+                                        const LogicSVEAddressVector& addr,
+                                        bool is_signed) {
+  VIXL_ASSERT(zt_code < kNumberOfZRegisters);
+  VIXL_ASSERT(LaneSizeInBytesLog2FromFormat(vform) >= msize_in_bytes_log2);
+  VIXL_ASSERT((reg_count >= 1) && (reg_count <= 4));
+
+  int msize_in_bytes = 1 << msize_in_bytes_log2;
+  unsigned zt_codes[4] = {zt_code,
+                          (zt_code + 1) % kNumberOfZRegisters,
+                          (zt_code + 2) % kNumberOfZRegisters,
+                          (zt_code + 3) % kNumberOfZRegisters};
+
+  LogicVRegister zt[4] = {
+      ReadVRegister(zt_codes[0]),
+      ReadVRegister(zt_codes[1]),
+      ReadVRegister(zt_codes[2]),
+      ReadVRegister(zt_codes[3]),
+  };
+
+  VectorFormat unpack_vform =
+      SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
+
+  // TODO: Add support for multi-register loads.
+  VIXL_ASSERT(reg_count == 1);
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    for (unsigned r = 0; r < reg_count; r++) {
+      uint64_t element_address =
+          addr.GetElementAddress(msize_in_bytes, reg_count, i, r);
+
+      if (!pg.IsActive(vform, i)) {
+        zt[r].SetUint(vform, i, 0);
+        continue;
+      }
+
+      if (is_signed) {
+        zt[r].ReadIntFromMem(vform,
+                             LaneSizeInBitsFromFormat(unpack_vform),
+                             i,
+                             element_address);
+
+      } else {
+        zt[r].ReadUintFromMem(vform,
+                              LaneSizeInBitsFromFormat(unpack_vform),
+                              i,
+                              element_address);
+      }
+    }
+  }
+
+  // TODO: Come up with a better trace format, and update NEON to match.
+  // This implementation matches the NEON format, for contiguous, unpredicated
+  // stores. It doesn't work for non-contiguous addressing, and doesn't take
+  // predication into account.
+  VIXL_ASSERT(addr.IsContiguous());
+  for (unsigned r = 0; r < reg_count; r++) {
+    LogZRead(addr.GetElementAddress(msize_in_bytes, reg_count, 0, r),
+             zt_codes[r],
+             GetPrintRegisterFormat(vform),
+             msize_in_bytes);
+  }
+}
+
 int Simulator::GetFirstActive(VectorFormat vform,
                               const LogicPRegister& pg) const {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {

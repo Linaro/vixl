@@ -5344,10 +5344,6 @@ TEST_SVE(sve_ld1_st1_contiguous) {
   // Set the base half-way through the buffer so we can use negative indeces.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
-  __ Index(z7.VnB(), 7, 3);
-  __ Index(z8.VnB(), 8, 5);
-  __ Index(z9.VnB(), 9, 7);
-
   // Encodable scalar-plus-immediate cases.
   __ Index(z1.VnB(), 1, -3);
   __ Ptrue(p1.VnB());
@@ -5370,9 +5366,9 @@ TEST_SVE(sve_ld1_st1_contiguous) {
 
   __ Index(z5.VnD(), 6, -2);
   __ Ptrue(p5.VnD(), SVE_VL16);
-  __ Addvl(x1, x0, 10);  // Try not to overlap with VL-dependent cases.
-  __ Mov(x2, 6);
-  __ St1d(z5.VnD(), p5, SVEMemOperand(x1, x2, LSL, 3));
+  __ Addvl(x3, x0, 10);  // Try not to overlap with VL-dependent cases.
+  __ Mov(x4, 6);
+  __ St1d(z5.VnD(), p5, SVEMemOperand(x3, x4, LSL, 3));
 
   // Unencodable cases fall back on `Adr`.
   __ Index(z6.VnS(), -7, 3);
@@ -5381,8 +5377,68 @@ TEST_SVE(sve_ld1_st1_contiguous) {
   __ Ptrue(p6.VnB(), SVE_ALL);
   __ St1w(z6.VnS(), p6, SVEMemOperand(x0, 42, SVE_MUL_VL));
 
+  __ Index(z7.VnD(), 32, -11);
+  __ Ptrue(p7.VnD(), SVE_MUL4);
+  __ St1w(z7.VnD(), p7, SVEMemOperand(x0, 22, SVE_MUL_VL));
 
-  // TODO: Add ld1 loads and check results as in the "ldr_str_z_bi" test.
+  // Corresponding loads.
+  __ Ld1b(z8.VnB(), p1.Zeroing(), SVEMemOperand(x0));
+  __ Ld1b(z9.VnH(), p2.Zeroing(), SVEMemOperand(x0, 7, SVE_MUL_VL));
+  __ Ld1h(z10.VnS(), p3.Zeroing(), SVEMemOperand(x0, -8, SVE_MUL_VL));
+  __ Ld1b(z11.VnD(), p4.Zeroing(), SVEMemOperand(x1, x2));
+  __ Ld1d(z12.VnD(), p5.Zeroing(), SVEMemOperand(x3, x4, LSL, 3));
+  __ Ld1w(z13.VnS(), p6.Zeroing(), SVEMemOperand(x0, 42, SVE_MUL_VL));
+
+  __ Ld1sb(z14.VnH(), p2.Zeroing(), SVEMemOperand(x0, 7, SVE_MUL_VL));
+  __ Ld1sh(z15.VnS(), p3.Zeroing(), SVEMemOperand(x0, -8, SVE_MUL_VL));
+  __ Ld1sb(z16.VnD(), p4.Zeroing(), SVEMemOperand(x1, x2));
+  __ Ld1sw(z17.VnD(), p7.Zeroing(), SVEMemOperand(x0, 22, SVE_MUL_VL));
+
+  // We can test ld1 by comparing the value loaded with the value stored. In
+  // most cases, there are two complications:
+  //  - Loads have zeroing predication, so we have to clear the inactive
+  //    elements on our reference.
+  //  - We have to replicate any sign- or zero-extension.
+
+  // Ld1b(z8.VnB(), ...)
+  __ Dup(z18.VnB(), 0);
+  __ Mov(z18.VnB(), p1.Merging(), z1.VnB());
+
+  // Ld1b(z9.VnH(), ...)
+  __ Dup(z19.VnH(), 0);
+  __ Uxtb(z19.VnH(), p2.Merging(), z2.VnH());
+
+  // Ld1h(z10.VnS(), ...)
+  __ Dup(z20.VnS(), 0);
+  __ Uxth(z20.VnS(), p3.Merging(), z3.VnS());
+
+  // Ld1b(z11.VnD(), ...)
+  __ Dup(z21.VnD(), 0);
+  __ Uxtb(z21.VnD(), p4.Merging(), z4.VnD());
+
+  // Ld1d(z12.VnD(), ...)
+  __ Dup(z22.VnD(), 0);
+  __ Mov(z22.VnD(), p5.Merging(), z5.VnD());
+
+  // Ld1w(z13.VnS(), ...)
+  __ Dup(z23.VnS(), 0);
+  __ Mov(z23.VnS(), p6.Merging(), z6.VnS());
+
+  // Ld1sb(z14.VnH(), ...)
+  __ Dup(z24.VnH(), 0);
+  __ Sxtb(z24.VnH(), p2.Merging(), z2.VnH());
+
+  // Ld1sh(z15.VnS(), ...)
+  __ Dup(z25.VnS(), 0);
+  __ Sxth(z25.VnS(), p3.Merging(), z3.VnS());
+
+  // Ld1sb(z16.VnD(), ...)
+  __ Dup(z26.VnD(), 0);
+  __ Sxtb(z26.VnD(), p4.Merging(), z4.VnD());
+
+  // Ld1sw(z17.VnD(), ...)
+  __ Dup(z27.VnD(), 0);
+  __ Sxtw(z27.VnD(), p7.Merging(), z7.VnD());
 
   END();
 
@@ -5444,7 +5500,26 @@ TEST_SVE(sve_ld1_st1_contiguous) {
       MemoryWrite(middle, 42 * vl, i, static_cast<uint32_t>(-7 + (3 * i)));
     }
 
+    // st1w { z7.d }, SVE_MUL4
+    int vl_d_mul4 = vl_d - (vl_d % 4);
+    for (int i = 0; i < vl_d_mul4; i++) {
+      MemoryWrite(middle, 22 * vl, i, static_cast<uint32_t>(32 + (-11 * i)));
+    }
+
     ASSERT_EQUAL_MEMORY(expected, data, data_size);
+
+    // Check that we loaded back the expected values.
+
+    ASSERT_EQUAL_SVE(z18, z8);
+    ASSERT_EQUAL_SVE(z19, z9);
+    ASSERT_EQUAL_SVE(z20, z10);
+    ASSERT_EQUAL_SVE(z21, z11);
+    ASSERT_EQUAL_SVE(z22, z12);
+    ASSERT_EQUAL_SVE(z23, z13);
+    ASSERT_EQUAL_SVE(z24, z14);
+    ASSERT_EQUAL_SVE(z25, z15);
+    ASSERT_EQUAL_SVE(z26, z16);
+    ASSERT_EQUAL_SVE(z27, z17);
 
     delete[] expected;
   }

@@ -1123,6 +1123,8 @@ void CPUFeaturesAuditor::VisitPCRelAddressing(const Instruction* instr) {
   V(SVEPredicateNextActive)                \
   V(SVEPredicateReadFromFFR_Predicated)    \
   V(SVEPredicateReadFromFFR_Unpredicated)  \
+  V(SVEContiguousLoad_ScalarPlusImm)       \
+  V(SVEContiguousLoad_ScalarPlusScalar)    \
   V(SVEPredicateTest)                      \
   V(SVEPredicateZero)                      \
   V(SVEPropagateBreak)                     \

@@ -451,6 +451,96 @@ class LogicVRegister {
     }
   }
 
+  void ReadIntFromMem(VectorFormat vform,
+                      unsigned msize_in_bits,
+                      int index,
+                      uint64_t addr) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
+    int64_t value;
+    switch (msize_in_bits) {
+      case 8:
+        value = Memory::Read<int8_t>(addr);
+        break;
+      case 16:
+        value = Memory::Read<int16_t>(addr);
+        break;
+      case 32:
+        value = Memory::Read<int32_t>(addr);
+        break;
+      case 64:
+        value = Memory::Read<int64_t>(addr);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+
+    unsigned esize_in_bits = LaneSizeInBitsFromFormat(vform);
+    VIXL_ASSERT(esize_in_bits >= msize_in_bits);
+    switch (esize_in_bits) {
+      case 8:
+        register_.Insert(index, static_cast<int8_t>(value));
+        break;
+      case 16:
+        register_.Insert(index, static_cast<int16_t>(value));
+        break;
+      case 32:
+        register_.Insert(index, static_cast<int32_t>(value));
+        break;
+      case 64:
+        register_.Insert(index, static_cast<int64_t>(value));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  }
+
+  void ReadUintFromMem(VectorFormat vform,
+                       unsigned msize_in_bits,
+                       int index,
+                       uint64_t addr) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
+    uint64_t value;
+    switch (msize_in_bits) {
+      case 8:
+        value = Memory::Read<uint8_t>(addr);
+        break;
+      case 16:
+        value = Memory::Read<uint16_t>(addr);
+        break;
+      case 32:
+        value = Memory::Read<uint32_t>(addr);
+        break;
+      case 64:
+        value = Memory::Read<uint64_t>(addr);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+
+    unsigned esize_in_bits = LaneSizeInBitsFromFormat(vform);
+    VIXL_ASSERT(esize_in_bits >= msize_in_bits);
+    switch (esize_in_bits) {
+      case 8:
+        register_.Insert(index, static_cast<uint8_t>(value));
+        break;
+      case 16:
+        register_.Insert(index, static_cast<uint16_t>(value));
+        break;
+      case 32:
+        register_.Insert(index, static_cast<uint32_t>(value));
+        break;
+      case 64:
+        register_.Insert(index, static_cast<uint64_t>(value));
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  }
+
   void ReadUintFromMem(VectorFormat vform, int index, uint64_t addr) const {
     if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
     switch (LaneSizeInBitsFromFormat(vform)) {
@@ -3709,9 +3799,9 @@ class Simulator : public DecoderVisitor {
                                             const LogicVRegister& src2,
                                             bool is_wide_elements = false);
 
-  // Store each active zt<i>[lane] to `addr + scatter[lane] + i`.
+  // Store each active zt<i>[lane] to `addr.GetElementAddress(..., lane, ...)`.
   //
-  // `zt_code` specifies the code of the first register (zt<i>). Each additional
+  // `zt_code` specifies the code of the first register (zt). Each additional
   // register (up to `reg_count`) is `(zt_code + i) % 32`.
   //
   // This helper calls LogZWrite in the proper way, according to `addr`.
@@ -3721,6 +3811,14 @@ class Simulator : public DecoderVisitor {
                                 unsigned zt_code,
                                 unsigned reg_count,
                                 const LogicSVEAddressVector& addr);
+  // Load each active zt<i>[lane] from `addr.GetElementAddress(..., lane, ...)`.
+  void SVEStructuredLoadHelper(int msize_in_bytes_log2,
+                               VectorFormat vform,
+                               const LogicPRegister& pg,
+                               unsigned zt_code,
+                               unsigned reg_count,
+                               const LogicSVEAddressVector& addr,
+                               bool is_signed = false);
 
   // Return the first or last active lane, or -1 if none are active.
   int GetFirstActive(VectorFormat vform, const LogicPRegister& pg) const;

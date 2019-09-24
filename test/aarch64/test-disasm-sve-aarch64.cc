@@ -2106,6 +2106,103 @@ TEST(sve_ld1_st1) {
   COMPARE_PREFIX(st1d(z31.VnD(), p7, SVEMemOperand(x9, x9, LSL, 3)),
                  "st1d { z31.d }, p7, [x9, x9, LSL #3]");
 
+  COMPARE_PREFIX(ld1b(z11.VnB(), p0.Zeroing(), SVEMemOperand(x22)),
+                 "ld1b { z11.b }, p0/z, [x22]");
+  COMPARE_PREFIX(ld1b(z15.VnH(),
+                      p1.Zeroing(),
+                      SVEMemOperand(x15, 7, SVE_MUL_VL)),
+                 "ld1b { z15.h }, p1/z, [x15, #7, MUL VL]");
+  COMPARE_PREFIX(ld1b(z19.VnS(),
+                      p2.Zeroing(),
+                      SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                 "ld1b { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_PREFIX(ld1b(z23.VnD(),
+                      p3.Zeroing(),
+                      SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1b { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1b(z2.VnB(), p4.Zeroing(), SVEMemOperand(x1, x2)),
+                 "ld1b { z2.b }, p4/z, [x1, x2]");
+  COMPARE_PREFIX(ld1b(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 0)),
+                 "ld1b { z31.d }, p7/z, [x9, x9]");
+
+  COMPARE_PREFIX(ld1h(z15.VnH(),
+                      p1.Zeroing(),
+                      SVEMemOperand(x15, 7, SVE_MUL_VL)),
+                 "ld1h { z15.h }, p1/z, [x15, #7, MUL VL]");
+  COMPARE_PREFIX(ld1h(z19.VnS(),
+                      p2.Zeroing(),
+                      SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                 "ld1h { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_PREFIX(ld1h(z23.VnD(),
+                      p3.Zeroing(),
+                      SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1h { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1h(z2.VnH(), p4.Zeroing(), SVEMemOperand(x1, x2, LSL, 1)),
+                 "ld1h { z2.h }, p4/z, [x1, x2, LSL #1]");
+  COMPARE_PREFIX(ld1h(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 1)),
+                 "ld1h { z31.d }, p7/z, [x9, x9, LSL #1]");
+
+  COMPARE_PREFIX(ld1w(z19.VnS(),
+                      p2.Zeroing(),
+                      SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                 "ld1w { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_PREFIX(ld1w(z23.VnD(),
+                      p3.Zeroing(),
+                      SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1w { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1w(z2.VnS(), p4.Zeroing(), SVEMemOperand(x1, x2, LSL, 2)),
+                 "ld1w { z2.s }, p4/z, [x1, x2, LSL #2]");
+  COMPARE_PREFIX(ld1w(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 2)),
+                 "ld1w { z31.d }, p7/z, [x9, x9, LSL #2]");
+
+  COMPARE_PREFIX(ld1d(z23.VnD(),
+                      p3.Zeroing(),
+                      SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1d { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1d(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 3)),
+                 "ld1d { z31.d }, p7/z, [x9, x9, LSL #3]");
+
+  COMPARE_PREFIX(ld1sb(z15.VnH(),
+                       p1.Zeroing(),
+                       SVEMemOperand(x15, 7, SVE_MUL_VL)),
+                 "ld1sb { z15.h }, p1/z, [x15, #7, MUL VL]");
+  COMPARE_PREFIX(ld1sb(z19.VnS(),
+                       p2.Zeroing(),
+                       SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                 "ld1sb { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_PREFIX(ld1d(z23.VnD(),
+                      p3.Zeroing(),
+                      SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1d { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1sb(z5.VnH(), p1.Zeroing(), SVEMemOperand(x15, x1, LSL, 0)),
+                 "ld1sb { z5.h }, p1/z, [x15, x1]");
+  COMPARE_PREFIX(ld1sb(z9.VnS(), p2.Zeroing(), SVEMemOperand(x29, x3, LSL, 0)),
+                 "ld1sb { z9.s }, p2/z, [x29, x3]");
+  COMPARE_PREFIX(ld1sb(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 0)),
+                 "ld1sb { z31.d }, p7/z, [x9, x9]");
+
+  COMPARE_PREFIX(ld1sh(z19.VnS(),
+                       p2.Zeroing(),
+                       SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                 "ld1sh { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_PREFIX(ld1sh(z23.VnD(),
+                       p3.Zeroing(),
+                       SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1sh { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1sh(z11.VnS(),
+                       p4.Zeroing(),
+                       SVEMemOperand(x22, x10, LSL, 1)),
+                 "ld1sh { z11.s }, p4/z, [x22, x10, LSL #1]");
+  COMPARE_PREFIX(ld1sh(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 1)),
+                 "ld1sh { z31.d }, p7/z, [x9, x9, LSL #1]");
+
+  COMPARE_PREFIX(ld1sw(z23.VnD(),
+                       p3.Zeroing(),
+                       SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                 "ld1sw { z23.d }, p3/z, [x1]");
+  COMPARE_PREFIX(ld1sw(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 2)),
+                 "ld1sw { z31.d }, p7/z, [x9, x9, LSL #2]");
+
   CLEANUP();
 }
 
@@ -2169,6 +2266,73 @@ TEST(sve_ld1_st1_macro) {
   COMPARE_MACRO(St1b(z30.VnD(), p0, SVEMemOperand(x9, xzr)),
                 "st1b { z30.d }, p0, [x9]");
 
+  COMPARE_MACRO(Ld1b(z11.VnB(), p0.Zeroing(), SVEMemOperand(x22)),
+                "ld1b { z11.b }, p0/z, [x22]");
+  COMPARE_MACRO(Ld1b(z15.VnH(),
+                     p1.Zeroing(),
+                     SVEMemOperand(x15, 7, SVE_MUL_VL)),
+                "ld1b { z15.h }, p1/z, [x15, #7, MUL VL]");
+  COMPARE_MACRO(Ld1b(z19.VnS(),
+                     p2.Zeroing(),
+                     SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                "ld1b { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_MACRO(Ld1b(z23.VnD(), p3.Zeroing(), SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                "ld1b { z23.d }, p3/z, [x1]");
+  COMPARE_MACRO(Ld1b(z2.VnB(), p4.Zeroing(), SVEMemOperand(x1, x2)),
+                "ld1b { z2.b }, p4/z, [x1, x2]");
+  COMPARE_MACRO(Ld1b(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 0)),
+                "ld1b { z31.d }, p7/z, [x9, x9]");
+
+  COMPARE_MACRO(Ld1h(z15.VnH(),
+                     p1.Zeroing(),
+                     SVEMemOperand(x15, 7, SVE_MUL_VL)),
+                "ld1h { z15.h }, p1/z, [x15, #7, MUL VL]");
+  COMPARE_MACRO(Ld1h(z19.VnS(),
+                     p2.Zeroing(),
+                     SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                "ld1h { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_MACRO(Ld1h(z23.VnD(), p3.Zeroing(), SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                "ld1h { z23.d }, p3/z, [x1]");
+  COMPARE_MACRO(Ld1h(z2.VnH(), p4.Zeroing(), SVEMemOperand(x1, x2, LSL, 1)),
+                "ld1h { z2.h }, p4/z, [x1, x2, LSL #1]");
+  COMPARE_MACRO(Ld1h(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 1)),
+                "ld1h { z31.d }, p7/z, [x9, x9, LSL #1]");
+
+  COMPARE_MACRO(Ld1w(z19.VnS(),
+                     p2.Zeroing(),
+                     SVEMemOperand(sp, -8, SVE_MUL_VL)),
+                "ld1w { z19.s }, p2/z, [sp, #-8, MUL VL]");
+  COMPARE_MACRO(Ld1w(z23.VnD(), p3.Zeroing(), SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                "ld1w { z23.d }, p3/z, [x1]");
+  COMPARE_MACRO(Ld1w(z2.VnS(), p4.Zeroing(), SVEMemOperand(x1, x2, LSL, 2)),
+                "ld1w { z2.s }, p4/z, [x1, x2, LSL #2]");
+  COMPARE_MACRO(Ld1w(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 2)),
+                "ld1w { z31.d }, p7/z, [x9, x9, LSL #2]");
+
+  COMPARE_MACRO(Ld1d(z23.VnD(), p3.Zeroing(), SVEMemOperand(x1, 0, SVE_MUL_VL)),
+                "ld1d { z23.d }, p3/z, [x1]");
+  COMPARE_MACRO(Ld1d(z31.VnD(), p7.Zeroing(), SVEMemOperand(x9, x9, LSL, 3)),
+                "ld1d { z31.d }, p7/z, [x9, x9, LSL #3]");
+
+  // SVEMemOperand synthesis.
+  // Most cases are handled by `Adr`, which we test independently, but check
+  // that the MacroAssembler falls back on `Adr` at the boundary conditions.
+  COMPARE_MACRO(Ld1b(z10.VnB(), p7.Zeroing(), SVEMemOperand(x0, 8, SVE_MUL_VL)),
+                "addvl x16, x0, #8\n"
+                "ld1b { z10.b }, p7/z, [x16]");
+  COMPARE_MACRO(Ld1h(z11.VnS(),
+                     p5.Zeroing(),
+                     SVEMemOperand(sp, -9, SVE_MUL_VL)),
+                "addvl x16, sp, #-9\n"
+                "ld1h { z11.s }, p5/z, [x16]");
+  COMPARE_MACRO(Ld1w(z22.VnS(), p3.Zeroing(), SVEMemOperand(sp, 42)),
+                "add x16, sp, #0x2a (42)\n"
+                "ld1w { z22.s }, p3/z, [x16]");
+  COMPARE_MACRO(Ld1d(z22.VnD(), p1.Zeroing(), SVEMemOperand(x3, x4)),
+                "add x16, x3, x4\n"
+                "ld1d { z22.d }, p1/z, [x16]");
+  COMPARE_MACRO(Ld1b(z30.VnD(), p0.Zeroing(), SVEMemOperand(x9, xzr)),
+                "ld1b { z30.d }, p0/z, [x9]");
   CLEANUP();
 }
 

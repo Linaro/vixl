@@ -8961,54 +8961,6 @@ void Simulator::VisitSVEMem64BitGather(const Instruction* instr) {
 void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVEMemContiguousLoadMask)) {
-    case LD1B_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_bi_u8:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_br_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_br_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1B_z_p_br_u8:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1D_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1D_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_br_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_br_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1H_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RQB_z_p_bi_u8:
       VIXL_UNIMPLEMENTED();
       break;
@@ -9031,54 +8983,6 @@ void Simulator::VisitSVEMemContiguousLoad(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case LD1RQW_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_bi_s16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_br_s16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_br_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SB_z_p_br_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_br_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SH_z_p_br_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SW_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1SW_z_p_br_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_br_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1W_z_p_br_u64:
       VIXL_UNIMPLEMENTED();
       break;
     case LD2B_z_p_bi_contiguous:
@@ -9860,14 +9764,18 @@ void Simulator::VisitSVEStackAllocation(const Instruction* instr) {
 
 void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
   USE(instr);
-  switch (instr->Mask(SVEVectorSelectMask)) {
-    case SEL_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
-  }
+
+  // The only instruction in this group is `sel`, and there are no unused
+  // encodings.
+  VIXL_ASSERT(instr->Mask(SVEVectorSelectMask) == SEL_z_p_zz);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  sel(vform, zd, pg, zn, zm);
 }
 
 void Simulator::VisitSVEWriteFFR(const Instruction* instr) {
@@ -9883,6 +9791,101 @@ void Simulator::VisitSVEWriteFFR(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
   }
+}
+
+void Simulator::VisitSVEContiguousLoad_ScalarPlusImm(const Instruction* instr) {
+  USE(instr);
+  bool is_signed;
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusImmMask)) {
+    case LD1B_z_p_bi_u8:
+    case LD1B_z_p_bi_u16:
+    case LD1B_z_p_bi_u32:
+    case LD1B_z_p_bi_u64:
+    case LD1H_z_p_bi_u16:
+    case LD1H_z_p_bi_u32:
+    case LD1H_z_p_bi_u64:
+    case LD1W_z_p_bi_u32:
+    case LD1W_z_p_bi_u64:
+    case LD1D_z_p_bi_u64:
+      is_signed = false;
+      break;
+    case LD1SB_z_p_bi_s16:
+    case LD1SB_z_p_bi_s32:
+    case LD1SB_z_p_bi_s64:
+    case LD1SH_z_p_bi_s32:
+    case LD1SH_z_p_bi_s64:
+    case LD1SW_z_p_bi_s64:
+      is_signed = true;
+      break;
+    default:
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
+      break;
+  }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  int vl = GetVectorLengthInBytes();
+  uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  SVEStructuredLoadHelper(msize_in_bytes_log2,
+                          vform,
+                          ReadPRegister(instr->GetPgLow8()),
+                          instr->GetRt(),
+                          1,
+                          addr,
+                          is_signed);
+}
+
+void Simulator::VisitSVEContiguousLoad_ScalarPlusScalar(
+    const Instruction* instr) {
+  bool is_signed;
+  USE(instr);
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
+    case LD1B_z_p_br_u8:
+    case LD1B_z_p_br_u16:
+    case LD1B_z_p_br_u32:
+    case LD1B_z_p_br_u64:
+    case LD1H_z_p_br_u16:
+    case LD1H_z_p_br_u32:
+    case LD1H_z_p_br_u64:
+    case LD1W_z_p_br_u32:
+    case LD1W_z_p_br_u64:
+    case LD1D_z_p_br_u64:
+      is_signed = false;
+      break;
+    case LD1SB_z_p_br_s16:
+    case LD1SB_z_p_br_s32:
+    case LD1SB_z_p_br_s64:
+    case LD1SH_z_p_br_s32:
+    case LD1SH_z_p_br_s64:
+    case LD1SW_z_p_br_s64:
+      is_signed = true;
+      break;
+    default:
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
+      break;
+  }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t offset = ReadXRegister(instr->GetRm());
+  offset <<= msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  SVEStructuredLoadHelper(msize_in_bytes_log2,
+                          vform,
+                          ReadPRegister(instr->GetPgLow8()),
+                          instr->GetRt(),
+                          1,
+                          addr,
+                          is_signed);
 }
 
 void Simulator::DoUnreachable(const Instruction* instr) {

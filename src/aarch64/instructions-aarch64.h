@@ -340,6 +340,10 @@ class Instruction {
 
   std::pair<int, int> GetSVEPermuteIndexAndLaneSizeLog2() const;
 
+  int GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb = 23) const;
+
+  int GetSVEEsizeFromDtype(bool is_signed, int dtype_l_lsb = 21) const;
+
   unsigned GetImmNEONabcdefgh() const;
   VIXL_DEPRECATED("GetImmNEONabcdefgh", unsigned ImmNEONabcdefgh() const) {
     return GetImmNEONabcdefgh();
