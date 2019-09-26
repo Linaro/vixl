@@ -369,6 +369,16 @@ class Instruction {
     return GetImmNEONFP64();
   }
 
+  Float16 GetSVEImmFP16() const { return Imm8ToFloat16(ExtractBits(12, 5)); }
+
+  float GetSVEImmFP32() const { return Imm8ToFP32(ExtractBits(12, 5)); }
+
+  double GetSVEImmFP64() const { return Imm8ToFP64(ExtractBits(12, 5)); }
+
+  static Float16 Imm8ToFloat16(uint32_t imm8);
+  static float Imm8ToFP32(uint32_t imm8);
+  static double Imm8ToFP64(uint32_t imm8);
+
   unsigned GetSizeLS() const {
     return CalcLSDataSize(static_cast<LoadStoreOp>(Mask(LoadStoreMask)));
   }
@@ -648,10 +658,6 @@ class Instruction {
 
  private:
   int GetImmBranch() const;
-
-  static Float16 Imm8ToFloat16(uint32_t imm8);
-  static float Imm8ToFP32(uint32_t imm8);
-  static double Imm8ToFP64(uint32_t imm8);
 
   void SetPCRelImmTarget(const Instruction* target);
   void SetBranchImmTarget(const Instruction* target);

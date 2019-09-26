@@ -751,22 +751,36 @@ class IntegerOperand {
   bool FitsInLane(const CPURegister& zd) const {
     return FitsInBits(zd.GetLaneSizeInBits());
   }
+  bool FitsInSignedLane(const CPURegister& zd) const {
+    return IsIntN(zd.GetLaneSizeInBits());
+  }
+  bool FitsInUnsignedLane(const CPURegister& zd) const {
+    return IsUintN(zd.GetLaneSizeInBits());
+  }
 
   // Cast a value in the range [INT<n>_MIN, UINT<n>_MAX] to an unsigned integer
   // in the range [0, UINT<n>_MAX] (using two's complement mapping).
   uint64_t AsUintN(unsigned n) const {
-    USE(n);
     VIXL_ASSERT(FitsInBits(n));
     return raw_bits_ & GetUintMask(n);
   }
 
+  uint8_t AsUint8() const { return static_cast<uint8_t>(AsUintN(8)); }
+  uint16_t AsUint16() const { return static_cast<uint16_t>(AsUintN(16)); }
+  uint32_t AsUint32() const { return static_cast<uint32_t>(AsUintN(32)); }
+  uint64_t AsUint64() const { return AsUintN(64); }
+
   // Cast a value in the range [INT<n>_MIN, UINT<n>_MAX] to a signed integer in
   // the range [INT<n>_MIN, INT<n>_MAX] (using two's complement mapping).
   int64_t AsIntN(unsigned n) const {
-    USE(n);
     VIXL_ASSERT(FitsInBits(n));
     return ExtractSignedBitfield64(n - 1, 0, raw_bits_);
   }
+
+  int8_t AsInt8() const { return static_cast<int8_t>(AsIntN(8)); }
+  int16_t AsInt16() const { return static_cast<int16_t>(AsIntN(16)); }
+  int32_t AsInt32() const { return static_cast<int32_t>(AsIntN(32)); }
+  int64_t AsInt64() const { return AsIntN(64); }
 
   // Several instructions encode a signed int<N>_t, which is then (optionally)
   // left-shifted and sign-extended to a Z register lane with a size which may
@@ -830,6 +844,37 @@ class IntegerOperand {
   template <unsigned N, typename T>
   bool TryEncodeAsIntNForLane(const CPURegister& zd, T* imm) const {
     return TryEncodeAsShiftedIntNForLane<N, 0>(zd, imm);
+  }
+
+  // As above, but for unsigned fields. This is usuaully a simple operation, but
+  // is provided for symmetry.
+  template <unsigned N, unsigned kShift, typename T>
+  bool TryEncodeAsShiftedUintNForLane(const CPURegister& zd, T* imm) const {
+    VIXL_STATIC_ASSERT(std::numeric_limits<T>::digits > N);
+    VIXL_ASSERT(FitsInLane(zd));
+
+    // TODO: Should we convert -1 to 0xff here?
+    if (is_negative_) return false;
+    USE(zd);
+
+    if ((raw_bits_ & GetUintMask(kShift)) != 0) return false;
+
+    if (vixl::IsUintN(N, raw_bits_ >> kShift)) {
+      *imm = static_cast<T>(raw_bits_ >> kShift);
+      return true;
+    }
+    return false;
+  }
+
+  template <unsigned N, unsigned kShift, typename T, typename S>
+  bool TryEncodeAsShiftedUintNForLane(const CPURegister& zd,
+                                      T* imm,
+                                      S* shift) const {
+    if (TryEncodeAsShiftedUintNForLane<N, kShift>(zd, imm)) {
+      *shift = kShift;
+      return true;
+    }
+    return false;
   }
 
   bool IsZero() const { return raw_bits_ == 0; }

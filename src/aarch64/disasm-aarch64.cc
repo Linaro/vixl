@@ -1898,15 +1898,15 @@ void Disassembler::VisitFPImmediate(const Instruction *instr) {
   switch (instr->Mask(FPImmediateMask)) {
     case FMOV_h_imm:
       mnemonic = "fmov";
-      form = "'Hd, 'IFPHalf";
+      form = "'Hd, 'IFP";
       break;
     case FMOV_s_imm:
       mnemonic = "fmov";
-      form = "'Sd, 'IFPSingle";
+      form = "'Sd, 'IFP";
       break;
     case FMOV_d_imm:
       mnemonic = "fmov";
-      form = "'Dd, 'IFPDouble";
+      form = "'Dd, 'IFP";
       break;
     default:
       VIXL_UNREACHABLE();
@@ -4006,19 +4006,16 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
           }
         } else {  // cmode<0> == '1'
           mnemonic = "fmov";
+          form = "'Vt.%s, 'IFPNeon";
           if (half_enc == 1) {
-            form = "'Vt.%s, 'IVMIImmFPHalf";
             nfd.SetFormatMap(0, &map_h);
           } else if (op == 0) {
-            form = "'Vt.%s, 'IVMIImmFPSingle";
             nfd.SetFormatMap(0, &map_s);
+          } else if (q == 1) {
+            form = "'Vt.2d, 'IFPNeon";
           } else {
-            if (q == 1) {
-              form = "'Vt.2d, 'IVMIImmFPDouble";
-            } else {
-              mnemonic = "unallocated";
-              form = "(NEONModifiedImmediate)";
-            }
+            mnemonic = "unallocated";
+            form = "(NEONModifiedImmediate)";
           }
         }
       }
@@ -6716,54 +6713,81 @@ void Disassembler::VisitSVEIntWideImmPredicated(const Instruction *instr) {
 
 void Disassembler::VisitSVEIntWideImmUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
+  const char *form = "(SVEIntWideImmUnpredicated)";
   // <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
-  const char *form = "'Zd.'t, 'Zd.'t, #'u1205{, <shift>}";
+  int shift = instr->ExtractBit(13);
 
-  switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
+  const char *form_z_zi_shift = (shift == 0)
+                                    ? "'Zd.'t, 'Zd.'t, #'u1205"
+                                    : "'Zd.'t, 'Zd.'t, #'u1205, lsl #8";
+
+  switch (instr->Mask(SVEIntWideImmShiftUnpredicatedMask)) {
     // ADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
     case ADD_z_zi:
       mnemonic = "add";
+      form = form_z_zi_shift;
       break;
     // DUP <Zd>.<T>, #<imm>{, <shift>}
     case DUP_z_i:
       mnemonic = "dup";
-      form = "'Zd.'t, #'u1205{, <shift>}";
-      break;
-    // FDUP <Zd>.<T>, #<const>
-    case FDUP_z_i:
-      mnemonic = "fdup";
-      form = "'Zd.'t, #<const>";
-      break;
-    // MUL <Zdn>.<T>, <Zdn>.<T>, #<imm>
-    case MUL_z_zi:
-      mnemonic = "mul";
-      form = "'Zd.'t, 'Zd.'t, #'u1205";
-      break;
-    // SMAX <Zdn>.<T>, <Zdn>.<T>, #<imm>
-    case SMAX_z_zi:
-      mnemonic = "smax";
-      form = "'Zd.'t, 'Zd.'t, #'u1205";
-      break;
-    // SMIN <Zdn>.<T>, <Zdn>.<T>, #<imm>
-    case SMIN_z_zi:
-      mnemonic = "smin";
-      form = "'Zd.'t, 'Zd.'t, #'u1205";
+      form = (shift == 0) ? "'Zd.'t, #'s1205" : "'Zd.'t, #'s1205, lsl #8";
       break;
     // SQADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
     case SQADD_z_zi:
       mnemonic = "sqadd";
+      form = form_z_zi_shift;
       break;
     // SQSUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
     case SQSUB_z_zi:
       mnemonic = "sqsub";
+      form = form_z_zi_shift;
       break;
     // SUBR <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
     case SUBR_z_zi:
       mnemonic = "subr";
+      form = form_z_zi_shift;
       break;
     // SUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
     case SUB_z_zi:
       mnemonic = "sub";
+      form = form_z_zi_shift;
+      break;
+    // UQADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
+    case UQADD_z_zi:
+      mnemonic = "uqadd";
+      form = form_z_zi_shift;
+      break;
+    // UQSUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
+    case UQSUB_z_zi:
+      mnemonic = "uqsub";
+      form = form_z_zi_shift;
+      break;
+    default:
+      break;
+  }
+
+  switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
+    // FDUP <Zd>.<T>, #<const>
+    case FDUP_z_i:
+      if (static_cast<unsigned>(instr->GetSVESize()) > kBRegSizeInBytesLog2) {
+        mnemonic = "fdup";
+        form = "'Zd.'t, 'IFPSve";
+      }
+      break;
+    // MUL <Zdn>.<T>, <Zdn>.<T>, #<imm>
+    case MUL_z_zi:
+      mnemonic = "mul";
+      form = "'Zd.'t, 'Zd.'t, #'s1205";
+      break;
+    // SMAX <Zdn>.<T>, <Zdn>.<T>, #<imm>
+    case SMAX_z_zi:
+      mnemonic = "smax";
+      form = "'Zd.'t, 'Zd.'t, #'s1205";
+      break;
+    // SMIN <Zdn>.<T>, <Zdn>.<T>, #<imm>
+    case SMIN_z_zi:
+      mnemonic = "smin";
+      form = "'Zd.'t, 'Zd.'t, #'s1205";
       break;
     // UMAX <Zdn>.<T>, <Zdn>.<T>, #<imm>
     case UMAX_z_zi:
@@ -6775,17 +6799,10 @@ void Disassembler::VisitSVEIntWideImmUnpredicated(const Instruction *instr) {
       mnemonic = "umin";
       form = "'Zd.'t, 'Zd.'t, #'u1205";
       break;
-    // UQADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
-    case UQADD_z_zi:
-      mnemonic = "uqadd";
-      break;
-    // UQSUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
-    case UQSUB_z_zi:
-      mnemonic = "uqsub";
-      break;
     default:
       break;
   }
+
   Format(instr, mnemonic, form);
 }
 
@@ -9649,23 +9666,33 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       AppendToOutput("#0x%" PRIx64 " (%" PRId64 ")", imm, imm);
       return 7;
     }
-    case 'F': {                // IFPHalf, IFPSingle, IFPDouble, or IFPFBits.
-      if (format[3] == 'F') {  // IFPFbits.
-        AppendToOutput("#%" PRId32, 64 - instr->GetFPScale());
-        return 8;
-      } else {
-        AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                       instr->GetImmFP(),
-                       format[3] == 'H'
-                           ? FPToFloat(instr->GetImmFP16(), kIgnoreDefaultNaN)
-                           : (format[3] == 'S') ? instr->GetImmFP32()
-                                                : instr->GetImmFP64());
-        if (format[3] == 'H') {
-          return 7;
-        } else {
-          return 9;
-        }
+    case 'F': {  // IFP, IFPNeon, IFPSve or IFPFBits.
+      int imm8 = 0;
+      int len = strlen("IFP");
+      switch (format[3]) {
+        case 'F':
+          VIXL_ASSERT(strncmp(format, "IFPFBits", strlen("IFPFBits")) == 0);
+          AppendToOutput("#%" PRId32, 64 - instr->GetFPScale());
+          return strlen("IFPFBits");
+        case 'N':
+          VIXL_ASSERT(strncmp(format, "IFPNeon", strlen("IFPNeon")) == 0);
+          imm8 = instr->GetImmNEONabcdefgh();
+          len += strlen("Neon");
+          break;
+        case 'S':
+          VIXL_ASSERT(strncmp(format, "IFPSve", strlen("IFPSve")) == 0);
+          imm8 = instr->ExtractBits(12, 5);
+          len += strlen("Sve");
+          break;
+        default:
+          VIXL_ASSERT(strncmp(format, "IFP", strlen("IFP")) == 0);
+          imm8 = instr->GetImmFP();
+          break;
       }
+      AppendToOutput("#0x%" PRIx32 " (%.4f)",
+                     imm8,
+                     Instruction::Imm8ToFP32(imm8));
+      return len;
     }
     case 'H': {  // IH - ImmHint
       AppendToOutput("#%" PRId32, instr->GetImmHint());
@@ -9813,27 +9840,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           return 9;
         }
         case 'M': {  // Modified Immediate cases.
-          if (strncmp(format, "IVMIImmFPHalf", strlen("IVMIImmFPHalf")) == 0) {
-            AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                           instr->GetImmNEONabcdefgh(),
-                           FPToFloat(instr->GetImmNEONFP16(),
-                                     kIgnoreDefaultNaN));
-            return strlen("IVMIImmFPHalf");
-          } else if (strncmp(format,
-                             "IVMIImmFPSingle",
-                             strlen("IVMIImmFPSingle")) == 0) {
-            AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                           instr->GetImmNEONabcdefgh(),
-                           instr->GetImmNEONFP32());
-            return strlen("IVMIImmFPSingle");
-          } else if (strncmp(format,
-                             "IVMIImmFPDouble",
-                             strlen("IVMIImmFPDouble")) == 0) {
-            AppendToOutput("#0x%" PRIx32 " (%.4f)",
-                           instr->GetImmNEONabcdefgh(),
-                           instr->GetImmNEONFP64());
-            return strlen("IVMIImmFPDouble");
-          } else if (strncmp(format, "IVMIImm8", strlen("IVMIImm8")) == 0) {
+          if (strncmp(format, "IVMIImm8", strlen("IVMIImm8")) == 0) {
             uint64_t imm8 = instr->GetImmNEONabcdefgh();
             AppendToOutput("#0x%" PRIx64, imm8);
             return strlen("IVMIImm8");

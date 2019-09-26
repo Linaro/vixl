@@ -8581,51 +8581,80 @@ void Simulator::VisitSVEIntWideImmPredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
   USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
+  SimVRegister scratch;
+
+  int shift = (instr->ExtractBit(13) == 0) ? 0 : 8;
+  uint64_t unsigned_imm = instr->GetImmSVEIntWideUnsigned();
+  int64_t signed_imm = instr->GetImmSVEIntWideSigned();
+
+  switch (instr->Mask(SVEIntWideImmShiftUnpredicatedMask)) {
     case ADD_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
+      add(vform, zd, zd, unsigned_imm << shift);
+      return;
     case DUP_z_i:
-      dup_immediate(instr->GetSVEVectorFormat(),
-                    zd,
-                    instr->GetImmSVEIntWideSigned());
+      dup_immediate(vform, zd, signed_imm << shift);
+      return;
+    case SQADD_z_zi:
+      add(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
+      return;
+    case SQSUB_z_zi:
+      sub(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
+      return;
+    case SUBR_z_zi:
+      dup_immediate(vform, scratch, unsigned_imm << shift);
+      sub(vform, zd, scratch, zd);
+      return;
+    case SUB_z_zi:
+      sub(vform, zd, zd, unsigned_imm << shift);
+      return;
+    case UQADD_z_zi:
+      add(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
+      return;
+    case UQSUB_z_zi:
+      sub(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
+      return;
+    default:
+      // Pass through.
       break;
+  }
+
+  switch (instr->Mask(SVEIntWideImmUnpredicatedMask)) {
     case FDUP_z_i:
-      VIXL_UNIMPLEMENTED();
+      switch (vform) {
+        case kFormatVnH:
+          dup_immediate(vform, zd, Float16ToRawbits(instr->GetSVEImmFP16()));
+          break;
+        case kFormatVnS:
+          dup_immediate(vform, zd, FloatToRawbits(instr->GetSVEImmFP32()));
+          break;
+        case kFormatVnD:
+          dup_immediate(vform, zd, DoubleToRawbits(instr->GetSVEImmFP64()));
+          break;
+        default:
+          VIXL_UNIMPLEMENTED();
+      }
       break;
     case MUL_z_zi:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(vform, scratch, signed_imm);
+      mul(vform, zd, zd, scratch);
       break;
     case SMAX_z_zi:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(vform, scratch, signed_imm);
+      smax(vform, zd, zd, scratch);
       break;
     case SMIN_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQADD_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQSUB_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SUBR_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SUB_z_zi:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(vform, scratch, signed_imm);
+      smin(vform, zd, zd, scratch);
       break;
     case UMAX_z_zi:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(vform, scratch, unsigned_imm);
+      umax(vform, zd, zd, scratch);
       break;
     case UMIN_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQADD_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQSUB_z_zi:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(vform, scratch, unsigned_imm);
+      umin(vform, zd, zd, scratch);
       break;
     default:
       VIXL_UNIMPLEMENTED();

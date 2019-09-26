@@ -1673,65 +1673,216 @@ TEST(sve_int_wide_imm_predicated) {
 TEST(sve_int_wide_imm_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(add(z15.VnB(), z15.VnB(), int imm8), "add <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(add(z15.VnH(), z15.VnH(), int imm8), "add <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(add(z15.VnS(), z15.VnS(), int imm8), "add <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(add(z15.VnD(), z15.VnD(), int imm8), "add <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(dup(z6.VnB(), int imm8), "dup <Zd>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(dup(z6.VnH(), int imm8), "dup <Zd>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(dup(z6.VnS(), int imm8), "dup <Zd>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(dup(z6.VnD(), int imm8), "dup <Zd>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(fdup(z26.VnH()), "fdup <Zd>.<T>, #<const>");
-  COMPARE_PREFIX(fdup(z26.VnS()), "fdup <Zd>.<T>, #<const>");
-  COMPARE_PREFIX(fdup(z26.VnD()), "fdup <Zd>.<T>, #<const>");
-  COMPARE_PREFIX(mul(z15.VnB(), z15.VnB(), int imm8), "mul <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(mul(z15.VnH(), z15.VnH(), int imm8), "mul <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(mul(z15.VnS(), z15.VnS(), int imm8), "mul <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(mul(z15.VnD(), z15.VnD(), int imm8), "mul <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smax(z7.VnB(), z7.VnB(), int imm8), "smax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smax(z7.VnH(), z7.VnH(), int imm8), "smax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smax(z7.VnS(), z7.VnS(), int imm8), "smax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smax(z7.VnD(), z7.VnD(), int imm8), "smax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smin(z5.VnB(), z5.VnB(), int imm8), "smin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smin(z5.VnH(), z5.VnH(), int imm8), "smin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smin(z5.VnS(), z5.VnS(), int imm8), "smin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(smin(z5.VnD(), z5.VnD(), int imm8), "smin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(sqadd(z7.VnB(), z7.VnB(), int imm8), "sqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqadd(z7.VnH(), z7.VnH(), int imm8), "sqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqadd(z7.VnS(), z7.VnS(), int imm8), "sqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqadd(z7.VnD(), z7.VnD(), int imm8), "sqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqsub(z31.VnB(), z31.VnB(), int imm8), "sqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqsub(z31.VnH(), z31.VnH(), int imm8), "sqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqsub(z31.VnS(), z31.VnS(), int imm8), "sqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sqsub(z31.VnD(), z31.VnD(), int imm8), "sqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(subr(z20.VnB(), z20.VnB(), int imm8), "subr <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(subr(z20.VnH(), z20.VnH(), int imm8), "subr <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(subr(z20.VnS(), z20.VnS(), int imm8), "subr <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(subr(z20.VnD(), z20.VnD(), int imm8), "subr <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sub(z18.VnB(), z18.VnB(), int imm8), "sub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sub(z18.VnH(), z18.VnH(), int imm8), "sub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sub(z18.VnS(), z18.VnS(), int imm8), "sub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(sub(z18.VnD(), z18.VnD(), int imm8), "sub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(umax(z15.VnB(), z15.VnB(), int imm8), "umax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umax(z15.VnH(), z15.VnH(), int imm8), "umax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umax(z15.VnS(), z15.VnS(), int imm8), "umax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umax(z15.VnD(), z15.VnD(), int imm8), "umax <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umin(z22.VnB(), z22.VnB(), int imm8), "umin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umin(z22.VnH(), z22.VnH(), int imm8), "umin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umin(z22.VnS(), z22.VnS(), int imm8), "umin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(umin(z22.VnD(), z22.VnD(), int imm8), "umin <Zdn>.<T>, <Zdn>.<T>, #<imm>");
-  COMPARE_PREFIX(uqadd(z21.VnB(), z21.VnB(), int imm8), "uqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqadd(z21.VnH(), z21.VnH(), int imm8), "uqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqadd(z21.VnS(), z21.VnS(), int imm8), "uqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqadd(z21.VnD(), z21.VnD(), int imm8), "uqadd <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqsub(z10.VnB(), z10.VnB(), int imm8), "uqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqsub(z10.VnH(), z10.VnH(), int imm8), "uqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqsub(z10.VnS(), z10.VnS(), int imm8), "uqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(uqsub(z10.VnD(), z10.VnD(), int imm8), "uqsub <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}");
-#endif
+  COMPARE_PREFIX(add(z12.VnB(), z12.VnB(), 0), "add z12.b, z12.b, #0");
+  COMPARE_PREFIX(add(z13.VnH(), z13.VnH(), 255), "add z13.h, z13.h, #255");
+  COMPARE_PREFIX(add(z14.VnS(), z14.VnS(), 256),
+                 "add z14.s, z14.s, #1, lsl #8");
+  COMPARE_PREFIX(add(z15.VnD(), z15.VnD(), 255 * 256),
+                 "add z15.d, z15.d, #255, lsl #8");
+
+  COMPARE_PREFIX(dup(z6.VnB(), -128), "dup z6.b, #-128");
+  COMPARE_PREFIX(dup(z7.VnH(), 127), "dup z7.h, #127");
+  COMPARE_PREFIX(dup(z8.VnS(), -128 * 256), "dup z8.s, #-128, lsl #8");
+  COMPARE_PREFIX(dup(z9.VnD(), 127 * 256), "dup z9.d, #127, lsl #8");
+
+  COMPARE_PREFIX(sqadd(z7.VnB(), z7.VnB(), 124), "sqadd z7.b, z7.b, #124");
+  COMPARE_PREFIX(sqadd(z8.VnH(), z8.VnH(), 131), "sqadd z8.h, z8.h, #131");
+  COMPARE_PREFIX(sqadd(z9.VnS(), z9.VnS(), 252 * 256),
+                 "sqadd z9.s, z9.s, #252, lsl #8");
+  COMPARE_PREFIX(sqadd(z10.VnD(), z10.VnD(), 20 * 256),
+                 "sqadd z10.d, z10.d, #20, lsl #8");
+
+  COMPARE_PREFIX(sqsub(z31.VnB(), z31.VnB(), 132), "sqsub z31.b, z31.b, #132");
+  COMPARE_PREFIX(sqsub(z30.VnH(), z30.VnH(), 251), "sqsub z30.h, z30.h, #251");
+  COMPARE_PREFIX(sqsub(z29.VnS(), z29.VnS(), 21 * 256),
+                 "sqsub z29.s, z29.s, #21, lsl #8");
+  COMPARE_PREFIX(sqsub(z28.VnD(), z28.VnD(), 123 * 256),
+                 "sqsub z28.d, z28.d, #123, lsl #8");
+
+  COMPARE_PREFIX(subr(z20.VnB(), z20.VnB(), 250), "subr z20.b, z20.b, #250");
+  COMPARE_PREFIX(subr(z21.VnH(), z21.VnH(), 22), "subr z21.h, z21.h, #22");
+  COMPARE_PREFIX(subr(z22.VnS(), z22.VnS(), 122 * 256),
+                 "subr z22.s, z22.s, #122, lsl #8");
+  COMPARE_PREFIX(subr(z23.VnD(), z23.VnD(), 133 * 256),
+                 "subr z23.d, z23.d, #133, lsl #8");
+
+  COMPARE_PREFIX(sub(z18.VnB(), z18.VnB(), 23), "sub z18.b, z18.b, #23");
+  COMPARE_PREFIX(sub(z19.VnH(), z19.VnH(), 121), "sub z19.h, z19.h, #121");
+  COMPARE_PREFIX(sub(z20.VnS(), z20.VnS(), 134 * 256),
+                 "sub z20.s, z20.s, #134, lsl #8");
+  COMPARE_PREFIX(sub(z21.VnD(), z21.VnD(), 249 * 256),
+                 "sub z21.d, z21.d, #249, lsl #8");
+
+  COMPARE_PREFIX(uqadd(z21.VnB(), z21.VnB(), 246), "uqadd z21.b, z21.b, #246");
+  COMPARE_PREFIX(uqadd(z22.VnH(), z22.VnH(), 26), "uqadd z22.h, z22.h, #26");
+  COMPARE_PREFIX(uqadd(z23.VnS(), z23.VnS(), 118 * 256),
+                 "uqadd z23.s, z23.s, #118, lsl #8");
+  COMPARE_PREFIX(uqadd(z24.VnD(), z24.VnD(), 137 * 256),
+                 "uqadd z24.d, z24.d, #137, lsl #8");
+
+  COMPARE_PREFIX(uqsub(z10.VnB(), z10.VnB(), 27), "uqsub z10.b, z10.b, #27");
+  COMPARE_PREFIX(uqsub(z11.VnH(), z11.VnH(), 117), "uqsub z11.h, z11.h, #117");
+  COMPARE_PREFIX(uqsub(z12.VnS(), z12.VnS(), 138 * 256),
+                 "uqsub z12.s, z12.s, #138, lsl #8");
+  COMPARE_PREFIX(uqsub(z13.VnD(), z13.VnD(), 245 * 256),
+                 "uqsub z13.d, z13.d, #245, lsl #8");
+
+  COMPARE_PREFIX(fdup(z26.VnH(), Float16(-5.0f)),
+                 "fdup z26.h, #0x94 (-5.0000)");
+  COMPARE_PREFIX(fdup(z27.VnS(), -13.0f), "fdup z27.s, #0xaa (-13.0000)");
+  COMPARE_PREFIX(fdup(z28.VnD(), 1.0f), "fdup z28.d, #0x70 (1.0000)");
+
+  COMPARE_PREFIX(mul(z15.VnB(), z15.VnB(), -128), "mul z15.b, z15.b, #-128");
+  COMPARE_PREFIX(mul(z16.VnH(), z16.VnH(), -1), "mul z16.h, z16.h, #-1");
+  COMPARE_PREFIX(mul(z17.VnS(), z17.VnS(), 17), "mul z17.s, z17.s, #17");
+  COMPARE_PREFIX(mul(z18.VnD(), z18.VnD(), 127), "mul z18.d, z18.d, #127");
+
+  COMPARE_PREFIX(smax(z7.VnB(), z7.VnB(), -2), "smax z7.b, z7.b, #-2");
+  COMPARE_PREFIX(smax(z8.VnH(), z8.VnH(), 18), "smax z8.h, z8.h, #18");
+  COMPARE_PREFIX(smax(z9.VnS(), z9.VnS(), 126), "smax z9.s, z9.s, #126");
+  COMPARE_PREFIX(smax(z10.VnD(), z10.VnD(), -127), "smax z10.d, z10.d, #-127");
+
+  COMPARE_PREFIX(smin(z5.VnB(), z5.VnB(), 19), "smin z5.b, z5.b, #19");
+  COMPARE_PREFIX(smin(z6.VnH(), z6.VnH(), 125), "smin z6.h, z6.h, #125");
+  COMPARE_PREFIX(smin(z7.VnS(), z7.VnS(), -126), "smin z7.s, z7.s, #-126");
+  COMPARE_PREFIX(smin(z8.VnD(), z8.VnD(), -3), "smin z8.d, z8.d, #-3");
+
+  COMPARE_PREFIX(umax(z15.VnB(), z15.VnB(), 120), "umax z15.b, z15.b, #120");
+  COMPARE_PREFIX(umax(z16.VnH(), z16.VnH(), 135), "umax z16.h, z16.h, #135");
+  COMPARE_PREFIX(umax(z17.VnS(), z17.VnS(), 248), "umax z17.s, z17.s, #248");
+  COMPARE_PREFIX(umax(z18.VnD(), z18.VnD(), 24), "umax z18.d, z18.d, #24");
+
+  COMPARE_PREFIX(umin(z22.VnB(), z22.VnB(), 136), "umin z22.b, z22.b, #136");
+  COMPARE_PREFIX(umin(z23.VnH(), z23.VnH(), 247), "umin z23.h, z23.h, #247");
+  COMPARE_PREFIX(umin(z24.VnS(), z24.VnS(), 25), "umin z24.s, z24.s, #25");
+  COMPARE_PREFIX(umin(z25.VnD(), z25.VnD(), 119), "umin z25.d, z25.d, #119");
 
   CLEANUP();
+}
+
+TEST(sve_int_wide_imm_unpredicated_macro) {
+  SETUP();
+
+  // The MacroAssembler automatically generates movprfx where it can.
+  COMPARE_MACRO(Add(z12.VnB(), z13.VnB(), 0),
+                "movprfx z12, z13\n"
+                "add z12.b, z12.b, #0");
+  COMPARE_MACRO(Sqadd(z7.VnB(), z1.VnB(), 124),
+                "movprfx z7, z1\n"
+                "sqadd z7.b, z7.b, #124");
+  COMPARE_MACRO(Sqsub(z31.VnB(), z13.VnB(), 132),
+                "movprfx z31, z13\n"
+                "sqsub z31.b, z31.b, #132");
+  COMPARE_MACRO(Sub(z20.VnB(), 250, z2.VnB()),
+                "movprfx z20, z2\n"
+                "subr z20.b, z20.b, #250");
+  COMPARE_MACRO(Sub(z19.VnH(), z4.VnH(), 121),
+                "movprfx z19, z4\n"
+                "sub z19.h, z19.h, #121");
+  COMPARE_MACRO(Uqadd(z21.VnB(), z14.VnB(), 246),
+                "movprfx z21, z14\n"
+                "uqadd z21.b, z21.b, #246");
+  COMPARE_MACRO(Uqsub(z10.VnB(), z27.VnB(), 27),
+                "movprfx z10, z27\n"
+                "uqsub z10.b, z10.b, #27");
+  COMPARE_MACRO(Mul(z1.VnD(), z18.VnD(), 127),
+                "movprfx z1, z18\n"
+                "mul z1.d, z1.d, #127");
+  COMPARE_MACRO(Smax(z3.VnS(), z9.VnS(), 126),
+                "movprfx z3, z9\n"
+                "smax z3.s, z3.s, #126");
+  COMPARE_MACRO(Smin(z26.VnH(), z6.VnH(), 125),
+                "movprfx z26, z6\n"
+                "smin z26.h, z26.h, #125");
+  COMPARE_MACRO(Umax(z25.VnB(), z15.VnB(), 120),
+                "movprfx z25, z15\n"
+                "umax z25.b, z25.b, #120");
+  COMPARE_MACRO(Umin(z13.VnD(), z25.VnD(), 119),
+                "movprfx z13, z25\n"
+                "umin z13.d, z13.d, #119");
+  COMPARE_MACRO(Dup(z8.VnS(), -7654321),
+                "mov w16, #0x344f\n"
+                "movk w16, #0xff8b, lsl #16\n"
+                "dup z8.s, w16.s");
+  COMPARE_MACRO(Add(z13.VnH(), z13.VnH(), 0xffff),
+                "dup z31.h, #-1\n"
+                "add z13.h, z13.h, z31.h");
+
+  // The MacroAssembler automatically generates dup if an immediate isn't
+  // encodable, when it is out-of-range for example.
+  COMPARE_MACRO(Add(z15.VnD(), z20.VnD(), 1234567890),
+                "mov x16, #0x2d2\n"
+                "movk x16, #0x4996, lsl #16\n"
+                "dup z31.d, x16.d\n"
+                "add z15.d, z20.d, z31.d");
+  COMPARE_MACRO(Dup(z9.VnD(), 0x80000000), "dupm z9.d, #0x80000000");
+  COMPARE_MACRO(Sqadd(z9.VnS(), z10.VnS(), 0xaaaaaaaa),
+                "dupm z31.b, #0xaa\n"
+                "sqadd z9.s, z10.s, z31.s");
+  COMPARE_MACRO(Sqsub(z3.VnH(), z1.VnH(), 1188),
+                "mov w16, #0x4a4\n"
+                "dup z31.h, w16.h\n"
+                "sqsub z3.h, z1.h, z31.h");
+  COMPARE_MACRO(Sub(z22.VnS(), 256 * 256, z2.VnS()),
+                "dupm z31.s, #0x10000\n"
+                "sub z22.s, z31.s, z2.s");
+  COMPARE_MACRO(Sub(z21.VnD(), z11.VnD(), 111111111111),
+                "mov x16, #0x1c7\n"
+                "movk x16, #0xdebd, lsl #16\n"
+                "movk x16, #0x19, lsl #32\n"
+                "dup z31.d, x16.d\n"
+                "sub z21.d, z11.d, z31.d");
+  COMPARE_MACRO(Uqadd(z23.VnH(), z16.VnH(), 5566),
+                "mov w16, #0x15be\n"
+                "dup z31.h, w16.h\n"
+                "uqadd z23.h, z16.h, z31.h");
+  COMPARE_MACRO(Uqsub(z11.VnH(), z2.VnH(), 7788),
+                "mov w16, #0x1e6c\n"
+                "dup z31.h, w16.h\n"
+                "uqsub z11.h, z2.h, z31.h");
+  COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "dup z26.h, #0");
+  COMPARE_MACRO(Fdup(z27.VnS(), 255.0f),
+                "mov w16, #0x437f0000\n"
+                "dup z27.s, w16.s");
+  COMPARE_MACRO(Fdup(z28.VnD(), 12.3456),
+                "mov x16, #0xfec5\n"
+                "movk x16, #0x7bb2, lsl #16\n"
+                "movk x16, #0xb0f2, lsl #32\n"
+                "movk x16, #0x4028, lsl #48\n"
+                "dup z28.d, x16.d");
+
+  // Only predicated version of instruction is supported for unencodable
+  // immediate.
+  {
+    UseScratchRegisterScope temps(&masm);
+    temps.Include(p7, p15);
+    COMPARE_MACRO(Mul(z18.VnD(), z18.VnD(), -1270000000),
+                  "ptrue p7.d\n"
+                  "mov x16, #0xffffffffffff5680\n"
+                  "movk x16, #0xb44d, lsl #16\n"
+                  "dup z31.d, x16.d\n"
+                  "mul z18.d, p7/m, z18.d, z31.d");
+    COMPARE_MACRO(Smax(z9.VnS(), z11.VnS(), -0x70000001),
+                  "ptrue p7.s\n"
+                  "dupm z9.s, #0x8fffffff\n"
+                  "smax z9.s, p7/m, z9.s, z11.s");
+    COMPARE_MACRO(Smin(z6.VnH(), z6.VnH(), -0x7eef),
+                  "ptrue p7.h\n"
+                  "mov w16, #0xffff8111\n"
+                  "dup z31.h, w16.h\n"
+                  "smin z6.h, p7/m, z6.h, z31.h");
+    COMPARE_MACRO(Umax(z15.VnH(), z7.VnH(), 0xfeee),
+                  "ptrue p7.h\n"
+                  "mov w16, #0xfeee\n"
+                  "dup z15.h, w16.h\n"
+                  "umax z15.h, p7/m, z15.h, z7.h");
+    COMPARE_MACRO(Umin(z25.VnD(), z25.VnD(), 123123123),
+                  "ptrue p7.d\n"
+                  "mov x16, #0xb5b3\n"
+                  "movk x16, #0x756, lsl #16\n"
+                  "dup z31.d, x16.d\n"
+                  "umin z25.d, p7/m, z25.d, z31.d");
+  }
 }
 
 TEST(sve_mem_32bit_gather_and_unsized_contiguous) {

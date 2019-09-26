@@ -962,10 +962,9 @@ TEST_SVE(sve_dup_imm) {
   __ Dup(z3.VnB(), 42);
 
   // Encodable with `dup` (shift 8).
-  // TODO: Enable these once we have Simulator support.
-  // __ Dup(z4.VnD(), -42 * 256);
-  // __ Dup(z5.VnS(), -0x8000);
-  // __ Dup(z6.VnH(), 0x7f00);
+  __ Dup(z4.VnD(), -42 * 256);
+  __ Dup(z5.VnS(), -0x8000);
+  __ Dup(z6.VnH(), 0x7f00);
   // B-sized lanes cannot take a shift of 8.
 
   // Encodable with `dupm` (but not `dup`).
@@ -993,10 +992,9 @@ TEST_SVE(sve_dup_imm) {
     ASSERT_EQUAL_SVE(0xff80, z2.VnH());
     ASSERT_EQUAL_SVE(0x2a, z3.VnB());
 
-    // TODO: Enable these once we have Simulator support.
-    // ASSERT_EQUAL_SVE(0x0000000000003c00, z4.VnD());
-    // ASSERT_EQUAL_SVE(0xffff8000, z5.VnS());
-    // ASSERT_EQUAL_SVE(0x7f00, z6.VnH());
+    ASSERT_EQUAL_SVE(0xffffffffffffd600, z4.VnD());
+    ASSERT_EQUAL_SVE(0xffff8000, z5.VnS());
+    ASSERT_EQUAL_SVE(0x7f00, z6.VnH());
 
     ASSERT_EQUAL_SVE(0x00000000000003fc, z10.VnD());
     ASSERT_EQUAL_SVE(0xfff81fff, z11.VnS());
@@ -3750,10 +3748,10 @@ static void IntArithHelper(Test* config,
 
 TEST_SVE(sve_arithmetic_unpredicated_add_sqadd_uqadd) {
   // clang-format off
-  unsigned ins_b[] = {0x81, 0x7f, 0x10, 0xaa, 0x55, 0xff, 0xf0};
-  unsigned ins_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa, 0x5555, 0xffff, 0xf0f0};
-  unsigned ins_s[] = {0x80018181, 0x7fff7f7f, 0x10001010, 0xaaaaaaaa, 0xf000f0f0};
-  uint64_t ins_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f,
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xaa, 0x55, 0xff, 0xf0};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa, 0x5555, 0xffff, 0xf0f0};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0x10001010, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f,
                       0x1000000010001010, 0xf0000000f000f0f0};
 
   IntArithFn fn = &MacroAssembler::Add;
@@ -3764,10 +3762,10 @@ TEST_SVE(sve_arithmetic_unpredicated_add_sqadd_uqadd) {
   uint64_t add_exp_d[] = {0x0000000300030302, 0xfffffffefffefefe,
                           0x2000000020002020, 0xe0000001e001e1e0};
 
-  IntArithHelper(config, fn, kBRegSize, ins_b, ins_b, add_exp_b);
-  IntArithHelper(config, fn, kHRegSize, ins_h, ins_h, add_exp_h);
-  IntArithHelper(config, fn, kSRegSize, ins_s, ins_s, add_exp_s);
-  IntArithHelper(config, fn, kDRegSize, ins_d, ins_d, add_exp_d);
+  IntArithHelper(config, fn, kBRegSize, in_b, in_b, add_exp_b);
+  IntArithHelper(config, fn, kHRegSize, in_h, in_h, add_exp_h);
+  IntArithHelper(config, fn, kSRegSize, in_s, in_s, add_exp_s);
+  IntArithHelper(config, fn, kDRegSize, in_d, in_d, add_exp_d);
 
   fn = &MacroAssembler::Sqadd;
 
@@ -3777,10 +3775,10 @@ TEST_SVE(sve_arithmetic_unpredicated_add_sqadd_uqadd) {
   uint64_t sqadd_exp_d[] = {0x8000000000000000, 0x7fffffffffffffff,
                             0x2000000020002020, 0xe0000001e001e1e0};
 
-  IntArithHelper(config, fn, kBRegSize, ins_b, ins_b, sqadd_exp_b);
-  IntArithHelper(config, fn, kHRegSize, ins_h, ins_h, sqadd_exp_h);
-  IntArithHelper(config, fn, kSRegSize, ins_s, ins_s, sqadd_exp_s);
-  IntArithHelper(config, fn, kDRegSize, ins_d, ins_d, sqadd_exp_d);
+  IntArithHelper(config, fn, kBRegSize, in_b, in_b, sqadd_exp_b);
+  IntArithHelper(config, fn, kHRegSize, in_h, in_h, sqadd_exp_h);
+  IntArithHelper(config, fn, kSRegSize, in_s, in_s, sqadd_exp_s);
+  IntArithHelper(config, fn, kDRegSize, in_d, in_d, sqadd_exp_d);
 
   fn = &MacroAssembler::Uqadd;
 
@@ -3790,10 +3788,10 @@ TEST_SVE(sve_arithmetic_unpredicated_add_sqadd_uqadd) {
   uint64_t uqadd_exp_d[] = {0xffffffffffffffff, 0xfffffffefffefefe,
                             0x2000000020002020, 0xffffffffffffffff};
 
-  IntArithHelper(config, fn, kBRegSize, ins_b, ins_b, uqadd_exp_b);
-  IntArithHelper(config, fn, kHRegSize, ins_h, ins_h, uqadd_exp_h);
-  IntArithHelper(config, fn, kSRegSize, ins_s, ins_s, uqadd_exp_s);
-  IntArithHelper(config, fn, kDRegSize, ins_d, ins_d, uqadd_exp_d);
+  IntArithHelper(config, fn, kBRegSize, in_b, in_b, uqadd_exp_b);
+  IntArithHelper(config, fn, kHRegSize, in_h, in_h, uqadd_exp_h);
+  IntArithHelper(config, fn, kSRegSize, in_s, in_s, uqadd_exp_s);
+  IntArithHelper(config, fn, kDRegSize, in_d, in_d, uqadd_exp_d);
   // clang-format on
 }
 
@@ -4552,7 +4550,7 @@ TEST_SVE(sve_cnot_not) {
   // We use a mixture of constructive and destructive operations.
 
   InsrHelper(&masm, z31.VnD(), in);
-  // Make a copy so we can check that constructions operations preserve zn.
+  // Make a copy so we can check that constructive operations preserve zn.
   __ Mov(z30, z31);
 
   // For constructive operations, use a different initial result value.
@@ -4660,7 +4658,7 @@ TEST_SVE(sve_fabs_fneg) {
   // We use a mixture of constructive and destructive operations.
 
   InsrHelper(&masm, z31.VnD(), in);
-  // Make a copy so we can check that constructions operations preserve zn.
+  // Make a copy so we can check that constructive operations preserve zn.
   __ Mov(z30, z31);
 
   // For constructive operations, use a different initial result value.
@@ -4748,7 +4746,7 @@ TEST_SVE(sve_cls_clz_cnt) {
   // We use a mixture of constructive and destructive operations.
 
   InsrHelper(&masm, z31.VnD(), in);
-  // Make a copy so we can check that constructions operations preserve zn.
+  // Make a copy so we can check that constructive operations preserve zn.
   __ Mov(z30, z31);
 
   // For constructive operations, use a different initial result value.
@@ -4830,7 +4828,7 @@ TEST_SVE(sve_sxt) {
   // We use a mixture of constructive and destructive operations.
 
   InsrHelper(&masm, z31.VnD(), in);
-  // Make a copy so we can check that constructions operations preserve zn.
+  // Make a copy so we can check that constructive operations preserve zn.
   __ Mov(z30, z31);
 
   // For constructive operations, use a different initial result value.
@@ -4916,7 +4914,7 @@ TEST_SVE(sve_uxt) {
   // We use a mixture of constructive and destructive operations.
 
   InsrHelper(&masm, z31.VnD(), in);
-  // Make a copy so we can check that constructions operations preserve zn.
+  // Make a copy so we can check that constructive operations preserve zn.
   __ Mov(z30, z31);
 
   // For constructive operations, use a different initial result value.
@@ -5001,7 +4999,7 @@ TEST_SVE(sve_abs_neg) {
   // We use a mixture of constructive and destructive operations.
 
   InsrHelper(&masm, z31.VnD(), in);
-  // Make a copy so we can check that constructions operations preserve zn.
+  // Make a copy so we can check that constructive operations preserve zn.
   __ Mov(z30, z31);
 
   // For constructive operations, use a different initial result value.
@@ -5524,6 +5522,534 @@ TEST_SVE(sve_ld1_st1_contiguous) {
     delete[] expected;
   }
   delete[] data;
+}
+
+typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,
+                                             const ZRegister& zn,
+                                             const IntegerOperand imm);
+
+template <typename F, typename Td, typename Tn>
+static void IntWideImmHelper(Test* config,
+                             F macro,
+                             unsigned lane_size_in_bits,
+                             const Tn& zn_inputs,
+                             IntegerOperand imm,
+                             const Td& zd_expected) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zd1 = z0.WithLaneSize(lane_size_in_bits);
+  InsrHelper(&masm, zd1, zn_inputs);
+
+  // Also test with a different zn, to test the movprfx case.
+  ZRegister zn = z1.WithLaneSize(lane_size_in_bits);
+  InsrHelper(&masm, zn, zn_inputs);
+  ZRegister zd2 = z2.WithLaneSize(lane_size_in_bits);
+  ZRegister zn_copy = z3.WithSameLaneSizeAs(zn);
+
+  // Make a copy so we can check that constructive operations preserve zn.
+  __ Mov(zn_copy, zn);
+
+  {
+    UseScratchRegisterScope temps(&masm);
+    // The MacroAssembler needs a P scratch register for some of these macros,
+    // and it doesn't have one by default.
+    temps.Include(p3);
+
+    (masm.*macro)(zd1, zd1, imm);
+    (masm.*macro)(zd2, zn, imm);
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zd_expected, zd1);
+
+    // Check the result from `instr` with movprfx is the same as
+    // the immediate version.
+    ASSERT_EQUAL_SVE(zd_expected, zd2);
+
+    ASSERT_EQUAL_SVE(zn_copy, zn);
+  }
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_smax) {
+  int in_b[] = {0, -128, 127, -127, 126, 1, -1, 55};
+  int in_h[] = {0, -128, 127, INT16_MIN, INT16_MAX, 1, -1, 5555};
+  int in_s[] = {0, -128, 127, INT32_MIN, INT32_MAX, 1, -1, 555555};
+  int64_t in_d[] = {1, 10, 10000, 1000000};
+
+  IntWideImmFn fn = &MacroAssembler::Smax;
+
+  int exp_b_1[] = {0, -1, 127, -1, 126, 1, -1, 55};
+  int exp_h_1[] = {127, 127, 127, 127, INT16_MAX, 127, 127, 5555};
+  int exp_s_1[] = {0, -128, 127, -128, INT32_MAX, 1, -1, 555555};
+  int64_t exp_d_1[] = {99, 99, 10000, 1000000};
+
+  IntWideImmHelper(config, fn, kBRegSize, in_b, -1, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 127, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, -128, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 99, exp_d_1);
+
+  int exp_h_2[] = {0, -128, 127, -255, INT16_MAX, 1, -1, 5555};
+  int exp_s_2[] = {2048, 2048, 2048, 2048, INT32_MAX, 2048, 2048, 555555};
+  int64_t exp_d_2[] = {INT16_MAX, INT16_MAX, INT16_MAX, 1000000};
+
+  // The immediate is in the range [-128, 127], but the macro is able to
+  // synthesise unencodable immediates.
+  // B-sized lanes cannot take an immediate out of the range [-128, 127].
+  IntWideImmHelper(config, fn, kHRegSize, in_h, -255, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 2048, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, INT16_MAX, exp_d_2);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_smin) {
+  int in_b[] = {0, -128, 127, -127, 126, 1, -1, 55};
+  int in_h[] = {0, -128, 127, INT16_MIN, INT16_MAX, 1, -1, 5555};
+  int in_s[] = {0, -128, 127, INT32_MIN, INT32_MAX, 1, -1, 555555};
+  int64_t in_d[] = {1, 10, 10000, 1000000};
+
+  IntWideImmFn fn = &MacroAssembler::Smin;
+
+  int exp_b_1[] = {-1, -128, -1, -127, -1, -1, -1, -1};
+  int exp_h_1[] = {0, -128, 127, INT16_MIN, 127, 1, -1, 127};
+  int exp_s_1[] = {-128, -128, -128, INT32_MIN, -128, -128, -128, -128};
+  int64_t exp_d_1[] = {1, 10, 99, 99};
+
+  IntWideImmHelper(config, fn, kBRegSize, in_b, -1, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 127, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, -128, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 99, exp_d_1);
+
+  int exp_h_2[] = {-255, -255, -255, INT16_MIN, -255, -255, -255, -255};
+  int exp_s_2[] = {0, -128, 127, INT32_MIN, 2048, 1, -1, 2048};
+  int64_t exp_d_2[] = {1, 10, 10000, INT16_MAX};
+
+  // The immediate is in the range [-128, 127], but the macro is able to
+  // synthesise unencodable immediates.
+  // B-sized lanes cannot take an immediate out of the range [-128, 127].
+  IntWideImmHelper(config, fn, kHRegSize, in_h, -255, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 2048, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, INT16_MAX, exp_d_2);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_umax) {
+  int in_b[] = {0, 255, 127, 0x80, 1, 55};
+  int in_h[] = {0, 255, 127, INT16_MAX, 1, 5555};
+  int in_s[] = {0, 0xff, 0x7f, INT32_MAX, 1, 555555};
+  int64_t in_d[] = {1, 10, 10000, 1000000};
+
+  IntWideImmFn fn = &MacroAssembler::Umax;
+
+  int exp_b_1[] = {17, 255, 127, 0x80, 17, 55};
+  int exp_h_1[] = {127, 255, 127, INT16_MAX, 127, 5555};
+  int exp_s_1[] = {255, 255, 255, INT32_MAX, 255, 555555};
+  int64_t exp_d_1[] = {99, 99, 10000, 1000000};
+
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 17, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 0x7f, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 0xff, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 99, exp_d_1);
+
+  int exp_h_2[] = {511, 511, 511, INT16_MAX, 511, 5555};
+  int exp_s_2[] = {2048, 2048, 2048, INT32_MAX, 2048, 555555};
+  int64_t exp_d_2[] = {INT16_MAX, INT16_MAX, INT16_MAX, 1000000};
+
+  // The immediate is in the range [0, 255], but the macro is able to
+  // synthesise unencodable immediates.
+  // B-sized lanes cannot take an immediate out of the range [0, 255].
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 511, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 2048, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, INT16_MAX, exp_d_2);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_umin) {
+  int in_b[] = {0, 255, 127, 0x80, 1, 55};
+  int in_h[] = {0, 255, 127, INT16_MAX, 1, 5555};
+  int in_s[] = {0, 0xff, 0x7f, INT32_MAX, 1, 555555};
+  int64_t in_d[] = {1, 10, 10000, 1000000};
+
+  IntWideImmFn fn = &MacroAssembler::Umin;
+
+  int exp_b_1[] = {0, 17, 17, 17, 1, 17};
+  int exp_h_1[] = {0, 127, 127, 127, 1, 127};
+  int exp_s_1[] = {0, 255, 127, 255, 1, 255};
+  int64_t exp_d_1[] = {1, 10, 99, 99};
+
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 17, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 0x7f, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 255, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 99, exp_d_1);
+
+  int exp_h_2[] = {0, 255, 127, 511, 1, 511};
+  int exp_s_2[] = {0, 255, 127, 2048, 1, 2048};
+  int64_t exp_d_2[] = {1, 10, 10000, INT16_MAX};
+
+  // The immediate is in the range [0, 255], but the macro is able to
+  // synthesise unencodable immediates.
+  // B-sized lanes cannot take an immediate out of the range [0, 255].
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 511, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 2048, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, INT16_MAX, exp_d_2);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_mul) {
+  int in_b[] = {11, -1, 7, -3};
+  int in_h[] = {111, -1, 17, -123};
+  int in_s[] = {11111, -1, 117, -12345};
+  int64_t in_d[] = {0x7fffffff, 0x80000000};
+
+  IntWideImmFn fn = &MacroAssembler::Mul;
+
+  int exp_b_1[] = {66, -6, 42, -18};
+  int exp_h_1[] = {-14208, 128, -2176, 15744};
+  int exp_s_1[] = {11111 * 127, -127, 117 * 127, -12345 * 127};
+  int64_t exp_d_1[] = {0xfffffffe, 0x100000000};
+
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 6, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, -128, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 2, exp_d_1);
+
+  int exp_h_2[] = {-28305, 255, -4335, 31365};
+  int exp_s_2[] = {22755328, -2048, 239616, -25282560};
+  int64_t exp_d_2[] = {0x00000063ffffff38, 0x0000006400000000};
+
+  // The immediate is in the range [-128, 127], but the macro is able to
+  // synthesise unencodable immediates.
+  // B-sized lanes cannot take an immediate out of the range [0, 255].
+  IntWideImmHelper(config, fn, kHRegSize, in_h, -255, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 2048, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 200, exp_d_2);
+
+  // Integer overflow on multiplication.
+  unsigned exp_b_3[] = {0x75, 0x81, 0x79, 0x83};
+
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x7f, exp_b_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_add) {
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xff};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f};
+
+  IntWideImmFn fn = &MacroAssembler::Add;
+
+  unsigned exp_b_1[] = {0x02, 0x00, 0x91, 0x80};
+  unsigned exp_h_1[] = {0x8191, 0x7f8f, 0x1020, 0xaaba};
+  unsigned exp_s_1[] = {0x80018200, 0x7fff7ffe, 0xaaaaab29, 0xf000f16f};
+  uint64_t exp_d_1[] = {0x8000000180018280, 0x7fffffff7fff807e};
+
+  // Encodable with `add` (shift 0).
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+
+  unsigned exp_h_2[] = {0x9181, 0x8f7f, 0x2010, 0xbaaa};
+  unsigned exp_s_2[] = {0x80020081, 0x7ffffe7f, 0xaaab29aa, 0xf0016ff0};
+  uint64_t exp_d_2[] = {0x8000000180028081, 0x7fffffff80007e7f};
+
+  // Encodable with `add` (shift 8).
+  // B-sized lanes cannot take a shift of 8.
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
+
+  unsigned exp_s_3[] = {0x80808181, 0x807e7f7f, 0xab29aaaa, 0xf07ff0f0};
+
+  // The macro is able to synthesise unencodable immediates.
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_sqadd) {
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xff};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f};
+
+  IntWideImmFn fn = &MacroAssembler::Sqadd;
+
+  unsigned exp_b_1[] = {0x80, 0x00, 0x91, 0x80};
+  unsigned exp_h_1[] = {0x8191, 0x7f8f, 0x1020, 0xaaba};
+  unsigned exp_s_1[] = {0x80018200, 0x7fff7ffe, 0xaaaaab29, 0xf000f16f};
+  uint64_t exp_d_1[] = {0x8000000180018280, 0x7fffffff7fff807e};
+
+  // Encodable with `sqadd` (shift 0).
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+
+  unsigned exp_h_2[] = {0x9181, 0x7fff, 0x2010, 0xbaaa};
+  unsigned exp_s_2[] = {0x80020081, 0x7ffffe7f, 0xaaab29aa, 0xf0016ff0};
+  uint64_t exp_d_2[] = {0x8000000180028081, 0x7fffffff80007e7f};
+
+  // Encodable with `sqadd` (shift 8).
+  // B-sized lanes cannot take a shift of 8.
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
+
+  unsigned exp_s_3[] = {0x80808181, 0x7fffffff, 0xab29aaaa, 0xf07ff0f0};
+
+  // The macro is able to synthesise unencodable immediates.
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_uqadd) {
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xff};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f};
+
+  IntWideImmFn fn = &MacroAssembler::Uqadd;
+
+  unsigned exp_b_1[] = {0xff, 0xff, 0x91, 0xff};
+  unsigned exp_h_1[] = {0x8191, 0x7f8f, 0x1020, 0xaaba};
+  unsigned exp_s_1[] = {0x80018200, 0x7fff7ffe, 0xaaaaab29, 0xf000f16f};
+  uint64_t exp_d_1[] = {0x8000000180018280, 0x7fffffff7fff807e};
+
+  // Encodable with `uqadd` (shift 0).
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+
+  unsigned exp_h_2[] = {0x9181, 0x8f7f, 0x2010, 0xbaaa};
+  unsigned exp_s_2[] = {0x80020081, 0x7ffffe7f, 0xaaab29aa, 0xf0016ff0};
+  uint64_t exp_d_2[] = {0x8000000180028081, 0x7fffffff80007e7f};
+
+  // Encodable with `uqadd` (shift 8).
+  // B-sized lanes cannot take a shift of 8.
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
+
+  unsigned exp_s_3[] = {0x80808181, 0x807e7f7f, 0xab29aaaa, 0xf07ff0f0};
+
+  // The macro is able to synthesise unencodable immediates.
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_sub) {
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xff};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f};
+
+  IntWideImmFn fn = &MacroAssembler::Sub;
+
+  unsigned exp_b_1[] = {0x00, 0xfe, 0x8f, 0x7e};
+  unsigned exp_h_1[] = {0x8171, 0x7f6f, 0x1000, 0xaa9a};
+  unsigned exp_s_1[] = {0x80018102, 0x7fff7f00, 0xaaaaaa2b, 0xf000f071};
+  uint64_t exp_d_1[] = {0x8000000180018082, 0x7fffffff7fff7e80};
+
+  // Encodable with `sub` (shift 0).
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+
+  unsigned exp_h_2[] = {0x7181, 0x6f7f, 0x0010, 0x9aaa};
+  unsigned exp_s_2[] = {0x80010281, 0x7fff007f, 0xaaaa2baa, 0xf00071f0};
+  uint64_t exp_d_2[] = {0x8000000180008281, 0x7fffffff7ffe807f};
+
+  // Encodable with `sub` (shift 8).
+  // B-sized lanes cannot take a shift of 8.
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
+
+  unsigned exp_s_3[] = {0x7f828181, 0x7f807f7f, 0xaa2baaaa, 0xef81f0f0};
+
+  // The macro is able to synthesise unencodable immediates.
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_sqsub) {
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xff};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f};
+
+  IntWideImmFn fn = &MacroAssembler::Sqsub;
+
+  unsigned exp_b_1[] = {0x00, 0x7f, 0x7f, 0x7e};
+  unsigned exp_h_1[] = {0x8171, 0x7f6f, 0x1000, 0xaa9a};
+  unsigned exp_s_1[] = {0x80018102, 0x7fff7f00, 0xaaaaaa2b, 0xf000f071};
+  uint64_t exp_d_1[] = {0x8000000180018082, 0x7fffffff7fff7e80};
+
+  // Encodable with `sqsub` (shift 0).
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+
+  unsigned exp_h_2[] = {0x8000, 0x6f7f, 0x0010, 0x9aaa};
+  unsigned exp_s_2[] = {0x80010281, 0x7fff007f, 0xaaaa2baa, 0xf00071f0};
+  uint64_t exp_d_2[] = {0x8000000180008281, 0x7fffffff7ffe807f};
+
+  // Encodable with `sqsub` (shift 8).
+  // B-sized lanes cannot take a shift of 8.
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
+
+  unsigned exp_s_3[] = {0x80000000, 0x7f807f7f, 0xaa2baaaa, 0xef81f0f0};
+
+  // The macro is able to synthesise unencodable immediates.
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_uqsub) {
+  unsigned in_b[] = {0x81, 0x7f, 0x10, 0xff};
+  unsigned in_h[] = {0x8181, 0x7f7f, 0x1010, 0xaaaa};
+  unsigned in_s[] = {0x80018181, 0x7fff7f7f, 0xaaaaaaaa, 0xf000f0f0};
+  uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f};
+
+  IntWideImmFn fn = &MacroAssembler::Uqsub;
+
+  unsigned exp_b_1[] = {0x00, 0x00, 0x00, 0x7e};
+  unsigned exp_h_1[] = {0x8171, 0x7f6f, 0x1000, 0xaa9a};
+  unsigned exp_s_1[] = {0x80018102, 0x7fff7f00, 0xaaaaaa2b, 0xf000f071};
+  uint64_t exp_d_1[] = {0x8000000180018082, 0x7fffffff7fff7e80};
+
+  // Encodable with `uqsub` (shift 0).
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+
+  unsigned exp_h_2[] = {0x7181, 0x6f7f, 0x0010, 0x9aaa};
+  unsigned exp_s_2[] = {0x80010281, 0x7fff007f, 0xaaaa2baa, 0xf00071f0};
+  uint64_t exp_d_2[] = {0x8000000180008281, 0x7fffffff7ffe807f};
+
+  // Encodable with `uqsub` (shift 8).
+  // B-sized lanes cannot take a shift of 8.
+  IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
+
+  unsigned exp_s_3[] = {0x7f828181, 0x7f807f7f, 0xaa2baaaa, 0xef81f0f0};
+
+  // The macro is able to synthesise unencodable immediates.
+  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_subr) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Encodable with `subr` (shift 0).
+  __ Index(z0.VnD(), 1, 1);
+  __ Sub(z0.VnD(), 100, z0.VnD());
+  __ Index(z1.VnS(), 0x7f, 1);
+  __ Sub(z1.VnS(), 0xf7, z1.VnS());
+  __ Index(z2.VnH(), 0xaaaa, 0x2222);
+  __ Sub(z2.VnH(), 0x80, z2.VnH());
+  __ Index(z3.VnB(), 133, 1);
+  __ Sub(z3.VnB(), 255, z3.VnB());
+
+  // Encodable with `subr` (shift 8).
+  __ Index(z4.VnD(), 256, -1);
+  __ Sub(z4.VnD(), 42 * 256, z4.VnD());
+  __ Index(z5.VnS(), 0x7878, 1);
+  __ Sub(z5.VnS(), 0x8000, z5.VnS());
+  __ Index(z6.VnH(), 0x30f0, -1);
+  __ Sub(z6.VnH(), 0x7f00, z6.VnH());
+  // B-sized lanes cannot take a shift of 8.
+
+  // Select with movprfx.
+  __ Index(z31.VnD(), 256, 4001);
+  __ Sub(z7.VnD(), 42 * 256, z31.VnD());
+
+  // Out of immediate encodable range of `sub`.
+  __ Index(z30.VnS(), 0x11223344, 1);
+  __ Sub(z8.VnS(), 0x88776655, z30.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int expected_z0[] = {87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    int expected_z1[] = {0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnS());
+
+    int expected_z2[] = {0xab2c, 0xcd4e, 0xef70, 0x1192, 0x33b4, 0x55d6};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnH());
+
+    int expected_z3[] = {0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnB());
+
+    int expected_z4[] = {10502, 10501, 10500, 10499, 10498, 10497, 10496};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    int expected_z5[] = {0x0783, 0x0784, 0x0785, 0x0786, 0x0787, 0x0788};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnS());
+
+    int expected_z6[] = {0x4e15, 0x4e14, 0x4e13, 0x4e12, 0x4e11, 0x4e10};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnH());
+
+    int expected_z7[] = {-13510, -9509, -5508, -1507, 2494, 6495, 10496};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+
+    int expected_z8[] = {0x7755330e, 0x7755330f, 0x77553310, 0x77553311};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnS());
+  }
+}
+
+TEST_SVE(sve_int_wide_imm_unpredicated_fdup) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Immediates which can be encoded in the instructions.
+  __ Fdup(z0.VnH(), RawbitsToFloat16(0xc500));
+  __ Fdup(z1.VnS(), Float16(2.0));
+  __ Fdup(z2.VnD(), Float16(3.875));
+  __ Fdup(z3.VnH(), 8.0f);
+  __ Fdup(z4.VnS(), -4.75f);
+  __ Fdup(z5.VnD(), 0.5f);
+  __ Fdup(z6.VnH(), 1.0);
+  __ Fdup(z7.VnS(), 2.125);
+  __ Fdup(z8.VnD(), -13.0);
+
+  // Immediates which cannot be encoded in the instructions.
+  __ Fdup(z10.VnH(), Float16(0.0));
+  __ Fdup(z11.VnH(), kFP16PositiveInfinity);
+  __ Fdup(z12.VnS(), 255.0f);
+  __ Fdup(z13.VnS(), kFP32NegativeInfinity);
+  __ Fdup(z14.VnD(), 12.3456);
+  __ Fdup(z15.VnD(), kFP64PositiveInfinity);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(0xc500, z0.VnH());
+    ASSERT_EQUAL_SVE(0x40000000, z1.VnS());
+    ASSERT_EQUAL_SVE(0x400f000000000000, z2.VnD());
+    ASSERT_EQUAL_SVE(0x4800, z3.VnH());
+    ASSERT_EQUAL_SVE(FloatToRawbits(-4.75f), z4.VnS());
+    ASSERT_EQUAL_SVE(DoubleToRawbits(0.5), z5.VnD());
+    ASSERT_EQUAL_SVE(0x3c00, z6.VnH());
+    ASSERT_EQUAL_SVE(FloatToRawbits(2.125f), z7.VnS());
+    ASSERT_EQUAL_SVE(DoubleToRawbits(-13.0), z8.VnD());
+
+    ASSERT_EQUAL_SVE(0x0000, z10.VnH());
+    ASSERT_EQUAL_SVE(Float16ToRawbits(kFP16PositiveInfinity), z11.VnH());
+    ASSERT_EQUAL_SVE(FloatToRawbits(255.0), z12.VnS());
+    ASSERT_EQUAL_SVE(FloatToRawbits(kFP32NegativeInfinity), z13.VnS());
+    ASSERT_EQUAL_SVE(DoubleToRawbits(12.3456), z14.VnD());
+    ASSERT_EQUAL_SVE(DoubleToRawbits(kFP64PositiveInfinity), z15.VnD());
+  }
 }
 
 }  // namespace aarch64

@@ -29,6 +29,114 @@
 namespace vixl {
 namespace aarch64 {
 
+void MacroAssembler::IntWideImmShiftHelper(IntWideImmShiftFn imm_fn,
+                                           IntArithFn reg_fn,
+                                           const ZRegister& zd,
+                                           const ZRegister& zn,
+                                           IntegerOperand imm) {
+  // TODO: Convert Add(..., -imm) to Sub(..., imm), and so on.
+  int imm8;
+  int shift = -1;
+  if (imm.TryEncodeAsShiftedUintNForLane<8, 0>(zd, &imm8, &shift) ||
+      imm.TryEncodeAsShiftedUintNForLane<8, 8>(zd, &imm8, &shift)) {
+    // E.g. ADD_z_zi, SUB_z_zi
+    MovprfxHelperScope guard(this, zd, zn);
+    (this->*imm_fn)(zd, zd, imm8, shift);
+  } else {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits());
+    Dup(scratch, imm);
+
+    SingleEmissionCheckScope guard(this);
+    (this->*reg_fn)(zd, zn, scratch);
+  }
+}
+
+void MacroAssembler::IntWideImmHelper(IntWideImmFn imm_fn,
+                                      IntArithPredicatedFn reg_macro,
+                                      const ZRegister& zd,
+                                      const ZRegister& zn,
+                                      IntegerOperand imm,
+                                      bool is_signed) {
+  if (is_signed) {
+    // E.g. MUL_z_zi, SMIN_z_zi, SMAX_z_zi
+    if (imm.IsIntN(8)) {
+      MovprfxHelperScope guard(this, zd, zn);
+      (this->*imm_fn)(zd, zd, imm.AsInt8());
+      return;
+    }
+  } else {
+    // E.g. UMIN_z_zi, UMAX_z_zi
+    if (imm.IsUintN(8)) {
+      MovprfxHelperScope guard(this, zd, zn);
+      (this->*imm_fn)(zd, zd, imm.AsUint8());
+      return;
+    }
+  }
+
+  UseScratchRegisterScope temps(this);
+  PRegister pg = temps.AcquireGoverningP();
+  Ptrue(pg.WithSameLaneSizeAs(zd));
+
+  // Try to re-use zd if we can, so we can avoid a movprfx.
+  ZRegister scratch =
+      zd.Aliases(zn) ? temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits())
+                     : zd;
+  Dup(scratch, imm);
+
+  // The vector-form macro for commutative operations will swap the arguments to
+  // avoid movprfx, if necessary.
+  (this->*reg_macro)(zd, pg.Merging(), zn, scratch);
+}
+
+void MacroAssembler::Mul(const ZRegister& zd,
+                         const ZRegister& zn,
+                         IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  IntWideImmFn imm_fn = &Assembler::mul;
+  IntArithPredicatedFn reg_fn = &MacroAssembler::Mul;
+  IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
+}
+
+void MacroAssembler::Smin(const ZRegister& zd,
+                          const ZRegister& zn,
+                          IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInSignedLane(zd));
+  IntWideImmFn imm_fn = &Assembler::smin;
+  IntArithPredicatedFn reg_fn = &MacroAssembler::Smin;
+  IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
+}
+
+void MacroAssembler::Smax(const ZRegister& zd,
+                          const ZRegister& zn,
+                          IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInSignedLane(zd));
+  IntWideImmFn imm_fn = &Assembler::smax;
+  IntArithPredicatedFn reg_fn = &MacroAssembler::Smax;
+  IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
+}
+
+void MacroAssembler::Umax(const ZRegister& zd,
+                          const ZRegister& zn,
+                          IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInUnsignedLane(zd));
+  IntWideImmFn imm_fn = &Assembler::umax;
+  IntArithPredicatedFn reg_fn = &MacroAssembler::Umax;
+  IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, false);
+}
+
+void MacroAssembler::Umin(const ZRegister& zd,
+                          const ZRegister& zn,
+                          IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInUnsignedLane(zd));
+  IntWideImmFn imm_fn = &Assembler::umin;
+  IntArithPredicatedFn reg_fn = &MacroAssembler::Umin;
+  IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, false);
+}
 
 void MacroAssembler::Addpl(const Register& xd,
                            const Register& xn,
@@ -214,6 +322,69 @@ void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
 
     SingleEmissionCheckScope guard(this);
     dup(zd, scratch);
+  }
+}
+
+void MacroAssembler::Fdup(const ZRegister& zd, double imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+
+  switch (zd.GetLaneSizeInBits()) {
+    case kHRegSize:
+      Fdup(zd, Float16(imm));
+      break;
+    case kSRegSize:
+      Fdup(zd, static_cast<float>(imm));
+      break;
+    case kDRegSize:
+      if (IsImmFP64(imm)) {
+        SingleEmissionCheckScope guard(this);
+        fdup(zd, imm);
+      } else {
+        Dup(zd, DoubleToRawbits(imm));
+      }
+      break;
+  }
+}
+
+void MacroAssembler::Fdup(const ZRegister& zd, float imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+
+  switch (zd.GetLaneSizeInBits()) {
+    case kHRegSize:
+      Fdup(zd, Float16(imm));
+      break;
+    case kSRegSize:
+      if (IsImmFP32(imm)) {
+        SingleEmissionCheckScope guard(this);
+        fdup(zd, imm);
+      } else {
+        Dup(zd, FloatToRawbits(imm));
+      }
+      break;
+    case kDRegSize:
+      Fdup(zd, static_cast<double>(imm));
+      break;
+  }
+}
+
+void MacroAssembler::Fdup(const ZRegister& zd, Float16 imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+
+  switch (zd.GetLaneSizeInBits()) {
+    case kHRegSize:
+      if (IsImmFP16(imm)) {
+        SingleEmissionCheckScope guard(this);
+        fdup(zd, imm);
+      } else {
+        Dup(zd, Float16ToRawbits(imm));
+      }
+      break;
+    case kSRegSize:
+      Fdup(zd, FPToFloat(imm, kIgnoreDefaultNaN));
+      break;
+    case kDRegSize:
+      Fdup(zd, FPToDouble(imm, kIgnoreDefaultNaN));
+      break;
   }
 }
 
@@ -419,24 +590,6 @@ void MacroAssembler::Ptrue(const PRegisterWithLaneSize& pd,
   VIXL_UNREACHABLE();
 }
 
-void MacroAssembler::Sub(const ZRegister& zd,
-                         const PRegisterM& pg,
-                         const ZRegister& zn,
-                         const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(zn)) {
-    SingleEmissionCheckScope guard(this);
-    sub(zd, pg, zn, zm);
-  } else if (zd.Aliases(zm)) {
-    SingleEmissionCheckScope guard(this);
-    subr(zd, pg, zm, zn);
-  } else {
-    ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    movprfx(zd, pg, zn);
-    sub(zd, pg, zd, zm);
-  }
-}
-
 void MacroAssembler::Sdiv(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& zn,
@@ -458,6 +611,48 @@ void MacroAssembler::Sdiv(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::Sub(const ZRegister& zd,
+                         IntegerOperand imm,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+
+  int imm8;
+  int shift = -1;
+  if (imm.TryEncodeAsShiftedUintNForLane<8, 0>(zd, &imm8, &shift) ||
+      imm.TryEncodeAsShiftedUintNForLane<8, 8>(zd, &imm8, &shift)) {
+    MovprfxHelperScope guard(this, zd, zm);
+    subr(zd, zd, imm8, shift);
+  } else {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithLaneSize(zm.GetLaneSizeInBits());
+    Dup(scratch, imm);
+
+    SingleEmissionCheckScope guard(this);
+    sub(zd, scratch, zm);
+  }
+}
+
+void MacroAssembler::Sub(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zn)) {
+    // zd = zd - zm
+    SingleEmissionCheckScope guard(this);
+    sub(zd, pg, zn, zm);
+  } else if (zd.Aliases(zm)) {
+    // zd = zn - zd
+    SingleEmissionCheckScope guard(this);
+    subr(zd, pg, zm, zn);
+  } else {
+    // zd = zn - zm
+    ExactAssemblyScope guard(this, 2 * kInstructionSize);
+    movprfx(zd, pg, zn);
+    sub(zd, pg, zd, zm);
+  }
+}
+
 void MacroAssembler::Udiv(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& zn,
@@ -476,26 +671,6 @@ void MacroAssembler::Udiv(const ZRegister& zd,
     ExactAssemblyScope guard(this, 2 * kInstructionSize);
     movprfx(zd, pg, zn);
     udiv(zd, pg, zd, zm);
-  }
-}
-
-void MacroAssembler::Mul(const ZRegister& zd,
-                         const ZRegister& zn,
-                         IntegerOperand imm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  int imm8;
-  if (imm.TryEncodeAsIntNForLane<8>(zn, &imm8)) {
-    SingleEmissionCheckScope guard(this);
-    mul(zd, zn, imm8);
-  } else {
-    Dup(zd, imm);
-
-    ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    UseScratchRegisterScope temps(this);
-    PRegisterWithLaneSize pg =
-        temps.AcquireP().WithLaneSize(zn.GetLaneSizeInBits());
-    ptrue(pg, SVE_ALL);
-    mul(zd, pg.Merging(), zd, zn);
   }
 }
 

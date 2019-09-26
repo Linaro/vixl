@@ -3838,7 +3838,32 @@ void Assembler::fcpy(const ZRegister& zd, const PRegisterM& pg) {
 
 // SVEIntWideImmUnpredicated.
 
-void Assembler::add(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::SVEIntWideImmUnpredicatedHelper(SVEIntWideImmUnpredicatedOp op,
+                                                const ZRegister& zd,
+                                                int imm8,
+                                                int shift) {
+  if (shift < 0) {
+    VIXL_ASSERT(shift == -1);
+    // Derive the shift amount from the immediate.
+    if (IsUint8(imm8)) {
+      shift = 0;
+    } else if (IsUint16(imm8) && ((imm8 % 256) == 0)) {
+      imm8 /= 256;
+      shift = 8;
+    }
+  }
+
+  VIXL_ASSERT(IsUint8(imm8));
+  VIXL_ASSERT((shift == 0) || (shift == 8));
+
+  Instr shift_bit = (shift > 0) ? (1 << 13) : 0;
+  Emit(op | SVESize(zd) | Rd(zd) | shift_bit | ImmUnsignedField<12, 5>(imm8));
+}
+
+void Assembler::add(const ZRegister& zd,
+                    const ZRegister& zn,
+                    int imm8,
+                    int shift) {
   // ADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0000 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 000 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -3848,7 +3873,7 @@ void Assembler::add(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(ADD_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(ADD_z_zi, zd, imm8, shift);
 }
 
 void Assembler::dup(const ZRegister& zd, int imm8, int shift) {
@@ -3876,7 +3901,7 @@ void Assembler::dup(const ZRegister& zd, int imm8, int shift) {
   Emit(DUP_z_i | SVESize(zd) | Rd(zd) | shift_bit | ImmField<12, 5>(imm8));
 }
 
-void Assembler::fdup(const ZRegister& zd) {
+void Assembler::fdup(const ZRegister& zd, double imm) {
   // FDUP <Zd>.<T>, #<const>
   //  0010 0101 ..11 1001 110. .... .... ....
   //  size<23:22> | opc<18:17> = 00 | o2<13> = 0 | imm8<12:5> | Zd<4:0>
@@ -3884,7 +3909,32 @@ void Assembler::fdup(const ZRegister& zd) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FDUP_z_i | SVESize(zd) | Rd(zd));
+  Instr encoded_imm = FP64ToImm8(imm) << 5;
+  Emit(FDUP_z_i | SVESize(zd) | encoded_imm | Rd(zd));
+}
+
+void Assembler::fdup(const ZRegister& zd, float imm) {
+  // FDUP <Zd>.<T>, #<const>
+  //  0010 0101 ..11 1001 110. .... .... ....
+  //  size<23:22> | opc<18:17> = 00 | o2<13> = 0 | imm8<12:5> | Zd<4:0>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+
+  Instr encoded_imm = FP32ToImm8(imm) << 5;
+  Emit(FDUP_z_i | SVESize(zd) | encoded_imm | Rd(zd));
+}
+
+void Assembler::fdup(const ZRegister& zd, Float16 imm) {
+  // FDUP <Zd>.<T>, #<const>
+  //  0010 0101 ..11 1001 110. .... .... ....
+  //  size<23:22> | opc<18:17> = 00 | o2<13> = 0 | imm8<12:5> | Zd<4:0>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+
+  Instr encoded_imm = FP16ToImm8(imm) << 5;
+  Emit(FDUP_z_i | SVESize(zd) | encoded_imm | Rd(zd));
 }
 
 void Assembler::mul(const ZRegister& zd, const ZRegister& zn, int imm8) {
@@ -3926,7 +3976,10 @@ void Assembler::smin(const ZRegister& zd, const ZRegister& zn, int imm8) {
   Emit(SMIN_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
 }
 
-void Assembler::sqadd(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::sqadd(const ZRegister& zd,
+                      const ZRegister& zn,
+                      int imm8,
+                      int shift) {
   // SQADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0100 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 100 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -3936,10 +3989,13 @@ void Assembler::sqadd(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(SQADD_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(SQADD_z_zi, zd, imm8, shift);
 }
 
-void Assembler::sqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::sqsub(const ZRegister& zd,
+                      const ZRegister& zn,
+                      int imm8,
+                      int shift) {
   // SQSUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0110 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 110 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -3949,10 +4005,13 @@ void Assembler::sqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(SQSUB_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(SQSUB_z_zi, zd, imm8, shift);
 }
 
-void Assembler::sub(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::sub(const ZRegister& zd,
+                    const ZRegister& zn,
+                    int imm8,
+                    int shift) {
   // SUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0001 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 001 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -3962,10 +4021,13 @@ void Assembler::sub(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(SUB_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(SUB_z_zi, zd, imm8, shift);
 }
 
-void Assembler::subr(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::subr(const ZRegister& zd,
+                     const ZRegister& zn,
+                     int imm8,
+                     int shift) {
   // SUBR <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0011 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 011 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -3975,7 +4037,7 @@ void Assembler::subr(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(SUBR_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(SUBR_z_zi, zd, imm8, shift);
 }
 
 void Assembler::umax(const ZRegister& zd, const ZRegister& zn, int imm8) {
@@ -3988,7 +4050,7 @@ void Assembler::umax(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(UMAX_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  Emit(UMAX_z_zi | SVESize(zd) | Rd(zd) | ImmUnsignedField<12, 5>(imm8));
 }
 
 void Assembler::umin(const ZRegister& zd, const ZRegister& zn, int imm8) {
@@ -4001,10 +4063,13 @@ void Assembler::umin(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(UMIN_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  Emit(UMIN_z_zi | SVESize(zd) | Rd(zd) | ImmUnsignedField<12, 5>(imm8));
 }
 
-void Assembler::uqadd(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::uqadd(const ZRegister& zd,
+                      const ZRegister& zn,
+                      int imm8,
+                      int shift) {
   // UQADD <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0101 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 101 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -4014,10 +4079,13 @@ void Assembler::uqadd(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(UQADD_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(UQADD_z_zi, zd, imm8, shift);
 }
 
-void Assembler::uqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
+void Assembler::uqsub(const ZRegister& zd,
+                      const ZRegister& zn,
+                      int imm8,
+                      int shift) {
   // UQSUB <Zdn>.<T>, <Zdn>.<T>, #<imm>{, <shift>}
   //  0010 0101 ..10 0111 11.. .... .... ....
   //  size<23:22> | opc<18:16> = 111 | sh<13> | imm8<12:5> | Zdn<4:0>
@@ -4027,7 +4095,7 @@ void Assembler::uqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(UQSUB_z_zi | SVESize(zd) | Rd(zd) | ImmField<12, 5>(imm8));
+  SVEIntWideImmUnpredicatedHelper(UQSUB_z_zi, zd, imm8, shift);
 }
 
 // SVEMemLoad.

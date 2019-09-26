@@ -3304,24 +3304,23 @@ enum SVEIntWideImmUnpredicatedOp {
   SVEIntWideImmUnpredicatedFixed = 0x2520C000,
   SVEIntWideImmUnpredicatedFMask = 0xFF20C000,
   SVEIntWideImmUnpredicatedMask = 0xFF3FE000,
-  ADD_z_zi = SVEIntWideImmUnpredicatedFixed,
-  SUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00010000,
-  SUBR_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00030000,
-  SQADD_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00040000,
-  UQADD_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00050000,
-  SQSUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00060000,
-  UQSUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00070000,
   SMAX_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00080000,
   UMAX_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00090000,
   SMIN_z_zi = SVEIntWideImmUnpredicatedFixed | 0x000A0000,
   UMIN_z_zi = SVEIntWideImmUnpredicatedFixed | 0x000B0000,
   MUL_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00100000,
   FDUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00190000,
-
   // TODO: SVEIntWideImmUnpredicatedMask doesn't work here because it mask in
-  // the shift bit of dup.
-  SVEIntWideImmUnpredicatedDupMask = 0xFF3FC000,
-  DUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00180000
+  // the shift bit of the following instructions.
+  SVEIntWideImmShiftUnpredicatedMask = 0xFF3FC000,
+  ADD_z_zi = SVEIntWideImmUnpredicatedFixed,
+  DUP_z_i = SVEIntWideImmUnpredicatedFixed | 0x00180000,
+  SUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00010000,
+  SUBR_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00030000,
+  SQADD_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00040000,
+  UQADD_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00050000,
+  SQSUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00060000,
+  UQSUB_z_zi = SVEIntWideImmUnpredicatedFixed | 0x00070000
 };
 
 enum SVEMem32BitGatherAndUnsizedContiguousOp {

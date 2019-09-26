@@ -3633,7 +3633,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void add(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Add immediate (unpredicated).
-  void add(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void add(const ZRegister& zd, const ZRegister& zn, int imm8, int shift = -1);
 
   // Add multiple of predicate register size to scalar register.
   void addpl(const Register& xd, const Register& xn, int imm6);
@@ -4198,9 +4198,14 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zn,
              const ZRegister& zm);
 
-  // Broadcast 8-bit floating-point immediate to vector elements
-  // (unpredicated).
-  void fdup(const ZRegister& zd);
+  // Broadcast floating-point immediate to double-precision vector elements.
+  void fdup(const ZRegister& zd, double imm);
+
+  // Broadcast floating-point immediate to single-precision vector elements.
+  void fdup(const ZRegister& zd, float imm);
+
+  // Broadcast floating-point immediate to half-precision vector elements.
+  void fdup(const ZRegister& zd, Float16 imm);
 
   // Floating-point exponential accelerator.
   void fexpa(const ZRegister& zd, const ZRegister& zn);
@@ -5488,7 +5493,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating add immediate (unpredicated).
-  void sqadd(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void sqadd(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
 
   // Signed saturating decrement scalar by multiple of 8-bit predicate
   // constraint element count.
@@ -5604,7 +5612,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating subtract immediate (unpredicated).
-  void sqsub(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void sqsub(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
 
   // Contiguous/scatter store bytes from vector.
   void st1b(const ZRegister& zt,
@@ -5950,7 +5961,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Subtract immediate (unpredicated).
-  void sub(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void sub(const ZRegister& zd, const ZRegister& zn, int imm8, int shift = -1);
 
   // Reversed subtract vectors (predicated).
   void subr(const ZRegister& zd,
@@ -5959,7 +5970,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Reversed subtract from immediate (unpredicated).
-  void subr(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void subr(const ZRegister& zd, const ZRegister& zn, int imm8, int shift = -1);
 
   // Signed unpack and extend half of vector.
   void sunpkhi(const ZRegister& zd, const ZRegister& zn);
@@ -6060,7 +6071,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned saturating add immediate (unpredicated).
-  void uqadd(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void uqadd(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
 
   // Unsigned saturating decrement scalar by multiple of 8-bit predicate
   // constraint element count.
@@ -6134,7 +6148,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned saturating subtract immediate (unpredicated).
-  void uqsub(const ZRegister& zd, const ZRegister& zn, int imm8);
+  void uqsub(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
 
   // Unsigned unpack and extend half of vector.
   void uunpkhi(const ZRegister& zd, const ZRegister& zn);
@@ -7036,6 +7053,11 @@ class Assembler : public vixl::internal::AssemblerBase {
                       const ZRegister& zn,
                       unsigned imm,
                       SVEIntCompareUnsignedImmOp op);
+
+  void SVEIntWideImmUnpredicatedHelper(SVEIntWideImmUnpredicatedOp op,
+                                       const ZRegister& zd,
+                                       int imm8,
+                                       int shift);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

@@ -3444,10 +3444,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     add(zd, zn, zm);
   }
-  void Add(const ZRegister& zd, const ZRegister& zn, int imm8) {
+  void Add(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    add(zd, zn, imm8);
+    IntWideImmShiftFn imm_fn = &Assembler::add;
+    IntArithFn reg_fn = &Assembler::add;
+    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
   }
   void Addpl(const Register& xd, const Register& xn, int64_t multiplier);
   void Addvl(const Register& xd, const Register& xn, int64_t multiplier);
@@ -4245,11 +4246,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fdiv(zd, pg, zn, zm);
   }
-  void Fdup(const ZRegister& zd) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fdup(zd);
-  }
+  void Fdup(const ZRegister& zd, double imm);
+  void Fdup(const ZRegister& zd, float imm);
+  void Fdup(const ZRegister& zd, Float16 imm);
   void Fexpa(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5762,21 +5761,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     setffr();
   }
-  void Smax(const ZRegister& zd, const ZRegister& zn, int imm8) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smax(zd, zn, imm8);
-  }
+  void Smax(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Smaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     smaxv(vd, pg, zn);
   }
-  void Smin(const ZRegister& zd, const ZRegister& zn, int imm8) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smin(zd, zn, imm8);
-  }
+  void Smin(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Sminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5795,10 +5786,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqadd(zd, zn, zm);
   }
-  void Sqadd(const ZRegister& zd, const ZRegister& zn, int imm8) {
+  void Sqadd(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqadd(zd, zn, imm8);
+    IntWideImmShiftFn imm_fn = &Assembler::sqadd;
+    IntArithFn reg_fn = &Assembler::sqadd;
+    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
   }
   void Sqdecb(const Register& rd, const Register& wn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -5967,10 +5959,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqsub(zd, zn, zm);
   }
-  void Sqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
+  void Sqsub(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqsub(zd, zn, imm8);
+    IntWideImmShiftFn imm_fn = &Assembler::sqsub;
+    IntArithFn reg_fn = &Assembler::sqsub;
+    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
   }
   void St1b(const ZRegister& zt,
             const PRegister& pg,
@@ -6301,11 +6294,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sub(zd, zn, zm);
   }
-  void Sub(const ZRegister& zd, const ZRegister& zn, int imm8) {
+  void Sub(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sub(zd, zn, imm8);
+    IntWideImmShiftFn imm_fn = &Assembler::sub;
+    IntArithFn reg_fn = &Assembler::sub;
+    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
   }
+  void Sub(const ZRegister& zd, IntegerOperand imm, const ZRegister& zm);
   void Sunpkhi(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6384,21 +6379,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     udot(zda, zn, zm);
   }
-  void Umax(const ZRegister& zd, const ZRegister& zn, int imm8) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umax(zd, zn, imm8);
-  }
+  void Umax(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Umaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     umaxv(vd, pg, zn);
   }
-  void Umin(const ZRegister& zd, const ZRegister& zn, int imm8) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umin(zd, zn, imm8);
-  }
+  void Umin(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Uminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6409,10 +6396,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     uqadd(zd, zn, zm);
   }
-  void Uqadd(const ZRegister& zd, const ZRegister& zn, int imm8) {
+  void Uqadd(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqadd(zd, zn, imm8);
+    IntWideImmShiftFn imm_fn = &Assembler::uqadd;
+    IntArithFn reg_fn = &Assembler::uqadd;
+    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
   }
   void Uqdecb(const Register& rdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6547,10 +6535,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     uqsub(zd, zn, zm);
   }
-  void Uqsub(const ZRegister& zd, const ZRegister& zn, int imm8) {
+  void Uqsub(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqsub(zd, zn, imm8);
+    IntWideImmShiftFn imm_fn = &Assembler::uqsub;
+    IntArithFn reg_fn = &Assembler::uqsub;
+    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
   }
   void Uunpkhi(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7038,6 +7027,37 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                            const Tg& pg,
                            const SVEMemOperand& addr,
                            Tf fn);
+
+  typedef void (Assembler::*IntWideImmShiftFn)(const ZRegister& zd,
+                                               const ZRegister& zn,
+                                               int imm,
+                                               int shift);
+
+  typedef void (Assembler::*IntArithFn)(const ZRegister& zd,
+                                        const ZRegister& zn,
+                                        const ZRegister& zm);
+
+  void IntWideImmShiftHelper(IntWideImmShiftFn imm_fn,
+                             IntArithFn reg_fn,
+                             const ZRegister& zd,
+                             const ZRegister& zn,
+                             IntegerOperand imm);
+
+  typedef void (Assembler::*IntWideImmFn)(const ZRegister& zd,
+                                          const ZRegister& zn,
+                                          int imm);
+
+  typedef void (MacroAssembler::*IntArithPredicatedFn)(const ZRegister& zd,
+                                                       const PRegisterM& pg,
+                                                       const ZRegister& zn,
+                                                       const ZRegister& zm);
+
+  void IntWideImmHelper(IntWideImmFn imm_fn,
+                        IntArithPredicatedFn reg_fn,
+                        const ZRegister& zd,
+                        const ZRegister& zn,
+                        IntegerOperand imm,
+                        bool is_signed_imm);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
