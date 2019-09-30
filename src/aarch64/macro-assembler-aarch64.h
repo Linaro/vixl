@@ -5436,6 +5436,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     nands(pd, pg, pn, pm);
   }
+  // There is no instruction with this form, but we can implement it using
+  // `subr`.
+  void Neg(const ZRegister& zd, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, zn);
+    subr(zd, zd, 0);
+  }
   void Neg(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

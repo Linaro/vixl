@@ -5015,10 +5015,19 @@ TEST_SVE(sve_abs_neg) {
   __ Mov(z3, z29);
   __ Neg(z3.VnS(), pg, z31.VnS());
 
+  // The unpredicated form of `Neg` is implemented using `subr`.
+  __ Mov(z4, z31);
+  __ Neg(z4.VnB(), z4.VnB());  // destructive
+  __ Mov(z5, z29);
+  __ Neg(z5.VnD(), z31.VnD());
+
   END();
 
   if (CAN_RUN()) {
     RUN();
+
+    ASSERT_EQUAL_SVE(z30, z31);
+
     // clang-format off
 
     // Abs (D) destructive
@@ -5044,6 +5053,16 @@ TEST_SVE(sve_abs_neg) {
     // pg:        0       1           1       1           0       0
         {0xe9eaebecfa09f808, 0x010307101e3c78f1, 0xf9fafbfcfdfeff00};
     ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // Neg (B) destructive, unpredicated
+    uint64_t expected_z4[] =
+        {0xff0efd0cfb0af908, 0x020408101f3d79f1, 0xeeccaa8866442210};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    // Neg (D) unpredicated
+    uint64_t expected_z5[] =
+        {0xfe0dfc0bfa09f808, 0x0103070f1e3c78f1, 0xedcba98765432110};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
 
     // clang-format on
   }

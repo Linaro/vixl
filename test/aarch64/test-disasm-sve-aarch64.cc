@@ -1654,6 +1654,21 @@ TEST(sve_int_unary_arithmetic_predicated) {
   CLEANUP();
 }
 
+TEST(sve_neg_macro) {
+  SETUP();
+
+  COMPARE_MACRO(Neg(z0.VnB(), z0.VnB()), "subr z0.b, z0.b, #0");
+  COMPARE_MACRO(Neg(z1.VnH(), z2.VnH()),
+                "movprfx z1, z2\n"
+                "subr z1.h, z1.h, #0");
+  COMPARE_MACRO(Neg(z29.VnS(), z29.VnS()), "subr z29.s, z29.s, #0");
+  COMPARE_MACRO(Neg(z30.VnD(), z31.VnD()),
+                "movprfx z30, z31\n"
+                "subr z30.d, z30.d, #0");
+
+  CLEANUP();
+}
+
 TEST(sve_int_wide_imm_predicated) {
   SETUP();
 
