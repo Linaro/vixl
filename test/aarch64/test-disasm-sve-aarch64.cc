@@ -1801,7 +1801,7 @@ TEST(sve_add_sub_imm_macro) {
   COMPARE_MACRO(Add(z15.VnD(), z20.VnD(), 1234567890),
                 "mov x16, #0x2d2\n"
                 "movk x16, #0x4996, lsl #16\n"
-                "dup z31.d, x16.d\n"
+                "dup z31.d, x16\n"
                 "add z15.d, z20.d, z31.d");
   COMPARE_MACRO(Sub(z22.VnS(), 256 * 256, z2.VnS()),
                 "dupm z31.s, #0x10000\n"
@@ -1810,7 +1810,7 @@ TEST(sve_add_sub_imm_macro) {
                 "mov x16, #0x1c7\n"
                 "movk x16, #0xdebd, lsl #16\n"
                 "movk x16, #0x19, lsl #32\n"
-                "dup z31.d, x16.d\n"
+                "dup z31.d, x16\n"
                 "sub z21.d, z11.d, z31.d");
 
   CLEANUP();
@@ -1880,7 +1880,7 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
   COMPARE_MACRO(Dup(z8.VnS(), -7654321),
                 "mov w16, #0x344f\n"
                 "movk w16, #0xff8b, lsl #16\n"
-                "dup z8.s, w16.s");
+                "dup z8.s, w16");
 
   // The MacroAssembler automatically generates dup if an immediate isn't
   // encodable, when it is out-of-range for example.
@@ -1888,13 +1888,13 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
   COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "dup z26.h, #0");
   COMPARE_MACRO(Fdup(z27.VnS(), 255.0f),
                 "mov w16, #0x437f0000\n"
-                "dup z27.s, w16.s");
+                "dup z27.s, w16");
   COMPARE_MACRO(Fdup(z28.VnD(), 12.3456),
                 "mov x16, #0xfec5\n"
                 "movk x16, #0x7bb2, lsl #16\n"
                 "movk x16, #0xb0f2, lsl #32\n"
                 "movk x16, #0x4028, lsl #48\n"
-                "dup z28.d, x16.d");
+                "dup z28.d, x16");
 
   // Only predicated version of instruction is supported for unencodable
   // immediate.
@@ -1905,7 +1905,7 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
                   "ptrue p7.d\n"
                   "mov x16, #0xffffffffffff5680\n"
                   "movk x16, #0xb44d, lsl #16\n"
-                  "dup z31.d, x16.d\n"
+                  "dup z31.d, x16\n"
                   "mul z18.d, p7/m, z18.d, z31.d");
     COMPARE_MACRO(Smax(z9.VnS(), z11.VnS(), -0x70000001),
                   "ptrue p7.s\n"
@@ -1914,18 +1914,18 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
     COMPARE_MACRO(Smin(z6.VnH(), z6.VnH(), -0x7eef),
                   "ptrue p7.h\n"
                   "mov w16, #0xffff8111\n"
-                  "dup z31.h, w16.h\n"
+                  "dup z31.h, w16\n"
                   "smin z6.h, p7/m, z6.h, z31.h");
     COMPARE_MACRO(Umax(z15.VnH(), z7.VnH(), 0xfeee),
                   "ptrue p7.h\n"
                   "mov w16, #0xfeee\n"
-                  "dup z15.h, w16.h\n"
+                  "dup z15.h, w16\n"
                   "umax z15.h, p7/m, z15.h, z7.h");
     COMPARE_MACRO(Umin(z25.VnD(), z25.VnD(), 123123123),
                   "ptrue p7.d\n"
                   "mov x16, #0xb5b3\n"
                   "movk x16, #0x756, lsl #16\n"
-                  "dup z31.d, x16.d\n"
+                  "dup z31.d, x16\n"
                   "umin z25.d, p7/m, z25.d, z31.d");
   }
 }

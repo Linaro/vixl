@@ -8701,9 +8701,9 @@ void Disassembler::VisitSVEPermuteVectorUnpredicated(const Instruction *instr) {
       case DUP_z_r:
         mnemonic = "dup";
         if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
-          form = "'Zd.'t, 'Xns.'t";
+          form = "'Zd.'t, 'Xns";
         } else {
-          form = "'Zd.'t, 'Wns.'t";
+          form = "'Zd.'t, 'Wns";
         }
         break;
       case INSR_z_r:
