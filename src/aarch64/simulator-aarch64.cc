@@ -7908,22 +7908,22 @@ void Simulator::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
     SimVRegister& zdn = ReadVRegister(instr->GetRd());
     switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
       case DECP_z_p_z:
-        sub(vform, zdn, zdn, count);
+        sub_uint(vform, zdn, zdn, count);
         break;
       case INCP_z_p_z:
-        add(vform, zdn, zdn, count);
+        add_uint(vform, zdn, zdn, count);
         break;
       case SQDECP_z_p_z:
-        sub(vform, zdn, zdn, count).SignedSaturate(vform);
+        sub_uint(vform, zdn, zdn, count).SignedSaturate(vform);
         break;
       case SQINCP_z_p_z:
-        add(vform, zdn, zdn, count).SignedSaturate(vform);
+        add_uint(vform, zdn, zdn, count).SignedSaturate(vform);
         break;
       case UQDECP_z_p_z:
-        sub(vform, zdn, zdn, count).UnsignedSaturate(vform);
+        sub_uint(vform, zdn, zdn, count).UnsignedSaturate(vform);
         break;
       case UQINCP_z_p_z:
-        add(vform, zdn, zdn, count).UnsignedSaturate(vform);
+        add_uint(vform, zdn, zdn, count).UnsignedSaturate(vform);
         break;
       default:
         VIXL_UNIMPLEMENTED();
@@ -8592,29 +8592,29 @@ void Simulator::VisitSVEIntWideImmUnpredicated(const Instruction* instr) {
 
   switch (instr->Mask(SVEIntWideImmShiftUnpredicatedMask)) {
     case ADD_z_zi:
-      add(vform, zd, zd, unsigned_imm << shift);
+      add_uint(vform, zd, zd, unsigned_imm << shift);
       return;
     case DUP_z_i:
       dup_immediate(vform, zd, signed_imm << shift);
       return;
     case SQADD_z_zi:
-      add(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
+      add_uint(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
       return;
     case SQSUB_z_zi:
-      sub(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
+      sub_uint(vform, zd, zd, unsigned_imm << shift).SignedSaturate(vform);
       return;
     case SUBR_z_zi:
       dup_immediate(vform, scratch, unsigned_imm << shift);
       sub(vform, zd, scratch, zd);
       return;
     case SUB_z_zi:
-      sub(vform, zd, zd, unsigned_imm << shift);
+      sub_uint(vform, zd, zd, unsigned_imm << shift);
       return;
     case UQADD_z_zi:
-      add(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
+      add_uint(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
       return;
     case UQSUB_z_zi:
-      sub(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
+      sub_uint(vform, zd, zd, unsigned_imm << shift).UnsignedSaturate(vform);
       return;
     default:
       // Pass through.

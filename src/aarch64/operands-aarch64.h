@@ -745,6 +745,16 @@ class IntegerOperand {
     return !is_negative_ && vixl::IsUintN(n, raw_bits_);
   }
 
+  bool IsUint8() const { return IsUintN(8); }
+  bool IsUint16() const { return IsUintN(16); }
+  bool IsUint32() const { return IsUintN(32); }
+  bool IsUint64() const { return IsUintN(64); }
+
+  bool IsInt8() const { return IsIntN(8); }
+  bool IsInt16() const { return IsIntN(16); }
+  bool IsInt32() const { return IsIntN(32); }
+  bool IsInt64() const { return IsIntN(64); }
+
   bool FitsInBits(unsigned n) const {
     return is_negative_ ? IsIntN(n) : IsUintN(n);
   }

@@ -5803,16 +5803,17 @@ TEST_SVE(sve_int_wide_imm_unpredicated_sqadd) {
 
   IntWideImmFn fn = &MacroAssembler::Sqadd;
 
-  unsigned exp_b_1[] = {0x80, 0x00, 0x91, 0x80};
+  unsigned exp_b_1[] = {0x02, 0x7f, 0x7f, 0x7f};
   unsigned exp_h_1[] = {0x8191, 0x7f8f, 0x1020, 0xaaba};
   unsigned exp_s_1[] = {0x80018200, 0x7fff7ffe, 0xaaaaab29, 0xf000f16f};
   uint64_t exp_d_1[] = {0x8000000180018280, 0x7fffffff7fff807e};
 
   // Encodable with `sqadd` (shift 0).
-  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  // Note that encodable immediates are unsigned, even for signed saturation.
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 129, exp_b_1);
   IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
-  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 255, exp_d_1);
 
   unsigned exp_h_2[] = {0x9181, 0x7fff, 0x2010, 0xbaaa};
   unsigned exp_s_2[] = {0x80020081, 0x7ffffe7f, 0xaaab29aa, 0xf0016ff0};
@@ -5823,11 +5824,6 @@ TEST_SVE(sve_int_wide_imm_unpredicated_sqadd) {
   IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
   IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
-
-  unsigned exp_s_3[] = {0x80808181, 0x7fffffff, 0xab29aaaa, 0xf07ff0f0};
-
-  // The macro is able to synthesise unencodable immediates.
-  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
 }
 
 TEST_SVE(sve_int_wide_imm_unpredicated_uqadd) {
@@ -5858,11 +5854,6 @@ TEST_SVE(sve_int_wide_imm_unpredicated_uqadd) {
   IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
   IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
-
-  unsigned exp_s_3[] = {0x80808181, 0x807e7f7f, 0xab29aaaa, 0xf07ff0f0};
-
-  // The macro is able to synthesise unencodable immediates.
-  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
 }
 
 TEST_SVE(sve_int_wide_imm_unpredicated_sub) {
@@ -5919,16 +5910,17 @@ TEST_SVE(sve_int_wide_imm_unpredicated_sqsub) {
 
   IntWideImmFn fn = &MacroAssembler::Sqsub;
 
-  unsigned exp_b_1[] = {0x00, 0x7f, 0x7f, 0x7e};
+  unsigned exp_b_1[] = {0x80, 0xfe, 0x8f, 0x80};
   unsigned exp_h_1[] = {0x8171, 0x7f6f, 0x1000, 0xaa9a};
   unsigned exp_s_1[] = {0x80018102, 0x7fff7f00, 0xaaaaaa2b, 0xf000f071};
   uint64_t exp_d_1[] = {0x8000000180018082, 0x7fffffff7fff7e80};
 
   // Encodable with `sqsub` (shift 0).
-  IntWideImmHelper(config, fn, kBRegSize, in_b, 0x81, exp_b_1);
+  // Note that encodable immediates are unsigned, even for signed saturation.
+  IntWideImmHelper(config, fn, kBRegSize, in_b, 129, exp_b_1);
   IntWideImmHelper(config, fn, kHRegSize, in_h, 16, exp_h_1);
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127, exp_s_1);
-  IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff, exp_d_1);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, 255, exp_d_1);
 
   unsigned exp_h_2[] = {0x8000, 0x6f7f, 0x0010, 0x9aaa};
   unsigned exp_s_2[] = {0x80010281, 0x7fff007f, 0xaaaa2baa, 0xf00071f0};
@@ -5939,11 +5931,6 @@ TEST_SVE(sve_int_wide_imm_unpredicated_sqsub) {
   IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
   IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
-
-  unsigned exp_s_3[] = {0x80000000, 0x7f807f7f, 0xaa2baaaa, 0xef81f0f0};
-
-  // The macro is able to synthesise unencodable immediates.
-  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
 }
 
 TEST_SVE(sve_int_wide_imm_unpredicated_uqsub) {
@@ -5974,11 +5961,6 @@ TEST_SVE(sve_int_wide_imm_unpredicated_uqsub) {
   IntWideImmHelper(config, fn, kHRegSize, in_h, 16 << 8, exp_h_2);
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 8, exp_s_2);
   IntWideImmHelper(config, fn, kDRegSize, in_d, 0xff << 8, exp_d_2);
-
-  unsigned exp_s_3[] = {0x7f828181, 0x7f807f7f, 0xaa2baaaa, 0xef81f0f0};
-
-  // The macro is able to synthesise unencodable immediates.
-  IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
 }
 
 TEST_SVE(sve_int_wide_imm_unpredicated_subr) {

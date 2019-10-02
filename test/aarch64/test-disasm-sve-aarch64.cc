@@ -1816,22 +1816,52 @@ TEST(sve_add_sub_imm_macro) {
   CLEANUP();
 }
 
-TEST(sve_int_wide_imm_unpredicated_macro) {
+TEST(sve_uqadd_uqsub_imm_macro) {
   SETUP();
 
-  // The MacroAssembler automatically generates movprfx where it can.
-  COMPARE_MACRO(Sqadd(z7.VnB(), z1.VnB(), 124),
-                "movprfx z7, z1\n"
-                "sqadd z7.b, z7.b, #124");
-  COMPARE_MACRO(Sqsub(z31.VnB(), z13.VnB(), 132),
-                "movprfx z31, z13\n"
-                "sqsub z31.b, z31.b, #132");
+  // The MacroAssembler automatically generates movprfx where necessary.
   COMPARE_MACRO(Uqadd(z21.VnB(), z14.VnB(), 246),
                 "movprfx z21, z14\n"
                 "uqadd z21.b, z21.b, #246");
   COMPARE_MACRO(Uqsub(z10.VnB(), z27.VnB(), 27),
                 "movprfx z10, z27\n"
                 "uqsub z10.b, z10.b, #27");
+  COMPARE_MACRO(Uqadd(z1.VnS(), z2.VnS(), 42 * 256),
+                "movprfx z1, z2\n"
+                "uqadd z1.s, z1.s, #42, lsl #8");
+
+  COMPARE_MACRO(Uqsub(z3.VnB(), z3.VnB(), 0xff), "uqsub z3.b, z3.b, #255");
+  COMPARE_MACRO(Uqadd(z8.VnS(), z8.VnS(), 0xff00),
+                "uqadd z8.s, z8.s, #255, lsl #8");
+
+  CLEANUP();
+}
+
+TEST(sve_sqadd_sqsub_imm_macro) {
+  SETUP();
+
+  // The MacroAssembler automatically generates movprfx where necessary.
+  COMPARE_MACRO(Sqadd(z21.VnB(), z14.VnB(), 123),
+                "movprfx z21, z14\n"
+                "sqadd z21.b, z21.b, #123");
+  COMPARE_MACRO(Sqsub(z10.VnB(), z27.VnB(), 27),
+                "movprfx z10, z27\n"
+                "sqsub z10.b, z10.b, #27");
+  COMPARE_MACRO(Sqadd(z22.VnS(), z15.VnS(), 256),
+                "movprfx z22, z15\n"
+                "sqadd z22.s, z22.s, #1, lsl #8");
+
+  COMPARE_MACRO(Sqsub(z3.VnB(), z3.VnB(), 0xff), "sqsub z3.b, z3.b, #255");
+  COMPARE_MACRO(Sqadd(z4.VnH(), z4.VnH(), 0xff00),
+                "sqadd z4.h, z4.h, #255, lsl #8");
+
+  CLEANUP();
+}
+
+TEST(sve_int_wide_imm_unpredicated_macro) {
+  SETUP();
+
+  // The MacroAssembler automatically generates movprfx where it can.
   COMPARE_MACRO(Mul(z1.VnD(), z18.VnD(), 127),
                 "movprfx z1, z18\n"
                 "mul z1.d, z1.d, #127");
@@ -1855,21 +1885,6 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
   // The MacroAssembler automatically generates dup if an immediate isn't
   // encodable, when it is out-of-range for example.
   COMPARE_MACRO(Dup(z9.VnD(), 0x80000000), "dupm z9.d, #0x80000000");
-  COMPARE_MACRO(Sqadd(z9.VnS(), z10.VnS(), 0xaaaaaaaa),
-                "dupm z31.b, #0xaa\n"
-                "sqadd z9.s, z10.s, z31.s");
-  COMPARE_MACRO(Sqsub(z3.VnH(), z1.VnH(), 1188),
-                "mov w16, #0x4a4\n"
-                "dup z31.h, w16.h\n"
-                "sqsub z3.h, z1.h, z31.h");
-  COMPARE_MACRO(Uqadd(z23.VnH(), z16.VnH(), 5566),
-                "mov w16, #0x15be\n"
-                "dup z31.h, w16.h\n"
-                "uqadd z23.h, z16.h, z31.h");
-  COMPARE_MACRO(Uqsub(z11.VnH(), z2.VnH(), 7788),
-                "mov w16, #0x1e6c\n"
-                "dup z31.h, w16.h\n"
-                "uqsub z11.h, z2.h, z31.h");
   COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "dup z26.h, #0");
   COMPARE_MACRO(Fdup(z27.VnS(), 255.0f),
                 "mov w16, #0x437f0000\n"

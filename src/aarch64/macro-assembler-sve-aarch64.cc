@@ -89,28 +89,6 @@ bool MacroAssembler::TrySingleAddSub(AddSubHelperOption option,
   return false;
 }
 
-void MacroAssembler::IntWideImmShiftHelper(IntWideImmShiftFn imm_fn,
-                                           IntArithFn reg_fn,
-                                           const ZRegister& zd,
-                                           const ZRegister& zn,
-                                           IntegerOperand imm) {
-  // TODO: Convert Add(..., -imm) to Sub(..., imm), and so on.
-  int imm8;
-  int shift = -1;
-  if (imm.TryEncodeAsShiftedUintNForLane<8, 0>(zd, &imm8, &shift) ||
-      imm.TryEncodeAsShiftedUintNForLane<8, 8>(zd, &imm8, &shift)) {
-    MovprfxHelperScope guard(this, zd, zn);
-    (this->*imm_fn)(zd, zd, imm8, shift);
-  } else {
-    UseScratchRegisterScope temps(this);
-    ZRegister scratch = temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits());
-    Dup(scratch, imm);
-
-    SingleEmissionCheckScope guard(this);
-    (this->*reg_fn)(zd, zn, scratch);
-  }
-}
-
 void MacroAssembler::IntWideImmHelper(IntWideImmFn imm_fn,
                                       IntArithPredicatedFn reg_macro,
                                       const ZRegister& zd,
@@ -119,14 +97,14 @@ void MacroAssembler::IntWideImmHelper(IntWideImmFn imm_fn,
                                       bool is_signed) {
   if (is_signed) {
     // E.g. MUL_z_zi, SMIN_z_zi, SMAX_z_zi
-    if (imm.IsIntN(8)) {
+    if (imm.IsInt8()) {
       MovprfxHelperScope guard(this, zd, zn);
       (this->*imm_fn)(zd, zd, imm.AsInt8());
       return;
     }
   } else {
     // E.g. UMIN_z_zi, UMAX_z_zi
-    if (imm.IsUintN(8)) {
+    if (imm.IsUint8()) {
       MovprfxHelperScope guard(this, zd, zn);
       (this->*imm_fn)(zd, zd, imm.AsUint8());
       return;

@@ -574,16 +574,34 @@ LogicVRegister Simulator::add(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::add_uint(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src1,
+                                   uint64_t value) {
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  VIXL_ASSERT(IsUintN(lane_size, value));
+  dst.ClearForWrite(vform);
+  // Left-justify `value`.
+  uint64_t ub = value << (64 - lane_size);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    // Test for unsigned saturation.
+    uint64_t ua = src1.UintLeftJustified(vform, i);
+    uint64_t ur = ua + ub;
+    if (ur < ua) {
+      dst.SetUnsignedSat(i, true);
+    }
 
-LogicVRegister Simulator::add(VectorFormat vform,
-                              LogicVRegister dst,
-                              const LogicVRegister& src1,
-                              uint64_t value) {
-  SimVRegister src2;
-  dup_immediate(vform, src2, value);
-  return add(vform, dst, src1, src2);
+    // Test for signed saturation.
+    // `value` is always positive, so we have an overflow if the (signed) result
+    // is smaller than the first operand.
+    if (RawbitsToInt64(ur) < RawbitsToInt64(ua)) {
+      dst.SetSignedSat(i, true);
+    }
+
+    dst.SetInt(vform, i, ur >> (64 - lane_size));
+  }
+  return dst;
 }
-
 
 LogicVRegister Simulator::addp(VectorFormat vform,
                                LogicVRegister dst,
@@ -1143,16 +1161,34 @@ LogicVRegister Simulator::sub(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::sub_uint(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src1,
+                                   uint64_t value) {
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  VIXL_ASSERT(IsUintN(lane_size, value));
+  dst.ClearForWrite(vform);
+  // Left-justify `value`.
+  uint64_t ub = value << (64 - lane_size);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    // Test for unsigned saturation.
+    uint64_t ua = src1.UintLeftJustified(vform, i);
+    uint64_t ur = ua - ub;
+    if (ub > ua) {
+      dst.SetUnsignedSat(i, false);
+    }
 
-LogicVRegister Simulator::sub(VectorFormat vform,
-                              LogicVRegister dst,
-                              const LogicVRegister& src1,
-                              uint64_t value) {
-  SimVRegister src2;
-  dup_immediate(vform, src2, value);
-  return sub(vform, dst, src1, src2);
+    // Test for signed saturation.
+    // `value` is always positive, so we have an overflow if the (signed) result
+    // is greater than the first operand.
+    if (RawbitsToInt64(ur) > RawbitsToInt64(ua)) {
+      dst.SetSignedSat(i, false);
+    }
+
+    dst.SetInt(vform, i, ur >> (64 - lane_size));
+  }
+  return dst;
 }
-
 
 LogicVRegister Simulator::and_(VectorFormat vform,
                                LogicVRegister dst,

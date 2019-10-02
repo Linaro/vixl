@@ -5793,9 +5793,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Sqadd(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    IntWideImmShiftFn imm_fn = &Assembler::sqadd;
-    IntArithFn reg_fn = &Assembler::sqadd;
-    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
+    VIXL_ASSERT(imm.IsUint8() ||
+                (imm.IsUint16() && ((imm.AsUint16() & 0xff) == 0)));
+    MovprfxHelperScope guard(this, zd, zn);
+    sqadd(zd, zd, imm.AsUint16());
   }
   void Sqdecb(const Register& rd, const Register& wn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -5966,9 +5967,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Sqsub(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    IntWideImmShiftFn imm_fn = &Assembler::sqsub;
-    IntArithFn reg_fn = &Assembler::sqsub;
-    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
+    VIXL_ASSERT(imm.IsUint8() ||
+                (imm.IsUint16() && ((imm.AsUint16() & 0xff) == 0)));
+    MovprfxHelperScope guard(this, zd, zn);
+    sqsub(zd, zd, imm.AsUint16());
   }
   void St1b(const ZRegister& zt,
             const PRegister& pg,
@@ -6401,9 +6403,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Uqadd(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    IntWideImmShiftFn imm_fn = &Assembler::uqadd;
-    IntArithFn reg_fn = &Assembler::uqadd;
-    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
+    VIXL_ASSERT(imm.IsUint8() ||
+                (imm.IsUint16() && ((imm.AsUint16() & 0xff) == 0)));
+    MovprfxHelperScope guard(this, zd, zn);
+    uqadd(zd, zd, imm.AsUint16());
   }
   void Uqdecb(const Register& rdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6540,9 +6543,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Uqsub(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    IntWideImmShiftFn imm_fn = &Assembler::uqsub;
-    IntArithFn reg_fn = &Assembler::uqsub;
-    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
+    VIXL_ASSERT(imm.IsUint8() ||
+                (imm.IsUint16() && ((imm.AsUint16() & 0xff) == 0)));
+    MovprfxHelperScope guard(this, zd, zn);
+    uqsub(zd, zd, imm.AsUint16());
   }
   void Uunpkhi(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7043,12 +7047,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   typedef void (Assembler::*IntArithFn)(const ZRegister& zd,
                                         const ZRegister& zn,
                                         const ZRegister& zm);
-
-  void IntWideImmShiftHelper(IntWideImmShiftFn imm_fn,
-                             IntArithFn reg_fn,
-                             const ZRegister& zd,
-                             const ZRegister& zn,
-                             IntegerOperand imm);
 
   typedef void (Assembler::*IntWideImmFn)(const ZRegister& zd,
                                           const ZRegister& zn,

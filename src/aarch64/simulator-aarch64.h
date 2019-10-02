@@ -2488,10 +2488,12 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
-  LogicVRegister add(VectorFormat vform,
-                     LogicVRegister dst,
-                     const LogicVRegister& src1,
-                     uint64_t value);
+  // Add `value` to each lane of `src1`, treating `value` as unsigned for the
+  // purposes of setting the saturation flags.
+  LogicVRegister add_uint(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src1,
+                          uint64_t value);
   LogicVRegister addp(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
@@ -2717,10 +2719,12 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
-  LogicVRegister sub(VectorFormat vform,
-                     LogicVRegister dst,
-                     const LogicVRegister& src1,
-                     uint64_t value);
+  // Subtract `value` from each lane of `src1`, treating `value` as unsigned for
+  // the purposes of setting the saturation flags.
+  LogicVRegister sub_uint(VectorFormat vform,
+                          LogicVRegister dst,
+                          const LogicVRegister& src1,
+                          uint64_t value);
   LogicVRegister and_(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
