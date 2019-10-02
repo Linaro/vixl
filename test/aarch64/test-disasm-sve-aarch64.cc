@@ -1773,25 +1773,59 @@ TEST(sve_int_wide_imm_unpredicated) {
   CLEANUP();
 }
 
-TEST(sve_int_wide_imm_unpredicated_macro) {
+TEST(sve_add_sub_imm_macro) {
   SETUP();
 
-  // The MacroAssembler automatically generates movprfx where it can.
+  // The MacroAssembler automatically generates movprfx where necessary.
   COMPARE_MACRO(Add(z12.VnB(), z13.VnB(), 0),
                 "movprfx z12, z13\n"
                 "add z12.b, z12.b, #0");
-  COMPARE_MACRO(Sqadd(z7.VnB(), z1.VnB(), 124),
-                "movprfx z7, z1\n"
-                "sqadd z7.b, z7.b, #124");
-  COMPARE_MACRO(Sqsub(z31.VnB(), z13.VnB(), 132),
-                "movprfx z31, z13\n"
-                "sqsub z31.b, z31.b, #132");
   COMPARE_MACRO(Sub(z20.VnB(), 250, z2.VnB()),
                 "movprfx z20, z2\n"
                 "subr z20.b, z20.b, #250");
   COMPARE_MACRO(Sub(z19.VnH(), z4.VnH(), 121),
                 "movprfx z19, z4\n"
                 "sub z19.h, z19.h, #121");
+
+  // Add and Sub can make use of two's complement equivalences.
+  COMPARE_MACRO(Add(z13.VnH(), z13.VnH(), 0xffff), "sub z13.h, z13.h, #1");
+  COMPARE_MACRO(Add(z15.VnD(), z15.VnD(), 0xffffffffffffffd6),
+                "sub z15.d, z15.d, #42");
+  COMPARE_MACRO(Add(z16.VnH(), z16.VnH(), 0xff00),
+                "add z16.h, z16.h, #255, lsl #8");
+  COMPARE_MACRO(Sub(z17.VnH(), z17.VnH(), 0xfffe), "add z17.h, z17.h, #2");
+  COMPARE_MACRO(Sub(z14.VnB(), z14.VnB(), 0x80), "sub z14.b, z14.b, #128");
+
+  // The MacroAssembler automatically generates dup if an immediate isn't
+  // encodable.
+  COMPARE_MACRO(Add(z15.VnD(), z20.VnD(), 1234567890),
+                "mov x16, #0x2d2\n"
+                "movk x16, #0x4996, lsl #16\n"
+                "dup z31.d, x16.d\n"
+                "add z15.d, z20.d, z31.d");
+  COMPARE_MACRO(Sub(z22.VnS(), 256 * 256, z2.VnS()),
+                "dupm z31.s, #0x10000\n"
+                "sub z22.s, z31.s, z2.s");
+  COMPARE_MACRO(Sub(z21.VnD(), z11.VnD(), 111111111111),
+                "mov x16, #0x1c7\n"
+                "movk x16, #0xdebd, lsl #16\n"
+                "movk x16, #0x19, lsl #32\n"
+                "dup z31.d, x16.d\n"
+                "sub z21.d, z11.d, z31.d");
+
+  CLEANUP();
+}
+
+TEST(sve_int_wide_imm_unpredicated_macro) {
+  SETUP();
+
+  // The MacroAssembler automatically generates movprfx where it can.
+  COMPARE_MACRO(Sqadd(z7.VnB(), z1.VnB(), 124),
+                "movprfx z7, z1\n"
+                "sqadd z7.b, z7.b, #124");
+  COMPARE_MACRO(Sqsub(z31.VnB(), z13.VnB(), 132),
+                "movprfx z31, z13\n"
+                "sqsub z31.b, z31.b, #132");
   COMPARE_MACRO(Uqadd(z21.VnB(), z14.VnB(), 246),
                 "movprfx z21, z14\n"
                 "uqadd z21.b, z21.b, #246");
@@ -1817,17 +1851,9 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
                 "mov w16, #0x344f\n"
                 "movk w16, #0xff8b, lsl #16\n"
                 "dup z8.s, w16.s");
-  COMPARE_MACRO(Add(z13.VnH(), z13.VnH(), 0xffff),
-                "dup z31.h, #-1\n"
-                "add z13.h, z13.h, z31.h");
 
   // The MacroAssembler automatically generates dup if an immediate isn't
   // encodable, when it is out-of-range for example.
-  COMPARE_MACRO(Add(z15.VnD(), z20.VnD(), 1234567890),
-                "mov x16, #0x2d2\n"
-                "movk x16, #0x4996, lsl #16\n"
-                "dup z31.d, x16.d\n"
-                "add z15.d, z20.d, z31.d");
   COMPARE_MACRO(Dup(z9.VnD(), 0x80000000), "dupm z9.d, #0x80000000");
   COMPARE_MACRO(Sqadd(z9.VnS(), z10.VnS(), 0xaaaaaaaa),
                 "dupm z31.b, #0xaa\n"
@@ -1836,15 +1862,6 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
                 "mov w16, #0x4a4\n"
                 "dup z31.h, w16.h\n"
                 "sqsub z3.h, z1.h, z31.h");
-  COMPARE_MACRO(Sub(z22.VnS(), 256 * 256, z2.VnS()),
-                "dupm z31.s, #0x10000\n"
-                "sub z22.s, z31.s, z2.s");
-  COMPARE_MACRO(Sub(z21.VnD(), z11.VnD(), 111111111111),
-                "mov x16, #0x1c7\n"
-                "movk x16, #0xdebd, lsl #16\n"
-                "movk x16, #0x19, lsl #32\n"
-                "dup z31.d, x16.d\n"
-                "sub z21.d, z11.d, z31.d");
   COMPARE_MACRO(Uqadd(z23.VnH(), z16.VnH(), 5566),
                 "mov w16, #0x15be\n"
                 "dup z31.h, w16.h\n"

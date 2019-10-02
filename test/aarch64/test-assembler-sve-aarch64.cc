@@ -5782,6 +5782,17 @@ TEST_SVE(sve_int_wide_imm_unpredicated_add) {
 
   // The macro is able to synthesise unencodable immediates.
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+
+  unsigned exp_b_4[] = {0x61, 0x5f, 0xf0, 0xdf};
+  unsigned exp_h_4[] = {0x6181, 0x5f7f, 0xf010, 0x8aaa};
+  unsigned exp_s_4[] = {0x00018181, 0xffff7f7f, 0x2aaaaaaa, 0x7000f0f0};
+  uint64_t exp_d_4[] = {0x8000000180018180, 0x7fffffff7fff7f7e};
+
+  // Negative immediates use `sub`.
+  IntWideImmHelper(config, fn, kBRegSize, in_b, -0x20, exp_b_4);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, -0x2000, exp_h_4);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, INT32_MIN, exp_s_4);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, -1, exp_d_4);
 }
 
 TEST_SVE(sve_int_wide_imm_unpredicated_sqadd) {
@@ -5887,6 +5898,17 @@ TEST_SVE(sve_int_wide_imm_unpredicated_sub) {
 
   // The macro is able to synthesise unencodable immediates.
   IntWideImmHelper(config, fn, kSRegSize, in_s, 127 << 16, exp_s_3);
+
+  unsigned exp_b_4[] = {0xa1, 0x9f, 0x30, 0x1f};
+  unsigned exp_h_4[] = {0xa181, 0x9f7f, 0x3010, 0xcaaa};
+  unsigned exp_s_4[] = {0x00018181, 0xffff7f7f, 0x2aaaaaaa, 0x7000f0f0};
+  uint64_t exp_d_4[] = {0x8000000180018182, 0x7fffffff7fff7f80};
+
+  // Negative immediates use `add`.
+  IntWideImmHelper(config, fn, kBRegSize, in_b, -0x20, exp_b_4);
+  IntWideImmHelper(config, fn, kHRegSize, in_h, -0x2000, exp_h_4);
+  IntWideImmHelper(config, fn, kSRegSize, in_s, INT32_MIN, exp_s_4);
+  IntWideImmHelper(config, fn, kDRegSize, in_d, -1, exp_d_4);
 }
 
 TEST_SVE(sve_int_wide_imm_unpredicated_sqsub) {

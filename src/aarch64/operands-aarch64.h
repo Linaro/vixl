@@ -878,6 +878,12 @@ class IntegerOperand {
   }
 
   bool IsZero() const { return raw_bits_ == 0; }
+  bool IsNegative() const { return is_negative_; }
+  bool IsPositiveOrZero() const { return !is_negative_; }
+
+  uint64_t GetMagnitude() const {
+    return is_negative_ ? -raw_bits_ : raw_bits_;
+  }
 
  private:
   // Shift the arithmetic value right, with sign extension if is_negative_.

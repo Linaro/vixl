@@ -3446,9 +3446,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Add(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    IntWideImmShiftFn imm_fn = &Assembler::add;
-    IntArithFn reg_fn = &Assembler::add;
-    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
+    AddSubHelper(kAddImmediate, zd, zn, imm);
   }
   void Addpl(const Register& xd, const Register& xn, int64_t multiplier);
   void Addvl(const Register& xd, const Register& xn, int64_t multiplier);
@@ -6303,9 +6301,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Sub(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    IntWideImmShiftFn imm_fn = &Assembler::sub;
-    IntArithFn reg_fn = &Assembler::sub;
-    IntWideImmShiftHelper(imm_fn, reg_fn, zd, zn, imm);
+    AddSubHelper(kSubImmediate, zd, zn, imm);
   }
   void Sub(const ZRegister& zd, IntegerOperand imm, const ZRegister& zm);
   void Sunpkhi(const ZRegister& zd, const ZRegister& zn) {
@@ -7035,6 +7031,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                            const SVEMemOperand& addr,
                            Tf fn);
 
+  typedef void (MacroAssembler::*IntWideImmMacroFn)(const ZRegister& zd,
+                                                    const ZRegister& zn,
+                                                    IntegerOperand imm);
+
   typedef void (Assembler::*IntWideImmShiftFn)(const ZRegister& zd,
                                                const ZRegister& zn,
                                                int imm,
@@ -7065,6 +7065,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         const ZRegister& zn,
                         IntegerOperand imm,
                         bool is_signed_imm);
+
+  enum AddSubHelperOption { kAddImmediate, kSubImmediate };
+
+  void AddSubHelper(AddSubHelperOption option,
+                    const ZRegister& zd,
+                    const ZRegister& zn,
+                    IntegerOperand imm);
+
+  // Try to emit an add- or sub-like instruction (imm_fn) with `imm`, or the
+  // corresponding sub- or add-like instruction (n_imm_fn) with a negated `imm`.
+  // A `movprfx` is automatically generated if one is required. If successful,
+  // return true. Otherwise, return false.
+  //
+  // This helper uses two's complement equivalences, for example treating 0xffff
+  // as -1 for H-sized lanes.
+  bool TrySingleAddSub(AddSubHelperOption option,
+                       const ZRegister& zd,
+                       const ZRegister& zn,
+                       IntegerOperand imm);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

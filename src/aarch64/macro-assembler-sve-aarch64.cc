@@ -29,6 +29,66 @@
 namespace vixl {
 namespace aarch64 {
 
+void MacroAssembler::AddSubHelper(AddSubHelperOption option,
+                                  const ZRegister& zd,
+                                  const ZRegister& zn,
+                                  IntegerOperand imm) {
+  VIXL_ASSERT(imm.FitsInLane(zd));
+
+  // Simple, encodable cases.
+  if (TrySingleAddSub(option, zd, zn, imm)) return;
+
+  VIXL_ASSERT((option == kAddImmediate) || (option == kSubImmediate));
+  bool add_imm = (option == kAddImmediate);
+
+  // Try to translate Add(..., -imm) to Sub(..., imm) if we can encode it in one
+  // instruction. Also interpret the immediate as signed, so we can convert
+  // Add(zd.VnH(), zn.VnH(), 0xffff...) to Sub(..., 1), etc.
+  IntegerOperand signed_imm(imm.AsIntN(zd.GetLaneSizeInBits()));
+  if (signed_imm.IsNegative()) {
+    AddSubHelperOption n_option = add_imm ? kSubImmediate : kAddImmediate;
+    IntegerOperand n_imm(signed_imm.GetMagnitude());
+    // IntegerOperand can represent -INT_MIN, so this is always safe.
+    VIXL_ASSERT(n_imm.IsPositiveOrZero());
+    if (TrySingleAddSub(n_option, zd, zn, n_imm)) return;
+  }
+
+  // Otherwise, fall back to dup + ADD_z_z/SUB_z_z.
+  UseScratchRegisterScope temps(this);
+  ZRegister scratch = temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits());
+  Dup(scratch, imm);
+
+  SingleEmissionCheckScope guard(this);
+  if (add_imm) {
+    add(zd, zn, scratch);
+  } else {
+    sub(zd, zn, scratch);
+  }
+}
+
+bool MacroAssembler::TrySingleAddSub(AddSubHelperOption option,
+                                     const ZRegister& zd,
+                                     const ZRegister& zn,
+                                     IntegerOperand imm) {
+  VIXL_ASSERT(imm.FitsInLane(zd));
+
+  int imm8;
+  int shift = -1;
+  if (imm.TryEncodeAsShiftedUintNForLane<8, 0>(zd, &imm8, &shift) ||
+      imm.TryEncodeAsShiftedUintNForLane<8, 8>(zd, &imm8, &shift)) {
+    MovprfxHelperScope guard(this, zd, zn);
+    switch (option) {
+      case kAddImmediate:
+        add(zd, zd, imm8, shift);
+        return true;
+      case kSubImmediate:
+        sub(zd, zd, imm8, shift);
+        return true;
+    }
+  }
+  return false;
+}
+
 void MacroAssembler::IntWideImmShiftHelper(IntWideImmShiftFn imm_fn,
                                            IntArithFn reg_fn,
                                            const ZRegister& zd,
@@ -39,7 +99,6 @@ void MacroAssembler::IntWideImmShiftHelper(IntWideImmShiftFn imm_fn,
   int shift = -1;
   if (imm.TryEncodeAsShiftedUintNForLane<8, 0>(zd, &imm8, &shift) ||
       imm.TryEncodeAsShiftedUintNForLane<8, 8>(zd, &imm8, &shift)) {
-    // E.g. ADD_z_zi, SUB_z_zi
     MovprfxHelperScope guard(this, zd, zn);
     (this->*imm_fn)(zd, zd, imm8, shift);
   } else {
