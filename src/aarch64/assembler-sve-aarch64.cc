@@ -7175,14 +7175,16 @@ void Assembler::compact(const ZRegister& zd,
 
 void Assembler::cpy(const ZRegister& zd,
                     const PRegisterM& pg,
-                    const Register& xn) {
+                    const Register& rn) {
   // CPY <Zd>.<T>, <Pg>/M, <R><n|SP>
   //  0000 0101 ..10 1000 101. .... .... ....
   //  size<23:22> | Pg<12:10> | Rn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(static_cast<unsigned>(rn.GetSizeInBits()) >=
+              zd.GetLaneSizeInBits());
 
-  Emit(CPY_z_p_r | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | RnSP(xn));
+  Emit(CPY_z_p_r | SVESize(zd) | Rd(zd) | PgLow8(pg) | RnSP(rn));
 }
 
 void Assembler::cpy(const ZRegister& zd,
@@ -7194,8 +7196,10 @@ void Assembler::cpy(const ZRegister& zd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vn.IsScalar());
+  VIXL_ASSERT(static_cast<unsigned>(vn.GetSizeInBits()) ==
+              zd.GetLaneSizeInBits());
 
-  Emit(CPY_z_p_v | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(vn));
+  Emit(CPY_z_p_v | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(vn));
 }
 
 void Assembler::lasta(const Register& rd,

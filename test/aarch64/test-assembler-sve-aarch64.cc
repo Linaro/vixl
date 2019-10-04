@@ -5068,6 +5068,113 @@ TEST_SVE(sve_abs_neg) {
   }
 }
 
+TEST_SVE(sve_cpy) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         0,                      1,                      1
+  // For S lanes:         0,          1,          1,          0,          1
+  // For H lanes:   1,    0,    0,    1,    0,    1,    1,    0,    0,    1
+  int pg_in[] = {1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1};
+
+  PRegisterM pg = p7.Merging();
+  Initialise(&masm, pg.VnB(), pg_in);
+
+  // These are merging operations, so we have to initialise the result registers
+  // for each operation.
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    __ Index(ZRegister(i, kBRegSize), 0, -1);
+  }
+
+  // Recognisable values to copy.
+  __ Mov(x0, 0xdeadbeefdeadbe42);
+  __ Mov(x1, 0xdeadbeefdead8421);
+  __ Mov(x2, 0xdeadbeef80042001);
+  __ Mov(x3, 0x8000000420000001);
+
+  // Use NEON moves, to avoid testing SVE `cpy` against itself.
+  __ Dup(v28.V2D(), x0);
+  __ Dup(v29.V2D(), x1);
+  __ Dup(v30.V2D(), x2);
+  __ Dup(v31.V2D(), x3);
+
+  // Register forms (CPY_z_p_r)
+  __ Cpy(z0.VnB(), pg, w0);
+  __ Cpy(z1.VnH(), pg, x1);  // X registers are accepted for small lanes.
+  __ Cpy(z2.VnS(), pg, w2);
+  __ Cpy(z3.VnD(), pg, x3);
+
+  // VRegister forms (CPY_z_p_v)
+  __ Cpy(z4.VnB(), pg, b28);
+  __ Cpy(z5.VnH(), pg, h29);
+  __ Cpy(z6.VnS(), pg, s30);
+  __ Cpy(z7.VnD(), pg, d31);
+
+  // Check that we can copy the stack pointer.
+  __ Mov(x10, sp);
+  __ Mov(sp, 0xabcabcabcabcabca);  // Set sp to a known value.
+  __ Cpy(z16.VnB(), pg, sp);
+  __ Cpy(z17.VnH(), pg, wsp);
+  __ Cpy(z18.VnS(), pg, wsp);
+  __ Cpy(z19.VnD(), pg, sp);
+  __ Mov(sp, x10);  // Restore sp.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // clang-format off
+
+    uint64_t expected_b[] =
+    // pg:  0 0 0 0 1 1 1 0     1 0 0 1 1 0 1 1     0 1 0 0 0 0 0 1
+        {0xe9eaebec424242f0, 0x42f2f34242f64242, 0xf942fbfcfdfeff42};
+    ASSERT_EQUAL_SVE(expected_b, z0.VnD());
+    ASSERT_EQUAL_SVE(expected_b, z4.VnD());
+
+    uint64_t expected_h[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebec8421eff0, 0xf1f28421f5f68421, 0x8421fbfcfdfe8421};
+    ASSERT_EQUAL_SVE(expected_h, z1.VnD());
+    ASSERT_EQUAL_SVE(expected_h, z5.VnD());
+
+    uint64_t expected_s[] =
+    // pg:        0       0           1       1           0       1
+        {0xe9eaebecedeeeff0, 0x8004200180042001, 0xf9fafbfc80042001};
+    ASSERT_EQUAL_SVE(expected_s, z2.VnD());
+    ASSERT_EQUAL_SVE(expected_s, z6.VnD());
+
+    uint64_t expected_d[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0x8000000420000001, 0x8000000420000001};
+    ASSERT_EQUAL_SVE(expected_d, z3.VnD());
+    ASSERT_EQUAL_SVE(expected_d, z7.VnD());
+
+
+    uint64_t expected_b_sp[] =
+    // pg:  0 0 0 0 1 1 1 0     1 0 0 1 1 0 1 1     0 1 0 0 0 0 0 1
+        {0xe9eaebeccacacaf0, 0xcaf2f3cacaf6caca, 0xf9cafbfcfdfeffca};
+    ASSERT_EQUAL_SVE(expected_b_sp, z16.VnD());
+
+    uint64_t expected_h_sp[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebecabcaeff0, 0xf1f2abcaf5f6abca, 0xabcafbfcfdfeabca};
+    ASSERT_EQUAL_SVE(expected_h_sp, z17.VnD());
+
+    uint64_t expected_s_sp[] =
+    // pg:        0       0           1       1           0       1
+        {0xe9eaebecedeeeff0, 0xcabcabcacabcabca, 0xf9fafbfccabcabca};
+    ASSERT_EQUAL_SVE(expected_s_sp, z18.VnD());
+
+    uint64_t expected_d_sp[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0xabcabcabcabcabca, 0xabcabcabcabcabca};
+    ASSERT_EQUAL_SVE(expected_d_sp, z19.VnD());
+
+    // clang-format on
+  }
+}
+
 TEST_SVE(sve_permute_vector_unpredicated_table_lookup) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

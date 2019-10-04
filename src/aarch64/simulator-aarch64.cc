@@ -9459,6 +9459,12 @@ void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
 
 void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
   USE(instr);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister z_result;
+
   switch (instr->Mask(SVEPermuteVectorPredicatedMask)) {
     case CLASTA_r_p_z:
       VIXL_UNIMPLEMENTED();
@@ -9478,14 +9484,15 @@ void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
     case CLASTB_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
-    case COMPACT_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CPY_z_p_r:
-      VIXL_UNIMPLEMENTED();
+      dup_immediate(vform,
+                    z_result,
+                    ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
+      mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
       break;
     case CPY_z_p_v:
-      VIXL_UNIMPLEMENTED();
+      dup_element(vform, z_result, ReadVRegister(instr->GetRn()), 0);
+      mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
       break;
     case LASTA_r_p_z:
       VIXL_UNIMPLEMENTED();
@@ -9515,7 +9522,12 @@ void Simulator::VisitSVEPermuteVectorPredicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     default:
-      VIXL_UNIMPLEMENTED();
+      // Handle oddballs.
+      if (instr->Mask(SVEPermuteVectorPredicated_CompactMask) ==
+          COMPACT_z_p_z) {
+      } else {
+        VIXL_UNIMPLEMENTED();
+      }
       break;
   }
 }

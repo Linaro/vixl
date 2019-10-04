@@ -8620,20 +8620,17 @@ void Disassembler::VisitSVEPermuteVectorPredicated(const Instruction *instr) {
     case CLASTB_z_p_zz:
       mnemonic = "clastb";
       break;
-    // COMPACT <Zd>.<T>, <Pg>, <Zn>.<T>
-    case COMPACT_z_p_z:
-      mnemonic = "compact";
-      form = "'Zd.<T>, p'u1210, 'Zn.<T>";
-      break;
-    // CPY <Zd>.<T>, <Pg>/M, <R><n|SP>
     case CPY_z_p_r:
       mnemonic = "cpy";
-      form = "'Zd.'t, p'u1210/m, 'Xns";
+      if (instr->GetSVESize() == kXRegSizeInBytesLog2) {
+        form = "'Zd.'t, p'u1210/m, 'Xns";
+      } else {
+        form = "'Zd.'t, p'u1210/m, 'Wns";
+      }
       break;
-    // CPY <Zd>.<T>, <Pg>/M, <V><n>
     case CPY_z_p_v:
       mnemonic = "cpy";
-      form = "'Zd.'t, p'u1210/m, 'Vn";
+      form = "'Zd.'t, p'u1210/m, 'Vnv";
       break;
     // LASTA <R><d>, <Pg>, <Zn>.<T>
     case LASTA_r_p_z:
@@ -8680,6 +8677,12 @@ void Disassembler::VisitSVEPermuteVectorPredicated(const Instruction *instr) {
       mnemonic = "splice";
       break;
     default:
+      // Handle oddballs.
+      if (instr->Mask(SVEPermuteVectorPredicated_CompactMask) ==
+          COMPACT_z_p_z) {
+        mnemonic = "compact";
+        form = "'Zd.<T>, p'u1210, 'Zn.<T>";
+      }
       break;
   }
   Format(instr, mnemonic, form);

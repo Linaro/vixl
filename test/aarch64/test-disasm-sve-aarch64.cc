@@ -2715,6 +2715,23 @@ TEST(sve_permute_vector_interleaving) {
   CLEANUP();
 }
 
+TEST(sve_cpy_reg) {
+  SETUP();
+
+  COMPARE_PREFIX(cpy(z1.VnB(), p2.Merging(), wsp), "cpy z1.b, p2/m, wsp");
+  COMPARE_PREFIX(cpy(z2.VnH(), p6.Merging(), w3), "cpy z2.h, p6/m, w3");
+  COMPARE_PREFIX(cpy(z3.VnS(), p7.Merging(), x5), "cpy z3.s, p7/m, w5");
+  COMPARE_PREFIX(cpy(z4.VnD(), p7.Merging(), x30), "cpy z4.d, p7/m, x30");
+  COMPARE_PREFIX(cpy(z5.VnD(), p7.Merging(), sp), "cpy z5.d, p7/m, sp");
+
+  COMPARE_PREFIX(cpy(z27.VnB(), p3.Merging(), b23), "cpy z27.b, p3/m, b23");
+  COMPARE_PREFIX(cpy(z27.VnH(), p3.Merging(), h23), "cpy z27.h, p3/m, h23");
+  COMPARE_PREFIX(cpy(z27.VnS(), p3.Merging(), s23), "cpy z27.s, p3/m, s23");
+  COMPARE_PREFIX(cpy(z27.VnD(), p3.Merging(), d23), "cpy z27.d, p3/m, d23");
+
+  CLEANUP();
+}
+
 TEST(sve_permute_vector_predicated) {
   SETUP();
 
@@ -2744,14 +2761,6 @@ TEST(sve_permute_vector_predicated) {
   COMPARE_PREFIX(clastb(z29.VnS(), p7, z29.VnS(), z26.VnS()), "clastb <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(clastb(z29.VnD(), p7, z29.VnD(), z26.VnD()), "clastb <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(compact(z13.Vn?(), p7, z1.Vn?()), "compact <Zd>.<T>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(cpy(z1.VnB(), p1.Merging(), xn), "cpy <Zd>.<T>, <Pg>/M, <R><n|SP>");
-  COMPARE_PREFIX(cpy(z1.VnH(), p1.Merging(), xn), "cpy <Zd>.<T>, <Pg>/M, <R><n|SP>");
-  COMPARE_PREFIX(cpy(z1.VnS(), p1.Merging(), xn), "cpy <Zd>.<T>, <Pg>/M, <R><n|SP>");
-  COMPARE_PREFIX(cpy(z1.VnD(), p1.Merging(), xn), "cpy <Zd>.<T>, <Pg>/M, <R><n|SP>");
-  COMPARE_PREFIX(cpy(z27.VnB(), p3.Merging(), b23), "cpy <Zd>.<T>, <Pg>/M, <V><n>");
-  COMPARE_PREFIX(cpy(z27.VnH(), p3.Merging(), h23), "cpy <Zd>.<T>, <Pg>/M, <V><n>");
-  COMPARE_PREFIX(cpy(z27.VnS(), p3.Merging(), s23), "cpy <Zd>.<T>, <Pg>/M, <V><n>");
-  COMPARE_PREFIX(cpy(z27.VnD(), p3.Merging(), d23), "cpy <Zd>.<T>, <Pg>/M, <V><n>");
   COMPARE_PREFIX(lasta(r15, p3, z3.VnB()), "lasta <R><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(lasta(r15, p3, z3.VnH()), "lasta <R><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(lasta(r15, p3, z3.VnS()), "lasta <R><d>, <Pg>, <Zn>.<T>");

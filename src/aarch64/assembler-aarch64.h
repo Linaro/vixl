@@ -3970,7 +3970,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cpy(const ZRegister& zd, const PRegister& pg, int imm8);
 
   // Copy general-purpose register to vector elements (predicated).
-  void cpy(const ZRegister& zd, const PRegisterM& pg, const Register& xn);
+  void cpy(const ZRegister& zd, const PRegisterM& pg, const Register& rn);
 
   // Copy SIMD&FP scalar register to vector elements (predicated).
   void cpy(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn);

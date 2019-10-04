@@ -3745,7 +3745,7 @@ enum SVEPermuteVectorInterleavingOp {
 enum SVEPermuteVectorPredicatedOp {
   SVEPermuteVectorPredicatedFixed = 0x05208000,
   SVEPermuteVectorPredicatedFMask = 0xFF20C000,
-  SVEPermuteVectorPredicatedMask = 0xFFBFE000,
+  SVEPermuteVectorPredicatedMask = 0xFF3FE000,
   CPY_z_p_v = SVEPermuteVectorPredicatedFixed,
   LASTA_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00002000,
   LASTB_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00012000,
@@ -3763,6 +3763,8 @@ enum SVEPermuteVectorPredicatedOp {
   SPLICE_z_p_zz_des = SVEPermuteVectorPredicatedFixed | 0x000C0000,
   CLASTA_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00102000,
   CLASTB_r_p_z = SVEPermuteVectorPredicatedFixed | 0x00112000,
+
+  SVEPermuteVectorPredicated_CompactMask = 0xFFBFE000,
   COMPACT_z_p_z = SVEPermuteVectorPredicatedFixed | 0x00810000
 };
 

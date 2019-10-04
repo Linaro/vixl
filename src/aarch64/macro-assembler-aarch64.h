@@ -3928,15 +3928,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     compact(zd, pg, zn);
   }
-  void Cpy(const ZRegister& zd, const PRegister& pg, int imm8) {
+  void Cpy(const ZRegister& zd, const PRegister& pg, IntegerOperand imm);
+  void Cpy(const ZRegister& zd, const PRegisterM& pg, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    cpy(zd, pg, imm8);
-  }
-  void Cpy(const ZRegister& zd, const PRegisterM& pg, const Register& xn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cpy(zd, pg, xn);
+    cpy(zd, pg, rn);
   }
   void Cpy(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn) {
     VIXL_ASSERT(allow_macro_instructions_);
