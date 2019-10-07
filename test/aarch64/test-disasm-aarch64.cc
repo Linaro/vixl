@@ -2625,6 +2625,8 @@ TEST(system_pauth) {
   COMPARE(autiasp(), "autiasp");
   COMPARE(autibsp(), "autibsp");
   COMPARE(xpaclri(), "xpaclri");
+
+  CLEANUP();
 }
 
 
