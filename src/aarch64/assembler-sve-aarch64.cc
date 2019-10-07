@@ -3476,27 +3476,19 @@ void Assembler::udot(const ZRegister& zda,
 void Assembler::andv(const VRegister& vd,
                      const PRegister& pg,
                      const ZRegister& zn) {
-  // ANDV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..01 1010 001. .... .... ....
-  //  size<23:22> | opc<18:16> = 010 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(ANDV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(ANDV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::eorv(const VRegister& vd,
                      const PRegister& pg,
                      const ZRegister& zn) {
-  // EORV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..01 1001 001. .... .... ....
-  //  size<23:22> | opc<18:16> = 001 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(EORV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(EORV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::movprfx(const ZRegister& zd,
@@ -3518,14 +3510,10 @@ void Assembler::movprfx(const ZRegister& zd,
 void Assembler::orv(const VRegister& vd,
                     const PRegister& pg,
                     const ZRegister& zn) {
-  // ORV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..01 1000 001. .... .... ....
-  //  size<23:22> | opc<18:16> = 000 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(ORV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(ORV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::saddv(const VRegister& dd,

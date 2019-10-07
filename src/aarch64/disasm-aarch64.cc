@@ -6568,20 +6568,16 @@ void Disassembler::VisitSVEIntMulAddUnpredicated(const Instruction *instr) {
 
 void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <V><d>, <Pg>, <Zn>.<T>
-  const char *form = "'Vd, p'u1210, 'Zn.'t";
+  const char *form = "'Vdv, p'u1210, 'Zn.'t";
 
   if (instr->Mask(SVEIntReductionLogicalFMask) == SVEIntReductionLogicalFixed) {
     switch (instr->Mask(SVEIntReductionLogicalMask)) {
-      // ANDV <V><d>, <Pg>, <Zn>.<T>
       case ANDV_r_p_z:
         mnemonic = "andv";
         break;
-      // EORV <V><d>, <Pg>, <Zn>.<T>
       case EORV_r_p_z:
         mnemonic = "eorv";
         break;
-      // ORV <V><d>, <Pg>, <Zn>.<T>
       case ORV_r_p_z:
         mnemonic = "orv";
         break;

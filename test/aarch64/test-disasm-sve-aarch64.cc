@@ -1505,16 +1505,14 @@ TEST(sve_int_mul_add_unpredicated) {
 TEST(sve_int_reduction) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(andv(b15, p1, z4.VnB()), "andv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(andv(h15, p1, z4.VnH()), "andv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(andv(s15, p1, z4.VnS()), "andv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(andv(d15, p1, z4.VnD()), "andv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(eorv(b12, p0, z30.VnB()), "eorv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(eorv(h12, p0, z30.VnH()), "eorv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(eorv(s12, p0, z30.VnS()), "eorv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(eorv(d12, p0, z30.VnD()), "eorv <V><d>, <Pg>, <Zn>.<T>");
-#endif
+  COMPARE_PREFIX(andv(b15, p1, z4.VnB()), "andv b15, p1, z4.b");
+  COMPARE_PREFIX(andv(h14, p2, z3.VnH()), "andv h14, p2, z3.h");
+  COMPARE_PREFIX(andv(s13, p3, z2.VnS()), "andv s13, p3, z2.s");
+  COMPARE_PREFIX(andv(d12, p4, z1.VnD()), "andv d12, p4, z1.d");
+  COMPARE_PREFIX(eorv(b12, p0, z30.VnB()), "eorv b12, p0, z30.b");
+  COMPARE_PREFIX(eorv(h11, p1, z29.VnH()), "eorv h11, p1, z29.h");
+  COMPARE_PREFIX(eorv(s10, p2, z28.VnS()), "eorv s10, p2, z28.s");
+  COMPARE_PREFIX(eorv(d9, p3, z27.VnD()), "eorv d9, p3, z27.d");
   COMPARE_PREFIX(movprfx(z30.VnB(), p2.Zeroing(), z23.VnB()),
                  "movprfx z30.b, p2/z, z23.b");
   COMPARE_PREFIX(movprfx(z10.VnH(), p0.Merging(), z10.VnH()),
@@ -1523,11 +1521,11 @@ TEST(sve_int_reduction) {
                  "movprfx z0.s, p2/z, z23.s");
   COMPARE_PREFIX(movprfx(z31.VnD(), p7.Merging(), z23.VnD()),
                  "movprfx z31.d, p7/m, z23.d");
+  COMPARE_PREFIX(orv(b4, p0, z16.VnB()), "orv b4, p0, z16.b");
+  COMPARE_PREFIX(orv(h6, p2, z18.VnH()), "orv h6, p2, z18.h");
+  COMPARE_PREFIX(orv(s8, p4, z20.VnS()), "orv s8, p4, z20.s");
+  COMPARE_PREFIX(orv(d10, p6, z22.VnD()), "orv d10, p6, z22.d");
 #if 0
-  COMPARE_PREFIX(orv(b4, p0, z16.VnB()), "orv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(orv(h4, p0, z16.VnH()), "orv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(orv(s4, p0, z16.VnS()), "orv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(orv(d4, p0, z16.VnD()), "orv <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(saddv(d24, p1, z12.VnB()), "saddv <Dd>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(saddv(d24, p1, z12.VnH()), "saddv <Dd>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(saddv(d24, p1, z12.VnS()), "saddv <Dd>, <Pg>, <Zn>.<T>");

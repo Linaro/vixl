@@ -2057,6 +2057,63 @@ LogicVRegister Simulator::abs(VectorFormat vform,
 }
 
 
+LogicVRegister Simulator::andv(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicPRegister& pg,
+                               const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uint64_t result = GetUintMask(LaneSizeInBitsFromFormat(vform));
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    result &= src.Uint(vform, i);
+  }
+  VectorFormat vform_dst =
+      ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
+  dst.ClearForWrite(vform_dst);
+  dst.SetUint(vform_dst, 0, result);
+  return dst;
+}
+
+
+LogicVRegister Simulator::eorv(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicPRegister& pg,
+                               const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uint64_t result = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    result ^= src.Uint(vform, i);
+  }
+  VectorFormat vform_dst =
+      ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
+  dst.ClearForWrite(vform_dst);
+  dst.SetUint(vform_dst, 0, result);
+  return dst;
+}
+
+
+LogicVRegister Simulator::orv(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicPRegister& pg,
+                              const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uint64_t result = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    result |= src.Uint(vform, i);
+  }
+  VectorFormat vform_dst =
+      ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
+  dst.ClearForWrite(vform_dst);
+  dst.SetUint(vform_dst, 0, result);
+  return dst;
+}
+
+
 LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
                                         LogicVRegister dst,
                                         bool dstIsSigned,

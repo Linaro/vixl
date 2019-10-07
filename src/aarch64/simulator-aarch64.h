@@ -3632,6 +3632,19 @@ class Simulator : public DecoderVisitor {
                        const LogicPRegister& pg,
                        const LogicPRegister& src);
 
+  LogicVRegister andv(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicPRegister& pg,
+                      const LogicVRegister& src);
+  LogicVRegister eorv(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicPRegister& pg,
+                      const LogicVRegister& src);
+  LogicVRegister orv(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicPRegister& pg,
+                     const LogicVRegister& src);
+
   template <typename T>
   struct TFPMinMaxOp {
     typedef T (Simulator::*type)(T a, T b);

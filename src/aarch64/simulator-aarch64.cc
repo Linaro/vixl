@@ -8453,19 +8453,20 @@ void Simulator::VisitSVEIntReduction(const Instruction* instr) {
   USE(instr);
 
   VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
 
   if (instr->Mask(SVEIntReductionLogicalFMask) == SVEIntReductionLogicalFixed) {
     switch (instr->Mask(SVEIntReductionLogicalMask)) {
       case ANDV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        andv(vform, vd, pg, zn);
         break;
       case EORV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        eorv(vform, vd, pg, zn);
         break;
       case ORV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        orv(vform, vd, pg, zn);
         break;
       default:
         VIXL_UNIMPLEMENTED();
