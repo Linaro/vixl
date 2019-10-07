@@ -2172,6 +2172,11 @@ TEST(sve_int_compare_conditionally_terminate_scalars) {
   __ Mov(x0, 0xfedcba9887654321);
   __ Mov(x1, 0x1000100010001000);
 
+  // Initialise Z and C. These are preserved by cterm*, and the V flag is set to
+  // !C if the condition does not hold.
+  __ Mov(x10, NoFlag);
+  __ Msr(NZCV, x10);
+
   __ Ctermeq(w0, w0);
   __ Mrs(x2, NZCV);
   __ Ctermeq(x0, x1);
@@ -2180,6 +2185,19 @@ TEST(sve_int_compare_conditionally_terminate_scalars) {
   __ Mrs(x4, NZCV);
   __ Ctermne(w0, w1);
   __ Mrs(x5, NZCV);
+
+  // As above, but with all flags initially set.
+  __ Mov(x10, NZCVFlag);
+  __ Msr(NZCV, x10);
+
+  __ Ctermeq(w0, w0);
+  __ Mrs(x6, NZCV);
+  __ Ctermeq(x0, x1);
+  __ Mrs(x7, NZCV);
+  __ Ctermne(x0, x0);
+  __ Mrs(x8, NZCV);
+  __ Ctermne(w0, w1);
+  __ Mrs(x9, NZCV);
 
   END();
 
@@ -2190,6 +2208,11 @@ TEST(sve_int_compare_conditionally_terminate_scalars) {
     ASSERT_EQUAL_32(VFlag, w3);
     ASSERT_EQUAL_32(VFlag, w4);
     ASSERT_EQUAL_32(SVEFirstFlag, w5);
+
+    ASSERT_EQUAL_32(SVEFirstFlag | ZCFlag, w6);
+    ASSERT_EQUAL_32(ZCFlag, w7);
+    ASSERT_EQUAL_32(ZCFlag, w8);
+    ASSERT_EQUAL_32(SVEFirstFlag | ZCFlag, w9);
   }
 }
 
