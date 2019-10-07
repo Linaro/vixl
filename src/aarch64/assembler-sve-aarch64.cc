@@ -2670,9 +2670,8 @@ void Assembler::sdiv(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameFormat(zd, zn, zm));
   VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeD());
-  Instr size = zd.IsLaneSizeD() ? 0x00400000 : 0x00000000;
 
-  Emit(SDIV_z_p_zz | size | Rd(zd) | PgLow8(pg) | Rn(zm));
+  Emit(SDIV_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::sdivr(const ZRegister& zd,
@@ -2688,9 +2687,8 @@ void Assembler::sdivr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameFormat(zd, zn, zm));
   VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeD());
-  Instr size = zd.IsLaneSizeD() ? 0x00400000 : 0x00000000;
 
-  Emit(SDIVR_z_p_zz | size | Rd(zd) | PgLow8(pg) | Rn(zm));
+  Emit(SDIVR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::smax(const ZRegister& zd,
@@ -2802,9 +2800,8 @@ void Assembler::udiv(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameFormat(zd, zn, zm));
   VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeD());
-  Instr size = zd.IsLaneSizeD() ? 0x00400000 : 0x00000000;
 
-  Emit(UDIV_z_p_zz | size | Rd(zd) | PgLow8(pg) | Rn(zm));
+  Emit(UDIV_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::udivr(const ZRegister& zd,
@@ -2820,9 +2817,8 @@ void Assembler::udivr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameFormat(zd, zn, zm));
   VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeD());
-  Instr size = zd.IsLaneSizeD() ? 0x00400000 : 0x00000000;
 
-  Emit(UDIVR_z_p_zz | size | Rd(zd) | PgLow8(pg) | Rn(zm));
+  Emit(UDIVR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::umax(const ZRegister& zd,

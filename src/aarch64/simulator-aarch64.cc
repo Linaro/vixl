@@ -8075,12 +8075,6 @@ void Simulator::VisitSVEIntBinaryArithmeticPredicated(
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   SimVRegister result;
 
-  // Get the size specifier for division instructions.
-  VectorFormat div_vform = kFormatUndefined;
-  unsigned div_size = instr->ExtractBits(23, 22);
-  if (div_size == 0) div_vform = kFormatVnS;
-  if (div_size == 1) div_vform = kFormatVnD;
-
   switch (instr->Mask(SVEIntBinaryArithmeticPredicatedMask)) {
     case ADD_z_p_zz:
       add(vform, result, zdn, zm);
@@ -8104,11 +8098,11 @@ void Simulator::VisitSVEIntBinaryArithmeticPredicated(
       absdiff(vform, result, zdn, zm, true);
       break;
     case SDIVR_z_p_zz:
-      vform = div_vform;
+      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
       sdiv(vform, result, zm, zdn);
       break;
     case SDIV_z_p_zz:
-      vform = div_vform;
+      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
       sdiv(vform, result, zdn, zm);
       break;
     case SMAX_z_p_zz:
@@ -8130,11 +8124,11 @@ void Simulator::VisitSVEIntBinaryArithmeticPredicated(
       absdiff(vform, result, zdn, zm, false);
       break;
     case UDIVR_z_p_zz:
-      vform = div_vform;
+      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
       udiv(vform, result, zm, zdn);
       break;
     case UDIV_z_p_zz:
-      vform = div_vform;
+      VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
       udiv(vform, result, zdn, zm);
       break;
     case UMAX_z_p_zz:

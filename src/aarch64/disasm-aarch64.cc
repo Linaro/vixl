@@ -6298,14 +6298,18 @@ void Disassembler::VisitSVEIntBinaryArithmeticPredicated(
     case UDIVR_z_p_zz:
     case UDIV_z_p_zz:
       switch (instr->GetSVESize()) {
-        case 0:
-          form = "'Zd.s, p'u1210/m, 'Zd.s, 'Zn.s";
+        case kBRegSizeInBytesLog2:
+        case kHRegSizeInBytesLog2:
+          mnemonic = "unimplemented";
+          form = "(SVEIntBinaryArithmeticPredicated)";
           break;
-        case 1:
-          form = "'Zd.d, p'u1210/m, 'Zd.d, 'Zn.d";
+        case kSRegSizeInBytesLog2:
+        case kDRegSizeInBytesLog2:
+          // The default form works for these instructions.
           break;
         default:
-          mnemonic = "unimplemented";
+          // GetSVESize() should never return other values.
+          VIXL_UNREACHABLE();
           break;
       }
   }
