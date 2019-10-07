@@ -2576,7 +2576,12 @@ TEST(branch_to_reg_auth_fail) {
   __ Blraaz(x0);
 
   __ Bind(&after_fn1);
-  __ Bl(&fn1);
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide and BLRAAZ won't abort. To mitigate
+  // this, we simply repeat the test a few more times.
+  for (unsigned i = 0; i < 32; i++) {
+    __ Bl(&fn1);
+  }
 
   __ Mov(lr, x29);
   END();
