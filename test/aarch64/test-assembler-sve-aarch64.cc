@@ -4293,6 +4293,12 @@ TEST_SVE(sve_permute_vector_unpredicated) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
   START();
 
+  // Initialise registers with known values first.
+  __ Dup(z1.VnB(), 0x11);
+  __ Dup(z2.VnB(), 0x22);
+  __ Dup(z3.VnB(), 0x33);
+  __ Dup(z4.VnB(), 0x44);
+
   __ Mov(x0, 0x0123456789abcdef);
   __ Fmov(d0, RawbitsToDouble(0x7ffaaaaa22223456));
   __ Insr(z1.VnS(), w0);
@@ -4333,10 +4339,10 @@ TEST_SVE(sve_permute_vector_unpredicated) {
     RUN();
 
     // Insr
-    uint64_t z1_expected[] = {0x7f80f0017ff0f001, 0x7f80f00089abcdef};
-    uint64_t z2_expected[] = {0x7ff0f0027f80f000, 0x0123456789abcdef};
-    uint64_t z3_expected[] = {0xf0037f80f0017ff0, 0xf0037f80f0003456};
-    uint64_t z4_expected[] = {0x7ff0f0047f80f000, 0x7ffaaaaa22223456};
+    uint64_t z1_expected[] = {0x1111111111111111, 0x1111111189abcdef};
+    uint64_t z2_expected[] = {0x2222222222222222, 0x0123456789abcdef};
+    uint64_t z3_expected[] = {0x3333333333333333, 0x3333333333333456};
+    uint64_t z4_expected[] = {0x4444444444444444, 0x7ffaaaaa22223456};
     ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
     ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
     ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
