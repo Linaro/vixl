@@ -420,14 +420,14 @@ struct EqualMemoryChunk {
 
 bool EqualMemory(const void* expected,
                  const void* result,
-                 size_t size_in_bytes) {
+                 size_t size_in_bytes,
+                 size_t zero_offset) {
   if (memcmp(expected, result, size_in_bytes) == 0) return true;
 
   // Read 64-bit chunks, and print them side-by-side if they don't match.
 
-  // Remember the least few chunks, even if they matched, so we can print
-  // some context. We don't want to print the whole buffer, because it could be
-  // huge.
+  // Remember the last few chunks, even if they matched, so we can print some
+  // context. We don't want to print the whole buffer, because it could be huge.
   static const size_t kContextLines = 1;
   std::queue<EqualMemoryChunk> context;
   static const size_t kChunkSize = sizeof(EqualMemoryChunk::RawChunk);
@@ -465,10 +465,14 @@ bool EqualMemory(const void* expected,
 
     // Print context (including the current line).
     while (!context.empty() && (context.front().address < print_context_to)) {
-      printf("0x%016" PRIxPTR " (result + %5" PRIuPTR "): 0x%016" PRIx64
+      uintptr_t address = context.front().address;
+      uint64_t offset = address - reinterpret_cast<uintptr_t>(result);
+      bool is_negative = (offset < zero_offset);
+      printf("0x%016" PRIxPTR " (result %c %5" PRIu64 "): 0x%016" PRIx64
              " 0x%016" PRIx64 "\n",
-             context.front().address,
-             context.front().address - reinterpret_cast<uintptr_t>(result),
+             address,
+             (is_negative ? '-' : '+'),
+             (is_negative ? (zero_offset - offset) : (offset - zero_offset)),
              context.front().expected,
              context.front().result);
       context.pop();

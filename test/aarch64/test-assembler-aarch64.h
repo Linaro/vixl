@@ -363,10 +363,10 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 #define ASSERT_EQUAL_SVE(expected, result) \
   VIXL_CHECK(EqualSVE(expected, &core, result, &printed_sve_lane_warning))
 
-#define ASSERT_EQUAL_MEMORY(expected, result, size_in_bytes) \
-  VIXL_CHECK(EqualMemory(reinterpret_cast<void*>(expected),  \
-                         reinterpret_cast<void*>(result),    \
-                         size_in_bytes))
+#define ASSERT_EQUAL_MEMORY(expected, result, ...)          \
+  VIXL_CHECK(EqualMemory(reinterpret_cast<void*>(expected), \
+                         reinterpret_cast<void*>(result),   \
+                         __VA_ARGS__))
 
 #define MUST_FAIL_WITH_MESSAGE(code, message)                     \
   {                                                               \

@@ -472,7 +472,8 @@ bool EqualSVE(const R& expected,
 
 bool EqualMemory(const void* expected,
                  const void* result,
-                 size_t size_in_bytes);
+                 size_t size_in_bytes,
+                 size_t zero_offset = 0);
 
 // Populate the w, x and r arrays with registers from the 'allowed' mask. The
 // r array will be populated with <reg_size>-sized registers,

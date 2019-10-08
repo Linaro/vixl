@@ -5361,7 +5361,7 @@ TEST_SVE(ldr_str_z_bi) {
       middle[(-314 * vl) + i] = (9 + (7 * i)) & 0xff;   // z9
     }
 
-    ASSERT_EQUAL_MEMORY(expected, data, data_size);
+    ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
 
     ASSERT_EQUAL_SVE(z1, z11);
     ASSERT_EQUAL_SVE(z2, z12);
@@ -5460,7 +5460,7 @@ TEST_SVE(ldr_str_p_bi) {
       middle[(-314 * pl) + i] = byte * 15;  // p15
     }
 
-    ASSERT_EQUAL_MEMORY(expected, data, data_size);
+    ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
 
     ASSERT_EQUAL_SVE(p0, p8);
     ASSERT_EQUAL_SVE(p1, p9);
@@ -5659,7 +5659,7 @@ TEST_SVE(sve_ld1_st1_contiguous) {
       MemoryWrite(middle, 22 * vl, i, static_cast<uint32_t>(32 + (-11 * i)));
     }
 
-    ASSERT_EQUAL_MEMORY(expected, data, data_size);
+    ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
 
     // Check that we loaded back the expected values.
 
