@@ -3451,10 +3451,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Addpl(const Register& xd, const Register& xn, int64_t multiplier);
   void Addvl(const Register& xd, const Register& xn, int64_t multiplier);
   // Note that unlike the core ISA, SVE's `adr` is not PC-relative.
-  // Together, the `Adr` implementations support _any_ SVEMemOperand, not just
-  // those that `adr` accepts. This allows them to be used as a common fall-back
-  // for out-of-range load and store operands.
-  void Adr(const Register& xd, const SVEMemOperand& addr);
   void Adr(const ZRegister& zd, const SVEMemOperand& addr);
   void Adr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6948,6 +6944,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                                const Operand& right,
                                                Condition cond,
                                                bool* should_synthesise_left);
+
+  // Generate code to calculate the address represented by `addr` and write it
+  // into `xd`. This is used as a common fall-back for out-of-range load and
+  // store operands.
+  //
+  // The vl_divisor_log2 argument is used to scale the VL, for use with
+  // SVE_MUL_VL.
+  void CalculateSVEAddress(const Register& xd,
+                           const SVEMemOperand& addr,
+                           int vl_divisor_log2 = 0);
+
+  void CalculateSVEAddress(const Register& xd,
+                           const SVEMemOperand& addr,
+                           const CPURegister& rt) {
+    VIXL_ASSERT(rt.IsPRegister() || rt.IsZRegister());
+    int vl_divisor_log2 = rt.IsPRegister() ? kZRegBitsPerPRegBitLog2 : 0;
+    CalculateSVEAddress(xd, addr, vl_divisor_log2);
+  }
 
  private:
   // The actual Push and Pop implementations. These don't generate any code

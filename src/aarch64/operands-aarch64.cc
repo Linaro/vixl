@@ -394,8 +394,6 @@ bool SVEMemOperand::IsValid() const {
     switch (mod_) {
       case NO_SVE_OFFSET_MODIFIER:
       case SVE_MUL_VL:
-      case SVE_MUL_VL_FOR_ZREG:
-      case SVE_MUL_VL_FOR_PREG:
         return false;
       case SVE_LSL:
       case SVE_UXTW:

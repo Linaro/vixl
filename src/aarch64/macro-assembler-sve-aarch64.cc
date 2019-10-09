@@ -301,10 +301,19 @@ void MacroAssembler::Addvl(const Register& xd,
   }
 }
 
-void MacroAssembler::Adr(const Register& xd, const SVEMemOperand& addr) {
+void MacroAssembler::CalculateSVEAddress(const Register& xd,
+                                         const SVEMemOperand& addr,
+                                         int vl_divisor_log2) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(!addr.IsScatterGather());
   VIXL_ASSERT(xd.IsX());
+
+  // The lower bound is where a whole Z register is accessed.
+  VIXL_ASSERT(vl_divisor_log2 >= 0);
+  // The upper bound is for P register accesses, and for instructions like
+  // "st1b { z0.d } [...]", where one byte is accessed for every D-sized lane.
+  VIXL_ASSERT(static_cast<unsigned>(vl_divisor_log2) <=
+              kZRegBitsPerPRegBitLog2);
 
   SVEOffsetModifier mod = addr.GetOffsetModifier();
   Register base = addr.GetScalarBase();
@@ -321,14 +330,12 @@ void MacroAssembler::Adr(const Register& xd, const SVEMemOperand& addr) {
     //   [x0, #42, MUL VL]
     int64_t offset = addr.GetImmediateOffset();
     VIXL_ASSERT(offset != 0);  // Handled by IsEquivalentToScalar.
-    if (addr.IsMulVlForZReg()) {
-      Addvl(xd, base, offset);
-    } else if (addr.IsMulVlForPReg()) {
-      Addpl(xd, base, offset);
-    } else if (addr.IsMulVl()) {
-      // `Adr` cannot determine how to scale the operand unless the destination
-      // type is known.
-      VIXL_ABORT();
+    if (addr.IsMulVl()) {
+      int vl_divisor = 1 << vl_divisor_log2;
+      // For all possible values of vl_divisor, we can simply use `Addpl`. This
+      // will select `addvl` if necessary.
+      VIXL_ASSERT((kZRegBitsPerPRegBit % vl_divisor) == 0);
+      Addpl(xd, base, offset * (kZRegBitsPerPRegBit / vl_divisor));
     } else {
       // IsScalarPlusImmediate() ensures that no other modifiers can occur.
       VIXL_ASSERT(mod == NO_SVE_OFFSET_MODIFIER);
@@ -890,7 +897,7 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
 
   UseScratchRegisterScope temps(this);
   Register scratch = temps.AcquireX();
-  Adr(scratch, addr.ForAccessTo(rt));
+  CalculateSVEAddress(scratch, addr, rt);
   SingleEmissionCheckScope guard(this);
   (this->*fn)(rt, SVEMemOperand(scratch));
 }
@@ -937,7 +944,8 @@ void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
     // TODO: If we have an immediate offset that is a multiple of
     // msize_in_bytes, we can use Rdvl/Rdpl and a scalar-plus-scalar form to
     // save an instruction.
-    Adr(scratch, addr.ForZRegAccess());
+    int vl_divisor_log2 = zt.GetLaneSizeInBytesLog2() - msize_in_bytes_log2;
+    CalculateSVEAddress(scratch, addr, vl_divisor_log2);
     SingleEmissionCheckScope guard(this);
     (this->*fn)(zt, pg, SVEMemOperand(scratch));
   }

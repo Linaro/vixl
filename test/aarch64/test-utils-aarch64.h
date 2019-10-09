@@ -522,6 +522,25 @@ void ClobberFP(MacroAssembler* masm,
 // Clobber or ClobberFP functions.
 void Clobber(MacroAssembler* masm, CPURegList reg_list);
 
+// This class acts as a drop-in replacement for VIXL's MacroAssembler, giving
+// CalculateSVEAddress public visibility.
+//
+// CalculateSVEAddress normally has protected visibility, but it's useful to
+// test it in isolation because it is the basis of all SVE non-scatter-gather
+// load and store fall-backs.
+class CalculateSVEAddressMacroAssembler : public vixl::aarch64::MacroAssembler {
+ public:
+  void CalculateSVEAddress(const Register& xd,
+                           const SVEMemOperand& addr,
+                           int vl_divisor_log2) {
+    MacroAssembler::CalculateSVEAddress(xd, addr, vl_divisor_log2);
+  }
+
+  void CalculateSVEAddress(const Register& xd, const SVEMemOperand& addr) {
+    MacroAssembler::CalculateSVEAddress(xd, addr);
+  }
+};
+
 }  // namespace aarch64
 }  // namespace vixl
 

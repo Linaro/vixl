@@ -354,14 +354,7 @@ enum SVEOffsetModifier {
   // Shift or extend modifiers (as in `Shift` or `Extend`).
   SVE_LSL,
   SVE_UXTW,
-  SVE_SXTW,
-
-  // Internal values for use where the access type is known.
-  // These should not be used directly. Usually, VIXL can infer the access type
-  // from the context. Otherwise, specify the type using something like
-  // `SVEMemOperand(...).ForPRegAccess()`.
-  SVE_MUL_VL_FOR_ZREG,
-  SVE_MUL_VL_FOR_PREG
+  SVE_SXTW
 };
 
 enum SystemHint {

@@ -10071,11 +10071,16 @@ void Simulator::VisitSVEContiguousStore_ScalarPlusImm(
     case ST1H_z_p_bi:
     case ST1W_z_p_bi: {
       int vl = GetVectorLengthInBytes();
-      uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+      int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(false);
+      VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
+      int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+      uint64_t offset =
+          (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
       VectorFormat vform =
-          SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
+          SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
       LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
-      SVEStructuredStoreHelper(instr->ExtractBits(24, 23),
+      SVEStructuredStoreHelper(msize_in_bytes_log2,
                                vform,
                                ReadPRegister(instr->GetPgLow8()),
                                instr->GetRt(),
@@ -10972,12 +10977,14 @@ void Simulator::VisitSVEContiguousLoad_ScalarPlusImm(const Instruction* instr) {
       break;
   }
 
+  int vl = GetVectorLengthInBytes();
   int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
   int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
-  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
+  int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+  uint64_t offset =
+      (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
-  int vl = GetVectorLengthInBytes();
-  uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
   LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
   SVEStructuredLoadHelper(msize_in_bytes_log2,
                           vform,

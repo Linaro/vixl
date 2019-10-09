@@ -495,12 +495,7 @@ class SVEMemOperand {
         mod_(mod),
         shift_amount_(0) {
     VIXL_ASSERT(IsScalarPlusImmediate());
-    if (offset == 0) VIXL_ASSERT(IsScalar());
     VIXL_ASSERT(IsValid());
-
-    // SVE_MUL_VL_FOR_*REG shouldn't be used directly. Instead, call
-    // `For*RegAccess()` on the result of this constructor.
-    VIXL_ASSERT((mod == NO_SVE_OFFSET_MODIFIER) || (mod == SVE_MUL_VL));
   }
 
   // "scalar-plus-scalar", like [x0, x1]
@@ -627,21 +622,7 @@ class SVEMemOperand {
     return mod_ == SVE_LSL;
   }
 
-  // Usually, SVEMemOperands are access-size-agnostic, but the behaviour of
-  // "MUL VL" depends on the access size.
-  bool IsMulVlForZReg() const { return mod_ == SVE_MUL_VL_FOR_ZREG; }
-  bool IsMulVlForPReg() const { return mod_ == SVE_MUL_VL_FOR_PREG; }
-
-  // Specify the access type for SVE_MUL_VL. This has no effect for other
-  // modifiers.
-  inline SVEMemOperand ForPRegAccess() const;
-  inline SVEMemOperand ForZRegAccess() const;
-  inline SVEMemOperand ForAccessTo(const CPURegister& rt) const;
-
-  bool IsMulVl() const {
-    return (mod_ == SVE_MUL_VL) || (mod_ == SVE_MUL_VL_FOR_ZREG) ||
-           (mod_ == SVE_MUL_VL_FOR_PREG);
-  }
+  bool IsMulVl() const { return mod_ == SVE_MUL_VL; }
 
   bool IsValid() const;
 
@@ -672,25 +653,6 @@ class SVEMemOperand {
   SVEOffsetModifier mod_;
   unsigned shift_amount_;
 };
-
-inline SVEMemOperand SVEMemOperand::ForPRegAccess() const {
-  SVEMemOperand result = *this;
-  if (IsMulVl()) result.mod_ = SVE_MUL_VL_FOR_PREG;
-  return result;
-}
-
-inline SVEMemOperand SVEMemOperand::ForZRegAccess() const {
-  SVEMemOperand result = *this;
-  if (IsMulVl()) result.mod_ = SVE_MUL_VL_FOR_ZREG;
-  return result;
-}
-
-inline SVEMemOperand SVEMemOperand::ForAccessTo(const CPURegister& rt) const {
-  if (rt.IsZRegister()) return ForZRegAccess();
-  if (rt.IsPRegister()) return ForPRegAccess();
-  VIXL_ABORT();
-  return *this;
-}
 
 // Represent a signed or unsigned integer operand.
 //

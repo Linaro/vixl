@@ -30,6 +30,7 @@
 #include <string>
 
 #include "test-runner.h"
+#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
@@ -76,36 +77,48 @@ TEST(sve_address_generation) {
   CLEANUP();
 }
 
-TEST(sve_adr_x_macro) {
+TEST(sve_calculate_sve_address) {
+  // Shadow the `MacroAssembler` type so that the test macros work without
+  // modification.
+  typedef CalculateSVEAddressMacroAssembler MacroAssembler;
+
   SETUP();
 
-  // Adr is a complicated macro, and is used for address computation in several
-  // other contexts. It is important that we cover every branch in this test
-  // because most other tests tend not to check every `Adr` possibility.
+  // It is important that we cover every branch in this test because most other
+  // tests tend not to check every code path.
 
   // IsEquivalentToScalar()
-  COMPARE_MACRO(Adr(x0, SVEMemOperand(x1)), "mov x0, x1");
-  COMPARE_MACRO(Adr(x4, SVEMemOperand(x2, 0)), "mov x4, x2");
-  COMPARE_MACRO(Adr(x4, SVEMemOperand(x2, xzr, LSL, 2)), "mov x4, x2");
+  COMPARE_MACRO(CalculateSVEAddress(x0, SVEMemOperand(x1)), "mov x0, x1");
+  COMPARE_MACRO(CalculateSVEAddress(x4, SVEMemOperand(x2, 0)), "mov x4, x2");
+  COMPARE_MACRO(CalculateSVEAddress(x4, SVEMemOperand(x2, xzr, LSL, 2)),
+                "mov x4, x2");
 
   // IsScalarPlusImmediate()
   // Simple immediates just pass through to 'Add'.
-  COMPARE_MACRO(Adr(x10, SVEMemOperand(x0, 42)), "add x10, x0, #0x2a (42)");
-  COMPARE_MACRO(Adr(x10, SVEMemOperand(sp, 42)), "add x10, sp, #0x2a (42)");
-  // SVE_MUL_VL variants use `Addpl`, which has its own tests, but `Adr` needs
-  // to check and handle the access size.
-  COMPARE_MACRO(Adr(x10, SVEMemOperand(x0, 3, SVE_MUL_VL).ForZRegAccess()),
-                "addvl x10, x0, #3");
-  COMPARE_MACRO(Adr(x10, SVEMemOperand(x0, 3, SVE_MUL_VL).ForPRegAccess()),
+  COMPARE_MACRO(CalculateSVEAddress(x10, SVEMemOperand(x0, 42)),
+                "add x10, x0, #0x2a (42)");
+  COMPARE_MACRO(CalculateSVEAddress(x10, SVEMemOperand(sp, 42)),
+                "add x10, sp, #0x2a (42)");
+  // SVE_MUL_VL variants use `Addpl`, which has its own tests, but
+  // `CalculateSVEAddress` needs to check and handle the access size.
+  COMPARE_MACRO(CalculateSVEAddress(x10, SVEMemOperand(x0, 3, SVE_MUL_VL), 0),
+                "addpl x10, x0, #24");
+  COMPARE_MACRO(CalculateSVEAddress(x10, SVEMemOperand(x0, 3, SVE_MUL_VL), 1),
+                "addpl x10, x0, #12");
+  COMPARE_MACRO(CalculateSVEAddress(x10, SVEMemOperand(x0, 3, SVE_MUL_VL), 2),
+                "addpl x10, x0, #6");
+  COMPARE_MACRO(CalculateSVEAddress(x10, SVEMemOperand(x0, 3, SVE_MUL_VL), 3),
                 "addpl x10, x0, #3");
 
   // IsScalarPlusScalar()
   // All forms pass through to `Add`, but SVE_LSL must be handled correctly.
-  COMPARE_MACRO(Adr(x22, SVEMemOperand(x2, x3)), "add x22, x2, x3");
-  COMPARE_MACRO(Adr(x22, SVEMemOperand(sp, x3)), "add x22, sp, x3");
-  COMPARE_MACRO(Adr(x22, SVEMemOperand(x2, x3, LSL, 2)),
+  COMPARE_MACRO(CalculateSVEAddress(x22, SVEMemOperand(x2, x3)),
+                "add x22, x2, x3");
+  COMPARE_MACRO(CalculateSVEAddress(x22, SVEMemOperand(sp, x3)),
+                "add x22, sp, x3");
+  COMPARE_MACRO(CalculateSVEAddress(x22, SVEMemOperand(x2, x3, LSL, 2)),
                 "add x22, x2, x3, lsl #2");
-  COMPARE_MACRO(Adr(x22, SVEMemOperand(sp, x3, LSL, 2)),
+  COMPARE_MACRO(CalculateSVEAddress(x22, SVEMemOperand(sp, x3, LSL, 2)),
                 "add x22, sp, x3, lsl #2");
 
   CLEANUP();
@@ -2556,13 +2569,17 @@ TEST(sve_ld1_st1_macro) {
                 "st1d { z31.d }, p7, [x9, x9, LSL #3]");
 
   // SVEMemOperand synthesis.
-  // Most cases are handled by `Adr`, which we test independently, but check
-  // that the MacroAssembler falls back on `Adr` at the boundary conditions.
+  // Check that the MacroAssembler falls back on `CalculateSVEAddress` at the
+  // boundary conditions. We test this helper independently.
   COMPARE_MACRO(St1b(z10.VnB(), p7, SVEMemOperand(x0, 8, SVE_MUL_VL)),
                 "addvl x16, x0, #8\n"
                 "st1b { z10.b }, p7, [x16]");
   COMPARE_MACRO(St1h(z11.VnS(), p5, SVEMemOperand(sp, -9, SVE_MUL_VL)),
-                "addvl x16, sp, #-9\n"
+                "mov x16, #0xffffffffffffffdc\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "asr x16, x16, #3\n"
+                "add x16, sp, x16\n"
                 "st1h { z11.s }, p5, [x16]");
   COMPARE_MACRO(St1w(z22.VnS(), p3, SVEMemOperand(sp, 42)),
                 "add x16, sp, #0x2a (42)\n"
@@ -2622,15 +2639,19 @@ TEST(sve_ld1_st1_macro) {
                 "ld1d { z31.d }, p7/z, [x9, x9, LSL #3]");
 
   // SVEMemOperand synthesis.
-  // Most cases are handled by `Adr`, which we test independently, but check
-  // that the MacroAssembler falls back on `Adr` at the boundary conditions.
+  // Check that the MacroAssembler falls back on `CalculateSVEAddress` at the
+  // boundary conditions. We test this helper independently.
   COMPARE_MACRO(Ld1b(z10.VnB(), p7.Zeroing(), SVEMemOperand(x0, 8, SVE_MUL_VL)),
                 "addvl x16, x0, #8\n"
                 "ld1b { z10.b }, p7/z, [x16]");
   COMPARE_MACRO(Ld1h(z11.VnS(),
                      p5.Zeroing(),
                      SVEMemOperand(sp, -9, SVE_MUL_VL)),
-                "addvl x16, sp, #-9\n"
+                "mov x16, #0xffffffffffffffdc\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "asr x16, x16, #3\n"
+                "add x16, sp, x16\n"
                 "ld1h { z11.s }, p5/z, [x16]");
   COMPARE_MACRO(Ld1w(z22.VnS(), p3.Zeroing(), SVEMemOperand(sp, 42)),
                 "add x16, sp, #0x2a (42)\n"
