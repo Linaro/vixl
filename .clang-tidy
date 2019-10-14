@@ -5,8 +5,8 @@
 #       This warns against the use of mrand48 (etc) and suggests replacing them
 #       with arc4random. However, we are using these to drive tests and debug
 #       tools, and we need the ability to manually seed the generator. This is
-#       not possible with arc4random, and do not particularly robust random
-#       numbers, so we continue to use mrand48.
+#       not possible with arc4random, and we do not need particularly robust
+#       random numbers, so we continue to use mrand48.
 #   -google-readability-todo:
 #       We don't put names on TODOs.
 #   -google-readability-function-size:
