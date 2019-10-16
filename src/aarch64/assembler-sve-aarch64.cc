@@ -1017,7 +1017,7 @@ void Assembler::fadda(const VRegister& vd,
   Emit(FADDA_v_p_z | SVESize(zm) | Rd(vd) | Rx<12, 10>(pg) | Rn(zm));
 }
 
-// SVEFPArithmeticPredicated.
+// SVEFPArithmetic_Predicated.
 
 void Assembler::fabd(const ZRegister& zd,
                      const PRegisterM& pg,

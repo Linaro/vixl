@@ -4235,11 +4235,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fdiv(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fdiv(zd, pg, zn, zm);
-  }
+            const ZRegister& zm);
   void Fdup(const ZRegister& zd, double imm);
   void Fdup(const ZRegister& zd, float imm);
   void Fdup(const ZRegister& zd, Float16 imm);
@@ -7046,13 +7042,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                           const ZRegister& zn,
                                           int imm);
 
-  typedef void (MacroAssembler::*IntArithPredicatedFn)(const ZRegister& zd,
+  typedef void (MacroAssembler::*SVEArithPredicatedFn)(const ZRegister& zd,
                                                        const PRegisterM& pg,
                                                        const ZRegister& zn,
                                                        const ZRegister& zm);
 
   void IntWideImmHelper(IntWideImmFn imm_fn,
-                        IntArithPredicatedFn reg_fn,
+                        SVEArithPredicatedFn reg_fn,
                         const ZRegister& zd,
                         const ZRegister& zn,
                         IntegerOperand imm,
@@ -7082,6 +7078,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                          const ZRegister& za,
                          const ZRegister& zn,
                          const ZRegister& zm);
+
+  // For noncommutative arithmetic operations.
+  void NoncommutativeArithmeticHelper(const ZRegister& zd,
+                                      const PRegisterM& pg,
+                                      const ZRegister& zn,
+                                      const ZRegister& zm,
+                                      SVEArithPredicatedFn fn,
+                                      SVEArithPredicatedFn rev_fn);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

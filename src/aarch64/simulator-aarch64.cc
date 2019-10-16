@@ -7525,6 +7525,13 @@ void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
 
 void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
   USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister result;
+
   switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
     case FABD_z_p_zz:
       VIXL_UNIMPLEMENTED();
@@ -7533,10 +7540,10 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case FDIVR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fdiv(vform, result, zm, zdn);
       break;
     case FDIV_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fdiv(vform, result, zdn, zm);
       break;
     case FMAXNM_z_p_zz:
       VIXL_UNIMPLEMENTED();
@@ -7569,6 +7576,7 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEFPArithmeticWithImm_Predicated(

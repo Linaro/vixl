@@ -412,13 +412,11 @@ TEST(movprfx_negative_aliasing_fp) {
     // __ movprfx(z22.VnD(), p4.Zeroing(), z8.VnD());
     // __ fcvtzu(z22.VnS(), p4.Merging(), z22.VnD());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z0.VnS(), p5.Merging(), z5.VnS());
-    // __ fdiv(z0.VnS(), p5.Merging(), z0.VnS(), z0.VnS());
+    __ movprfx(z0.VnS(), p5.Merging(), z5.VnS());
+    __ fdiv(z0.VnS(), p5.Merging(), z0.VnS(), z0.VnS());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z12, z24);
-    // __ fdivr(z12.VnD(), p7.Merging(), z12.VnD(), z12.VnD());
+    __ movprfx(z12, z24);
+    __ fdivr(z12.VnD(), p7.Merging(), z12.VnD(), z12.VnD());
 
     __ movprfx(z14.VnD(), p6.Zeroing(), z21.VnD());
     __ fmad(z14.VnD(), p6.Merging(), z14.VnD(), z3.VnD());
@@ -997,13 +995,11 @@ TEST(movprfx_negative_lane_size_fp) {
     // __ movprfx(z19.VnH(), p4.Zeroing(), z30.VnH());
     // __ fcvtzu(z19.VnS(), p4.Merging(), z16.VnD());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z10.VnS(), p7.Zeroing(), z27.VnS());
-    // __ fdiv(z10.VnH(), p7.Merging(), z10.VnH(), z27.VnH());
+    __ movprfx(z10.VnS(), p7.Zeroing(), z27.VnS());
+    __ fdiv(z10.VnH(), p7.Merging(), z10.VnH(), z27.VnH());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z7.VnD(), p7.Zeroing(), z17.VnD());
-    // __ fdivr(z7.VnH(), p7.Merging(), z7.VnH(), z28.VnH());
+    __ movprfx(z7.VnD(), p7.Zeroing(), z17.VnD());
+    __ fdivr(z7.VnH(), p7.Merging(), z7.VnH(), z28.VnH());
 
     __ movprfx(z22.VnB(), p0.Merging(), z27.VnB());
     __ fmad(z22.VnH(), p0.Merging(), z27.VnH(), z15.VnH());
@@ -1945,13 +1941,11 @@ TEST(movprfx_positive_fp) {
     // __ movprfx(z4, z7);
     // __ fcvtzu(z4.VnS(), p7.Merging(), z16.VnD());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z13.VnS(), p3.Zeroing(), z23.VnS());
-    // __ fdiv(z13.VnS(), p3.Merging(), z13.VnS(), z23.VnS());
+    __ movprfx(z13.VnS(), p3.Zeroing(), z23.VnS());
+    __ fdiv(z13.VnS(), p3.Merging(), z13.VnS(), z23.VnS());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z6.VnD(), p1.Zeroing(), z16.VnD());
-    // __ fdivr(z6.VnD(), p1.Merging(), z6.VnD(), z5.VnD());
+    __ movprfx(z6.VnD(), p1.Zeroing(), z16.VnD());
+    __ fdivr(z6.VnD(), p1.Merging(), z6.VnD(), z5.VnD());
 
     __ movprfx(z31, z23);
     __ fmad(z31.VnS(), p5.Merging(), z23.VnS(), z11.VnS());

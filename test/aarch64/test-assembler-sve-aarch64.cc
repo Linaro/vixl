@@ -3217,7 +3217,7 @@ static void IntBinArithHelper(Test* config,
   // `instr` zd(dst), zm(src_a), zn(src_b)
   // The macro of instructions (`Instr`) automatically selects between `instr`
   // and movprfx + `instr` based on whether zd and zn registers are aliased.
-  // A generated moveprfx instruction is predicated that using the same
+  // A generated movprfx instruction is predicated that using the same
   // governing predicate register. In order to keep the result constant,
   // initialize the destination register first.
   __ Mov(zd_3, src_a);
@@ -3232,7 +3232,7 @@ static void IntBinArithHelper(Test* config,
     for (size_t i = 0; i < ArrayLength(zd_expected); i++) {
       int lane = static_cast<int>(ArrayLength(zd_expected) - i - 1);
       if (!core.HasSVELane(zd_1, lane)) break;
-      if (pg_inputs[i] == 1) {
+      if ((pg_inputs[i] & 1) != 0) {
         ASSERT_EQUAL_SVE_LANE(zd_expected[i], zd_1, lane);
       } else {
         ASSERT_EQUAL_SVE_LANE(zn_inputs[i], zd_1, lane);
@@ -6846,6 +6846,150 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fmul) {
 
   FPArithmeticFnHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
 }
+
+template <typename Td, size_t N>
+static void FPBinArithHelper(Test* config,
+                             IntBinArithFn macro,
+                             unsigned lane_size_in_bits,
+                             const double (&zd_inputs)[N],
+                             const int (&pg_inputs)[N],
+                             const double (&zn_inputs)[N],
+                             const double (&zm_inputs)[N],
+                             const Td& zd_expected) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zd = z29.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z30.WithLaneSize(lane_size_in_bits);
+  ZRegister zm = z31.WithLaneSize(lane_size_in_bits);
+
+  uint64_t zd_rawbits[N];
+  uint64_t zn_rawbits[N];
+  uint64_t zm_rawbits[N];
+  FPToRawbits(zd_inputs, zd_rawbits, lane_size_in_bits);
+  FPToRawbits(zn_inputs, zn_rawbits, lane_size_in_bits);
+  FPToRawbits(zm_inputs, zm_rawbits, lane_size_in_bits);
+
+  InsrHelper(&masm, zd, zd_rawbits);
+  InsrHelper(&masm, zn, zn_rawbits);
+  InsrHelper(&masm, zm, zm_rawbits);
+
+  PRegisterWithLaneSize pg = p0.WithLaneSize(lane_size_in_bits);
+  Initialise(&masm, pg, pg_inputs);
+
+  // `instr` zdn, pg, zdn, zm
+  ZRegister dn_result = z0.WithLaneSize(lane_size_in_bits);
+  __ Mov(dn_result, zn);
+  (masm.*macro)(dn_result, pg.Merging(), dn_result, zm);
+
+  // Based on whether zd and zm registers are aliased, the macro of instructions
+  // (`Instr`) swaps the order of operands if it has the commutative property,
+  // otherwise, transfer to the reversed `Instr`, such as fdivr.
+  // `instr` zdm, pg, zn, zdm
+  ZRegister dm_result = z1.WithLaneSize(lane_size_in_bits);
+  __ Mov(dm_result, zm);
+  (masm.*macro)(dm_result, pg.Merging(), zn, dm_result);
+
+  // The macro of instructions (`Instr`) automatically selects between `instr`
+  // and movprfx + `instr` based on whether zd and zn registers are aliased.
+  // A generated movprfx instruction is predicated that using the same
+  // governing predicate register. In order to keep the result constant,
+  // initialize the destination register first.
+  // `instr` zd, pg, zn, zm
+  ZRegister d_result = z2.WithLaneSize(lane_size_in_bits);
+  __ Mov(d_result, zd);
+  (masm.*macro)(d_result, pg.Merging(), zn, zm);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    for (size_t i = 0; i < ArrayLength(zd_expected); i++) {
+      int lane = static_cast<int>(ArrayLength(zd_expected) - i - 1);
+      if (!core.HasSVELane(dn_result, lane)) break;
+      if ((pg_inputs[i] & 1) != 0) {
+        ASSERT_EQUAL_SVE_LANE(zd_expected[i], dn_result, lane);
+      } else {
+        ASSERT_EQUAL_SVE_LANE(zn_rawbits[i], dn_result, lane);
+      }
+    }
+
+    for (size_t i = 0; i < ArrayLength(zd_expected); i++) {
+      int lane = static_cast<int>(ArrayLength(zd_expected) - i - 1);
+      if (!core.HasSVELane(dm_result, lane)) break;
+      if ((pg_inputs[i] & 1) != 0) {
+        ASSERT_EQUAL_SVE_LANE(zd_expected[i], dm_result, lane);
+      } else {
+        ASSERT_EQUAL_SVE_LANE(zm_rawbits[i], dm_result, lane);
+      }
+    }
+
+    ASSERT_EQUAL_SVE(zd_expected, d_result);
+  }
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
+  double zd_in[] = {0.1, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9};
+
+  double zn_in[] = {24.0,
+                    24.0,
+                    -2.0,
+                    -2.0,
+                    5.5,
+                    5.5,
+                    kFP64PositiveInfinity,
+                    kFP64PositiveInfinity,
+                    kFP64NegativeInfinity,
+                    kFP64NegativeInfinity};
+
+  double zm_in[] = {-2.0, -2.0, 24.0, 24.0, 0.5, 0.5, 0.65, 0.65, 24.0, 24.0};
+
+
+  IntBinArithFn fn = &MacroAssembler::Fdiv;
+
+  int pg_in[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+
+  uint32_t exp_h[] = {Float16ToRawbits(Float16(0.1)),
+                      Float16ToRawbits(Float16(-12.0)),
+                      Float16ToRawbits(Float16(2.2)),
+                      Float16ToRawbits(Float16(-0.0833)),
+                      Float16ToRawbits(Float16(4.4)),
+                      Float16ToRawbits(Float16(11.0)),
+                      Float16ToRawbits(Float16(6.6)),
+                      Float16ToRawbits(kFP16PositiveInfinity),
+                      Float16ToRawbits(Float16(8.8)),
+                      Float16ToRawbits(kFP16NegativeInfinity)};
+
+  FPBinArithHelper(config, fn, kHRegSize, zd_in, pg_in, zn_in, zm_in, exp_h);
+
+  uint32_t exp_s[] = {FloatToRawbits(0.1),
+                      FloatToRawbits(-12.0),
+                      FloatToRawbits(2.2),
+                      0xbdaaaaab,
+                      FloatToRawbits(4.4),
+                      FloatToRawbits(11.0),
+                      FloatToRawbits(6.6),
+                      FloatToRawbits(kFP32PositiveInfinity),
+                      FloatToRawbits(8.8),
+                      FloatToRawbits(kFP32NegativeInfinity)};
+
+  FPBinArithHelper(config, fn, kSRegSize, zd_in, pg_in, zn_in, zm_in, exp_s);
+
+  uint64_t exp_d[] = {DoubleToRawbits(0.1),
+                      DoubleToRawbits(-12.0),
+                      DoubleToRawbits(2.2),
+                      0xbfb5555555555555,
+                      DoubleToRawbits(4.4),
+                      DoubleToRawbits(11.0),
+                      DoubleToRawbits(6.6),
+                      DoubleToRawbits(kFP64PositiveInfinity),
+                      DoubleToRawbits(8.8),
+                      DoubleToRawbits(kFP64NegativeInfinity)};
+
+  FPBinArithHelper(config, fn, kDRegSize, zd_in, pg_in, zn_in, zm_in, exp_d);
+}
+
 
 }  // namespace aarch64
 }  // namespace vixl

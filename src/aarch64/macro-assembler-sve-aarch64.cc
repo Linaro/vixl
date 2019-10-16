@@ -90,7 +90,7 @@ bool MacroAssembler::TrySingleAddSub(AddSubHelperOption option,
 }
 
 void MacroAssembler::IntWideImmHelper(IntWideImmFn imm_fn,
-                                      IntArithPredicatedFn reg_macro,
+                                      SVEArithPredicatedFn reg_macro,
                                       const ZRegister& zd,
                                       const ZRegister& zn,
                                       IntegerOperand imm,
@@ -131,7 +131,7 @@ void MacroAssembler::Mul(const ZRegister& zd,
                          IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   IntWideImmFn imm_fn = &Assembler::mul;
-  IntArithPredicatedFn reg_fn = &MacroAssembler::Mul;
+  SVEArithPredicatedFn reg_fn = &MacroAssembler::Mul;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
 }
 
@@ -141,7 +141,7 @@ void MacroAssembler::Smin(const ZRegister& zd,
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInSignedLane(zd));
   IntWideImmFn imm_fn = &Assembler::smin;
-  IntArithPredicatedFn reg_fn = &MacroAssembler::Smin;
+  SVEArithPredicatedFn reg_fn = &MacroAssembler::Smin;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
 }
 
@@ -151,7 +151,7 @@ void MacroAssembler::Smax(const ZRegister& zd,
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInSignedLane(zd));
   IntWideImmFn imm_fn = &Assembler::smax;
-  IntArithPredicatedFn reg_fn = &MacroAssembler::Smax;
+  SVEArithPredicatedFn reg_fn = &MacroAssembler::Smax;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
 }
 
@@ -161,7 +161,7 @@ void MacroAssembler::Umax(const ZRegister& zd,
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInUnsignedLane(zd));
   IntWideImmFn imm_fn = &Assembler::umax;
-  IntArithPredicatedFn reg_fn = &MacroAssembler::Umax;
+  SVEArithPredicatedFn reg_fn = &MacroAssembler::Umax;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, false);
 }
 
@@ -171,7 +171,7 @@ void MacroAssembler::Umin(const ZRegister& zd,
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInUnsignedLane(zd));
   IntWideImmFn imm_fn = &Assembler::umin;
-  IntArithPredicatedFn reg_fn = &MacroAssembler::Umin;
+  SVEArithPredicatedFn reg_fn = &MacroAssembler::Umin;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, false);
 }
 
@@ -360,6 +360,43 @@ void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
     SingleEmissionCheckScope guard(this);
     dup(zd, scratch);
   }
+}
+
+void MacroAssembler::NoncommutativeArithmeticHelper(
+    const ZRegister& zd,
+    const PRegisterM& pg,
+    const ZRegister& zn,
+    const ZRegister& zm,
+    SVEArithPredicatedFn fn,
+    SVEArithPredicatedFn rev_fn) {
+  if (zd.Aliases(zn)) {
+    // E.g. zd = zd / zm
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zd, pg, zn, zm);
+  } else if (zd.Aliases(zm)) {
+    // E.g. zd = zn / zd
+    SingleEmissionCheckScope guard(this);
+    (this->*rev_fn)(zd, pg, zm, zn);
+  } else {
+    // E.g. zd = zn / zm
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    (this->*fn)(zd, pg, zd, zm);
+  }
+}
+
+void MacroAssembler::Fdiv(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::fdiv),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::fdivr));
 }
 
 void MacroAssembler::Fdup(const ZRegister& zd, double imm) {
@@ -632,20 +669,14 @@ void MacroAssembler::Sdiv(const ZRegister& zd,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(zn)) {
-    // zd = zd / zm
-    SingleEmissionCheckScope guard(this);
-    sdiv(zd, pg, zn, zm);
-  } else if (zd.Aliases(zm)) {
-    // zd = zn / zd
-    SingleEmissionCheckScope guard(this);
-    sdivr(zd, pg, zm, zn);
-  } else {
-    // zd = zn / zm
-    ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    movprfx(zd, pg, zn);
-    sdiv(zd, pg, zd, zm);
-  }
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::sdiv),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::sdivr));
 }
 
 void MacroAssembler::Sub(const ZRegister& zd,
@@ -674,20 +705,14 @@ void MacroAssembler::Sub(const ZRegister& zd,
                          const ZRegister& zn,
                          const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(zn)) {
-    // zd = zd - zm
-    SingleEmissionCheckScope guard(this);
-    sub(zd, pg, zn, zm);
-  } else if (zd.Aliases(zm)) {
-    // zd = zn - zd
-    SingleEmissionCheckScope guard(this);
-    subr(zd, pg, zm, zn);
-  } else {
-    // zd = zn - zm
-    ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    movprfx(zd, pg, zn);
-    sub(zd, pg, zd, zm);
-  }
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::sub),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::subr));
 }
 
 void MacroAssembler::Udiv(const ZRegister& zd,
@@ -695,20 +720,14 @@ void MacroAssembler::Udiv(const ZRegister& zd,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(zn)) {
-    // zd = zd / zm
-    SingleEmissionCheckScope guard(this);
-    udiv(zd, pg, zn, zm);
-  } else if (zd.Aliases(zm)) {
-    // zd = zn / zd
-    SingleEmissionCheckScope guard(this);
-    udivr(zd, pg, zm, zn);
-  } else {
-    // zd = zn / zm
-    ExactAssemblyScope guard(this, 2 * kInstructionSize);
-    movprfx(zd, pg, zn);
-    udiv(zd, pg, zd, zm);
-  }
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::udiv),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::udivr));
 }
 
 void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
