@@ -1462,10 +1462,13 @@ LogicVRegister Simulator::uaddlv(VectorFormat vform,
 
 LogicVRegister Simulator::sminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
+                                   const LogicPRegister& pg,
                                    const LogicVRegister& src,
                                    bool max) {
   int64_t dst_val = max ? INT64_MIN : INT64_MAX;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
     int64_t src_val = src.Int(vform, i);
     if (max) {
       dst_val = (src_val > dst_val) ? src_val : dst_val;
@@ -1482,7 +1485,7 @@ LogicVRegister Simulator::sminmaxv(VectorFormat vform,
 LogicVRegister Simulator::smaxv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  sminmaxv(vform, dst, src, true);
+  sminmaxv(vform, dst, GetPTrue(), src, true);
   return dst;
 }
 
@@ -1490,7 +1493,27 @@ LogicVRegister Simulator::smaxv(VectorFormat vform,
 LogicVRegister Simulator::sminv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  sminmaxv(vform, dst, src, false);
+  sminmaxv(vform, dst, GetPTrue(), src, false);
+  return dst;
+}
+
+
+LogicVRegister Simulator::smaxv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  sminmaxv(vform, dst, pg, src, true);
+  return dst;
+}
+
+
+LogicVRegister Simulator::sminv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  sminmaxv(vform, dst, pg, src, false);
   return dst;
 }
 
@@ -1578,10 +1601,13 @@ LogicVRegister Simulator::uminp(VectorFormat vform,
 
 LogicVRegister Simulator::uminmaxv(VectorFormat vform,
                                    LogicVRegister dst,
+                                   const LogicPRegister& pg,
                                    const LogicVRegister& src,
                                    bool max) {
   uint64_t dst_val = max ? 0 : UINT64_MAX;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
     uint64_t src_val = src.Uint(vform, i);
     if (max) {
       dst_val = (src_val > dst_val) ? src_val : dst_val;
@@ -1598,7 +1624,7 @@ LogicVRegister Simulator::uminmaxv(VectorFormat vform,
 LogicVRegister Simulator::umaxv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  uminmaxv(vform, dst, src, true);
+  uminmaxv(vform, dst, GetPTrue(), src, true);
   return dst;
 }
 
@@ -1606,7 +1632,27 @@ LogicVRegister Simulator::umaxv(VectorFormat vform,
 LogicVRegister Simulator::uminv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  uminmaxv(vform, dst, src, false);
+  uminmaxv(vform, dst, GetPTrue(), src, false);
+  return dst;
+}
+
+
+LogicVRegister Simulator::umaxv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uminmaxv(vform, dst, pg, src, true);
+  return dst;
+}
+
+
+LogicVRegister Simulator::uminv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uminmaxv(vform, dst, pg, src, false);
   return dst;
 }
 
@@ -2146,6 +2192,46 @@ LogicVRegister Simulator::orv(VectorFormat vform,
       ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
   dst.ClearForWrite(vform_dst);
   dst.SetUint(vform_dst, 0, result);
+  return dst;
+}
+
+
+LogicVRegister Simulator::saddv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) <= kSRegSize);
+  int64_t result = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    // The destination register always has D-lane sizes and the source register
+    // always has S-lanes or smaller, so signed integer overflow -- undefined
+    // behaviour -- can't occur.
+    result += src.Int(vform, i);
+  }
+
+  dst.ClearForWrite(kFormatD);
+  dst.SetInt(kFormatD, 0, result);
+  return dst;
+}
+
+
+LogicVRegister Simulator::uaddv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  VIXL_ASSERT(IsSVEFormat(vform));
+  uint64_t result = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    result += src.Uint(vform, i);
+  }
+
+  dst.ClearForWrite(kFormatD);
+  dst.SetUint(kFormatD, 0, result);
   return dst;
 }
 

@@ -2263,6 +2263,8 @@ class Simulator : public DecoderVisitor {
     LogSystemRegister(NZCV);
   }
 
+  SimPRegister& GetPTrue() { return pregister_all_true_; }
+
  protected:
   const char* clr_normal;
   const char* clr_flag_name;
@@ -2944,6 +2946,7 @@ class Simulator : public DecoderVisitor {
                         const LogicVRegister& src);
   LogicVRegister sminmaxv(VectorFormat vform,
                           LogicVRegister dst,
+                          const LogicPRegister& pg,
                           const LogicVRegister& src,
                           bool max);
   LogicVRegister smaxv(VectorFormat vform,
@@ -3120,6 +3123,7 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src2);
   LogicVRegister uminmaxv(VectorFormat vform,
                           LogicVRegister dst,
+                          const LogicPRegister& pg,
                           const LogicVRegister& src,
                           bool max);
   LogicVRegister umaxv(VectorFormat vform,
@@ -3648,6 +3652,30 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicPRegister& pg,
                      const LogicVRegister& src);
+  LogicVRegister saddv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
+  LogicVRegister sminv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
+  LogicVRegister smaxv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
+  LogicVRegister uaddv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
+  LogicVRegister uminv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
+  LogicVRegister umaxv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
 
   template <typename T>
   struct TFPMinMaxOp {
@@ -3877,6 +3905,9 @@ class Simulator : public DecoderVisitor {
 
   // SVE predicate registers.
   SimPRegister pregisters_[kNumberOfPRegisters];
+
+  // A pseudo SVE predicate register with all bits set to true.
+  SimPRegister pregister_all_true_;
 
   // Program Status Register.
   // bits[31, 27]: Condition flags N, Z, C, and V.

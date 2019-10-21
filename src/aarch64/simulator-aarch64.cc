@@ -122,6 +122,10 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   uint16_t seed[3] = {11, 22, 33};
   VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rndr_state_));
   memcpy(rndr_state_, seed, sizeof(rndr_state_));
+
+  // Initialize all bits of pseudo predicate register to true.
+  LogicPRegister ones(pregister_all_true_);
+  ones.SetAllBits();
 }
 
 void Simulator::ResetSystemRegisters() {
@@ -8186,11 +8190,7 @@ void Simulator::VisitSVEIntCompareScalars(const Instruction* instr) {
       src1 += 1;
     }
 
-    SimPRegister temp;
-    LogicPRegister ones(temp);
-    ones.SetAllBits();
-
-    PredTest(vform, ones, pd);
+    PredTest(vform, GetPTrue(), pd);
   } else {
     VIXL_ASSERT(instr->Mask(SVEIntCompareCondTerminateScalarsFMask) ==
                 SVEIntCompareCondTerminateScalarsFixed);
@@ -8443,6 +8443,30 @@ void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
   }
 }
 
+void Simulator::VisitSVEMovprfx(const Instruction* instr) {
+  USE(instr);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  switch (instr->Mask(SVEMovprfxMask)) {
+    case MOVPRFX_z_p_z:
+      if (instr->ExtractBit(16)) {
+        mov_merging(vform, zd, pg, zn);
+      } else {
+        mov_zeroing(vform, zd, pg, zn);
+      }
+      // Record the movprfx, so the next ExecuteInstruction() can check it.
+      movprfx_ = instr;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
 void Simulator::VisitSVEIntReduction(const Instruction* instr) {
   USE(instr);
 
@@ -8468,34 +8492,23 @@ void Simulator::VisitSVEIntReduction(const Instruction* instr) {
     }
   } else {
     switch (instr->Mask(SVEIntReductionMask)) {
-      case MOVPRFX_z_p_z: {
-        SimVRegister& zd = ReadVRegister(instr->GetRd());
-        if (instr->ExtractBit(16)) {
-          mov_merging(vform, zd, pg, zn);
-        } else {
-          mov_zeroing(vform, zd, pg, zn);
-        }
-        // Record the movprfx, so the next ExecuteInstruction() can check it.
-        movprfx_ = instr;
-        break;
-      }
       case SADDV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        saddv(vform, vd, pg, zn);
         break;
       case SMAXV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        smaxv(vform, vd, pg, zn);
         break;
       case SMINV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        sminv(vform, vd, pg, zn);
         break;
       case UADDV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        uaddv(vform, vd, pg, zn);
         break;
       case UMAXV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        umaxv(vform, vd, pg, zn);
         break;
       case UMINV_r_p_z:
-        VIXL_UNIMPLEMENTED();
+        uminv(vform, vd, pg, zn);
         break;
       default:
         VIXL_UNIMPLEMENTED();

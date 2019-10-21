@@ -46,8 +46,7 @@ static uint64_t RepeatBitsAcrossReg(unsigned reg_size,
 
 
 bool Instruction::CanTakeSVEMovprfx(Instruction const* movprfx) const {
-  bool movprfx_is_predicated =
-      (movprfx->Mask(SVEIntReductionMask) == MOVPRFX_z_p_z);
+  bool movprfx_is_predicated = (movprfx->Mask(SVEMovprfxMask) == MOVPRFX_z_p_z);
   bool movprfx_is_unpredicated =
       (movprfx->Mask(SVEIntMiscUnpredicatedMask) == MOVPRFX_z_z);
 

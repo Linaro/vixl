@@ -3249,17 +3249,23 @@ enum SVEIntMulAddUnpredicatedOp {
   UDOT_z_zzz = SVEIntMulAddUnpredicatedFixed | 0x00000400
 };
 
+enum SVEMovprfxOp {
+  SVEMovprfxFixed = 0x04002000,
+  SVEMovprfxFMask = 0xFF20E000,
+  SVEMovprfxMask = 0xFF3EE000,
+  MOVPRFX_z_p_z = SVEMovprfxFixed | 0x00100000
+};
+
 enum SVEIntReductionOp {
   SVEIntReductionFixed = 0x04002000,
   SVEIntReductionFMask = 0xFF20E000,
-  SVEIntReductionMask = 0xFF3EE000,
+  SVEIntReductionMask = 0xFF3FE000,
   SADDV_r_p_z = SVEIntReductionFixed,
   UADDV_r_p_z = SVEIntReductionFixed | 0x00010000,
   SMAXV_r_p_z = SVEIntReductionFixed | 0x00080000,
   UMAXV_r_p_z = SVEIntReductionFixed | 0x00090000,
   SMINV_r_p_z = SVEIntReductionFixed | 0x000A0000,
-  UMINV_r_p_z = SVEIntReductionFixed | 0x000B0000,
-  MOVPRFX_z_p_z = SVEIntReductionFixed | 0x00100000
+  UMINV_r_p_z = SVEIntReductionFixed | 0x000B0000
 };
 
 enum SVEIntReductionLogicalOp {

@@ -1525,31 +1525,29 @@ TEST(sve_int_reduction) {
   COMPARE_PREFIX(orv(h6, p2, z18.VnH()), "orv h6, p2, z18.h");
   COMPARE_PREFIX(orv(s8, p4, z20.VnS()), "orv s8, p4, z20.s");
   COMPARE_PREFIX(orv(d10, p6, z22.VnD()), "orv d10, p6, z22.d");
-#if 0
-  COMPARE_PREFIX(saddv(d24, p1, z12.VnB()), "saddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(saddv(d24, p1, z12.VnH()), "saddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(saddv(d24, p1, z12.VnS()), "saddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(smaxv(b29, p0, z1.VnB()), "smaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(smaxv(h29, p0, z1.VnH()), "smaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(smaxv(s29, p0, z1.VnS()), "smaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(smaxv(d29, p0, z1.VnD()), "smaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(sminv(b8, p3, z4.VnB()), "sminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(sminv(h8, p3, z4.VnH()), "sminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(sminv(s8, p3, z4.VnS()), "sminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(sminv(d8, p3, z4.VnD()), "sminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uaddv(d19, p2, z30.VnB()), "uaddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uaddv(d19, p2, z30.VnH()), "uaddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uaddv(d19, p2, z30.VnS()), "uaddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uaddv(d19, p2, z30.VnD()), "uaddv <Dd>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(umaxv(b28, p6, z24.VnB()), "umaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(umaxv(h28, p6, z24.VnH()), "umaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(umaxv(s28, p6, z24.VnS()), "umaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(umaxv(d28, p6, z24.VnD()), "umaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uminv(b16, p3, z30.VnB()), "uminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uminv(h16, p3, z30.VnH()), "uminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uminv(s16, p3, z30.VnS()), "uminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(uminv(d16, p3, z30.VnD()), "uminv <V><d>, <Pg>, <Zn>.<T>");
-#endif
+  COMPARE_PREFIX(saddv(d20, p1, z12.VnB()), "saddv d20, p1, z12.b");
+  COMPARE_PREFIX(saddv(d22, p3, z15.VnH()), "saddv d22, p3, z15.h");
+  COMPARE_PREFIX(saddv(d24, p5, z18.VnS()), "saddv d24, p5, z18.s");
+  COMPARE_PREFIX(smaxv(b9, p3, z1.VnB()), "smaxv b9, p3, z1.b");
+  COMPARE_PREFIX(smaxv(h19, p2, z1.VnH()), "smaxv h19, p2, z1.h");
+  COMPARE_PREFIX(smaxv(s29, p1, z1.VnS()), "smaxv s29, p1, z1.s");
+  COMPARE_PREFIX(smaxv(d9, p0, z1.VnD()), "smaxv d9, p0, z1.d");
+  COMPARE_PREFIX(sminv(b8, p3, z14.VnB()), "sminv b8, p3, z14.b");
+  COMPARE_PREFIX(sminv(h18, p2, z4.VnH()), "sminv h18, p2, z4.h");
+  COMPARE_PREFIX(sminv(s28, p1, z4.VnS()), "sminv s28, p1, z4.s");
+  COMPARE_PREFIX(sminv(d8, p0, z24.VnD()), "sminv d8, p0, z24.d");
+  COMPARE_PREFIX(uaddv(d13, p0, z15.VnB()), "uaddv d13, p0, z15.b");
+  COMPARE_PREFIX(uaddv(d15, p2, z20.VnH()), "uaddv d15, p2, z20.h");
+  COMPARE_PREFIX(uaddv(d17, p4, z25.VnS()), "uaddv d17, p4, z25.s");
+  COMPARE_PREFIX(uaddv(d19, p6, z30.VnD()), "uaddv d19, p6, z30.d");
+  COMPARE_PREFIX(umaxv(b28, p3, z4.VnB()), "umaxv b28, p3, z4.b");
+  COMPARE_PREFIX(umaxv(h18, p6, z2.VnH()), "umaxv h18, p6, z2.h");
+  COMPARE_PREFIX(umaxv(s18, p4, z29.VnS()), "umaxv s18, p4, z29.s");
+  COMPARE_PREFIX(umaxv(d28, p1, z24.VnD()), "umaxv d28, p1, z24.d");
+  COMPARE_PREFIX(uminv(b16, p3, z0.VnB()), "uminv b16, p3, z0.b");
+  COMPARE_PREFIX(uminv(h16, p2, z3.VnH()), "uminv h16, p2, z3.h");
+  COMPARE_PREFIX(uminv(s16, p1, z5.VnS()), "uminv s16, p1, z5.s");
+  COMPARE_PREFIX(uminv(d16, p7, z7.VnD()), "uminv d16, p7, z7.d");
 
   CLEANUP();
 }

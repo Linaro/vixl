@@ -6298,5 +6298,219 @@ TEST_SVE(sve_andv_eorv_orv) {
   }
 }
 
+
+TEST_SVE(sve_saddv_uaddv) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0x8899aabbccddeeff, 0x8182838485868788, 0x0807060504030201};
+  InsrHelper(&masm, z31.VnD(), in);
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+
+  // Make a copy so we can check that constructive operations preserve zn.
+  __ Mov(z0, z31);
+  __ Saddv(b0, p0, z0.VnB());  // destructive
+  __ Saddv(h1, p0, z31.VnH());
+  __ Mov(z2, z31);
+  __ Saddv(s2, p0, z2.VnS());  // destructive
+
+  __ Uaddv(b4, p0, z31.VnB());
+  __ Mov(z5, z31);
+  __ Uaddv(h5, p0, z5.VnH());  // destructive
+  __ Uaddv(s6, p0, z31.VnS());
+  __ Mov(z7, z31);
+  __ Uaddv(d7, p0, z7.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    if (static_cast<int>(ArrayLength(pg_in)) >= config->sve_vl_in_bytes()) {
+      // Saddv
+      ASSERT_EQUAL_64(0xfffffffffffffda9, d0);
+      ASSERT_EQUAL_64(0xfffffffffffe9495, d1);
+      ASSERT_EQUAL_64(0xffffffff07090b0c, d2);
+      // Uaddv
+      ASSERT_EQUAL_64(0x00000000000002a9, d4);
+      ASSERT_EQUAL_64(0x0000000000019495, d5);
+      ASSERT_EQUAL_64(0x0000000107090b0c, d6);
+      ASSERT_EQUAL_64(0x8182838485868788, d7);
+    } else {
+      // Saddv
+      ASSERT_EQUAL_64(0xfffffffffffffd62, d0);
+      ASSERT_EQUAL_64(0xfffffffffffe8394, d1);
+      ASSERT_EQUAL_64(0xfffffffed3e6fa0b, d2);
+      // Uaddv
+      ASSERT_EQUAL_64(0x0000000000000562, d4);
+      ASSERT_EQUAL_64(0x0000000000028394, d5);
+      ASSERT_EQUAL_64(0x00000001d3e6fa0b, d6);
+      ASSERT_EQUAL_64(0x0a1c2e4052647687, d7);
+    }
+
+    // Check the upper lanes above the top of the V register are all clear.
+    for (int i = 1; i < core.GetSVELaneCount(kDRegSize); i++) {
+      ASSERT_EQUAL_SVE_LANE(0, z0.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z1.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z2.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z4.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z5.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z6.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z7.VnD(), i);
+    }
+  }
+}
+
+
+TEST_SVE(sve_sminv_uminv) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0xfffa5555aaaaaaaa, 0x0011223344aafe80, 0x00112233aabbfc00};
+  InsrHelper(&masm, z31.VnD(), in);
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      0,                      1
+  // For S lanes:         1,          1,          0,          0,          1
+  // For H lanes:   1,    1,    0,    1,    1,    0,    0,    0,    1,    1
+  int pg_in[] = {1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), pg_in);
+
+  // Make a copy so we can check that constructive operations preserve zn.
+  __ Mov(z0, z31);
+  __ Sminv(b0, p0, z0.VnB());  // destructive
+  __ Sminv(h1, p0, z31.VnH());
+  __ Mov(z2, z31);
+  __ Sminv(s2, p0, z2.VnS());  // destructive
+  __ Sminv(d3, p0, z31.VnD());
+
+  __ Uminv(b4, p0, z31.VnB());
+  __ Mov(z5, z31);
+  __ Uminv(h5, p0, z5.VnH());  // destructive
+  __ Uminv(s6, p0, z31.VnS());
+  __ Mov(z7, z31);
+  __ Uminv(d7, p0, z7.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    if (static_cast<int>(ArrayLength(pg_in)) >= config->sve_vl_in_bytes()) {
+      // Sminv
+      ASSERT_EQUAL_64(0xaa, d0);
+      ASSERT_EQUAL_64(0xaabb, d1);
+      ASSERT_EQUAL_64(0xaabbfc00, d2);
+      ASSERT_EQUAL_64(0x00112233aabbfc00, d3);  // The smaller lane is inactive.
+      // Uminv
+      ASSERT_EQUAL_64(0, d4);
+      ASSERT_EQUAL_64(0x2233, d5);
+      ASSERT_EQUAL_64(0x112233, d6);
+      ASSERT_EQUAL_64(0x00112233aabbfc00, d7);  // The smaller lane is inactive.
+    } else {
+      // Sminv
+      ASSERT_EQUAL_64(0xaa, d0);
+      ASSERT_EQUAL_64(0xaaaa, d1);
+      ASSERT_EQUAL_64(0xaaaaaaaa, d2);
+      ASSERT_EQUAL_64(0xfffa5555aaaaaaaa, d3);
+      // Uminv
+      ASSERT_EQUAL_64(0, d4);
+      ASSERT_EQUAL_64(0x2233, d5);
+      ASSERT_EQUAL_64(0x112233, d6);
+      ASSERT_EQUAL_64(0x00112233aabbfc00, d7);
+    }
+
+    // Check the upper lanes above the top of the V register are all clear.
+    for (int i = 1; i < core.GetSVELaneCount(kDRegSize); i++) {
+      ASSERT_EQUAL_SVE_LANE(0, z0.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z1.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z2.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z3.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z4.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z5.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z6.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z7.VnD(), i);
+    }
+  }
+}
+
+TEST_SVE(sve_smaxv_umaxv) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in[] = {0xfffa5555aaaaaaaa, 0x0011223344aafe80, 0x00112233aabbfc00};
+  InsrHelper(&masm, z31.VnD(), in);
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      0,                      1
+  // For S lanes:         1,          1,          0,          0,          1
+  // For H lanes:   1,    1,    0,    1,    1,    0,    0,    0,    1,    1
+  int pg_in[] = {1, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1};
+  Initialise(&masm, p0.VnB(), pg_in);
+
+  // Make a copy so we can check that constructive operations preserve zn.
+  __ Mov(z0, z31);
+  __ Smaxv(b0, p0, z0.VnB());  // destructive
+  __ Smaxv(h1, p0, z31.VnH());
+  __ Mov(z2, z31);
+  __ Smaxv(s2, p0, z2.VnS());  // destructive
+  __ Smaxv(d3, p0, z31.VnD());
+
+  __ Umaxv(b4, p0, z31.VnB());
+  __ Mov(z5, z31);
+  __ Umaxv(h5, p0, z5.VnH());  // destructive
+  __ Umaxv(s6, p0, z31.VnS());
+  __ Mov(z7, z31);
+  __ Umaxv(d7, p0, z7.VnD());  // destructive
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    if (static_cast<int>(ArrayLength(pg_in)) >= config->sve_vl_in_bytes()) {
+      // Smaxv
+      ASSERT_EQUAL_64(0x33, d0);
+      ASSERT_EQUAL_64(0x44aa, d1);
+      ASSERT_EQUAL_64(0x112233, d2);
+      ASSERT_EQUAL_64(0x112233aabbfc00, d3);
+      // Umaxv
+      ASSERT_EQUAL_64(0xfe, d4);
+      ASSERT_EQUAL_64(0xfc00, d5);
+      ASSERT_EQUAL_64(0xaabbfc00, d6);
+      ASSERT_EQUAL_64(0x112233aabbfc00, d7);
+    } else {
+      // Smaxv
+      ASSERT_EQUAL_64(0x33, d0);
+      ASSERT_EQUAL_64(0x44aa, d1);
+      ASSERT_EQUAL_64(0x112233, d2);
+      ASSERT_EQUAL_64(0x00112233aabbfc00, d3);
+      // Umaxv
+      ASSERT_EQUAL_64(0xfe, d4);
+      ASSERT_EQUAL_64(0xfc00, d5);
+      ASSERT_EQUAL_64(0xaabbfc00, d6);
+      ASSERT_EQUAL_64(0xfffa5555aaaaaaaa, d7);
+    }
+
+    // Check the upper lanes above the top of the V register are all clear.
+    for (int i = 1; i < core.GetSVELaneCount(kDRegSize); i++) {
+      ASSERT_EQUAL_SVE_LANE(0, z0.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z1.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z2.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z3.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z4.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z5.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z6.VnD(), i);
+      ASSERT_EQUAL_SVE_LANE(0, z7.VnD(), i);
+    }
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

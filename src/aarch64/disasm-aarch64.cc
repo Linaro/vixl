@@ -6570,6 +6570,21 @@ void Disassembler::VisitSVEIntMulAddUnpredicated(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::VisitSVEMovprfx(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(SVEMovprfx)";
+
+  if (instr->Mask(SVEMovprfxMask) == MOVPRFX_z_p_z) {
+    mnemonic = "movprfx";
+    if (instr->ExtractBit(16) == 0) {
+      form = "'Zd.'t, p'u1210/z, 'Zn.'t";
+    } else {
+      form = "'Zd.'t, p'u1210/m, 'Zn.'t";
+    }
+  }
+  Format(instr, mnemonic, form);
+}
+
 void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Vdv, p'u1210, 'Zn.'t";
@@ -6590,38 +6605,23 @@ void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
     }
   } else {
     switch (instr->Mask(SVEIntReductionMask)) {
-      // MOVPRFX <Zd>.<T>, <Pg>/<ZM>, <Zn>.<T>
-      case MOVPRFX_z_p_z:
-        mnemonic = "movprfx";
-        if (instr->ExtractBit(16) == 0) {
-          form = "'Zd.'t, p'u1210/z, 'Zn.'t";
-        } else {
-          form = "'Zd.'t, p'u1210/m, 'Zn.'t";
-        }
-        break;
-      // SADDV <Dd>, <Pg>, <Zn>.<T>
       case SADDV_r_p_z:
         mnemonic = "saddv";
         form = "'Dd, p'u1210, 'Zn.'t";
         break;
-      // SMAXV <V><d>, <Pg>, <Zn>.<T>
       case SMAXV_r_p_z:
         mnemonic = "smaxv";
         break;
-      // SMINV <V><d>, <Pg>, <Zn>.<T>
       case SMINV_r_p_z:
         mnemonic = "sminv";
         break;
-      // UADDV <Dd>, <Pg>, <Zn>.<T>
       case UADDV_r_p_z:
         mnemonic = "uaddv";
         form = "'Dd, p'u1210, 'Zn.'t";
         break;
-      // UMAXV <V><d>, <Pg>, <Zn>.<T>
       case UMAXV_r_p_z:
         mnemonic = "umaxv";
         break;
-      // UMINV <V><d>, <Pg>, <Zn>.<T>
       case UMINV_r_p_z:
         mnemonic = "uminv";
         break;

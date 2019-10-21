@@ -156,6 +156,7 @@ class SwitchAddSubRegisterSources : public vixl::aarch64::DecoderVisitor {
   V(SVEIntMulAddPredicated)                \
   V(SVEIntMulAddUnpredicated)              \
   V(SVEIntReduction)                       \
+  V(SVEMovprfx)                            \
   V(SVEIntUnaryArithmeticPredicated)       \
   V(SVEIntWideImmPredicated)               \
   V(SVEIntWideImmUnpredicated)             \

@@ -146,6 +146,7 @@
   V(SVEIntMulAddPredicated)                \
   V(SVEIntMulAddUnpredicated)              \
   V(SVEIntReduction)                       \
+  V(SVEMovprfx)                            \
   V(SVEIntUnaryArithmeticPredicated)       \
   V(SVEIntWideImmPredicated)               \
   V(SVEIntWideImmUnpredicated)             \
@@ -312,7 +313,7 @@ class Decoder {
 };
 
 const int kMaxDecodeSampledBits = 16;
-const int kMaxDecodeMappings = 45;
+const int kMaxDecodeMappings = 46;
 typedef void (Decoder::*DecodeFnPtr)(const Instruction*);
 typedef uint32_t (Instruction::*BitExtractFn)(void) const;
 

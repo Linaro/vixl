@@ -3515,78 +3515,54 @@ void Assembler::orv(const VRegister& vd,
 void Assembler::saddv(const VRegister& dd,
                       const PRegister& pg,
                       const ZRegister& zn) {
-  // SADDV <Dd>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..00 0000 001. .... .... ....
-  //  size<23:22> | opc<18:17> = 00 | U<16> = 0 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kDRegSizeInBytes);
 
-  Emit(SADDV_r_p_z | SVESize(zn) | Rd(dd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(SADDV_r_p_z | SVESize(zn) | Rd(dd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::smaxv(const VRegister& vd,
                       const PRegister& pg,
                       const ZRegister& zn) {
-  // SMAXV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..00 1000 001. .... .... ....
-  //  size<23:22> | opc<18:17> = 00 | U<16> = 0 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(SMAXV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(SMAXV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::sminv(const VRegister& vd,
                       const PRegister& pg,
                       const ZRegister& zn) {
-  // SMINV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..00 1010 001. .... .... ....
-  //  size<23:22> | opc<18:17> = 01 | U<16> = 0 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(SMINV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(SMINV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::uaddv(const VRegister& dd,
                       const PRegister& pg,
                       const ZRegister& zn) {
-  // UADDV <Dd>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..00 0001 001. .... .... ....
-  //  size<23:22> | opc<18:17> = 00 | U<16> = 1 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(UADDV_r_p_z | SVESize(zn) | Rd(dd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(UADDV_r_p_z | SVESize(zn) | Rd(dd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::umaxv(const VRegister& vd,
                       const PRegister& pg,
                       const ZRegister& zn) {
-  // UMAXV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..00 1001 001. .... .... ....
-  //  size<23:22> | opc<18:17> = 00 | U<16> = 1 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(UMAXV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(UMAXV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::uminv(const VRegister& vd,
                       const PRegister& pg,
                       const ZRegister& zn) {
-  // UMINV <V><d>, <Pg>, <Zn>.<T>
-  //  0000 0100 ..00 1011 001. .... .... ....
-  //  size<23:22> | opc<18:17> = 01 | U<16> = 1 | Pg<12:10> | Zn<9:5> | Vd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(UMINV_r_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(UMINV_r_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 // SVEIntUnaryArithmeticPredicated.

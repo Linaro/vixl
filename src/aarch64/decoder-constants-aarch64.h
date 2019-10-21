@@ -129,7 +129,7 @@ static const DecodeMapping kDecodeMapping[] = {
     {31, 30, 29, 24, 21, 15, 14, 13},
     { {"00000x1x", "VisitSVEIntMulAddPredicated"},
       {"00000000", "VisitSVEIntBinaryArithmeticPredicated"},
-      {"00000001", "VisitSVEIntReduction"},
+      {"00000001", "DecodeSVE00000001"},
       {"00000100", "VisitSVEBitwiseShiftPredicated"},
       {"00000101", "VisitSVEIntUnaryArithmeticPredicated"},
       {"00001000", "VisitSVEIntArithmeticUnpredicated"},
@@ -1557,6 +1557,13 @@ static const DecodeMapping kDecodeMapping[] = {
     {20},
     { {"0", "VisitSVEContiguousLoad_ScalarPlusImm"},
       {"1", "VisitSVEMemContiguousLoad"},
+    },
+  },
+
+  { "DecodeSVE00000001",
+    {20, 19},
+    { {"10", "VisitSVEMovprfx"},
+      {"otherwise", "VisitSVEIntReduction"},
     },
   },
 };

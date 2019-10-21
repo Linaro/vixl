@@ -356,6 +356,7 @@ void Instrument::Disable() {
   V("SVE", SVEIntMulAddPredicated)                      \
   V("SVE", SVEIntMulAddUnpredicated)                    \
   V("SVE", SVEIntReduction)                             \
+  V("SVE", SVEMovprfx)                                  \
   V("SVE", SVEIntUnaryArithmeticPredicated)             \
   V("SVE", SVEIntWideImmPredicated)                     \
   V("SVE", SVEIntWideImmUnpredicated)                   \
