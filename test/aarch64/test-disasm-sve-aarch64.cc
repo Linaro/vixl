@@ -330,22 +330,31 @@ TEST(sve_fp_arithmetic_predicated) {
 TEST(sve_fp_arithmetic_unpredicated) {
   SETUP();
 
+  COMPARE_PREFIX(fadd(z5.VnH(), z24.VnH(), z11.VnH()),
+                 "fadd z5.h, z24.h, z11.h");
+  COMPARE_PREFIX(fadd(z15.VnS(), z14.VnS(), z12.VnS()),
+                 "fadd z15.s, z14.s, z12.s");
+  COMPARE_PREFIX(fadd(z25.VnD(), z4.VnD(), z13.VnD()),
+                 "fadd z25.d, z4.d, z13.d");
+  COMPARE_PREFIX(fmul(z9.VnH(), z24.VnH(), z10.VnH()),
+                 "fmul z9.h, z24.h, z10.h");
+  COMPARE_PREFIX(fmul(z19.VnS(), z14.VnS(), z0.VnS()),
+                 "fmul z19.s, z14.s, z0.s");
+  COMPARE_PREFIX(fmul(z29.VnD(), z4.VnD(), z20.VnD()),
+                 "fmul z29.d, z4.d, z20.d");
+  COMPARE_PREFIX(fsub(z4.VnH(), z14.VnH(), z29.VnH()),
+                 "fsub z4.h, z14.h, z29.h");
+  COMPARE_PREFIX(fsub(z14.VnS(), z24.VnS(), z9.VnS()),
+                 "fsub z14.s, z24.s, z9.s");
+  COMPARE_PREFIX(fsub(z14.VnD(), z4.VnD(), z19.VnD()),
+                 "fsub z14.d, z4.d, z19.d");
 #if 0
-  COMPARE_PREFIX(fadd(z5.VnH(), z4.VnH(), z12.VnH()), "fadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fadd(z5.VnS(), z4.VnS(), z12.VnS()), "fadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fadd(z5.VnD(), z4.VnD(), z12.VnD()), "fadd <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmul(z19.VnH(), z4.VnH(), z0.VnH()), "fmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmul(z19.VnS(), z4.VnS(), z0.VnS()), "fmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmul(z19.VnD(), z4.VnD(), z0.VnD()), "fmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(frecps(z14.VnH(), z29.VnH(), z18.VnH()), "frecps <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(frecps(z14.VnS(), z29.VnS(), z18.VnS()), "frecps <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(frecps(z14.VnD(), z29.VnD(), z18.VnD()), "frecps <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(frsqrts(z5.VnH(), z6.VnH(), z28.VnH()), "frsqrts <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(frsqrts(z5.VnS(), z6.VnS(), z28.VnS()), "frsqrts <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(frsqrts(z5.VnD(), z6.VnD(), z28.VnD()), "frsqrts <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fsub(z4.VnH(), z4.VnH(), z9.VnH()), "fsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fsub(z4.VnS(), z4.VnS(), z9.VnS()), "fsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fsub(z4.VnD(), z4.VnD(), z9.VnD()), "fsub <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(ftsmul(z21.VnH(), z17.VnH(), z24.VnH()), "ftsmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(ftsmul(z21.VnS(), z17.VnS(), z24.VnS()), "ftsmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(ftsmul(z21.VnD(), z17.VnD(), z24.VnD()), "ftsmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");

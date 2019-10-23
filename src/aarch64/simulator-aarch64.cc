@@ -7619,12 +7619,18 @@ void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {
 
 void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
   USE(instr);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
   switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
     case FADD_z_zz:
-      VIXL_UNIMPLEMENTED();
+      fadd(vform, zd, zn, zm);
       break;
     case FMUL_z_zz:
-      VIXL_UNIMPLEMENTED();
+      fmul(vform, zd, zn, zm);
       break;
     case FRECPS_z_zz:
       VIXL_UNIMPLEMENTED();
@@ -7633,7 +7639,7 @@ void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case FSUB_z_zz:
-      VIXL_UNIMPLEMENTED();
+      fsub(vform, zd, zn, zm);
       break;
     case FTSMUL_z_zz:
       VIXL_UNIMPLEMENTED();
