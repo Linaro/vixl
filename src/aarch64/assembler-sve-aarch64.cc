@@ -3446,25 +3446,23 @@ void Assembler::msb(const ZRegister& zdn,
 void Assembler::sdot(const ZRegister& zda,
                      const ZRegister& zn,
                      const ZRegister& zm) {
-  // SDOT <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>
-  //  0100 0100 ..0. .... 0000 00.. .... ....
-  //  size<23:22> | Zm<20:16> | U<10> = 0 | Zn<9:5> | Zda<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
+  VIXL_ASSERT(AreSameLaneSize(zm, zn));
 
-  Emit(SDOT_z_zzz | Rd(zda) | Rn(zn) | Rm(zm));
+  Emit(SDOT_z_zzz | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::udot(const ZRegister& zda,
                      const ZRegister& zn,
                      const ZRegister& zm) {
-  // UDOT <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>
-  //  0100 0100 ..0. .... 0000 01.. .... ....
-  //  size<23:22> | Zm<20:16> | U<10> = 1 | Zn<9:5> | Zda<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
+  VIXL_ASSERT(AreSameLaneSize(zm, zn));
 
-  Emit(UDOT_z_zzz | Rd(zda) | Rn(zn) | Rm(zm));
+  Emit(UDOT_z_zzz | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 // SVEIntReduction.

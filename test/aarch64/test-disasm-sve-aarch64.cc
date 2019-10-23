@@ -1494,11 +1494,50 @@ TEST(sve_int_mul_add_predicated_macro) {
 TEST(sve_int_mul_add_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(sdot(z18.Vn?(), z27, z22), "sdot <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>");
-  COMPARE_PREFIX(udot(z21.Vn?(), z9, z4), "udot <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>");
-#endif
+  COMPARE_PREFIX(sdot(z13.VnS(), z12.VnB(), z12.VnB()),
+                 "sdot z13.s, z12.b, z12.b");
+  COMPARE_PREFIX(sdot(z18.VnD(), z27.VnH(), z22.VnH()),
+                 "sdot z18.d, z27.h, z22.h");
+  COMPARE_PREFIX(udot(z23.VnS(), z22.VnB(), z11.VnB()),
+                 "udot z23.s, z22.b, z11.b");
+  COMPARE_PREFIX(udot(z21.VnD(), z27.VnH(), z27.VnH()),
+                 "udot z21.d, z27.h, z27.h");
 
+  CLEANUP();
+}
+
+TEST(sve_int_mul_add_unpredicated_macro) {
+  SETUP();
+
+  COMPARE_MACRO(Sdot(z0.VnS(), z0.VnS(), z2.VnB(), z4.VnB()),
+                "sdot z0.s, z2.b, z4.b");
+  COMPARE_MACRO(Sdot(z3.VnD(), z4.VnD(), z3.VnH(), z5.VnH()),
+                "movprfx z31, z4\n"
+                "sdot z31.d, z3.h, z5.h\n"
+                "orr z3.d, z31.d, z31.d");
+  COMPARE_MACRO(Sdot(z4.VnS(), z5, z6, z4),
+                "movprfx z31, z5\n"
+                "sdot z31.s, z6.b, z4.b\n"
+                "orr z4.d, z31.d, z31.d");
+  COMPARE_MACRO(Sdot(z6.VnD(), z7, z8, z9),
+                "movprfx z6, z7\n"
+                "sdot z6.d, z8.h, z9.h");
+  COMPARE_MACRO(Sdot(z5.VnD(), z5, z5, z5), "sdot z5.d, z5.h, z5.h");
+
+  COMPARE_MACRO(Udot(z0.VnD(), z0.VnD(), z2.VnH(), z4.VnH()),
+                "udot z0.d, z2.h, z4.h");
+  COMPARE_MACRO(Udot(z3.VnS(), z4.VnB(), z3.VnB(), z5.VnB()),
+                "movprfx z31, z4\n"
+                "udot z31.s, z3.b, z5.b\n"
+                "orr z3.d, z31.d, z31.d");
+  COMPARE_MACRO(Udot(z4.VnD(), z5, z6, z4),
+                "movprfx z31, z5\n"
+                "udot z31.d, z6.h, z4.h\n"
+                "orr z4.d, z31.d, z31.d");
+  COMPARE_MACRO(Udot(z6.VnS(), z7, z8, z9),
+                "movprfx z6, z7\n"
+                "udot z6.s, z8.b, z9.b");
+  COMPARE_MACRO(Udot(z5.VnS(), z5, z5, z5), "udot z5.s, z5.b, z5.b");
   CLEANUP();
 }
 

@@ -907,5 +907,55 @@ void MacroAssembler::St1d(const ZRegister& zt,
                       static_cast<SVEStore1Fn>(&Assembler::st1d));
 }
 
+void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
+                                       const ZRegister& zd,
+                                       const ZRegister& za,
+                                       const ZRegister& zn,
+                                       const ZRegister& zm) {
+  int znm_lane_size = zd.GetLaneSizeInBits() / 4;
+  const ZRegister& za_with_size = za.WithLaneSize(zd.GetLaneSizeInBits());
+  const ZRegister& zn_with_size = zn.WithLaneSize(znm_lane_size);
+  const ZRegister& zm_with_size = zm.WithLaneSize(znm_lane_size);
+
+  if (zd.Aliases(za)) {
+    // zda = zda + (zn . zm)
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zd, zn_with_size, zm_with_size);
+
+  } else if (zd.Aliases(zn) | zd.Aliases(zm)) {
+    // zdn = za + (zdn . zm)
+    // zdm = za + (zn . zdm)
+    // zdnm = za + (zdnn . zdnm)
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithLaneSize(zd.GetLaneSizeInBits());
+    {
+      MovprfxHelperScope guard(this, scratch, za_with_size);
+      (this->*fn)(scratch, zn_with_size, zm_with_size);
+    }
+
+    Mov(zd, scratch);
+  } else {
+    // zd = za + (zn . zm)
+    MovprfxHelperScope guard(this, zd, za_with_size);
+    (this->*fn)(zd, zn_with_size, zm_with_size);
+  }
+}
+
+void MacroAssembler::Sdot(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVESdotUdotHelper(&Assembler::sdot, zd, za, zn, zm);
+}
+
+void MacroAssembler::Udot(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVESdotUdotHelper(&Assembler::udot, zd, za, zn, zm);
+}
+
 }  // namespace aarch64
 }  // namespace vixl

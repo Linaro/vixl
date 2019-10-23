@@ -227,14 +227,14 @@ TEST(movprfx_negative_aliasing) {
     // __ sdivr(z19.VnS(), p1.Merging(), z19.VnS(), z19.VnS());
 
     __ movprfx(z20, z29);
-    __ sdot(z20.VnS(), z20.VnH(), z18.VnH());
+    __ sdot(z20.VnS(), z20.VnB(), z18.VnB());
 
     // TODO: Enable once implemented.
     // __ movprfx(z21, z2);
     // __ sdot(z21.VnS(), z21.VnH(), z2.VnH(), 1);
 
     __ movprfx(z2, z16);
-    __ sdot(z2.VnS(), z16.VnH(), z2.VnH());
+    __ sdot(z2.VnS(), z16.VnB(), z2.VnB());
 
     // TODO: Enable once implemented.
     // __ movprfx(z5, z23);
@@ -282,14 +282,14 @@ TEST(movprfx_negative_aliasing) {
     // __ udivr(z19.VnD(), p4.Merging(), z19.VnD(), z19.VnD());
 
     __ movprfx(z11, z9);
-    __ udot(z11.VnS(), z11.VnH(), z9.VnH());
+    __ udot(z11.VnS(), z11.VnB(), z9.VnB());
 
     // TODO: Enable once implemented.
     // __ movprfx(z7, z19);
     // __ udot(z7.VnD(), z7.VnS(), z19.VnS(), 1);
 
     __ movprfx(z14, z24);
-    __ udot(z14.VnS(), z0.VnH(), z14.VnH());
+    __ udot(z14.VnS(), z0.VnB(), z14.VnB());
 
     // TODO: Enable once implemented.
     // __ movprfx(z6, z28);
@@ -1267,7 +1267,7 @@ TEST(movprfx_negative_predication) {
     // __ orn(z5.VnS(), z5.VnS(), 4);
 
     __ movprfx(z28.VnD(), p0.Merging(), z14.VnD());
-    __ sdot(z28.VnD(), z14.VnS(), z24.VnS());
+    __ sdot(z28.VnD(), z14.VnH(), z24.VnH());
 
     // TODO: Enable once implemented.
     // __ movprfx(z13.VnD(), p3.Merging(), z1.VnD());
@@ -1326,7 +1326,7 @@ TEST(movprfx_negative_predication) {
     __ subr(z15.VnD(), z15.VnD(), 42);
 
     __ movprfx(z4.VnD(), p4.Merging(), z0.VnD());
-    __ udot(z4.VnD(), z0.VnS(), z12.VnS());
+    __ udot(z4.VnD(), z0.VnH(), z12.VnH());
 
     // TODO: Enable once implemented.
     // __ movprfx(z30.VnS(), p3.Merging(), z14.VnS());
@@ -1677,7 +1677,7 @@ TEST(movprfx_positive) {
     // __ sdivr(z13.VnS(), p7.Merging(), z13.VnS(), z2.VnS());
 
     __ movprfx(z23, z5);
-    __ sdot(z23.VnD(), z30.VnS(), z5.VnS());
+    __ sdot(z23.VnD(), z30.VnH(), z5.VnH());
 
     // TODO: Enable once implemented.
     // __ movprfx(z19, z3);
@@ -1777,7 +1777,7 @@ TEST(movprfx_positive) {
     // __ udivr(z22.VnD(), p7.Merging(), z22.VnD(), z27.VnD());
 
     __ movprfx(z19, z22);
-    __ udot(z19.VnD(), z22.VnS(), z12.VnS());
+    __ udot(z19.VnD(), z22.VnH(), z12.VnH());
 
     // TODO: Enable once implemented.
     // __ movprfx(z26, z3);

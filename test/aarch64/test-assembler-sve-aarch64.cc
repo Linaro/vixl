@@ -6512,5 +6512,150 @@ TEST_SVE(sve_smaxv_umaxv) {
   }
 }
 
+typedef void (MacroAssembler::*SdotUdotFn)(const ZRegister& zd,
+                                           const ZRegister& za,
+                                           const ZRegister& zn,
+                                           const ZRegister& zm);
+
+template <typename Td, typename Ts, typename Te>
+static void SdotUdotHelper(Test* config,
+                           SdotUdotFn macro,
+                           unsigned lane_size_in_bits,
+                           const Td& zd_inputs,
+                           const Td& za_inputs,
+                           const Ts& zn_inputs,
+                           const Ts& zm_inputs,
+                           const Te& zd_expected,
+                           const Te& zdnm_expected) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zd = z0.WithLaneSize(lane_size_in_bits);
+  ZRegister za = z1.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z2.WithLaneSize(lane_size_in_bits / 4);
+  ZRegister zm = z3.WithLaneSize(lane_size_in_bits / 4);
+
+  InsrHelper(&masm, zd, zd_inputs);
+  InsrHelper(&masm, za, za_inputs);
+  InsrHelper(&masm, zn, zn_inputs);
+  InsrHelper(&masm, zm, zm_inputs);
+
+  // The Dot macro handles arbitrarily-aliased registers in the argument list.
+  ZRegister da_result = z10.WithLaneSize(lane_size_in_bits);
+  ZRegister dn_result = z11.WithLaneSize(lane_size_in_bits);
+  ZRegister dm_result = z12.WithLaneSize(lane_size_in_bits);
+  ZRegister dnm_result = z13.WithLaneSize(lane_size_in_bits);
+  ZRegister d_result = z14.WithLaneSize(lane_size_in_bits);
+
+  __ Mov(da_result, za);
+  // zda = zda + (zn . zm)
+  (masm.*macro)(da_result, da_result, zn, zm);
+
+  __ Mov(dn_result, zn);
+  // zdn = za + (zdn . zm)
+  (masm.*macro)(dn_result, za, dn_result, zm);
+
+  __ Mov(dm_result, zm);
+  // zdm = za + (zn . zdm)
+  (masm.*macro)(dm_result, za, zn, dm_result);
+
+  __ Mov(d_result, zd);
+  // zd = za + (zn . zm)
+  (masm.*macro)(d_result, za, zn, zm);
+
+  __ Mov(dnm_result, zn);
+  // zdnm = za + (zdmn . zdnm)
+  (masm.*macro)(dnm_result, za, dnm_result, dnm_result);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(za_inputs, z1.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(zn_inputs, z2.WithLaneSize(lane_size_in_bits / 4));
+    ASSERT_EQUAL_SVE(zm_inputs, z3.WithLaneSize(lane_size_in_bits / 4));
+
+    ASSERT_EQUAL_SVE(zd_expected, da_result);
+    ASSERT_EQUAL_SVE(zd_expected, dn_result);
+    ASSERT_EQUAL_SVE(zd_expected, dm_result);
+    ASSERT_EQUAL_SVE(zd_expected, d_result);
+
+    ASSERT_EQUAL_SVE(zdnm_expected, dnm_result);
+  }
+}
+
+TEST_SVE(sve_sdot) {
+  int zd_inputs[] = {0x33, 0xee, 0xff};
+  int za_inputs[] = {INT32_MAX, -3, 2};
+  int zn_inputs[] = {-128, -128, -128, -128, 9, -1, 1, 30, -5, -20, 9, 8};
+  int zm_inputs[] = {-128, -128, -128, -128, -19, 15, 6, 0, 9, -5, 4, 5};
+
+  // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
+  int32_t zd_expected_s[] = {-2147418113, -183, 133};  // 0x8000ffff
+  int64_t zd_expected_d[] = {2147549183, -183, 133};   // 0x8000ffff
+
+  // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
+  int32_t zdnm_expected_s[] = {-2147418113, 980, 572};
+  int64_t zdnm_expected_d[] = {2147549183, 980, 572};
+
+  SdotUdotHelper(config,
+                 &MacroAssembler::Sdot,
+                 kSRegSize,
+                 zd_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_s,
+                 zdnm_expected_s);
+  SdotUdotHelper(config,
+                 &MacroAssembler::Sdot,
+                 kDRegSize,
+                 zd_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_d,
+                 zdnm_expected_d);
+}
+
+TEST_SVE(sve_udot) {
+  int zd_inputs[] = {0x33, 0xee, 0xff};
+  int za_inputs[] = {INT32_MAX, -3, 2};
+  int zn_inputs[] = {-128, -128, -128, -128, 9, -1, 1, 30, -5, -20, 9, 8};
+  int zm_inputs[] = {-128, -128, -128, -128, -19, 15, 6, 0, 9, -5, 4, 5};
+
+  // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
+  uint32_t zd_expected_s[] = {0x8000ffff, 0x00001749, 0x0000f085};
+  uint64_t zd_expected_d[] = {0x000000047c00ffff,
+                              0x000000000017ff49,
+                              0x00000000fff00085};
+
+  // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
+  uint32_t zdnm_expected_s[] = {0x8000ffff, 0x000101d4, 0x0001d03c};
+  uint64_t zdnm_expected_d[] = {0x000000047c00ffff,
+                                0x00000000fffe03d4,
+                                0x00000001ffce023c};
+
+  SdotUdotHelper(config,
+                 &MacroAssembler::Udot,
+                 kSRegSize,
+                 zd_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_s,
+                 zdnm_expected_s);
+  SdotUdotHelper(config,
+                 &MacroAssembler::Udot,
+                 kDRegSize,
+                 zd_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_d,
+                 zdnm_expected_d);
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -8430,12 +8430,18 @@ void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
 
 void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
   USE(instr);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
   switch (instr->Mask(SVEIntMulAddUnpredicatedMask)) {
     case SDOT_z_zzz:
-      VIXL_UNIMPLEMENTED();
+      sdot(vform, zda, zn, zm);
       break;
     case UDOT_z_zzz:
-      VIXL_UNIMPLEMENTED();
+      udot(vform, zda, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

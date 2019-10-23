@@ -6552,21 +6552,22 @@ void Disassembler::VisitSVEIntMulAddPredicated(const Instruction *instr) {
 
 void Disassembler::VisitSVEIntMulAddUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>
-  const char *form = "'Zd.<T>, 'Zn, 'Zm";
+  const char *form = "(SVEIntMulAddUnpredicated)";
 
-  switch (instr->Mask(SVEIntMulAddUnpredicatedMask)) {
-    // SDOT <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>
-    case SDOT_z_zzz:
-      mnemonic = "sdot";
-      break;
-    // UDOT <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>
-    case UDOT_z_zzz:
-      mnemonic = "udot";
-      break;
-    default:
-      break;
+  if (static_cast<unsigned>(instr->GetSVESize()) >= kSRegSizeInBytesLog2) {
+    form = "'Zd.'t, 'Zn.'tq, 'Zm.'tq";
+    switch (instr->Mask(SVEIntMulAddUnpredicatedMask)) {
+      case SDOT_z_zzz:
+        mnemonic = "sdot";
+        break;
+      case UDOT_z_zzz:
+        mnemonic = "udot";
+        break;
+      default:
+        break;
+    }
   }
+
   Format(instr, mnemonic, form);
 }
 
@@ -10393,6 +10394,11 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
     case 'h':
       // Half size of the lane size field.
       size_in_bytes_log2 -= 1;
+      placeholder_length++;
+      break;
+    case 'q':
+      // Quarter size of the lane size field.
+      size_in_bytes_log2 -= 2;
       placeholder_length++;
       break;
     default:

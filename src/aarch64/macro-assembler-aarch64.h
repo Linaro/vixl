@@ -5736,11 +5736,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sdot(zda, zn);
   }
-  void Sdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sdot(zda, zn, zm);
-  }
+  void Sdot(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm);
   void Sel(const PRegisterWithLaneSize& pd,
            const PRegister& pg,
            const PRegisterWithLaneSize& pn,
@@ -6375,11 +6374,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     udot(zda, zn);
   }
-  void Udot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    udot(zda, zn, zm);
-  }
+  void Udot(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm);
   void Umax(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Umaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7078,6 +7076,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                        const ZRegister& zd,
                        const ZRegister& zn,
                        IntegerOperand imm);
+
+  void SVESdotUdotHelper(IntArithFn fn,
+                         const ZRegister& zd,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

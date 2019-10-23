@@ -3849,7 +3849,7 @@ LogicVRegister Simulator::dot(VectorFormat vform,
 
   dst.ClearForWrite(vform);
   for (int e = 0; e < LaneCountFromFormat(vform); e++) {
-    int64_t result = 0;
+    uint64_t result = 0;
     int64_t element1, element2;
     for (int i = 0; i < 4; i++) {
       int index = 4 * e + i;
@@ -3862,9 +3862,7 @@ LogicVRegister Simulator::dot(VectorFormat vform,
       }
       result += element1 * element2;
     }
-
-    result += dst.Int(vform, e);
-    dst.SetInt(vform, e, result);
+    dst.SetUint(vform, e, result + dst.Uint(vform, e));
   }
   return dst;
 }

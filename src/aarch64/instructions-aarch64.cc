@@ -906,6 +906,12 @@ VectorFormat VectorFormatHalfWidthDoubleLanes(VectorFormat vform) {
       return kFormat2S;
     case kFormat2D:
       return kFormat4S;
+    case kFormatVnH:
+      return kFormatVnB;
+    case kFormatVnS:
+      return kFormatVnH;
+    case kFormatVnD:
+      return kFormatVnS;
     default:
       VIXL_UNREACHABLE();
       return kFormatUndefined;
