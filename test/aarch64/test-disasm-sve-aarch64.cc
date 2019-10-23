@@ -1739,18 +1739,22 @@ TEST(sve_neg_macro) {
   CLEANUP();
 }
 
-TEST(sve_int_wide_imm_predicated) {
+TEST(sve_cpy_fcpy_imm) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(cpy(z25.VnB(), p13, int imm8), "cpy <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(cpy(z25.VnH(), p13, int imm8), "cpy <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(cpy(z25.VnS(), p13, int imm8), "cpy <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(cpy(z25.VnD(), p13, int imm8), "cpy <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}");
-  COMPARE_PREFIX(fcpy(z20.VnH(), p11.Merging()), "fcpy <Zd>.<T>, <Pg>/M, #<const>");
-  COMPARE_PREFIX(fcpy(z20.VnS(), p11.Merging()), "fcpy <Zd>.<T>, <Pg>/M, #<const>");
-  COMPARE_PREFIX(fcpy(z20.VnD(), p11.Merging()), "fcpy <Zd>.<T>, <Pg>/M, #<const>");
-#endif
+  COMPARE_PREFIX(cpy(z25.VnB(), p13.Zeroing(), -1), "cpy z25.b, p13/z, #-1");
+  COMPARE_PREFIX(cpy(z25.VnB(), p13.Merging(), -1), "cpy z25.b, p13/m, #-1");
+  COMPARE_PREFIX(cpy(z25.VnH(), p13.Merging(), 127), "cpy z25.h, p13/m, #127");
+  COMPARE_PREFIX(cpy(z25.VnS(), p13.Merging(), 10752),
+                 "cpy z25.s, p13/m, #42, lsl #8");
+  COMPARE_PREFIX(cpy(z25.VnD(), p13.Merging(), -10752),
+                 "cpy z25.d, p13/m, #-42, lsl #8");
+  COMPARE_PREFIX(fcpy(z20.VnH(), p11.Merging(), 29.0),
+                 "fcpy z20.h, p11/m, #0x3d (29.0000)");
+  COMPARE_PREFIX(fcpy(z20.VnS(), p11.Merging(), -31.0),
+                 "fcpy z20.s, p11/m, #0xbf (-31.0000)");
+  COMPARE_PREFIX(fcpy(z20.VnD(), p11.Merging(), 1.0),
+                 "fcpy z20.d, p11/m, #0x70 (1.0000)");
 
   CLEANUP();
 }

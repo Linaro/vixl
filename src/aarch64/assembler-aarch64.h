@@ -3967,7 +3967,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void compact(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);
 
   // Copy signed integer immediate to vector elements (predicated).
-  void cpy(const ZRegister& zd, const PRegister& pg, int imm8);
+  void cpy(const ZRegister& zd, const PRegister& pg, int imm8, int shift = -1);
 
   // Copy general-purpose register to vector elements (predicated).
   void cpy(const ZRegister& zd, const PRegisterM& pg, const Register& rn);
@@ -4172,8 +4172,14 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zn,
              const ZRegister& zm);
 
-  // Copy 8-bit floating-point immediate to vector elements (predicated).
-  void fcpy(const ZRegister& zd, const PRegisterM& pg);
+  // Copy floating-point immediate to vector elements (predicated).
+  void fcpy(const ZRegister& zd, const PRegisterM& pg, double imm);
+
+  // Copy half-precision floating-point immediate to vector elements
+  // (predicated).
+  void fcpy(const ZRegister& zd, const PRegisterM& pg, Float16 imm) {
+    fcpy(zd, pg, FPToDouble(imm, kIgnoreDefaultNaN));
+  }
 
   // Floating-point convert precision (predicated).
   void fcvt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -4198,14 +4204,13 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zn,
              const ZRegister& zm);
 
-  // Broadcast floating-point immediate to double-precision vector elements.
+  // Broadcast floating-point immediate to vector elements.
   void fdup(const ZRegister& zd, double imm);
 
-  // Broadcast floating-point immediate to single-precision vector elements.
-  void fdup(const ZRegister& zd, float imm);
-
-  // Broadcast floating-point immediate to half-precision vector elements.
-  void fdup(const ZRegister& zd, Float16 imm);
+  // Broadcast half-precision floating-point immediate to vector elements.
+  void fdup(const ZRegister& zd, Float16 imm) {
+    fdup(zd, FPToDouble(imm, kIgnoreDefaultNaN));
+  }
 
   // Floating-point exponential accelerator.
   void fexpa(const ZRegister& zd, const ZRegister& zn);
@@ -7257,6 +7262,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                            int shift,
                            NEONShiftImmediateOp op);
   void NEONXtn(const VRegister& vd, const VRegister& vn, NEON2RegMiscOp vop);
+
+  // If *shift is -1, find values of *imm8 and *shift such that IsInt8(*imm8)
+  // and *shift is either 0 or 8. Otherwise, leave the values unchanged.
+  void ResolveSVEImm8Shift(int* imm8, int* shift);
 
   Instr LoadStoreStructAddrModeField(const MemOperand& addr);
 

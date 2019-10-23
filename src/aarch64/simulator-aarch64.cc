@@ -8843,15 +8843,27 @@ void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVECopyFPImm_Predicated(const Instruction* instr) {
-  USE(instr);
+  // There is only one instruction in this group.
+  VIXL_ASSERT(instr->Mask(SVECopyFPImm_PredicatedMask) == FCPY_z_p_i);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(19, 16));
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  SimVRegister result;
   switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {
-    case FCPY_z_p_i:
-      VIXL_UNIMPLEMENTED();
+    case FCPY_z_p_i: {
+      int imm8 = instr->ExtractBits(12, 5);
+      uint64_t value = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform),
+                                           Instruction::Imm8ToFP64(imm8));
+      dup_immediate(vform, result, value);
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::VisitSVEIntAddSubtractImm_Unpredicated(
@@ -10515,14 +10527,27 @@ void Simulator::VisitSVECopyGeneralRegisterToVector_Predicated(
 }
 
 void Simulator::VisitSVECopyIntImm_Predicated(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(19, 16));
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  SimVRegister result;
   switch (instr->Mask(SVECopyIntImm_PredicatedMask)) {
-    case CPY_z_p_i:
-      VIXL_UNIMPLEMENTED();
+    case CPY_z_p_i: {
+      // Use unsigned arithmetic to avoid undefined behaviour during the shift.
+      uint64_t imm8 = instr->GetImmSVEIntWideSigned();
+      dup_immediate(vform, result, imm8 << (instr->ExtractBit(13) * 8));
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (instr->ExtractBit(14) != 0) {
+    mov_merging(vform, zd, pg, result);
+  } else {
+    mov_zeroing(vform, zd, pg, result);
   }
 }
 

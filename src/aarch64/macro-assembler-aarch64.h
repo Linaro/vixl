@@ -4212,11 +4212,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcmuo(pd, pg, zn, zm);
   }
-  void Fcpy(const ZRegister& zd, const PRegisterM& pg) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fcpy(zd, pg);
-  }
+  void Fcpy(const ZRegister& zd, const PRegisterM& pg, double imm);
+  void Fcpy(const ZRegister& zd, const PRegisterM& pg, float imm);
+  void Fcpy(const ZRegister& zd, const PRegisterM& pg, Float16 imm);
   void Fcvt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

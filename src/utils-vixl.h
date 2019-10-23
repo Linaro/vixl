@@ -1331,6 +1331,46 @@ Float16 FPToFloat16(double value,
                     FPRounding round_mode,
                     UseDefaultNaN DN,
                     bool* exception = NULL);
+
+// Like static_cast<T>(value), but with specialisations for the Float16 type.
+template <typename T, typename F>
+T StaticCastFPTo(F value) {
+  return static_cast<T>(value);
+}
+
+template <>
+inline float StaticCastFPTo<float, Float16>(Float16 value) {
+  return FPToFloat(value, kIgnoreDefaultNaN);
+}
+
+template <>
+inline double StaticCastFPTo<double, Float16>(Float16 value) {
+  return FPToDouble(value, kIgnoreDefaultNaN);
+}
+
+template <>
+inline Float16 StaticCastFPTo<Float16, float>(float value) {
+  return FPToFloat16(value, FPTieEven, kIgnoreDefaultNaN);
+}
+
+template <>
+inline Float16 StaticCastFPTo<Float16, double>(double value) {
+  return FPToFloat16(value, FPTieEven, kIgnoreDefaultNaN);
+}
+
+template <typename T>
+uint64_t FPToRawbitsWithSize(unsigned size_in_bits, T value) {
+  switch (size_in_bits) {
+    case 16:
+      return Float16ToRawbits(StaticCastFPTo<Float16>(value));
+    case 32:
+      return FloatToRawbits(StaticCastFPTo<float>(value));
+    case 64:
+      return DoubleToRawbits(StaticCastFPTo<double>(value));
+  }
+  VIXL_UNREACHABLE();
+  return 0;
+}
 }  // namespace vixl
 
 #endif  // VIXL_UTILS_H

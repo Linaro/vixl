@@ -5204,6 +5204,237 @@ TEST_SVE(sve_cpy) {
   }
 }
 
+TEST_SVE(sve_cpy_imm) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         0,                      1,                      1
+  // For S lanes:         0,          1,          1,          0,          1
+  // For H lanes:   1,    0,    0,    1,    0,    1,    1,    0,    0,    1
+  int pg_in[] = {1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1};
+
+  PRegister pg = p7;
+  Initialise(&masm, pg.VnB(), pg_in);
+
+  // These are (mostly) merging operations, so we have to initialise the result
+  // registers for each operation.
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    __ Index(ZRegister(i, kBRegSize), 0, -1);
+  }
+
+  // Encodable integer forms (CPY_z_p_i)
+  __ Cpy(z0.VnB(), pg.Merging(), 0);
+  __ Cpy(z1.VnB(), pg.Zeroing(), 42);
+  __ Cpy(z2.VnB(), pg.Merging(), -42);
+  __ Cpy(z3.VnB(), pg.Zeroing(), 0xff);
+  __ Cpy(z4.VnH(), pg.Merging(), 127);
+  __ Cpy(z5.VnS(), pg.Zeroing(), -128);
+  __ Cpy(z6.VnD(), pg.Merging(), -1);
+
+  // Forms encodable using fcpy.
+  __ Cpy(z7.VnH(), pg.Merging(), Float16ToRawbits(Float16(-31.0)));
+  __ Cpy(z8.VnS(), pg.Zeroing(), FloatToRawbits(2.0f));
+  __ Cpy(z9.VnD(), pg.Merging(), DoubleToRawbits(-4.0));
+
+  // Other forms use a scratch register.
+  __ Cpy(z10.VnH(), pg.Merging(), 0xff);
+  __ Cpy(z11.VnD(), pg.Zeroing(), 0x0123456789abcdef);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // clang-format off
+
+    uint64_t expected_z0[] =
+    // pg:  0 0 0 0 1 1 1 0     1 0 0 1 1 0 1 1     0 1 0 0 0 0 0 1
+        {0xe9eaebec000000f0, 0x00f2f30000f60000, 0xf900fbfcfdfeff00};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    uint64_t expected_z1[] =
+    // pg:  0 0 0 0 1 1 1 0     1 0 0 1 1 0 1 1     0 1 0 0 0 0 0 1
+        {0x000000002a2a2a00, 0x2a00002a2a002a2a, 0x002a00000000002a};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    uint64_t expected_z2[] =
+    // pg:  0 0 0 0 1 1 1 0     1 0 0 1 1 0 1 1     0 1 0 0 0 0 0 1
+        {0xe9eaebecd6d6d6f0, 0xd6f2f3d6d6f6d6d6, 0xf9d6fbfcfdfeffd6};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    uint64_t expected_z3[] =
+    // pg:  0 0 0 0 1 1 1 0     1 0 0 1 1 0 1 1     0 1 0 0 0 0 0 1
+        {0x00000000ffffff00, 0xff0000ffff00ffff, 0x00ff0000000000ff};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    uint64_t expected_z4[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebec007feff0, 0xf1f2007ff5f6007f, 0x007ffbfcfdfe007f};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    uint64_t expected_z5[] =
+    // pg:        0       0           1       1           0       1
+        {0x0000000000000000, 0xffffff80ffffff80, 0x00000000ffffff80};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    uint64_t expected_z6[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0xffffffffffffffff, 0xffffffffffffffff};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+
+    uint64_t expected_z7[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebeccfc0eff0, 0xf1f2cfc0f5f6cfc0, 0xcfc0fbfcfdfecfc0};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+
+    uint64_t expected_z8[] =
+    // pg:        0       0           1       1           0       1
+        {0x0000000000000000, 0x4000000040000000, 0x0000000040000000};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+
+    uint64_t expected_z9[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0xc010000000000000, 0xc010000000000000};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+
+    uint64_t expected_z10[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebec00ffeff0, 0xf1f200fff5f600ff, 0x00fffbfcfdfe00ff};
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+
+    uint64_t expected_z11[] =
+    // pg:                0                   1                   1
+        {0x0000000000000000, 0x0123456789abcdef, 0x0123456789abcdef};
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
+
+    // clang-format on
+  }
+}
+
+TEST_SVE(sve_fcpy_imm) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         0,                      1,                      1
+  // For S lanes:         0,          1,          1,          0,          1
+  // For H lanes:   1,    0,    0,    1,    0,    1,    1,    0,    0,    1
+  int pg_in[] = {1, 1, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 1};
+
+  PRegister pg = p7;
+  Initialise(&masm, pg.VnB(), pg_in);
+
+  // These are (mostly) merging operations, so we have to initialise the result
+  // registers for each operation.
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    __ Index(ZRegister(i, kBRegSize), 0, -1);
+  }
+
+  // Encodable floating-point forms (FCPY_z_p_i)
+  __ Fcpy(z1.VnH(), pg.Merging(), Float16(1.0));
+  __ Fcpy(z2.VnH(), pg.Merging(), -2.0f);
+  __ Fcpy(z3.VnH(), pg.Merging(), 3.0);
+  __ Fcpy(z4.VnS(), pg.Merging(), Float16(-4.0));
+  __ Fcpy(z5.VnS(), pg.Merging(), 5.0f);
+  __ Fcpy(z6.VnS(), pg.Merging(), 6.0);
+  __ Fcpy(z7.VnD(), pg.Merging(), Float16(7.0));
+  __ Fcpy(z8.VnD(), pg.Merging(), 8.0f);
+  __ Fcpy(z9.VnD(), pg.Merging(), -9.0);
+
+  // Unencodable immediates.
+  __ Fcpy(z10.VnS(), pg.Merging(), 0.0);
+  __ Fcpy(z11.VnH(), pg.Merging(), Float16(42.0));
+  __ Fcpy(z12.VnD(), pg.Merging(), RawbitsToDouble(0x7ff0000012340000));  // NaN
+  __ Fcpy(z13.VnH(), pg.Merging(), kFP64NegativeInfinity);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // clang-format off
+
+    // 1.0 as FP16: 0x3c00
+    uint64_t expected_z1[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebec3c00eff0, 0xf1f23c00f5f63c00, 0x3c00fbfcfdfe3c00};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    // -2.0 as FP16: 0xc000
+    uint64_t expected_z2[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebecc000eff0, 0xf1f2c000f5f6c000, 0xc000fbfcfdfec000};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    // 3.0 as FP16: 0x4200
+    uint64_t expected_z3[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebec4200eff0, 0xf1f24200f5f64200, 0x4200fbfcfdfe4200};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+
+    // -4.0 as FP32: 0xc0800000
+    uint64_t expected_z4[] =
+    // pg:        0       0           1       1           0       1
+        {0xe9eaebecedeeeff0, 0xc0800000c0800000, 0xf9fafbfcc0800000};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+
+    // 5.0 as FP32: 0x40a00000
+    uint64_t expected_z5[] =
+    // pg:        0       0           1       1           0       1
+        {0xe9eaebecedeeeff0, 0x40a0000040a00000, 0xf9fafbfc40a00000};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    // 6.0 as FP32: 0x40c00000
+    uint64_t expected_z6[] =
+    // pg:        0       0           1       1           0       1
+        {0xe9eaebecedeeeff0, 0x40c0000040c00000, 0xf9fafbfc40c00000};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+
+    // 7.0 as FP64: 0x401c000000000000
+    uint64_t expected_z7[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0x401c000000000000, 0x401c000000000000};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+
+    // 8.0 as FP64: 0x4020000000000000
+    uint64_t expected_z8[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0x4020000000000000, 0x4020000000000000};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+
+    // -9.0 as FP64: 0xc022000000000000
+    uint64_t expected_z9[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0xc022000000000000, 0xc022000000000000};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+
+    // 0.0 as FP32: 0x00000000
+    uint64_t expected_z10[] =
+    // pg:        0       0           1       1           0       1
+        {0xe9eaebecedeeeff0, 0x0000000000000000, 0xf9fafbfc00000000};
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+
+    // 42.0 as FP16: 0x5140
+    uint64_t expected_z11[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebec5140eff0, 0xf1f25140f5f65140, 0x5140fbfcfdfe5140};
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
+
+    // Signalling NaN (with payload): 0x7ff0000012340000
+    uint64_t expected_z12[] =
+    // pg:                0                   1                   1
+        {0xe9eaebecedeeeff0, 0x7ff0000012340000, 0x7ff0000012340000};
+    ASSERT_EQUAL_SVE(expected_z12, z12.VnD());
+
+    // -infinity as FP16: 0xfc00
+    uint64_t expected_z13[] =
+    // pg:    0   0   1   0       0   1   0   1       1   0   0   1
+        {0xe9eaebecfc00eff0, 0xf1f2fc00f5f6fc00, 0xfc00fbfcfdfefc00};
+    ASSERT_EQUAL_SVE(expected_z13, z13.VnD());
+
+    // clang-format on
+  }
+}
+
 TEST_SVE(sve_permute_vector_unpredicated_table_lookup) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

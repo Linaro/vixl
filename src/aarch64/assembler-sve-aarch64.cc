@@ -29,6 +29,22 @@
 namespace vixl {
 namespace aarch64 {
 
+void Assembler::ResolveSVEImm8Shift(int* imm8, int* shift) {
+  if (*shift < 0) {
+    VIXL_ASSERT(*shift == -1);
+    // Derive the shift amount from the immediate.
+    if (IsInt8(*imm8)) {
+      *shift = 0;
+    } else if ((*imm8 % 256) == 0) {
+      *imm8 /= 256;
+      *shift = 8;
+    }
+  }
+
+  VIXL_ASSERT(IsInt8(*imm8));
+  VIXL_ASSERT((*shift == 0) || (*shift == 8));
+}
+
 // SVEAddressGeneration.
 
 // This prototype maps to 3 instruction encodings:
@@ -3773,7 +3789,10 @@ void Assembler::uxtw(const ZRegister& zd,
 
 // SVEIntWideImmPredicated.
 
-void Assembler::cpy(const ZRegister& zd, const PRegister& pg, int imm8) {
+void Assembler::cpy(const ZRegister& zd,
+                    const PRegister& pg,
+                    int imm8,
+                    int shift) {
   // CPY <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}
   //  0000 0101 ..01 .... 0... .... .... ....
   //  size<23:22> | Pg<19:16> | M<14> | sh<13> | imm8<12:5> | Zd<4:0>
@@ -3781,12 +3800,15 @@ void Assembler::cpy(const ZRegister& zd, const PRegister& pg, int imm8) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
 
-  Instr m = pg.IsMerging() ? 0x00004000 : 0x00000000;
-  Emit(CPY_z_p_i | m | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg) |
+  ResolveSVEImm8Shift(&imm8, &shift);
+
+  Instr sh = (shift > 0) ? (1 << 13) : 0;
+  Instr m = pg.IsMerging() ? (1 << 14) : 0;
+  Emit(CPY_z_p_i | m | sh | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg) |
        ImmField<12, 5>(imm8));
 }
 
-void Assembler::fcpy(const ZRegister& zd, const PRegisterM& pg) {
+void Assembler::fcpy(const ZRegister& zd, const PRegisterM& pg, double imm) {
   // FCPY <Zd>.<T>, <Pg>/M, #<const>
   //  0000 0101 ..01 .... 110. .... .... ....
   //  size<23:22> | Pg<19:16> | imm8<12:5> | Zd<4:0>
@@ -3794,7 +3816,8 @@ void Assembler::fcpy(const ZRegister& zd, const PRegisterM& pg) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FCPY_z_p_i | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg));
+  Instr imm_field = ImmUnsignedField<12, 5>(FP64ToImm8(imm));
+  Emit(FCPY_z_p_i | SVESize(zd) | Rd(zd) | Rx<19, 16>(pg) | imm_field);
 }
 
 // SVEIntAddSubtractImmUnpredicated.
@@ -3845,19 +3868,7 @@ void Assembler::dup(const ZRegister& zd, int imm8, int shift) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  if (shift < 0) {
-    VIXL_ASSERT(shift == -1);
-    // Derive the shift amount from the immediate.
-    if (IsInt8(imm8)) {
-      shift = 0;
-    } else if ((imm8 % 256) == 0) {
-      imm8 /= 256;
-      shift = 8;
-    }
-  }
-
-  VIXL_ASSERT(IsInt8(imm8));
-  VIXL_ASSERT((shift == 0) || (shift == 8));
+  ResolveSVEImm8Shift(&imm8, &shift);
 
   Instr shift_bit = (shift > 0) ? (1 << 13) : 0;
   Emit(DUP_z_i | SVESize(zd) | Rd(zd) | shift_bit | ImmField<12, 5>(imm8));
@@ -3872,30 +3883,6 @@ void Assembler::fdup(const ZRegister& zd, double imm) {
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
   Instr encoded_imm = FP64ToImm8(imm) << 5;
-  Emit(FDUP_z_i | SVESize(zd) | encoded_imm | Rd(zd));
-}
-
-void Assembler::fdup(const ZRegister& zd, float imm) {
-  // FDUP <Zd>.<T>, #<const>
-  //  0010 0101 ..11 1001 110. .... .... ....
-  //  size<23:22> | opc<18:17> = 00 | o2<13> = 0 | imm8<12:5> | Zd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
-
-  Instr encoded_imm = FP32ToImm8(imm) << 5;
-  Emit(FDUP_z_i | SVESize(zd) | encoded_imm | Rd(zd));
-}
-
-void Assembler::fdup(const ZRegister& zd, Float16 imm) {
-  // FDUP <Zd>.<T>, #<const>
-  //  0010 0101 ..11 1001 110. .... .... ....
-  //  size<23:22> | opc<18:17> = 00 | o2<13> = 0 | imm8<12:5> | Zd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
-
-  Instr encoded_imm = FP16ToImm8(imm) << 5;
   Emit(FDUP_z_i | SVESize(zd) | encoded_imm | Rd(zd));
 }
 

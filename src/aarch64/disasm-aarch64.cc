@@ -6575,7 +6575,7 @@ void Disassembler::VisitSVECopyFPImm_Predicated(const Instruction *instr) {
     // FCPY <Zd>.<T>, <Pg>/M, #<const>
     case FCPY_z_p_i:
       mnemonic = "fcpy";
-      form = "'Zd.'t, p'u1916/m, #<const>";
+      form = "'Zd.'t, p'u1916/m, 'IFPSve";
       break;
     default:
       break;
@@ -6609,10 +6609,25 @@ void Disassembler::VisitSVECopyIntImm_Predicated(const Instruction *instr) {
 
   switch (instr->Mask(SVECopyIntImm_PredicatedMask)) {
     // CPY <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}
-    case CPY_z_p_i:
+    case CPY_z_p_i: {
       mnemonic = "cpy";
-      form = "'Zd.'t, p'u1916/<ZM>, #'u1205{, <shift>}";
+      bool sh = instr->ExtractBit(13) != 0;
+      bool m = instr->ExtractBit(14) != 0;
+      if (sh) {
+        if (m) {
+          form = "'Zd.'t, p'u1916/m, #'s1205, lsl #8";
+        } else {
+          form = "'Zd.'t, p'u1916/z, #'s1205, lsl #8";
+        }
+      } else {
+        if (m) {
+          form = "'Zd.'t, p'u1916/m, #'s1205";
+        } else {
+          form = "'Zd.'t, p'u1916/z, #'s1205";
+        }
+      }
       break;
+    }
     default:
       break;
   }

@@ -339,6 +339,121 @@ void MacroAssembler::Adr(const ZRegister& zd, const SVEMemOperand& addr) {
   VIXL_UNIMPLEMENTED();
 }
 
+void MacroAssembler::Cpy(const ZRegister& zd,
+                         const PRegister& pg,
+                         IntegerOperand imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(imm.FitsInLane(zd));
+  int imm8;
+  int shift;
+  if (imm.TryEncodeAsShiftedIntNForLane<8, 0>(zd, &imm8, &shift) ||
+      imm.TryEncodeAsShiftedIntNForLane<8, 8>(zd, &imm8, &shift)) {
+    SingleEmissionCheckScope guard(this);
+    cpy(zd, pg, imm8, shift);
+    return;
+  }
+
+  // The fallbacks rely on `cpy` variants that only support merging predication.
+  // If zeroing predication was requested, zero the destination first.
+  if (pg.IsZeroing()) {
+    SingleEmissionCheckScope guard(this);
+    dup(zd, 0);
+  }
+  PRegisterM pg_m = pg.Merging();
+
+  // Try to encode the immediate using fcpy.
+  VIXL_ASSERT(imm.FitsInLane(zd));
+  if (zd.GetLaneSizeInBits() >= kHRegSize) {
+    double fp_imm = 0.0;
+    switch (zd.GetLaneSizeInBits()) {
+      case kHRegSize:
+        fp_imm =
+            FPToDouble(RawbitsToFloat16(imm.AsUint16()), kIgnoreDefaultNaN);
+        break;
+      case kSRegSize:
+        fp_imm = RawbitsToFloat(imm.AsUint32());
+        break;
+      case kDRegSize:
+        fp_imm = RawbitsToDouble(imm.AsUint64());
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        break;
+    }
+    // IsImmFP64 is equivalent to IsImmFP<n> for the same arithmetic value, so
+    // we can use IsImmFP64 for all lane sizes.
+    if (IsImmFP64(fp_imm)) {
+      SingleEmissionCheckScope guard(this);
+      fcpy(zd, pg_m, fp_imm);
+      return;
+    }
+  }
+
+  // Fall back to using a scratch register.
+  UseScratchRegisterScope temps(this);
+  Register scratch = temps.AcquireRegisterToHoldLane(zd);
+  Mov(scratch, imm);
+
+  SingleEmissionCheckScope guard(this);
+  cpy(zd, pg_m, scratch);
+}
+
+// TODO: We implement Fcpy (amongst other things) for all FP types because it
+// allows us to preserve user-specified NaNs. We should come up with some
+// FPImmediate type to abstract this, and avoid all the duplication below (and
+// elsewhere).
+
+void MacroAssembler::Fcpy(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          double imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(pg.IsMerging());
+
+  if (IsImmFP64(imm)) {
+    SingleEmissionCheckScope guard(this);
+    fcpy(zd, pg, imm);
+    return;
+  }
+
+  // As a fall-back, cast the immediate to the required lane size, and try to
+  // encode the bit pattern using `Cpy`.
+  Cpy(zd, pg, FPToRawbitsWithSize(zd.GetLaneSizeInBits(), imm));
+}
+
+void MacroAssembler::Fcpy(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          float imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(pg.IsMerging());
+
+  if (IsImmFP32(imm)) {
+    SingleEmissionCheckScope guard(this);
+    fcpy(zd, pg, imm);
+    return;
+  }
+
+  // As a fall-back, cast the immediate to the required lane size, and try to
+  // encode the bit pattern using `Cpy`.
+  Cpy(zd, pg, FPToRawbitsWithSize(zd.GetLaneSizeInBits(), imm));
+}
+
+void MacroAssembler::Fcpy(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          Float16 imm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(pg.IsMerging());
+
+  if (IsImmFP16(imm)) {
+    SingleEmissionCheckScope guard(this);
+    fcpy(zd, pg, imm);
+    return;
+  }
+
+  // As a fall-back, cast the immediate to the required lane size, and try to
+  // encode the bit pattern using `Cpy`.
+  Cpy(zd, pg, FPToRawbitsWithSize(zd.GetLaneSizeInBits(), imm));
+}
+
 void MacroAssembler::Dup(const ZRegister& zd, IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInLane(zd));
