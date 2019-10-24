@@ -7550,13 +7550,13 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case FMAX_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fmax(vform, result, zdn, zm);
       break;
     case FMINNM_z_p_zz:
       VIXL_UNIMPLEMENTED();
       break;
     case FMIN_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fmin(vform, result, zdn, zm);
       break;
     case FMULX_z_p_zz:
       VIXL_UNIMPLEMENTED();

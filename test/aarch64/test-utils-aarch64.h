@@ -541,6 +541,24 @@ class CalculateSVEAddressMacroAssembler : public vixl::aarch64::MacroAssembler {
   }
 };
 
+// This class acts as a drop-in replacement for VIXL's MacroAssembler, with
+// fast NaN proparation mode switched on.
+class FastNaNPropagationMacroAssembler : public MacroAssembler {
+ public:
+  FastNaNPropagationMacroAssembler() {
+    SetFPNaNPropagationOption(FastNaNPropagation);
+  }
+};
+
+// This class acts as a drop-in replacement for VIXL's MacroAssembler, with
+// strict NaN proparation mode switched on.
+class StrictNaNPropagationMacroAssembler : public MacroAssembler {
+ public:
+  StrictNaNPropagationMacroAssembler() {
+    SetFPNaNPropagationOption(StrictNaNPropagation);
+  }
+};
+
 }  // namespace aarch64
 }  // namespace vixl
 

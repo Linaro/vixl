@@ -3367,14 +3367,14 @@ TEST_SVE(sve_incd) {
   IncHelper(config, &MacroAssembler::Incd, 16, kDRegSize, -42);
 }
 
-typedef void (MacroAssembler::*IntBinArithFn)(const ZRegister& zd,
-                                              const PRegisterM& pg,
-                                              const ZRegister& zn,
-                                              const ZRegister& zm);
+typedef void (MacroAssembler::*ArithPredicatedFn)(const ZRegister& zd,
+                                                  const PRegisterM& pg,
+                                                  const ZRegister& zn,
+                                                  const ZRegister& zm);
 
 template <typename Td, typename Tg, typename Tn>
 static void IntBinArithHelper(Test* config,
-                              IntBinArithFn macro,
+                              ArithPredicatedFn macro,
                               unsigned lane_size_in_bits,
                               const Tg& pg_inputs,
                               const Tn& zn_inputs,
@@ -3478,7 +3478,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_add) {
                           0xffffffffffffffff, 0x8f8f8f8f8f8f8f8f,
                           0x0101010101010100, 0x7f7f7f7ffffffffe};
 
-  IntBinArithFn fn = &MacroAssembler::Add;
+  ArithPredicatedFn fn = &MacroAssembler::Add;
   IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, add_exp_b);
   IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, add_exp_h);
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, add_exp_s);
@@ -3545,7 +3545,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_umin_umax_uabd) {
   uint64_t umax_exp_d[] = {0x0000000000000001, 0xffffffffffffffff,
                            0xcdcdcdcdcdcdcdcd, 0x0000000012345678};
 
-  IntBinArithFn fn = &MacroAssembler::Umax;
+  ArithPredicatedFn fn = &MacroAssembler::Umax;
   IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, umax_exp_b);
   IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, umax_exp_h);
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, umax_exp_s);
@@ -3626,7 +3626,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_smin_smax_sabd) {
   int64_t smax_exp_d[] = {0, 0, -1, INT64_MIN + 1,
                           INT64_MIN, INT64_MAX, INT64_MAX, 1};
 
-  IntBinArithFn fn = &MacroAssembler::Smax;
+  ArithPredicatedFn fn = &MacroAssembler::Smax;
   IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, smax_exp_b);
   IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, smax_exp_h);
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, smax_exp_s);
@@ -3707,7 +3707,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_mul_umulh) {
   uint64_t mul_exp_d[] = {0x0000000000000000, 0xa4fa4fa4eeeeeeef,
                           0xffffffffffffffff, 0x38e38e38e38e38e4};
 
-  IntBinArithFn fn = &MacroAssembler::Mul;
+  ArithPredicatedFn fn = &MacroAssembler::Mul;
   IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, mul_exp_b);
   IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, mul_exp_h);
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, mul_exp_s);
@@ -3763,7 +3763,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_smulh) {
 
   int64_t exp_d[] = {0, -1, INT64_MIN, 4611686018427387903};
 
-  IntBinArithFn fn = &MacroAssembler::Smulh;
+  ArithPredicatedFn fn = &MacroAssembler::Smulh;
   IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, exp_b);
   IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, exp_h);
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, exp_s);
@@ -3804,7 +3804,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_logical) {
   uint64_t and_exp_d[] = {0xfedcaa8854540000, 0x0000454588aacdef,
                           0x0001200880ff55aa, 0x0022446688aaccee};
 
-  IntBinArithFn fn = &MacroAssembler::And;
+  ArithPredicatedFn fn = &MacroAssembler::And;
   IntBinArithHelper(config, fn, kBRegSize, pg_b, zn_b, zm_b, and_exp_b);
   IntBinArithHelper(config, fn, kHRegSize, pg_h, zn_h, zm_h, and_exp_h);
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, and_exp_s);
@@ -3889,7 +3889,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_sdiv) {
                      INT64_MIN, INT64_MAX, INT64_MIN, -INT64_MAX,
                      0, 1, 0, 0};
 
-  IntBinArithFn fn = &MacroAssembler::Sdiv;
+  ArithPredicatedFn fn = &MacroAssembler::Sdiv;
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, exp_s);
   IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, exp_d);
   // clang-format on
@@ -3924,19 +3924,19 @@ TEST_SVE(sve_binary_arithmetic_predicated_udiv) {
                       0x0000000000000001, 0x8000000000000000,
                       0xffffffffffffffff, 0x0000000100000001};
 
-  IntBinArithFn fn = &MacroAssembler::Udiv;
+  ArithPredicatedFn fn = &MacroAssembler::Udiv;
   IntBinArithHelper(config, fn, kSRegSize, pg_s, zn_s, zm_s, exp_s);
   IntBinArithHelper(config, fn, kDRegSize, pg_d, zn_d, zm_d, exp_d);
   // clang-format on
 }
 
-typedef void (MacroAssembler::*ArithmeticFn)(const ZRegister& zd,
-                                             const ZRegister& zn,
-                                             const ZRegister& zm);
+typedef void (MacroAssembler::*ArithFn)(const ZRegister& zd,
+                                        const ZRegister& zn,
+                                        const ZRegister& zm);
 
 template <typename T>
 static void IntArithHelper(Test* config,
-                           ArithmeticFn macro,
+                           ArithFn macro,
                            unsigned lane_size_in_bits,
                            const T& zn_inputs,
                            const T& zm_inputs,
@@ -3968,7 +3968,7 @@ TEST_SVE(sve_arithmetic_unpredicated_add_sqadd_uqadd) {
   uint64_t in_d[] = {0x8000000180018181, 0x7fffffff7fff7f7f,
                       0x1000000010001010, 0xf0000000f000f0f0};
 
-  ArithmeticFn fn = &MacroAssembler::Add;
+  ArithFn fn = &MacroAssembler::Add;
 
   unsigned add_exp_b[] = {0x02, 0xfe, 0x20, 0x54, 0xaa, 0xfe, 0xe0};
   unsigned add_exp_h[] = {0x0302, 0xfefe, 0x2020, 0x5554, 0xaaaa, 0xfffe, 0xe1e0};
@@ -4026,7 +4026,7 @@ TEST_SVE(sve_arithmetic_unpredicated_sub_sqsub_uqsub) {
   uint64_t ins2_d[] = {0x1000000010001010, 0xf0000000f000f0f0,
                        0xf0000000f000f0f0, 0x5555555555555555};
 
-  ArithmeticFn fn = &MacroAssembler::Sub;
+  ArithFn fn = &MacroAssembler::Sub;
 
   unsigned ins1_sub_ins2_exp_b[] = {0x71, 0x8f, 0x8e, 0x55};
   unsigned ins1_sub_ins2_exp_h[] = {0x7171, 0x8e8f, 0x8d8e, 0x5555};
@@ -7090,38 +7090,24 @@ TEST_SVE(sve_udot) {
                  zdnm_expected_d);
 }
 
-template <size_t N>
-static void FPToRawbits(const double (&inputs)[N],
-                        uint64_t* outputs,
-                        unsigned lane_size_in_bits) {
+template <typename T, size_t N>
+static void FPToRawbitsWithSize(const T (&inputs)[N],
+                                uint64_t* outputs,
+                                unsigned size_in_bits) {
   for (size_t i = 0; i < N; i++) {
-    switch (lane_size_in_bits) {
-      case kHRegSize:
-        outputs[i] = Float16ToRawbits(
-            FPToFloat16(inputs[i], FPTieEven, kIgnoreDefaultNaN));
-        break;
-      case kSRegSize:
-        outputs[i] =
-            FloatToRawbits(FPToFloat(inputs[i], FPTieEven, kIgnoreDefaultNaN));
-        break;
-      case kDRegSize:
-        outputs[i] = DoubleToRawbits(inputs[i]);
-        break;
-      default:
-        VIXL_UNIMPLEMENTED();
-        break;
-    }
+    outputs[i] = vixl::FPToRawbitsWithSize(size_in_bits, inputs[i]);
   }
 }
 
-template <typename Td, size_t N>
-static void FPArithmeticFnHelper(Test* config,
-                                 ArithmeticFn macro,
-                                 unsigned lane_size_in_bits,
-                                 const double (&zn_inputs)[N],
-                                 const double (&zm_inputs)[N],
-                                 const Td& zd_expected) {
+template <typename Ti, typename Te, size_t N>
+static void FPBinArithHelper(Test* config,
+                             ArithFn macro,
+                             int lane_size_in_bits,
+                             const Ti (&zn_inputs)[N],
+                             const Ti (&zm_inputs)[N],
+                             const Te (&zd_expected)[N]) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+
   START();
 
   ZRegister zd = z29.WithLaneSize(lane_size_in_bits);
@@ -7131,8 +7117,8 @@ static void FPArithmeticFnHelper(Test* config,
   uint64_t zn_rawbits[N];
   uint64_t zm_rawbits[N];
 
-  FPToRawbits(zn_inputs, zn_rawbits, lane_size_in_bits);
-  FPToRawbits(zm_inputs, zm_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zn_inputs, zn_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zm_inputs, zm_rawbits, lane_size_in_bits);
 
   InsrHelper(&masm, zn, zn_rawbits);
   InsrHelper(&masm, zm, zm_rawbits);
@@ -7159,7 +7145,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fadd) {
 
   double zm_inputs[] = {1024.0, 2048.0, 0.1, -4.75, 12.34, 255.0, -13.0};
 
-  ArithmeticFn fn = &MacroAssembler::Fadd;
+  ArithFn fn = &MacroAssembler::Fadd;
 
   uint16_t expected_h[] = {Float16ToRawbits(Float16(1048.0)),
                            Float16ToRawbits(Float16(2053.5)),
@@ -7169,7 +7155,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fadd) {
                            Float16ToRawbits(kFP16PositiveInfinity),
                            Float16ToRawbits(kFP16NegativeInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kHRegSize, zn_inputs, zm_inputs, expected_h);
+  FPBinArithHelper(config, fn, kHRegSize, zn_inputs, zm_inputs, expected_h);
 
   uint32_t expected_s[] = {FloatToRawbits(1048.0f),
                            FloatToRawbits(2053.5f),
@@ -7179,7 +7165,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fadd) {
                            FloatToRawbits(kFP32PositiveInfinity),
                            FloatToRawbits(kFP32NegativeInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kSRegSize, zn_inputs, zm_inputs, expected_s);
+  FPBinArithHelper(config, fn, kSRegSize, zn_inputs, zm_inputs, expected_s);
 
   uint64_t expected_d[] = {DoubleToRawbits(1048.0),
                            DoubleToRawbits(2053.5),
@@ -7189,7 +7175,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fadd) {
                            DoubleToRawbits(kFP64PositiveInfinity),
                            DoubleToRawbits(kFP64NegativeInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
+  FPBinArithHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
 }
 
 TEST_SVE(sve_fp_arithmetic_unpredicated_fsub) {
@@ -7203,7 +7189,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fsub) {
 
   double zm_inputs[] = {1024.0, 2048.0, 0.1, -4.75, 12.34, 255.0, -13.0};
 
-  ArithmeticFn fn = &MacroAssembler::Fsub;
+  ArithFn fn = &MacroAssembler::Fsub;
 
   uint16_t expected_h[] = {Float16ToRawbits(Float16(-1000.0)),
                            Float16ToRawbits(Float16(-2042.5)),
@@ -7213,7 +7199,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fsub) {
                            Float16ToRawbits(kFP16PositiveInfinity),
                            Float16ToRawbits(kFP16NegativeInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kHRegSize, zn_inputs, zm_inputs, expected_h);
+  FPBinArithHelper(config, fn, kHRegSize, zn_inputs, zm_inputs, expected_h);
 
   uint32_t expected_s[] = {FloatToRawbits(-1000.0),
                            FloatToRawbits(-2042.5),
@@ -7223,7 +7209,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fsub) {
                            FloatToRawbits(kFP32PositiveInfinity),
                            FloatToRawbits(kFP32NegativeInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kSRegSize, zn_inputs, zm_inputs, expected_s);
+  FPBinArithHelper(config, fn, kSRegSize, zn_inputs, zm_inputs, expected_s);
 
   uint64_t expected_d[] = {DoubleToRawbits(-1000.0),
                            DoubleToRawbits(-2042.5),
@@ -7233,7 +7219,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fsub) {
                            DoubleToRawbits(kFP64PositiveInfinity),
                            DoubleToRawbits(kFP64NegativeInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
+  FPBinArithHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
 }
 
 TEST_SVE(sve_fp_arithmetic_unpredicated_fmul) {
@@ -7247,7 +7233,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fmul) {
 
   double zm_inputs[] = {1024.0, 2048.0, 0.1, -4.75, 12.34, 255.0, -13.0};
 
-  ArithmeticFn fn = &MacroAssembler::Fmul;
+  ArithFn fn = &MacroAssembler::Fmul;
 
   uint16_t expected_h[] = {Float16ToRawbits(Float16(24576.0)),
                            Float16ToRawbits(Float16(11264.0)),
@@ -7257,7 +7243,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fmul) {
                            Float16ToRawbits(kFP16PositiveInfinity),
                            Float16ToRawbits(kFP16PositiveInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kHRegSize, zn_inputs, zm_inputs, expected_h);
+  FPBinArithHelper(config, fn, kHRegSize, zn_inputs, zm_inputs, expected_h);
 
   uint32_t expected_s[] = {FloatToRawbits(24576.0),
                            FloatToRawbits(11264.0),
@@ -7267,7 +7253,7 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fmul) {
                            FloatToRawbits(kFP32PositiveInfinity),
                            FloatToRawbits(kFP32PositiveInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kSRegSize, zn_inputs, zm_inputs, expected_s);
+  FPBinArithHelper(config, fn, kSRegSize, zn_inputs, zm_inputs, expected_s);
 
   uint64_t expected_d[] = {DoubleToRawbits(24576.0),
                            DoubleToRawbits(11264.0),
@@ -7277,35 +7263,46 @@ TEST_SVE(sve_fp_arithmetic_unpredicated_fmul) {
                            DoubleToRawbits(kFP64PositiveInfinity),
                            DoubleToRawbits(kFP64PositiveInfinity)};
 
-  FPArithmeticFnHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
+  FPBinArithHelper(config, fn, kDRegSize, zn_inputs, zm_inputs, expected_d);
 }
 
-template <typename Td, size_t N>
-static void FPBinArithHelper(Test* config,
-                             IntBinArithFn macro,
-                             unsigned lane_size_in_bits,
-                             const double (&zd_inputs)[N],
-                             const int (&pg_inputs)[N],
-                             const double (&zn_inputs)[N],
-                             const double (&zm_inputs)[N],
-                             const Td& zd_expected) {
+typedef void (MacroAssembler::*FPArithPredicatedFn)(
+    const ZRegister& zd,
+    const PRegisterM& pg,
+    const ZRegister& zn,
+    const ZRegister& zm,
+    FPMacroNaNPropagationOption nan_option);
+
+template <typename Ti, typename Te, size_t N>
+static void FPBinArithHelper(
+    Test* config,
+    FPArithPredicatedFn macro,
+    unsigned lane_size_in_bits,
+    const Ti (&zd_inputs)[N],
+    const int (&pg_inputs)[N],
+    const Ti (&zn_inputs)[N],
+    const Ti (&zm_inputs)[N],
+    const Te (&zd_expected)[N],
+    FPMacroNaNPropagationOption nan_option = FastNaNPropagation) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
-  ZRegister zd = z29.WithLaneSize(lane_size_in_bits);
-  ZRegister zn = z30.WithLaneSize(lane_size_in_bits);
-  ZRegister zm = z31.WithLaneSize(lane_size_in_bits);
+  // Avoid choosing default scratch registers.
+  ZRegister zd = z26.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z27.WithLaneSize(lane_size_in_bits);
+  ZRegister zm = z28.WithLaneSize(lane_size_in_bits);
 
-  uint64_t zd_rawbits[N];
-  uint64_t zn_rawbits[N];
-  uint64_t zm_rawbits[N];
-  FPToRawbits(zd_inputs, zd_rawbits, lane_size_in_bits);
-  FPToRawbits(zn_inputs, zn_rawbits, lane_size_in_bits);
-  FPToRawbits(zm_inputs, zm_rawbits, lane_size_in_bits);
+  uint64_t zn_inputs_rawbits[N];
+  uint64_t zm_inputs_rawbits[N];
+  uint64_t zd_inputs_rawbits[N];
 
-  InsrHelper(&masm, zd, zd_rawbits);
-  InsrHelper(&masm, zn, zn_rawbits);
-  InsrHelper(&masm, zm, zm_rawbits);
+  FPToRawbitsWithSize(zn_inputs, zn_inputs_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zm_inputs, zm_inputs_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zd_inputs, zd_inputs_rawbits, lane_size_in_bits);
+
+  InsrHelper(&masm, zn, zn_inputs_rawbits);
+  InsrHelper(&masm, zm, zm_inputs_rawbits);
+  InsrHelper(&masm, zd, zd_inputs_rawbits);
 
   PRegisterWithLaneSize pg = p0.WithLaneSize(lane_size_in_bits);
   Initialise(&masm, pg, pg_inputs);
@@ -7313,7 +7310,7 @@ static void FPBinArithHelper(Test* config,
   // `instr` zdn, pg, zdn, zm
   ZRegister dn_result = z0.WithLaneSize(lane_size_in_bits);
   __ Mov(dn_result, zn);
-  (masm.*macro)(dn_result, pg.Merging(), dn_result, zm);
+  (masm.*macro)(dn_result, pg.Merging(), dn_result, zm, nan_option);
 
   // Based on whether zd and zm registers are aliased, the macro of instructions
   // (`Instr`) swaps the order of operands if it has the commutative property,
@@ -7321,7 +7318,7 @@ static void FPBinArithHelper(Test* config,
   // `instr` zdm, pg, zn, zdm
   ZRegister dm_result = z1.WithLaneSize(lane_size_in_bits);
   __ Mov(dm_result, zm);
-  (masm.*macro)(dm_result, pg.Merging(), zn, dm_result);
+  (masm.*macro)(dm_result, pg.Merging(), zn, dm_result, nan_option);
 
   // The macro of instructions (`Instr`) automatically selects between `instr`
   // and movprfx + `instr` based on whether zd and zn registers are aliased.
@@ -7331,7 +7328,7 @@ static void FPBinArithHelper(Test* config,
   // `instr` zd, pg, zn, zm
   ZRegister d_result = z2.WithLaneSize(lane_size_in_bits);
   __ Mov(d_result, zd);
-  (masm.*macro)(d_result, pg.Merging(), zn, zm);
+  (masm.*macro)(d_result, pg.Merging(), zn, zm, nan_option);
 
   END();
 
@@ -7344,7 +7341,7 @@ static void FPBinArithHelper(Test* config,
       if ((pg_inputs[i] & 1) != 0) {
         ASSERT_EQUAL_SVE_LANE(zd_expected[i], dn_result, lane);
       } else {
-        ASSERT_EQUAL_SVE_LANE(zn_rawbits[i], dn_result, lane);
+        ASSERT_EQUAL_SVE_LANE(zn_inputs_rawbits[i], dn_result, lane);
       }
     }
 
@@ -7354,7 +7351,7 @@ static void FPBinArithHelper(Test* config,
       if ((pg_inputs[i] & 1) != 0) {
         ASSERT_EQUAL_SVE_LANE(zd_expected[i], dm_result, lane);
       } else {
-        ASSERT_EQUAL_SVE_LANE(zm_rawbits[i], dm_result, lane);
+        ASSERT_EQUAL_SVE_LANE(zm_inputs_rawbits[i], dm_result, lane);
       }
     }
 
@@ -7363,6 +7360,7 @@ static void FPBinArithHelper(Test* config,
 }
 
 TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
+  // The inputs are shared with different precision tests.
   double zd_in[] = {0.1, 1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8, 9.9};
 
   double zn_in[] = {24.0,
@@ -7378,12 +7376,9 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
 
   double zm_in[] = {-2.0, -2.0, 24.0, 24.0, 0.5, 0.5, 0.65, 0.65, 24.0, 24.0};
 
-
-  IntBinArithFn fn = &MacroAssembler::Fdiv;
-
   int pg_in[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
 
-  uint32_t exp_h[] = {Float16ToRawbits(Float16(0.1)),
+  uint16_t exp_h[] = {Float16ToRawbits(Float16(0.1)),
                       Float16ToRawbits(Float16(-12.0)),
                       Float16ToRawbits(Float16(2.2)),
                       Float16ToRawbits(Float16(-0.0833)),
@@ -7394,7 +7389,14 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
                       Float16ToRawbits(Float16(8.8)),
                       Float16ToRawbits(kFP16NegativeInfinity)};
 
-  FPBinArithHelper(config, fn, kHRegSize, zd_in, pg_in, zn_in, zm_in, exp_h);
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fdiv,
+                   kHRegSize,
+                   zd_in,
+                   pg_in,
+                   zn_in,
+                   zm_in,
+                   exp_h);
 
   uint32_t exp_s[] = {FloatToRawbits(0.1),
                       FloatToRawbits(-12.0),
@@ -7407,7 +7409,14 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
                       FloatToRawbits(8.8),
                       FloatToRawbits(kFP32NegativeInfinity)};
 
-  FPBinArithHelper(config, fn, kSRegSize, zd_in, pg_in, zn_in, zm_in, exp_s);
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fdiv,
+                   kSRegSize,
+                   zd_in,
+                   pg_in,
+                   zn_in,
+                   zm_in,
+                   exp_s);
 
   uint64_t exp_d[] = {DoubleToRawbits(0.1),
                       DoubleToRawbits(-12.0),
@@ -7420,7 +7429,14 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
                       DoubleToRawbits(8.8),
                       DoubleToRawbits(kFP64NegativeInfinity)};
 
-  FPBinArithHelper(config, fn, kDRegSize, zd_in, pg_in, zn_in, zm_in, exp_d);
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fdiv,
+                   kDRegSize,
+                   zd_in,
+                   pg_in,
+                   zn_in,
+                   zm_in,
+                   exp_d);
 }
 
 TEST_SVE(sve_select) {
@@ -7473,5 +7489,375 @@ TEST_SVE(sve_select) {
   }
 }
 
+// Execute a number of instructions which all use ProcessNaNs, and check that
+// they all propagate NaNs correctly.
+template <typename Ti, typename Te, size_t N>
+static void ProcessNaNsHelper(Test* config,
+                              int lane_size_in_bits,
+                              const Ti (&zn_inputs)[N],
+                              const Ti (&zm_inputs)[N],
+                              const Te (&zd_expected)[N],
+                              FPMacroNaNPropagationOption nan_option) {
+  ArithFn unpredicated_macro[] = {&MacroAssembler::Fadd,
+                                  &MacroAssembler::Fsub,
+                                  &MacroAssembler::Fmul};
+
+  for (size_t i = 0; i < ArrayLength(unpredicated_macro); i++) {
+    FPBinArithHelper(config,
+                     unpredicated_macro[i],
+                     lane_size_in_bits,
+                     zn_inputs,
+                     zm_inputs,
+                     zd_expected);
+  }
+
+  FPArithPredicatedFn predicated_macro[] = {&MacroAssembler::Fdiv,
+                                            &MacroAssembler::Fmax,
+                                            &MacroAssembler::Fmin};
+  int pg_inputs[N];
+  // With an all-true predicate, this helper aims to compare with special
+  // numbers.
+  for (size_t i = 0; i < N; i++) {
+    pg_inputs[i] = 1;
+  }
+
+  for (size_t i = 0; i < ArrayLength(predicated_macro); i++) {
+    FPBinArithHelper(config,
+                     predicated_macro[i],
+                     lane_size_in_bits,
+                     // With an all-true predicate, the value in zd is
+                     // irrelevant to the operations.
+                     zn_inputs,
+                     pg_inputs,
+                     zn_inputs,
+                     zm_inputs,
+                     zd_expected,
+                     nan_option);
+  }
+}
+
+TEST_SVE(sve_process_nans_double) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  double sn = RawbitsToDouble(0x7ff5555511111111);
+  double sm = RawbitsToDouble(0x7ff5555522222222);
+  double qn = RawbitsToDouble(0x7ffaaaaa11111111);
+  double qm = RawbitsToDouble(0x7ffaaaaa22222222);
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  uint64_t sn_proc = 0x7ffd555511111111;
+  uint64_t sm_proc = 0x7ffd555522222222;
+  uint64_t qn_proc = DoubleToRawbits(qn);
+  uint64_t qm_proc = DoubleToRawbits(qm);
+
+  // Quiet NaNs are propagated.
+  double zn_inputs_1[] = {qn, 0.0, 0.0, qm, qn, qm};
+  double zm_inputs_1[] = {0.0, qn, qm, 0.0, qm, qn};
+  uint64_t zd_expected_1[] =
+      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
+  ProcessNaNsHelper(config,
+                    kDRegSize,
+                    zn_inputs_1,
+                    zm_inputs_1,
+                    zd_expected_1,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs are propagated.
+  double zn_inputs_2[] = {sn, 0.0, 0.0, sm, sn, sm};
+  double zm_inputs_2[] = {0.0, sn, sm, 0.0, sm, sn};
+  uint64_t zd_expected_2[] =
+      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
+  ProcessNaNsHelper(config,
+                    kDRegSize,
+                    zn_inputs_2,
+                    zm_inputs_2,
+                    zd_expected_2,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  double zn_inputs_3[] = {sn, qn, sn, sn, qn};
+  double zm_inputs_3[] = {qm, sm, sm, qn, sn};
+  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
+  ProcessNaNsHelper(config,
+                    kDRegSize,
+                    zn_inputs_3,
+                    zm_inputs_3,
+                    zd_expected_3,
+                    StrictNaNPropagation);
+}
+
+TEST_SVE(sve_process_nans_float) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  float sn = RawbitsToFloat(0x7f951111);
+  float sm = RawbitsToFloat(0x7f952222);
+  float qn = RawbitsToFloat(0x7fea1111);
+  float qm = RawbitsToFloat(0x7fea2222);
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  uint32_t sn_proc = 0x7fd51111;
+  uint32_t sm_proc = 0x7fd52222;
+  uint32_t qn_proc = FloatToRawbits(qn);
+  uint32_t qm_proc = FloatToRawbits(qm);
+
+  // Quiet NaNs are propagated.
+  float zn_inputs_1[] = {qn, 0.0f, 0.0f, qm, qn, qm};
+  float zm_inputs_1[] = {0.0f, qn, qm, 0.0f, qm, qn};
+  uint64_t zd_expected_1[] =
+      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
+  ProcessNaNsHelper(config,
+                    kSRegSize,
+                    zn_inputs_1,
+                    zm_inputs_1,
+                    zd_expected_1,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs are propagated.
+  float zn_inputs_2[] = {sn, 0.0f, 0.0f, sm, sn, sm};
+  float zm_inputs_2[] = {0.0f, sn, sm, 0.0f, sm, sn};
+  uint64_t zd_expected_2[] =
+      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
+  ProcessNaNsHelper(config,
+                    kSRegSize,
+                    zn_inputs_2,
+                    zm_inputs_2,
+                    zd_expected_2,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  float zn_inputs_3[] = {sn, qn, sn, sn, qn};
+  float zm_inputs_3[] = {qm, sm, sm, qn, sn};
+  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
+  ProcessNaNsHelper(config,
+                    kSRegSize,
+                    zn_inputs_3,
+                    zm_inputs_3,
+                    zd_expected_3,
+                    StrictNaNPropagation);
+}
+
+TEST_SVE(sve_process_nans_half) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  Float16 sn(RawbitsToFloat16(0x7c11));
+  Float16 sm(RawbitsToFloat16(0xfc22));
+  Float16 qn(RawbitsToFloat16(0x7e33));
+  Float16 qm(RawbitsToFloat16(0xfe44));
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  uint16_t sn_proc = 0x7e11;
+  uint16_t sm_proc = 0xfe22;
+  uint16_t qn_proc = Float16ToRawbits(qn);
+  uint16_t qm_proc = Float16ToRawbits(qm);
+
+  // Quiet NaNs are propagated.
+  Float16 zn_inputs_1[] = {qn, Float16(0.0), Float16(0.0), qm, qn, qm};
+  Float16 zm_inputs_1[] = {Float16(0.0), qn, qm, Float16(0.0), qm, qn};
+  uint64_t zd_expected_1[] =
+      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
+  ProcessNaNsHelper(config,
+                    kHRegSize,
+                    zn_inputs_1,
+                    zm_inputs_1,
+                    zd_expected_1,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs are propagated.
+  Float16 zn_inputs_2[] = {sn, Float16(0.0), Float16(0.0), sm, sn, sm};
+  Float16 zm_inputs_2[] = {Float16(0.0), sn, sm, Float16(0.0), sm, sn};
+  uint64_t zd_expected_2[] =
+      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
+  ProcessNaNsHelper(config,
+                    kHRegSize,
+                    zn_inputs_2,
+                    zm_inputs_2,
+                    zd_expected_2,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  Float16 zn_inputs_3[] = {sn, qn, sn, sn, qn};
+  Float16 zm_inputs_3[] = {qm, sm, sm, qn, sn};
+  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
+  ProcessNaNsHelper(config,
+                    kHRegSize,
+                    zn_inputs_3,
+                    zm_inputs_3,
+                    zd_expected_3,
+                    StrictNaNPropagation);
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_h) {
+  double zd_inputs[] = {1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8};
+  double zn_inputs[] = {-2.1,
+                        8.5,
+                        225.5,
+                        0.0,
+                        8.8,
+                        -4.75,
+                        kFP64PositiveInfinity,
+                        kFP64NegativeInfinity};
+  double zm_inputs[] = {-2.0,
+                        -13.0,
+                        24.0,
+                        0.01,
+                        0.5,
+                        300.75,
+                        kFP64NegativeInfinity,
+                        kFP64PositiveInfinity};
+  int pg_inputs[] = {1, 1, 0, 1, 0, 1, 1, 1};
+
+  uint16_t zd_expected_max[] = {Float16ToRawbits(Float16(-2.0)),
+                                Float16ToRawbits(Float16(8.5)),
+                                Float16ToRawbits(Float16(3.3)),
+                                Float16ToRawbits(Float16(0.01)),
+                                Float16ToRawbits(Float16(5.5)),
+                                Float16ToRawbits(Float16(300.75)),
+                                Float16ToRawbits(kFP16PositiveInfinity),
+                                Float16ToRawbits(kFP16PositiveInfinity)};
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fmax,
+                   kHRegSize,
+                   zd_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_max);
+
+  uint16_t zd_expected_min[] = {Float16ToRawbits(Float16(-2.1)),
+                                Float16ToRawbits(Float16(-13.0)),
+                                Float16ToRawbits(Float16(3.3)),
+                                Float16ToRawbits(Float16(0.0)),
+                                Float16ToRawbits(Float16(5.5)),
+                                Float16ToRawbits(Float16(-4.75)),
+                                Float16ToRawbits(kFP16NegativeInfinity),
+                                Float16ToRawbits(kFP16NegativeInfinity)};
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fmin,
+                   kHRegSize,
+                   zd_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_min);
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_s) {
+  double zd_inputs[] = {1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8};
+  double zn_inputs[] = {-2.1,
+                        8.5,
+                        225.5,
+                        0.0,
+                        8.8,
+                        -4.75,
+                        kFP64PositiveInfinity,
+                        kFP64NegativeInfinity};
+  double zm_inputs[] = {-2.0,
+                        -13.0,
+                        24.0,
+                        0.01,
+                        0.5,
+                        300.75,
+                        kFP64NegativeInfinity,
+                        kFP64PositiveInfinity};
+  int pg_inputs[] = {1, 1, 0, 1, 0, 1, 1, 1};
+
+  uint32_t zd_expected_max[] = {FloatToRawbits(-2.0),
+                                FloatToRawbits(8.5),
+                                FloatToRawbits(3.3),
+                                FloatToRawbits(0.01),
+                                FloatToRawbits(5.5),
+                                FloatToRawbits(300.75),
+                                FloatToRawbits(kFP32PositiveInfinity),
+                                FloatToRawbits(kFP32PositiveInfinity)};
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fmax,
+                   kSRegSize,
+                   zd_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_max);
+
+  uint32_t zd_expected_min[] = {FloatToRawbits(-2.1),
+                                FloatToRawbits(-13.0),
+                                FloatToRawbits(3.3),
+                                FloatToRawbits(0.0),
+                                FloatToRawbits(5.5),
+                                FloatToRawbits(-4.75),
+                                FloatToRawbits(kFP32NegativeInfinity),
+                                FloatToRawbits(kFP32NegativeInfinity)};
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fmin,
+                   kSRegSize,
+                   zd_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_min);
+}
+
+TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_d) {
+  double zd_inputs[] = {1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8};
+  double zn_inputs[] = {-2.1,
+                        8.5,
+                        225.5,
+                        0.0,
+                        8.8,
+                        -4.75,
+                        kFP64PositiveInfinity,
+                        kFP64NegativeInfinity};
+  double zm_inputs[] = {-2.0,
+                        -13.0,
+                        24.0,
+                        0.01,
+                        0.5,
+                        300.75,
+                        kFP64NegativeInfinity,
+                        kFP64PositiveInfinity};
+  int pg_inputs[] = {1, 1, 0, 1, 0, 1, 1, 1};
+
+  uint64_t zd_expected_max[] = {DoubleToRawbits(-2.0),
+                                DoubleToRawbits(8.5),
+                                DoubleToRawbits(3.3),
+                                DoubleToRawbits(0.01),
+                                DoubleToRawbits(5.5),
+                                DoubleToRawbits(300.75),
+                                DoubleToRawbits(kFP64PositiveInfinity),
+                                DoubleToRawbits(kFP64PositiveInfinity)};
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fmax,
+                   kDRegSize,
+                   zd_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_max);
+
+  uint64_t zd_expected_min[] = {DoubleToRawbits(-2.1),
+                                DoubleToRawbits(-13.0),
+                                DoubleToRawbits(3.3),
+                                DoubleToRawbits(0.0),
+                                DoubleToRawbits(5.5),
+                                DoubleToRawbits(-4.75),
+                                DoubleToRawbits(kFP64NegativeInfinity),
+                                DoubleToRawbits(kFP64NegativeInfinity)};
+  FPBinArithHelper(config,
+                   &MacroAssembler::Fmin,
+                   kDRegSize,
+                   zd_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_min);
+}
 }  // namespace aarch64
 }  // namespace vixl

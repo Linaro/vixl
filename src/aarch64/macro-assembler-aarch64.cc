@@ -326,7 +326,8 @@ MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
       current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
-      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+      recommended_checkpoint_(Pool::kNoCheckpointRequired),
+      fp_nan_propagation_(NoFPMacroNaNPropagationSelected) {
   checkpoint_ = GetNextCheckPoint();
 #ifndef VIXL_DEBUG
   USE(allow_macro_instructions_);
@@ -348,7 +349,8 @@ MacroAssembler::MacroAssembler(size_t capacity,
       current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
-      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+      recommended_checkpoint_(Pool::kNoCheckpointRequired),
+      fp_nan_propagation_(NoFPMacroNaNPropagationSelected) {
   checkpoint_ = GetNextCheckPoint();
 }
 
@@ -368,7 +370,8 @@ MacroAssembler::MacroAssembler(byte* buffer,
       current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
-      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+      recommended_checkpoint_(Pool::kNoCheckpointRequired),
+      fp_nan_propagation_(NoFPMacroNaNPropagationSelected) {
   checkpoint_ = GetNextCheckPoint();
 }
 

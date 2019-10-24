@@ -630,6 +630,18 @@ enum PreShiftImmMode {
   kAnyShift          // Allow any pre-shift.
 };
 
+enum FPMacroNaNPropagationOption {
+  // The default option. This generates a run-time error in macros that respect
+  // this option.
+  NoFPMacroNaNPropagationSelected,
+  // For example, Fmin(result, NaN(a), NaN(b)) always selects NaN(a) if both
+  // NaN(a) and NaN(b) are both quiet, or both are signalling, at the
+  // cost of extra code generation in some cases.
+  StrictNaNPropagation,
+  // For example, Fmin(result, NaN(a), NaN(b)) selects either NaN, but using the
+  // fewest instructions.
+  FastNaNPropagation
+};
 
 class MacroAssembler : public Assembler, public MacroAssemblerInterface {
  public:
@@ -3025,23 +3037,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(umin, Umin)                             \
   V(umulh, Umulh)
 
-#define DEFINE_MACRO_ASM_FUNC(ASM, MASM)                    \
-  void MASM(const ZRegister& zd,                            \
-            const PRegisterM& pg,                           \
-            const ZRegister& zn,                            \
-            const ZRegister& zm) {                          \
-    VIXL_ASSERT(allow_macro_instructions_);                 \
-    if (zd.Aliases(zn)) {                                   \
-      SingleEmissionCheckScope guard(this);                 \
-      ASM(zd, pg, zd, zm);                                  \
-    } else if (zd.Aliases(zm)) {                            \
-      SingleEmissionCheckScope guard(this);                 \
-      ASM(zd, pg, zd, zn);                                  \
-    } else {                                                \
-      ExactAssemblyScope guard(this, 2 * kInstructionSize); \
-      movprfx(zd, pg, zn);                                  \
-      ASM(zd, pg, zd, zm);                                  \
-    }                                                       \
+#define DEFINE_MACRO_ASM_FUNC(ASM, MASM)          \
+  void MASM(const ZRegister& zd,                  \
+            const PRegisterM& pg,                 \
+            const ZRegister& zn,                  \
+            const ZRegister& zm) {                \
+    VIXL_ASSERT(allow_macro_instructions_);       \
+    if (zd.Aliases(zn)) {                         \
+      SingleEmissionCheckScope guard(this);       \
+      ASM(zd, pg, zd, zm);                        \
+    } else if (zd.Aliases(zm)) {                  \
+      SingleEmissionCheckScope guard(this);       \
+      ASM(zd, pg, zd, zn);                        \
+    } else {                                      \
+      MovprfxHelperScope guard(this, zd, pg, zn); \
+      ASM(zd, pg, zd, zm);                        \
+    }                                             \
   }
   SVE_3VREG_COMMUTATIVE_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
 #undef DEFINE_MACRO_ASM_FUNC
@@ -4226,10 +4237,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcvtzu(zd, pg, zn);
   }
-  void Fdiv(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm);
+  void Fdiv(
+      const ZRegister& zd,
+      const PRegisterM& pg,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
   void Fdup(const ZRegister& zd, double imm);
   void Fdup(const ZRegister& zd, float imm);
   void Fdup(const ZRegister& zd, Float16 imm);
@@ -4246,19 +4259,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fmad(zdn, pg, zm, za);
   }
-  void Fmax(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmax(zd, pg, zn);
-  }
-  void Fmax(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmax(zd, pg, zn, zm);
-  }
+  void Fmax(
+      const ZRegister& zd,
+      const PRegisterM& pg,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
   void Fmaxnm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4282,19 +4288,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fmaxv(vd, pg, zn);
   }
-  void Fmin(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmin(zd, pg, zn);
-  }
-  void Fmin(const ZRegister& zd,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmin(zd, pg, zn, zm);
-  }
+  void Fmin(
+      const ZRegister& zd,
+      const PRegisterM& pg,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
   void Fminnm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6963,6 +6962,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     CalculateSVEAddress(xd, addr, vl_divisor_log2);
   }
 
+  void SetFPNaNPropagationOption(FPMacroNaNPropagationOption nan_option) {
+    fp_nan_propagation_ = nan_option;
+  }
+
+  void ResolveFPNaNPropagationOption(FPMacroNaNPropagationOption* nan_option) {
+    // The input option has priority over the option that has set.
+    if (*nan_option == NoFPMacroNaNPropagationSelected) {
+      *nan_option = fp_nan_propagation_;
+    }
+    VIXL_ASSERT(*nan_option != NoFPMacroNaNPropagationSelected);
+  }
+
  private:
   // The actual Push and Pop implementations. These don't generate any code
   // other than that required for the push or pop. This allows
@@ -7099,6 +7110,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                       SVEArithPredicatedFn fn,
                                       SVEArithPredicatedFn rev_fn);
 
+  void FPNoncommutativeArithmeticHelper(const ZRegister& zd,
+                                        const PRegisterM& pg,
+                                        const ZRegister& zn,
+                                        const ZRegister& zm,
+                                        SVEArithPredicatedFn fn,
+                                        SVEArithPredicatedFn rev_fn,
+                                        FPMacroNaNPropagationOption nan_option);
+
+  void FPCommutativeArithmeticHelper(const ZRegister& zd,
+                                     const PRegisterM& pg,
+                                     const ZRegister& zn,
+                                     const ZRegister& zm,
+                                     SVEArithPredicatedFn fn,
+                                     FPMacroNaNPropagationOption nan_option);
+
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
   // of instructions is called.
@@ -7122,6 +7148,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   ptrdiff_t checkpoint_;
   ptrdiff_t recommended_checkpoint_;
+
+  FPMacroNaNPropagationOption fp_nan_propagation_;
 
   friend class Pool;
   friend class LiteralPool;

@@ -35,6 +35,7 @@
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "test-disasm-aarch64.h"
+#include "test-utils-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -385,6 +386,18 @@ TEST(sve_fp_arithmetic_predicated) {
                  "fdivr z23.s, p5/m, z23.s, z15.s");
   COMPARE_PREFIX(fdivr(z25.VnD(), p7.Merging(), z25.VnD(), z19.VnD()),
                  "fdivr z25.d, p7/m, z25.d, z19.d");
+  COMPARE_PREFIX(fmax(z4.VnH(), p1.Merging(), z4.VnH(), z29.VnH()),
+                 "fmax z4.h, p1/m, z4.h, z29.h");
+  COMPARE_PREFIX(fmax(z14.VnS(), p3.Merging(), z14.VnS(), z29.VnS()),
+                 "fmax z14.s, p3/m, z14.s, z29.s");
+  COMPARE_PREFIX(fmax(z24.VnD(), p5.Merging(), z24.VnD(), z29.VnD()),
+                 "fmax z24.d, p5/m, z24.d, z29.d");
+  COMPARE_PREFIX(fmin(z1.VnH(), p2.Merging(), z1.VnH(), z30.VnH()),
+                 "fmin z1.h, p2/m, z1.h, z30.h");
+  COMPARE_PREFIX(fmin(z11.VnS(), p4.Merging(), z11.VnS(), z30.VnS()),
+                 "fmin z11.s, p4/m, z11.s, z30.s");
+  COMPARE_PREFIX(fmin(z21.VnD(), p6.Merging(), z21.VnD(), z30.VnD()),
+                 "fmin z21.d, p6/m, z21.d, z30.d");
 #if 0
   COMPARE_PREFIX(fabd(z31.VnH(), p7.Merging(), z31.VnH(), z17.VnH()), "fabd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fabd(z31.VnS(), p7.Merging(), z31.VnS(), z17.VnS()), "fabd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
@@ -404,9 +417,6 @@ TEST(sve_fp_arithmetic_predicated) {
   COMPARE_PREFIX(fmax(z8.VnH(), p6.Merging(), z8.VnH()), "fmax <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
   COMPARE_PREFIX(fmax(z8.VnS(), p6.Merging(), z8.VnS()), "fmax <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
   COMPARE_PREFIX(fmax(z8.VnD(), p6.Merging(), z8.VnD()), "fmax <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
-  COMPARE_PREFIX(fmax(z14.VnH(), p1.Merging(), z14.VnH(), z29.VnH()), "fmax <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmax(z14.VnS(), p1.Merging(), z14.VnS(), z29.VnS()), "fmax <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmax(z14.VnD(), p1.Merging(), z14.VnD(), z29.VnD()), "fmax <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fminnm(z26.VnH(), p0.Merging(), z26.VnH()), "fminnm <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
   COMPARE_PREFIX(fminnm(z26.VnS(), p0.Merging(), z26.VnS()), "fminnm <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
   COMPARE_PREFIX(fminnm(z26.VnD(), p0.Merging(), z26.VnD()), "fminnm <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
@@ -416,9 +426,6 @@ TEST(sve_fp_arithmetic_predicated) {
   COMPARE_PREFIX(fmin(z22.VnH(), p0.Merging(), z22.VnH()), "fmin <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
   COMPARE_PREFIX(fmin(z22.VnS(), p0.Merging(), z22.VnS()), "fmin <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
   COMPARE_PREFIX(fmin(z22.VnD(), p0.Merging(), z22.VnD()), "fmin <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>");
-  COMPARE_PREFIX(fmin(z1.VnH(), p2.Merging(), z1.VnH(), z30.VnH()), "fmin <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmin(z1.VnS(), p2.Merging(), z1.VnS(), z30.VnS()), "fmin <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(fmin(z1.VnD(), p2.Merging(), z1.VnD(), z30.VnD()), "fmin <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fmulx(z30.VnH(), p6.Merging(), z30.VnH(), z20.VnH()), "fmulx <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fmulx(z30.VnS(), p6.Merging(), z30.VnS(), z20.VnS()), "fmulx <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fmulx(z30.VnD(), p6.Merging(), z30.VnD(), z20.VnD()), "fmulx <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
@@ -451,7 +458,11 @@ TEST(sve_fp_arithmetic_predicated) {
   CLEANUP();
 }
 
-TEST(sve_fp_arithmetic_predicated_macro) {
+TEST(sve_fp_arithmetic_predicated_macro_fast_nan_propagation) {
+  // Shadow the `MacroAssembler` type so that the test macros work without
+  // modification.
+  typedef FastNaNPropagationMacroAssembler MacroAssembler;
+
   SETUP();
 
   COMPARE_MACRO(Fdiv(z8.VnH(), p4.Merging(), z8.VnH(), z4.VnH()),
@@ -467,6 +478,92 @@ TEST(sve_fp_arithmetic_predicated_macro) {
   COMPARE_MACRO(Fdiv(z15.VnD(), p6.Merging(), z30.VnD(), z8.VnD()),
                 "movprfx z15.d, p6/m, z30.d\n"
                 "fdiv z15.d, p6/m, z15.d, z8.d");
+
+  COMPARE_MACRO(Fmax(z8.VnH(), p4.Merging(), z8.VnH(), z4.VnH()),
+                "fmax z8.h, p4/m, z8.h, z4.h");
+  COMPARE_MACRO(Fmax(z18.VnS(), p5.Merging(), z18.VnS(), z14.VnS()),
+                "fmax z18.s, p5/m, z18.s, z14.s");
+  COMPARE_MACRO(Fmax(z28.VnD(), p6.Merging(), z28.VnD(), z24.VnD()),
+                "fmax z28.d, p6/m, z28.d, z24.d");
+  COMPARE_MACRO(Fmax(z17.VnH(), p2.Merging(), z17.VnH(), z17.VnH()),
+                "fmax z17.h, p2/m, z17.h, z17.h");
+  COMPARE_MACRO(Fmax(z20.VnS(), p5.Merging(), z23.VnS(), z20.VnS()),
+                "fmax z20.s, p5/m, z20.s, z23.s");
+  COMPARE_MACRO(Fmax(z15.VnD(), p6.Merging(), z30.VnD(), z8.VnD()),
+                "movprfx z15.d, p6/m, z30.d\n"
+                "fmax z15.d, p6/m, z15.d, z8.d");
+
+  COMPARE_MACRO(Fmin(z8.VnH(), p4.Merging(), z8.VnH(), z4.VnH()),
+                "fmin z8.h, p4/m, z8.h, z4.h");
+  COMPARE_MACRO(Fmin(z18.VnS(), p5.Merging(), z18.VnS(), z14.VnS()),
+                "fmin z18.s, p5/m, z18.s, z14.s");
+  COMPARE_MACRO(Fmin(z28.VnD(), p6.Merging(), z28.VnD(), z24.VnD()),
+                "fmin z28.d, p6/m, z28.d, z24.d");
+  COMPARE_MACRO(Fmin(z17.VnH(), p2.Merging(), z17.VnH(), z17.VnH()),
+                "fmin z17.h, p2/m, z17.h, z17.h");
+  COMPARE_MACRO(Fmin(z20.VnS(), p5.Merging(), z23.VnS(), z20.VnS()),
+                "fmin z20.s, p5/m, z20.s, z23.s");
+  COMPARE_MACRO(Fmin(z15.VnD(), p6.Merging(), z30.VnD(), z8.VnD()),
+                "movprfx z15.d, p6/m, z30.d\n"
+                "fmin z15.d, p6/m, z15.d, z8.d");
+
+  CLEANUP();
+}
+
+TEST(sve_fp_arithmetic_predicated_macro_strict_nan_propagation) {
+  // Shadow the `MacroAssembler` type so that the test macros work without
+  // modification.
+  typedef StrictNaNPropagationMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  COMPARE_MACRO(Fdiv(z8.VnH(), p4.Merging(), z8.VnH(), z4.VnH()),
+                "fdiv z8.h, p4/m, z8.h, z4.h");
+  COMPARE_MACRO(Fdiv(z18.VnS(), p5.Merging(), z18.VnS(), z14.VnS()),
+                "fdiv z18.s, p5/m, z18.s, z14.s");
+  COMPARE_MACRO(Fdiv(z28.VnD(), p6.Merging(), z28.VnD(), z24.VnD()),
+                "fdiv z28.d, p6/m, z28.d, z24.d");
+  COMPARE_MACRO(Fdiv(z17.VnH(), p2.Merging(), z17.VnH(), z17.VnH()),
+                "fdiv z17.h, p2/m, z17.h, z17.h");
+  COMPARE_MACRO(Fdiv(z20.VnS(), p5.Merging(), z23.VnS(), z20.VnS()),
+                "movprfx z31.s, p5/m, z23.s\n"
+                "fdiv z31.s, p5/m, z31.s, z20.s\n"
+                "orr z20.d, z31.d, z31.d");
+  COMPARE_MACRO(Fdiv(z15.VnD(), p6.Merging(), z30.VnD(), z8.VnD()),
+                "movprfx z15.d, p6/m, z30.d\n"
+                "fdiv z15.d, p6/m, z15.d, z8.d");
+
+  COMPARE_MACRO(Fmax(z8.VnH(), p4.Merging(), z8.VnH(), z4.VnH()),
+                "fmax z8.h, p4/m, z8.h, z4.h");
+  COMPARE_MACRO(Fmax(z18.VnS(), p5.Merging(), z18.VnS(), z14.VnS()),
+                "fmax z18.s, p5/m, z18.s, z14.s");
+  COMPARE_MACRO(Fmax(z28.VnD(), p6.Merging(), z28.VnD(), z24.VnD()),
+                "fmax z28.d, p6/m, z28.d, z24.d");
+  COMPARE_MACRO(Fmax(z17.VnH(), p2.Merging(), z17.VnH(), z17.VnH()),
+                "fmax z17.h, p2/m, z17.h, z17.h");
+  COMPARE_MACRO(Fmax(z20.VnS(), p5.Merging(), z23.VnS(), z20.VnS()),
+                "movprfx z31.s, p5/m, z23.s\n"
+                "fmax z31.s, p5/m, z31.s, z20.s\n"
+                "orr z20.d, z31.d, z31.d");
+  COMPARE_MACRO(Fmax(z15.VnD(), p6.Merging(), z30.VnD(), z8.VnD()),
+                "movprfx z15.d, p6/m, z30.d\n"
+                "fmax z15.d, p6/m, z15.d, z8.d");
+
+  COMPARE_MACRO(Fmin(z8.VnH(), p4.Merging(), z8.VnH(), z4.VnH()),
+                "fmin z8.h, p4/m, z8.h, z4.h");
+  COMPARE_MACRO(Fmin(z18.VnS(), p5.Merging(), z18.VnS(), z14.VnS()),
+                "fmin z18.s, p5/m, z18.s, z14.s");
+  COMPARE_MACRO(Fmin(z28.VnD(), p6.Merging(), z28.VnD(), z24.VnD()),
+                "fmin z28.d, p6/m, z28.d, z24.d");
+  COMPARE_MACRO(Fmin(z17.VnH(), p2.Merging(), z17.VnH(), z17.VnH()),
+                "fmin z17.h, p2/m, z17.h, z17.h");
+  COMPARE_MACRO(Fmin(z20.VnS(), p5.Merging(), z23.VnS(), z20.VnS()),
+                "movprfx z31.s, p5/m, z23.s\n"
+                "fmin z31.s, p5/m, z31.s, z20.s\n"
+                "orr z20.d, z31.d, z31.d");
+  COMPARE_MACRO(Fmin(z15.VnD(), p6.Merging(), z30.VnD(), z8.VnD()),
+                "movprfx z15.d, p6/m, z30.d\n"
+                "fmin z15.d, p6/m, z15.d, z8.d");
 
   CLEANUP();
 }
