@@ -3976,7 +3976,7 @@ TEST_SVE(sve_rdpl) {
 
   // Encodable multipliers (as `movz` + `addpl`).
   __ Rdpl(x7, 31);
-  __ Rdpl(x8, -32);
+  __ Rdpl(x8, -31);
 
   // For unencodable multipliers, the MacroAssembler uses a sequence of
   // instructions.
@@ -4005,7 +4005,7 @@ TEST_SVE(sve_rdpl) {
     ASSERT_EQUAL_64(pl * -256, x4);
 
     ASSERT_EQUAL_64(pl * 31, x7);
-    ASSERT_EQUAL_64(pl * -32, x8);
+    ASSERT_EQUAL_64(pl * -31, x8);
 
     ASSERT_EQUAL_64(pl * 42, x10);
     ASSERT_EQUAL_64(pl * -42, x11);

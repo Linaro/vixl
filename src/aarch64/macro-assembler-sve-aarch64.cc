@@ -180,6 +180,11 @@ void MacroAssembler::Addpl(const Register& xd,
                            int64_t multiplier) {
   VIXL_ASSERT(allow_macro_instructions_);
 
+  // This macro relies on `Rdvl` to handle some out-of-range cases. Check that
+  // `VL * multiplier` cannot overflow, for any possible value of VL.
+  VIXL_ASSERT(multiplier <= (INT64_MAX / kZRegMaxSizeInBytes));
+  VIXL_ASSERT(multiplier >= (INT64_MIN / kZRegMaxSizeInBytes));
+
   if (xd.IsZero()) return;
   if (xn.IsZero() && xd.IsSP()) {
     // TODO: This operation doesn't make much sense, but we could support it
@@ -211,6 +216,11 @@ void MacroAssembler::Addpl(const Register& xd,
     return;
   }
 
+  // TODO: Some probable cases result in rather long sequences. For example,
+  // `Addpl(sp, sp, 33)` requires five instructions, even though it's only just
+  // outside the encodable range. We should look for ways to cover such cases
+  // without drastically increasing the complexity of this logic.
+
   // For other cases, calculate xn + (PL * multiplier) using discrete
   // instructions. This requires two scratch registers in the general case, so
   // try to re-use the destination as a scratch register.
@@ -224,7 +234,9 @@ void MacroAssembler::Addpl(const Register& xd,
   Rdvl(scratch, multiplier);
 
   MacroEmissionCheckScope guard(this);
-  if (xd.IsSP() || xn.IsSP()) {
+  if (xn.IsZero()) {
+    asr(xd, scratch, kZRegBitsPerPRegBitLog2);
+  } else if (xd.IsSP() || xn.IsSP()) {
     // TODO: MacroAssembler::Add should be able to handle this.
     asr(scratch, scratch, kZRegBitsPerPRegBitLog2);
     add(xd, xn, scratch);
@@ -239,6 +251,10 @@ void MacroAssembler::Addvl(const Register& xd,
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(xd.IsX());
   VIXL_ASSERT(xn.IsX());
+
+  // Check that `VL * multiplier` cannot overflow, for any possible value of VL.
+  VIXL_ASSERT(multiplier <= (INT64_MAX / kZRegMaxSizeInBytes));
+  VIXL_ASSERT(multiplier >= (INT64_MIN / kZRegMaxSizeInBytes));
 
   if (xd.IsZero()) return;
   if (xn.IsZero() && xd.IsSP()) {
@@ -257,6 +273,11 @@ void MacroAssembler::Addvl(const Register& xd,
     return;
   }
 
+  // TODO: Some probable cases result in rather long sequences. For example,
+  // `Addvl(sp, sp, 42)` requires four instructions, even though it's only just
+  // outside the encodable range. We should look for ways to cover such cases
+  // without drastically increasing the complexity of this logic.
+
   // For other cases, calculate xn + (VL * multiplier) using discrete
   // instructions. This requires two scratch registers in the general case, so
   // we try to re-use the destination as a scratch register.
@@ -270,7 +291,9 @@ void MacroAssembler::Addvl(const Register& xd,
   MacroEmissionCheckScope guard(this);
   Register b = temps.AcquireX();
   rdvl(b, 1);
-  if (xd.IsSP() || xn.IsSP()) {
+  if (xn.IsZero()) {
+    mul(xd, a, b);
+  } else if (xd.IsSP() || xn.IsSP()) {
     mul(a, a, b);
     add(xd, xn, a);
   } else {

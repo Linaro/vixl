@@ -76,6 +76,41 @@ TEST(sve_address_generation) {
   CLEANUP();
 }
 
+TEST(sve_adr_x_macro) {
+  SETUP();
+
+  // Adr is a complicated macro, and is used for address computation in several
+  // other contexts. It is important that we cover every branch in this test
+  // because most other tests tend not to check every `Adr` possibility.
+
+  // IsEquivalentToScalar()
+  COMPARE_MACRO(Adr(x0, SVEMemOperand(x1)), "mov x0, x1");
+  COMPARE_MACRO(Adr(x4, SVEMemOperand(x2, 0)), "mov x4, x2");
+  COMPARE_MACRO(Adr(x4, SVEMemOperand(x2, xzr, LSL, 2)), "mov x4, x2");
+
+  // IsScalarPlusImmediate()
+  // Simple immediates just pass through to 'Add'.
+  COMPARE_MACRO(Adr(x10, SVEMemOperand(x0, 42)), "add x10, x0, #0x2a (42)");
+  COMPARE_MACRO(Adr(x10, SVEMemOperand(sp, 42)), "add x10, sp, #0x2a (42)");
+  // SVE_MUL_VL variants use `Addpl`, which has its own tests, but `Adr` needs
+  // to check and handle the access size.
+  COMPARE_MACRO(Adr(x10, SVEMemOperand(x0, 3, SVE_MUL_VL).ForZRegAccess()),
+                "addvl x10, x0, #3");
+  COMPARE_MACRO(Adr(x10, SVEMemOperand(x0, 3, SVE_MUL_VL).ForPRegAccess()),
+                "addpl x10, x0, #3");
+
+  // IsScalarPlusScalar()
+  // All forms pass through to `Add`, but SVE_LSL must be handled correctly.
+  COMPARE_MACRO(Adr(x22, SVEMemOperand(x2, x3)), "add x22, x2, x3");
+  COMPARE_MACRO(Adr(x22, SVEMemOperand(sp, x3)), "add x22, sp, x3");
+  COMPARE_MACRO(Adr(x22, SVEMemOperand(x2, x3, LSL, 2)),
+                "add x22, x2, x3, lsl #2");
+  COMPARE_MACRO(Adr(x22, SVEMemOperand(sp, x3, LSL, 2)),
+                "add x22, sp, x3, lsl #2");
+
+  CLEANUP();
+}
+
 TEST(sve_bitwise_imm) {
   SETUP();
 
@@ -3165,27 +3200,34 @@ TEST(sve_stack_allocation) {
   CLEANUP();
 }
 
-TEST(sve_stack_allocation_macro) {
+TEST(sve_rdvl_macro) {
   SETUP();
 
+  // Encodable cases use rdvl directly.
   COMPARE_MACRO(Rdvl(x0, 3), "rdvl x0, #3");
-  COMPARE_MACRO(Rdvl(x1, 42),
-                "mov x1, #0x2a\n"
-                "rdvl x16, #1\n"
-                "mul x1, x1, x16");
+  COMPARE_MACRO(Rdvl(x0, 31), "rdvl x0, #31");
+  COMPARE_MACRO(Rdvl(x0, -32), "rdvl x0, #-32");
 
-  COMPARE_MACRO(Rdpl(x0, 8), "rdvl x0, #1");
-  COMPARE_MACRO(Rdpl(x1, 7),
-                "mov x1, #0x0\n"
-                "addpl x1, x1, #7");
-  COMPARE_MACRO(Rdpl(x2, 42),
-                "mov x2, #0x2a\n"
+  // Unencodable cases fall back on `xn + (VL * multiplier)`.
+  COMPARE_MACRO(Rdvl(x2, 0x1234),
+                "mov x2, #0x1234\n"
                 "rdvl x16, #1\n"
-                "mul x2, x2, x16\n"
-                "add x2, xzr, x2, asr #3");
+                "mul x2, x2, x16");
 
+  CLEANUP();
+}
+
+TEST(sve_addvl_macro) {
+  SETUP();
+
+  // Encodable cases use addvl directly.
   COMPARE_MACRO(Addvl(sp, sp, -3), "addvl sp, sp, #-3");
+  COMPARE_MACRO(Addvl(x0, x1, 8), "addvl x0, x1, #8");
+
+  // If xn is xzr, `Addvl` behaves like `Rdvl`.
   COMPARE_MACRO(Addvl(x7, xzr, 8), "rdvl x7, #8");
+
+  // Unencodable cases fall back on `xn + (VL * multiplier)`.
   COMPARE_MACRO(Addvl(x7, x8, 42),
                 "mov x7, #0x2a\n"
                 "rdvl x16, #1\n"
@@ -3205,19 +3247,77 @@ TEST(sve_stack_allocation_macro) {
                 "mul x16, x16, x17\n"
                 "add sp, x10, x16");
 
+  CLEANUP();
+}
+
+TEST(sve_rdpl_macro) {
+  SETUP();
+
+  // There is no `rdpl` instruction. `Rdpl` is implemented as `Addpl` (with
+  // xzr). However, since `addpl` operates on the stack pointer, some special
+  // cases exist.
+
+  // If the multiplier is a multiple of 8, `Rdpl` will pass through to `Rdvl`.
+  COMPARE_MACRO(Rdpl(x0, 0), "rdvl x0, #0");
+  COMPARE_MACRO(Rdpl(x0, 8), "rdvl x0, #1");
+
+  // If the multiplier is encodable with `addpl`, we use that with an
+  // explicitly-zeroed register.
+  COMPARE_MACRO(Rdpl(x1, 7),
+                "mov x1, #0x0\n"
+                "addpl x1, x1, #7");
+  COMPARE_MACRO(Rdpl(x1, -31),
+                "mov x1, #0x0\n"
+                "addpl x1, x1, #-31");
+
+  // All other cases use `Rdvl`, and scale the result.
+  COMPARE_MACRO(Rdpl(x2, 37),
+                "mov x2, #0x25\n"
+                "rdvl x16, #1\n"
+                "mul x2, x2, x16\n"
+                "asr x2, x2, #3");
+
+  CLEANUP();
+}
+
+TEST(sve_addpl_macro) {
+  SETUP();
+
+  // Encodable cases use addpl directly.
   COMPARE_MACRO(Addpl(x22, x22, -3), "addpl x22, x22, #-3");
-  COMPARE_MACRO(Addpl(x7, x8, 32), "addvl x7, x8, #4");
-  COMPARE_MACRO(Addpl(x7, x8, 42),
-                "mov x7, #0x2a\n"
+  COMPARE_MACRO(Addpl(x10, x11, 8), "addpl x10, x11, #8");
+  COMPARE_MACRO(Addpl(x7, sp, 31), "addpl x7, sp, #31");
+
+  // Otherwise, if the multiplier is a multiple of 8, `Addpl` will pass through
+  // to `Addvl`.
+  COMPARE_MACRO(Addpl(sp, x0, 48), "addvl sp, x0, #6");
+  COMPARE_MACRO(Addpl(x2, sp, -48), "addvl x2, sp, #-6");
+
+  // If xn is xzr, `Addpl` behaves like `Rdpl`.
+  COMPARE_MACRO(Addpl(x7, xzr, 8), "rdvl x7, #1");
+  COMPARE_MACRO(Addpl(x29, xzr, 13),
+                "mov x29, #0x0\n"
+                "addpl x29, x29, #13");
+
+  // All other cases use `Rdvl`, and scale the result before adding it to `xn`.
+  // Where possible, the scaling `asr` is merged with the `add`.
+  COMPARE_MACRO(Addpl(x7, x8, 123),
+                "mov x7, #0x7b\n"
                 "rdvl x16, #1\n"
                 "mul x7, x7, x16\n"
                 "add x7, x8, x7, asr #3");
-  COMPARE_MACRO(Addpl(x7, sp, 42),
-                "mov x7, #0x2a\n"
-                "rdvl x16, #1\n"
-                "mul x7, x7, x16\n"
-                "asr x7, x7, #3\n"
-                "add x7, sp, x7");
+  COMPARE_MACRO(Addpl(x9, x9, 122),
+                "mov x16, #0x7a\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "add x9, x9, x16, asr #3");
+  // If the stack pointer is used, the `asr` and `add` must be separate.
+  COMPARE_MACRO(Addpl(sp, x0, 33),
+                "mov x16, #0x21\n"
+                "rdvl x17, #1\n"
+                "mul x16, x16, x17\n"
+                "asr x16, x16, #3\n"
+                "add sp, x0, x16");
 
   CLEANUP();
 }
