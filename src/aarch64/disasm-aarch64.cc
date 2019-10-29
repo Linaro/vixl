@@ -10036,10 +10036,14 @@ void Disassembler::VisitSVEVectorSelect(const Instruction *instr) {
   const char *form = "(SVEVectorSelect)";
 
   switch (instr->Mask(SVEVectorSelectMask)) {
-    // SEL <Zd>.<T>, <Pg>, <Zn>.<T>, <Zm>.<T>
     case SEL_z_p_zz:
-      mnemonic = "sel";
-      form = "'Zd.'t, p'u1310, 'Zn.'t, 'Zm.'t";
+      if (instr->GetRd() == instr->GetRm()) {
+        mnemonic = "mov";
+        form = "'Zd.'t, p'u1310/m, 'Zn.'t";
+      } else {
+        mnemonic = "sel";
+        form = "'Zd.'t, p'u1310, 'Zn.'t, 'Zm.'t";
+      }
       break;
     default:
       break;

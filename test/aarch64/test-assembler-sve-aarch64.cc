@@ -6990,6 +6990,55 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
   FPBinArithHelper(config, fn, kDRegSize, zd_in, pg_in, zn_in, zm_in, exp_d);
 }
 
+TEST_SVE(sve_select) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in0[] = {0x01f203f405f607f8, 0xfefcf8f0e1c3870f, 0x123456789abcdef0};
+  uint64_t in1[] = {0xaaaaaaaaaaaaaaaa, 0xaaaaaaaaaaaaaaaa, 0xaaaaaaaaaaaaaaaa};
+
+  // For simplicity, we re-use the same pg for various lane sizes.
+  // For D lanes:         1,                      1,                      0
+  // For S lanes:         1,          1,          1,          0,          0
+  // For H lanes:   0,    1,    0,    1,    1,    1,    0,    0,    1,    0
+  int pg_in[] = {1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0};
+  Initialise(&masm, p0.VnB(), pg_in);
+  PRegisterM pg = p0.Merging();
+
+  InsrHelper(&masm, z30.VnD(), in0);
+  InsrHelper(&masm, z31.VnD(), in1);
+
+  __ Sel(z0.VnB(), pg, z30.VnB(), z31.VnB());
+  __ Sel(z1.VnH(), pg, z30.VnH(), z31.VnH());
+  __ Sel(z2.VnS(), pg, z30.VnS(), z31.VnS());
+  __ Sel(z3.VnD(), pg, z30.VnD(), z31.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t expected_z0[] = {0xaaaaaaaa05aa07f8,
+                              0xfeaaaaf0aac3870f,
+                              0xaaaa56aa9abcdeaa};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    uint64_t expected_z1[] = {0xaaaaaaaaaaaa07f8,
+                              0xaaaaf8f0e1c3870f,
+                              0xaaaaaaaa9abcaaaa};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    uint64_t expected_z2[] = {0xaaaaaaaa05f607f8,
+                              0xfefcf8f0e1c3870f,
+                              0xaaaaaaaaaaaaaaaa};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    uint64_t expected_z3[] = {0x01f203f405f607f8,
+                              0xfefcf8f0e1c3870f,
+                              0xaaaaaaaaaaaaaaaa};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+  }
+}
 
 }  // namespace aarch64
 }  // namespace vixl

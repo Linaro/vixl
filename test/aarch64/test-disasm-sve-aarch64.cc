@@ -3221,12 +3221,34 @@ TEST(sve_stack_allocation_macro) {
 TEST(sve_vector_select) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(sel(z13.VnB(), p3, z3.VnB(), z25.VnB()), "sel <Zd>.<T>, <Pg>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sel(z13.VnH(), p3, z3.VnH(), z25.VnH()), "sel <Zd>.<T>, <Pg>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sel(z13.VnS(), p3, z3.VnS(), z25.VnS()), "sel <Zd>.<T>, <Pg>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(sel(z13.VnD(), p3, z3.VnD(), z25.VnD()), "sel <Zd>.<T>, <Pg>, <Zn>.<T>, <Zm>.<T>");
-#endif
+  COMPARE_MACRO(Sel(z13.VnB(), p3, z3.VnB(), z25.VnB()),
+                "sel z13.b, p3, z3.b, z25.b");
+  COMPARE_MACRO(Sel(z13.VnH(), p3, z3.VnH(), z25.VnH()),
+                "sel z13.h, p3, z3.h, z25.h");
+  COMPARE_MACRO(Sel(z13.VnS(), p3, z3.VnS(), z25.VnS()),
+                "sel z13.s, p3, z3.s, z25.s");
+  COMPARE_MACRO(Sel(z13.VnD(), p3, z3.VnD(), z25.VnD()),
+                "sel z13.d, p3, z3.d, z25.d");
+
+  // Check sel() where zd == zm disassemble as predicated mov.
+  COMPARE_MACRO(Sel(z1.VnB(), p4.Merging(), z30.VnB(), z1.VnB()),
+                "mov z1.b, p4/m, z30.b");
+  COMPARE_MACRO(Sel(z1.VnH(), p4.Merging(), z30.VnH(), z1.VnH()),
+                "mov z1.h, p4/m, z30.h");
+  COMPARE_MACRO(Sel(z1.VnS(), p4.Merging(), z30.VnS(), z1.VnS()),
+                "mov z1.s, p4/m, z30.s");
+  COMPARE_MACRO(Sel(z1.VnD(), p4.Merging(), z30.VnD(), z1.VnD()),
+                "mov z1.d, p4/m, z30.d");
+
+  // Check predicated mov() directly.
+  COMPARE_MACRO(Mov(z2.VnB(), p10.Merging(), z22.VnB()),
+                "mov z2.b, p10/m, z22.b");
+  COMPARE_MACRO(Mov(z2.VnH(), p10.Merging(), z22.VnH()),
+                "mov z2.h, p10/m, z22.h");
+  COMPARE_MACRO(Mov(z2.VnS(), p10.Merging(), z22.VnS()),
+                "mov z2.s, p10/m, z22.s");
+  COMPARE_MACRO(Mov(z2.VnD(), p10.Merging(), z22.VnD()),
+                "mov z2.d, p10/m, z22.d");
 
   CLEANUP();
 }

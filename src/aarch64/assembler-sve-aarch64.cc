@@ -7775,10 +7775,6 @@ void Assembler::sel(const ZRegister& zd,
                     const PRegister& pg,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // SEL <Zd>.<T>, <Pg>, <Zn>.<T>, <Zm>.<T>
-  //  0000 0101 ..1. .... 11.. .... .... ....
-  //  size<23:22> | Zm<20:16> | Pg<13:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
