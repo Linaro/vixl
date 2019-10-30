@@ -1077,32 +1077,27 @@ void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
                                        const ZRegister& za,
                                        const ZRegister& zn,
                                        const ZRegister& zm) {
-  int znm_lane_size = zd.GetLaneSizeInBits() / 4;
-  const ZRegister& za_with_size = za.WithLaneSize(zd.GetLaneSizeInBits());
-  const ZRegister& zn_with_size = zn.WithLaneSize(znm_lane_size);
-  const ZRegister& zm_with_size = zm.WithLaneSize(znm_lane_size);
-
   if (zd.Aliases(za)) {
     // zda = zda + (zn . zm)
     SingleEmissionCheckScope guard(this);
-    (this->*fn)(zd, zn_with_size, zm_with_size);
+    (this->*fn)(zd, zn, zm);
 
-  } else if (zd.Aliases(zn) | zd.Aliases(zm)) {
+  } else if (zd.Aliases(zn) || zd.Aliases(zm)) {
     // zdn = za + (zdn . zm)
     // zdm = za + (zn . zdm)
-    // zdnm = za + (zdnn . zdnm)
+    // zdnm = za + (zdnm . zdnm)
     UseScratchRegisterScope temps(this);
-    ZRegister scratch = temps.AcquireZ().WithLaneSize(zd.GetLaneSizeInBits());
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
     {
-      MovprfxHelperScope guard(this, scratch, za_with_size);
-      (this->*fn)(scratch, zn_with_size, zm_with_size);
+      MovprfxHelperScope guard(this, scratch, za);
+      (this->*fn)(scratch, zn, zm);
     }
 
     Mov(zd, scratch);
   } else {
     // zd = za + (zn . zm)
-    MovprfxHelperScope guard(this, zd, za_with_size);
-    (this->*fn)(zd, zn_with_size, zm_with_size);
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, zm);
   }
 }
 

@@ -1598,29 +1598,31 @@ TEST(sve_int_mul_add_unpredicated_macro) {
                 "movprfx z31, z4\n"
                 "sdot z31.d, z3.h, z5.h\n"
                 "orr z3.d, z31.d, z31.d");
-  COMPARE_MACRO(Sdot(z4.VnS(), z5, z6, z4),
+  COMPARE_MACRO(Sdot(z4.VnS(), z5.VnS(), z6.VnB(), z4.VnB()),
                 "movprfx z31, z5\n"
                 "sdot z31.s, z6.b, z4.b\n"
                 "orr z4.d, z31.d, z31.d");
-  COMPARE_MACRO(Sdot(z6.VnD(), z7, z8, z9),
+  COMPARE_MACRO(Sdot(z6.VnD(), z7.VnD(), z8.VnH(), z9.VnH()),
                 "movprfx z6, z7\n"
                 "sdot z6.d, z8.h, z9.h");
-  COMPARE_MACRO(Sdot(z5.VnD(), z5, z5, z5), "sdot z5.d, z5.h, z5.h");
+  COMPARE_MACRO(Sdot(z5.VnD(), z5.VnD(), z5.VnH(), z5.VnH()),
+                "sdot z5.d, z5.h, z5.h");
 
   COMPARE_MACRO(Udot(z0.VnD(), z0.VnD(), z2.VnH(), z4.VnH()),
                 "udot z0.d, z2.h, z4.h");
-  COMPARE_MACRO(Udot(z3.VnS(), z4.VnB(), z3.VnB(), z5.VnB()),
+  COMPARE_MACRO(Udot(z3.VnS(), z4.VnS(), z3.VnB(), z5.VnB()),
                 "movprfx z31, z4\n"
                 "udot z31.s, z3.b, z5.b\n"
                 "orr z3.d, z31.d, z31.d");
-  COMPARE_MACRO(Udot(z4.VnD(), z5, z6, z4),
+  COMPARE_MACRO(Udot(z4.VnD(), z5.VnD(), z6.VnH(), z4.VnH()),
                 "movprfx z31, z5\n"
                 "udot z31.d, z6.h, z4.h\n"
                 "orr z4.d, z31.d, z31.d");
-  COMPARE_MACRO(Udot(z6.VnS(), z7, z8, z9),
+  COMPARE_MACRO(Udot(z6.VnS(), z7.VnS(), z8.VnB(), z9.VnB()),
                 "movprfx z6, z7\n"
                 "udot z6.s, z8.b, z9.b");
-  COMPARE_MACRO(Udot(z5.VnS(), z5, z5, z5), "udot z5.s, z5.b, z5.b");
+  COMPARE_MACRO(Udot(z5.VnS(), z5.VnS(), z5.VnB(), z5.VnB()),
+                "udot z5.s, z5.b, z5.b");
   CLEANUP();
 }
 
