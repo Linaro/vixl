@@ -397,44 +397,60 @@ void Assembler::lsr(const ZRegister& zd,
 
 // SVEElementCount.
 
-void Assembler::cntb(const Register& rd, int pattern) {
+void Assembler::cntb(const Register& rd, int pattern, int multiplier) {
   // CNTB <Xd>{, <pattern>{, MUL #<imm>}}
   //  0000 0100 0010 .... 1110 00.. .... ....
   //  size<23:22> = 00 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(CNTB_r_s | Rd(rd) | ImmField<9, 5>(pattern));
+  int imm = multiplier - 1;
+  VIXL_ASSERT(IsUint4(imm));
+
+  Emit(CNTB_r_s | Rd(rd) | ImmSVEPredicateConstraint(pattern) |
+       ImmUnsignedField<19, 16>(imm));
 }
 
-void Assembler::cntd(const Register& rd, int pattern) {
+void Assembler::cntd(const Register& rd, int pattern, int multiplier) {
   // CNTD <Xd>{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1110 .... 1110 00.. .... ....
   //  size<23:22> = 11 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(CNTD_r_s | Rd(rd) | ImmField<9, 5>(pattern));
+  int imm = multiplier - 1;
+  VIXL_ASSERT(IsUint4(imm));
+
+  Emit(CNTD_r_s | Rd(rd) | ImmSVEPredicateConstraint(pattern) |
+       ImmUnsignedField<19, 16>(imm));
 }
 
-void Assembler::cnth(const Register& rd, int pattern) {
+void Assembler::cnth(const Register& rd, int pattern, int multiplier) {
   // CNTH <Xd>{, <pattern>{, MUL #<imm>}}
   //  0000 0100 0110 .... 1110 00.. .... ....
   //  size<23:22> = 01 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(CNTH_r_s | Rd(rd) | ImmField<9, 5>(pattern));
+  int imm = multiplier - 1;
+  VIXL_ASSERT(IsUint4(imm));
+
+  Emit(CNTH_r_s | Rd(rd) | ImmSVEPredicateConstraint(pattern) |
+       ImmUnsignedField<19, 16>(imm));
 }
 
-void Assembler::cntw(const Register& rd, int pattern) {
+void Assembler::cntw(const Register& rd, int pattern, int multiplier) {
   // CNTW <Xd>{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1010 .... 1110 00.. .... ....
   //  size<23:22> = 10 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(CNTW_r_s | Rd(rd) | ImmField<9, 5>(pattern));
+  int imm = multiplier - 1;
+  VIXL_ASSERT(IsUint4(imm));
+
+  Emit(CNTW_r_s | Rd(rd) | ImmSVEPredicateConstraint(pattern) |
+       ImmUnsignedField<19, 16>(imm));
 }
 
 void Assembler::decb(const Register& rdn, int pattern) {

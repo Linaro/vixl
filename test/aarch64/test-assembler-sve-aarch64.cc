@@ -3176,6 +3176,99 @@ TEST_SVE(sve_cntp) {
   }
 }
 
+typedef void (MacroAssembler::*CntFn)(const Register& dst,
+                                      int pattern,
+                                      int multiplier);
+
+static void CntHelper(Test* config,
+                      CntFn cnt,
+                      int multiplier,
+                      int lane_size_in_bits) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  (masm.*cnt)(w0, SVE_POW2, multiplier);
+  (masm.*cnt)(x1, SVE_VL1, multiplier);
+  (masm.*cnt)(x2, SVE_VL2, multiplier);
+  (masm.*cnt)(x3, SVE_VL3, multiplier);
+  (masm.*cnt)(x4, SVE_VL4, multiplier);
+  (masm.*cnt)(x5, SVE_VL5, multiplier);
+  (masm.*cnt)(x6, SVE_VL6, multiplier);
+  (masm.*cnt)(x7, SVE_VL7, multiplier);
+  (masm.*cnt)(x8, SVE_VL8, multiplier);
+  (masm.*cnt)(x9, SVE_VL16, multiplier);
+  (masm.*cnt)(x10, SVE_VL32, multiplier);
+  (masm.*cnt)(x11, SVE_VL64, multiplier);
+  (masm.*cnt)(x12, SVE_VL128, multiplier);
+  (masm.*cnt)(x13, SVE_VL256, multiplier);
+  (masm.*cnt)(x14, 16, multiplier);
+  (masm.*cnt)(x15, 23, multiplier);
+  (masm.*cnt)(x18, 28, multiplier);
+  (masm.*cnt)(x19, SVE_MUL4, multiplier);
+  (masm.*cnt)(x20, SVE_MUL3, multiplier);
+  (masm.*cnt)(x21, SVE_ALL, multiplier);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int all = core.GetSVELaneCount(lane_size_in_bits);
+    int pow2 = 1 << HighestSetBitPosition(all);
+    int mul4 = all - (all % 4);
+    int mul3 = all - (all % 3);
+
+    ASSERT_EQUAL_64(multiplier * pow2, x0);
+    ASSERT_EQUAL_64(multiplier * (all >= 1 ? 1 : 0), x1);
+    ASSERT_EQUAL_64(multiplier * (all >= 2 ? 2 : 0), x2);
+    ASSERT_EQUAL_64(multiplier * (all >= 3 ? 3 : 0), x3);
+    ASSERT_EQUAL_64(multiplier * (all >= 4 ? 4 : 0), x4);
+    ASSERT_EQUAL_64(multiplier * (all >= 5 ? 5 : 0), x5);
+    ASSERT_EQUAL_64(multiplier * (all >= 6 ? 6 : 0), x6);
+    ASSERT_EQUAL_64(multiplier * (all >= 7 ? 7 : 0), x7);
+    ASSERT_EQUAL_64(multiplier * (all >= 8 ? 8 : 0), x8);
+    ASSERT_EQUAL_64(multiplier * (all >= 16 ? 16 : 0), x9);
+    ASSERT_EQUAL_64(multiplier * (all >= 32 ? 32 : 0), x10);
+    ASSERT_EQUAL_64(multiplier * (all >= 64 ? 64 : 0), x11);
+    ASSERT_EQUAL_64(multiplier * (all >= 128 ? 128 : 0), x12);
+    ASSERT_EQUAL_64(multiplier * (all >= 256 ? 256 : 0), x13);
+    ASSERT_EQUAL_64(0, x14);
+    ASSERT_EQUAL_64(0, x15);
+    ASSERT_EQUAL_64(0, x18);
+    ASSERT_EQUAL_64(multiplier * mul4, x19);
+    ASSERT_EQUAL_64(multiplier * mul3, x20);
+    ASSERT_EQUAL_64(multiplier * all, x21);
+  }
+}
+
+TEST_SVE(sve_cntb) {
+  CntHelper(config, &MacroAssembler::Cntb, 1, kBRegSize);
+  CntHelper(config, &MacroAssembler::Cntb, 2, kBRegSize);
+  CntHelper(config, &MacroAssembler::Cntb, 15, kBRegSize);
+  CntHelper(config, &MacroAssembler::Cntb, 16, kBRegSize);
+}
+
+TEST_SVE(sve_cnth) {
+  CntHelper(config, &MacroAssembler::Cnth, 1, kHRegSize);
+  CntHelper(config, &MacroAssembler::Cnth, 2, kHRegSize);
+  CntHelper(config, &MacroAssembler::Cnth, 15, kHRegSize);
+  CntHelper(config, &MacroAssembler::Cnth, 16, kHRegSize);
+}
+
+TEST_SVE(sve_cntw) {
+  CntHelper(config, &MacroAssembler::Cntw, 1, kWRegSize);
+  CntHelper(config, &MacroAssembler::Cntw, 2, kWRegSize);
+  CntHelper(config, &MacroAssembler::Cntw, 15, kWRegSize);
+  CntHelper(config, &MacroAssembler::Cntw, 16, kWRegSize);
+}
+
+TEST_SVE(sve_cntd) {
+  CntHelper(config, &MacroAssembler::Cntd, 1, kDRegSize);
+  CntHelper(config, &MacroAssembler::Cntd, 2, kDRegSize);
+  CntHelper(config, &MacroAssembler::Cntd, 15, kDRegSize);
+  CntHelper(config, &MacroAssembler::Cntd, 16, kDRegSize);
+}
+
 typedef void (MacroAssembler::*IntBinArithFn)(const ZRegister& zd,
                                               const PRegisterM& pg,
                                               const ZRegister& zn,

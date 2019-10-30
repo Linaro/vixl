@@ -3947,13 +3947,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cnt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cntb(const Register& rd, int pattern);
+  void cntb(const Register& rd, int pattern, int multiplier);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cntd(const Register& rd, int pattern);
+  void cntd(const Register& rd, int pattern, int multiplier);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cnth(const Register& rd, int pattern);
+  void cnth(const Register& rd, int pattern, int multiplier);
 
   // Set scalar to active predicate element count.
   void cntp(const Register& xd,
@@ -3961,7 +3961,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterWithLaneSize& pn);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cntw(const Register& rd, int pattern);
+  void cntw(const Register& rd, int pattern, int multiplier);
 
   // Shuffle active elements of vector to the right and fill with zero.
   void compact(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);

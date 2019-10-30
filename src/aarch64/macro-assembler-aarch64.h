@@ -3889,20 +3889,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     cnt(zd, pg, zn);
   }
-  void Cntb(const Register& rd, int pattern) {
+  void Cntb(const Register& rd, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    cntb(rd, pattern);
+    cntb(rd, pattern, multiplier);
   }
-  void Cntd(const Register& rd, int pattern) {
+  void Cntd(const Register& rd, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    cntd(rd, pattern);
+    cntd(rd, pattern, multiplier);
   }
-  void Cnth(const Register& rd, int pattern) {
+  void Cnth(const Register& rd, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    cnth(rd, pattern);
+    cnth(rd, pattern, multiplier);
   }
   void Cntp(const Register& rd,
             const PRegister& pg,
@@ -3914,10 +3914,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     // always fits in a W register), so we can accept a W-sized rd here.
     cntp(rd.X(), pg, pn);
   }
-  void Cntw(const Register& rd, int pattern) {
+  void Cntw(const Register& rd, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    cntw(rd, pattern);
+    cntw(rd, pattern, multiplier);
   }
   void Compact(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);

@@ -8288,6 +8288,7 @@ void Disassembler::VisitSVESaturatingIncDecVectorByElementCount(
       form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
     default:
+      form = "(SVEElementCount)";
       break;
   }
   Format(instr, mnemonic, form);
@@ -8675,22 +8676,28 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
 void Disassembler::VisitSVEElementCount(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Xdn>{, <pattern>{, MUL #<imm>}}
-  const char *form = "'Rd{, #'u0905{, MUL #<imm>}}";
+  const char *form = "'Xd, 'Ipc, mul #'u1916+1";
+
+  // Omit the immediate if it's one, which is encoded as zero.
+  if (instr->ExtractBits(19, 16) == 0) {
+    form = "'Xd, 'Ipc";
+
+    // Also omit the pattern if it's the default ('ALL').
+    if (instr->ExtractBits(9, 5) == SVE_ALL) {
+      form = "'Xd";
+    }
+  }
 
   switch (instr->Mask(SVEElementCountMask)) {
-    // CNTB <Xd>{, <pattern>{, MUL #<imm>}}
     case CNTB_r_s:
       mnemonic = "cntb";
       break;
-    // CNTD <Xd>{, <pattern>{, MUL #<imm>}}
     case CNTD_r_s:
       mnemonic = "cntd";
       break;
-    // CNTH <Xd>{, <pattern>{, MUL #<imm>}}
     case CNTH_r_s:
       mnemonic = "cnth";
       break;
-    // CNTW <Xd>{, <pattern>{, MUL #<imm>}}
     case CNTW_r_s:
       mnemonic = "cntw";
       break;
@@ -11089,7 +11096,7 @@ int Disassembler::SubstituteIntField(const Instruction *instr,
   // In addition, split fields can be represented using 'sAABB:CCDD, where CCDD
   // become the least-significant bits of the result, and bit AA is the sign bit
   // (if 's is used).
-  uint32_t bits = 0;
+  int32_t bits = 0;
   int width = 0;
   const char *c = format;
   do {
@@ -11105,11 +11112,21 @@ int Disassembler::SubstituteIntField(const Instruction *instr,
   } while (*c == ':');
   VIXL_ASSERT(IsUintN(width, bits));
 
-  if (format[0] == 'u') {
-    AppendToOutput("%u", bits);
-  } else {
-    AppendToOutput("%d", ExtractSignedBitfield32(width - 1, 0, bits));
+  if (format[0] == 's') {
+    bits = ExtractSignedBitfield32(width - 1, 0, bits);
   }
+
+  if (*c == '+') {
+    // A "+n" trailing the format specifier indicates the extracted value should
+    // be incremented by n. This is for cases where the encoding is zero-based,
+    // but range of values is not, eg. values [1, 16] encoded as [0, 15]
+    int value = c[1] - '0';
+    VIXL_ASSERT(value > 0);
+    bits += value;
+    c += 2;
+  }
+
+  AppendToOutput("%d", bits);
 
   return static_cast<int>(c - format);
 }

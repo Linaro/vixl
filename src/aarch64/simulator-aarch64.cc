@@ -7490,24 +7490,26 @@ void Simulator::VisitSVESaturatingIncDecVectorByElementCount(
 }
 
 void Simulator::VisitSVEElementCount(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEElementCountMask)) {
     case CNTB_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CNTD_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CNTH_r_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case CNTW_r_s:
-      VIXL_UNIMPLEMENTED();
+      // All handled below.
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  // Although the instructions are separated, the lane size is encoded in the
+  // same way as most other SVE instructions.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+  WriteXRegister(instr->GetRd(), count * multiplier);
 }
 
 void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
