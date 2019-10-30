@@ -3183,11 +3183,35 @@ typedef void (MacroAssembler::*CntFn)(const Register& dst,
 static void CntHelper(Test* config,
                       CntFn cnt,
                       int multiplier,
-                      int lane_size_in_bits) {
+                      int lane_size_in_bits,
+                      int64_t acc_value = 0,
+                      bool is_increment = true) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
-  (masm.*cnt)(w0, SVE_POW2, multiplier);
+  // Initialise accumulators.
+  __ Mov(x0, acc_value);
+  __ Mov(x1, acc_value);
+  __ Mov(x2, acc_value);
+  __ Mov(x3, acc_value);
+  __ Mov(x4, acc_value);
+  __ Mov(x5, acc_value);
+  __ Mov(x6, acc_value);
+  __ Mov(x7, acc_value);
+  __ Mov(x8, acc_value);
+  __ Mov(x9, acc_value);
+  __ Mov(x10, acc_value);
+  __ Mov(x11, acc_value);
+  __ Mov(x12, acc_value);
+  __ Mov(x13, acc_value);
+  __ Mov(x14, acc_value);
+  __ Mov(x15, acc_value);
+  __ Mov(x18, acc_value);
+  __ Mov(x19, acc_value);
+  __ Mov(x20, acc_value);
+  __ Mov(x21, acc_value);
+
+  (masm.*cnt)(x0, SVE_POW2, multiplier);
   (masm.*cnt)(x1, SVE_VL1, multiplier);
   (masm.*cnt)(x2, SVE_VL2, multiplier);
   (masm.*cnt)(x3, SVE_VL3, multiplier);
@@ -3218,27 +3242,45 @@ static void CntHelper(Test* config,
     int mul4 = all - (all % 4);
     int mul3 = all - (all % 3);
 
-    ASSERT_EQUAL_64(multiplier * pow2, x0);
-    ASSERT_EQUAL_64(multiplier * (all >= 1 ? 1 : 0), x1);
-    ASSERT_EQUAL_64(multiplier * (all >= 2 ? 2 : 0), x2);
-    ASSERT_EQUAL_64(multiplier * (all >= 3 ? 3 : 0), x3);
-    ASSERT_EQUAL_64(multiplier * (all >= 4 ? 4 : 0), x4);
-    ASSERT_EQUAL_64(multiplier * (all >= 5 ? 5 : 0), x5);
-    ASSERT_EQUAL_64(multiplier * (all >= 6 ? 6 : 0), x6);
-    ASSERT_EQUAL_64(multiplier * (all >= 7 ? 7 : 0), x7);
-    ASSERT_EQUAL_64(multiplier * (all >= 8 ? 8 : 0), x8);
-    ASSERT_EQUAL_64(multiplier * (all >= 16 ? 16 : 0), x9);
-    ASSERT_EQUAL_64(multiplier * (all >= 32 ? 32 : 0), x10);
-    ASSERT_EQUAL_64(multiplier * (all >= 64 ? 64 : 0), x11);
-    ASSERT_EQUAL_64(multiplier * (all >= 128 ? 128 : 0), x12);
-    ASSERT_EQUAL_64(multiplier * (all >= 256 ? 256 : 0), x13);
-    ASSERT_EQUAL_64(0, x14);
-    ASSERT_EQUAL_64(0, x15);
-    ASSERT_EQUAL_64(0, x18);
-    ASSERT_EQUAL_64(multiplier * mul4, x19);
-    ASSERT_EQUAL_64(multiplier * mul3, x20);
-    ASSERT_EQUAL_64(multiplier * all, x21);
+    multiplier = is_increment ? multiplier : -multiplier;
+
+    ASSERT_EQUAL_64(acc_value + (multiplier * pow2), x0);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 1 ? 1 : 0)), x1);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 2 ? 2 : 0)), x2);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 3 ? 3 : 0)), x3);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 4 ? 4 : 0)), x4);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 5 ? 5 : 0)), x5);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 6 ? 6 : 0)), x6);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 7 ? 7 : 0)), x7);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 8 ? 8 : 0)), x8);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 16 ? 16 : 0)), x9);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 32 ? 32 : 0)), x10);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 64 ? 64 : 0)), x11);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 128 ? 128 : 0)), x12);
+    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 256 ? 256 : 0)), x13);
+    ASSERT_EQUAL_64(acc_value, x14);
+    ASSERT_EQUAL_64(acc_value, x15);
+    ASSERT_EQUAL_64(acc_value, x18);
+    ASSERT_EQUAL_64(acc_value + (multiplier * mul4), x19);
+    ASSERT_EQUAL_64(acc_value + (multiplier * mul3), x20);
+    ASSERT_EQUAL_64(acc_value + (multiplier * all), x21);
   }
+}
+
+static void IncHelper(Test* config,
+                      CntFn cnt,
+                      int multiplier,
+                      int lane_size_in_bits,
+                      int64_t acc_value) {
+  CntHelper(config, cnt, multiplier, lane_size_in_bits, acc_value, true);
+}
+
+static void DecHelper(Test* config,
+                      CntFn cnt,
+                      int multiplier,
+                      int lane_size_in_bits,
+                      int64_t acc_value) {
+  CntHelper(config, cnt, multiplier, lane_size_in_bits, acc_value, false);
 }
 
 TEST_SVE(sve_cntb) {
@@ -3267,6 +3309,62 @@ TEST_SVE(sve_cntd) {
   CntHelper(config, &MacroAssembler::Cntd, 2, kDRegSize);
   CntHelper(config, &MacroAssembler::Cntd, 15, kDRegSize);
   CntHelper(config, &MacroAssembler::Cntd, 16, kDRegSize);
+}
+
+TEST_SVE(sve_decb) {
+  DecHelper(config, &MacroAssembler::Decb, 1, kBRegSize, 42);
+  DecHelper(config, &MacroAssembler::Decb, 2, kBRegSize, -1);
+  DecHelper(config, &MacroAssembler::Decb, 15, kBRegSize, INT64_MIN);
+  DecHelper(config, &MacroAssembler::Decb, 16, kBRegSize, -42);
+}
+
+TEST_SVE(sve_dech) {
+  DecHelper(config, &MacroAssembler::Dech, 1, kHRegSize, 42);
+  DecHelper(config, &MacroAssembler::Dech, 2, kHRegSize, -1);
+  DecHelper(config, &MacroAssembler::Dech, 15, kHRegSize, INT64_MIN);
+  DecHelper(config, &MacroAssembler::Dech, 16, kHRegSize, -42);
+}
+
+TEST_SVE(sve_decw) {
+  DecHelper(config, &MacroAssembler::Decw, 1, kWRegSize, 42);
+  DecHelper(config, &MacroAssembler::Decw, 2, kWRegSize, -1);
+  DecHelper(config, &MacroAssembler::Decw, 15, kWRegSize, INT64_MIN);
+  DecHelper(config, &MacroAssembler::Decw, 16, kWRegSize, -42);
+}
+
+TEST_SVE(sve_decd) {
+  DecHelper(config, &MacroAssembler::Decd, 1, kDRegSize, 42);
+  DecHelper(config, &MacroAssembler::Decd, 2, kDRegSize, -1);
+  DecHelper(config, &MacroAssembler::Decd, 15, kDRegSize, INT64_MIN);
+  DecHelper(config, &MacroAssembler::Decd, 16, kDRegSize, -42);
+}
+
+TEST_SVE(sve_incb) {
+  IncHelper(config, &MacroAssembler::Incb, 1, kBRegSize, 42);
+  IncHelper(config, &MacroAssembler::Incb, 2, kBRegSize, -1);
+  IncHelper(config, &MacroAssembler::Incb, 15, kBRegSize, INT64_MAX);
+  IncHelper(config, &MacroAssembler::Incb, 16, kBRegSize, -42);
+}
+
+TEST_SVE(sve_inch) {
+  IncHelper(config, &MacroAssembler::Inch, 1, kHRegSize, 42);
+  IncHelper(config, &MacroAssembler::Inch, 2, kHRegSize, -1);
+  IncHelper(config, &MacroAssembler::Inch, 15, kHRegSize, INT64_MAX);
+  IncHelper(config, &MacroAssembler::Inch, 16, kHRegSize, -42);
+}
+
+TEST_SVE(sve_incw) {
+  IncHelper(config, &MacroAssembler::Incw, 1, kWRegSize, 42);
+  IncHelper(config, &MacroAssembler::Incw, 2, kWRegSize, -1);
+  IncHelper(config, &MacroAssembler::Incw, 15, kWRegSize, INT64_MAX);
+  IncHelper(config, &MacroAssembler::Incw, 16, kWRegSize, -42);
+}
+
+TEST_SVE(sve_incd) {
+  IncHelper(config, &MacroAssembler::Incd, 1, kDRegSize, 42);
+  IncHelper(config, &MacroAssembler::Incd, 2, kDRegSize, -1);
+  IncHelper(config, &MacroAssembler::Incd, 15, kDRegSize, INT64_MAX);
+  IncHelper(config, &MacroAssembler::Incd, 16, kDRegSize, -42);
 }
 
 typedef void (MacroAssembler::*IntBinArithFn)(const ZRegister& zd,

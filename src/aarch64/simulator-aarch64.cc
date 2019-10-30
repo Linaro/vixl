@@ -7278,36 +7278,36 @@ void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIncDecRegisterByElementCount(const Instruction* instr) {
-  USE(instr);
+  // Although the instructions have a separate encoding class, the lane size is
+  // encoded in the same way as most other SVE instructions.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
   switch (instr->Mask(SVEIncDecRegisterByElementCountMask)) {
     case DECB_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECD_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECH_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECW_r_rs:
-      VIXL_UNIMPLEMENTED();
+      count = -count;
       break;
     case INCB_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INCD_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INCH_r_rs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INCW_r_rs:
-      VIXL_UNIMPLEMENTED();
+      // Nothing to do.
       break;
     default:
       VIXL_UNIMPLEMENTED();
-      break;
+      return;
   }
+
+  WriteXRegister(instr->GetRd(),
+                 IncDecN(ReadXRegister(instr->GetRd()),
+                         count * multiplier,
+                         kXRegSize));
 }
 
 void Simulator::VisitSVEIncDecVectorByElementCount(const Instruction* instr) {

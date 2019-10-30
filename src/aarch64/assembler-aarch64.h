@@ -3982,16 +3982,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ctermne(const Register& rn, const Register& rm);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void decb(const Register& rdn, int pattern);
+  void decb(const Register& xdn, int pattern, int multiplier);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void decd(const Register& rdn, int pattern);
+  void decd(const Register& xdn, int pattern, int multiplier);
 
   // Decrement vector by multiple of predicate constraint element count.
   void decd(const ZRegister& zdn, int pattern);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void dech(const Register& rdn, int pattern);
+  void dech(const Register& xdn, int pattern, int multiplier);
 
   // Decrement vector by multiple of predicate constraint element count.
   void dech(const ZRegister& zdn, int pattern);
@@ -4003,7 +4003,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void decp(const ZRegister& zdn, const PRegister& pg);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void decw(const Register& rdn, int pattern);
+  void decw(const Register& xdn, int pattern, int multiplier);
 
   // Decrement vector by multiple of predicate constraint element count.
   void decw(const ZRegister& zdn, int pattern);
@@ -4430,16 +4430,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ftssel(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void incb(const Register& rdn, int pattern);
+  void incb(const Register& xdn, int pattern, int multiplier);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void incd(const Register& rdn, int pattern);
+  void incd(const Register& xdn, int pattern, int multiplier);
 
   // Increment vector by multiple of predicate constraint element count.
   void incd(const ZRegister& zdn, int pattern);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void inch(const Register& rdn, int pattern);
+  void inch(const Register& xdn, int pattern, int multiplier);
 
   // Increment vector by multiple of predicate constraint element count.
   void inch(const ZRegister& zdn, int pattern);
@@ -4451,7 +4451,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void incp(const ZRegister& zdn, const PRegister& pg);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void incw(const Register& rdn, int pattern);
+  void incw(const Register& xdn, int pattern, int multiplier);
 
   // Increment vector by multiple of predicate constraint element count.
   void incw(const ZRegister& zdn, int pattern);
@@ -7062,6 +7062,11 @@ class Assembler : public vixl::internal::AssemblerBase {
       const ZRegister& zd,
       int imm8,
       int shift);
+
+  void SVEElementCountToRegisterHelper(Instr op,
+                                       const Register& rd,
+                                       int pattern,
+                                       int multiplier);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

@@ -3808,8 +3808,8 @@ class Simulator : public DecoderVisitor {
   uint64_t IncDecN(uint64_t acc,
                    int64_t delta,
                    unsigned n,
-                   bool is_saturating,
-                   bool is_signed);
+                   bool is_saturating = false,
+                   bool is_signed = false);
 
   // SVE helpers -------------------------------------------
   LogicVRegister SVEBitwiseLogicalUnpredicatedHelper(LogicalOp op,

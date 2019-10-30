@@ -3945,25 +3945,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ctermne(rn, rm);
   }
-  void Decb(const Register& rdn, int pattern) {
+  void Decb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    decb(rdn, pattern);
+    decb(rdn, pattern, multiplier);
   }
-  void Decd(const Register& rdn, int pattern) {
+  void Decd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    decd(rdn, pattern);
+    decd(rdn, pattern, multiplier);
   }
   void Decd(const ZRegister& zdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     decd(zdn, pattern);
   }
-  void Dech(const Register& rdn, int pattern) {
+  void Dech(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    dech(rdn, pattern);
+    dech(rdn, pattern, multiplier);
   }
   void Dech(const ZRegister& zdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -3983,10 +3983,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     decp(zd, pg);
   }
   void Decp(const ZRegister& zdn, const PRegister& pg) { Decp(zdn, pg, zdn); }
-  void Decw(const Register& rdn, int pattern) {
+  void Decw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    decw(rdn, pattern);
+    decw(rdn, pattern, multiplier);
   }
   void Decw(const ZRegister& zdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -4529,25 +4529,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ftssel(zd, zn, zm);
   }
-  void Incb(const Register& rdn, int pattern) {
+  void Incb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    incb(rdn, pattern);
+    incb(rdn, pattern, multiplier);
   }
-  void Incd(const Register& rdn, int pattern) {
+  void Incd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    incd(rdn, pattern);
+    incd(rdn, pattern, multiplier);
   }
   void Incd(const ZRegister& zdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     incd(zdn, pattern);
   }
-  void Inch(const Register& rdn, int pattern) {
+  void Inch(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    inch(rdn, pattern);
+    inch(rdn, pattern, multiplier);
   }
   void Inch(const ZRegister& zdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -4567,10 +4567,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     incp(zd, pg);
   }
   void Incp(const ZRegister& zdn, const PRegister& pg) { Incp(zdn, pg, zdn); }
-  void Incw(const Register& rdn, int pattern) {
+  void Incw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    incw(rdn, pattern);
+    incw(rdn, pattern, multiplier);
   }
   void Incw(const ZRegister& zdn, int pattern) {
     VIXL_ASSERT(allow_macro_instructions_);

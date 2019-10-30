@@ -249,25 +249,66 @@ TEST(sve_element_count) {
   CLEANUP();
 }
 
+TEST(sve_inc_dec_reg_element_count) {
+  SETUP();
+
+  COMPARE_MACRO(Decb(x4), "decb x4");
+  COMPARE_MACRO(Decb(x4, SVE_POW2), "decb x4, pow2");
+  COMPARE_MACRO(Decb(x4, SVE_VL1), "decb x4, vl1");
+  COMPARE_MACRO(Decb(x4, SVE_VL2), "decb x4, vl2");
+  COMPARE_MACRO(Decb(x4, SVE_VL16), "decb x4, vl16");
+  COMPARE_MACRO(Decb(x4, SVE_VL256), "decb x4, vl256");
+  COMPARE_MACRO(Decb(x4, SVE_MUL4), "decb x4, mul4");
+  COMPARE_MACRO(Decb(x4, SVE_MUL3), "decb x4, mul3");
+  COMPARE_MACRO(Decb(x4, SVE_ALL), "decb x4");
+
+  COMPARE_MACRO(Decb(x4, SVE_POW2, 1), "decb x4, pow2");
+  COMPARE_MACRO(Decb(x4, SVE_VL1, 16), "decb x4, vl1, mul #16");
+  COMPARE_MACRO(Decb(x4, SVE_VL2, 15), "decb x4, vl2, mul #15");
+  COMPARE_MACRO(Decb(x4, SVE_VL16, 14), "decb x4, vl16, mul #14");
+  COMPARE_MACRO(Decb(x4, SVE_VL256, 8), "decb x4, vl256, mul #8");
+  COMPARE_MACRO(Decb(x4, SVE_MUL4, 4), "decb x4, mul4, mul #4");
+  COMPARE_MACRO(Decb(x4, SVE_MUL3, 3), "decb x4, mul3, mul #3");
+  COMPARE_MACRO(Decb(x4, SVE_ALL, 2), "decb x4, all, mul #2");
+
+  COMPARE_MACRO(Decb(x30), "decb x30");
+  COMPARE_MACRO(Decd(xzr, SVE_POW2), "decd xzr, pow2");
+  COMPARE_MACRO(Decd(xzr, SVE_MUL4, 1), "decd xzr, mul4");
+  COMPARE_MACRO(Dech(x29, SVE_MUL3, 4), "dech x29, mul3, mul #4");
+  COMPARE_MACRO(Decw(x28, SVE_VL256, 16), "decw x28, vl256, mul #16");
+
+  COMPARE_MACRO(Incb(x17), "incb x17");
+  COMPARE_MACRO(Incb(x17, SVE_POW2), "incb x17, pow2");
+  COMPARE_MACRO(Incb(x17, SVE_VL1), "incb x17, vl1");
+  COMPARE_MACRO(Incb(x17, SVE_VL2), "incb x17, vl2");
+  COMPARE_MACRO(Incb(x17, SVE_VL16), "incb x17, vl16");
+  COMPARE_MACRO(Incb(x17, SVE_VL256), "incb x17, vl256");
+  COMPARE_MACRO(Incb(x17, SVE_MUL4), "incb x17, mul4");
+  COMPARE_MACRO(Incb(x17, SVE_MUL3), "incb x17, mul3");
+  COMPARE_MACRO(Incb(x17, SVE_ALL), "incb x17");
+
+  COMPARE_MACRO(Incb(x17, SVE_POW2, 1), "incb x17, pow2");
+  COMPARE_MACRO(Incb(x17, SVE_VL1, 16), "incb x17, vl1, mul #16");
+  COMPARE_MACRO(Incb(x17, SVE_VL2, 15), "incb x17, vl2, mul #15");
+  COMPARE_MACRO(Incb(x17, SVE_VL16, 14), "incb x17, vl16, mul #14");
+  COMPARE_MACRO(Incb(x17, SVE_VL256, 8), "incb x17, vl256, mul #8");
+  COMPARE_MACRO(Incb(x17, SVE_MUL4, 4), "incb x17, mul4, mul #4");
+  COMPARE_MACRO(Incb(x17, SVE_MUL3, 3), "incb x17, mul3, mul #3");
+  COMPARE_MACRO(Incb(x17, SVE_ALL, 2), "incb x17, all, mul #2");
+
+  COMPARE_MACRO(Incb(x30), "incb x30");
+  COMPARE_MACRO(Incd(xzr, SVE_POW2), "incd xzr, pow2");
+  COMPARE_MACRO(Incd(xzr, SVE_MUL4, 1), "incd xzr, mul4");
+  COMPARE_MACRO(Inch(x29, SVE_MUL3, 4), "inch x29, mul3, mul #4");
+  COMPARE_MACRO(Incw(x28, SVE_VL256, 16), "incw x28, vl256, mul #16");
+
+  CLEANUP();
+}
 // TODO: split these up into the new classes as they're implemented.
 TEST(sve_element_count_remainder) {
   SETUP();
 
 #if 0
-  COMPARE_PREFIX(decb(x1, int pattern), "decb <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(decd(x12, int pattern), "decd <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(decd(z4.VnD(), int pattern), "decd <Zdn>.D{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(dech(x9, int pattern), "dech <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(dech(z22.VnH(), int pattern), "dech <Zdn>.H{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(decw(x3, int pattern), "decw <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(decw(z23.VnS(), int pattern), "decw <Zdn>.S{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(incb(x19, int pattern), "incb <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(incd(x8, int pattern), "incd <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(incd(z8.VnD(), int pattern), "incd <Zdn>.D{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(inch(x10, int pattern), "inch <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(inch(z8.VnH(), int pattern), "inch <Zdn>.H{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(incw(x28, int pattern), "incw <Xdn>{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(incw(z22.VnS(), int pattern), "incw <Zdn>.S{, <pattern>{, MUL #<imm>}}");
   COMPARE_PREFIX(sqdecb(x27, w27, int pattern), "sqdecb <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}");
   COMPARE_PREFIX(sqdecb(x30, int pattern), "sqdecb <Xdn>{, <pattern>{, MUL #<imm>}}");
   COMPARE_PREFIX(sqdecd(x0, w0, int pattern), "sqdecd <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}");

@@ -7068,42 +7068,45 @@ void Disassembler::VisitSVEIncDecRegisterByElementCount(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Xdn>{, <pattern>{, MUL #<imm>}}
-  const char *form = "'Rd{, #'u0905{, MUL #<imm>}}";
+  const char *form = "'Xd, 'Ipc, mul #'u1916+1";
+
+  // Omit the immediate if it's one, which is encoded as zero.
+  if (instr->ExtractBits(19, 16) == 0) {
+    form = "'Xd, 'Ipc";
+
+    // Also omit the pattern if it's the default ('ALL').
+    if (instr->ExtractBits(9, 5) == SVE_ALL) {
+      form = "'Xd";
+    }
+  }
 
   switch (instr->Mask(SVEIncDecRegisterByElementCountMask)) {
-    // DECB <Xdn>{, <pattern>{, MUL #<imm>}}
     case DECB_r_rs:
       mnemonic = "decb";
       break;
-    // DECD <Xdn>{, <pattern>{, MUL #<imm>}}
     case DECD_r_rs:
       mnemonic = "decd";
       break;
-    // DECH <Xdn>{, <pattern>{, MUL #<imm>}}
     case DECH_r_rs:
       mnemonic = "dech";
       break;
-    // DECW <Xdn>{, <pattern>{, MUL #<imm>}}
     case DECW_r_rs:
       mnemonic = "decw";
       break;
-    // INCB <Xdn>{, <pattern>{, MUL #<imm>}}
     case INCB_r_rs:
       mnemonic = "incb";
       break;
-    // INCD <Xdn>{, <pattern>{, MUL #<imm>}}
     case INCD_r_rs:
       mnemonic = "incd";
       break;
-    // INCH <Xdn>{, <pattern>{, MUL #<imm>}}
     case INCH_r_rs:
       mnemonic = "inch";
       break;
-    // INCW <Xdn>{, <pattern>{, MUL #<imm>}}
     case INCW_r_rs:
       mnemonic = "incw";
       break;
     default:
+      form = "(SVEIncDecRegisterByElementCount)";
       break;
   }
   Format(instr, mnemonic, form);
