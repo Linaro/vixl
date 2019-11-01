@@ -7377,108 +7377,78 @@ void Simulator::VisitSVEIncDecVectorByElementCount(const Instruction* instr) {
 
 void Simulator::VisitSVESaturatingIncDecRegisterByElementCount(
     const Instruction* instr) {
-  USE(instr);
+  // Although the instructions have a separate encoding class, the lane size is
+  // encoded in the same way as most other SVE instructions.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
+  unsigned width = kXRegSize;
+  bool is_signed = false;
+
   switch (instr->Mask(SVESaturatingIncDecRegisterByElementCountMask)) {
     case SQDECB_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECB_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECD_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECD_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECH_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQDECH_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECW_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case SQDECB_r_rs_x:
+    case SQDECD_r_rs_x:
+    case SQDECH_r_rs_x:
     case SQDECW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
+      is_signed = true;
+      count = -count;
       break;
     case SQINCB_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCB_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCD_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCD_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCH_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case SQINCH_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCW_r_rs_sx:
-      VIXL_UNIMPLEMENTED();
-      break;
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case SQINCB_r_rs_x:
+    case SQINCD_r_rs_x:
+    case SQINCH_r_rs_x:
     case SQINCW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
+      is_signed = true;
       break;
     case UQDECB_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECB_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECD_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECD_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECH_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQDECH_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECW_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case UQDECB_r_rs_x:
+    case UQDECD_r_rs_x:
+    case UQDECH_r_rs_x:
     case UQDECW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
+      count = -count;
       break;
     case UQINCB_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCB_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQINCD_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCD_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQINCH_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case UQINCH_r_rs_x:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQINCW_r_rs_uw:
-      VIXL_UNIMPLEMENTED();
-      break;
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case UQINCB_r_rs_x:
+    case UQINCD_r_rs_x:
+    case UQINCH_r_rs_x:
     case UQINCW_r_rs_x:
-      VIXL_UNIMPLEMENTED();
+      // Nothing to do.
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  WriteXRegister(instr->GetRd(),
+                 IncDecN(ReadXRegister(instr->GetRd()),
+                         count * multiplier,
+                         width,
+                         true,
+                         is_signed));
 }
 
 void Simulator::VisitSVESaturatingIncDecVectorByElementCount(

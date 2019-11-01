@@ -1100,19 +1100,19 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
 
   // Check that saturation behaves correctly.
   __ Mov(x10, 0x8000000000000001);  // INT64_MIN + 1
-  __ Sqdecp(x10, p0.VnB(), x10);
+  __ Sqdecp(x10, p0.VnB());
 
   __ Mov(x11, dummy_high + 0x80000001);  // INT32_MIN + 1
   __ Sqdecp(x11, p0.VnH(), w11);
 
   __ Mov(x12, 1);
-  __ Sqdecp(x12, p0.VnS(), x12);
+  __ Sqdecp(x12, p0.VnS());
 
   __ Mov(x13, dummy_high + 1);
   __ Sqdecp(x13, p0.VnD(), w13);
 
   __ Mov(x14, 0x7ffffffffffffffe);  // INT64_MAX - 1
-  __ Sqincp(x14, p0.VnB(), x14);
+  __ Sqincp(x14, p0.VnB());
 
   __ Mov(x15, dummy_high + 0x7ffffffe);  // INT32_MAX - 1
   __ Sqincp(x15, p0.VnH(), w15);
@@ -1120,7 +1120,7 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
   // Don't use x16 and x17 since they are scratch registers by default.
 
   __ Mov(x18, 0xffffffffffffffff);
-  __ Sqincp(x18, p0.VnS(), x18);
+  __ Sqincp(x18, p0.VnS());
 
   __ Mov(x19, dummy_high + 0xffffffff);
   __ Sqincp(x19, p0.VnD(), w19);
@@ -1133,10 +1133,10 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
   __ Ptrue(p15.VnB());
 
   __ Mov(x21, 0);
-  __ Sqdecp(x21, p15.VnB(), x21);
+  __ Sqdecp(x21, p15.VnB());
 
   __ Mov(x22, 0);
-  __ Sqincp(x22, p15.VnH(), x22);
+  __ Sqincp(x22, p15.VnH());
 
   __ Mov(x23, dummy_high);
   __ Sqdecp(x23, p15.VnS(), w23);
@@ -3180,6 +3180,62 @@ typedef void (MacroAssembler::*CntFn)(const Register& dst,
                                       int pattern,
                                       int multiplier);
 
+template <typename T>
+void GenerateCntSequence(MacroAssembler* masm,
+                         CntFn cnt,
+                         T acc_value,
+                         int multiplier) {
+  // Initialise accumulators.
+  masm->Mov(x0, acc_value);
+  masm->Mov(x1, acc_value);
+  masm->Mov(x2, acc_value);
+  masm->Mov(x3, acc_value);
+  masm->Mov(x4, acc_value);
+  masm->Mov(x5, acc_value);
+  masm->Mov(x6, acc_value);
+  masm->Mov(x7, acc_value);
+  masm->Mov(x8, acc_value);
+  masm->Mov(x9, acc_value);
+  masm->Mov(x10, acc_value);
+  masm->Mov(x11, acc_value);
+  masm->Mov(x12, acc_value);
+  masm->Mov(x13, acc_value);
+  masm->Mov(x14, acc_value);
+  masm->Mov(x15, acc_value);
+  masm->Mov(x18, acc_value);
+  masm->Mov(x19, acc_value);
+  masm->Mov(x20, acc_value);
+  masm->Mov(x21, acc_value);
+
+  (masm->*cnt)(Register(0, sizeof(T) * kBitsPerByte), SVE_POW2, multiplier);
+  (masm->*cnt)(Register(1, sizeof(T) * kBitsPerByte), SVE_VL1, multiplier);
+  (masm->*cnt)(Register(2, sizeof(T) * kBitsPerByte), SVE_VL2, multiplier);
+  (masm->*cnt)(Register(3, sizeof(T) * kBitsPerByte), SVE_VL3, multiplier);
+  (masm->*cnt)(Register(4, sizeof(T) * kBitsPerByte), SVE_VL4, multiplier);
+  (masm->*cnt)(Register(5, sizeof(T) * kBitsPerByte), SVE_VL5, multiplier);
+  (masm->*cnt)(Register(6, sizeof(T) * kBitsPerByte), SVE_VL6, multiplier);
+  (masm->*cnt)(Register(7, sizeof(T) * kBitsPerByte), SVE_VL7, multiplier);
+  (masm->*cnt)(Register(8, sizeof(T) * kBitsPerByte), SVE_VL8, multiplier);
+  (masm->*cnt)(Register(9, sizeof(T) * kBitsPerByte), SVE_VL16, multiplier);
+  (masm->*cnt)(Register(10, sizeof(T) * kBitsPerByte), SVE_VL32, multiplier);
+  (masm->*cnt)(Register(11, sizeof(T) * kBitsPerByte), SVE_VL64, multiplier);
+  (masm->*cnt)(Register(12, sizeof(T) * kBitsPerByte), SVE_VL128, multiplier);
+  (masm->*cnt)(Register(13, sizeof(T) * kBitsPerByte), SVE_VL256, multiplier);
+  (masm->*cnt)(Register(14, sizeof(T) * kBitsPerByte), 16, multiplier);
+  (masm->*cnt)(Register(15, sizeof(T) * kBitsPerByte), 23, multiplier);
+  (masm->*cnt)(Register(18, sizeof(T) * kBitsPerByte), 28, multiplier);
+  (masm->*cnt)(Register(19, sizeof(T) * kBitsPerByte), SVE_MUL4, multiplier);
+  (masm->*cnt)(Register(20, sizeof(T) * kBitsPerByte), SVE_MUL3, multiplier);
+  (masm->*cnt)(Register(21, sizeof(T) * kBitsPerByte), SVE_ALL, multiplier);
+}
+
+int FixedVL(int fixed, int length) {
+  VIXL_ASSERT(((fixed >= 1) && (fixed <= 8)) || (fixed == 16) ||
+              (fixed == 32) || (fixed == 64) || (fixed == 128) ||
+              (fixed = 256));
+  return (length >= fixed) ? fixed : 0;
+}
+
 static void CntHelper(Test* config,
                       CntFn cnt,
                       int multiplier,
@@ -3188,50 +3244,7 @@ static void CntHelper(Test* config,
                       bool is_increment = true) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
-
-  // Initialise accumulators.
-  __ Mov(x0, acc_value);
-  __ Mov(x1, acc_value);
-  __ Mov(x2, acc_value);
-  __ Mov(x3, acc_value);
-  __ Mov(x4, acc_value);
-  __ Mov(x5, acc_value);
-  __ Mov(x6, acc_value);
-  __ Mov(x7, acc_value);
-  __ Mov(x8, acc_value);
-  __ Mov(x9, acc_value);
-  __ Mov(x10, acc_value);
-  __ Mov(x11, acc_value);
-  __ Mov(x12, acc_value);
-  __ Mov(x13, acc_value);
-  __ Mov(x14, acc_value);
-  __ Mov(x15, acc_value);
-  __ Mov(x18, acc_value);
-  __ Mov(x19, acc_value);
-  __ Mov(x20, acc_value);
-  __ Mov(x21, acc_value);
-
-  (masm.*cnt)(x0, SVE_POW2, multiplier);
-  (masm.*cnt)(x1, SVE_VL1, multiplier);
-  (masm.*cnt)(x2, SVE_VL2, multiplier);
-  (masm.*cnt)(x3, SVE_VL3, multiplier);
-  (masm.*cnt)(x4, SVE_VL4, multiplier);
-  (masm.*cnt)(x5, SVE_VL5, multiplier);
-  (masm.*cnt)(x6, SVE_VL6, multiplier);
-  (masm.*cnt)(x7, SVE_VL7, multiplier);
-  (masm.*cnt)(x8, SVE_VL8, multiplier);
-  (masm.*cnt)(x9, SVE_VL16, multiplier);
-  (masm.*cnt)(x10, SVE_VL32, multiplier);
-  (masm.*cnt)(x11, SVE_VL64, multiplier);
-  (masm.*cnt)(x12, SVE_VL128, multiplier);
-  (masm.*cnt)(x13, SVE_VL256, multiplier);
-  (masm.*cnt)(x14, 16, multiplier);
-  (masm.*cnt)(x15, 23, multiplier);
-  (masm.*cnt)(x18, 28, multiplier);
-  (masm.*cnt)(x19, SVE_MUL4, multiplier);
-  (masm.*cnt)(x20, SVE_MUL3, multiplier);
-  (masm.*cnt)(x21, SVE_ALL, multiplier);
-
+  GenerateCntSequence(&masm, cnt, acc_value, multiplier);
   END();
 
   if (CAN_RUN()) {
@@ -3245,19 +3258,19 @@ static void CntHelper(Test* config,
     multiplier = is_increment ? multiplier : -multiplier;
 
     ASSERT_EQUAL_64(acc_value + (multiplier * pow2), x0);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 1 ? 1 : 0)), x1);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 2 ? 2 : 0)), x2);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 3 ? 3 : 0)), x3);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 4 ? 4 : 0)), x4);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 5 ? 5 : 0)), x5);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 6 ? 6 : 0)), x6);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 7 ? 7 : 0)), x7);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 8 ? 8 : 0)), x8);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 16 ? 16 : 0)), x9);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 32 ? 32 : 0)), x10);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 64 ? 64 : 0)), x11);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 128 ? 128 : 0)), x12);
-    ASSERT_EQUAL_64(acc_value + (multiplier * (all >= 256 ? 256 : 0)), x13);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(1, all)), x1);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(2, all)), x2);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(3, all)), x3);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(4, all)), x4);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(5, all)), x5);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(6, all)), x6);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(7, all)), x7);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(8, all)), x8);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(16, all)), x9);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(32, all)), x10);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(64, all)), x11);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(128, all)), x12);
+    ASSERT_EQUAL_64(acc_value + (multiplier * FixedVL(256, all)), x13);
     ASSERT_EQUAL_64(acc_value, x14);
     ASSERT_EQUAL_64(acc_value, x15);
     ASSERT_EQUAL_64(acc_value, x18);
@@ -3365,6 +3378,432 @@ TEST_SVE(sve_incd) {
   IncHelper(config, &MacroAssembler::Incd, 2, kDRegSize, -1);
   IncHelper(config, &MacroAssembler::Incd, 15, kDRegSize, INT64_MAX);
   IncHelper(config, &MacroAssembler::Incd, 16, kDRegSize, -42);
+}
+
+template <typename T>
+static T QAdd(T x, int y) {
+  VIXL_ASSERT(y > INT_MIN);
+  T result;
+  T min = std::numeric_limits<T>::min();
+  T max = std::numeric_limits<T>::max();
+  if ((x >= 0) && (y >= 0)) {
+    // For positive a and b, saturate at max.
+    result = (max - x) < static_cast<T>(y) ? max : x + y;
+  } else if ((y < 0) && ((x < 0) || (min == 0))) {
+    // For negative b, where either a negative or T unsigned.
+    result = (x - min) < static_cast<T>(-y) ? min : x + y;
+  } else {
+    result = x + y;
+  }
+  return result;
+}
+
+template <typename T>
+static void QIncDecHelper(Test* config,
+                          CntFn cnt,
+                          int multiplier,
+                          int lane_size_in_bits,
+                          T acc_value,
+                          bool is_increment) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+  GenerateCntSequence(&masm, cnt, acc_value, multiplier);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int all = core.GetSVELaneCount(lane_size_in_bits);
+    int pow2 = 1 << HighestSetBitPosition(all);
+    int mul4 = all - (all % 4);
+    int mul3 = all - (all % 3);
+
+    multiplier = is_increment ? multiplier : -multiplier;
+
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * pow2), x0);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(1, all)), x1);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(2, all)), x2);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(3, all)), x3);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(4, all)), x4);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(5, all)), x5);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(6, all)), x6);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(7, all)), x7);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(8, all)), x8);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(16, all)), x9);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(32, all)), x10);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(64, all)), x11);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(128, all)), x12);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(256, all)), x13);
+    ASSERT_EQUAL_64(acc_value, x14);
+    ASSERT_EQUAL_64(acc_value, x15);
+    ASSERT_EQUAL_64(acc_value, x18);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * mul4), x19);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * mul3), x20);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * all), x21);
+  }
+}
+
+template <typename T>
+static void QIncHelper(Test* config,
+                       CntFn cnt,
+                       int multiplier,
+                       int lane_size_in_bits,
+                       T acc_value) {
+  QIncDecHelper<T>(config, cnt, multiplier, lane_size_in_bits, acc_value, true);
+}
+
+template <typename T>
+static void QDecHelper(Test* config,
+                       CntFn cnt,
+                       int multiplier,
+                       int lane_size_in_bits,
+                       T acc_value) {
+  QIncDecHelper<T>(config,
+                   cnt,
+                   multiplier,
+                   lane_size_in_bits,
+                   acc_value,
+                   false);
+}
+
+TEST_SVE(sve_sqdecb) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecb, 1, kBRegSize, 1);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecb, 2, kBRegSize, bigneg);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecb, 15, kBRegSize, 999);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecb, 16, kBRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqdech) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdech, 1, kHRegSize, 1);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdech, 2, kHRegSize, bigneg);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdech, 15, kHRegSize, 999);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdech, 16, kHRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqdecw) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecw, 1, kWRegSize, 1);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecw, 2, kWRegSize, bigneg);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecw, 15, kWRegSize, 999);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecw, 16, kWRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqdecd) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecd, 1, kDRegSize, 1);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecd, 2, kDRegSize, bigneg);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecd, 15, kDRegSize, 999);
+  QDecHelper<int64_t>(config, &MacroAssembler::Sqdecd, 16, kDRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqincb) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincb, 1, kBRegSize, 1);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincb, 2, kBRegSize, bigneg);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincb, 15, kBRegSize, 999);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincb, 16, kBRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqinch) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqinch, 1, kHRegSize, 1);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqinch, 2, kHRegSize, bigneg);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqinch, 15, kHRegSize, 999);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqinch, 16, kHRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqincw) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincw, 1, kWRegSize, 1);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincw, 2, kWRegSize, bigneg);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincw, 15, kWRegSize, 999);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincw, 16, kWRegSize, bigpos);
+}
+
+TEST_SVE(sve_sqincd) {
+  int64_t bigneg = INT64_MIN + 42;
+  int64_t bigpos = INT64_MAX - 42;
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincd, 1, kDRegSize, 1);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincd, 2, kDRegSize, bigneg);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincd, 15, kDRegSize, 999);
+  QIncHelper<int64_t>(config, &MacroAssembler::Sqincd, 16, kDRegSize, bigpos);
+}
+
+TEST_SVE(sve_uqdecb) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecb, 1, kBRegSize, 1);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecb, 2, kBRegSize, 42);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecb, 15, kBRegSize, 999);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecb, 16, kBRegSize, big32);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecb, 1, kBRegSize, 1);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecb, 2, kBRegSize, 42);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecb, 15, kBRegSize, 999);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecb, 16, kBRegSize, big64);
+}
+
+TEST_SVE(sve_uqdech) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdech, 1, kHRegSize, 1);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdech, 2, kHRegSize, 42);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdech, 15, kHRegSize, 999);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdech, 16, kHRegSize, big32);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdech, 1, kHRegSize, 1);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdech, 2, kHRegSize, 42);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdech, 15, kHRegSize, 999);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdech, 16, kHRegSize, big64);
+}
+
+TEST_SVE(sve_uqdecw) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecw, 1, kWRegSize, 1);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecw, 2, kWRegSize, 42);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecw, 15, kWRegSize, 999);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecw, 16, kWRegSize, big32);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecw, 1, kWRegSize, 1);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecw, 2, kWRegSize, 42);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecw, 15, kWRegSize, 999);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecw, 16, kWRegSize, big64);
+}
+
+TEST_SVE(sve_uqdecd) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecd, 1, kDRegSize, 1);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecd, 2, kDRegSize, 42);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecd, 15, kDRegSize, 999);
+  QDecHelper<uint32_t>(config, &MacroAssembler::Uqdecd, 16, kDRegSize, big32);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecd, 1, kDRegSize, 1);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecd, 2, kDRegSize, 42);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecd, 15, kDRegSize, 999);
+  QDecHelper<uint64_t>(config, &MacroAssembler::Uqdecd, 16, kDRegSize, big64);
+}
+
+TEST_SVE(sve_uqincb) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincb, 1, kBRegSize, 1);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincb, 2, kBRegSize, 42);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincb, 15, kBRegSize, 999);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincb, 16, kBRegSize, big32);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincb, 1, kBRegSize, 1);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincb, 2, kBRegSize, 42);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincb, 15, kBRegSize, 999);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincb, 16, kBRegSize, big64);
+}
+
+TEST_SVE(sve_uqinch) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqinch, 1, kHRegSize, 1);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqinch, 2, kHRegSize, 42);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqinch, 15, kHRegSize, 999);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqinch, 16, kHRegSize, big32);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqinch, 1, kHRegSize, 1);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqinch, 2, kHRegSize, 42);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqinch, 15, kHRegSize, 999);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqinch, 16, kHRegSize, big64);
+}
+
+TEST_SVE(sve_uqincw) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincw, 1, kWRegSize, 1);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincw, 2, kWRegSize, 42);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincw, 15, kWRegSize, 999);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincw, 16, kWRegSize, big32);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincw, 1, kWRegSize, 1);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincw, 2, kWRegSize, 42);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincw, 15, kWRegSize, 999);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincw, 16, kWRegSize, big64);
+}
+
+TEST_SVE(sve_uqincd) {
+  int32_t big32 = UINT32_MAX - 42;
+  int64_t big64 = UINT64_MAX - 42;
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincd, 1, kDRegSize, 1);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincd, 2, kDRegSize, 42);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincd, 15, kDRegSize, 999);
+  QIncHelper<uint32_t>(config, &MacroAssembler::Uqincd, 16, kDRegSize, big32);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincd, 1, kDRegSize, 1);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincd, 2, kDRegSize, 42);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincd, 15, kDRegSize, 999);
+  QIncHelper<uint64_t>(config, &MacroAssembler::Uqincd, 16, kDRegSize, big64);
+}
+
+typedef void (MacroAssembler::*QIncDecXWFn)(const Register& dst,
+                                            const Register& src,
+                                            int pattern,
+                                            int multiplier);
+
+static void QIncDecXWHelper(Test* config,
+                            QIncDecXWFn cnt,
+                            int multiplier,
+                            int lane_size_in_bits,
+                            int32_t acc_value,
+                            bool is_increment) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Initialise accumulators.
+  __ Mov(x0, acc_value);
+  __ Mov(x1, acc_value);
+  __ Mov(x2, acc_value);
+  __ Mov(x3, acc_value);
+  __ Mov(x4, acc_value);
+  __ Mov(x5, acc_value);
+  __ Mov(x6, acc_value);
+  __ Mov(x7, acc_value);
+  __ Mov(x8, acc_value);
+  __ Mov(x9, acc_value);
+  __ Mov(x10, acc_value);
+  __ Mov(x11, acc_value);
+  __ Mov(x12, acc_value);
+  __ Mov(x13, acc_value);
+  __ Mov(x14, acc_value);
+  __ Mov(x15, acc_value);
+  __ Mov(x18, acc_value);
+  __ Mov(x19, acc_value);
+  __ Mov(x20, acc_value);
+  __ Mov(x21, acc_value);
+
+  (masm.*cnt)(x0, w0, SVE_POW2, multiplier);
+  (masm.*cnt)(x1, w1, SVE_VL1, multiplier);
+  (masm.*cnt)(x2, w2, SVE_VL2, multiplier);
+  (masm.*cnt)(x3, w3, SVE_VL3, multiplier);
+  (masm.*cnt)(x4, w4, SVE_VL4, multiplier);
+  (masm.*cnt)(x5, w5, SVE_VL5, multiplier);
+  (masm.*cnt)(x6, w6, SVE_VL6, multiplier);
+  (masm.*cnt)(x7, w7, SVE_VL7, multiplier);
+  (masm.*cnt)(x8, w8, SVE_VL8, multiplier);
+  (masm.*cnt)(x9, w9, SVE_VL16, multiplier);
+  (masm.*cnt)(x10, w10, SVE_VL32, multiplier);
+  (masm.*cnt)(x11, w11, SVE_VL64, multiplier);
+  (masm.*cnt)(x12, w12, SVE_VL128, multiplier);
+  (masm.*cnt)(x13, w13, SVE_VL256, multiplier);
+  (masm.*cnt)(x14, w14, 16, multiplier);
+  (masm.*cnt)(x15, w15, 23, multiplier);
+  (masm.*cnt)(x18, w18, 28, multiplier);
+  (masm.*cnt)(x19, w19, SVE_MUL4, multiplier);
+  (masm.*cnt)(x20, w20, SVE_MUL3, multiplier);
+  (masm.*cnt)(x21, w21, SVE_ALL, multiplier);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int all = core.GetSVELaneCount(lane_size_in_bits);
+    int pow2 = 1 << HighestSetBitPosition(all);
+    int mul4 = all - (all % 4);
+    int mul3 = all - (all % 3);
+
+    multiplier = is_increment ? multiplier : -multiplier;
+
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * pow2), x0);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(1, all)), x1);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(2, all)), x2);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(3, all)), x3);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(4, all)), x4);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(5, all)), x5);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(6, all)), x6);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(7, all)), x7);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(8, all)), x8);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(16, all)), x9);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(32, all)), x10);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(64, all)), x11);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(128, all)), x12);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * FixedVL(256, all)), x13);
+    ASSERT_EQUAL_64(acc_value, x14);
+    ASSERT_EQUAL_64(acc_value, x15);
+    ASSERT_EQUAL_64(acc_value, x18);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * mul4), x19);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * mul3), x20);
+    ASSERT_EQUAL_64(QAdd(acc_value, multiplier * all), x21);
+  }
+}
+
+static void QIncXWHelper(Test* config,
+                         QIncDecXWFn cnt,
+                         int multiplier,
+                         int lane_size_in_bits,
+                         int32_t acc_value) {
+  QIncDecXWHelper(config, cnt, multiplier, lane_size_in_bits, acc_value, true);
+}
+
+static void QDecXWHelper(Test* config,
+                         QIncDecXWFn cnt,
+                         int multiplier,
+                         int lane_size_in_bits,
+                         int32_t acc_value) {
+  QIncDecXWHelper(config, cnt, multiplier, lane_size_in_bits, acc_value, false);
+}
+
+TEST_SVE(sve_sqdecb_xw) {
+  QDecXWHelper(config, &MacroAssembler::Sqdecb, 1, kBRegSize, 1);
+  QDecXWHelper(config, &MacroAssembler::Sqdecb, 2, kBRegSize, INT32_MIN + 42);
+  QDecXWHelper(config, &MacroAssembler::Sqdecb, 15, kBRegSize, 999);
+  QDecXWHelper(config, &MacroAssembler::Sqdecb, 16, kBRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqdech_xw) {
+  QDecXWHelper(config, &MacroAssembler::Sqdech, 1, kHRegSize, 1);
+  QDecXWHelper(config, &MacroAssembler::Sqdech, 2, kHRegSize, INT32_MIN + 42);
+  QDecXWHelper(config, &MacroAssembler::Sqdech, 15, kHRegSize, 999);
+  QDecXWHelper(config, &MacroAssembler::Sqdech, 16, kHRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqdecw_xw) {
+  QDecXWHelper(config, &MacroAssembler::Sqdecw, 1, kWRegSize, 1);
+  QDecXWHelper(config, &MacroAssembler::Sqdecw, 2, kWRegSize, INT32_MIN + 42);
+  QDecXWHelper(config, &MacroAssembler::Sqdecw, 15, kWRegSize, 999);
+  QDecXWHelper(config, &MacroAssembler::Sqdecw, 16, kWRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqdecd_xw) {
+  QDecXWHelper(config, &MacroAssembler::Sqdecd, 1, kDRegSize, 1);
+  QDecXWHelper(config, &MacroAssembler::Sqdecd, 2, kDRegSize, INT32_MIN + 42);
+  QDecXWHelper(config, &MacroAssembler::Sqdecd, 15, kDRegSize, 999);
+  QDecXWHelper(config, &MacroAssembler::Sqdecd, 16, kDRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqincb_xw) {
+  QIncXWHelper(config, &MacroAssembler::Sqincb, 1, kBRegSize, 1);
+  QIncXWHelper(config, &MacroAssembler::Sqincb, 2, kBRegSize, INT32_MIN + 42);
+  QIncXWHelper(config, &MacroAssembler::Sqincb, 15, kBRegSize, 999);
+  QIncXWHelper(config, &MacroAssembler::Sqincb, 16, kBRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqinch_xw) {
+  QIncXWHelper(config, &MacroAssembler::Sqinch, 1, kHRegSize, 1);
+  QIncXWHelper(config, &MacroAssembler::Sqinch, 2, kHRegSize, INT32_MIN + 42);
+  QIncXWHelper(config, &MacroAssembler::Sqinch, 15, kHRegSize, 999);
+  QIncXWHelper(config, &MacroAssembler::Sqinch, 16, kHRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqincw_xw) {
+  QIncXWHelper(config, &MacroAssembler::Sqincw, 1, kWRegSize, 1);
+  QIncXWHelper(config, &MacroAssembler::Sqincw, 2, kWRegSize, INT32_MIN + 42);
+  QIncXWHelper(config, &MacroAssembler::Sqincw, 15, kWRegSize, 999);
+  QIncXWHelper(config, &MacroAssembler::Sqincw, 16, kWRegSize, INT32_MAX - 42);
+}
+
+TEST_SVE(sve_sqincd_xw) {
+  QIncXWHelper(config, &MacroAssembler::Sqincd, 1, kDRegSize, 1);
+  QIncXWHelper(config, &MacroAssembler::Sqincd, 2, kDRegSize, INT32_MIN + 42);
+  QIncXWHelper(config, &MacroAssembler::Sqincd, 15, kDRegSize, 999);
+  QIncXWHelper(config, &MacroAssembler::Sqincd, 16, kDRegSize, INT32_MAX - 42);
 }
 
 typedef void (MacroAssembler::*ArithPredicatedFn)(const ZRegister& zd,

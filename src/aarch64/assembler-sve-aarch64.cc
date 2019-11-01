@@ -379,69 +379,70 @@ void Assembler::lsr(const ZRegister& zd,
 
 // SVEElementCount.
 
-void Assembler::SVEElementCountToRegisterHelper(Instr op,
-                                                const Register& rd,
-                                                int pattern,
-                                                int multiplier) {
-  Emit(op | Rd(rd) | ImmSVEPredicateConstraint(pattern) |
-       ImmUnsignedField<19, 16>(multiplier - 1));
-}
+#define VIXL_SVE_INC_DEC_LIST(V)                          \
+  V(cntb, CNTB_r_s)                                       \
+  V(cnth, CNTH_r_s)                                       \
+  V(cntw, CNTW_r_s)                                       \
+  V(cntd, CNTD_r_s)                                       \
+  V(decb, DECB_r_rs)                                      \
+  V(dech, DECH_r_rs)                                      \
+  V(decw, DECW_r_rs)                                      \
+  V(decd, DECD_r_rs)                                      \
+  V(incb, INCB_r_rs)                                      \
+  V(inch, INCH_r_rs)                                      \
+  V(incw, INCW_r_rs)                                      \
+  V(incd, INCD_r_rs)                                      \
+  V(sqdecb, SQDECB_r_rs_x)                                \
+  V(sqdech, SQDECH_r_rs_x)                                \
+  V(sqdecw, SQDECW_r_rs_x)                                \
+  V(sqdecd, SQDECD_r_rs_x)                                \
+  V(sqincb, SQINCB_r_rs_x)                                \
+  V(sqinch, SQINCH_r_rs_x)                                \
+  V(sqincw, SQINCW_r_rs_x)                                \
+  V(sqincd, SQINCD_r_rs_x)                                \
+  V(uqdecb, (rdn.IsX() ? UQDECB_r_rs_x : UQDECB_r_rs_uw)) \
+  V(uqdech, (rdn.IsX() ? UQDECH_r_rs_x : UQDECH_r_rs_uw)) \
+  V(uqdecw, (rdn.IsX() ? UQDECW_r_rs_x : UQDECW_r_rs_uw)) \
+  V(uqdecd, (rdn.IsX() ? UQDECD_r_rs_x : UQDECD_r_rs_uw)) \
+  V(uqincb, (rdn.IsX() ? UQINCB_r_rs_x : UQINCB_r_rs_uw)) \
+  V(uqinch, (rdn.IsX() ? UQINCH_r_rs_x : UQINCH_r_rs_uw)) \
+  V(uqincw, (rdn.IsX() ? UQINCW_r_rs_x : UQINCW_r_rs_uw)) \
+  V(uqincd, (rdn.IsX() ? UQINCD_r_rs_x : UQINCD_r_rs_uw))
 
-void Assembler::cntb(const Register& rd, int pattern, int multiplier) {
-  // CNTB <Xd>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0010 .... 1110 00.. .... ....
-  //  size<23:22> = 00 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
+#define DEFINE_ASM_FUNC(FN, OP)                                          \
+  void Assembler::FN(const Register& rdn, int pattern, int multiplier) { \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                              \
+    Emit(OP | Rd(rdn) | ImmSVEPredicateConstraint(pattern) |             \
+         ImmUnsignedField<19, 16>(multiplier - 1));                      \
+  }
+VIXL_SVE_INC_DEC_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVEElementCountToRegisterHelper(CNTB_r_s, rd, pattern, multiplier);
-}
+// clang-format off
+#define SVE_SQX_INC_DEC_LIST(V) \
+  V(sqdecb, SQDECB)             \
+  V(sqdech, SQDECH)             \
+  V(sqdecw, SQDECW)             \
+  V(sqdecd, SQDECD)             \
+  V(sqincb, SQINCB)             \
+  V(sqinch, SQINCH)             \
+  V(sqincw, SQINCW)             \
+  V(sqincd, SQINCD)
+// clang-format on
 
-void Assembler::cntd(const Register& rd, int pattern, int multiplier) {
-  // CNTD <Xd>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1110 .... 1110 00.. .... ....
-  //  size<23:22> = 11 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVEElementCountToRegisterHelper(CNTD_r_s, rd, pattern, multiplier);
-}
-
-void Assembler::cnth(const Register& rd, int pattern, int multiplier) {
-  // CNTH <Xd>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0110 .... 1110 00.. .... ....
-  //  size<23:22> = 01 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVEElementCountToRegisterHelper(CNTH_r_s, rd, pattern, multiplier);
-}
-
-void Assembler::cntw(const Register& rd, int pattern, int multiplier) {
-  // CNTW <Xd>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1010 .... 1110 00.. .... ....
-  //  size<23:22> = 10 | imm4<19:16> | op<10> = 0 | pattern<9:5> | Rd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVEElementCountToRegisterHelper(CNTW_r_s, rd, pattern, multiplier);
-}
-
-void Assembler::decb(const Register& xdn, int pattern, int multiplier) {
-  // DECB <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0011 .... 1110 01.. .... ....
-  //  size<23:22> = 00 | imm4<19:16> | D<10> = 1 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(DECB_r_rs, xdn, pattern, multiplier);
-}
-
-void Assembler::decd(const Register& xdn, int pattern, int multiplier) {
-  // DECD <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1111 .... 1110 01.. .... ....
-  //  size<23:22> = 11 | imm4<19:16> | D<10> = 1 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(DECD_r_rs, xdn, pattern, multiplier);
-}
+#define DEFINE_ASM_FUNC(FN, OP)                                       \
+  void Assembler::FN(const Register& xd,                              \
+                     const Register& wn,                              \
+                     int pattern,                                     \
+                     int multiplier) {                                \
+    USE(wn);                                                          \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                           \
+    VIXL_ASSERT(wn.IsW() && xd.Is(wn.X()));                           \
+    Emit(OP##_r_rs_sx | Rd(xd) | ImmSVEPredicateConstraint(pattern) | \
+         ImmUnsignedField<19, 16>(multiplier - 1));                   \
+  }
+SVE_SQX_INC_DEC_LIST(DEFINE_ASM_FUNC)
+#undef DEFINE_ASM_FUNC
 
 void Assembler::decd(const ZRegister& zdn, int pattern) {
   // DECD <Zdn>.D{, <pattern>{, MUL #<imm>}}
@@ -451,16 +452,6 @@ void Assembler::decd(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(DECD_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::dech(const Register& xdn, int pattern, int multiplier) {
-  // DECH <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0111 .... 1110 01.. .... ....
-  //  size<23:22> = 01 | imm4<19:16> | D<10> = 1 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(DECH_r_rs, xdn, pattern, multiplier);
 }
 
 void Assembler::dech(const ZRegister& zdn, int pattern) {
@@ -473,16 +464,6 @@ void Assembler::dech(const ZRegister& zdn, int pattern) {
   Emit(DECH_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-void Assembler::decw(const Register& xdn, int pattern, int multiplier) {
-  // DECW <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1011 .... 1110 01.. .... ....
-  //  size<23:22> = 10 | imm4<19:16> | D<10> = 1 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(DECW_r_rs, xdn, pattern, multiplier);
-}
-
 void Assembler::decw(const ZRegister& zdn, int pattern) {
   // DECW <Zdn>.S{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1011 .... 1100 01.. .... ....
@@ -491,26 +472,6 @@ void Assembler::decw(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(DECW_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::incb(const Register& xdn, int pattern, int multiplier) {
-  // INCB <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0011 .... 1110 00.. .... ....
-  //  size<23:22> = 00 | imm4<19:16> | D<10> = 0 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(INCB_r_rs, xdn, pattern, multiplier);
-}
-
-void Assembler::incd(const Register& xdn, int pattern, int multiplier) {
-  // INCD <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1111 .... 1110 00.. .... ....
-  //  size<23:22> = 11 | imm4<19:16> | D<10> = 0 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(INCD_r_rs, xdn, pattern, multiplier);
 }
 
 void Assembler::incd(const ZRegister& zdn, int pattern) {
@@ -523,16 +484,6 @@ void Assembler::incd(const ZRegister& zdn, int pattern) {
   Emit(INCD_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-void Assembler::inch(const Register& xdn, int pattern, int multiplier) {
-  // INCH <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0111 .... 1110 00.. .... ....
-  //  size<23:22> = 01 | imm4<19:16> | D<10> = 0 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(INCH_r_rs, xdn, pattern, multiplier);
-}
-
 void Assembler::inch(const ZRegister& zdn, int pattern) {
   // INCH <Zdn>.H{, <pattern>{, MUL #<imm>}}
   //  0000 0100 0111 .... 1100 00.. .... ....
@@ -543,16 +494,6 @@ void Assembler::inch(const ZRegister& zdn, int pattern) {
   Emit(INCH_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-void Assembler::incw(const Register& xdn, int pattern, int multiplier) {
-  // INCW <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1011 .... 1110 00.. .... ....
-  //  size<23:22> = 10 | imm4<19:16> | D<10> = 0 | pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(xdn.IsX());
-  SVEElementCountToRegisterHelper(INCW_r_rs, xdn, pattern, multiplier);
-}
-
 void Assembler::incw(const ZRegister& zdn, int pattern) {
   // INCW <Zdn>.S{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1011 .... 1100 00.. .... ....
@@ -561,54 +502,6 @@ void Assembler::incw(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(INCW_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdecb(const Register& rd, const Register& wn, int pattern) {
-  // SQDECB <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0010 .... 1111 10.. .... ....
-  //  size<23:22> = 00 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQDECB_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdecb(const Register& rdn, int pattern) {
-  // SQDECB <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0011 .... 1111 10.. .... ....
-  //  size<23:22> = 00 | sf<20> = 1 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQDECB_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdecd(const Register& rd, const Register& wn, int pattern) {
-  // SQDECD <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1110 .... 1111 10.. .... ....
-  //  size<23:22> = 11 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQDECD_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdecd(const Register& rdn, int pattern) {
-  // SQDECD <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1111 .... 1111 10.. .... ....
-  //  size<23:22> = 11 | sf<20> = 1 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQDECD_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
 }
 
 void Assembler::sqdecd(const ZRegister& zdn, int pattern) {
@@ -622,30 +515,6 @@ void Assembler::sqdecd(const ZRegister& zdn, int pattern) {
   Emit(SQDECD_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-void Assembler::sqdech(const Register& rd, const Register& wn, int pattern) {
-  // SQDECH <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0110 .... 1111 10.. .... ....
-  //  size<23:22> = 01 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQDECH_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdech(const Register& rdn, int pattern) {
-  // SQDECH <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0111 .... 1111 10.. .... ....
-  //  size<23:22> = 01 | sf<20> = 1 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQDECH_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
 void Assembler::sqdech(const ZRegister& zdn, int pattern) {
   // SQDECH <Zdn>.H{, <pattern>{, MUL #<imm>}}
   //  0000 0100 0110 .... 1100 10.. .... ....
@@ -655,30 +524,6 @@ void Assembler::sqdech(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(SQDECH_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdecw(const Register& rd, const Register& wn, int pattern) {
-  // SQDECW <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1010 .... 1111 10.. .... ....
-  //  size<23:22> = 10 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQDECW_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqdecw(const Register& rdn, int pattern) {
-  // SQDECW <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1011 .... 1111 10.. .... ....
-  //  size<23:22> = 10 | sf<20> = 1 | imm4<19:16> | D<11> = 1 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQDECW_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
 }
 
 void Assembler::sqdecw(const ZRegister& zdn, int pattern) {
@@ -692,54 +537,6 @@ void Assembler::sqdecw(const ZRegister& zdn, int pattern) {
   Emit(SQDECW_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-void Assembler::sqincb(const Register& rd, const Register& wn, int pattern) {
-  // SQINCB <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0010 .... 1111 00.. .... ....
-  //  size<23:22> = 00 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQINCB_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqincb(const Register& rdn, int pattern) {
-  // SQINCB <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0011 .... 1111 00.. .... ....
-  //  size<23:22> = 00 | sf<20> = 1 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQINCB_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqincd(const Register& rd, const Register& wn, int pattern) {
-  // SQINCD <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1110 .... 1111 00.. .... ....
-  //  size<23:22> = 11 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQINCD_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqincd(const Register& rdn, int pattern) {
-  // SQINCD <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1111 .... 1111 00.. .... ....
-  //  size<23:22> = 11 | sf<20> = 1 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQINCD_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
 void Assembler::sqincd(const ZRegister& zdn, int pattern) {
   // SQINCD <Zdn>.D{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1110 .... 1100 00.. .... ....
@@ -749,30 +546,6 @@ void Assembler::sqincd(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(SQINCD_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqinch(const Register& rd, const Register& wn, int pattern) {
-  // SQINCH <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0110 .... 1111 00.. .... ....
-  //  size<23:22> = 01 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQINCH_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqinch(const Register& rdn, int pattern) {
-  // SQINCH <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0111 .... 1111 00.. .... ....
-  //  size<23:22> = 01 | sf<20> = 1 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQINCH_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
 }
 
 void Assembler::sqinch(const ZRegister& zdn, int pattern) {
@@ -786,30 +559,6 @@ void Assembler::sqinch(const ZRegister& zdn, int pattern) {
   Emit(SQINCH_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-void Assembler::sqincw(const Register& rd, const Register& wn, int pattern) {
-  // SQINCW <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1010 .... 1111 00.. .... ....
-  //  size<23:22> = 10 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  USE(wn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(rd.Is(wn));
-
-  Emit(SQINCW_r_rs_sx | Rd(rd) | ImmField<9, 5>(pattern));
-}
-
-void Assembler::sqincw(const Register& rdn, int pattern) {
-  // SQINCW <Xdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1011 .... 1111 00.. .... ....
-  //  size<23:22> = 10 | sf<20> = 1 | imm4<19:16> | D<11> = 0 | U<10> = 0 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(SQINCW_r_rs_x | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
 void Assembler::sqincw(const ZRegister& zdn, int pattern) {
   // SQINCW <Zdn>.S{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1010 .... 1100 00.. .... ....
@@ -819,34 +568,6 @@ void Assembler::sqincw(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(SQINCW_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  UQDECB_r_rs_uw
-//  UQDECB_r_rs_x
-void Assembler::uqdecb(const Register& rdn, int pattern) {
-  // UQDECB <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0010 .... 1111 11.. .... ....
-  //  size<23:22> = 00 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQDECB_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  UQDECD_r_rs_uw
-//  UQDECD_r_rs_x
-void Assembler::uqdecd(const Register& rdn, int pattern) {
-  // UQDECD <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1110 .... 1111 11.. .... ....
-  //  size<23:22> = 11 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQDECD_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
 }
 
 void Assembler::uqdecd(const ZRegister& zdn, int pattern) {
@@ -860,20 +581,6 @@ void Assembler::uqdecd(const ZRegister& zdn, int pattern) {
   Emit(UQDECD_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  UQDECH_r_rs_uw
-//  UQDECH_r_rs_x
-void Assembler::uqdech(const Register& rdn, int pattern) {
-  // UQDECH <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0110 .... 1111 11.. .... ....
-  //  size<23:22> = 01 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQDECH_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
 void Assembler::uqdech(const ZRegister& zdn, int pattern) {
   // UQDECH <Zdn>.H{, <pattern>{, MUL #<imm>}}
   //  0000 0100 0110 .... 1100 11.. .... ....
@@ -883,20 +590,6 @@ void Assembler::uqdech(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(UQDECH_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  UQDECW_r_rs_uw
-//  UQDECW_r_rs_x
-void Assembler::uqdecw(const Register& rdn, int pattern) {
-  // UQDECW <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1010 .... 1111 11.. .... ....
-  //  size<23:22> = 10 | sf<20> = 0 | imm4<19:16> | D<11> = 1 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQDECW_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
 }
 
 void Assembler::uqdecw(const ZRegister& zdn, int pattern) {
@@ -910,34 +603,6 @@ void Assembler::uqdecw(const ZRegister& zdn, int pattern) {
   Emit(UQDECW_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  UQINCB_r_rs_uw
-//  UQINCB_r_rs_x
-void Assembler::uqincb(const Register& rdn, int pattern) {
-  // UQINCB <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0010 .... 1111 01.. .... ....
-  //  size<23:22> = 00 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQINCB_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  UQINCD_r_rs_uw
-//  UQINCD_r_rs_x
-void Assembler::uqincd(const Register& rdn, int pattern) {
-  // UQINCD <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1110 .... 1111 01.. .... ....
-  //  size<23:22> = 11 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQINCD_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
 void Assembler::uqincd(const ZRegister& zdn, int pattern) {
   // UQINCD <Zdn>.D{, <pattern>{, MUL #<imm>}}
   //  0000 0100 1110 .... 1100 01.. .... ....
@@ -949,20 +614,6 @@ void Assembler::uqincd(const ZRegister& zdn, int pattern) {
   Emit(UQINCD_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  UQINCH_r_rs_uw
-//  UQINCH_r_rs_x
-void Assembler::uqinch(const Register& rdn, int pattern) {
-  // UQINCH <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 0110 .... 1111 01.. .... ....
-  //  size<23:22> = 01 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQINCH_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
-}
-
 void Assembler::uqinch(const ZRegister& zdn, int pattern) {
   // UQINCH <Zdn>.H{, <pattern>{, MUL #<imm>}}
   //  0000 0100 0110 .... 1100 01.. .... ....
@@ -972,20 +623,6 @@ void Assembler::uqinch(const ZRegister& zdn, int pattern) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(UQINCH_z_zs | Rd(zdn) | ImmField<9, 5>(pattern));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  UQINCW_r_rs_uw
-//  UQINCW_r_rs_x
-void Assembler::uqincw(const Register& rdn, int pattern) {
-  // UQINCW <Wdn>{, <pattern>{, MUL #<imm>}}
-  //  0000 0100 1010 .... 1111 01.. .... ....
-  //  size<23:22> = 10 | sf<20> = 0 | imm4<19:16> | D<11> = 0 | U<10> = 1 |
-  //  pattern<9:5> | Rdn<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(UQINCW_r_rs_uw | Rd(rdn) | ImmField<9, 5>(pattern));
 }
 
 void Assembler::uqincw(const ZRegister& zdn, int pattern) {

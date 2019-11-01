@@ -8049,142 +8049,107 @@ void Disassembler::VisitSVESaturatingIncDecRegisterByElementCount(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Xdn>{, <pattern>{, MUL #<imm>}}
-  const char *form = "'Rd{, #'u0905{, MUL #<imm>}}";
+  const char *form = "'R20d, 'Ipc, mul #'u1916+1";
+  const char *form_sx = "'Xd, 'Wd, 'Ipc, mul #'u1916+1";
+
+  // Omit the immediate if it's one, which is encoded as zero.
+  if (instr->ExtractBits(19, 16) == 0) {
+    form = "'R20d, 'Ipc";
+    form_sx = "'Xd, 'Wd, 'Ipc";
+
+    // Also omit the pattern if it's the default ('ALL').
+    if (instr->ExtractBits(9, 5) == SVE_ALL) {
+      form = "'R20d";
+      form_sx = "'Xd, 'Wd";
+    }
+  }
 
   switch (instr->Mask(SVESaturatingIncDecRegisterByElementCountMask)) {
-    // SQDECB <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
     case SQDECB_r_rs_sx:
       mnemonic = "sqdecb";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
+      form = form_sx;
       break;
-    // SQDECB <Xdn>{, <pattern>{, MUL #<imm>}}
+    case SQDECD_r_rs_sx:
+      mnemonic = "sqdecd";
+      form = form_sx;
+      break;
+    case SQDECH_r_rs_sx:
+      mnemonic = "sqdech";
+      form = form_sx;
+      break;
+    case SQDECW_r_rs_sx:
+      mnemonic = "sqdecw";
+      form = form_sx;
+      break;
+    case SQINCB_r_rs_sx:
+      mnemonic = "sqincb";
+      form = form_sx;
+      break;
+    case SQINCD_r_rs_sx:
+      mnemonic = "sqincd";
+      form = form_sx;
+      break;
+    case SQINCH_r_rs_sx:
+      mnemonic = "sqinch";
+      form = form_sx;
+      break;
+    case SQINCW_r_rs_sx:
+      mnemonic = "sqincw";
+      form = form_sx;
+      break;
     case SQDECB_r_rs_x:
       mnemonic = "sqdecb";
       break;
-    // SQDECD <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQDECD_r_rs_sx:
-      mnemonic = "sqdecd";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQDECD <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQDECD_r_rs_x:
       mnemonic = "sqdecd";
       break;
-    // SQDECH <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQDECH_r_rs_sx:
-      mnemonic = "sqdech";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQDECH <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQDECH_r_rs_x:
       mnemonic = "sqdech";
       break;
-    // SQDECW <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQDECW_r_rs_sx:
-      mnemonic = "sqdecw";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQDECW <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQDECW_r_rs_x:
       mnemonic = "sqdecw";
       break;
-    // SQINCB <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQINCB_r_rs_sx:
-      mnemonic = "sqincb";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQINCB <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQINCB_r_rs_x:
       mnemonic = "sqincb";
       break;
-    // SQINCD <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQINCD_r_rs_sx:
-      mnemonic = "sqincd";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQINCD <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQINCD_r_rs_x:
       mnemonic = "sqincd";
       break;
-    // SQINCH <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQINCH_r_rs_sx:
-      mnemonic = "sqinch";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQINCH <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQINCH_r_rs_x:
       mnemonic = "sqinch";
       break;
-    // SQINCW <Xdn>, <Wdn>{, <pattern>{, MUL #<imm>}}
-    case SQINCW_r_rs_sx:
-      mnemonic = "sqincw";
-      form = "'Rd, 'Rd{, #'u0905{, MUL #<imm>}}";
-      break;
-    // SQINCW <Xdn>{, <pattern>{, MUL #<imm>}}
     case SQINCW_r_rs_x:
       mnemonic = "sqincw";
       break;
-    // UQDECB <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQDECB_r_rs_uw:
-      mnemonic = "uqdecb";
-      break;
-    // UQDECB <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQDECB_r_rs_x:
       mnemonic = "uqdecb";
       break;
-    // UQDECD <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQDECD_r_rs_uw:
-      mnemonic = "uqdecd";
-      break;
-    // UQDECD <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQDECD_r_rs_x:
       mnemonic = "uqdecd";
       break;
-    // UQDECH <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQDECH_r_rs_uw:
-      mnemonic = "uqdech";
-      break;
-    // UQDECH <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQDECH_r_rs_x:
       mnemonic = "uqdech";
       break;
-    // UQDECW <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQDECW_r_rs_uw:
-      mnemonic = "uqdecw";
-      break;
-    // UQDECW <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQDECW_r_rs_x:
       mnemonic = "uqdecw";
       break;
-    // UQINCB <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQINCB_r_rs_uw:
-      mnemonic = "uqincb";
-      break;
-    // UQINCB <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQINCB_r_rs_x:
       mnemonic = "uqincb";
       break;
-    // UQINCD <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQINCD_r_rs_uw:
-      mnemonic = "uqincd";
-      break;
-    // UQINCD <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQINCD_r_rs_x:
       mnemonic = "uqincd";
       break;
-    // UQINCH <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQINCH_r_rs_uw:
-      mnemonic = "uqinch";
-      break;
-    // UQINCH <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQINCH_r_rs_x:
       mnemonic = "uqinch";
       break;
-    // UQINCW <Wdn>{, <pattern>{, MUL #<imm>}}
     case UQINCW_r_rs_uw:
-      mnemonic = "uqincw";
-      break;
-    // UQINCW <Xdn>{, <pattern>{, MUL #<imm>}}
     case UQINCW_r_rs_x:
       mnemonic = "uqincw";
       break;

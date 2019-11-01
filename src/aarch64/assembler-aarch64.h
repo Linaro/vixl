@@ -3947,13 +3947,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cnt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cntb(const Register& rd, int pattern, int multiplier);
+  void cntb(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cntd(const Register& rd, int pattern, int multiplier);
+  void cntd(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cnth(const Register& rd, int pattern, int multiplier);
+  void cnth(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
 
   // Set scalar to active predicate element count.
   void cntp(const Register& xd,
@@ -3961,7 +3961,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterWithLaneSize& pn);
 
   // Set scalar to multiple of predicate constraint element count.
-  void cntw(const Register& rd, int pattern, int multiplier);
+  void cntw(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
 
   // Shuffle active elements of vector to the right and fill with zero.
   void compact(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);
@@ -3982,16 +3982,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ctermne(const Register& rn, const Register& rm);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void decb(const Register& xdn, int pattern, int multiplier);
+  void decb(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void decd(const Register& xdn, int pattern, int multiplier);
+  void decd(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Decrement vector by multiple of predicate constraint element count.
   void decd(const ZRegister& zdn, int pattern);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void dech(const Register& xdn, int pattern, int multiplier);
+  void dech(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Decrement vector by multiple of predicate constraint element count.
   void dech(const ZRegister& zdn, int pattern);
@@ -4003,7 +4003,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void decp(const ZRegister& zdn, const PRegister& pg);
 
   // Decrement scalar by multiple of predicate constraint element count.
-  void decw(const Register& xdn, int pattern, int multiplier);
+  void decw(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Decrement vector by multiple of predicate constraint element count.
   void decw(const ZRegister& zdn, int pattern);
@@ -4430,16 +4430,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ftssel(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void incb(const Register& xdn, int pattern, int multiplier);
+  void incb(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void incd(const Register& xdn, int pattern, int multiplier);
+  void incd(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Increment vector by multiple of predicate constraint element count.
   void incd(const ZRegister& zdn, int pattern);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void inch(const Register& xdn, int pattern, int multiplier);
+  void inch(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Increment vector by multiple of predicate constraint element count.
   void inch(const ZRegister& zdn, int pattern);
@@ -4451,7 +4451,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void incp(const ZRegister& zdn, const PRegister& pg);
 
   // Increment scalar by multiple of predicate constraint element count.
-  void incw(const Register& xdn, int pattern, int multiplier);
+  void incw(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Increment vector by multiple of predicate constraint element count.
   void incw(const ZRegister& zdn, int pattern);
@@ -5384,19 +5384,25 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating decrement scalar by multiple of 8-bit predicate
   // constraint element count.
-  void sqdecb(const Register& rd, const Register& wn, int pattern);
+  void sqdecb(const Register& xd,
+              const Register& wn,
+              int pattern,
+              int multiplier);
 
   // Signed saturating decrement scalar by multiple of 8-bit predicate
   // constraint element count.
-  void sqdecb(const Register& rdn, int pattern);
+  void sqdecb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating decrement scalar by multiple of 64-bit predicate
   // constraint element count.
-  void sqdecd(const Register& rd, const Register& wn, int pattern);
+  void sqdecd(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
 
   // Signed saturating decrement scalar by multiple of 64-bit predicate
   // constraint element count.
-  void sqdecd(const Register& rdn, int pattern);
+  void sqdecd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating decrement vector by multiple of 64-bit predicate
   // constraint element count.
@@ -5404,11 +5410,14 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating decrement scalar by multiple of 16-bit predicate
   // constraint element count.
-  void sqdech(const Register& rd, const Register& wn, int pattern);
+  void sqdech(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
 
   // Signed saturating decrement scalar by multiple of 16-bit predicate
   // constraint element count.
-  void sqdech(const Register& rdn, int pattern);
+  void sqdech(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating decrement vector by multiple of 16-bit predicate
   // constraint element count.
@@ -5427,11 +5436,14 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating decrement scalar by multiple of 32-bit predicate
   // constraint element count.
-  void sqdecw(const Register& rd, const Register& wn, int pattern);
+  void sqdecw(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
 
   // Signed saturating decrement scalar by multiple of 32-bit predicate
   // constraint element count.
-  void sqdecw(const Register& rdn, int pattern);
+  void sqdecw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating decrement vector by multiple of 32-bit predicate
   // constraint element count.
@@ -5439,19 +5451,25 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating increment scalar by multiple of 8-bit predicate
   // constraint element count.
-  void sqincb(const Register& rd, const Register& wn, int pattern);
+  void sqincb(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
 
   // Signed saturating increment scalar by multiple of 8-bit predicate
   // constraint element count.
-  void sqincb(const Register& rdn, int pattern);
+  void sqincb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating increment scalar by multiple of 64-bit predicate
   // constraint element count.
-  void sqincd(const Register& rd, const Register& wn, int pattern);
+  void sqincd(const Register& xd,
+              const Register& wn,
+              int pattern,
+              int multiplier);
 
   // Signed saturating increment scalar by multiple of 64-bit predicate
   // constraint element count.
-  void sqincd(const Register& rdn, int pattern);
+  void sqincd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating increment vector by multiple of 64-bit predicate
   // constraint element count.
@@ -5459,11 +5477,14 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating increment scalar by multiple of 16-bit predicate
   // constraint element count.
-  void sqinch(const Register& rd, const Register& wn, int pattern);
+  void sqinch(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
 
   // Signed saturating increment scalar by multiple of 16-bit predicate
   // constraint element count.
-  void sqinch(const Register& rdn, int pattern);
+  void sqinch(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating increment vector by multiple of 16-bit predicate
   // constraint element count.
@@ -5482,11 +5503,14 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating increment scalar by multiple of 32-bit predicate
   // constraint element count.
-  void sqincw(const Register& rd, const Register& wn, int pattern);
+  void sqincw(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
 
   // Signed saturating increment scalar by multiple of 32-bit predicate
   // constraint element count.
-  void sqincw(const Register& rdn, int pattern);
+  void sqincw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Signed saturating increment vector by multiple of 32-bit predicate
   // constraint element count.
@@ -5834,11 +5858,11 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned saturating decrement scalar by multiple of 8-bit predicate
   // constraint element count.
-  void uqdecb(const Register& rdn, int pattern);
+  void uqdecb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating decrement scalar by multiple of 64-bit predicate
   // constraint element count.
-  void uqdecd(const Register& rdn, int pattern);
+  void uqdecd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating decrement vector by multiple of 64-bit predicate
   // constraint element count.
@@ -5846,7 +5870,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned saturating decrement scalar by multiple of 16-bit predicate
   // constraint element count.
-  void uqdech(const Register& rdn, int pattern);
+  void uqdech(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating decrement vector by multiple of 16-bit predicate
   // constraint element count.
@@ -5860,7 +5884,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned saturating decrement scalar by multiple of 32-bit predicate
   // constraint element count.
-  void uqdecw(const Register& rdn, int pattern);
+  void uqdecw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating decrement vector by multiple of 32-bit predicate
   // constraint element count.
@@ -5868,11 +5892,11 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned saturating increment scalar by multiple of 8-bit predicate
   // constraint element count.
-  void uqincb(const Register& rdn, int pattern);
+  void uqincb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating increment scalar by multiple of 64-bit predicate
   // constraint element count.
-  void uqincd(const Register& rdn, int pattern);
+  void uqincd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating increment vector by multiple of 64-bit predicate
   // constraint element count.
@@ -5880,7 +5904,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned saturating increment scalar by multiple of 16-bit predicate
   // constraint element count.
-  void uqinch(const Register& rdn, int pattern);
+  void uqinch(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating increment vector by multiple of 16-bit predicate
   // constraint element count.
@@ -5894,7 +5918,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned saturating increment scalar by multiple of 32-bit predicate
   // constraint element count.
-  void uqincw(const Register& rdn, int pattern);
+  void uqincw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
 
   // Unsigned saturating increment vector by multiple of 32-bit predicate
   // constraint element count.
