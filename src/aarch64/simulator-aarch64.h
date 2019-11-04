@@ -737,7 +737,10 @@ class LogicVRegister {
 // make iteration easy.
 class LogicSVEAddressVector {
  public:
-  explicit LogicSVEAddressVector(uint64_t base) : base_(base) {}
+  explicit LogicSVEAddressVector(uint64_t base)
+      : base_(base),
+        msize_in_bytes_log2_(kUnknownMsizeInBytesLog2),
+        reg_count_(1) {}
 
   LogicSVEAddressVector(uint64_t base, const SimVRegister& vector)
       : base_(base) {
@@ -745,14 +748,38 @@ class LogicSVEAddressVector {
     VIXL_UNIMPLEMENTED();
   }
 
+  // Set `msize` -- the memory occupied by each lane -- for address
+  // calculations.
+  void SetMsizeInBytesLog2(int msize_in_bytes_log2) {
+    VIXL_ASSERT(msize_in_bytes_log2 >= static_cast<int>(kBRegSizeInBytesLog2));
+    VIXL_ASSERT(msize_in_bytes_log2 <= static_cast<int>(kDRegSizeInBytesLog2));
+    msize_in_bytes_log2_ = msize_in_bytes_log2;
+  }
+
+  bool HasMsize() const {
+    return msize_in_bytes_log2_ != kUnknownMsizeInBytesLog2;
+  }
+
+  int GetMsizeInBytesLog2() const {
+    VIXL_ASSERT(HasMsize());
+    return msize_in_bytes_log2_;
+  }
+
+  int GetMsizeInBytes() const { return 1 << GetMsizeInBytesLog2(); }
+
+  void SetRegCount(int reg_count) {
+    VIXL_ASSERT(reg_count >= 1);  // E.g. ld1/st1
+    VIXL_ASSERT(reg_count <= 4);  // E.g. ld4/st4
+    reg_count_ = reg_count;
+  }
+
+  int GetRegCount() const { return reg_count_; }
+
   // Full per-element calculation for structured accesses.
   //
   // Note that the register number argument (`reg`) is zero-based.
-  uint64_t GetElementAddress(unsigned msize_in_bytes,
-                             unsigned reg_count,
-                             unsigned lane,
-                             unsigned reg) const {
-    VIXL_ASSERT(reg < reg_count);
+  uint64_t GetElementAddress(int lane, int reg) const {
+    VIXL_ASSERT(reg < GetRegCount());
     if (IsContiguous()) {
       // Contiguous elements are interleaved as follows:
       //
@@ -764,8 +791,8 @@ class LogicSVEAddressVector {
       //    base + (2 * msize_in_bytes): zt3[0]
       //    base + (1 * msize_in_bytes): zt2[0]
       //    base + (0 * msize_in_bytes): zt[0]
-      uint64_t index = (lane * reg_count) + reg;
-      return base_ + (index * msize_in_bytes);
+      uint64_t index = (lane * GetRegCount()) + reg;
+      return base_ + (index * GetMsizeInBytes());
     } else {
       VIXL_UNIMPLEMENTED();
       return 0;
@@ -777,6 +804,10 @@ class LogicSVEAddressVector {
 
  private:
   uint64_t base_;
+  int msize_in_bytes_log2_;
+  int reg_count_;
+
+  static const int kUnknownMsizeInBytesLog2 = -1;
 };
 
 // The proper way to initialize a simulated system register (such as NZCV) is as
@@ -3845,24 +3876,20 @@ class Simulator : public DecoderVisitor {
                                             const LogicVRegister& src2,
                                             bool is_wide_elements = false);
 
-  // Store each active zt<i>[lane] to `addr.GetElementAddress(..., lane, ...)`.
+  // Store each active zt<i>[lane] to `addr.GetElementAddress(lane, ...)`.
   //
   // `zt_code` specifies the code of the first register (zt). Each additional
   // register (up to `reg_count`) is `(zt_code + i) % 32`.
   //
   // This helper calls LogZWrite in the proper way, according to `addr`.
-  void SVEStructuredStoreHelper(int msize_in_bytes_log2,
-                                VectorFormat vform,
+  void SVEStructuredStoreHelper(VectorFormat vform,
                                 const LogicPRegister& pg,
                                 unsigned zt_code,
-                                unsigned reg_count,
                                 const LogicSVEAddressVector& addr);
-  // Load each active zt<i>[lane] from `addr.GetElementAddress(..., lane, ...)`.
-  void SVEStructuredLoadHelper(int msize_in_bytes_log2,
-                               VectorFormat vform,
+  // Load each active zt<i>[lane] from `addr.GetElementAddress(lane, ...)`.
+  void SVEStructuredLoadHelper(VectorFormat vform,
                                const LogicPRegister& pg,
                                unsigned zt_code,
-                               unsigned reg_count,
                                const LogicSVEAddressVector& addr,
                                bool is_signed = false);
 

@@ -6109,6 +6109,459 @@ TEST_SVE(sve_ld1_st1_contiguous) {
   delete[] data;
 }
 
+TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+
+  // Allocate plenty of space to enable indexing in both directions.
+  int data_size = vl * 128;
+
+  uint8_t* data = new uint8_t[data_size];
+  memset(data, 0, data_size);
+
+  // Set the base half-way through the buffer so we can use negative indeces.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  __ Index(z0.VnB(), -4, 11);
+  __ Index(z1.VnB(), -5, 11);
+  __ Ptrue(p7.VnB(), SVE_MUL4);
+  __ Mov(x1, 0);
+  __ St2b(z0.VnB(), z1.VnB(), p7, SVEMemOperand(x0, x1));
+
+  __ Index(z2.VnH(), 6, -2);
+  __ Index(z3.VnH(), 7, -2);
+  __ Ptrue(p6.VnH(), SVE_VL16);
+  __ Rdvl(x2, 3);  // Make offsets VL-dependent so we can avoid overlap.
+  __ St2h(z2.VnH(), z3.VnH(), p6, SVEMemOperand(x0, x2, LSL, 1));
+
+  __ Index(z4.VnS(), -7, 3);
+  __ Index(z5.VnS(), -8, 3);
+  // Sparse predication, including some irrelevant bits (0xe). To make the
+  // results easy to check, activate each lane <n> where n is a multiple of 5.
+  Initialise(&masm,
+             p5,
+             0xeee1000010000100,
+             0x001eeee100001000,
+             0x0100001eeee10000,
+             0x10000100001eeee1);
+  __ Rdvl(x4, -3);
+  __ St2w(z4.VnS(), z5.VnS(), p5, SVEMemOperand(x0, x4, LSL, 2));
+
+  // Wrap around from z31 to z0.
+  __ Index(z31.VnD(), 32, -11);
+  __ Index(z0.VnD(), 33, -11);
+  __ Ptrue(p4.VnD(), SVE_MUL3);
+  __ Rdvl(x5, 1);
+  __ St2d(z31.VnD(), z0.VnD(), p4, SVEMemOperand(x0, x5, LSL, 3));
+
+  // TODO: Corresponding loads.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint8_t* expected = new uint8_t[data_size];
+    memset(expected, 0, data_size);
+    uint8_t* middle = &expected[data_size / 2];
+
+    int vl_b = vl / kBRegSizeInBytes;
+    int vl_h = vl / kHRegSizeInBytes;
+    int vl_s = vl / kSRegSizeInBytes;
+    int vl_d = vl / kDRegSizeInBytes;
+
+    int reg_count = 2;
+
+    // st2b { z0.b, z1.b }, SVE_MUL4
+    int vl_b_mul4 = vl_b - (vl_b % 4);
+    for (int i = 0; i < vl_b_mul4; i++) {
+      uint8_t lane0 = -4 + (11 * i);
+      uint8_t lane1 = -5 + (11 * i);
+      MemoryWrite(middle, 0, (i * reg_count) + 0, lane0);
+      MemoryWrite(middle, 0, (i * reg_count) + 1, lane1);
+    }
+
+    // st2h { z2.h, z3.h }, SVE_VL16
+    if (vl_h >= 16) {
+      for (int i = 0; i < 16; i++) {
+        int64_t offset = (3 << kHRegSizeInBytesLog2) * vl;
+        uint16_t lane0 = 6 - (2 * i);
+        uint16_t lane1 = 7 - (2 * i);
+        MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+        MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+      }
+    }
+
+    // st2w { z4.s, z5.s }, ((i % 5) == 0)
+    for (int i = 0; i < vl_s; i++) {
+      if ((i % 5) == 0) {
+        int64_t offset = -(3 << kSRegSizeInBytesLog2) * vl;
+        uint32_t lane0 = -7 + (3 * i);
+        uint32_t lane1 = -8 + (3 * i);
+        MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+        MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+      }
+    }
+
+    // st2d { z31.b, z0.b }, SVE_MUL3
+    int vl_d_mul3 = vl_d - (vl_d % 3);
+    for (int i = 0; i < vl_d_mul3; i++) {
+      int64_t offset = (1 << kDRegSizeInBytesLog2) * vl;
+      uint64_t lane0 = 32 - (11 * i);
+      uint64_t lane1 = 33 - (11 * i);
+      MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+      MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+    }
+
+    ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
+
+    delete[] expected;
+  }
+  delete[] data;
+}
+
+TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+
+  // Allocate plenty of space to enable indexing in both directions.
+  int data_size = vl * 128;
+
+  uint8_t* data = new uint8_t[data_size];
+  memset(data, 0, data_size);
+
+  // Set the base half-way through the buffer so we can use negative indeces.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  __ Index(z0.VnB(), -4, 11);
+  __ Index(z1.VnB(), -5, 11);
+  __ Index(z2.VnB(), -6, 11);
+  __ Ptrue(p7.VnB(), SVE_MUL4);
+  __ Rdvl(x1, -10);
+  __ St3b(z0.VnB(), z1.VnB(), z2.VnB(), p7, SVEMemOperand(x0, x1, LSL, 0));
+
+  __ Index(z2.VnH(), 6, -2);
+  __ Index(z3.VnH(), 7, -2);
+  __ Index(z4.VnH(), 8, -2);
+  __ Ptrue(p6.VnH(), SVE_VL16);
+  __ Rdvl(x2, 5);  // Make offsets VL-dependent so we can avoid overlap.
+  __ St3h(z2.VnH(), z3.VnH(), z4.VnH(), p6, SVEMemOperand(x0, x2, LSL, 1));
+
+  // Wrap around from z31 to z0.
+  __ Index(z30.VnS(), -7, 3);
+  __ Index(z31.VnS(), -8, 3);
+  __ Index(z0.VnS(), -9, 3);
+  // Sparse predication, including some irrelevant bits (0xe). To make the
+  // results easy to check, activate each lane <n> where n is a multiple of 5.
+  Initialise(&masm,
+             p5,
+             0xeee1000010000100,
+             0x001eeee100001000,
+             0x0100001eeee10000,
+             0x10000100001eeee1);
+  __ Rdvl(x4, -5);
+  __ St3w(z30.VnS(), z31.VnS(), z0.VnS(), p5, SVEMemOperand(x0, x4, LSL, 2));
+
+  __ Index(z31.VnD(), 32, -11);
+  __ Index(z0.VnD(), 33, -11);
+  __ Index(z1.VnD(), 34, -11);
+  __ Ptrue(p4.VnD(), SVE_MUL3);
+  __ Rdvl(x5, 1);
+  __ St3d(z31.VnD(), z0.VnD(), z1.VnD(), p4, SVEMemOperand(x0, x5, LSL, 3));
+
+  // TODO: Corresponding loads.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint8_t* expected = new uint8_t[data_size];
+    memset(expected, 0, data_size);
+    uint8_t* middle = &expected[data_size / 2];
+
+    int vl_b = vl / kBRegSizeInBytes;
+    int vl_h = vl / kHRegSizeInBytes;
+    int vl_s = vl / kSRegSizeInBytes;
+    int vl_d = vl / kDRegSizeInBytes;
+
+    int reg_count = 3;
+
+    // st3b { z0.b, z1.b, z0.b }, SVE_MUL4
+    int vl_b_mul4 = vl_b - (vl_b % 4);
+    for (int i = 0; i < vl_b_mul4; i++) {
+      int64_t offset = -(10 << kBRegSizeInBytesLog2) * vl;
+      uint8_t lane0 = -4 + (11 * i);
+      uint8_t lane1 = -5 + (11 * i);
+      uint8_t lane2 = -6 + (11 * i);
+      MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+      MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+      MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+    }
+
+    // st3h { z2.h, z3.h, z4.h }, SVE_VL16
+    if (vl_h >= 16) {
+      for (int i = 0; i < 16; i++) {
+        int64_t offset = (5 << kHRegSizeInBytesLog2) * vl;
+        uint16_t lane0 = 6 - (2 * i);
+        uint16_t lane1 = 7 - (2 * i);
+        uint16_t lane2 = 8 - (2 * i);
+        MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+        MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+        MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+      }
+    }
+
+    // st3w { z30.s, z31.s, z0.s }, ((i % 5) == 0)
+    for (int i = 0; i < vl_s; i++) {
+      if ((i % 5) == 0) {
+        int64_t offset = -(5 << kSRegSizeInBytesLog2) * vl;
+        uint32_t lane0 = -7 + (3 * i);
+        uint32_t lane1 = -8 + (3 * i);
+        uint32_t lane2 = -9 + (3 * i);
+        MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+        MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+        MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+      }
+    }
+
+    // st3d { z31.d, z0.d, z1.d }, SVE_MUL3
+    int vl_d_mul3 = vl_d - (vl_d % 3);
+    for (int i = 0; i < vl_d_mul3; i++) {
+      int64_t offset = (1 << kDRegSizeInBytesLog2) * vl;
+      uint64_t lane0 = 32 - (11 * i);
+      uint64_t lane1 = 33 - (11 * i);
+      uint64_t lane2 = 34 - (11 * i);
+      MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+      MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+      MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+    }
+
+    ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
+
+    delete[] expected;
+  }
+  delete[] data;
+}
+
+TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+
+  // Allocate plenty of space to enable indexing in both directions.
+  int data_size = vl * 128;
+
+  uint8_t* data = new uint8_t[data_size];
+  memset(data, 0, data_size);
+
+  // Set the base half-way through the buffer so we can use negative indeces.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  __ Index(z0.VnB(), -4, 11);
+  __ Index(z1.VnB(), -5, 11);
+  __ Index(z2.VnB(), -6, 11);
+  __ Index(z3.VnB(), -7, 11);
+  __ Ptrue(p7.VnB(), SVE_MUL4);
+  __ Rdvl(x1, -10);
+  __ St4b(z0.VnB(),
+          z1.VnB(),
+          z2.VnB(),
+          z3.VnB(),
+          p7,
+          SVEMemOperand(x0, x1, LSL, 0));
+
+  __ Index(z2.VnH(), 6, -2);
+  __ Index(z3.VnH(), 7, -2);
+  __ Index(z4.VnH(), 8, -2);
+  __ Index(z5.VnH(), 9, -2);
+  __ Ptrue(p6.VnH(), SVE_VL16);
+  __ Rdvl(x2, 7);  // Make offsets VL-dependent so we can avoid overlap.
+  __ St4h(z2.VnH(),
+          z3.VnH(),
+          z4.VnH(),
+          z5.VnH(),
+          p6,
+          SVEMemOperand(x0, x2, LSL, 1));
+
+  // Wrap around from z31 to z0.
+  __ Index(z29.VnS(), -6, 7);
+  __ Index(z30.VnS(), -7, 7);
+  __ Index(z31.VnS(), -8, 7);
+  __ Index(z0.VnS(), -9, 7);
+  // Sparse predication, including some irrelevant bits (0xe). To make the
+  // results easy to check, activate each lane <n> where n is a multiple of 5.
+  Initialise(&masm,
+             p5,
+             0xeee1000010000100,
+             0x001eeee100001000,
+             0x0100001eeee10000,
+             0x10000100001eeee1);
+  __ Rdvl(x4, -5);
+  __ St4w(z29.VnS(),
+          z30.VnS(),
+          z31.VnS(),
+          z0.VnS(),
+          p5,
+          SVEMemOperand(x0, x4, LSL, 2));
+
+  __ Index(z31.VnD(), 32, -11);
+  __ Index(z0.VnD(), 33, -11);
+  __ Index(z1.VnD(), 34, -11);
+  __ Index(z2.VnD(), 35, -11);
+  __ Ptrue(p4.VnD(), SVE_MUL3);
+  __ Rdvl(x5, 1);
+  __ St4d(z31.VnD(),
+          z0.VnD(),
+          z1.VnD(),
+          z2.VnD(),
+          p4,
+          SVEMemOperand(x0, x5, LSL, 3));
+
+  // TODO: Corresponding loads.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint8_t* expected = new uint8_t[data_size];
+    memset(expected, 0, data_size);
+    uint8_t* middle = &expected[data_size / 2];
+
+    int vl_b = vl / kBRegSizeInBytes;
+    int vl_h = vl / kHRegSizeInBytes;
+    int vl_s = vl / kSRegSizeInBytes;
+    int vl_d = vl / kDRegSizeInBytes;
+
+    int reg_count = 4;
+
+    // st4b { z0.b, z1.b, z2.b, z3.b }, SVE_MUL4
+    int vl_b_mul4 = vl_b - (vl_b % 4);
+    for (int i = 0; i < vl_b_mul4; i++) {
+      int64_t offset = -(10 << kBRegSizeInBytesLog2) * vl;
+      uint8_t lane0 = -4 + (11 * i);
+      uint8_t lane1 = -5 + (11 * i);
+      uint8_t lane2 = -6 + (11 * i);
+      uint8_t lane3 = -7 + (11 * i);
+      MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+      MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+      MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+      MemoryWrite(middle, offset, (i * reg_count) + 3, lane3);
+    }
+
+    // st4h { z2.h, z3.h, z4.h, z5.h }, SVE_VL16
+    if (vl_h >= 16) {
+      for (int i = 0; i < 16; i++) {
+        int64_t offset = (7 << kHRegSizeInBytesLog2) * vl;
+        uint16_t lane0 = 6 - (2 * i);
+        uint16_t lane1 = 7 - (2 * i);
+        uint16_t lane2 = 8 - (2 * i);
+        uint16_t lane3 = 9 - (2 * i);
+        MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+        MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+        MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+        MemoryWrite(middle, offset, (i * reg_count) + 3, lane3);
+      }
+    }
+
+    // st4w { z29.s, z30.s, z31.s, z0.s }, ((i % 5) == 0)
+    for (int i = 0; i < vl_s; i++) {
+      if ((i % 5) == 0) {
+        int64_t offset = -(5 << kSRegSizeInBytesLog2) * vl;
+        uint32_t lane0 = -6 + (7 * i);
+        uint32_t lane1 = -7 + (7 * i);
+        uint32_t lane2 = -8 + (7 * i);
+        uint32_t lane3 = -9 + (7 * i);
+        MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+        MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+        MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+        MemoryWrite(middle, offset, (i * reg_count) + 3, lane3);
+      }
+    }
+
+    // st4d { z31.d, z0.d, z1.d, z2.d }, SVE_MUL3
+    int vl_d_mul3 = vl_d - (vl_d % 3);
+    for (int i = 0; i < vl_d_mul3; i++) {
+      int64_t offset = (1 << kDRegSizeInBytesLog2) * vl;
+      uint64_t lane0 = 32 - (11 * i);
+      uint64_t lane1 = 33 - (11 * i);
+      uint64_t lane2 = 34 - (11 * i);
+      uint64_t lane3 = 35 - (11 * i);
+      MemoryWrite(middle, offset, (i * reg_count) + 0, lane0);
+      MemoryWrite(middle, offset, (i * reg_count) + 1, lane1);
+      MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
+      MemoryWrite(middle, offset, (i * reg_count) + 3, lane3);
+    }
+
+    ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
+
+    delete[] expected;
+  }
+  delete[] data;
+}
+
+TEST_SVE(sve_ld234_st234_scalar_plus_scalar_sp) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Check that the simulator correctly interprets rn == 31 as sp.
+  // The indexing logic is the same regardless so we just check one load and
+  // store of each type.
+
+  // There are no pre- or post-indexing modes, so reserve space first.
+  __ ClaimVL(2 + 3 + 4);
+
+  __ Index(z0.VnB(), 42, 2);
+  __ Index(z1.VnB(), 43, 2);
+  __ Ptrue(p0.VnB(), SVE_VL7);
+  __ Rdvl(x0, 0);
+  __ St2b(z0.VnB(), z1.VnB(), p0, SVEMemOperand(sp, x0));
+
+  __ Index(z4.VnH(), 42, 3);
+  __ Index(z5.VnH(), 43, 3);
+  __ Index(z6.VnH(), 44, 3);
+  __ Ptrue(p1.VnH(), SVE_POW2);
+  __ Rdvl(x1, 2);
+  __ Lsr(x1, x1, 1);
+  __ St3h(z4.VnH(), z5.VnH(), z6.VnH(), p1, SVEMemOperand(sp, x1, LSL, 1));
+
+  __ Index(z8.VnS(), 42, 4);
+  __ Index(z9.VnS(), 43, 4);
+  __ Index(z10.VnS(), 44, 4);
+  __ Index(z11.VnS(), 45, 4);
+  __ Ptrue(p2.VnS());
+  __ Rdvl(x2, 2 + 3);
+  __ Lsr(x2, x2, 2);
+  __ St4w(z8.VnS(),
+          z9.VnS(),
+          z10.VnS(),
+          z11.VnS(),
+          p2,
+          SVEMemOperand(sp, x2, LSL, 2));
+
+  // TODO: Corresponding loads.
+
+  __ DropVL(2 + 3 + 4);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // The most likely failure mode is the that simulator reads sp as xzr and
+    // crashes on execution. We already test the address calculations separately
+    // and sp doesn't change this, so just test that we load the values we
+    // stored.
+    // TODO: Actually do this, once loads are implemented.
+  }
+}
+
 typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,
                                              const ZRegister& zn,
                                              const IntegerOperand imm);

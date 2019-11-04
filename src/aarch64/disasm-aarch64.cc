@@ -6546,10 +6546,7 @@ void Disassembler::VisitSVEContiguousStore_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
 
   // The 'size' field isn't in the usual place here.
-  const char *form = "{ 'Zt.'tls }, p'u1210, ['Xns, 'Xm, LSL #'u2423]";
-  if (instr->ExtractBits(24, 23) == 0) {
-    form = "{ 'Zt.'tls }, p'u1210, ['Xns, 'Xm]";
-  }
+  const char *form = "{ 'Zt.'tls }, p'u1210, ['Xns, 'Xm'NSveS]";
 
   switch (instr->Mask(SVEContiguousStore_ScalarPlusScalarMask)) {
     case ST1B_z_p_br:
@@ -8389,69 +8386,59 @@ void Disassembler::VisitSVEStoreMultipleStructures_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStoreMultipleStructures_ScalarPlusScalar)";
 
+  switch (instr->ExtractBits(22, 21)) {
+    case 1:  // ST2*
+      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210, ['Xns, 'Xm'NSveS]";
+      break;
+    case 2:  // ST3*
+      form =
+          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210, ['Xns, 'Xm'NSveS]";
+      break;
+    case 3:  // ST4*
+      form =
+          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+          "p'u1210, ['Xns, 'Xm'NSveS]";
+      break;
+    default:
+      break;
+  }
+
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusScalarMask)) {
-    // ST2B { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>, <Xm>]
     case ST2B_z_p_br_contiguous:
       mnemonic = "st2b";
-      form = "{ 'Zt.b, 'Zt2.b }, p'u1210, ['Xns, 'Rm]";
       break;
-    // ST2D { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
     case ST2D_z_p_br_contiguous:
       mnemonic = "st2d";
-      form = "{ 'Zt.d, 'Zt2.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
       break;
-    // ST2H { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
     case ST2H_z_p_br_contiguous:
       mnemonic = "st2h";
-      form = "{ 'Zt.h, 'Zt2.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
       break;
-    // ST2W { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
     case ST2W_z_p_br_contiguous:
       mnemonic = "st2w";
-      form = "{ 'Zt.s, 'Zt2.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
       break;
-    // ST3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>, [<Xn|SP>, <Xm>]
     case ST3B_z_p_br_contiguous:
       mnemonic = "st3b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210, ['Xns, 'Rm]";
       break;
-    // ST3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
     case ST3D_z_p_br_contiguous:
       mnemonic = "st3d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
       break;
-    // ST3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
     case ST3H_z_p_br_contiguous:
       mnemonic = "st3h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
       break;
-    // ST3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
     case ST3W_z_p_br_contiguous:
       mnemonic = "st3w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
       break;
-    // ST4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>, [<Xn|SP>, <Xm>]
     case ST4B_z_p_br_contiguous:
       mnemonic = "st4b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210, ['Xns, 'Rm]";
       break;
-    // ST4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL
-    // #3]
     case ST4D_z_p_br_contiguous:
       mnemonic = "st4d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210, ['Xns, 'Rm, LSL #3]";
       break;
-    // ST4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL
-    // #1]
     case ST4H_z_p_br_contiguous:
       mnemonic = "st4h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210, ['Xns, 'Rm, LSL #1]";
       break;
-    // ST4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL
-    // #2]
     case ST4W_z_p_br_contiguous:
       mnemonic = "st4w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210, ['Xns, 'Rm, LSL #2]";
       break;
     default:
       break;
@@ -10859,11 +10846,11 @@ int Disassembler::SubstituteShiftField(const Instruction *instr,
   VIXL_ASSERT(instr->GetShiftDP() <= 0x3);
 
   switch (format[1]) {
-    case 'D': {  // HDP.
+    case 'D': {  // NDP.
       VIXL_ASSERT(instr->GetShiftDP() != ROR);
       VIXL_FALLTHROUGH();
     }
-    case 'L': {  // HLo.
+    case 'L': {  // NLo.
       if (instr->GetImmDPShift() != 0) {
         const char *shift_type[] = {"lsl", "lsr", "asr", "ror"};
         AppendToOutput(", %s #%" PRId32,
@@ -10871,6 +10858,14 @@ int Disassembler::SubstituteShiftField(const Instruction *instr,
                        instr->GetImmDPShift());
       }
       return 3;
+    }
+    case 'S': {  // NSveS (SVE structured load/store indexing shift).
+      VIXL_ASSERT(strncmp(format, "NSveS", 5) == 0);
+      int msz = instr->ExtractBits(24, 23);
+      if (msz > 0) {
+        AppendToOutput(", lsl #%d", msz);
+      }
+      return 5;
     }
     default:
       VIXL_UNIMPLEMENTED();
@@ -11195,6 +11190,11 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
         // 'tl: Logical operations
         size_in_bytes_log2 = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
       }
+      break;
+    case 'm':  // 'tmsz
+      VIXL_ASSERT(strncmp(format, "tmsz", 4) == 0);
+      placeholder_length += 3;
+      size_in_bytes_log2 = instr->ExtractBits(24, 23);
       break;
     case 's':
       if (format[2] == 'z') {

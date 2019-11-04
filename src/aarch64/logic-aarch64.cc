@@ -6287,16 +6287,16 @@ LogicVRegister Simulator::SVEBitwiseImmHelper(
   return zd;
 }
 
-void Simulator::SVEStructuredStoreHelper(int msize_in_bytes_log2,
-                                         VectorFormat vform,
+void Simulator::SVEStructuredStoreHelper(VectorFormat vform,
                                          const LogicPRegister& pg,
                                          unsigned zt_code,
-                                         unsigned reg_count,
                                          const LogicSVEAddressVector& addr) {
   VIXL_ASSERT(zt_code < kNumberOfZRegisters);
 
   int esize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
-  int msize_in_bytes = 1 << msize_in_bytes_log2;
+  int msize_in_bytes_log2 = addr.GetMsizeInBytesLog2();
+  int msize_in_bytes = addr.GetMsizeInBytes();
+  int reg_count = addr.GetRegCount();
 
   VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
   VIXL_ASSERT((reg_count >= 1) && (reg_count <= 4));
@@ -6323,9 +6323,8 @@ void Simulator::SVEStructuredStoreHelper(int msize_in_bytes_log2,
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     if (!pg.IsActive(vform, i)) continue;
 
-    for (unsigned r = 0; r < reg_count; r++) {
-      uint64_t element_address =
-          addr.GetElementAddress(msize_in_bytes, reg_count, i, r);
+    for (int r = 0; r < reg_count; r++) {
+      uint64_t element_address = addr.GetElementAddress(i, r);
       zt[r].WriteUintToMem(unpack_vform, i << unpack_shift, element_address);
     }
   }
@@ -6335,31 +6334,31 @@ void Simulator::SVEStructuredStoreHelper(int msize_in_bytes_log2,
   // stores. It doesn't work for non-contiguous addressing, and doesn't take
   // predication into account.
   VIXL_ASSERT(addr.IsContiguous());
-  for (unsigned r = 0; r < reg_count; r++) {
-    LogZWrite(addr.GetElementAddress(msize_in_bytes, reg_count, 0, r),
+  for (int r = 0; r < reg_count; r++) {
+    LogZWrite(addr.GetElementAddress(0, r),
               zt_codes[r],
               GetPrintRegisterFormat(vform),
               msize_in_bytes);
   }
 }
 
-void Simulator::SVEStructuredLoadHelper(int msize_in_bytes_log2,
-                                        VectorFormat vform,
+void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
                                         const LogicPRegister& pg,
                                         unsigned zt_code,
-                                        unsigned reg_count,
                                         const LogicSVEAddressVector& addr,
                                         bool is_signed) {
+  int msize_in_bytes_log2 = addr.GetMsizeInBytesLog2();
+  int msize_in_bytes = addr.GetMsizeInBytes();
+  int reg_count = addr.GetRegCount();
+
   VIXL_ASSERT(zt_code < kNumberOfZRegisters);
   VIXL_ASSERT(LaneSizeInBytesLog2FromFormat(vform) >= msize_in_bytes_log2);
   VIXL_ASSERT((reg_count >= 1) && (reg_count <= 4));
 
-  int msize_in_bytes = 1 << msize_in_bytes_log2;
   unsigned zt_codes[4] = {zt_code,
                           (zt_code + 1) % kNumberOfZRegisters,
                           (zt_code + 2) % kNumberOfZRegisters,
                           (zt_code + 3) % kNumberOfZRegisters};
-
   LogicVRegister zt[4] = {
       ReadVRegister(zt_codes[0]),
       ReadVRegister(zt_codes[1]),
@@ -6374,9 +6373,8 @@ void Simulator::SVEStructuredLoadHelper(int msize_in_bytes_log2,
   VIXL_ASSERT(reg_count == 1);
 
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    for (unsigned r = 0; r < reg_count; r++) {
-      uint64_t element_address =
-          addr.GetElementAddress(msize_in_bytes, reg_count, i, r);
+    for (int r = 0; r < reg_count; r++) {
+      uint64_t element_address = addr.GetElementAddress(i, r);
 
       if (!pg.IsActive(vform, i)) {
         zt[r].SetUint(vform, i, 0);
@@ -6403,8 +6401,8 @@ void Simulator::SVEStructuredLoadHelper(int msize_in_bytes_log2,
   // stores. It doesn't work for non-contiguous addressing, and doesn't take
   // predication into account.
   VIXL_ASSERT(addr.IsContiguous());
-  for (unsigned r = 0; r < reg_count; r++) {
-    LogZRead(addr.GetElementAddress(msize_in_bytes, reg_count, 0, r),
+  for (int r = 0; r < reg_count; r++) {
+    LogZRead(addr.GetElementAddress(0, r),
              zt_codes[r],
              GetPrintRegisterFormat(vform),
              msize_in_bytes);

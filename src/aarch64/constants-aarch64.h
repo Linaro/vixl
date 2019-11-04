@@ -57,6 +57,14 @@ const unsigned kNumberOfGoverningPRegisters = 8;
   R(16) R(17) R(18) R(19) R(20) R(21) R(22) R(23)                              \
   R(24) R(25) R(26) R(27) R(28) R(29) R(30) R(31)
 
+// SVE loads and stores use "w" instead of "s" for word-sized accesses, so the
+// mapping from the load/store variant to constants like k*RegSize is irregular.
+#define VIXL_SVE_LOAD_STORE_VARIANT_LIST(V) \
+  V(b, B)                            \
+  V(h, H)                            \
+  V(w, S)                            \
+  V(d, D)
+
 #define INSTRUCTION_FIELDS_LIST(V_)                                          \
 /* Register fields */                                                        \
 V_(Rd, 4, 0, ExtractBits)         /* Destination register.                */ \

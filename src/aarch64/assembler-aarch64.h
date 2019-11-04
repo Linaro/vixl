@@ -5696,8 +5696,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st2b(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store two-byte structures from two vectors (immediate
   // index).
@@ -5712,8 +5711,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st2d(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store two-doubleword structures from two vectors (immediate
   // index).
@@ -5728,8 +5726,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st2h(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store two-halfword structures from two vectors (immediate
   // index).
@@ -5743,8 +5740,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void st2w(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store two-word structures from two vectors (immediate
   // index).
@@ -5760,8 +5756,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store three-byte structures from three vectors (immediate
   // index).
@@ -5778,8 +5773,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store three-doubleword structures from three vectors
   // (immediate index).
@@ -5796,8 +5790,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store three-halfword structures from three vectors
   // (immediate index).
@@ -5814,8 +5807,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store three-word structures from three vectors (immediate
   // index).
@@ -5832,8 +5824,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store four-byte structures from four vectors (immediate
   // index).
@@ -5852,8 +5843,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store four-doubleword structures from four vectors
   // (immediate index).
@@ -5872,8 +5862,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store four-halfword structures from four vectors (immediate
   // index).
@@ -5891,8 +5880,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous store four-word structures from four vectors (immediate
   // index).
@@ -6985,10 +6973,19 @@ class Assembler : public vixl::internal::AssemblerBase {
                              const MemOperand& addr,
                              Instr op);
 
+  Instr SVEMemOperandHelper(unsigned msize_in_bytes_log2,
+                            int num_regs,
+                            const SVEMemOperand& addr);
+
   void SVESt1Helper(unsigned msize_in_bytes_log2,
                     const ZRegister& zt,
                     const PRegister& pg,
                     const SVEMemOperand& addr);
+
+  void SVESt234Helper(int num_regs,
+                      const ZRegister& zt,
+                      const PRegister& pg,
+                      const SVEMemOperand& addr);
 
   void SVELd1Helper(unsigned msize_in_bytes_log2,
                     const ZRegister& zt,
