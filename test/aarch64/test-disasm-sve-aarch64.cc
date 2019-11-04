@@ -2855,29 +2855,221 @@ TEST(sve_ld1_st1_macro) {
   CLEANUP();
 }
 
-TEST(sve_mem_store) {
+TEST(sve_st2_scalar_plus_immediate) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(st1b(z26.VnD(), p2, z6.VnD(), int imm5), "st1b { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(st1b(z25.VnS(), p1, z23.VnS(), int imm5), "st1b { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(st1d(z19.VnD(), p7, z4.VnD(), int imm5), "st1d { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(st1d(z14.VnD(), p7, x21, int imm4), "st1d { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(st1h(z13.VnD(), p2, z11.VnD(), int imm5), "st1h { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(st1h(z4.VnS(), p2, z21.VnS(), int imm5), "st1h { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(st1h(z15.Vn?(), p6, x16, int imm4), "st1h { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(st1w(z23.VnD(), p0, z13.VnD(), int imm5), "st1w { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(st1w(z14.VnS(), p5, z19.VnS(), int imm5), "st1w { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(st1w(z18.Vn?(), p4, x10, int imm4), "st1w { <Zt>.<T> }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(st2b(z15.VnB(), z16.VnB(), p6, x15, int imm4), "st2b { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(st2d(z22.VnD(), z23.VnD(), p1, x22, int imm4), "st2d { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(st2h(z3.VnH(), z4.VnH(), p1, x3, int imm4), "st2h { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(st2w(z21.VnS(), z22.VnS(), p1, x21, int imm4), "st2w { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(stnt1b(z21.VnB(), p3, x30, int imm4), "stnt1b { <Zt>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(stnt1d(z5.VnD(), p3, x1, int imm4), "stnt1d { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(stnt1h(z28.VnH(), p6, x27, int imm4), "stnt1h { <Zt>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(stnt1w(z23.VnS(), p2, x10, int imm4), "stnt1w { <Zt>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-#endif
+  COMPARE_PREFIX(st2b(z31.VnB(), z0.VnB(), p6, SVEMemOperand(x19)),
+                 "st2b { z31.b, z0.b }, p6, [x19]");
+  COMPARE_PREFIX(st2b(z31.VnB(),
+                      z0.VnB(),
+                      p6,
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "st2b { z31.b, z0.b }, p6, [x19, #14, mul vl]");
+  COMPARE_PREFIX(st2b(z15.VnB(),
+                      z16.VnB(),
+                      p6,
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "st2b { z15.b, z16.b }, p6, [x19, #-16, mul vl]");
+
+  COMPARE_PREFIX(st2h(z15.VnH(), z16.VnH(), p6, SVEMemOperand(x19)),
+                 "st2h { z15.h, z16.h }, p6, [x19]");
+  COMPARE_PREFIX(st2h(z15.VnH(),
+                      z16.VnH(),
+                      p0,
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "st2h { z15.h, z16.h }, p0, [x19, #14, mul vl]");
+  COMPARE_PREFIX(st2h(z15.VnH(),
+                      z16.VnH(),
+                      p0,
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "st2h { z15.h, z16.h }, p0, [x19, #-16, mul vl]");
+
+  COMPARE_PREFIX(st2w(z0.VnS(), z1.VnS(), p0, SVEMemOperand(x19)),
+                 "st2w { z0.s, z1.s }, p0, [x19]");
+  COMPARE_PREFIX(st2w(z0.VnS(),
+                      z1.VnS(),
+                      p0,
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "st2w { z0.s, z1.s }, p0, [x19, #14, mul vl]");
+  COMPARE_PREFIX(st2w(z0.VnS(),
+                      z1.VnS(),
+                      p7,
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "st2w { z0.s, z1.s }, p7, [x19, #-16, mul vl]");
+
+  COMPARE_PREFIX(st2d(z0.VnD(), z1.VnD(), p7, SVEMemOperand(x19)),
+                 "st2d { z0.d, z1.d }, p7, [x19]");
+  COMPARE_PREFIX(st2d(z31.VnD(),
+                      z0.VnD(),
+                      p7,
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "st2d { z31.d, z0.d }, p7, [x19, #14, mul vl]");
+  COMPARE_PREFIX(st2d(z31.VnD(),
+                      z0.VnD(),
+                      p7,
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "st2d { z31.d, z0.d }, p7, [x19, #-16, mul vl]");
+
+  CLEANUP();
+}
+
+TEST(sve_st3_scalar_plus_immediate) {
+  SETUP();
+
+  COMPARE_PREFIX(st3b(z30.VnB(), z31.VnB(), z0.VnB(), p7, SVEMemOperand(x19)),
+                 "st3b { z30.b, z31.b, z0.b }, p7, [x19]");
+  COMPARE_PREFIX(st3b(z30.VnB(),
+                      z31.VnB(),
+                      z0.VnB(),
+                      p6,
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "st3b { z30.b, z31.b, z0.b }, p6, [x19, #21, mul vl]");
+  COMPARE_PREFIX(st3b(z30.VnB(),
+                      z31.VnB(),
+                      z0.VnB(),
+                      p6,
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "st3b { z30.b, z31.b, z0.b }, p6, [x19, #-24, mul vl]");
+
+  COMPARE_PREFIX(st3h(z15.VnH(), z16.VnH(), z17.VnH(), p6, SVEMemOperand(x19)),
+                 "st3h { z15.h, z16.h, z17.h }, p6, [x19]");
+  COMPARE_PREFIX(st3h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      p6,
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "st3h { z15.h, z16.h, z17.h }, p6, [x19, #21, mul vl]");
+  COMPARE_PREFIX(st3h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      p0,
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "st3h { z15.h, z16.h, z17.h }, p0, [x19, #-24, mul vl]");
+
+  COMPARE_PREFIX(st3w(z15.VnS(), z16.VnS(), z17.VnS(), p0, SVEMemOperand(x19)),
+                 "st3w { z15.s, z16.s, z17.s }, p0, [x19]");
+  COMPARE_PREFIX(st3w(z0.VnS(),
+                      z1.VnS(),
+                      z2.VnS(),
+                      p0,
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "st3w { z0.s, z1.s, z2.s }, p0, [x19, #21, mul vl]");
+  COMPARE_PREFIX(st3w(z0.VnS(),
+                      z1.VnS(),
+                      z2.VnS(),
+                      p0,
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "st3w { z0.s, z1.s, z2.s }, p0, [x19, #-24, mul vl]");
+
+  COMPARE_PREFIX(st3d(z0.VnD(), z1.VnD(), z2.VnD(), p7, SVEMemOperand(x19)),
+                 "st3d { z0.d, z1.d, z2.d }, p7, [x19]");
+  COMPARE_PREFIX(st3d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      p7,
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "st3d { z0.d, z1.d, z2.d }, p7, [x19, #21, mul vl]");
+  COMPARE_PREFIX(st3d(z30.VnD(),
+                      z31.VnD(),
+                      z0.VnD(),
+                      p7,
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "st3d { z30.d, z31.d, z0.d }, p7, [x19, #-24, mul vl]");
+
+  CLEANUP();
+}
+
+TEST(sve_st4_scalar_plus_immediate) {
+  SETUP();
+
+  COMPARE_PREFIX(st4b(z31.VnB(),
+                      z0.VnB(),
+                      z1.VnB(),
+                      z2.VnB(),
+                      p7,
+                      SVEMemOperand(x19)),
+                 "st4b { z31.b, z0.b, z1.b, z2.b }, p7, [x19]");
+  COMPARE_PREFIX(st4b(z31.VnB(),
+                      z0.VnB(),
+                      z1.VnB(),
+                      z2.VnB(),
+                      p7,
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "st4b { z31.b, z0.b, z1.b, z2.b }, p7, [x19, #28, mul vl]");
+  COMPARE_PREFIX(st4b(z31.VnB(),
+                      z0.VnB(),
+                      z1.VnB(),
+                      z2.VnB(),
+                      p6,
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "st4b { z31.b, z0.b, z1.b, z2.b }, p6, [x19, #-32, mul vl]");
+
+  COMPARE_PREFIX(st4h(z31.VnH(),
+                      z0.VnH(),
+                      z1.VnH(),
+                      z2.VnH(),
+                      p6,
+                      SVEMemOperand(x19)),
+                 "st4h { z31.h, z0.h, z1.h, z2.h }, p6, [x19]");
+  COMPARE_PREFIX(st4h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      z18.VnH(),
+                      p6,
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "st4h { z15.h, z16.h, z17.h, z18.h }, p6, [x19, #28, mul vl]");
+  COMPARE_PREFIX(st4h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      z18.VnH(),
+                      p6,
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "st4h { z15.h, z16.h, z17.h, z18.h }, p6, "
+                 "[x19, #-32, mul vl]");
+
+  COMPARE_PREFIX(st4w(z15.VnS(),
+                      z16.VnS(),
+                      z17.VnS(),
+                      z18.VnS(),
+                      p0,
+                      SVEMemOperand(x19)),
+                 "st4w { z15.s, z16.s, z17.s, z18.s }, p0, [x19]");
+  COMPARE_PREFIX(st4w(z15.VnS(),
+                      z16.VnS(),
+                      z17.VnS(),
+                      z18.VnS(),
+                      p0,
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "st4w { z15.s, z16.s, z17.s, z18.s }, p0, [x19, #28, mul vl]");
+  COMPARE_PREFIX(st4w(z0.VnS(),
+                      z1.VnS(),
+                      z2.VnS(),
+                      z3.VnS(),
+                      p0,
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "st4w { z0.s, z1.s, z2.s, z3.s }, p0, [x19, #-32, mul vl]");
+
+  COMPARE_PREFIX(st4d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      z3.VnD(),
+                      p0,
+                      SVEMemOperand(x19)),
+                 "st4d { z0.d, z1.d, z2.d, z3.d }, p0, [x19]");
+  COMPARE_PREFIX(st4d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      z3.VnD(),
+                      p7,
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "st4d { z0.d, z1.d, z2.d, z3.d }, p7, [x19, #28, mul vl]");
+  COMPARE_PREFIX(st4d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      z3.VnD(),
+                      p7,
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "st4d { z0.d, z1.d, z2.d, z3.d }, p7, [x19, #-32, mul vl]");
 
   CLEANUP();
 }

@@ -956,7 +956,7 @@ void Disassembler::VisitTestBranch(const Instruction *instr) {
   // disassembled as Wt, otherwise Xt. As the top bit of the immediate is
   // encoded in bit 31 of the instruction, we can reuse the Rt form, which
   // uses bit 31 (normally "sf") to choose the register size.
-  const char *form = "'Rt, 'IS, 'TImmTest";
+  const char *form = "'Rt, 'It, 'TImmTest";
 
   switch (instr->Mask(TestBranchMask)) {
     case TBZ:
@@ -8302,78 +8302,58 @@ void Disassembler::VisitSVEStoreMultipleStructures_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStoreMultipleStructures_ScalarPlusImm)";
 
+  switch (instr->ExtractBits(22, 21)) {
+    case 1:  // ST2*
+      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210, ['Xns'ISveSvl]";
+      break;
+    case 2:  // ST3*
+      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210, ['Xns'ISveSvl]";
+      break;
+    case 3:  // ST4*
+      form =
+          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+          "p'u1210, ['Xns'ISveSvl]";
+      break;
+    default:
+      break;
+  }
+
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusImmMask)) {
-    // ST2B { <Zt1>.B, <Zt2>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case ST2B_z_p_bi_contiguous:
       mnemonic = "st2b";
-      form = "{ 'Zt.b, 'Zt2.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // ST2D { <Zt1>.D, <Zt2>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST2D_z_p_bi_contiguous:
-      mnemonic = "st2d";
-      form = "{ 'Zt.d, 'Zt2.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST2H { <Zt1>.H, <Zt2>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case ST2H_z_p_bi_contiguous:
       mnemonic = "st2h";
-      form = "{ 'Zt.h, 'Zt2.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // ST2W { <Zt1>.S, <Zt2>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case ST2W_z_p_bi_contiguous:
       mnemonic = "st2w";
-      form = "{ 'Zt.s, 'Zt2.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // ST3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
+    case ST2D_z_p_bi_contiguous:
+      mnemonic = "st2d";
+      break;
     case ST3B_z_p_bi_contiguous:
       mnemonic = "st3b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // ST3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-    case ST3D_z_p_bi_contiguous:
-      mnemonic = "st3d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // ST3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case ST3H_z_p_bi_contiguous:
       mnemonic = "st3h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // ST3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case ST3W_z_p_bi_contiguous:
       mnemonic = "st3w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // ST4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
+    case ST3D_z_p_bi_contiguous:
+      mnemonic = "st3d";
+      break;
     case ST4B_z_p_bi_contiguous:
       mnemonic = "st4b";
-      form =
-          "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
       break;
-    // ST4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
-    case ST4D_z_p_bi_contiguous:
-      mnemonic = "st4d";
-      form =
-          "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
-      break;
-    // ST4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
     case ST4H_z_p_bi_contiguous:
       mnemonic = "st4h";
-      form =
-          "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
       break;
-    // ST4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL
-    // VL}]
     case ST4W_z_p_bi_contiguous:
       mnemonic = "st4w";
-      form =
-          "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210, ['Xns{, #'u1916, MUL "
-          "VL}]";
+      break;
+    case ST4D_z_p_bi_contiguous:
+      mnemonic = "st4d";
       break;
     default:
       break;
@@ -10523,11 +10503,20 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       AppendToOutput("#%" PRId32, instr->GetImmS());
       return 8;
     }
-    case 'S': {  // IS - Test and branch bit.
+    case 't': {  // It - Test and branch bit.
       AppendToOutput("#%" PRId32,
                      (instr->GetImmTestBranchBit5() << 5) |
                          instr->GetImmTestBranchBit40());
       return 2;
+    }
+    case 'S': {  // ISveSvl - SVE 'mul vl' immediate for structured ld/st.
+      VIXL_ASSERT(strncmp(format, "ISveSvl", 7) == 0);
+      int imm = instr->ExtractSignedBits(19, 16);
+      if (imm != 0) {
+        int reg_count = instr->ExtractBits(22, 21) + 1;
+        AppendToOutput(", #%d, mul vl", imm * reg_count);
+      }
+      return 7;
     }
     case 's': {  // Is - Shift (immediate).
       switch (format[2]) {

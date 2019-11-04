@@ -5692,133 +5692,59 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zn,
             int imm5);
 
-  // Contiguous store two-byte structures from two vectors (scalar index).
+  // Contiguous store two-byte structures from two vectors.
   void st2b(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store two-byte structures from two vectors (immediate
-  // index).
-  void st2b(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store two-doubleword structures from two vectors (scalar
-  // index).
-  void st2d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegister& pg,
-            const SVEMemOperand& addr);
-
-  // Contiguous store two-doubleword structures from two vectors (immediate
-  // index).
-  void st2d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store two-halfword structures from two vectors (scalar
-  // index).
+  // Contiguous store two-halfword structures from two vectors.
   void st2h(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store two-halfword structures from two vectors (immediate
-  // index).
-  void st2h(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store two-word structures from two vectors (scalar index).
+  // Contiguous store two-word structures from two vectors.
   void st2w(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store two-word structures from two vectors (immediate
-  // index).
-  void st2w(const ZRegister& zt1,
+  // Contiguous store two-doubleword structures from two vectors,
+  void st2d(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegister& pg,
-            const Register& xn,
-            int imm4);
+            const SVEMemOperand& addr);
 
-  // Contiguous store three-byte structures from three vectors (scalar
-  // index).
+  // Contiguous store three-byte structures from three vectors.
   void st3b(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store three-byte structures from three vectors (immediate
-  // index).
-  void st3b(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store three-doubleword structures from three vectors (scalar
-  // index).
-  void st3d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegister& pg,
-            const SVEMemOperand& addr);
-
-  // Contiguous store three-doubleword structures from three vectors
-  // (immediate index).
-  void st3d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store three-halfword structures from three vectors (scalar
-  // index).
+  // Contiguous store three-halfword structures from three vectors.
   void st3h(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store three-halfword structures from three vectors
-  // (immediate index).
-  void st3h(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store three-word structures from three vectors (scalar
-  // index).
+  // Contiguous store three-word structures from three vectors.
   void st3w(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store three-word structures from three vectors (immediate
-  // index).
-  void st3w(const ZRegister& zt1,
+  // Contiguous store three-doubleword structures from three vectors.
+  void st3d(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegister& pg,
-            const Register& xn,
-            int imm4);
+            const SVEMemOperand& addr);
 
-  // Contiguous store four-byte structures from four vectors (scalar index).
+  // Contiguous store four-byte structures from four vectors.
   void st4b(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
@@ -5826,37 +5752,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store four-byte structures from four vectors (immediate
-  // index).
-  void st4b(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store four-doubleword structures from four vectors (scalar
-  // index).
-  void st4d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegister& pg,
-            const SVEMemOperand& addr);
-
-  // Contiguous store four-doubleword structures from four vectors
-  // (immediate index).
-  void st4d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store four-halfword structures from four vectors (scalar
-  // index).
+  // Contiguous store four-halfword structures from four vectors.
   void st4h(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
@@ -5864,17 +5760,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store four-halfword structures from four vectors (immediate
-  // index).
-  void st4h(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegister& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous store four-word structures from four vectors (scalar index).
+  // Contiguous store four-word structures from four vectors.
   void st4w(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
@@ -5882,15 +5768,13 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store four-word structures from four vectors (immediate
-  // index).
-  void st4w(const ZRegister& zt1,
+  // Contiguous store four-doubleword structures from four vectors.
+  void st4d(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegister& pg,
-            const Register& xn,
-            int imm4);
+            const SVEMemOperand& addr);
 
   // Contiguous store non-temporal bytes from vector (scalar index).
   void stnt1b(const ZRegister& zt,
