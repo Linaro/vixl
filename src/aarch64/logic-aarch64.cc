@@ -6369,9 +6369,6 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
   VectorFormat unpack_vform =
       SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
 
-  // TODO: Add support for multi-register loads.
-  VIXL_ASSERT(reg_count == 1);
-
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     for (int r = 0; r < reg_count; r++) {
       uint64_t element_address = addr.GetElementAddress(i, r);

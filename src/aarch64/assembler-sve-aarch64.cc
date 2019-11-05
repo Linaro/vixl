@@ -4035,64 +4035,122 @@ void Assembler::uqsub(const ZRegister& zd,
 
 // SVEMemLoad.
 
+void Assembler::SVELdSt1Helper(unsigned msize_in_bytes_log2,
+                               const ZRegister& zt,
+                               const PRegister& pg,
+                               const SVEMemOperand& addr,
+                               bool is_signed,
+                               Instr op) {
+  VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
+  VIXL_ASSERT(!(is_signed && zt.IsLaneSizeB()));
+
+  Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr);
+  Instr dtype =
+      SVEDtype(msize_in_bytes_log2, zt.GetLaneSizeInBytesLog2(), is_signed);
+  Emit(op | mem_op | dtype | Rt(zt) | PgLow8(pg));
+}
+
+void Assembler::SVELdSt234Helper(int num_regs,
+                                 const ZRegister& zt1,
+                                 const PRegister& pg,
+                                 const SVEMemOperand& addr,
+                                 Instr op) {
+  VIXL_ASSERT((num_regs >= 2) && (num_regs <= 4));
+
+  unsigned msize_in_bytes_log2 = zt1.GetLaneSizeInBytesLog2();
+  Instr num = (num_regs - 1) << 21;
+  Instr msz = msize_in_bytes_log2 << 23;
+  Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, num_regs, addr);
+  Emit(op | mem_op | msz | num | Rt(zt1) | PgLow8(pg));
+}
+
 void Assembler::SVELd1Helper(unsigned msize_in_bytes_log2,
                              const ZRegister& zt,
                              const PRegisterZ& pg,
                              const SVEMemOperand& addr,
                              bool is_signed) {
   Instr op;
-  VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
-  VIXL_ASSERT(!(is_signed && zt.IsLaneSizeB()));
   if (addr.IsScalarPlusImmediate()) {
-    VIXL_ASSERT((addr.GetImmediateOffset() == 0) || addr.IsMulVl());
-    op = LD1B_z_p_bi_u8 | RnSP(addr.GetScalarBase()) |
-         ImmField<19, 16>(addr.GetImmediateOffset());
+    op = SVEContiguousLoad_ScalarPlusImmFixed;
   } else if (addr.IsScalarPlusScalar()) {
-    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());  // Rm must not be xzr.
-    VIXL_ASSERT(addr.IsEquivalentToLSL(msize_in_bytes_log2));
-    op = LD1B_z_p_br_u8 | Rn(addr.GetScalarBase()) | Rm(addr.GetScalarOffset());
+    op = SVEContiguousLoad_ScalarPlusScalarFixed;
   } else {
     // TODO: Handle scatter forms here.
     VIXL_UNIMPLEMENTED();
     op = 0xffffffff;
   }
+  SVELdSt1Helper(msize_in_bytes_log2, zt, pg, addr, is_signed, op);
+}
 
-  VIXL_ASSERT(IsUint2(msize_in_bytes_log2));
-  Instr dtype =
-      SVEDtype(msize_in_bytes_log2, zt.GetLaneSizeInBytesLog2(), is_signed);
-
-  Emit(op | Rt(zt) | PgLow8(pg) | dtype);
+void Assembler::SVELd234Helper(int num_regs,
+                               const ZRegister& zt1,
+                               const PRegisterZ& pg,
+                               const SVEMemOperand& addr) {
+  Instr op;
+  if (addr.IsScalarPlusImmediate()) {
+    op = SVELoadMultipleStructures_ScalarPlusImmFixed;
+  } else if (addr.IsScalarPlusScalar()) {
+    op = SVELoadMultipleStructures_ScalarPlusScalarFixed;
+  } else {
+    // These instructions don't support any other addressing modes.
+    VIXL_ABORT();
+  }
+  SVELdSt234Helper(num_regs, zt1, pg, addr, op);
 }
 
 // SVEMemContiguousLoad.
 
-void Assembler::ld1b(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kBRegSizeInBytesLog2, zt, pg, addr, false);
-}
+#define VIXL_DEFINE_LD1(MSZ, LANE_SIZE)                                  \
+  void Assembler::ld1##MSZ(const ZRegister& zt,                          \
+                           const PRegisterZ& pg,                         \
+                           const SVEMemOperand& addr) {                  \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                              \
+    SVELd1Helper(k##LANE_SIZE##RegSizeInBytesLog2, zt, pg, addr, false); \
+  }
+#define VIXL_DEFINE_LD2(MSZ, LANE_SIZE)                 \
+  void Assembler::ld2##MSZ(const ZRegister& zt1,        \
+                           const ZRegister& zt2,        \
+                           const PRegisterZ& pg,        \
+                           const SVEMemOperand& addr) { \
+    USE(zt2);                                           \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));             \
+    VIXL_ASSERT(AreConsecutive(zt1, zt2));              \
+    VIXL_ASSERT(AreSameFormat(zt1, zt2));               \
+    VIXL_ASSERT(zt1.IsLaneSize##LANE_SIZE());           \
+    SVELd234Helper(2, zt1, pg, addr);                   \
+  }
+#define VIXL_DEFINE_LD3(MSZ, LANE_SIZE)                 \
+  void Assembler::ld3##MSZ(const ZRegister& zt1,        \
+                           const ZRegister& zt2,        \
+                           const ZRegister& zt3,        \
+                           const PRegisterZ& pg,        \
+                           const SVEMemOperand& addr) { \
+    USE(zt2, zt3);                                      \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));             \
+    VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3));         \
+    VIXL_ASSERT(AreSameFormat(zt1, zt2, zt3));          \
+    VIXL_ASSERT(zt1.IsLaneSize##LANE_SIZE());           \
+    SVELd234Helper(3, zt1, pg, addr);                   \
+  }
+#define VIXL_DEFINE_LD4(MSZ, LANE_SIZE)                 \
+  void Assembler::ld4##MSZ(const ZRegister& zt1,        \
+                           const ZRegister& zt2,        \
+                           const ZRegister& zt3,        \
+                           const ZRegister& zt4,        \
+                           const PRegisterZ& pg,        \
+                           const SVEMemOperand& addr) { \
+    USE(zt2, zt3, zt4);                                 \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));             \
+    VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3, zt4));    \
+    VIXL_ASSERT(AreSameFormat(zt1, zt2, zt3, zt4));     \
+    VIXL_ASSERT(zt1.IsLaneSize##LANE_SIZE());           \
+    SVELd234Helper(4, zt1, pg, addr);                   \
+  }
 
-void Assembler::ld1h(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kHRegSizeInBytesLog2, zt, pg, addr, false);
-}
-
-void Assembler::ld1w(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kSRegSizeInBytesLog2, zt, pg, addr, false);
-}
-
-void Assembler::ld1d(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kDRegSizeInBytesLog2, zt, pg, addr, false);
-}
+VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD1)
+VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD2)
+VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD3)
+VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD4)
 
 // SVEMem32BitGatherAndUnsizedContiguous.
 
@@ -5153,23 +5211,6 @@ void Assembler::ld2b(const ZRegister& zt1,
                      const ZRegister& zt2,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD2B { <Zt1>.B, <Zt2>.B }, <Pg>/Z, [<Xn|SP>, <Xm>]
-  //  1010 0100 001. .... 110. .... .... ....
-  //  msz<24:23> = 00 | num<22:21> = 01 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2));
-
-  Emit(LD2B_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld2b(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD2B { <Zt1>.B, <Zt2>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1010 0100 0010 .... 111. .... .... ....
@@ -5182,23 +5223,6 @@ void Assembler::ld2b(const ZRegister& zt1,
 
   Emit(LD2B_z_p_bi_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) |
        ImmField<19, 16>(imm4));
-}
-
-void Assembler::ld2d(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD2D { <Zt1>.D, <Zt2>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #3]
-  //  1010 0101 101. .... 110. .... .... ....
-  //  msz<24:23> = 11 | num<22:21> = 01 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2));
-
-  Emit(LD2D_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 void Assembler::ld2d(const ZRegister& zt1,
@@ -5223,23 +5247,6 @@ void Assembler::ld2h(const ZRegister& zt1,
                      const ZRegister& zt2,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD2H { <Zt1>.H, <Zt2>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]
-  //  1010 0100 101. .... 110. .... .... ....
-  //  msz<24:23> = 01 | num<22:21> = 01 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2));
-
-  Emit(LD2H_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld2h(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD2H { <Zt1>.H, <Zt2>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1010 0100 1010 .... 111. .... .... ....
@@ -5258,23 +5265,6 @@ void Assembler::ld2w(const ZRegister& zt1,
                      const ZRegister& zt2,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD2W { <Zt1>.S, <Zt2>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]
-  //  1010 0101 001. .... 110. .... .... ....
-  //  msz<24:23> = 10 | num<22:21> = 01 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2));
-
-  Emit(LD2W_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld2w(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD2W { <Zt1>.S, <Zt2>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1010 0101 0010 .... 111. .... .... ....
@@ -5287,24 +5277,6 @@ void Assembler::ld2w(const ZRegister& zt1,
 
   Emit(LD2W_z_p_bi_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) |
        ImmField<19, 16>(imm4));
-}
-
-void Assembler::ld3b(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>/Z, [<Xn|SP>, <Xm>]
-  //  1010 0100 010. .... 110. .... .... ....
-  //  msz<24:23> = 00 | num<22:21> = 10 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3));
-
-  Emit(LD3B_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 void Assembler::ld3b(const ZRegister& zt1,
@@ -5331,24 +5303,6 @@ void Assembler::ld3d(const ZRegister& zt1,
                      const ZRegister& zt3,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #3]
-  //  1010 0101 110. .... 110. .... .... ....
-  //  msz<24:23> = 11 | num<22:21> = 10 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3));
-
-  Emit(LD3D_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld3d(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1010 0101 1100 .... 111. .... .... ....
@@ -5361,24 +5315,6 @@ void Assembler::ld3d(const ZRegister& zt1,
 
   Emit(LD3D_z_p_bi_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) |
        ImmField<19, 16>(imm4));
-}
-
-void Assembler::ld3h(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]
-  //  1010 0100 110. .... 110. .... .... ....
-  //  msz<24:23> = 01 | num<22:21> = 10 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3));
-
-  Emit(LD3H_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 void Assembler::ld3h(const ZRegister& zt1,
@@ -5405,24 +5341,6 @@ void Assembler::ld3w(const ZRegister& zt1,
                      const ZRegister& zt3,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]
-  //  1010 0101 010. .... 110. .... .... ....
-  //  msz<24:23> = 10 | num<22:21> = 10 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3));
-
-  Emit(LD3W_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld3w(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
   //  1010 0101 0100 .... 111. .... .... ....
@@ -5435,25 +5353,6 @@ void Assembler::ld3w(const ZRegister& zt1,
 
   Emit(LD3W_z_p_bi_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) |
        ImmField<19, 16>(imm4));
-}
-
-void Assembler::ld4b(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const ZRegister& zt4,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>/Z, [<Xn|SP>, <Xm>]
-  //  1010 0100 011. .... 110. .... .... ....
-  //  msz<24:23> = 00 | num<22:21> = 11 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3, zt4);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3, zt4));
-
-  Emit(LD4B_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 void Assembler::ld4b(const ZRegister& zt1,
@@ -5483,26 +5382,6 @@ void Assembler::ld4d(const ZRegister& zt1,
                      const ZRegister& zt4,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL
-  // #3]
-  //  1010 0101 111. .... 110. .... .... ....
-  //  msz<24:23> = 11 | num<22:21> = 11 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3, zt4);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3, zt4));
-
-  Emit(LD4D_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld4d(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const ZRegister& zt4,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL
   // VL}]
@@ -5524,26 +5403,6 @@ void Assembler::ld4h(const ZRegister& zt1,
                      const ZRegister& zt4,
                      const PRegisterZ& pg,
                      const Register& xn,
-                     const Register& rm) {
-  // LD4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL
-  // #1]
-  //  1010 0100 111. .... 110. .... .... ....
-  //  msz<24:23> = 01 | num<22:21> = 11 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3, zt4);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3, zt4));
-
-  Emit(LD4H_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ld4h(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const ZRegister& zt4,
-                     const PRegisterZ& pg,
-                     const Register& xn,
                      int imm4) {
   // LD4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL
   // VL}]
@@ -5557,26 +5416,6 @@ void Assembler::ld4h(const ZRegister& zt1,
 
   Emit(LD4H_z_p_bi_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) |
        ImmField<19, 16>(imm4));
-}
-
-void Assembler::ld4w(const ZRegister& zt1,
-                     const ZRegister& zt2,
-                     const ZRegister& zt3,
-                     const ZRegister& zt4,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // LD4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL
-  // #2]
-  //  1010 0101 011. .... 110. .... .... ....
-  //  msz<24:23> = 10 | num<22:21> = 11 | Rm<20:16> | Pg<12:10> | Rn<9:5> |
-  //  Zt<4:0>
-
-  USE(zt2, zt3, zt4);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreConsecutive(zt1, zt2, zt3, zt4));
-
-  Emit(LD4W_z_p_br_contiguous | Rt(zt1) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
 }
 
 void Assembler::ld4w(const ZRegister& zt1,
@@ -5966,7 +5805,6 @@ void Assembler::SVESt1Helper(unsigned msize_in_bytes_log2,
                              const PRegister& pg,
                              const SVEMemOperand& addr) {
   Instr op;
-  VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
   if (addr.IsScalarPlusImmediate()) {
     op = SVEContiguousStore_ScalarPlusImmFixed;
   } else if (addr.IsScalarPlusScalar()) {
@@ -5976,18 +5814,13 @@ void Assembler::SVESt1Helper(unsigned msize_in_bytes_log2,
     VIXL_UNIMPLEMENTED();
     op = 0xffffffff;
   }
-
-  Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr);
-  Instr dtype =
-      SVEDtype(msize_in_bytes_log2, zt.GetLaneSizeInBytesLog2(), false);
-  Emit(op | mem_op | Rt(zt) | PgLow8(pg) | dtype);
+  SVELdSt1Helper(msize_in_bytes_log2, zt, pg, addr, false, op);
 }
 
 void Assembler::SVESt234Helper(int num_regs,
-                               const ZRegister& zt,
+                               const ZRegister& zt1,
                                const PRegister& pg,
                                const SVEMemOperand& addr) {
-  unsigned msize_in_bytes_log2 = zt.GetLaneSizeInBytesLog2();
   Instr op;
   if (addr.IsScalarPlusImmediate()) {
     op = SVEStoreMultipleStructures_ScalarPlusImmFixed;
@@ -5997,12 +5830,7 @@ void Assembler::SVESt234Helper(int num_regs,
     // These instructions don't support any other addressing modes.
     VIXL_ABORT();
   }
-
-  VIXL_ASSERT((num_regs >= 2) && (num_regs <= 4));
-  Instr num = (num_regs - 1) << 21;
-  Instr msz = msize_in_bytes_log2 << 23;
-  Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, num_regs, addr);
-  Emit(op | mem_op | msz | num | Rt(zt) | PgLow8(pg));
+  SVELdSt234Helper(num_regs, zt1, pg, addr, op);
 }
 
 #define VIXL_DEFINE_ST1(MSZ, LANE_SIZE)                           \

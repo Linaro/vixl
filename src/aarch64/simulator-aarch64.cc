@@ -9853,41 +9853,31 @@ void Simulator::VisitSVELoadMultipleStructures_ScalarPlusScalar(
   USE(instr);
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusScalarMask)) {
     case LD2B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD2D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD2H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD2W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD4B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD4D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD4H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+    case LD4W_z_p_br_contiguous: {
+      int msz = instr->ExtractBits(24, 23);
+      uint64_t offset = ReadXRegister(instr->GetRm()) * (1 << msz);
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
+      LogicSVEAddressVector addr(
+          ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset);
+      addr.SetMsizeInBytesLog2(msz);
+      addr.SetRegCount(instr->ExtractBits(22, 21) + 1);
+      SVEStructuredLoadHelper(vform,
+                              ReadPRegister(instr->GetPgLow8()),
+                              instr->GetRt(),
+                              addr,
+                              false);
       break;
-    case LD4W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

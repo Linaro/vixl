@@ -4705,8 +4705,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ld2b(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load two-byte structures to two vectors (immediate index).
   void ld2b(const ZRegister& zt1,
@@ -4720,8 +4719,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ld2d(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load two-doubleword structures to two vectors (immediate
   // index).
@@ -4735,8 +4733,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ld2h(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load two-halfword structures to two vectors (immediate
   // index).
@@ -4750,8 +4747,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ld2w(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load two-word structures to two vectors (immediate index).
   void ld2w(const ZRegister& zt1,
@@ -4765,8 +4761,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load three-byte structures to three vectors (immediate
   // index).
@@ -4783,8 +4778,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load three-doubleword structures to three vectors (immediate
   // index).
@@ -4801,8 +4795,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load three-halfword structures to three vectors (immediate
   // index).
@@ -4818,8 +4811,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load three-word structures to three vectors (immediate
   // index).
@@ -4836,8 +4828,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load four-byte structures to four vectors (immediate index).
   void ld4b(const ZRegister& zt1,
@@ -4855,8 +4846,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load four-doubleword structures to four vectors (immediate
   // index).
@@ -4875,8 +4865,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load four-halfword structures to four vectors (immediate
   // index).
@@ -4894,8 +4883,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
   // Contiguous load four-word structures to four vectors (immediate index).
   void ld4w(const ZRegister& zt1,
@@ -6861,21 +6849,45 @@ class Assembler : public vixl::internal::AssemblerBase {
                             int num_regs,
                             const SVEMemOperand& addr);
 
+  // E.g. st1b, st1h, ...
   void SVESt1Helper(unsigned msize_in_bytes_log2,
                     const ZRegister& zt,
                     const PRegister& pg,
                     const SVEMemOperand& addr);
 
-  void SVESt234Helper(int num_regs,
-                      const ZRegister& zt,
-                      const PRegister& pg,
-                      const SVEMemOperand& addr);
-
+  // E.g. ld1b, ld1h, ...
   void SVELd1Helper(unsigned msize_in_bytes_log2,
                     const ZRegister& zt,
                     const PRegisterZ& pg,
                     const SVEMemOperand& addr,
                     bool is_signed);
+
+  // Common code for the helpers above.
+  void SVELdSt1Helper(unsigned msize_in_bytes_log2,
+                      const ZRegister& zt,
+                      const PRegister& pg,
+                      const SVEMemOperand& addr,
+                      bool is_signed,
+                      Instr op);
+
+  // E.g. st2b, st3h, ...
+  void SVESt234Helper(int num_regs,
+                      const ZRegister& zt1,
+                      const PRegister& pg,
+                      const SVEMemOperand& addr);
+
+  // E.g. ld2b, ld3h, ...
+  void SVELd234Helper(int num_regs,
+                      const ZRegister& zt1,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr);
+
+  // Common code for the helpers above.
+  void SVELdSt234Helper(int num_regs,
+                        const ZRegister& zt1,
+                        const PRegister& pg,
+                        const SVEMemOperand& addr,
+                        Instr op);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,

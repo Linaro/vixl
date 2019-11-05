@@ -6232,20 +6232,20 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
   // Set the base half-way through the buffer so we can use negative indeces.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
-  __ Index(z0.VnB(), -4, 11);
-  __ Index(z1.VnB(), -5, 11);
+  __ Index(z10.VnB(), -4, 11);
+  __ Index(z11.VnB(), -5, 11);
   __ Ptrue(p7.VnB(), SVE_MUL4);
   __ Mov(x1, 0);
-  __ St2b(z0.VnB(), z1.VnB(), p7, SVEMemOperand(x0, x1));
+  __ St2b(z10.VnB(), z11.VnB(), p7, SVEMemOperand(x0, x1));
 
-  __ Index(z2.VnH(), 6, -2);
-  __ Index(z3.VnH(), 7, -2);
+  __ Index(z12.VnH(), 6, -2);
+  __ Index(z13.VnH(), 7, -2);
   __ Ptrue(p6.VnH(), SVE_VL16);
   __ Rdvl(x2, 3);  // Make offsets VL-dependent so we can avoid overlap.
-  __ St2h(z2.VnH(), z3.VnH(), p6, SVEMemOperand(x0, x2, LSL, 1));
+  __ St2h(z12.VnH(), z13.VnH(), p6, SVEMemOperand(x0, x2, LSL, 1));
 
-  __ Index(z4.VnS(), -7, 3);
-  __ Index(z5.VnS(), -8, 3);
+  __ Index(z14.VnS(), -7, 3);
+  __ Index(z15.VnS(), -8, 3);
   // Sparse predication, including some irrelevant bits (0xe). To make the
   // results easy to check, activate each lane <n> where n is a multiple of 5.
   Initialise(&masm,
@@ -6254,17 +6254,58 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
              0x001eeee100001000,
              0x0100001eeee10000,
              0x10000100001eeee1);
-  __ Rdvl(x4, -3);
-  __ St2w(z4.VnS(), z5.VnS(), p5, SVEMemOperand(x0, x4, LSL, 2));
+  __ Rdvl(x3, -3);
+  __ St2w(z14.VnS(), z15.VnS(), p5, SVEMemOperand(x0, x3, LSL, 2));
 
   // Wrap around from z31 to z0.
   __ Index(z31.VnD(), 32, -11);
   __ Index(z0.VnD(), 33, -11);
   __ Ptrue(p4.VnD(), SVE_MUL3);
-  __ Rdvl(x5, 1);
-  __ St2d(z31.VnD(), z0.VnD(), p4, SVEMemOperand(x0, x5, LSL, 3));
+  __ Rdvl(x4, 1);
+  __ St2d(z31.VnD(), z0.VnD(), p4, SVEMemOperand(x0, x4, LSL, 3));
 
-  // TODO: Corresponding loads.
+  // We can test ld2 by comparing the values loaded with the values stored.
+  // There are two complications:
+  //  - Loads have zeroing predication, so we have to clear the inactive
+  //    elements on our reference.
+  //  - We want to test both loads and stores that span { z31, z0 }, so we have
+  //    to move some values around.
+  //
+  // Registers z4-z11 will hold as-stored values (with inactive elements
+  // cleared). Registers z20-z27 will hold the values that were loaded.
+
+  // Ld2b(z20.VnB(), z21.VnB(), ...)
+  __ Dup(z4.VnB(), 0);
+  __ Dup(z5.VnB(), 0);
+  __ Mov(z4.VnB(), p7.Merging(), z10.VnB());
+  __ Mov(z5.VnB(), p7.Merging(), z11.VnB());
+
+  // Ld2h(z22.VnH(), z23.VnH(), ...)
+  __ Dup(z6.VnH(), 0);
+  __ Dup(z7.VnH(), 0);
+  __ Mov(z6.VnH(), p6.Merging(), z12.VnH());
+  __ Mov(z7.VnH(), p6.Merging(), z13.VnH());
+
+  // Ld2w(z24.VnS(), z25.VnS(), ...)
+  __ Dup(z8.VnS(), 0);
+  __ Dup(z9.VnS(), 0);
+  __ Mov(z8.VnS(), p5.Merging(), z14.VnS());
+  __ Mov(z9.VnS(), p5.Merging(), z15.VnS());
+
+  // Ld2d(z31.VnD(), z0.VnD(), ...)
+  __ Dup(z10.VnD(), 0);
+  __ Dup(z11.VnD(), 0);
+  __ Mov(z10.VnD(), p4.Merging(), z31.VnD());
+  __ Mov(z11.VnD(), p4.Merging(), z0.VnD());
+
+  // Wrap around from z31 to z0, moving the results elsewhere to avoid overlap.
+  __ Ld2b(z31.VnB(), z0.VnB(), p7.Zeroing(), SVEMemOperand(x0, x1));
+  __ Mov(z20, z31);
+  __ Mov(z21, z0);
+
+  __ Ld2h(z22.VnH(), z23.VnH(), p6.Zeroing(), SVEMemOperand(x0, x2, LSL, 1));
+  __ Ld2w(z24.VnS(), z25.VnS(), p5.Zeroing(), SVEMemOperand(x0, x3, LSL, 2));
+  __ Ld2d(z26.VnD(), z27.VnD(), p4.Zeroing(), SVEMemOperand(x0, x4, LSL, 3));
 
   END();
 
@@ -6282,7 +6323,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
 
     int reg_count = 2;
 
-    // st2b { z0.b, z1.b }, SVE_MUL4
+    // st2b { z10.b, z11.b }, SVE_MUL4
     int vl_b_mul4 = vl_b - (vl_b % 4);
     for (int i = 0; i < vl_b_mul4; i++) {
       uint8_t lane0 = -4 + (11 * i);
@@ -6291,7 +6332,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
       MemoryWrite(middle, 0, (i * reg_count) + 1, lane1);
     }
 
-    // st2h { z2.h, z3.h }, SVE_VL16
+    // st2h { z12.h, z13.h }, SVE_VL16
     if (vl_h >= 16) {
       for (int i = 0; i < 16; i++) {
         int64_t offset = (3 << kHRegSizeInBytesLog2) * vl;
@@ -6302,7 +6343,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
       }
     }
 
-    // st2w { z4.s, z5.s }, ((i % 5) == 0)
+    // st2w { z14.s, z15.s }, ((i % 5) == 0)
     for (int i = 0; i < vl_s; i++) {
       if ((i % 5) == 0) {
         int64_t offset = -(3 << kSRegSizeInBytesLog2) * vl;
@@ -6324,6 +6365,24 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
     }
 
     ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
+
+    // Check that we loaded back the expected values.
+
+    // st2b/ld2b
+    ASSERT_EQUAL_SVE(z4, z20);
+    ASSERT_EQUAL_SVE(z5, z21);
+
+    // st2h/ld2h
+    ASSERT_EQUAL_SVE(z6, z22);
+    ASSERT_EQUAL_SVE(z7, z23);
+
+    // st2w/ld2w
+    ASSERT_EQUAL_SVE(z8, z24);
+    ASSERT_EQUAL_SVE(z9, z25);
+
+    // st2d/ld2d
+    ASSERT_EQUAL_SVE(z10, z26);
+    ASSERT_EQUAL_SVE(z11, z27);
 
     delete[] expected;
   }
@@ -6473,19 +6532,43 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
   // Set the base half-way through the buffer so we can use negative indeces.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
-  __ Index(z0.VnB(), -4, 11);
-  __ Index(z1.VnB(), -5, 11);
-  __ Index(z2.VnB(), -6, 11);
-  __ Ptrue(p7.VnB(), SVE_MUL4);
-  __ Rdvl(x1, -10);
-  __ St3b(z0.VnB(), z1.VnB(), z2.VnB(), p7, SVEMemOperand(x0, x1, LSL, 0));
+  // We can test ld3 by comparing the values loaded with the values stored.
+  // There are two complications:
+  //  - Loads have zeroing predication, so we have to clear the inactive
+  //    elements on our reference.
+  //  - We want to test both loads and stores that span { z31, z0 }, so we have
+  //    to move some values around.
+  //
+  // Registers z4-z15 will hold as-stored values (with inactive elements
+  // cleared). Registers z16-z27 will hold the values that were loaded.
 
-  __ Index(z2.VnH(), 6, -2);
-  __ Index(z3.VnH(), 7, -2);
-  __ Index(z4.VnH(), 8, -2);
+  __ Index(z10.VnB(), -4, 11);
+  __ Index(z11.VnB(), -5, 11);
+  __ Index(z12.VnB(), -6, 11);
+  __ Ptrue(p7.VnB(), SVE_MUL4);
+  __ Rdvl(x1, -1);  // Make offsets VL-dependent so we can avoid overlap.
+  __ St3b(z10.VnB(), z11.VnB(), z12.VnB(), p7, SVEMemOperand(x0, x1, LSL, 0));
+  // Save the stored values for ld3 tests.
+  __ Dup(z4.VnB(), 0);
+  __ Dup(z5.VnB(), 0);
+  __ Dup(z6.VnB(), 0);
+  __ Mov(z4.VnB(), p7.Merging(), z10.VnB());
+  __ Mov(z5.VnB(), p7.Merging(), z11.VnB());
+  __ Mov(z6.VnB(), p7.Merging(), z12.VnB());
+
+  __ Index(z13.VnH(), 6, -2);
+  __ Index(z14.VnH(), 7, -2);
+  __ Index(z15.VnH(), 8, -2);
   __ Ptrue(p6.VnH(), SVE_VL16);
-  __ Rdvl(x2, 5);  // Make offsets VL-dependent so we can avoid overlap.
-  __ St3h(z2.VnH(), z3.VnH(), z4.VnH(), p6, SVEMemOperand(x0, x2, LSL, 1));
+  __ Rdvl(x2, 5);  // (5 * vl) << 1 = 10 * vl
+  __ St3h(z13.VnH(), z14.VnH(), z15.VnH(), p6, SVEMemOperand(x0, x2, LSL, 1));
+  // Save the stored values for ld3 tests.
+  __ Dup(z7.VnH(), 0);
+  __ Dup(z8.VnH(), 0);
+  __ Dup(z9.VnH(), 0);
+  __ Mov(z7.VnH(), p6.Merging(), z13.VnH());
+  __ Mov(z8.VnH(), p6.Merging(), z14.VnH());
+  __ Mov(z9.VnH(), p6.Merging(), z15.VnH());
 
   // Wrap around from z31 to z0.
   __ Index(z30.VnS(), -7, 3);
@@ -6499,17 +6582,58 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
              0x001eeee100001000,
              0x0100001eeee10000,
              0x10000100001eeee1);
-  __ Rdvl(x4, -5);
-  __ St3w(z30.VnS(), z31.VnS(), z0.VnS(), p5, SVEMemOperand(x0, x4, LSL, 2));
+  __ Rdvl(x3, -5);  // -(5 * vl) << 2 = -20 * vl
+  __ St3w(z30.VnS(), z31.VnS(), z0.VnS(), p5, SVEMemOperand(x0, x3, LSL, 2));
+  // Save the stored values for ld3 tests.
+  __ Dup(z10.VnS(), 0);
+  __ Dup(z11.VnS(), 0);
+  __ Dup(z12.VnS(), 0);
+  __ Mov(z10.VnS(), p5.Merging(), z30.VnS());
+  __ Mov(z11.VnS(), p5.Merging(), z31.VnS());
+  __ Mov(z12.VnS(), p5.Merging(), z0.VnS());
 
   __ Index(z31.VnD(), 32, -11);
   __ Index(z0.VnD(), 33, -11);
   __ Index(z1.VnD(), 34, -11);
   __ Ptrue(p4.VnD(), SVE_MUL3);
-  __ Rdvl(x5, 1);
-  __ St3d(z31.VnD(), z0.VnD(), z1.VnD(), p4, SVEMemOperand(x0, x5, LSL, 3));
+  __ Rdvl(x4, -1);  // -(1 * vl) << 3 = -8 * vl
+  __ St3d(z31.VnD(), z0.VnD(), z1.VnD(), p4, SVEMemOperand(x0, x4, LSL, 3));
+  // Save the stored values for ld3 tests.
+  __ Dup(z13.VnD(), 0);
+  __ Dup(z14.VnD(), 0);
+  __ Dup(z15.VnD(), 0);
+  __ Mov(z13.VnD(), p4.Merging(), z31.VnD());
+  __ Mov(z14.VnD(), p4.Merging(), z0.VnD());
+  __ Mov(z15.VnD(), p4.Merging(), z1.VnD());
 
-  // TODO: Corresponding loads.
+  // Corresponding loads.
+  // Wrap around from z31 to z0, moving the results elsewhere to avoid overlap.
+  __ Ld3b(z31.VnB(),
+          z0.VnB(),
+          z1.VnB(),
+          p7.Zeroing(),
+          SVEMemOperand(x0, x1, LSL, 0));
+  __ Mov(z16, z31);
+  __ Mov(z17, z0);
+  __ Mov(z18, z1);
+  __ Ld3h(z30.VnH(),
+          z31.VnH(),
+          z0.VnH(),
+          p6.Zeroing(),
+          SVEMemOperand(x0, x2, LSL, 1));
+  __ Mov(z19, z30);
+  __ Mov(z20, z31);
+  __ Mov(z21, z0);
+  __ Ld3w(z22.VnS(),
+          z23.VnS(),
+          z24.VnS(),
+          p5.Zeroing(),
+          SVEMemOperand(x0, x3, LSL, 2));
+  __ Ld3d(z25.VnD(),
+          z26.VnD(),
+          z27.VnD(),
+          p4.Zeroing(),
+          SVEMemOperand(x0, x4, LSL, 3));
 
   END();
 
@@ -6527,10 +6651,10 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
 
     int reg_count = 3;
 
-    // st3b { z0.b, z1.b, z0.b }, SVE_MUL4
+    // st3b { z10.b, z11.b, z12.b }, SVE_MUL4
     int vl_b_mul4 = vl_b - (vl_b % 4);
     for (int i = 0; i < vl_b_mul4; i++) {
-      int64_t offset = -(10 << kBRegSizeInBytesLog2) * vl;
+      int64_t offset = -(1 << kBRegSizeInBytesLog2) * vl;
       uint8_t lane0 = -4 + (11 * i);
       uint8_t lane1 = -5 + (11 * i);
       uint8_t lane2 = -6 + (11 * i);
@@ -6539,7 +6663,7 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
       MemoryWrite(middle, offset, (i * reg_count) + 2, lane2);
     }
 
-    // st3h { z2.h, z3.h, z4.h }, SVE_VL16
+    // st3h { z13.h, z14.h, z15.h }, SVE_VL16
     if (vl_h >= 16) {
       for (int i = 0; i < 16; i++) {
         int64_t offset = (5 << kHRegSizeInBytesLog2) * vl;
@@ -6568,7 +6692,7 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
     // st3d { z31.d, z0.d, z1.d }, SVE_MUL3
     int vl_d_mul3 = vl_d - (vl_d % 3);
     for (int i = 0; i < vl_d_mul3; i++) {
-      int64_t offset = (1 << kDRegSizeInBytesLog2) * vl;
+      int64_t offset = -(1 << kDRegSizeInBytesLog2) * vl;
       uint64_t lane0 = 32 - (11 * i);
       uint64_t lane1 = 33 - (11 * i);
       uint64_t lane2 = 34 - (11 * i);
@@ -6578,6 +6702,28 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
     }
 
     ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
+
+    // Check that we loaded back the expected values.
+
+    // st3b/ld3b
+    ASSERT_EQUAL_SVE(z4, z16);
+    ASSERT_EQUAL_SVE(z5, z17);
+    ASSERT_EQUAL_SVE(z6, z18);
+
+    // st3h/ld3h
+    ASSERT_EQUAL_SVE(z7, z19);
+    ASSERT_EQUAL_SVE(z8, z20);
+    ASSERT_EQUAL_SVE(z9, z21);
+
+    // st3w/ld3w
+    ASSERT_EQUAL_SVE(z10, z22);
+    ASSERT_EQUAL_SVE(z11, z23);
+    ASSERT_EQUAL_SVE(z12, z24);
+
+    // st3d/ld3d
+    ASSERT_EQUAL_SVE(z13, z25);
+    ASSERT_EQUAL_SVE(z14, z26);
+    ASSERT_EQUAL_SVE(z15, z27);
 
     delete[] expected;
   }
@@ -6746,31 +6892,60 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
   // Set the base half-way through the buffer so we can use negative indeces.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
-  __ Index(z0.VnB(), -4, 11);
-  __ Index(z1.VnB(), -5, 11);
-  __ Index(z2.VnB(), -6, 11);
-  __ Index(z3.VnB(), -7, 11);
+  // We can test ld4 by comparing the values loaded with the values stored.
+  // There are two complications:
+  //  - Loads have zeroing predication, so we have to clear the inactive
+  //    elements on our reference.
+  //  - We want to test both loads and stores that span { z31, z0 }, so we have
+  //    to move some values around.
+  //
+  // Registers z3-z18 will hold as-stored values (with inactive elements
+  // cleared). Registers z19-z31 and z0-z2 will hold the values that were
+  // loaded.
+
+  __ Index(z19.VnB(), -4, 11);
+  __ Index(z20.VnB(), -5, 11);
+  __ Index(z21.VnB(), -6, 11);
+  __ Index(z22.VnB(), -7, 11);
   __ Ptrue(p7.VnB(), SVE_MUL4);
-  __ Rdvl(x1, -10);
-  __ St4b(z0.VnB(),
-          z1.VnB(),
-          z2.VnB(),
-          z3.VnB(),
+  __ Rdvl(x1, -1);  // Make offsets VL-dependent so we can avoid overlap.
+  __ St4b(z19.VnB(),
+          z20.VnB(),
+          z21.VnB(),
+          z22.VnB(),
           p7,
           SVEMemOperand(x0, x1, LSL, 0));
+  // Save the stored values for ld4 tests.
+  __ Dup(z3.VnB(), 0);
+  __ Dup(z4.VnB(), 0);
+  __ Dup(z5.VnB(), 0);
+  __ Dup(z6.VnB(), 0);
+  __ Mov(z3.VnB(), p7.Merging(), z19.VnB());
+  __ Mov(z4.VnB(), p7.Merging(), z20.VnB());
+  __ Mov(z5.VnB(), p7.Merging(), z21.VnB());
+  __ Mov(z6.VnB(), p7.Merging(), z22.VnB());
 
-  __ Index(z2.VnH(), 6, -2);
-  __ Index(z3.VnH(), 7, -2);
-  __ Index(z4.VnH(), 8, -2);
-  __ Index(z5.VnH(), 9, -2);
+  __ Index(z23.VnH(), 6, -2);
+  __ Index(z24.VnH(), 7, -2);
+  __ Index(z25.VnH(), 8, -2);
+  __ Index(z26.VnH(), 9, -2);
   __ Ptrue(p6.VnH(), SVE_VL16);
-  __ Rdvl(x2, 7);  // Make offsets VL-dependent so we can avoid overlap.
-  __ St4h(z2.VnH(),
-          z3.VnH(),
-          z4.VnH(),
-          z5.VnH(),
+  __ Rdvl(x2, 7);  // (7 * vl) << 1 = 14 * vl
+  __ St4h(z23.VnH(),
+          z24.VnH(),
+          z25.VnH(),
+          z26.VnH(),
           p6,
           SVEMemOperand(x0, x2, LSL, 1));
+  // Save the stored values for ld4 tests.
+  __ Dup(z7.VnH(), 0);
+  __ Dup(z8.VnH(), 0);
+  __ Dup(z9.VnH(), 0);
+  __ Dup(z10.VnH(), 0);
+  __ Mov(z7.VnH(), p6.Merging(), z23.VnH());
+  __ Mov(z8.VnH(), p6.Merging(), z24.VnH());
+  __ Mov(z9.VnH(), p6.Merging(), z25.VnH());
+  __ Mov(z10.VnH(), p6.Merging(), z26.VnH());
 
   // Wrap around from z31 to z0.
   __ Index(z29.VnS(), -6, 7);
@@ -6785,28 +6960,76 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
              0x001eeee100001000,
              0x0100001eeee10000,
              0x10000100001eeee1);
-  __ Rdvl(x4, -5);
+  __ Rdvl(x3, -5);  // -(5 * vl) << 2 = -20 * vl
   __ St4w(z29.VnS(),
           z30.VnS(),
           z31.VnS(),
           z0.VnS(),
           p5,
-          SVEMemOperand(x0, x4, LSL, 2));
+          SVEMemOperand(x0, x3, LSL, 2));
+  // Save the stored values for ld4 tests.
+  __ Dup(z11.VnS(), 0);
+  __ Dup(z12.VnS(), 0);
+  __ Dup(z13.VnS(), 0);
+  __ Dup(z14.VnS(), 0);
+  __ Mov(z11.VnS(), p5.Merging(), z29.VnS());
+  __ Mov(z12.VnS(), p5.Merging(), z30.VnS());
+  __ Mov(z13.VnS(), p5.Merging(), z31.VnS());
+  __ Mov(z14.VnS(), p5.Merging(), z0.VnS());
 
   __ Index(z31.VnD(), 32, -11);
   __ Index(z0.VnD(), 33, -11);
   __ Index(z1.VnD(), 34, -11);
   __ Index(z2.VnD(), 35, -11);
   __ Ptrue(p4.VnD(), SVE_MUL3);
-  __ Rdvl(x5, 1);
+  __ Rdvl(x4, -1);  // -(1 * vl) << 3 = -8 *vl
   __ St4d(z31.VnD(),
           z0.VnD(),
           z1.VnD(),
           z2.VnD(),
           p4,
-          SVEMemOperand(x0, x5, LSL, 3));
+          SVEMemOperand(x0, x4, LSL, 3));
+  // Save the stored values for ld4 tests.
+  __ Dup(z15.VnD(), 0);
+  __ Dup(z16.VnD(), 0);
+  __ Dup(z17.VnD(), 0);
+  __ Dup(z18.VnD(), 0);
+  __ Mov(z15.VnD(), p4.Merging(), z31.VnD());
+  __ Mov(z16.VnD(), p4.Merging(), z0.VnD());
+  __ Mov(z17.VnD(), p4.Merging(), z1.VnD());
+  __ Mov(z18.VnD(), p4.Merging(), z2.VnD());
 
-  // TODO: Corresponding loads.
+  // Corresponding loads.
+  // Wrap around from z31 to z0, moving the results elsewhere to avoid overlap.
+  __ Ld4b(z31.VnB(),
+          z0.VnB(),
+          z1.VnB(),
+          z2.VnB(),
+          p7.Zeroing(),
+          SVEMemOperand(x0, x1, LSL, 0));
+  __ Mov(z19, z31);
+  __ Mov(z20, z0);
+  __ Mov(z21, z1);
+  __ Mov(z22, z2);
+  __ Ld4h(z23.VnH(),
+          z24.VnH(),
+          z25.VnH(),
+          z26.VnH(),
+          p6.Zeroing(),
+          SVEMemOperand(x0, x2, LSL, 1));
+  __ Ld4w(z27.VnS(),
+          z28.VnS(),
+          z29.VnS(),
+          z30.VnS(),
+          p5.Zeroing(),
+          SVEMemOperand(x0, x3, LSL, 2));
+  // Wrap around from z31 to z0.
+  __ Ld4d(z31.VnD(),
+          z0.VnD(),
+          z1.VnD(),
+          z2.VnD(),
+          p4.Zeroing(),
+          SVEMemOperand(x0, x4, LSL, 3));
 
   END();
 
@@ -6824,10 +7047,10 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
 
     int reg_count = 4;
 
-    // st4b { z0.b, z1.b, z2.b, z3.b }, SVE_MUL4
+    // st4b { z19.b, z20.b, z21.b, z22.b }, SVE_MUL4
     int vl_b_mul4 = vl_b - (vl_b % 4);
     for (int i = 0; i < vl_b_mul4; i++) {
-      int64_t offset = -(10 << kBRegSizeInBytesLog2) * vl;
+      int64_t offset = -(1 << kBRegSizeInBytesLog2) * vl;
       uint8_t lane0 = -4 + (11 * i);
       uint8_t lane1 = -5 + (11 * i);
       uint8_t lane2 = -6 + (11 * i);
@@ -6838,7 +7061,7 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
       MemoryWrite(middle, offset, (i * reg_count) + 3, lane3);
     }
 
-    // st4h { z2.h, z3.h, z4.h, z5.h }, SVE_VL16
+    // st4h { z22.h, z23.h, z24.h, z25.h }, SVE_VL16
     if (vl_h >= 16) {
       for (int i = 0; i < 16; i++) {
         int64_t offset = (7 << kHRegSizeInBytesLog2) * vl;
@@ -6871,7 +7094,7 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
     // st4d { z31.d, z0.d, z1.d, z2.d }, SVE_MUL3
     int vl_d_mul3 = vl_d - (vl_d % 3);
     for (int i = 0; i < vl_d_mul3; i++) {
-      int64_t offset = (1 << kDRegSizeInBytesLog2) * vl;
+      int64_t offset = -(1 << kDRegSizeInBytesLog2) * vl;
       uint64_t lane0 = 32 - (11 * i);
       uint64_t lane1 = 33 - (11 * i);
       uint64_t lane2 = 34 - (11 * i);
@@ -6883,6 +7106,32 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
     }
 
     ASSERT_EQUAL_MEMORY(expected, data, data_size, middle - expected);
+
+    // Check that we loaded back the expected values.
+
+    // st4b/ld4b
+    ASSERT_EQUAL_SVE(z3, z19);
+    ASSERT_EQUAL_SVE(z4, z20);
+    ASSERT_EQUAL_SVE(z5, z21);
+    ASSERT_EQUAL_SVE(z6, z22);
+
+    // st4h/ld4h
+    ASSERT_EQUAL_SVE(z7, z23);
+    ASSERT_EQUAL_SVE(z8, z24);
+    ASSERT_EQUAL_SVE(z9, z25);
+    ASSERT_EQUAL_SVE(z10, z26);
+
+    // st4w/ld4w
+    ASSERT_EQUAL_SVE(z11, z27);
+    ASSERT_EQUAL_SVE(z12, z28);
+    ASSERT_EQUAL_SVE(z13, z29);
+    ASSERT_EQUAL_SVE(z14, z30);
+
+    // st4d/ld4d
+    ASSERT_EQUAL_SVE(z15, z31);
+    ASSERT_EQUAL_SVE(z16, z0);
+    ASSERT_EQUAL_SVE(z17, z1);
+    ASSERT_EQUAL_SVE(z18, z2);
 
     delete[] expected;
   }
@@ -6928,7 +7177,41 @@ TEST_SVE(sve_ld234_st234_scalar_plus_scalar_sp) {
           p2,
           SVEMemOperand(sp, x2, LSL, 2));
 
-  // TODO: Corresponding loads.
+  // Corresponding loads.
+  // We have to explicitly zero inactive lanes in the reference values because
+  // loads have zeroing predication.
+  __ Dup(z12.VnB(), 0);
+  __ Dup(z13.VnB(), 0);
+  __ Mov(z12.VnB(), p0.Merging(), z0.VnB());
+  __ Mov(z13.VnB(), p0.Merging(), z1.VnB());
+  __ Ld2b(z0.VnB(), z1.VnB(), p0.Zeroing(), SVEMemOperand(sp, x0));
+
+  __ Dup(z16.VnH(), 0);
+  __ Dup(z17.VnH(), 0);
+  __ Dup(z18.VnH(), 0);
+  __ Mov(z16.VnH(), p1.Merging(), z4.VnH());
+  __ Mov(z17.VnH(), p1.Merging(), z5.VnH());
+  __ Mov(z18.VnH(), p1.Merging(), z6.VnH());
+  __ Ld3h(z4.VnH(),
+          z5.VnH(),
+          z6.VnH(),
+          p1.Zeroing(),
+          SVEMemOperand(sp, x1, LSL, 1));
+
+  __ Dup(z20.VnS(), 0);
+  __ Dup(z21.VnS(), 0);
+  __ Dup(z22.VnS(), 0);
+  __ Dup(z23.VnS(), 0);
+  __ Mov(z20.VnS(), p2.Merging(), z8.VnS());
+  __ Mov(z21.VnS(), p2.Merging(), z9.VnS());
+  __ Mov(z22.VnS(), p2.Merging(), z10.VnS());
+  __ Mov(z23.VnS(), p2.Merging(), z11.VnS());
+  __ Ld4w(z8.VnS(),
+          z9.VnS(),
+          z10.VnS(),
+          z11.VnS(),
+          p2.Zeroing(),
+          SVEMemOperand(sp, x2, LSL, 2));
 
   __ DropVL(2 + 3 + 4);
 
@@ -6941,7 +7224,21 @@ TEST_SVE(sve_ld234_st234_scalar_plus_scalar_sp) {
     // crashes on execution. We already test the address calculations separately
     // and sp doesn't change this, so just test that we load the values we
     // stored.
-    // TODO: Actually do this, once loads are implemented.
+
+    // st2b/ld2b
+    ASSERT_EQUAL_SVE(z0, z12);
+    ASSERT_EQUAL_SVE(z1, z13);
+
+    // st3h/ld3h
+    ASSERT_EQUAL_SVE(z4, z16);
+    ASSERT_EQUAL_SVE(z5, z17);
+    ASSERT_EQUAL_SVE(z6, z18);
+
+    // st4h/ld4h
+    ASSERT_EQUAL_SVE(z8, z20);
+    ASSERT_EQUAL_SVE(z9, z21);
+    ASSERT_EQUAL_SVE(z10, z22);
+    ASSERT_EQUAL_SVE(z11, z23);
   }
 }
 

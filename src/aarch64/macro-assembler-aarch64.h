@@ -4814,11 +4814,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ld2b(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld2b(zt1, zt2, pg, xn, rm);
+    ld2b(zt1, zt2, pg, addr);
   }
   void Ld2b(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4832,11 +4831,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ld2d(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld2d(zt1, zt2, pg, xn, rm);
+    ld2d(zt1, zt2, pg, addr);
   }
   void Ld2d(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4850,11 +4848,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ld2h(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld2h(zt1, zt2, pg, xn, rm);
+    ld2h(zt1, zt2, pg, addr);
   }
   void Ld2h(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4868,11 +4865,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ld2w(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld2w(zt1, zt2, pg, xn, rm);
+    ld2w(zt1, zt2, pg, addr);
   }
   void Ld2w(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4887,11 +4883,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld3b(zt1, zt2, zt3, pg, xn, rm);
+    ld3b(zt1, zt2, zt3, pg, addr);
   }
   void Ld3b(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4907,11 +4902,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld3d(zt1, zt2, zt3, pg, xn, rm);
+    ld3d(zt1, zt2, zt3, pg, addr);
   }
   void Ld3d(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4927,11 +4921,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld3h(zt1, zt2, zt3, pg, xn, rm);
+    ld3h(zt1, zt2, zt3, pg, addr);
   }
   void Ld3h(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4947,11 +4940,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld3w(zt1, zt2, zt3, pg, xn, rm);
+    ld3w(zt1, zt2, zt3, pg, addr);
   }
   void Ld3w(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4968,11 +4960,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld4b(zt1, zt2, zt3, zt4, pg, xn, rm);
+    ld4b(zt1, zt2, zt3, zt4, pg, addr);
   }
   void Ld4b(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -4990,11 +4981,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld4d(zt1, zt2, zt3, zt4, pg, xn, rm);
+    ld4d(zt1, zt2, zt3, zt4, pg, addr);
   }
   void Ld4d(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -5012,11 +5002,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld4h(zt1, zt2, zt3, zt4, pg, xn, rm);
+    ld4h(zt1, zt2, zt3, zt4, pg, addr);
   }
   void Ld4h(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -5034,11 +5023,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ld4w(zt1, zt2, zt3, zt4, pg, xn, rm);
+    ld4w(zt1, zt2, zt3, zt4, pg, addr);
   }
   void Ld4w(const ZRegister& zt1,
             const ZRegister& zt2,
