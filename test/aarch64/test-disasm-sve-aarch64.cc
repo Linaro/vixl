@@ -2395,6 +2395,243 @@ TEST(sve_mem_64bit_gather) {
   CLEANUP();
 }
 
+TEST(sve_ld2_scalar_plus_immediate) {
+  SETUP();
+
+  COMPARE_PREFIX(ld2b(z31.VnB(), z0.VnB(), p6.Zeroing(), SVEMemOperand(x19)),
+                 "ld2b { z31.b, z0.b }, p6/z, [x19]");
+  COMPARE_PREFIX(ld2b(z31.VnB(),
+                      z0.VnB(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "ld2b { z31.b, z0.b }, p6/z, [x19, #14, mul vl]");
+  COMPARE_PREFIX(ld2b(z15.VnB(),
+                      z16.VnB(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "ld2b { z15.b, z16.b }, p6/z, [x19, #-16, mul vl]");
+
+  COMPARE_PREFIX(ld2h(z15.VnH(), z16.VnH(), p6.Zeroing(), SVEMemOperand(x19)),
+                 "ld2h { z15.h, z16.h }, p6/z, [x19]");
+  COMPARE_PREFIX(ld2h(z15.VnH(),
+                      z16.VnH(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "ld2h { z15.h, z16.h }, p0/z, [x19, #14, mul vl]");
+  COMPARE_PREFIX(ld2h(z15.VnH(),
+                      z16.VnH(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "ld2h { z15.h, z16.h }, p0/z, [x19, #-16, mul vl]");
+
+  COMPARE_PREFIX(ld2w(z0.VnS(), z1.VnS(), p0.Zeroing(), SVEMemOperand(x19)),
+                 "ld2w { z0.s, z1.s }, p0/z, [x19]");
+  COMPARE_PREFIX(ld2w(z0.VnS(),
+                      z1.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "ld2w { z0.s, z1.s }, p0/z, [x19, #14, mul vl]");
+  COMPARE_PREFIX(ld2w(z0.VnS(),
+                      z1.VnS(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "ld2w { z0.s, z1.s }, p7/z, [x19, #-16, mul vl]");
+
+  COMPARE_PREFIX(ld2d(z0.VnD(), z1.VnD(), p7.Zeroing(), SVEMemOperand(x19)),
+                 "ld2d { z0.d, z1.d }, p7/z, [x19]");
+  COMPARE_PREFIX(ld2d(z31.VnD(),
+                      z0.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, 14, SVE_MUL_VL)),
+                 "ld2d { z31.d, z0.d }, p7/z, [x19, #14, mul vl]");
+  COMPARE_PREFIX(ld2d(z31.VnD(),
+                      z0.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, -16, SVE_MUL_VL)),
+                 "ld2d { z31.d, z0.d }, p7/z, [x19, #-16, mul vl]");
+
+  CLEANUP();
+}
+
+TEST(sve_ld3_scalar_plus_immediate) {
+  SETUP();
+
+  COMPARE_PREFIX(ld3b(z30.VnB(),
+                      z31.VnB(),
+                      z0.VnB(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld3b { z30.b, z31.b, z0.b }, p7/z, [x19]");
+  COMPARE_PREFIX(ld3b(z30.VnB(),
+                      z31.VnB(),
+                      z0.VnB(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "ld3b { z30.b, z31.b, z0.b }, p6/z, [x19, #21, mul vl]");
+  COMPARE_PREFIX(ld3b(z30.VnB(),
+                      z31.VnB(),
+                      z0.VnB(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "ld3b { z30.b, z31.b, z0.b }, p6/z, [x19, #-24, mul vl]");
+
+  COMPARE_PREFIX(ld3h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld3h { z15.h, z16.h, z17.h }, p6/z, [x19]");
+  COMPARE_PREFIX(ld3h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "ld3h { z15.h, z16.h, z17.h }, p6/z, [x19, #21, mul vl]");
+  COMPARE_PREFIX(ld3h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "ld3h { z15.h, z16.h, z17.h }, p0/z, [x19, #-24, mul vl]");
+
+  COMPARE_PREFIX(ld3w(z15.VnS(),
+                      z16.VnS(),
+                      z17.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld3w { z15.s, z16.s, z17.s }, p0/z, [x19]");
+  COMPARE_PREFIX(ld3w(z0.VnS(),
+                      z1.VnS(),
+                      z2.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "ld3w { z0.s, z1.s, z2.s }, p0/z, [x19, #21, mul vl]");
+  COMPARE_PREFIX(ld3w(z0.VnS(),
+                      z1.VnS(),
+                      z2.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "ld3w { z0.s, z1.s, z2.s }, p0/z, [x19, #-24, mul vl]");
+
+  COMPARE_PREFIX(ld3d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld3d { z0.d, z1.d, z2.d }, p7/z, [x19]");
+  COMPARE_PREFIX(ld3d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, 21, SVE_MUL_VL)),
+                 "ld3d { z0.d, z1.d, z2.d }, p7/z, [x19, #21, mul vl]");
+  COMPARE_PREFIX(ld3d(z30.VnD(),
+                      z31.VnD(),
+                      z0.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, -24, SVE_MUL_VL)),
+                 "ld3d { z30.d, z31.d, z0.d }, p7/z, [x19, #-24, mul vl]");
+
+  CLEANUP();
+}
+
+TEST(sve_ld4_scalar_plus_immediate) {
+  SETUP();
+
+  COMPARE_PREFIX(ld4b(z31.VnB(),
+                      z0.VnB(),
+                      z1.VnB(),
+                      z2.VnB(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld4b { z31.b, z0.b, z1.b, z2.b }, p7/z, [x19]");
+  COMPARE_PREFIX(ld4b(z31.VnB(),
+                      z0.VnB(),
+                      z1.VnB(),
+                      z2.VnB(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "ld4b { z31.b, z0.b, z1.b, z2.b }, p7/z, [x19, #28, mul vl]");
+  COMPARE_PREFIX(ld4b(z31.VnB(),
+                      z0.VnB(),
+                      z1.VnB(),
+                      z2.VnB(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "ld4b { z31.b, z0.b, z1.b, z2.b }, p6/z, [x19, #-32, mul vl]");
+
+  COMPARE_PREFIX(ld4h(z31.VnH(),
+                      z0.VnH(),
+                      z1.VnH(),
+                      z2.VnH(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld4h { z31.h, z0.h, z1.h, z2.h }, p6/z, [x19]");
+  COMPARE_PREFIX(ld4h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      z18.VnH(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "ld4h { z15.h, z16.h, z17.h, z18.h }, p6/z, "
+                 "[x19, #28, mul vl]");
+  COMPARE_PREFIX(ld4h(z15.VnH(),
+                      z16.VnH(),
+                      z17.VnH(),
+                      z18.VnH(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "ld4h { z15.h, z16.h, z17.h, z18.h }, p6/z, "
+                 "[x19, #-32, mul vl]");
+
+  COMPARE_PREFIX(ld4w(z15.VnS(),
+                      z16.VnS(),
+                      z17.VnS(),
+                      z18.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld4w { z15.s, z16.s, z17.s, z18.s }, p0/z, [x19]");
+  COMPARE_PREFIX(ld4w(z15.VnS(),
+                      z16.VnS(),
+                      z17.VnS(),
+                      z18.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "ld4w { z15.s, z16.s, z17.s, z18.s }, p0/z, "
+                 "[x19, #28, mul vl]");
+  COMPARE_PREFIX(ld4w(z0.VnS(),
+                      z1.VnS(),
+                      z2.VnS(),
+                      z3.VnS(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "ld4w { z0.s, z1.s, z2.s, z3.s }, p0/z, [x19, #-32, mul vl]");
+
+  COMPARE_PREFIX(ld4d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      z3.VnD(),
+                      p0.Zeroing(),
+                      SVEMemOperand(x19)),
+                 "ld4d { z0.d, z1.d, z2.d, z3.d }, p0/z, [x19]");
+  COMPARE_PREFIX(ld4d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      z3.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, 28, SVE_MUL_VL)),
+                 "ld4d { z0.d, z1.d, z2.d, z3.d }, p7/z, [x19, #28, mul vl]");
+  COMPARE_PREFIX(ld4d(z0.VnD(),
+                      z1.VnD(),
+                      z2.VnD(),
+                      z3.VnD(),
+                      p7.Zeroing(),
+                      SVEMemOperand(x19, -32, SVE_MUL_VL)),
+                 "ld4d { z0.d, z1.d, z2.d, z3.d }, p7/z, [x19, #-32, mul vl]");
+
+  CLEANUP();
+}
+
 TEST(sve_ld2_scalar_plus_scalar) {
   SETUP();
 

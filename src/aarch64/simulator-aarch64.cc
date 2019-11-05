@@ -9807,41 +9807,31 @@ void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(
   USE(instr);
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
     case LD2B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD2D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD2H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD2W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD3W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD4B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD4D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD4H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
+    case LD4W_z_p_bi_contiguous: {
+      int vl = GetVectorLengthInBytes();
+      int msz = instr->ExtractBits(24, 23);
+      int reg_count = instr->ExtractBits(22, 21) + 1;
+      uint64_t offset = instr->ExtractSignedBits(19, 16) * vl * reg_count;
+      LogicSVEAddressVector addr(
+          ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset);
+      addr.SetMsizeInBytesLog2(msz);
+      addr.SetRegCount(reg_count);
+      SVEStructuredLoadHelper(SVEFormatFromLaneSizeInBytesLog2(msz),
+                              ReadPRegister(instr->GetPgLow8()),
+                              instr->GetRt(),
+                              addr);
       break;
-    case LD4W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

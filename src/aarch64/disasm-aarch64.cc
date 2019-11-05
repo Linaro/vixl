@@ -7665,78 +7665,58 @@ void Disassembler::VisitSVELoadMultipleStructures_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVELoadMultipleStructures_ScalarPlusImm)";
 
+  switch (instr->ExtractBits(22, 21)) {
+    case 1:  // ST2*
+      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210/z, ['Xns'ISveSvl]";
+      break;
+    case 2:  // ST3*
+      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210/z, ['Xns'ISveSvl]";
+      break;
+    case 3:  // ST4*
+      form =
+          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+          "p'u1210/z, ['Xns'ISveSvl]";
+      break;
+    default:
+      break;
+  }
+
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
-    // LD2B { <Zt1>.B, <Zt2>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD2B_z_p_bi_contiguous:
       mnemonic = "ld2b";
-      form = "{ 'Zt.b, 'Zt2.b }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD2D { <Zt1>.D, <Zt2>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD2D_z_p_bi_contiguous:
       mnemonic = "ld2d";
-      form = "{ 'Zt.d, 'Zt2.d }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD2H { <Zt1>.H, <Zt2>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD2H_z_p_bi_contiguous:
       mnemonic = "ld2h";
-      form = "{ 'Zt.h, 'Zt2.h }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD2W { <Zt1>.S, <Zt2>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD2W_z_p_bi_contiguous:
       mnemonic = "ld2w";
-      form = "{ 'Zt.s, 'Zt2.s }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD3B { <Zt1>.B, <Zt2>.B, <Zt3>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD3B_z_p_bi_contiguous:
       mnemonic = "ld3b";
-      form = "{ 'Zt.b, 'Zt2.b, 'Zt3.b }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD3D { <Zt1>.D, <Zt2>.D, <Zt3>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD3D_z_p_bi_contiguous:
       mnemonic = "ld3d";
-      form = "{ 'Zt.d, 'Zt2.d, 'Zt3.d }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD3H { <Zt1>.H, <Zt2>.H, <Zt3>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD3H_z_p_bi_contiguous:
       mnemonic = "ld3h";
-      form = "{ 'Zt.h, 'Zt2.h, 'Zt3.h }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD3W { <Zt1>.S, <Zt2>.S, <Zt3>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LD3W_z_p_bi_contiguous:
       mnemonic = "ld3w";
-      form = "{ 'Zt.s, 'Zt2.s, 'Zt3.s }, p'u1210/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LD4B { <Zt1>.B, <Zt2>.B, <Zt3>.B, <Zt4>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>,
-    // MUL VL}]
     case LD4B_z_p_bi_contiguous:
       mnemonic = "ld4b";
-      form =
-          "{ 'Zt.b, 'Zt2.b, 'Zt3.b, 'Zt4.b }, p'u1210/z, ['Xns{, #'u1916, MUL "
-          "VL}]";
       break;
-    // LD4D { <Zt1>.D, <Zt2>.D, <Zt3>.D, <Zt4>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>,
-    // MUL VL}]
     case LD4D_z_p_bi_contiguous:
       mnemonic = "ld4d";
-      form =
-          "{ 'Zt.d, 'Zt2.d, 'Zt3.d, 'Zt4.d }, p'u1210/z, ['Xns{, #'u1916, MUL "
-          "VL}]";
       break;
-    // LD4H { <Zt1>.H, <Zt2>.H, <Zt3>.H, <Zt4>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>,
-    // MUL VL}]
     case LD4H_z_p_bi_contiguous:
       mnemonic = "ld4h";
-      form =
-          "{ 'Zt.h, 'Zt2.h, 'Zt3.h, 'Zt4.h }, p'u1210/z, ['Xns{, #'u1916, MUL "
-          "VL}]";
       break;
-    // LD4W { <Zt1>.S, <Zt2>.S, <Zt3>.S, <Zt4>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>,
-    // MUL VL}]
     case LD4W_z_p_bi_contiguous:
       mnemonic = "ld4w";
-      form =
-          "{ 'Zt.s, 'Zt2.s, 'Zt3.s, 'Zt4.s }, p'u1210/z, ['Xns{, #'u1916, MUL "
-          "VL}]";
       break;
     default:
       break;

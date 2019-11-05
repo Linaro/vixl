@@ -4701,128 +4701,59 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zn,
              int imm5);
 
-  // Contiguous load two-byte structures to two vectors (scalar index).
+  // Contiguous load two-byte structures to two vectors.
   void ld2b(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load two-byte structures to two vectors (immediate index).
-  void ld2b(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load two-doubleword structures to two vectors (scalar
-  // index).
-  void ld2d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegisterZ& pg,
-            const SVEMemOperand& addr);
-
-  // Contiguous load two-doubleword structures to two vectors (immediate
-  // index).
-  void ld2d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load two-halfword structures to two vectors (scalar index).
+  // Contiguous load two-halfword structures to two vectors.
   void ld2h(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load two-halfword structures to two vectors (immediate
-  // index).
-  void ld2h(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load two-word structures to two vectors (scalar index).
+  // Contiguous load two-word structures to two vectors.
   void ld2w(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load two-word structures to two vectors (immediate index).
-  void ld2w(const ZRegister& zt1,
+  // Contiguous load two-doubleword structures to two vectors.
+  void ld2d(const ZRegister& zt1,
             const ZRegister& zt2,
             const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
+            const SVEMemOperand& addr);
 
-  // Contiguous load three-byte structures to three vectors (scalar index).
+  // Contiguous load three-byte structures to three vectors.
   void ld3b(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load three-byte structures to three vectors (immediate
-  // index).
-  void ld3b(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load three-doubleword structures to three vectors (scalar
-  // index).
-  void ld3d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegisterZ& pg,
-            const SVEMemOperand& addr);
-
-  // Contiguous load three-doubleword structures to three vectors (immediate
-  // index).
-  void ld3d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load three-halfword structures to three vectors (scalar
-  // index).
+  // Contiguous load three-halfword structures to three vectors.
   void ld3h(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load three-halfword structures to three vectors (immediate
-  // index).
-  void ld3h(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load three-word structures to three vectors (scalar index).
+  // Contiguous load three-word structures to three vectors.
   void ld3w(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load three-word structures to three vectors (immediate
-  // index).
-  void ld3w(const ZRegister& zt1,
+  // Contiguous load three-doubleword structures to three vectors.
+  void ld3d(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
+            const SVEMemOperand& addr);
 
-  // Contiguous load four-byte structures to four vectors (scalar index).
+  // Contiguous load four-byte structures to four vectors.
   void ld4b(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
@@ -4830,36 +4761,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load four-byte structures to four vectors (immediate index).
-  void ld4b(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load four-doubleword structures to four vectors (scalar
-  // index).
-  void ld4d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegisterZ& pg,
-            const SVEMemOperand& addr);
-
-  // Contiguous load four-doubleword structures to four vectors (immediate
-  // index).
-  void ld4d(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load four-halfword structures to four vectors (scalar
-  // index).
+  // Contiguous load four-halfword structures to four vectors.
   void ld4h(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
@@ -4867,17 +4769,7 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load four-halfword structures to four vectors (immediate
-  // index).
-  void ld4h(const ZRegister& zt1,
-            const ZRegister& zt2,
-            const ZRegister& zt3,
-            const ZRegister& zt4,
-            const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
-
-  // Contiguous load four-word structures to four vectors (scalar index).
+  // Contiguous load four-word structures to four vectors.
   void ld4w(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
@@ -4885,14 +4777,13 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load four-word structures to four vectors (immediate index).
-  void ld4w(const ZRegister& zt1,
+  // Contiguous load four-doubleword structures to four vectors.
+  void ld4d(const ZRegister& zt1,
             const ZRegister& zt2,
             const ZRegister& zt3,
             const ZRegister& zt4,
             const PRegisterZ& pg,
-            const Register& xn,
-            int imm4);
+            const SVEMemOperand& addr);
 
   // Contiguous load first-fault unsigned bytes to vector (scalar index).
   void ldff1b(const ZRegister& zt,
