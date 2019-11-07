@@ -6141,6 +6141,32 @@ LogicPRegister Simulator::SVEIntCompareVectorsHelper(Condition cond,
   return dst;
 }
 
+LogicVRegister Simulator::SVEBitwiseShiftHelper(Shift shift_op,
+                                                VectorFormat vform,
+                                                LogicVRegister dst,
+                                                const LogicVRegister& src1,
+                                                const LogicVRegister& src2,
+                                                bool is_wide_elements) {
+  unsigned lane_size = LaneSizeInBitsFromFormat(vform);
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    int64_t value = src1.Uint(vform, lane);
+    unsigned shift_amount;
+    if (is_wide_elements) {
+      int d_lane = (lane * lane_size) / kDRegSize;
+      shift_amount =
+          std::min(static_cast<unsigned>(src2.Uint(kFormatVnD, d_lane)),
+                   lane_size);
+    } else {
+      shift_amount = static_cast<unsigned>(src2.Uint(vform, lane));
+    }
+
+    int64_t result = ShiftOperand(lane_size, value, shift_op, shift_amount);
+    dst.SetUint(vform, lane, result);
+  }
+
+  return dst;
+}
+
 LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
     LogicalOp logical_op,
     VectorFormat vform,

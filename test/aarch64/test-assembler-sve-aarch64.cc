@@ -7859,5 +7859,290 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_d) {
                    zm_inputs,
                    zd_expected_min);
 }
+
+template <typename T, size_t N>
+static void BitwiseShiftImmHelper(Test* config,
+                                  int lane_size_in_bits,
+                                  const T (&zn_inputs)[N],
+                                  int shift) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zd_asr = z25.WithLaneSize(lane_size_in_bits);
+  ZRegister zd_lsr = z26.WithLaneSize(lane_size_in_bits);
+  ZRegister zd_lsl = z27.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z28.WithLaneSize(lane_size_in_bits);
+
+  InsrHelper(&masm, zn, zn_inputs);
+
+  __ Asr(zd_asr, zn, shift);
+  __ Lsr(zd_lsr, zn, shift);
+  __ Lsl(zd_lsl, zn, shift);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    const uint64_t mask = GetUintMask(lane_size_in_bits);
+    for (int i = 0; i < static_cast<int>(N); i++) {
+      int lane = N - i - 1;
+      if (!core.HasSVELane(zd_asr, lane)) break;
+      bool is_negative = (zn_inputs[i] & GetSignMask(lane_size_in_bits)) != 0;
+      uint64_t result;
+      if (shift >= lane_size_in_bits) {
+        result = is_negative ? mask : 0;
+      } else {
+        result = zn_inputs[i] >> shift;
+        if (is_negative) {
+          result |= mask << (lane_size_in_bits - shift);
+          result &= mask;
+        }
+      }
+      ASSERT_EQUAL_SVE_LANE(result, zd_asr, lane);
+    }
+
+    for (int i = 0; i < static_cast<int>(N); i++) {
+      int lane = N - i - 1;
+      if (!core.HasSVELane(zd_lsr, lane)) break;
+      uint64_t result =
+          (shift >= lane_size_in_bits) ? 0 : zn_inputs[i] >> shift;
+      ASSERT_EQUAL_SVE_LANE(result, zd_lsr, lane);
+    }
+
+    for (int i = 0; i < static_cast<int>(N); i++) {
+      int lane = N - i - 1;
+      if (!core.HasSVELane(zd_lsl, lane)) break;
+      uint64_t result = (shift >= lane_size_in_bits) ? 0 : zn_inputs[i]
+                                                               << shift;
+      ASSERT_EQUAL_SVE_LANE(result & mask, zd_lsl, lane);
+    }
+  }
+}
+
+TEST_SVE(sve_bitwise_shift_imm_unpredicated) {
+  uint64_t inputs_b[] = {0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80};
+  int shift_b[] = {1, 3, 5, 8};
+  for (size_t i = 0; i < ArrayLength(shift_b); i++) {
+    BitwiseShiftImmHelper(config, kBRegSize, inputs_b, shift_b[i]);
+  }
+
+  uint64_t inputs_h[] = {0xfedc, 0xfa55, 0x0011, 0x2233};
+  int shift_h[] = {1, 8, 11, 16};
+  for (size_t i = 0; i < ArrayLength(shift_h); i++) {
+    BitwiseShiftImmHelper(config, kHRegSize, inputs_h, shift_h[i]);
+  }
+
+  uint64_t inputs_s[] = {0xfedcba98, 0xfffa55aa, 0x00112233};
+  int shift_s[] = {1, 9, 17, 32};
+  for (size_t i = 0; i < ArrayLength(shift_s); i++) {
+    BitwiseShiftImmHelper(config, kSRegSize, inputs_s, shift_s[i]);
+  }
+
+  uint64_t inputs_d[] = {0xfedcba98fedcba98,
+                         0xfffa5555aaaaaaaa,
+                         0x0011223344aafe80};
+  int shift_d[] = {1, 23, 45, 64};
+  for (size_t i = 0; i < ArrayLength(shift_d); i++) {
+    BitwiseShiftImmHelper(config, kDRegSize, inputs_d, shift_d[i]);
+  }
+}
+
+template <typename T, typename R, size_t N>
+static void BitwiseShiftWideElementsHelper(Test* config,
+                                           Shift shift_type,
+                                           int lane_size_in_bits,
+                                           const T (&zn_inputs)[N],
+                                           const R& zm_inputs,
+                                           const T (&zd_expected)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ArithFn macro;
+  // Since logical shift left and right by the current lane size width is equal
+  // to 0, so initialize the array to 0 for convenience.
+  uint64_t zd_expected_max_shift_amount[N] = {0};
+  switch (shift_type) {
+    case ASR: {
+      macro = &MacroAssembler::Asr;
+      uint64_t mask = GetUintMask(lane_size_in_bits);
+      for (size_t i = 0; i < ArrayLength(zn_inputs); i++) {
+        bool is_negative = (zn_inputs[i] & GetSignMask(lane_size_in_bits)) != 0;
+        zd_expected_max_shift_amount[i] = is_negative ? mask : 0;
+      }
+      break;
+    }
+    case LSR:
+      macro = &MacroAssembler::Lsr;
+      break;
+    case LSL:
+      macro = &MacroAssembler::Lsl;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      macro = NULL;
+      break;
+  }
+
+  ZRegister zd = z26.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z27.WithLaneSize(lane_size_in_bits);
+  ZRegister zm = z28.WithLaneSize(kDRegSize);
+
+  InsrHelper(&masm, zn, zn_inputs);
+  InsrHelper(&masm, zm, zm_inputs);
+
+  (masm.*macro)(zd, zn, zm);
+
+  ZRegister zm_max_shift_amount = z25.WithLaneSize(kDRegSize);
+  ZRegister zd_max_shift_amount = z24.WithLaneSize(lane_size_in_bits);
+
+  __ Dup(zm_max_shift_amount, lane_size_in_bits);
+  (masm.*macro)(zd_max_shift_amount, zn, zm_max_shift_amount);
+
+  ZRegister zm_out_of_range = z23.WithLaneSize(kDRegSize);
+  ZRegister zd_out_of_range = z22.WithLaneSize(lane_size_in_bits);
+
+  __ Dup(zm_out_of_range, GetUintMask(lane_size_in_bits));
+  (masm.*macro)(zd_out_of_range, zn, zm_out_of_range);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zd_expected, zd);
+    ASSERT_EQUAL_SVE(zd_expected_max_shift_amount, zd_max_shift_amount);
+    ASSERT_EQUAL_SVE(zd_max_shift_amount, zd_out_of_range);
+  }
+}
+
+TEST_SVE(sve_bitwise_shift_wide_elements_unpredicated_asr) {
+  // clang-format off
+  uint64_t inputs_b[] = {0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80,
+                         0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80};
+  int shift_b[] = {1, 3};
+  uint64_t expected_b[] = {0xff, 0xee, 0xdd, 0xcc, 0xff, 0x2a, 0xd5, 0xc0,
+                           0xff, 0xfb, 0xf7, 0xf3, 0xff, 0x0a, 0xf5, 0xf0};
+  BitwiseShiftWideElementsHelper(config,
+                                 ASR,
+                                 kBRegSize,
+                                 inputs_b,
+                                 shift_b,
+                                 expected_b);
+
+  uint64_t inputs_h[] = {0xfedc, 0xfa55, 0x0011, 0x2233,
+                         0xfedc, 0xfa55, 0x0011, 0x2233,
+                         0xfedc, 0xfa55, 0x0011, 0x2233};
+  int shift_h[] = {1, 8, 11};
+  uint64_t expected_h[] = {0xff6e, 0xfd2a, 0x0008, 0x1119,
+                           0xfffe, 0xfffa, 0x0000, 0x0022,
+                           0xffff, 0xffff, 0x0000, 0x0004};
+  BitwiseShiftWideElementsHelper(config,
+                                 ASR,
+                                 kHRegSize,
+                                 inputs_h,
+                                 shift_h,
+                                 expected_h);
+
+  uint64_t inputs_s[] =
+      {0xfedcba98, 0xfffa55aa, 0x00112233, 0x01234567, 0xaaaaaaaa, 0x88888888};
+  int shift_s[] = {1, 9, 23};
+  uint64_t expected_s[] =
+      {0xff6e5d4c, 0xfffd2ad5, 0x00000891, 0x000091a2, 0xffffff55, 0xffffff11};
+  BitwiseShiftWideElementsHelper(config,
+                                 ASR,
+                                 kSRegSize,
+                                 inputs_s,
+                                 shift_s,
+                                 expected_s);
+  // clang-format on
+}
+
+TEST_SVE(sve_bitwise_shift_wide_elements_unpredicated_lsr) {
+  // clang-format off
+  uint64_t inputs_b[] = {0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80,
+                         0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80};
+  int shift_b[] = {1, 3};
+  uint64_t expected_b[] = {0x7f, 0x6e, 0x5d, 0x4c, 0x7f, 0x2a, 0x55, 0x40,
+                           0x1f, 0x1b, 0x17, 0x13, 0x1f, 0x0a, 0x15, 0x10};
+
+  BitwiseShiftWideElementsHelper(config,
+                                 LSR,
+                                 kBRegSize,
+                                 inputs_b,
+                                 shift_b,
+                                 expected_b);
+
+  uint64_t inputs_h[] = {0xfedc, 0xfa55, 0x0011, 0x2233,
+                         0xfedc, 0xfa55, 0x0011, 0x2233,
+                         0xfedc, 0xfa55, 0x0011, 0x2233};
+  int shift_h[] = {1, 8, 11};
+  uint64_t expected_h[] = {0x7f6e, 0x7d2a, 0x0008, 0x1119,
+                           0x00fe, 0x00fa, 0x0000, 0x0022,
+                           0x001f, 0x001f, 0x0000, 0x0004};
+  BitwiseShiftWideElementsHelper(config,
+                                 LSR,
+                                 kHRegSize,
+                                 inputs_h,
+                                 shift_h,
+                                 expected_h);
+
+  uint64_t inputs_s[] =
+      {0xfedcba98, 0xfffa55aa, 0x00112233, 0x01234567, 0xaaaaaaaa, 0x88888888};
+  int shift_s[] = {1, 9, 23};
+  uint64_t expected_s[] =
+      {0x7f6e5d4c, 0x7ffd2ad5, 0x00000891, 0x000091a2, 0x00000155, 0x00000111};
+  BitwiseShiftWideElementsHelper(config,
+                                 LSR,
+                                 kSRegSize,
+                                 inputs_s,
+                                 shift_s,
+                                 expected_s);
+  // clang-format on
+}
+
+TEST_SVE(sve_bitwise_shift_wide_elements_unpredicated_lsl) {
+  // clang-format off
+  uint64_t inputs_b[] = {0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80,
+                         0xfe, 0xdc, 0xba, 0x98, 0xff, 0x55, 0xaa, 0x80};
+  int shift_b[] = {1, 5};
+
+  uint64_t expected_b[] = {0xfc, 0xb8, 0x74, 0x30, 0xfe, 0xaa, 0x54, 0x00,
+                           0xc0, 0x80, 0x40, 0x00, 0xe0, 0xa0, 0x40, 0x00};
+
+  BitwiseShiftWideElementsHelper(config,
+                                 LSL,
+                                 kBRegSize,
+                                 inputs_b,
+                                 shift_b,
+                                 expected_b);
+  uint64_t inputs_h[] = {0xfedc, 0xfa55, 0x0011, 0x2233,
+                         0xfedc, 0xfa55, 0x0011, 0x2233,
+                         0xfedc, 0xfa55, 0x0011, 0x2233};
+  int shift_h[] = {1, 2, 14};
+
+  uint64_t expected_h[] = {0xfdb8, 0xf4aa, 0x0022, 0x4466,
+                           0xfb70, 0xe954, 0x0044, 0x88cc,
+                           0x0000, 0x4000, 0x4000, 0xc000};
+  BitwiseShiftWideElementsHelper(config,
+                                 LSL,
+                                 kHRegSize,
+                                 inputs_h,
+                                 shift_h,
+                                 expected_h);
+  uint64_t inputs_s[] =
+      {0xfedcba98, 0xfffa55aa, 0x00112233, 0x01234567, 0xaaaaaaaa, 0x88888888};
+  int shift_s[] = {1, 19, 26};
+  uint64_t expected_s[] =
+      {0xfdb97530, 0xfff4ab54, 0x11980000, 0x2b380000, 0xa8000000, 0x20000000};
+  BitwiseShiftWideElementsHelper(config,
+                                 LSL,
+                                 kSRegSize,
+                                 inputs_s,
+                                 shift_s,
+                                 expected_s);
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

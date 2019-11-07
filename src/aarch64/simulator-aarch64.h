@@ -3866,6 +3866,13 @@ class Simulator : public DecoderVisitor {
                                const LogicSVEAddressVector& addr,
                                bool is_signed = false);
 
+  LogicVRegister SVEBitwiseShiftHelper(Shift shift_op,
+                                       VectorFormat vform,
+                                       LogicVRegister dst,
+                                       const LogicVRegister& src1,
+                                       const LogicVRegister& src2,
+                                       bool is_wide_elements);
+
   // Return the first or last active lane, or -1 if none are active.
   int GetFirstActive(VectorFormat vform, const LogicPRegister& pg) const;
   int GetLastActive(VectorFormat vform, const LogicPRegister& pg) const;

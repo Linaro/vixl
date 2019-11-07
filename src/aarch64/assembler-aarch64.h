@@ -3681,7 +3681,7 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm);
 
   // Arithmetic shift right by immediate (unpredicated).
-  void asr(const ZRegister& zd, const ZRegister& zn);
+  void asr(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Arithmetic shift right by 64-bit wide elements (unpredicated).
   void asr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -5137,7 +5137,7 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm);
 
   // Logical shift left by immediate (unpredicated).
-  void lsl(const ZRegister& zd, const ZRegister& zn);
+  void lsl(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Logical shift left by 64-bit wide elements (unpredicated).
   void lsl(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -5158,7 +5158,7 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm);
 
   // Logical shift right by immediate (unpredicated).
-  void lsr(const ZRegister& zd, const ZRegister& zn);
+  void lsr(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Logical shift right by 64-bit wide elements (unpredicated).
   void lsr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -7067,6 +7067,11 @@ class Assembler : public vixl::internal::AssemblerBase {
                                        const Register& rd,
                                        int pattern,
                                        int multiplier);
+
+  void SVEBitwiseShiftImmediate(const ZRegister& zd,
+                                const ZRegister& zn,
+                                int shift,
+                                SVEBitwiseShiftUnpredicatedOp op);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

@@ -5792,7 +5792,7 @@ void Disassembler::VisitSVE64BitScatterStore_VectorPlusImm(
 void Disassembler::VisitSVEBitwiseLogicalWithImm_Unpredicated(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'tl, 'Zd.'tl, 'ITriSve";
+  const char *form = "'Zd.'tl, 'Zd.'tl, 'ITriSvel";
 
   if (instr->GetSVEImmLogical() == 0) {
     // The immediate encoded in the instruction is not in the expected format.
@@ -5946,7 +5946,7 @@ void Disassembler::VisitSVEBroadcastBitmaskImm(const Instruction *instr) {
     case DUPM_z_i:
       if (instr->GetSVEImmLogical() != 0) {
         mnemonic = "dupm";
-        form = "'Zd.'tl, 'ITriSve";
+        form = "'Zd.'tl, 'ITriSvel";
       }
       break;
     default:
@@ -6001,7 +6001,7 @@ void Disassembler::VisitSVEBroadcastIndexElement(const Instruction *instr) {
       if (instr->ExtractBits(20, 16) != 0) {
         // The tsz field must not be zero.
         mnemonic = "dup";
-        form = "'Zd.'tsz, 'Zn.'tsz['IVInsSVEIndex]";
+        form = "'Zd.'tszx, 'Zn.'tszx['IVInsSVEIndex]";
       }
       break;
     default:
@@ -8642,40 +8642,57 @@ void Disassembler::VisitSVEBitwiseLogicalUnpredicated(
 
 void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.<T>, <Zn>.<T>, <Zm>.D
-  const char *form = "'Zd.'t, 'Zn.'t, 'Zm.d";
+  const char *form = "(SVEBitwiseShiftUnpredicated)";
+  unsigned tsize =
+      (instr->ExtractBits(23, 22) << 2) | instr->ExtractBits(20, 19);
+  enum BitwiseShiftInstrType { kNone, kImm, kWide };
+  BitwiseShiftInstrType instr_type = kNone;
 
   switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
-    // ASR <Zd>.<T>, <Zn>.<T>, #<const>
     case ASR_z_zi:
       mnemonic = "asr";
-      form = "'Zd.<T>, 'Zn.<T>, #<const>";
+      instr_type = kImm;
       break;
-    // ASR <Zd>.<T>, <Zn>.<T>, <Zm>.D
     case ASR_z_zw:
       mnemonic = "asr";
+      instr_type = kWide;
       break;
-    // LSL <Zd>.<T>, <Zn>.<T>, #<const>
     case LSL_z_zi:
       mnemonic = "lsl";
-      form = "'Zd.<T>, 'Zn.<T>, #<const>";
+      instr_type = kImm;
       break;
-    // LSL <Zd>.<T>, <Zn>.<T>, <Zm>.D
     case LSL_z_zw:
       mnemonic = "lsl";
+      instr_type = kWide;
       break;
-    // LSR <Zd>.<T>, <Zn>.<T>, #<const>
     case LSR_z_zi:
       mnemonic = "lsr";
-      form = "'Zd.<T>, 'Zn.<T>, #<const>";
+      instr_type = kImm;
       break;
-    // LSR <Zd>.<T>, <Zn>.<T>, <Zm>.D
     case LSR_z_zw:
       mnemonic = "lsr";
+      instr_type = kWide;
       break;
     default:
       break;
   }
+
+  switch (instr_type) {
+    case kImm:
+      if (tsize != 0) {
+        // The tsz field must not be zero.
+        form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
+      }
+      break;
+    case kWide:
+      if (instr->GetSVESize() != kDRegSize) {
+        form = "'Zd.'t, 'Zn.'t, 'Zm.d";
+      }
+      break;
+    default:
+      break;
+  }
+
   Format(instr, mnemonic, form);
 }
 
@@ -10477,9 +10494,23 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 'T': {  // ITri - Immediate Triangular Encoded.
       if (format[4] == 'S') {
-        // SVE logical immediate encoding.
-        AppendToOutput("#0x%" PRIx64, instr->GetSVEImmLogical());
-        return 7;
+        VIXL_ASSERT((format[5] == 'v') && (format[6] == 'e'));
+        switch (format[7]) {
+          case 'l':
+            // SVE logical immediate encoding.
+            AppendToOutput("#0x%" PRIx64, instr->GetSVEImmLogical());
+            return 8;
+          case 's': {
+            // SVE shift immediate encoding.
+            std::pair<int, int> shift_and_lane_size =
+                instr->GetSVEImmShiftAndLaneSizeLog2();
+            AppendToOutput("#%" PRId32, shift_and_lane_size.first);
+            return 8;
+          }
+          default:
+            VIXL_UNREACHABLE();
+            return 0;
+        }
       } else {
         AppendToOutput("#0x%" PRIx64, instr->GetImmLogical());
         return 4;
@@ -11167,11 +11198,19 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
       break;
     case 's':
       if (format[2] == 'z') {
-        // tsz encoding.
-        std::pair<int, int> index_and_lane_size =
-            instr->GetSVEPermuteIndexAndLaneSizeLog2();
-        size_in_bytes_log2 = index_and_lane_size.second;
-        placeholder_length += 2;
+        VIXL_ASSERT((format[3] == 'x') || (format[3] == 's'));
+        if (format[3] == 'x') {
+          // 'tszx: Indexes.
+          std::pair<int, int> index_and_lane_size =
+              instr->GetSVEPermuteIndexAndLaneSizeLog2();
+          size_in_bytes_log2 = index_and_lane_size.second;
+        } else {
+          // 'tszs: Shifts.
+          std::pair<int, int> shift_and_lane_size =
+              instr->GetSVEImmShiftAndLaneSizeLog2();
+          size_in_bytes_log2 = shift_and_lane_size.second;
+        }
+        placeholder_length += 3;  // skip `sz[x|s]`
       }
       break;
     case 'h':

@@ -320,76 +320,58 @@ void Assembler::lsrr(const ZRegister& zd,
 
 // SVEBitwiseShiftUnpredicated.
 
-void Assembler::asr(const ZRegister& zd, const ZRegister& zn) {
-  // ASR <Zd>.<T>, <Zn>.<T>, #<const>
-  //  0000 0100 ..1. .... 1001 00.. .... ....
-  //  tszh<23:22> | tszl<20:19> | imm3<18:16> | opc<11:10> = 00 | Zn<9:5> |
-  //  Zd<4:0>
+void Assembler::SVEBitwiseShiftImmediate(const ZRegister& zd,
+                                         const ZRegister& zn,
+                                         int shift,
+                                         SVEBitwiseShiftUnpredicatedOp op) {
+  int lane_size = zd.GetLaneSizeInBits();
+  VIXL_ASSERT((shift > 0) && (shift <= lane_size));
+  Instr encoded_imm = (2 * lane_size) - shift;
+  Instr tszl_and_imm = ExtractUnsignedBitfield32(4, 0, encoded_imm) << 16;
+  Instr tszh = ExtractUnsignedBitfield32(6, 5, encoded_imm) << 22;
+  Emit(op | tszh | tszl_and_imm | Rd(zd) | Rn(zn));
+}
 
+void Assembler::asr(const ZRegister& zd, const ZRegister& zn, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ASR_z_zi | Rd(zd) | Rn(zn));
+  SVEBitwiseShiftImmediate(zd, zn, shift, ASR_z_zi);
 }
 
 void Assembler::asr(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // ASR <Zd>.<T>, <Zn>.<T>, <Zm>.D
-  //  0000 0100 ..1. .... 1000 00.. .... ....
-  //  size<23:22> | Zm<20:16> | opc<11:10> = 00 | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kDRegSizeInBytes);
 
   Emit(ASR_z_zw | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
-void Assembler::lsl(const ZRegister& zd, const ZRegister& zn) {
-  // LSL <Zd>.<T>, <Zn>.<T>, #<const>
-  //  0000 0100 ..1. .... 1001 11.. .... ....
-  //  tszh<23:22> | tszl<20:19> | imm3<18:16> | opc<11:10> = 11 | Zn<9:5> |
-  //  Zd<4:0>
-
+void Assembler::lsl(const ZRegister& zd, const ZRegister& zn, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LSL_z_zi | Rd(zd) | Rn(zn));
+  SVEBitwiseShiftImmediate(zd, zn, shift, LSL_z_zi);
 }
 
 void Assembler::lsl(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // LSL <Zd>.<T>, <Zn>.<T>, <Zm>.D
-  //  0000 0100 ..1. .... 1000 11.. .... ....
-  //  size<23:22> | Zm<20:16> | opc<11:10> = 11 | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kDRegSizeInBytes);
 
   Emit(LSL_z_zw | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
-void Assembler::lsr(const ZRegister& zd, const ZRegister& zn) {
-  // LSR <Zd>.<T>, <Zn>.<T>, #<const>
-  //  0000 0100 ..1. .... 1001 01.. .... ....
-  //  tszh<23:22> | tszl<20:19> | imm3<18:16> | opc<11:10> = 01 | Zn<9:5> |
-  //  Zd<4:0>
-
+void Assembler::lsr(const ZRegister& zd, const ZRegister& zn, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LSR_z_zi | Rd(zd) | Rn(zn));
+  SVEBitwiseShiftImmediate(zd, zn, shift, LSR_z_zi);
 }
 
 void Assembler::lsr(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
-  // LSR <Zd>.<T>, <Zn>.<T>, <Zm>.D
-  //  0000 0100 ..1. .... 1000 01.. .... ....
-  //  size<23:22> | Zm<20:16> | opc<11:10> = 01 | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kDRegSizeInBytes);
 
   Emit(LSR_z_zw | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));

@@ -340,6 +340,8 @@ class Instruction {
 
   std::pair<int, int> GetSVEPermuteIndexAndLaneSizeLog2() const;
 
+  std::pair<int, int> GetSVEImmShiftAndLaneSizeLog2() const;
+
   int GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb = 23) const;
 
   int GetSVEEsizeFromDtype(bool is_signed, int dtype_l_lsb = 21) const;

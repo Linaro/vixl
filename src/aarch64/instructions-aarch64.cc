@@ -480,6 +480,21 @@ uint64_t Instruction::GetSVEImmLogical() const {
   }
 }
 
+std::pair<int, int> Instruction::GetSVEImmShiftAndLaneSizeLog2() const {
+  Instr tsize = ExtractBits<0x00D80000>();
+  Instr imm_3 = ExtractBits<0x00070000>();
+  if (tsize == 0) {
+    // The bit field `tsize` means undefined if it is zero, so return a
+    // convenience value kWMinInt to indicate a failure case.
+    return std::make_pair(kWMinInt, kWMinInt);
+  }
+
+  int lane_size_in_bytes_log_2 = 32 - CountLeadingZeros(tsize, 32) - 1;
+  int esize = (1 << lane_size_in_bytes_log_2) * kBitsPerByte;
+  int shift = (2 * esize) - ((tsize << 3) | imm_3);
+  return std::make_pair(shift, lane_size_in_bytes_log_2);
+}
+
 int Instruction::GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb) const {
   Instr dtype_h = ExtractBits(dtype_h_lsb + 1, dtype_h_lsb);
   if (is_signed) {

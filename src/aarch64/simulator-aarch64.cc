@@ -463,26 +463,35 @@ int64_t Simulator::ShiftOperand(unsigned reg_size,
                                 int64_t value,
                                 Shift shift_type,
                                 unsigned amount) const {
-  VIXL_ASSERT((reg_size == kWRegSize) || (reg_size == kXRegSize));
+  VIXL_ASSERT((reg_size == kBRegSize) || (reg_size == kHRegSize) ||
+              (reg_size == kSRegSize) || (reg_size == kDRegSize));
   if (amount == 0) {
     return value;
   }
-  uint64_t uvalue = static_cast<uint64_t>(value);
-  uint64_t mask = kWRegMask;
-  bool is_negative = (uvalue & kWSignMask) != 0;
-  if (reg_size == kXRegSize) {
-    mask = kXRegMask;
-    is_negative = (uvalue & kXSignMask) != 0;
-  }
 
+  uint64_t uvalue = static_cast<uint64_t>(value);
+  uint64_t mask = GetUintMask(reg_size);
+  bool is_negative = (uvalue & GetSignMask(reg_size)) != 0;
+  // The behavior is undefined in c++ if the shift amount greater than or equal
+  // to the register lane size. Work out the shifted result based on
+  // architectural behavior before performing the c++ type shfit operations.
   switch (shift_type) {
     case LSL:
+      if (amount >= reg_size) {
+        return UINT64_C(0);
+      }
       uvalue <<= amount;
       break;
     case LSR:
+      if (amount >= reg_size) {
+        return UINT64_C(0);
+      }
       uvalue >>= amount;
       break;
     case ASR:
+      if (amount >= reg_size) {
+        return is_negative ? ~UINT64_C(0) : UINT64_C(0);
+      }
       uvalue >>= amount;
       if (is_negative) {
         // Simulate sign-extension to 64 bits.
@@ -7252,24 +7261,53 @@ void Simulator::VisitSVEBitwiseShiftByWideElements_Predicated(
 
 void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
   USE(instr);
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  Shift shift_op;
   switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
     case ASR_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ASR_z_zw:
-      VIXL_UNIMPLEMENTED();
+      shift_op = ASR;
       break;
     case LSL_z_zi:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LSL_z_zw:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSL;
       break;
     case LSR_z_zi:
+    case LSR_z_zw:
+      shift_op = LSR;
+      break;
+    default:
+      shift_op = NO_SHIFT;
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
+    case ASR_z_zi:
+    case LSL_z_zi:
+    case LSR_z_zi: {
+      SimVRegister scratch;
+      std::pair<int, int> shift_and_lane_size =
+          instr->GetSVEImmShiftAndLaneSizeLog2();
+      unsigned lane_size = shift_and_lane_size.second;
+      VIXL_ASSERT(lane_size <= kDRegSizeInBytesLog2);
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+      dup_immediate(vform, scratch, shift_and_lane_size.first);
+      SVEBitwiseShiftHelper(shift_op, vform, zd, zn, scratch, false);
+      break;
+    }
+    case ASR_z_zw:
+    case LSL_z_zw:
     case LSR_z_zw:
-      VIXL_UNIMPLEMENTED();
+      SVEBitwiseShiftHelper(shift_op,
+                            instr->GetSVEVectorFormat(),
+                            zd,
+                            zn,
+                            ReadVRegister(instr->GetRm()),
+                            true);
       break;
     default:
       VIXL_UNIMPLEMENTED();

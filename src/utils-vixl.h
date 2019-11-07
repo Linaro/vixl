@@ -77,6 +77,11 @@ inline uint64_t GetUintMask(unsigned bits) {
   return base - 1;
 }
 
+inline uint64_t GetSignMask(unsigned bits) {
+  VIXL_ASSERT(bits <= 64);
+  return UINT64_C(1) << (bits - 1);
+}
+
 // Check number width.
 // TODO: Refactor these using templates.
 inline bool IsIntN(unsigned n, uint32_t x) {
