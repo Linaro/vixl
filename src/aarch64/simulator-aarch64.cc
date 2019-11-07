@@ -7115,7 +7115,6 @@ void Simulator::VisitSVEBitwiseLogicalWithImm_Unpredicated(
   Instr op = instr->Mask(SVEBitwiseLogicalWithImm_UnpredicatedMask);
   switch (op) {
     case AND_z_zi:
-    case DUPM_z_i:
     case EOR_z_zi:
     case ORR_z_zi: {
       int lane_size = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
