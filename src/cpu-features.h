@@ -68,18 +68,18 @@ namespace vixl {
   /* Data cache clean to the point of persistence: DC CVAP.                 */ \
   V(kDCPoP,               "DCPoP",                  "dcpop")                   \
   /* Data cache clean to the point of deep persistence: DC CVADP.           */ \
-  V(kDCCVADP,             "DCCVADP",                NULL)                      \
+  V(kDCCVADP,             "DCCVADP",                "dcpodp")                  \
   /* Cryptographic support instructions.                                    */ \
   V(kSHA3,                "SHA3",                   "sha3")                    \
   V(kSHA512,              "SHA512",                 "sha512")                  \
   V(kSM3,                 "SM3",                    "sm3")                     \
   V(kSM4,                 "SM4",                    "sm4")                     \
   /* Pointer authentication for addresses.                                  */ \
-  V(kPAuth,               "PAuth",                  NULL)                      \
+  V(kPAuth,               "PAuth",                  "paca")                    \
   /* Pointer authentication for addresses uses QARMA.                       */ \
   V(kPAuthQARMA,          "PAuthQARMA",             NULL)                      \
   /* Generic authentication (using the PACGA instruction).                  */ \
-  V(kPAuthGeneric,        "PAuthGeneric",           NULL)                      \
+  V(kPAuthGeneric,        "PAuthGeneric",           "pacg")                    \
   /* Generic authentication uses QARMA.                                     */ \
   V(kPAuthGenericQARMA,   "PAuthGenericQARMA",      NULL)                      \
   /* JavaScript-style FP -> integer conversion instruction: FJCVTZS.        */ \
