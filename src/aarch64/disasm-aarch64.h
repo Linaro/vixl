@@ -27,6 +27,8 @@
 #ifndef VIXL_AARCH64_DISASM_AARCH64_H
 #define VIXL_AARCH64_DISASM_AARCH64_H
 
+#include <utility>
+
 #include "../globals-vixl.h"
 #include "../utils-vixl.h"
 
@@ -134,6 +136,11 @@ class Disassembler : public DecoderVisitor {
   int SubstituteCrField(const Instruction* instr, const char* format);
   int SubstituteIntField(const Instruction* instr, const char* format);
   int SubstituteSVESize(const Instruction* instr, const char* format);
+
+  std::pair<unsigned, unsigned> GetRegNumForField(const Instruction* instr,
+                                                  char reg_prefix,
+                                                  const char* field);
+
   bool RdIsZROrSP(const Instruction* instr) const {
     return (instr->GetRd() == kZeroRegCode);
   }

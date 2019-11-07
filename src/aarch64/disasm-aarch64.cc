@@ -1486,14 +1486,14 @@ void Disassembler::VisitLoadStorePairNonTemporal(const Instruction *instr) {
   V(CASAH,    "casah",  "'Ws, 'Wt")                   \
   V(CASLH,    "caslh",  "'Ws, 'Wt")                   \
   V(CASALH,   "casalh", "'Ws, 'Wt")                   \
-  V(CASP_w,   "casp",   "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
-  V(CASP_x,   "casp",   "'Xs, 'X(s+1), 'Xt, 'X(t+1)") \
-  V(CASPA_w,  "caspa",  "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
-  V(CASPA_x,  "caspa",  "'Xs, 'X(s+1), 'Xt, 'X(t+1)") \
-  V(CASPL_w,  "caspl",  "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
-  V(CASPL_x,  "caspl",  "'Xs, 'X(s+1), 'Xt, 'X(t+1)") \
-  V(CASPAL_w, "caspal", "'Ws, 'W(s+1), 'Wt, 'W(t+1)") \
-  V(CASPAL_x, "caspal", "'Xs, 'X(s+1), 'Xt, 'X(t+1)")
+  V(CASP_w,   "casp",   "'Ws, 'Ws+, 'Wt, 'Wt+")       \
+  V(CASP_x,   "casp",   "'Xs, 'Xs+, 'Xt, 'Xt+")       \
+  V(CASPA_w,  "caspa",  "'Ws, 'Ws+, 'Wt, 'Wt+")       \
+  V(CASPA_x,  "caspa",  "'Xs, 'Xs+, 'Xt, 'Xt+")       \
+  V(CASPL_w,  "caspl",  "'Ws, 'Ws+, 'Wt, 'Wt+")       \
+  V(CASPL_x,  "caspl",  "'Xs, 'Xs+, 'Xt, 'Xt+")       \
+  V(CASPAL_w, "caspal", "'Ws, 'Ws+, 'Wt, 'Wt+")       \
+  V(CASPAL_x, "caspal", "'Xs, 'Xs+, 'Xt, 'Xt+")
 // clang-format on
 
 
@@ -3409,7 +3409,7 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
   } else if (instr->Mask(NEONCopySmovMask) == NEON_SMOV) {
     mnemonic = "smov";
     nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
-    form = "'Rdq, 'Vn.%s['IVInsIndex1]";
+    form = "'R30d, 'Vn.%s['IVInsIndex1]";
   } else if (instr->Mask(NEONCopyDupElementMask) == NEON_DUP_ELEMENT) {
     mnemonic = "dup";
     form = "'Vd.%s, 'Vn.%s['IVInsIndex1]";
@@ -10336,7 +10336,7 @@ int Disassembler::SubstituteField(const Instruction *instr,
                                   const char *format) {
   switch (format[0]) {
     // NB. The remaining substitution prefix upper-case characters are: JU.
-    case 'R':  // Register. X or W, selected by sf bit.
+    case 'R':  // Register. X or W, selected by sf (or alternative) bit.
     case 'F':  // FP register. S or D, selected by type field.
     case 'V':  // Vector register, V, vector format.
     case 'Z':  // Scalable vector register.
@@ -10386,55 +10386,20 @@ int Disassembler::SubstituteField(const Instruction *instr,
   }
 }
 
+std::pair<unsigned, unsigned> Disassembler::GetRegNumForField(
+    const Instruction *instr, char reg_prefix, const char *field) {
+  unsigned reg_num = UINT_MAX;
+  unsigned field_len = 1;
 
-int Disassembler::SubstituteRegisterField(const Instruction *instr,
-                                          const char *format) {
-  char reg_prefix = format[0];
-  unsigned reg_num = 0;
-  unsigned field_len = 2;
-
-  switch (format[1]) {
+  switch (field[0]) {
     case 'd':
       reg_num = instr->GetRd();
-      if (format[2] == 'q') {
-        reg_prefix = instr->GetNEONQ() ? 'X' : 'W';
-        field_len = 3;
-      }
       break;
     case 'n':
       reg_num = instr->GetRn();
       break;
     case 'm':
       reg_num = instr->GetRm();
-      switch (format[2]) {
-        // Handle registers tagged with b (bytes), z (instruction), or
-        // r (registers), used for address updates in
-        // NEON load/store instructions.
-        case 'r':
-        case 'b':
-        case 'z': {
-          field_len = 3;
-          char *eimm;
-          int imm = static_cast<int>(strtol(&format[3], &eimm, 10));
-          field_len += eimm - &format[3];
-          if (reg_num == 31) {
-            switch (format[2]) {
-              case 'z':
-                imm *= (1 << instr->GetNEONLSSize());
-                break;
-              case 'r':
-                imm *= (instr->GetNEONQ() == 0) ? kDRegSizeInBytes
-                                                : kQRegSizeInBytes;
-                break;
-              case 'b':
-                break;
-            }
-            AppendToOutput("#%d", imm);
-            return field_len;
-          }
-          break;
-        }
-      }
       break;
     case 'e':
       // This is register Rm, but using a 4-bit specifier. Used in NEON
@@ -10449,72 +10414,121 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
       break;
     case 't':
       reg_num = instr->GetRt();
-      if (format[0] == 'V') {
-        if ((format[2] >= '2') && (format[2] <= '4')) {
-          // Handle consecutive vector register specifiers Vt2, Vt3 and Vt4.
-          reg_num = (reg_num + format[2] - '1') % 32;
-          field_len = 3;
-        }
-      } else {
-        if (format[2] == '2') {
-          // Handle register specifier Rt2.
-          reg_num = instr->GetRt2();
-          field_len = 3;
-        }
-      }
       break;
-    case '(': {
-      switch (format[2]) {
-        case 's':
-          reg_num = instr->GetRs();
-          break;
-        case 't':
-          reg_num = instr->GetRt();
-          break;
-        default:
-          VIXL_UNREACHABLE();
-      }
-
-      VIXL_ASSERT(format[3] == '+');
-      int i = 4;
-      int addition = 0;
-      while (format[i] != ')') {
-        VIXL_ASSERT((format[i] >= '0') && (format[i] <= '9'));
-        addition *= 10;
-        addition += format[i] - '0';
-        ++i;
-      }
-      reg_num += addition;
-      field_len = i + 1;
-      break;
-    }
     default:
       VIXL_UNREACHABLE();
   }
 
-  // Increase field length for registers tagged as stack.
-  if (format[1] != '(' && format[2] == 's') {
-    field_len = 3;
+  switch (field[1]) {
+    case '2':
+    case '3':
+    case '4':
+      if ((reg_prefix == 'V') || (reg_prefix == 'Z')) {  // Vt2/3/4, Zt2/3/4
+        VIXL_ASSERT(field[0] == 't');
+        reg_num = (reg_num + field[1] - '1') % 32;
+        field_len++;
+      } else {
+        VIXL_ASSERT((field[0] == 't') && (field[1] == '2'));
+        reg_num = instr->GetRt2();
+        field_len++;
+      }
+      break;
+    case '+':  // Rt+, Rs+ (ie. Rt + 1, Rs + 1)
+      VIXL_ASSERT((reg_prefix == 'W') || (reg_prefix == 'X'));
+      VIXL_ASSERT((field[0] == 's') || (field[0] == 't'));
+      reg_num++;
+      field_len++;
+      break;
+    case 's':  // Core registers that are (w)sp rather than zr.
+      VIXL_ASSERT((reg_prefix == 'W') || (reg_prefix == 'X'));
+      reg_num = (reg_num == kZeroRegCode) ? kSPRegInternalCode : reg_num;
+      field_len++;
+      break;
+  }
+
+  VIXL_ASSERT(reg_num != UINT_MAX);
+  return std::make_pair(reg_num, field_len);
+}
+
+int Disassembler::SubstituteRegisterField(const Instruction *instr,
+                                          const char *format) {
+  unsigned field_len = 1;  // Initially, count only the first character.
+
+  // The first character of the register format field, eg R, X, S, etc.
+  char reg_prefix = format[0];
+
+  // Pointer to the character after the prefix. This may be one of the standard
+  // symbols representing a register encoding, or a two digit bit position,
+  // handled by the following code.
+  const char *reg_field = &format[1];
+
+  if (reg_prefix == 'R') {
+    bool is_x = instr->GetSixtyFourBits();
+    if (strspn(reg_field, "0123456789") == 2) {  // r20d, r31n, etc.
+      // Core W or X registers where the type is determined by a specified bit
+      // position, eg. 'R20d, 'R05n. This is like the 'Rd syntax, where bit 31
+      // is implicitly used to select between W and X.
+      int bitpos = ((reg_field[0] - '0') * 10) + (reg_field[1] - '0');
+      VIXL_ASSERT(bitpos <= 31);
+      is_x = (instr->ExtractBit(bitpos) == 1);
+      reg_field = &format[3];
+      field_len += 2;
+    }
+    reg_prefix = is_x ? 'X' : 'W';
+  }
+
+  std::pair<unsigned, unsigned> rn =
+      GetRegNumForField(instr, reg_prefix, reg_field);
+  unsigned reg_num = rn.first;
+  field_len += rn.second;
+
+  if (reg_field[0] == 'm') {
+    switch (reg_field[1]) {
+      // Handle registers tagged with b (bytes), z (instruction), or
+      // r (registers), used for address updates in NEON load/store
+      // instructions.
+      case 'r':
+      case 'b':
+      case 'z': {
+        VIXL_ASSERT(reg_prefix == 'X');
+        field_len = 3;
+        char *eimm;
+        int imm = static_cast<int>(strtol(&reg_field[2], &eimm, 10));
+        field_len += eimm - &reg_field[2];
+        if (reg_num == 31) {
+          switch (reg_field[1]) {
+            case 'z':
+              imm *= (1 << instr->GetNEONLSSize());
+              break;
+            case 'r':
+              imm *= (instr->GetNEONQ() == 0) ? kDRegSizeInBytes
+                                              : kQRegSizeInBytes;
+              break;
+            case 'b':
+              break;
+          }
+          AppendToOutput("#%d", imm);
+          return field_len;
+        }
+        break;
+      }
+    }
   }
 
   CPURegister::RegisterType reg_type = CPURegister::kRegister;
   unsigned reg_size = kXRegSize;
 
-  switch (reg_prefix) {
-    case 'R':
-      reg_prefix = instr->GetSixtyFourBits() ? 'X' : 'W';
-      break;
-    case 'F':
-      switch (instr->GetFPType()) {
-        case 3:
-          reg_prefix = 'H';
-          break;
-        case 0:
-          reg_prefix = 'S';
-          break;
-        default:
-          reg_prefix = 'D';
-      }
+  if (reg_prefix == 'F') {
+    switch (instr->GetFPType()) {
+      case 3:
+        reg_prefix = 'H';
+        break;
+      case 0:
+        reg_prefix = 'S';
+        break;
+      default:
+        reg_prefix = 'D';
+    }
   }
 
   switch (reg_prefix) {
@@ -10547,7 +10561,7 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
       reg_size = kQRegSize;
       break;
     case 'V':
-      if (format[2] == 'v') {
+      if (reg_field[1] == 'v') {
         reg_type = CPURegister::kVRegister;
         reg_size = 1 << (instr->GetSVESize() + 3);
         field_len++;
@@ -10560,11 +10574,6 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
       return field_len;
     default:
       VIXL_UNREACHABLE();
-  }
-
-  if ((reg_type == CPURegister::kRegister) && (reg_num == kZeroRegCode) &&
-      (format[2] == 's')) {
-    reg_num = kSPRegInternalCode;
   }
 
   AppendRegisterNameToOutput(instr, CPURegister(reg_num, reg_size, reg_type));
