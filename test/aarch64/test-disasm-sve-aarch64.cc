@@ -3007,6 +3007,10 @@ TEST(sve_permute_vector_unpredicated) {
   COMPARE_PREFIX(dup(z6.VnS(), sp), "dup z6.s, wsp");
   COMPARE_PREFIX(dup(z7.VnD(), x4), "dup z7.d, x4");
   COMPARE_PREFIX(dup(z25.VnQ(), z28.VnQ(), 2), "dup z25.q, z28.q[2]");
+
+  // Test dup with reserved tsz field.
+  COMPARE_PREFIX(dci(0x05202000), "unimplemented");
+
   COMPARE_PREFIX(insr(z15.VnB(), w13), "insr z15.b, w13");
   COMPARE_PREFIX(insr(z16.VnH(), w14), "insr z16.h, w14");
   COMPARE_PREFIX(insr(z17.VnS(), w15), "insr z17.s, w15");

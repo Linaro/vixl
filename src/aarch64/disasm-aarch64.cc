@@ -5998,8 +5998,11 @@ void Disassembler::VisitSVEBroadcastIndexElement(const Instruction *instr) {
   switch (instr->Mask(SVEBroadcastIndexElementMask)) {
     // DUP <Zd>.<T>, <Zn>.<T>[<imm>]
     case DUP_z_zi:
-      mnemonic = "dup";
-      form = "'Zd.'tsz, 'Zn.'tsz['IVInsSVEIndex]";
+      if (instr->ExtractBits(20, 16) != 0) {
+        // The tsz field must not be zero.
+        mnemonic = "dup";
+        form = "'Zd.'tsz, 'Zn.'tsz['IVInsSVEIndex]";
+      }
       break;
     default:
       break;
