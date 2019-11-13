@@ -261,6 +261,13 @@ const char* Simulator::wreg_names[] = {"w0",  "w1",  "w2",  "w3",  "w4",  "w5",
                                        "w24", "w25", "w26", "w27", "w28", "w29",
                                        "w30", "wzr", "wsp"};
 
+const char* Simulator::breg_names[] = {"b0",  "b1",  "b2",  "b3",  "b4",  "b5",
+                                       "b6",  "b7",  "b8",  "b9",  "b10", "b11",
+                                       "b12", "b13", "b14", "b15", "b16", "b17",
+                                       "b18", "b19", "b20", "b21", "b22", "b23",
+                                       "b24", "b25", "b26", "b27", "b28", "b29",
+                                       "b30", "b31"};
+
 const char* Simulator::hreg_names[] = {"h0",  "h1",  "h2",  "h3",  "h4",  "h5",
                                        "h6",  "h7",  "h8",  "h9",  "h10", "h11",
                                        "h12", "h13", "h14", "h15", "h16", "h17",
@@ -303,22 +310,30 @@ const char* Simulator::preg_names[] = {"p0",  "p1",  "p2",  "p3",  "p4",  "p5",
 
 
 const char* Simulator::WRegNameForCode(unsigned code, Reg31Mode mode) {
-  VIXL_ASSERT(code < kNumberOfRegisters);
   // If the code represents the stack pointer, index the name after zr.
-  if ((code == kZeroRegCode) && (mode == Reg31IsStackPointer)) {
+  if ((code == kSPRegInternalCode) ||
+      ((code == kZeroRegCode) && (mode == Reg31IsStackPointer))) {
     code = kZeroRegCode + 1;
   }
+  VIXL_ASSERT(code < ArrayLength(wreg_names));
   return wreg_names[code];
 }
 
 
 const char* Simulator::XRegNameForCode(unsigned code, Reg31Mode mode) {
-  VIXL_ASSERT(code < kNumberOfRegisters);
   // If the code represents the stack pointer, index the name after zr.
-  if ((code == kZeroRegCode) && (mode == Reg31IsStackPointer)) {
+  if ((code == kSPRegInternalCode) ||
+      ((code == kZeroRegCode) && (mode == Reg31IsStackPointer))) {
     code = kZeroRegCode + 1;
   }
+  VIXL_ASSERT(code < ArrayLength(xreg_names));
   return xreg_names[code];
+}
+
+
+const char* Simulator::BRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfVRegisters);
+  return breg_names[code];
 }
 
 
@@ -732,30 +747,48 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormatFP(
   }
 }
 
-
-void Simulator::PrintWrittenRegisters() {
+void Simulator::PrintRegisters() {
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-    if (registers_[i].WrittenSinceLastLog()) PrintRegister(i);
+    if (i == kSpRegCode) i = kSPRegInternalCode;
+    PrintRegister(i);
   }
 }
 
+void Simulator::PrintVRegisters() {
+  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
+    PrintVRegister(i);
+  }
+}
+
+void Simulator::PrintZRegisters() {
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    PrintZRegister(i);
+  }
+}
+
+void Simulator::PrintWrittenRegisters() {
+  for (unsigned i = 0; i < kNumberOfRegisters; i++) {
+    if (registers_[i].WrittenSinceLastLog()) {
+      if (i == kSpRegCode) i = kSPRegInternalCode;
+      PrintRegister(i);
+    }
+  }
+}
 
 void Simulator::PrintWrittenVRegisters() {
   bool has_sve = GetCPUFeatures()->Has(CPUFeatures::kSVE);
   for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    // At this point there is no type information, so print as a raw 1Q.
     if (vregisters_[i].WrittenSinceLastLog()) {
       // Z registers are initialised in the constructor before the user can
       // configure the CPU features, so we must also check for SVE here.
       if (vregisters_[i].AccessedAsZSinceLastLog() && has_sve) {
         PrintZRegister(i);
       } else {
-        PrintVRegister(i, kPrintReg1Q);
+        PrintVRegister(i);
       }
     }
   }
 }
-
 
 void Simulator::PrintWrittenPRegisters() {
   // P registers are initialised in the constructor before the user can
@@ -768,163 +801,236 @@ void Simulator::PrintWrittenPRegisters() {
   }
 }
 
-
 void Simulator::PrintSystemRegisters() {
   PrintSystemRegister(NZCV);
   PrintSystemRegister(FPCR);
 }
 
-
-void Simulator::PrintRegisters() {
-  for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-    PrintRegister(i);
-  }
-}
-
-
-void Simulator::PrintVRegisters() {
-  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    // At this point there is no type information, so print as a raw 1Q.
-    PrintVRegister(i, kPrintReg1Q);
-  }
-}
-
-
-void Simulator::PrintZRegisters() {
-  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
-    PrintZRegister(i);
-  }
-}
-
-
-// Print a register's name and raw value.
-//
-// Only the least-significant `size_in_bytes` bytes of the register are printed,
-// but the value is aligned as if the whole register had been printed.
-//
-// For typical register updates, size_in_bytes should be set to kXRegSizeInBytes
-// -- the default -- so that the whole register is printed. Other values of
-// size_in_bytes are intended for use when the register hasn't actually been
-// updated (such as in PrintWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a memory access annotation).
-void Simulator::PrintRegisterRawHelper(unsigned code,
-                                       Reg31Mode r31mode,
-                                       int size_in_bytes) {
-  // The template for all supported sizes.
-  //   "# x{code}: 0xffeeddccbbaa9988"
-  //   "# w{code}:         0xbbaa9988"
-  //   "# w{code}<15:0>:       0x9988"
-  //   "# w{code}<7:0>:          0x88"
-  unsigned padding_chars = (kXRegSizeInBytes - size_in_bytes) * 2;
-
-  const char* name = "";
-  const char* suffix = "";
-  switch (size_in_bytes) {
-    case kXRegSizeInBytes:
-      name = XRegNameForCode(code, r31mode);
-      break;
-    case kWRegSizeInBytes:
-      name = WRegNameForCode(code, r31mode);
-      break;
-    case 2:
-      name = WRegNameForCode(code, r31mode);
-      suffix = "<15:0>";
-      padding_chars -= strlen(suffix);
-      break;
-    case 1:
-      name = WRegNameForCode(code, r31mode);
-      suffix = "<7:0>";
-      padding_chars -= strlen(suffix);
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  fprintf(stream_, "# %s%5s%s: ", clr_reg_name, name, suffix);
-
-  // Print leading padding spaces.
-  VIXL_ASSERT(padding_chars < (kXRegSizeInBytes * 2));
-  for (unsigned i = 0; i < padding_chars; i++) {
-    putc(' ', stream_);
-  }
-
-  // Print the specified bits in hexadecimal format.
-  uint64_t bits = ReadRegister<uint64_t>(code, r31mode);
-  bits &= kXRegMask >> ((kXRegSizeInBytes - size_in_bytes) * 8);
-  VIXL_STATIC_ASSERT(sizeof(bits) == kXRegSizeInBytes);
-
-  int chars = size_in_bytes * 2;
-  fprintf(stream_,
-          "%s0x%0*" PRIx64 "%s",
-          clr_reg_value,
-          chars,
-          bits,
-          clr_normal);
-}
-
-
-void Simulator::PrintRegister(unsigned code, Reg31Mode r31mode) {
-  registers_[code].NotifyRegisterLogged();
-
-  // Don't print writes into xzr.
-  if ((code == kZeroRegCode) && (r31mode == Reg31IsZeroRegister)) {
-    return;
-  }
-
-  // The template for all x and w registers:
-  //   "# x{code}: 0x{value}"
-  //   "# w{code}: 0x{value}"
-
-  PrintRegisterRawHelper(code, r31mode);
-  fprintf(stream_, "\n");
-}
-
-
-// Print a register's name and raw value.
-//
-// The `bytes` and `lsb` arguments can be used to limit the bytes that are
-// printed. These arguments are intended for use in cases where register hasn't
-// actually been updated (such as in PrintVWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a floating-point interpretation or a memory access annotation).
-void Simulator::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
-  // The template for vector types:
-  //   "# v{code}: 0xffeeddccbbaa99887766554433221100".
-  // An example with bytes=4 and lsb=8:
-  //   "# v{code}:         0xbbaa9988                ".
-  fprintf(stream_,
-          "# %s%13s: %s",
-          clr_vreg_name,
-          VRegNameForCode(code),
-          clr_vreg_value);
-
-  int msb = lsb + bytes - 1;
-  int byte = kQRegSizeInBytes - 1;
-
-  // Print leading padding spaces. (Two spaces per byte.)
-  while (byte > msb) {
+void Simulator::PrintRegisterValue(const uint8_t* value,
+                                   int value_size,
+                                   PrintRegisterFormat format) {
+  int print_width = GetPrintRegSizeInBytes(format);
+  VIXL_ASSERT(print_width <= value_size);
+  for (int i = value_size - 1; i >= print_width; i--) {
+    // Pad with spaces so that values align vertically.
     fprintf(stream_, "  ");
-    byte--;
+    // If we aren't explicitly printing a partial value, ensure that the
+    // unprinted bits are zero.
+    VIXL_ASSERT(((format & kPrintRegPartial) != 0) || (value[i] == 0));
   }
-
-  // Print the specified part of the value, byte by byte.
-  qreg_t rawbits = ReadQRegister(code);
   fprintf(stream_, "0x");
-  while (byte >= lsb) {
-    fprintf(stream_, "%02x", rawbits.val[byte]);
-    byte--;
+  for (int i = print_width - 1; i >= 0; i--) {
+    fprintf(stream_, "%02x", value[i]);
   }
-
-  // Print trailing padding spaces.
-  while (byte >= 0) {
-    fprintf(stream_, "  ");
-    byte--;
-  }
-  fprintf(stream_, "%s", clr_normal);
 }
 
+void Simulator::PrintRegisterValueFPAnnotations(const uint8_t* value,
+                                                uint16_t lane_mask,
+                                                PrintRegisterFormat format) {
+  VIXL_ASSERT((format & kPrintRegAsFP) != 0);
+  int lane_size = GetPrintRegLaneSizeInBytes(format);
+  fprintf(stream_, " (");
+  bool last_inactive = false;
+  const char* sep = "";
+  for (int i = GetPrintRegLaneCount(format) - 1; i >= 0; i--, sep = ", ") {
+    bool access = (lane_mask & (1 << (i * lane_size))) != 0;
+    if (access) {
+      // Read the lane as a double, so we can format all FP types in the same
+      // way. We squash NaNs, and a double can exactly represent any other value
+      // that the smaller types can represent, so this is lossless.
+      double element;
+      switch (lane_size) {
+        case kHRegSizeInBytes: {
+          Float16 element_fp16;
+          VIXL_STATIC_ASSERT(sizeof(element_fp16) == kHRegSizeInBytes);
+          memcpy(&element_fp16, &value[i * lane_size], sizeof(element_fp16));
+          element = FPToDouble(element_fp16, kUseDefaultNaN);
+          break;
+        }
+        case kSRegSizeInBytes: {
+          float element_fp32;
+          memcpy(&element_fp32, &value[i * lane_size], sizeof(element_fp32));
+          element = static_cast<double>(element_fp32);
+          break;
+        }
+        case kDRegSizeInBytes: {
+          memcpy(&element, &value[i * lane_size], sizeof(element));
+          break;
+        }
+        default:
+          VIXL_UNREACHABLE();
+          fprintf(stream_, "{UnknownFPValue}");
+          continue;
+      }
+      if (IsNaN(element)) {
+        // The fprintf behaviour for NaNs is implementation-defined. Always
+        // print "nan", so that traces are consistent.
+        fprintf(stream_, "%s%snan%s", sep, clr_vreg_value, clr_normal);
+      } else {
+        fprintf(stream_,
+                "%s%s%#.4g%s",
+                sep,
+                clr_vreg_value,
+                element,
+                clr_normal);
+      }
+      last_inactive = false;
+    } else if (!last_inactive) {
+      // Replace each contiguous sequence of inactive lanes with "...".
+      fprintf(stream_, "%s...", sep);
+      last_inactive = true;
+    }
+  }
+  fprintf(stream_, ")");
+}
+
+void Simulator::PrintRegister(int code,
+                              PrintRegisterFormat format,
+                              const char* suffix) {
+  VIXL_ASSERT((static_cast<unsigned>(code) < kNumberOfRegisters) ||
+              (static_cast<unsigned>(code) == kSPRegInternalCode));
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsScalar);
+  VIXL_ASSERT((format & kPrintRegAsFP) == 0);
+
+  SimRegister* reg;
+  SimRegister zero;
+  if (code == kZeroRegCode) {
+    reg = &zero;
+  } else {
+    // registers_[31] holds the SP.
+    VIXL_STATIC_ASSERT((kSPRegInternalCode % kNumberOfRegisters) == 31);
+    reg = &registers_[code % kNumberOfRegisters];
+  }
+
+  // We trace register writes as whole register values, implying that any
+  // unprinted bits are all zero:
+  //   "#       x{code}: 0x{-----value----}"
+  //   "#       w{code}:         0x{-value}"
+  // Stores trace partial register values, implying nothing about the unprinted
+  // bits:
+  //   "# x{code}<63:0>: 0x{-----value----}"
+  //   "# x{code}<31:0>:         0x{-value}"
+  //   "# x{code}<15:0>:             0x{--}"
+  //   "#  x{code}<7:0>:               0x{}"
+
+  bool is_partial = (format & kPrintRegPartial) != 0;
+  unsigned print_reg_size = GetPrintRegSizeInBits(format);
+  std::stringstream name;
+  if (is_partial) {
+    name << XRegNameForCode(code) << GetPartialRegSuffix(format);
+  } else {
+    // Notify the register that it has been logged, but only if we're printing
+    // all of it.
+    reg->NotifyRegisterLogged();
+    switch (print_reg_size) {
+      case kWRegSize:
+        name << WRegNameForCode(code);
+        break;
+      case kXRegSize:
+        name << XRegNameForCode(code);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  }
+
+  fprintf(stream_,
+          "# %s%*s: %s",
+          clr_reg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_reg_value);
+  PrintRegisterValue(*reg, format);
+  fprintf(stream_, "%s%s", clr_normal, suffix);
+}
+
+void Simulator::PrintVRegister(int code,
+                               PrintRegisterFormat format,
+                               const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfVRegisters);
+  VIXL_ASSERT(((format & kPrintRegAsVectorMask) == kPrintRegAsScalar) ||
+              ((format & kPrintRegAsVectorMask) == kPrintRegAsDVector) ||
+              ((format & kPrintRegAsVectorMask) == kPrintRegAsQVector));
+
+  // We trace register writes as whole register values, implying that any
+  // unprinted bits are all zero:
+  //   "#        v{code}: 0x{-------------value------------}"
+  //   "#        d{code}:                 0x{-----value----}"
+  //   "#        s{code}:                         0x{-value}"
+  //   "#        h{code}:                             0x{--}"
+  //   "#        b{code}:                               0x{}"
+  // Stores trace partial register values, implying nothing about the unprinted
+  // bits:
+  //   "# v{code}<127:0>: 0x{-------------value------------}"
+  //   "#  v{code}<63:0>:                 0x{-----value----}"
+  //   "#  v{code}<31:0>:                         0x{-value}"
+  //   "#  v{code}<15:0>:                             0x{--}"
+  //   "#   v{code}<7:0>:                               0x{}"
+
+  bool is_partial = ((format & kPrintRegPartial) != 0);
+  std::stringstream name;
+  unsigned print_reg_size = GetPrintRegSizeInBits(format);
+  if (is_partial) {
+    name << VRegNameForCode(code) << GetPartialRegSuffix(format);
+  } else {
+    // Notify the register that it has been logged, but only if we're printing
+    // all of it.
+    vregisters_[code].NotifyRegisterLogged();
+    switch (print_reg_size) {
+      case kBRegSize:
+        name << BRegNameForCode(code);
+        break;
+      case kHRegSize:
+        name << HRegNameForCode(code);
+        break;
+      case kSRegSize:
+        name << SRegNameForCode(code);
+        break;
+      case kDRegSize:
+        name << DRegNameForCode(code);
+        break;
+      case kQRegSize:
+        name << VRegNameForCode(code);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  }
+
+  fprintf(stream_,
+          "# %s%*s: %s",
+          clr_vreg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_vreg_value);
+  PrintRegisterValue(vregisters_[code], format);
+  fprintf(stream_, "%s", clr_normal);
+  if ((format & kPrintRegAsFP) != 0) {
+    PrintRegisterValueFPAnnotations(vregisters_[code], format);
+  }
+  fprintf(stream_, "%s", suffix);
+}
+
+void Simulator::PrintVRegistersForStructuredAccess(int rt_code,
+                                                   int reg_count,
+                                                   uint16_t focus_mask,
+                                                   PrintRegisterFormat format) {
+  bool print_fp = (format & kPrintRegAsFP) != 0;
+  // Suppress FP formatting, so we can specify the lanes we're interested in.
+  PrintRegisterFormat format_no_fp =
+      static_cast<PrintRegisterFormat>(format & ~kPrintRegAsFP);
+
+  for (int r = 0; r < reg_count; r++) {
+    int code = (rt_code + r) % kNumberOfVRegisters;
+    PrintVRegister(code, format_no_fp, "");
+    if (print_fp) {
+      PrintRegisterValueFPAnnotations(vregisters_[code], focus_mask, format);
+    }
+    fprintf(stream_, "\n");
+  }
+}
 
 void Simulator::PrintZRegisterRawHelper(
     unsigned code, int lane_size, int data_size, int bytes, int start_byte) {
@@ -977,7 +1083,6 @@ void Simulator::PrintZRegisterRawHelper(
   fprintf(stream_, "%s", clr_normal);
 }
 
-
 void Simulator::PrintPRegisterRawHelper(unsigned code, int lsb) {
   // There are no predicated store-predicate instructions, so we can always
   // print the full register, but this helper prints a single run of 16 bits
@@ -1009,136 +1114,6 @@ void Simulator::PrintPRegisterRawHelper(unsigned code, int lsb) {
     fprintf(stream_, " %c", pregisters_[code].GetBit(i) ? '1' : '0');
   }
   fprintf(stream_, "%s", clr_normal);
-}
-
-
-// Print each of the specified lanes of a register as a float or double value.
-//
-// The `lane_count` and `lslane` arguments can be used to limit the lanes that
-// are printed. These arguments are intended for use in cases where register
-// hasn't actually been updated (such as in PrintVWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a memory access annotation).
-void Simulator::PrintVRegisterFPHelper(unsigned code,
-                                       unsigned lane_size_in_bytes,
-                                       int lane_count,
-                                       int rightmost_lane) {
-  VIXL_ASSERT((lane_size_in_bytes == kHRegSizeInBytes) ||
-              (lane_size_in_bytes == kSRegSizeInBytes) ||
-              (lane_size_in_bytes == kDRegSizeInBytes));
-
-  unsigned msb = ((lane_count + rightmost_lane) * lane_size_in_bytes);
-  VIXL_ASSERT(msb <= kQRegSizeInBytes);
-
-  // For scalar types ((lane_count == 1) && (rightmost_lane == 0)), a register
-  // name is used:
-  //   " (h{code}: {value})"
-  //   " (s{code}: {value})"
-  //   " (d{code}: {value})"
-  // For vector types, "..." is used to represent one or more omitted lanes.
-  //   " (..., {value}, {value}, ...)"
-  if (lane_size_in_bytes == kHRegSizeInBytes) {
-    // TODO: Trace tests will fail until we regenerate them.
-    return;
-  }
-  if ((lane_count == 1) && (rightmost_lane == 0)) {
-    const char* name;
-    switch (lane_size_in_bytes) {
-      case kHRegSizeInBytes:
-        name = HRegNameForCode(code);
-        break;
-      case kSRegSizeInBytes:
-        name = SRegNameForCode(code);
-        break;
-      case kDRegSizeInBytes:
-        name = DRegNameForCode(code);
-        break;
-      default:
-        name = NULL;
-        VIXL_UNREACHABLE();
-    }
-    fprintf(stream_, " (%s%s: ", clr_vreg_name, name);
-  } else {
-    if (msb < (kQRegSizeInBytes - 1)) {
-      fprintf(stream_, " (..., ");
-    } else {
-      fprintf(stream_, " (");
-    }
-  }
-
-  // Print the list of values.
-  const char* separator = "";
-  int leftmost_lane = rightmost_lane + lane_count - 1;
-  for (int lane = leftmost_lane; lane >= rightmost_lane; lane--) {
-    double value;
-    switch (lane_size_in_bytes) {
-      case kHRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<uint16_t>(lane);
-        break;
-      case kSRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<float>(lane);
-        break;
-      case kDRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<double>(lane);
-        break;
-      default:
-        value = 0.0;
-        VIXL_UNREACHABLE();
-    }
-    if (IsNaN(value)) {
-      // The output for NaNs is implementation defined. Always print `nan`, so
-      // that traces are coherent across different implementations.
-      fprintf(stream_, "%s%snan%s", separator, clr_vreg_value, clr_normal);
-    } else {
-      fprintf(stream_,
-              "%s%s%#g%s",
-              separator,
-              clr_vreg_value,
-              value,
-              clr_normal);
-    }
-    separator = ", ";
-  }
-
-  if (rightmost_lane > 0) {
-    fprintf(stream_, ", ...");
-  }
-  fprintf(stream_, ")");
-}
-
-
-void Simulator::PrintVRegister(unsigned code, PrintRegisterFormat format) {
-  vregisters_[code].NotifyRegisterLogged();
-
-  int lane_size_log2 = format & kPrintRegLaneSizeMask;
-
-  int reg_size_log2;
-  if (format & kPrintRegAsQVector) {
-    reg_size_log2 = kQRegSizeInBytesLog2;
-  } else if (format & kPrintRegAsDVector) {
-    reg_size_log2 = kDRegSizeInBytesLog2;
-  } else {
-    // Scalar types.
-    reg_size_log2 = lane_size_log2;
-  }
-
-  int lane_count = 1 << (reg_size_log2 - lane_size_log2);
-  int lane_size = 1 << lane_size_log2;
-
-  // The template for vector types:
-  //   "# v{code}: 0x{rawbits} (..., {value}, ...)".
-  // The template for scalar types:
-  //   "# v{code}: 0x{rawbits} ({reg}:{value})".
-  // The values in parentheses after the bit representations are floating-point
-  // interpretations. They are displayed only if the kPrintVRegAsFP bit is set.
-
-  PrintVRegisterRawHelper(code);
-  if (format & kPrintRegAsFP) {
-    PrintVRegisterFPHelper(code, lane_size, lane_count);
-  }
-
-  fprintf(stream_, "\n");
 }
 
 void Simulator::PrintZRegister(unsigned code,
@@ -1228,43 +1203,214 @@ void Simulator::PrintSystemRegister(SystemRegister id) {
   }
 }
 
-
-void Simulator::PrintRead(uintptr_t address,
-                          unsigned reg_code,
-                          PrintRegisterFormat format) {
-  registers_[reg_code].NotifyRegisterLogged();
-
-  USE(format);
-
-  // The template is "# {reg}: 0x{value} <- {address}".
-  PrintRegisterRawHelper(reg_code, Reg31IsZeroRegister);
+uint16_t Simulator::PrintPartialAccess(uint16_t access_mask,
+                                       uint16_t future_access_mask,
+                                       int struct_element_count,
+                                       int lane_size_in_bytes,
+                                       const char* op,
+                                       uintptr_t address,
+                                       int reg_size_in_bytes) {
+  // We want to assume that we'll access at least one lane.
+  VIXL_ASSERT(access_mask != 0);
+  VIXL_ASSERT((reg_size_in_bytes == kXRegSizeInBytes) ||
+              (reg_size_in_bytes == kQRegSizeInBytes));
+  bool started_annotation = false;
+  // Indent to match the register field, the fixed formatting, and the value
+  // prefix ("0x"): "# {name}: 0x"
+  fprintf(stream_, "# %*s    ", kPrintRegisterNameFieldWidth, "");
+  // First, annotate the lanes (byte by byte).
+  for (int lane = reg_size_in_bytes - 1; lane >= 0; lane--) {
+    bool access = (access_mask & (1 << lane)) != 0;
+    bool future = (future_access_mask & (1 << lane)) != 0;
+    if (started_annotation) {
+      // If we've started an annotation, draw a horizontal line in addition to
+      // any other symbols.
+      if (access) {
+        fprintf(stream_, "─╨");
+      } else if (future) {
+        fprintf(stream_, "─║");
+      } else {
+        fprintf(stream_, "──");
+      }
+    } else {
+      if (access) {
+        started_annotation = true;
+        fprintf(stream_, " ╙");
+      } else if (future) {
+        fprintf(stream_, " ║");
+      } else {
+        fprintf(stream_, "  ");
+      }
+    }
+  }
+  VIXL_ASSERT(started_annotation);
+  fprintf(stream_, "─ 0x");
+  int lane_size_in_nibbles = lane_size_in_bytes * 2;
+  // Print the most-significant struct element first.
+  const char* sep = "";
+  for (int i = struct_element_count - 1; i >= 0; i--) {
+    int offset = lane_size_in_bytes * i;
+    uint64_t nibble = Memory::Read(lane_size_in_bytes, address + offset);
+    fprintf(stream_, "%s%0*" PRIx64, sep, lane_size_in_nibbles, nibble);
+    sep = "'";
+  }
   fprintf(stream_,
-          " <- %s0x%016" PRIxPTR "%s\n",
+          " %s %s0x%016" PRIxPTR "%s\n",
+          op,
+          clr_memory_address,
+          address,
+          clr_normal);
+  return future_access_mask & ~access_mask;
+}
+
+void Simulator::PrintAccess(int code,
+                            PrintRegisterFormat format,
+                            const char* op,
+                            uintptr_t address) {
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+  if ((format & kPrintRegPartial) == 0) {
+    registers_[code].NotifyRegisterLogged();
+  }
+  // Scalar-format accesses use a simple format:
+  //   "# {reg}: 0x{value} -> {address}"
+
+  // Suppress the newline, so the access annotation goes on the same line.
+  PrintRegister(code, format, "");
+  fprintf(stream_,
+          " %s %s0x%016" PRIxPTR "%s\n",
+          op,
           clr_memory_address,
           address,
           clr_normal);
 }
 
+void Simulator::PrintVAccess(int code,
+                             PrintRegisterFormat format,
+                             const char* op,
+                             uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
 
-void Simulator::PrintVRead(uintptr_t address,
-                           unsigned reg_code,
-                           PrintRegisterFormat format,
-                           unsigned lane) {
-  vregisters_[reg_code].NotifyRegisterLogged();
+  // Scalar-format accesses use a simple format:
+  //   "# v{code}: 0x{value} -> {address}"
 
-  // The template is "# v{code}: 0x{rawbits} <- address".
-  PrintVRegisterRawHelper(reg_code);
-  if (format & kPrintRegAsFP) {
-    PrintVRegisterFPHelper(reg_code,
-                           GetPrintRegLaneSizeInBytes(format),
-                           GetPrintRegLaneCount(format),
-                           lane);
-  }
+  // Suppress the newline, so the access annotation goes on the same line.
+  PrintVRegister(code, format, "");
   fprintf(stream_,
-          " <- %s0x%016" PRIxPTR "%s\n",
+          " %s %s0x%016" PRIxPTR "%s\n",
+          op,
           clr_memory_address,
           address,
           clr_normal);
+}
+
+void Simulator::PrintVStructAccess(int code,
+                                   int reg_count,
+                                   PrintRegisterFormat format,
+                                   const char* op,
+                                   uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# v{code}: 0x{value}"
+  //   "#     ...: 0x{value}"
+  //   "#              ║   ╙─ {struct_value} -> {lowest_address}"
+  //   "#              ╙───── {struct_value} -> {highest_address}"
+
+  uint16_t lane_mask = GetPrintRegLaneMask(format);
+  PrintVRegistersForStructuredAccess(code, reg_count, lane_mask, format);
+
+  int reg_size_in_bytes = GetPrintRegSizeInBytes(format);
+  int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  for (int i = 0; i < reg_size_in_bytes; i += lane_size_in_bytes) {
+    uint16_t access_mask = 1 << i;
+    VIXL_ASSERT((lane_mask & access_mask) != 0);
+    lane_mask = PrintPartialAccess(access_mask,
+                                   lane_mask,
+                                   reg_count,
+                                   lane_size_in_bytes,
+                                   op,
+                                   address + (i * reg_count));
+  }
+}
+
+void Simulator::PrintVSingleStructAccess(int rt_code,
+                                         int reg_count,
+                                         int lane,
+                                         PrintRegisterFormat format,
+                                         const char* op,
+                                         uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# v{code}: 0x{value}"
+  //   "#     ...: 0x{value}"
+  //   "#              ╙───── {struct_value} -> {address}"
+
+  int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  uint16_t lane_mask = 1 << (lane * lane_size_in_bytes);
+  PrintVRegistersForStructuredAccess(rt_code, reg_count, lane_mask, format);
+  PrintPartialAccess(lane_mask, 0, reg_count, lane_size_in_bytes, op, address);
+}
+
+void Simulator::PrintVReplicatingStructAccess(int rt_code,
+                                              int reg_count,
+                                              PrintRegisterFormat format,
+                                              const char* op,
+                                              uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# v{code}: 0x{value}"
+  //   "#     ...: 0x{value}"
+  //   "#            ╙─╨─╨─╨─ {struct_value} -> {address}"
+
+  int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  uint16_t lane_mask = GetPrintRegLaneMask(format);
+  PrintVRegistersForStructuredAccess(rt_code, reg_count, lane_mask, format);
+  PrintPartialAccess(lane_mask, 0, reg_count, lane_size_in_bytes, op, address);
+}
+
+void Simulator::PrintRead(int rt_code,
+                          PrintRegisterFormat format,
+                          uintptr_t address) {
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  registers_[rt_code].NotifyRegisterLogged();
+  PrintAccess(rt_code, format, "<-", address);
+}
+
+void Simulator::PrintExtendingRead(int rt_code,
+                                   PrintRegisterFormat format,
+                                   int access_size_in_bytes,
+                                   uintptr_t address) {
+  int reg_size_in_bytes = GetPrintRegSizeInBytes(format);
+  if (access_size_in_bytes == reg_size_in_bytes) {
+    // There is no extension here, so print a simple load.
+    PrintRead(rt_code, format, address);
+    return;
+  }
+  VIXL_ASSERT(access_size_in_bytes < reg_size_in_bytes);
+
+  // For sign- and zero-extension, make it clear that the resulting register
+  // value is different from what is loaded from memory.
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  registers_[rt_code].NotifyRegisterLogged();
+  PrintRegister(rt_code, format);
+  PrintPartialAccess(1,
+                     0,
+                     1,
+                     access_size_in_bytes,
+                     "<-",
+                     address,
+                     kXRegSizeInBytes);
+}
+
+void Simulator::PrintVRead(int rt_code,
+                           PrintRegisterFormat format,
+                           uintptr_t address) {
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  vregisters_[rt_code].NotifyRegisterLogged();
+  PrintVAccess(rt_code, format, "<-", address);
 }
 
 void Simulator::PrintZRead(uintptr_t address,
@@ -1313,48 +1459,26 @@ void Simulator::PrintZRead(uintptr_t address,
   }
 }
 
-void Simulator::PrintWrite(uintptr_t address,
-                           unsigned reg_code,
-                           PrintRegisterFormat format) {
+void Simulator::PrintWrite(int rt_code,
+                           PrintRegisterFormat format,
+                           uintptr_t address) {
+  // Because this trace doesn't represent a change to the source register's
+  // value, only print the relevant part of the value.
+  format = GetPrintRegPartial(format);
   VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-
-  // The template is "# v{code}: 0x{value} -> {address}". To keep the trace tidy
-  // and readable, the value is aligned with the values in the register trace.
-  PrintRegisterRawHelper(reg_code,
-                         Reg31IsZeroRegister,
-                         GetPrintRegSizeInBytes(format));
-  fprintf(stream_,
-          " -> %s0x%016" PRIxPTR "%s\n",
-          clr_memory_address,
-          address,
-          clr_normal);
+  registers_[rt_code].NotifyRegisterLogged();
+  PrintAccess(rt_code, format, "->", address);
 }
 
-
-void Simulator::PrintVWrite(uintptr_t address,
-                            unsigned reg_code,
+void Simulator::PrintVWrite(int rt_code,
                             PrintRegisterFormat format,
-                            unsigned lane) {
-  // The templates:
-  //   "# v{code}: 0x{rawbits} -> {address}"
-  //   "# v{code}: 0x{rawbits} (..., {value}, ...) -> {address}".
-  //   "# v{code}: 0x{rawbits} ({reg}:{value}) -> {address}"
+                            uintptr_t address) {
   // Because this trace doesn't represent a change to the source register's
-  // value, only the relevant part of the value is printed. To keep the trace
-  // tidy and readable, the raw value is aligned with the other values in the
-  // register trace.
-  int lane_count = GetPrintRegLaneCount(format);
-  int lane_size = GetPrintRegLaneSizeInBytes(format);
-  int reg_size = GetPrintRegSizeInBytes(format);
-  PrintVRegisterRawHelper(reg_code, reg_size, lane_size * lane);
-  if (format & kPrintRegAsFP) {
-    PrintVRegisterFPHelper(reg_code, lane_size, lane_count, lane);
-  }
-  fprintf(stream_,
-          " -> %s0x%016" PRIxPTR "%s\n",
-          clr_memory_address,
-          address,
-          clr_normal);
+  // value, only print the relevant part of the value.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  vregisters_[rt_code].NotifyRegisterLogged();
+  PrintVAccess(rt_code, format, "->", address);
 }
 
 void Simulator::PrintZWrite(uintptr_t address,
@@ -1892,7 +2016,7 @@ void Simulator::LoadAcquireRCpcUnscaledOffsetHelper(const Instruction* instr) {
   // Approximate load-acquire by issuing a full barrier after the load.
   __sync_synchronize();
 
-  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+  LogRead(rt, GetPrintRegisterFormat(element_size), address);
 }
 
 
@@ -1919,7 +2043,7 @@ void Simulator::StoreReleaseUnscaledOffsetHelper(const Instruction* instr) {
 
   Memory::Write<T>(address, ReadRegister<T>(rt));
 
-  LogWrite(address, rt, GetPrintRegisterFormat(element_size));
+  LogWrite(rt, GetPrintRegisterFormat(element_size), address);
 }
 
 
@@ -2006,7 +2130,7 @@ void Simulator::VisitLoadStorePAC(const Instruction* instr) {
 
   WriteXRegister(dst, Memory::Read<uint64_t>(addr_ptr), NoRegLog);
   unsigned access_size = 1 << 3;
-  LogRead(addr_ptr, dst, GetPrintRegisterFormatForSize(access_size));
+  LogRead(dst, GetPrintRegisterFormatForSize(access_size), addr_ptr);
 }
 
 
@@ -2027,49 +2151,65 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
   unsigned srcdst = instr->GetRt();
   uintptr_t address = AddressModeHelper(instr->GetRn(), offset, addrmode);
 
+  bool rt_is_vreg = false;
+  int extend_to_size = 0;
   LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreMask));
   switch (op) {
     case LDRB_w:
       WriteWRegister(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDRH_w:
       WriteWRegister(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDR_w:
       WriteWRegister(srcdst, Memory::Read<uint32_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDR_x:
       WriteXRegister(srcdst, Memory::Read<uint64_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDRSB_w:
       WriteWRegister(srcdst, Memory::Read<int8_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDRSH_w:
       WriteWRegister(srcdst, Memory::Read<int16_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDRSB_x:
       WriteXRegister(srcdst, Memory::Read<int8_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDRSH_x:
       WriteXRegister(srcdst, Memory::Read<int16_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDRSW_x:
       WriteXRegister(srcdst, Memory::Read<int32_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDR_b:
       WriteBRegister(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_h:
       WriteHRegister(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_s:
       WriteSRegister(srcdst, Memory::Read<float>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_d:
       WriteDRegister(srcdst, Memory::Read<double>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_q:
       WriteQRegister(srcdst, Memory::Read<qreg_t>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
 
     case STRB_w:
@@ -2086,18 +2226,23 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
       break;
     case STR_b:
       Memory::Write<uint8_t>(address, ReadBRegister(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_h:
       Memory::Write<uint16_t>(address, ReadHRegisterBits(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_s:
       Memory::Write<float>(address, ReadSRegister(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_d:
       Memory::Write<double>(address, ReadDRegister(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_q:
       Memory::Write<qreg_t>(address, ReadQRegister(srcdst));
+      rt_is_vreg = true;
       break;
 
     // Ignore prfm hint instructions.
@@ -2108,22 +2253,25 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
       VIXL_UNIMPLEMENTED();
   }
 
+  // Print a detailed trace (including the memory address).
+  bool extend = (extend_to_size != 0);
   unsigned access_size = 1 << instr->GetSizeLS();
+  unsigned result_size = extend ? extend_to_size : access_size;
+  PrintRegisterFormat print_format =
+      rt_is_vreg ? GetPrintRegisterFormatForSizeTryFP(result_size)
+                 : GetPrintRegisterFormatForSize(result_size);
+
   if (instr->IsLoad()) {
-    if ((op == LDR_s) || (op == LDR_d)) {
-      LogVRead(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
-    } else if ((op == LDR_b) || (op == LDR_h) || (op == LDR_q)) {
-      LogVRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+    if (rt_is_vreg) {
+      LogVRead(srcdst, print_format, address);
     } else {
-      LogRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+      LogExtendingRead(srcdst, print_format, access_size, address);
     }
   } else if (instr->IsStore()) {
-    if ((op == STR_s) || (op == STR_d)) {
-      LogVWrite(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
-    } else if ((op == STR_b) || (op == STR_h) || (op == STR_q)) {
-      LogVWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+    if (rt_is_vreg) {
+      LogVWrite(srcdst, print_format, address);
     } else {
-      LogWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+      LogWrite(srcdst, GetPrintRegisterFormatForSize(result_size), address);
     }
   } else {
     VIXL_ASSERT(op == PRFM);
@@ -2168,6 +2316,8 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
   // 'rt' and 'rt2' can only be aliased for stores.
   VIXL_ASSERT(((op & LoadStorePairLBit) == 0) || (rt != rt2));
 
+  bool rt_is_vreg = false;
+  bool sign_extend = false;
   switch (op) {
     // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
     // will print a more detailed log.
@@ -2179,6 +2329,7 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case LDP_s: {
       WriteSRegister(rt, Memory::Read<float>(address), NoRegLog);
       WriteSRegister(rt2, Memory::Read<float>(address2), NoRegLog);
+      rt_is_vreg = true;
       break;
     }
     case LDP_x: {
@@ -2189,16 +2340,19 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case LDP_d: {
       WriteDRegister(rt, Memory::Read<double>(address), NoRegLog);
       WriteDRegister(rt2, Memory::Read<double>(address2), NoRegLog);
+      rt_is_vreg = true;
       break;
     }
     case LDP_q: {
       WriteQRegister(rt, Memory::Read<qreg_t>(address), NoRegLog);
       WriteQRegister(rt2, Memory::Read<qreg_t>(address2), NoRegLog);
+      rt_is_vreg = true;
       break;
     }
     case LDPSW_x: {
       WriteXRegister(rt, Memory::Read<int32_t>(address), NoRegLog);
       WriteXRegister(rt2, Memory::Read<int32_t>(address2), NoRegLog);
+      sign_extend = true;
       break;
     }
     case STP_w: {
@@ -2209,6 +2363,7 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case STP_s: {
       Memory::Write<float>(address, ReadSRegister(rt));
       Memory::Write<float>(address2, ReadSRegister(rt2));
+      rt_is_vreg = true;
       break;
     }
     case STP_x: {
@@ -2219,40 +2374,43 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case STP_d: {
       Memory::Write<double>(address, ReadDRegister(rt));
       Memory::Write<double>(address2, ReadDRegister(rt2));
+      rt_is_vreg = true;
       break;
     }
     case STP_q: {
       Memory::Write<qreg_t>(address, ReadQRegister(rt));
       Memory::Write<qreg_t>(address2, ReadQRegister(rt2));
+      rt_is_vreg = true;
       break;
     }
     default:
       VIXL_UNREACHABLE();
   }
 
-  // Print a detailed trace (including the memory address) instead of the basic
-  // register:value trace generated by set_*reg().
+  // Print a detailed trace (including the memory address).
+  unsigned result_size = sign_extend ? kXRegSizeInBytes : element_size;
+  PrintRegisterFormat print_format =
+      rt_is_vreg ? GetPrintRegisterFormatForSizeTryFP(result_size)
+                 : GetPrintRegisterFormatForSize(result_size);
+
   if (instr->IsLoad()) {
-    if ((op == LDP_s) || (op == LDP_d)) {
-      LogVRead(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
-      LogVRead(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
-    } else if (op == LDP_q) {
-      LogVRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogVRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+    if (rt_is_vreg) {
+      LogVRead(rt, print_format, address);
+      LogVRead(rt2, print_format, address2);
+    } else if (sign_extend) {
+      LogExtendingRead(rt, print_format, element_size, address);
+      LogExtendingRead(rt2, print_format, element_size, address2);
     } else {
-      LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+      LogRead(rt, print_format, address);
+      LogRead(rt2, print_format, address2);
     }
   } else {
-    if ((op == STP_s) || (op == STP_d)) {
-      LogVWrite(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
-      LogVWrite(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
-    } else if (op == STP_q) {
-      LogVWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogVWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+    if (rt_is_vreg) {
+      LogVWrite(rt, print_format, address);
+      LogVWrite(rt2, print_format, address2);
     } else {
-      LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+      LogWrite(rt, print_format, address);
+      LogWrite(rt2, print_format, address2);
     }
   }
 
@@ -2293,10 +2451,10 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
       __sync_synchronize();
     }
     Memory::Write<T>(address, newvalue);
-    LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+    LogWrite(rt, GetPrintRegisterFormatForSize(element_size), address);
   }
   WriteRegister<T>(rs, data);
-  LogRead(address, rs, GetPrintRegisterFormatForSize(element_size));
+  LogRead(rs, GetPrintRegisterFormatForSize(element_size), address);
 }
 
 
@@ -2351,12 +2509,13 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   WriteRegister<T>(rs + 1, data_high);
   WriteRegister<T>(rs, data_low);
 
-  LogRead(address, rs + 1, GetPrintRegisterFormatForSize(element_size));
-  LogRead(address2, rs, GetPrintRegisterFormatForSize(element_size));
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
+  LogRead(rs + 1, format, address);
+  LogRead(rs, format, address2);
 
   if (same) {
-    LogWrite(address, rt + 1, GetPrintRegisterFormatForSize(element_size));
-    LogWrite(address2, rt, GetPrintRegisterFormatForSize(element_size));
+    LogWrite(rt + 1, format, address);
+    LogWrite(rt, format, address2);
   }
 }
 
@@ -2448,30 +2607,35 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
 
         // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS).
         // We will print a more detailed log.
+        unsigned reg_size = 0;
         switch (op) {
           case LDXRB_w:
           case LDAXRB_w:
           case LDARB_w:
           case LDLARB:
             WriteWRegister(rt, Memory::Read<uint8_t>(address), NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXRH_w:
           case LDAXRH_w:
           case LDARH_w:
           case LDLARH:
             WriteWRegister(rt, Memory::Read<uint16_t>(address), NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXR_w:
           case LDAXR_w:
           case LDAR_w:
           case LDLAR_w:
             WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXR_x:
           case LDAXR_x:
           case LDAR_x:
           case LDLAR_x:
             WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
+            reg_size = kXRegSizeInBytes;
             break;
           case LDXP_w:
           case LDAXP_w:
@@ -2479,6 +2643,7 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
             WriteWRegister(rt2,
                            Memory::Read<uint32_t>(address + element_size),
                            NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXP_x:
           case LDAXP_x:
@@ -2486,6 +2651,7 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
             WriteXRegister(rt2,
                            Memory::Read<uint64_t>(address + element_size),
                            NoRegLog);
+            reg_size = kXRegSizeInBytes;
             break;
           default:
             VIXL_UNREACHABLE();
@@ -2496,11 +2662,10 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
           __sync_synchronize();
         }
 
-        LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
+        PrintRegisterFormat format = GetPrintRegisterFormatForSize(reg_size);
+        LogExtendingRead(rt, format, element_size, address);
         if (is_pair) {
-          LogRead(address + element_size,
-                  rt2,
-                  GetPrintRegisterFormatForSize(element_size));
+          LogExtendingRead(rt2, format, element_size, address + element_size);
         }
       } else {
         if (is_acquire_release) {
@@ -2564,11 +2729,11 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
               VIXL_UNREACHABLE();
           }
 
-          LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+          PrintRegisterFormat format =
+              GetPrintRegisterFormatForSize(element_size);
+          LogWrite(rt, format, address);
           if (is_pair) {
-            LogWrite(address + element_size,
-                     rt2,
-                     GetPrintRegisterFormatForSize(element_size));
+            LogWrite(rt2, format, address + element_size);
           }
         }
       }
@@ -2635,8 +2800,9 @@ void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
   Memory::Write<T>(address, result);
   WriteRegister<T>(rt, data, NoRegLog);
 
-  LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-  LogWrite(address, rs, GetPrintRegisterFormatForSize(element_size));
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
+  LogRead(rt, format, address);
+  LogWrite(rs, format, address);
 }
 
 template <typename T>
@@ -2667,8 +2833,9 @@ void Simulator::AtomicMemorySwapHelper(const Instruction* instr) {
 
   WriteRegister<T>(rt, data);
 
-  LogRead(address, rt, GetPrintRegisterFormat(element_size));
-  LogWrite(address, rs, GetPrintRegisterFormat(element_size));
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
+  LogRead(rt, format, address);
+  LogWrite(rs, format, address);
 }
 
 template <typename T>
@@ -2686,7 +2853,7 @@ void Simulator::LoadAcquireRCpcHelper(const Instruction* instr) {
   // Approximate load-acquire by issuing a full barrier after the load.
   __sync_synchronize();
 
-  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+  LogRead(rt, GetPrintRegisterFormatForSize(element_size), address);
 }
 
 #define ATOMIC_MEMORY_SIMPLE_UINT_LIST(V) \
@@ -2803,27 +2970,27 @@ void Simulator::VisitLoadLiteral(const Instruction* instr) {
     // print a more detailed log.
     case LDR_w_lit:
       WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
-      LogRead(address, rt, kPrintWReg);
+      LogRead(rt, kPrintWReg, address);
       break;
     case LDR_x_lit:
       WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
-      LogRead(address, rt, kPrintXReg);
+      LogRead(rt, kPrintXReg, address);
       break;
     case LDR_s_lit:
       WriteSRegister(rt, Memory::Read<float>(address), NoRegLog);
-      LogVRead(address, rt, kPrintSReg);
+      LogVRead(rt, kPrintSRegFP, address);
       break;
     case LDR_d_lit:
       WriteDRegister(rt, Memory::Read<double>(address), NoRegLog);
-      LogVRead(address, rt, kPrintDReg);
+      LogVRead(rt, kPrintDRegFP, address);
       break;
     case LDR_q_lit:
       WriteQRegister(rt, Memory::Read<qreg_t>(address), NoRegLog);
-      LogVRead(address, rt, kPrintReg1Q);
+      LogVRead(rt, kPrintReg1Q, address);
       break;
     case LDRSW_x_lit:
       WriteXRegister(rt, Memory::Read<int32_t>(address), NoRegLog);
-      LogRead(address, rt, kPrintWReg);
+      LogExtendingRead(rt, kPrintXReg, kWRegSizeInBytes, address);
       break;
 
     // Ignore prfm hint instructions.
@@ -5717,7 +5884,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     reg[i] = (instr->GetRt() + i) % kNumberOfVRegisters;
     addr[i] = addr_base + (i * reg_size);
   }
-  int count = 1;
+  int struct_parts = 1;
+  int reg_count = 1;
   bool log_read = true;
 
   // Bit 23 determines whether this is an offset or post-index addressing mode.
@@ -5733,17 +5901,17 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_LD1_4v:
     case NEON_LD1_4v_post:
       ld1(vf, ReadVRegister(reg[3]), addr[3]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_3v:
     case NEON_LD1_3v_post:
       ld1(vf, ReadVRegister(reg[2]), addr[2]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_2v:
     case NEON_LD1_2v_post:
       ld1(vf, ReadVRegister(reg[1]), addr[1]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_1v:
     case NEON_LD1_1v_post:
@@ -5752,17 +5920,17 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_ST1_4v:
     case NEON_ST1_4v_post:
       st1(vf, ReadVRegister(reg[3]), addr[3]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_3v:
     case NEON_ST1_3v_post:
       st1(vf, ReadVRegister(reg[2]), addr[2]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_2v:
     case NEON_ST1_2v_post:
       st1(vf, ReadVRegister(reg[1]), addr[1]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_1v:
     case NEON_ST1_1v_post:
@@ -5772,12 +5940,14 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_LD2_post:
     case NEON_LD2:
       ld2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
-      count = 2;
+      struct_parts = 2;
+      reg_count = 2;
       break;
     case NEON_ST2:
     case NEON_ST2_post:
       st2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
-      count = 2;
+      struct_parts = 2;
+      reg_count = 2;
       log_read = false;
       break;
     case NEON_LD3_post:
@@ -5787,7 +5957,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[1]),
           ReadVRegister(reg[2]),
           addr[0]);
-      count = 3;
+      struct_parts = 3;
+      reg_count = 3;
       break;
     case NEON_ST3:
     case NEON_ST3_post:
@@ -5796,7 +5967,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[1]),
           ReadVRegister(reg[2]),
           addr[0]);
-      count = 3;
+      struct_parts = 3;
+      reg_count = 3;
       log_read = false;
       break;
     case NEON_ST4:
@@ -5807,7 +5979,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[2]),
           ReadVRegister(reg[3]),
           addr[0]);
-      count = 4;
+      struct_parts = 4;
+      reg_count = 4;
       log_read = false;
       break;
     case NEON_LD4_post:
@@ -5818,22 +5991,32 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[2]),
           ReadVRegister(reg[3]),
           addr[0]);
-      count = 4;
+      struct_parts = 4;
+      reg_count = 4;
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
 
-  // Explicitly log the register update whilst we have type information.
-  for (int i = 0; i < count; i++) {
-    // For de-interleaving loads, only print the base address.
-    int lane_size = LaneSizeInBytesFromFormat(vf);
-    PrintRegisterFormat format = GetPrintRegisterFormatTryFP(
-        GetPrintRegisterFormatForSize(reg_size, lane_size));
+  bool do_trace = log_read ? ((GetTraceParameters() & LOG_VREGS) != 0)
+                           : ((GetTraceParameters() & LOG_WRITE) != 0);
+  if (do_trace) {
+    PrintRegisterFormat print_format =
+        GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
+    const char* op;
     if (log_read) {
-      LogVRead(addr_base, reg[i], format);
+      op = "<-";
     } else {
-      LogVWrite(addr_base, reg[i], format);
+      op = "->";
+      // Stores don't represent a change to the source register's value, so only
+      // print the relevant part of the value.
+      print_format = GetPrintRegPartial(print_format);
+    }
+
+    VIXL_ASSERT((struct_parts == reg_count) || (struct_parts == 1));
+    for (int s = reg_count - struct_parts; s >= 0; s -= struct_parts) {
+      uintptr_t address = addr_base + (s * RegisterSizeInBytesFromFormat(vf));
+      PrintVStructAccess(reg[s], struct_parts, print_format, op, address);
     }
   }
 
@@ -5841,7 +6024,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     int rm = instr->GetRm();
     // The immediate post index addressing mode is indicated by rm = 31.
     // The immediate is implied by the number of vector registers used.
-    addr_base += (rm == 31) ? RegisterSizeInBytesFromFormat(vf) * count
+    addr_base += (rm == 31) ? (RegisterSizeInBytesFromFormat(vf) * reg_count)
                             : ReadXRegister(rm);
     WriteXRegister(instr->GetRn(), addr_base);
   } else {
@@ -5876,6 +6059,8 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
   // We use the PostIndex mask here, as it works in this case for both Offset
   // and PostIndex addressing.
   bool do_load = false;
+
+  bool replicating = false;
 
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
   VectorFormat vf_t = nfd.GetVectorFormat();
@@ -5951,99 +6136,67 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
     }
 
     case NEON_LD1R:
-    case NEON_LD1R_post: {
-      vf = vf_t;
-      ld1r(vf, ReadVRegister(rt), addr);
-      do_load = true;
-      break;
-    }
-
+    case NEON_LD1R_post:
     case NEON_LD2R:
-    case NEON_LD2R_post: {
-      vf = vf_t;
-      int rt2 = (rt + 1) % kNumberOfVRegisters;
-      ld2r(vf, ReadVRegister(rt), ReadVRegister(rt2), addr);
-      do_load = true;
-      break;
-    }
-
+    case NEON_LD2R_post:
     case NEON_LD3R:
-    case NEON_LD3R_post: {
-      vf = vf_t;
-      int rt2 = (rt + 1) % kNumberOfVRegisters;
-      int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-      ld3r(vf, ReadVRegister(rt), ReadVRegister(rt2), ReadVRegister(rt3), addr);
-      do_load = true;
-      break;
-    }
-
+    case NEON_LD3R_post:
     case NEON_LD4R:
-    case NEON_LD4R_post: {
+    case NEON_LD4R_post:
       vf = vf_t;
-      int rt2 = (rt + 1) % kNumberOfVRegisters;
-      int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-      int rt4 = (rt3 + 1) % kNumberOfVRegisters;
-      ld4r(vf,
-           ReadVRegister(rt),
-           ReadVRegister(rt2),
-           ReadVRegister(rt3),
-           ReadVRegister(rt4),
-           addr);
       do_load = true;
+      replicating = true;
       break;
-    }
+
     default:
       VIXL_UNIMPLEMENTED();
   }
 
-  PrintRegisterFormat print_format =
-      GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
-  // Make sure that the print_format only includes a single lane.
-  print_format =
-      static_cast<PrintRegisterFormat>(print_format & ~kPrintRegAsVectorMask);
-
-  int esize = LaneSizeInBytesFromFormat(vf);
   int index_shift = LaneSizeInBytesLog2FromFormat(vf);
   int lane = instr->GetNEONLSIndex(index_shift);
-  int scale = 0;
+  int reg_count = 0;
   int rt2 = (rt + 1) % kNumberOfVRegisters;
   int rt3 = (rt2 + 1) % kNumberOfVRegisters;
   int rt4 = (rt3 + 1) % kNumberOfVRegisters;
   switch (instr->Mask(NEONLoadStoreSingleLenMask)) {
     case NEONLoadStoreSingle1:
-      scale = 1;
-      if (do_load) {
+      reg_count = 1;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld1r(vf, ReadVRegister(rt), addr);
+      } else if (do_load) {
         ld1(vf, ReadVRegister(rt), lane, addr);
-        LogVRead(addr, rt, print_format, lane);
       } else {
         st1(vf, ReadVRegister(rt), lane, addr);
-        LogVWrite(addr, rt, print_format, lane);
       }
       break;
     case NEONLoadStoreSingle2:
-      scale = 2;
-      if (do_load) {
+      reg_count = 2;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld2r(vf, ReadVRegister(rt), ReadVRegister(rt2), addr);
+      } else if (do_load) {
         ld2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
-        LogVRead(addr, rt, print_format, lane);
-        LogVRead(addr + esize, rt2, print_format, lane);
       } else {
         st2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
-        LogVWrite(addr, rt, print_format, lane);
-        LogVWrite(addr + esize, rt2, print_format, lane);
       }
       break;
     case NEONLoadStoreSingle3:
-      scale = 3;
-      if (do_load) {
+      reg_count = 3;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld3r(vf,
+             ReadVRegister(rt),
+             ReadVRegister(rt2),
+             ReadVRegister(rt3),
+             addr);
+      } else if (do_load) {
         ld3(vf,
             ReadVRegister(rt),
             ReadVRegister(rt2),
             ReadVRegister(rt3),
             lane,
             addr);
-        LogVRead(addr, rt, print_format, lane);
-        LogVRead(addr + esize, rt2, print_format, lane);
-        LogVRead(addr + (2 * esize), rt3, print_format, lane);
       } else {
         st3(vf,
             ReadVRegister(rt),
@@ -6051,14 +6204,19 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ReadVRegister(rt3),
             lane,
             addr);
-        LogVWrite(addr, rt, print_format, lane);
-        LogVWrite(addr + esize, rt2, print_format, lane);
-        LogVWrite(addr + (2 * esize), rt3, print_format, lane);
       }
       break;
     case NEONLoadStoreSingle4:
-      scale = 4;
-      if (do_load) {
+      reg_count = 4;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld4r(vf,
+             ReadVRegister(rt),
+             ReadVRegister(rt2),
+             ReadVRegister(rt3),
+             ReadVRegister(rt4),
+             addr);
+      } else if (do_load) {
         ld4(vf,
             ReadVRegister(rt),
             ReadVRegister(rt2),
@@ -6066,10 +6224,6 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ReadVRegister(rt4),
             lane,
             addr);
-        LogVRead(addr, rt, print_format, lane);
-        LogVRead(addr + esize, rt2, print_format, lane);
-        LogVRead(addr + (2 * esize), rt3, print_format, lane);
-        LogVRead(addr + (3 * esize), rt4, print_format, lane);
       } else {
         st4(vf,
             ReadVRegister(rt),
@@ -6078,22 +6232,38 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ReadVRegister(rt4),
             lane,
             addr);
-        LogVWrite(addr, rt, print_format, lane);
-        LogVWrite(addr + esize, rt2, print_format, lane);
-        LogVWrite(addr + (2 * esize), rt3, print_format, lane);
-        LogVWrite(addr + (3 * esize), rt4, print_format, lane);
       }
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
 
+  // Trace registers and/or memory writes.
+  PrintRegisterFormat print_format =
+      GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
+  if (do_load) {
+    if (ShouldTraceVRegs()) {
+      if (replicating) {
+        PrintVReplicatingStructAccess(rt, reg_count, print_format, "<-", addr);
+      } else {
+        PrintVSingleStructAccess(rt, reg_count, lane, print_format, "<-", addr);
+      }
+    }
+  } else {
+    if (ShouldTraceWrites()) {
+      // Stores don't represent a change to the source register's value, so only
+      // print the relevant part of the value.
+      print_format = GetPrintRegPartial(print_format);
+      PrintVSingleStructAccess(rt, reg_count, lane, print_format, "->", addr);
+    }
+  }
+
   if (addr_mode == PostIndex) {
     int rm = instr->GetRm();
     int lane_size = LaneSizeInBytesFromFormat(vf);
     WriteXRegister(instr->GetRn(),
-                   addr +
-                       ((rm == 31) ? (scale * lane_size) : ReadXRegister(rm)));
+                   addr + ((rm == 31) ? (reg_count * lane_size)
+                                      : ReadXRegister(rm)));
   }
 }
 

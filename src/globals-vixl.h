@@ -66,7 +66,8 @@ typedef uint8_t byte;
 const int KBytes = 1024;
 const int MBytes = 1024 * KBytes;
 
-const int kBitsPerByte = 8;
+const int kBitsPerByteLog2 = 3;
+const int kBitsPerByte = 1 << kBitsPerByteLog2;
 
 template <int SizeInBits>
 struct Unsigned;

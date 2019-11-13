@@ -77,6 +77,22 @@ class Memory {
     return value;
   }
 
+  template <typename A>
+  static uint64_t Read(int size_in_bytes, A address) {
+    switch (size_in_bytes) {
+      case 1:
+        return Read<uint8_t>(address);
+      case 2:
+        return Read<uint16_t>(address);
+      case 4:
+        return Read<uint32_t>(address);
+      case 8:
+        return Read<uint64_t>(address);
+    }
+    VIXL_UNREACHABLE();
+    return 0;
+  }
+
   template <typename T, typename A>
   static void Write(A address, T value) {
     address = AddressUntag(address);
@@ -94,8 +110,7 @@ class SimRegisterBase {
   static const unsigned kMaxSizeInBytes = kMaxSizeInBits / kBitsPerByte;
   VIXL_STATIC_ASSERT((kMaxSizeInBytes * kBitsPerByte) == kMaxSizeInBits);
 
-  SimRegisterBase()
-      : size_in_bytes_(kMaxSizeInBytes), written_since_last_log_(false) {}
+  SimRegisterBase() : size_in_bytes_(kMaxSizeInBytes) { Clear(); }
 
   unsigned GetSizeInBits() const { return size_in_bytes_ * kBitsPerByte; }
   unsigned GetSizeInBytes() const { return size_in_bytes_; }
@@ -164,6 +179,9 @@ class SimRegisterBase {
     int byte = bit / (sizeof(value_[0]) * kBitsPerByte);
     return ((value_[byte] >> bit_in_byte) & 1) != 0;
   }
+
+  // Return a pointer to the raw, underlying byte array.
+  const uint8_t* GetBytes() const { return value_; }
 
   // TODO: Make this return a map of updated bytes, so that we can highlight
   // updated lanes for load-and-insert. (That never happens for scalar code, but
@@ -1202,6 +1220,10 @@ class Simulator : public DecoderVisitor {
 
   // Write 'value' into an integer register. The value is zero-extended. This
   // behaviour matches AArch64 register writes.
+  //
+  // SP may be specified in one of two ways:
+  //  - (code == kSPRegInternalCode) && (r31mode == Reg31IsZeroRegister)
+  //  - (code == 31) && (r31mode == Reg31IsStackPointer)
   template <typename T>
   void WriteRegister(unsigned code,
                      T value,
@@ -1221,20 +1243,25 @@ class Simulator : public DecoderVisitor {
     VIXL_ASSERT((sizeof(T) == kWRegSizeInBytes) ||
                 (sizeof(T) == kXRegSizeInBytes));
     VIXL_ASSERT(
-        code < kNumberOfRegisters ||
+        (code < kNumberOfRegisters) ||
         ((r31mode == Reg31IsZeroRegister) && (code == kSPRegInternalCode)));
 
-    if ((code == 31) && (r31mode == Reg31IsZeroRegister)) {
-      return;
+    if (code == 31) {
+      if (r31mode == Reg31IsZeroRegister) {
+        // Discard writes to the zero register.
+        return;
+      } else {
+        code = kSPRegInternalCode;
+      }
     }
 
-    if ((r31mode == Reg31IsZeroRegister) && (code == kSPRegInternalCode)) {
-      code = 31;
+    // registers_[31] is the stack pointer.
+    VIXL_STATIC_ASSERT((kSPRegInternalCode % kNumberOfRegisters) == 31);
+    registers_[code % kNumberOfRegisters].Write(value);
+
+    if (log_mode == LogRegWrites) {
+      LogRegister(code, GetPrintRegisterFormatForSize(sizeof(T)));
     }
-
-    registers_[code].Write(value);
-
-    if (log_mode == LogRegWrites) LogRegister(code, r31mode);
   }
   template <typename T>
   VIXL_DEPRECATED("WriteRegister",
@@ -1699,10 +1726,11 @@ class Simulator : public DecoderVisitor {
     kPrintRegLaneSizeOffset = 0,
     kPrintRegLaneSizeMask = 7 << 0,
 
-    // The lane count.
+    // The overall register size.
     kPrintRegAsScalar = 0,
     kPrintRegAsDVector = 1 << 3,
     kPrintRegAsQVector = 2 << 3,
+    kPrintRegAsSVEVector = 3 << 3,
 
     kPrintRegAsVectorMask = 3 << 3,
 
@@ -1710,35 +1738,82 @@ class Simulator : public DecoderVisitor {
     // S-, H-, and D-sized lanes.)
     kPrintRegAsFP = 1 << 5,
 
-    // Supported combinations.
+    // With this flag, print helpers won't check that the upper bits are zero.
+    // This also forces the register name to be printed with the `reg<msb:0>`
+    // format.
+    //
+    // The flag is supported with any PrintRegisterFormat other than those with
+    // kPrintRegAsSVEVector.
+    kPrintRegPartial = 1 << 6,
 
-    kPrintXReg = kPrintRegLaneSizeX | kPrintRegAsScalar,
-    kPrintWReg = kPrintRegLaneSizeW | kPrintRegAsScalar,
-    kPrintHReg = kPrintRegLaneSizeH | kPrintRegAsScalar | kPrintRegAsFP,
-    kPrintSReg = kPrintRegLaneSizeS | kPrintRegAsScalar | kPrintRegAsFP,
-    kPrintDReg = kPrintRegLaneSizeD | kPrintRegAsScalar | kPrintRegAsFP,
+// Supported combinations.
+// These exist so that they can be referred to by name, but also because C++
+// does not allow enum types to hold values that aren't explicitly
+// enumerated, and we want to be able to combine the above flags.
 
-    kPrintReg1B = kPrintRegLaneSizeB | kPrintRegAsScalar,
-    kPrintReg8B = kPrintRegLaneSizeB | kPrintRegAsDVector,
-    kPrintReg16B = kPrintRegLaneSizeB | kPrintRegAsQVector,
-    kPrintReg1H = kPrintRegLaneSizeH | kPrintRegAsScalar,
-    kPrintReg4H = kPrintRegLaneSizeH | kPrintRegAsDVector,
-    kPrintReg8H = kPrintRegLaneSizeH | kPrintRegAsQVector,
-    kPrintReg1S = kPrintRegLaneSizeS | kPrintRegAsScalar,
-    kPrintReg2S = kPrintRegLaneSizeS | kPrintRegAsDVector,
-    kPrintReg4S = kPrintRegLaneSizeS | kPrintRegAsQVector,
-    kPrintReg1HFP = kPrintRegLaneSizeH | kPrintRegAsScalar | kPrintRegAsFP,
-    kPrintReg4HFP = kPrintRegLaneSizeH | kPrintRegAsDVector | kPrintRegAsFP,
-    kPrintReg8HFP = kPrintRegLaneSizeH | kPrintRegAsQVector | kPrintRegAsFP,
-    kPrintReg1SFP = kPrintRegLaneSizeS | kPrintRegAsScalar | kPrintRegAsFP,
-    kPrintReg2SFP = kPrintRegLaneSizeS | kPrintRegAsDVector | kPrintRegAsFP,
-    kPrintReg4SFP = kPrintRegLaneSizeS | kPrintRegAsQVector | kPrintRegAsFP,
-    kPrintReg1D = kPrintRegLaneSizeD | kPrintRegAsScalar,
-    kPrintReg2D = kPrintRegLaneSizeD | kPrintRegAsQVector,
-    kPrintReg1DFP = kPrintRegLaneSizeD | kPrintRegAsScalar | kPrintRegAsFP,
-    kPrintReg2DFP = kPrintRegLaneSizeD | kPrintRegAsQVector | kPrintRegAsFP,
-    kPrintReg1Q = kPrintRegLaneSizeQ | kPrintRegAsScalar
+// Scalar formats.
+#define VIXL_DECL_PRINT_REG_SCALAR(size)                           \
+  kPrint##size##Reg = kPrintRegLaneSize##size | kPrintRegAsScalar, \
+  kPrint##size##RegPartial = kPrintRegLaneSize##size | kPrintRegPartial
+#define VIXL_DECL_PRINT_REG_SCALAR_FP(size)                  \
+  VIXL_DECL_PRINT_REG_SCALAR(size)                           \
+  , kPrint##size##RegFP = kPrint##size##Reg | kPrintRegAsFP, \
+    kPrint##size##RegPartialFP = kPrint##size##RegPartial | kPrintRegAsFP
+    VIXL_DECL_PRINT_REG_SCALAR(W),
+    VIXL_DECL_PRINT_REG_SCALAR(X),
+    VIXL_DECL_PRINT_REG_SCALAR_FP(H),
+    VIXL_DECL_PRINT_REG_SCALAR_FP(S),
+    VIXL_DECL_PRINT_REG_SCALAR_FP(D),
+    VIXL_DECL_PRINT_REG_SCALAR(Q),
+#undef VIXL_DECL_PRINT_REG_SCALAR
+#undef VIXL_DECL_PRINT_REG_SCALAR_FP
+
+#define VIXL_DECL_PRINT_REG_NEON(count, type, size)                     \
+  kPrintReg##count##type = kPrintRegLaneSize##type | kPrintRegAs##size, \
+  kPrintReg##count##type##Partial = kPrintReg##count##type | kPrintRegPartial
+#define VIXL_DECL_PRINT_REG_NEON_FP(count, type, size)                   \
+  VIXL_DECL_PRINT_REG_NEON(count, type, size)                            \
+  , kPrintReg##count##type##FP = kPrintReg##count##type | kPrintRegAsFP, \
+    kPrintReg##count##type##PartialFP =                                  \
+        kPrintReg##count##type##Partial | kPrintRegAsFP
+    VIXL_DECL_PRINT_REG_NEON(1, B, Scalar),
+    VIXL_DECL_PRINT_REG_NEON(8, B, DVector),
+    VIXL_DECL_PRINT_REG_NEON(16, B, QVector),
+    VIXL_DECL_PRINT_REG_NEON_FP(1, H, Scalar),
+    VIXL_DECL_PRINT_REG_NEON_FP(4, H, DVector),
+    VIXL_DECL_PRINT_REG_NEON_FP(8, H, QVector),
+    VIXL_DECL_PRINT_REG_NEON_FP(1, S, Scalar),
+    VIXL_DECL_PRINT_REG_NEON_FP(2, S, DVector),
+    VIXL_DECL_PRINT_REG_NEON_FP(4, S, QVector),
+    VIXL_DECL_PRINT_REG_NEON_FP(1, D, Scalar),
+    VIXL_DECL_PRINT_REG_NEON_FP(2, D, QVector),
+    VIXL_DECL_PRINT_REG_NEON(1, Q, Scalar),
+#undef VIXL_DECL_PRINT_REG_NEON
+#undef VIXL_DECL_PRINT_REG_NEON_FP
+
+// We never print whole SVE regisers, so all SVE formats have
+// kPrintRegPartial.
+#define VIXL_DECL_PRINT_REG_SVE(type) \
+  kPrintRegVn##type =                 \
+      kPrintRegLaneSize##type | kPrintRegPartial | kPrintRegAsSVEVector
+#define VIXL_DECL_PRINT_REG_SVE_FP(type) \
+  VIXL_DECL_PRINT_REG_SVE(type)          \
+  , kPrintRegVn##type##FP = kPrintRegVn##type | kPrintRegAsFP
+    VIXL_DECL_PRINT_REG_SVE(B),
+    VIXL_DECL_PRINT_REG_SVE_FP(H),
+    VIXL_DECL_PRINT_REG_SVE_FP(S),
+    VIXL_DECL_PRINT_REG_SVE_FP(D),
+    VIXL_DECL_PRINT_REG_SVE(Q)
+#undef VIXL_DECL_PRINT_REG_SVE
+#undef VIXL_DECL_PRINT_REG_SVE_FP
   };
+
+  // Return `format` with the kPrintRegPartial flag set.
+  PrintRegisterFormat GetPrintRegPartial(PrintRegisterFormat format) {
+    // Every PrintRegisterFormat has a kPrintRegPartial counterpart, so the
+    // result of this cast will always be well-defined.
+    return static_cast<PrintRegisterFormat>(format | kPrintRegPartial);
+  }
 
   unsigned GetPrintRegLaneSizeInBytesLog2(PrintRegisterFormat format) {
     VIXL_ASSERT((format & kPrintRegLaneSizeMask) != kPrintRegLaneSizeUnknown);
@@ -1750,16 +1825,49 @@ class Simulator : public DecoderVisitor {
   }
 
   unsigned GetPrintRegSizeInBytesLog2(PrintRegisterFormat format) {
-    VIXL_ASSERT((format & kPrintRegLaneSizeMask) != kPrintRegLaneSizeUnknown);
-    if (format & kPrintRegAsDVector) return kDRegSizeInBytesLog2;
-    if (format & kPrintRegAsQVector) return kQRegSizeInBytesLog2;
-
-    // Scalar types.
-    return GetPrintRegLaneSizeInBytesLog2(format);
+    switch (format & kPrintRegAsVectorMask) {
+      case kPrintRegAsScalar:
+        return GetPrintRegLaneSizeInBytesLog2(format);
+      case kPrintRegAsDVector:
+        return kDRegSizeInBytesLog2;
+      case kPrintRegAsQVector:
+        return kQRegSizeInBytesLog2;
+      default:
+      case kPrintRegAsSVEVector:
+        // We print SVE vectors in Q-sized chunks. These need special handling,
+        // and it's probably an error to call this function in that case.
+        VIXL_UNREACHABLE();
+        return kQRegSizeInBytesLog2;
+    }
   }
 
   unsigned GetPrintRegSizeInBytes(PrintRegisterFormat format) {
     return 1 << GetPrintRegSizeInBytesLog2(format);
+  }
+
+  unsigned GetPrintRegSizeInBitsLog2(PrintRegisterFormat format) {
+    return GetPrintRegSizeInBytesLog2(format) + kBitsPerByteLog2;
+  }
+
+  unsigned GetPrintRegSizeInBits(PrintRegisterFormat format) {
+    return 1 << GetPrintRegSizeInBitsLog2(format);
+  }
+
+  const char* GetPartialRegSuffix(PrintRegisterFormat format) {
+    switch (GetPrintRegSizeInBitsLog2(format)) {
+      case kBRegSizeLog2:
+        return "<7:0>";
+      case kHRegSizeLog2:
+        return "<15:0>";
+      case kSRegSizeLog2:
+        return "<31:0>";
+      case kDRegSizeLog2:
+        return "<63:0>";
+      case kQRegSizeLog2:
+        return "<127:0>";
+    }
+    VIXL_UNREACHABLE();
+    return "<UNKNOWN>";
   }
 
   unsigned GetPrintRegLaneCount(PrintRegisterFormat format) {
@@ -1767,6 +1875,21 @@ class Simulator : public DecoderVisitor {
     unsigned lane_size_log2 = GetPrintRegLaneSizeInBytesLog2(format);
     VIXL_ASSERT(reg_size_log2 >= lane_size_log2);
     return 1 << (reg_size_log2 - lane_size_log2);
+  }
+
+  uint16_t GetPrintRegLaneMask(PrintRegisterFormat format) {
+    int print_as = format & kPrintRegAsVectorMask;
+    if (print_as == kPrintRegAsScalar) return 1;
+
+    // Vector formats, including SVE formats printed in Q-sized chunks.
+    static const uint16_t masks[] = {0xffff, 0x5555, 0x1111, 0x0101, 0x0001};
+    unsigned size_in_bytes_log2 = GetPrintRegLaneSizeInBytesLog2(format);
+    VIXL_ASSERT(size_in_bytes_log2 < ArrayLength(masks));
+    uint16_t mask = masks[size_in_bytes_log2];
+
+    // Exclude lanes that aren't visible in D vectors.
+    if (print_as == kPrintRegAsDVector) mask &= 0x00ff;
+    return mask;
   }
 
   PrintRegisterFormat GetPrintRegisterFormatForSize(unsigned reg_size,
@@ -1797,6 +1920,10 @@ class Simulator : public DecoderVisitor {
       return static_cast<PrintRegisterFormat>(format | kPrintRegAsFP);
     }
     return format;
+  }
+
+  PrintRegisterFormat GetPrintRegisterFormatForSizeTryFP(unsigned size) {
+    return GetPrintRegisterFormatTryFP(GetPrintRegisterFormatForSize(size));
   }
 
   template <typename T>
@@ -1835,13 +1962,13 @@ class Simulator : public DecoderVisitor {
 
   // As above, but respect LOG_REG and LOG_VREG.
   void LogWrittenRegisters() {
-    if (GetTraceParameters() & LOG_REGS) PrintWrittenRegisters();
+    if (ShouldTraceRegs()) PrintWrittenRegisters();
   }
   void LogWrittenVRegisters() {
-    if (GetTraceParameters() & LOG_VREGS) PrintWrittenVRegisters();
+    if (ShouldTraceVRegs()) PrintWrittenVRegisters();
   }
   void LogWrittenPRegisters() {
-    if (GetTraceParameters() & LOG_VREGS) PrintWrittenPRegisters();
+    if (ShouldTraceVRegs()) PrintWrittenPRegisters();
   }
   void LogAllWrittenRegisters() {
     LogWrittenRegisters();
@@ -1849,53 +1976,221 @@ class Simulator : public DecoderVisitor {
     LogWrittenPRegisters();
   }
 
-  // Print individual register values (after update).
-  void PrintRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer);
-  void PrintVRegister(unsigned code, PrintRegisterFormat format);
+  // The amount of space to leave for a register name. This is used to keep the
+  // values vertically aligned. The longest register name has the form
+  // "z31<2047:1920>". The total overall value indentation must also take into
+  // account the fixed formatting: "# {name}: 0x{value}".
+  static const int kPrintRegisterNameFieldWidth = 14;
+
+  // Print whole, individual register values.
+  // - The format can be used to restrict how much of the register is printed,
+  //   but such formats indicate that the unprinted high-order bits are zero and
+  //   these helpers will assert that.
+  // - If the format includes the kPrintRegAsFP flag then human-friendly FP
+  //   value annotations will be printed.
+  // - The suffix can be used to add annotations (such as memory access
+  //   details), or to suppress the newline.
+  void PrintRegister(int code,
+                     PrintRegisterFormat format = kPrintXReg,
+                     const char* suffix = "\n");
+  void PrintVRegister(int code,
+                      PrintRegisterFormat format = kPrintReg1Q,
+                      const char* suffix = "\n");
+  // TODO: Update the SVE forms to match the others.
   void PrintZRegister(unsigned code,
                       PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
                       int bytes = 0,
                       int start_byte = 0);
   void PrintPRegister(unsigned code,
                       PrintRegisterFormat format = kPrintRegLaneSizeUnknown);
-  void PrintSystemRegister(SystemRegister id);
-  void PrintTakenBranch(const Instruction* target);
 
-  // Like Print* (above), but respect GetTraceParameters().
-  void LogRegister(unsigned code, Reg31Mode r31mode = Reg31IsStackPointer) {
-    if (GetTraceParameters() & LOG_REGS) PrintRegister(code, r31mode);
+  // Like Print*Register (above), but respect trace parameters.
+  void LogRegister(unsigned code, PrintRegisterFormat format) {
+    if (ShouldTraceRegs()) PrintRegister(code, format);
   }
   void LogVRegister(unsigned code, PrintRegisterFormat format) {
-    if (GetTraceParameters() & LOG_VREGS) PrintVRegister(code, format);
+    if (ShouldTraceVRegs()) PrintVRegister(code, format);
   }
   void LogZRegister(unsigned code, PrintRegisterFormat format) {
-    if (GetTraceParameters() & LOG_VREGS) PrintZRegister(code, format);
+    if (ShouldTraceVRegs()) PrintZRegister(code, format);
   }
   void LogPRegister(unsigned code, PrintRegisterFormat format) {
-    if (GetTraceParameters() & LOG_VREGS) PrintPRegister(code, format);
-  }
-  void LogSystemRegister(SystemRegister id) {
-    if (GetTraceParameters() & LOG_SYSREGS) PrintSystemRegister(id);
-  }
-  void LogTakenBranch(const Instruction* target) {
-    if (GetTraceParameters() & LOG_BRANCH) PrintTakenBranch(target);
+    if (ShouldTraceVRegs()) PrintPRegister(code, format);
   }
 
-  // Print memory accesses.
-  void PrintRead(uintptr_t address,
-                 unsigned reg_code,
-                 PrintRegisterFormat format);
-  void PrintWrite(uintptr_t address,
-                  unsigned reg_code,
-                  PrintRegisterFormat format);
-  void PrintVRead(uintptr_t address,
-                  unsigned reg_code,
-                  PrintRegisterFormat format,
-                  unsigned lane);
-  void PrintVWrite(uintptr_t address,
-                   unsigned reg_code,
+  // Other state updates, including system registers.
+  void PrintSystemRegister(SystemRegister id);
+  void PrintTakenBranch(const Instruction* target);
+  void LogSystemRegister(SystemRegister id) {
+    if (ShouldTraceSysRegs()) PrintSystemRegister(id);
+  }
+  void LogTakenBranch(const Instruction* target) {
+    if (ShouldTraceBranches()) PrintTakenBranch(target);
+  }
+
+  // Trace memory accesses.
+
+  // Common, contiguous register accesses (such as for scalars).
+  // The *Write variants automatically set kPrintRegPartial on the format.
+  void PrintRead(int rt_code, PrintRegisterFormat format, uintptr_t address);
+  void PrintExtendingRead(int rt_code,
+                          PrintRegisterFormat format,
+                          int access_size_in_bytes,
+                          uintptr_t address);
+  void PrintWrite(int rt_code, PrintRegisterFormat format, uintptr_t address);
+  void PrintVRead(int rt_code, PrintRegisterFormat format, uintptr_t address);
+  void PrintVWrite(int rt_code, PrintRegisterFormat format, uintptr_t address);
+
+  // Like Print* (above), but respect GetTraceParameters().
+  void LogRead(int rt_code, PrintRegisterFormat format, uintptr_t address) {
+    if (ShouldTraceRegs()) PrintRead(rt_code, format, address);
+  }
+  void LogExtendingRead(int rt_code,
+                        PrintRegisterFormat format,
+                        int access_size_in_bytes,
+                        uintptr_t address) {
+    if (ShouldTraceRegs()) {
+      PrintExtendingRead(rt_code, format, access_size_in_bytes, address);
+    }
+  }
+  void LogWrite(int rt_code, PrintRegisterFormat format, uintptr_t address) {
+    if (ShouldTraceWrites()) PrintWrite(rt_code, format, address);
+  }
+  void LogVRead(int rt_code, PrintRegisterFormat format, uintptr_t address) {
+    if (ShouldTraceVRegs()) PrintVRead(rt_code, format, address);
+  }
+  void LogVWrite(int rt_code, PrintRegisterFormat format, uintptr_t address) {
+    if (ShouldTraceWrites()) PrintVWrite(rt_code, format, address);
+  }
+
+  // Helpers for the above, where the access operation is parameterised.
+  // - For loads, set op = "<-".
+  // - For stores, set op = "->".
+  void PrintAccess(int rt_code,
                    PrintRegisterFormat format,
-                   unsigned lane);
+                   const char* op,
+                   uintptr_t address);
+  void PrintVAccess(int rt_code,
+                    PrintRegisterFormat format,
+                    const char* op,
+                    uintptr_t address);
+
+  // Multiple-structure accesses.
+  void PrintVStructAccess(int rt_code,
+                          int reg_count,
+                          PrintRegisterFormat format,
+                          const char* op,
+                          uintptr_t address);
+  // Single-structure (single-lane) accesses.
+  void PrintVSingleStructAccess(int rt_code,
+                                int reg_count,
+                                int lane,
+                                PrintRegisterFormat format,
+                                const char* op,
+                                uintptr_t address);
+  // Replicating accesses.
+  void PrintVReplicatingStructAccess(int rt_code,
+                                     int reg_count,
+                                     PrintRegisterFormat format,
+                                     const char* op,
+                                     uintptr_t address);
+
+  // Register-printing helper for all structured accessors.
+  //
+  // All lanes (according to `format`) are printed, but lanes indicated by
+  // `focus_mask` are of particular interest. Each bit corresponds to a byte in
+  // the printed register, in a manner similar to SVE's predicates. Currently,
+  // this is used to determine when to print human-readable FP annotations.
+  void PrintVRegistersForStructuredAccess(int rt_code,
+                                          int reg_count,
+                                          uint16_t focus_mask,
+                                          PrintRegisterFormat format);
+
+  // Print part of a memory access. This should be used for annotating
+  // non-trivial accesses, such as structured or sign-extending loads. Call
+  // Print*Register (or Print*RegistersForStructuredAccess), then
+  // PrintPartialAccess for each contiguous access that makes up the
+  // instruction.
+  //
+  //  access_mask:
+  //      The lanes to be printed. Each bit corresponds to a byte in the printed
+  //      register, in a manner similar to SVE's predicates, except that the
+  //      lane size is not respected when interpreting lane_mask: unaligned bits
+  //      must be zeroed.
+  //
+  //      This function asserts that this mask is non-zero.
+  //
+  //  future_access_mask:
+  //      The lanes to be printed by a future invocation. This must be specified
+  //      because vertical lines are drawn for partial accesses that haven't yet
+  //      been printed. The format is the same as for accessed_mask.
+  //
+  //      If a lane is active in both `access_mask` and `future_access_mask`,
+  //      `access_mask` takes precedence.
+  //
+  //  struct_element_count:
+  //      The number of elements in each structure. For non-structured accesses,
+  //      set this to one. Along with lane_size_in_bytes, this is used determine
+  //      the size of each access, and to format the accessed value.
+  //
+  //  op:
+  //      For stores, use "->". For loads, use "<-".
+  //
+  //  address:
+  //      The address of this partial access. (Not the base address of the whole
+  //      instruction.) The traced value is read from this address (according to
+  //      part_count and lane_size_in_bytes) so it must be accessible, and when
+  //      tracing stores, the store must have been executed before this function
+  //      is called.
+  //
+  //  reg_size_in_bytes:
+  //      The size of the register being accessed. This helper is usually used
+  //      for V registers or Q-sized chunks of Z registers, so that is the
+  //      default, but it is possible to use this to annotate X register
+  //      accesses by specifying kXRegSizeInBytes.
+  //
+  // The return value is a future_access_mask suitable for the next iteration,
+  // so that it is possible to execute this in a loop, until the mask is zero.
+  // Note that accessed_mask must still be updated by the caller for each call.
+  uint16_t PrintPartialAccess(uint16_t access_mask,
+                              uint16_t future_access_mask,
+                              int struct_element_count,
+                              int lane_size_in_bytes,
+                              const char* op,
+                              uintptr_t address,
+                              int reg_size_in_bytes = kQRegSizeInBytes);
+
+  // Print an abstract register value. This works for all register types, and
+  // can print parts of registers. This exists to ensure consistent formatting
+  // of values.
+  void PrintRegisterValue(const uint8_t* value,
+                          int value_size,
+                          PrintRegisterFormat format);
+  template <typename T>
+  void PrintRegisterValue(const T& sim_register, PrintRegisterFormat format) {
+    PrintRegisterValue(sim_register.GetBytes(),
+                       sim_register.GetSizeInBytes(),
+                       format);
+  }
+
+  void PrintRegisterValueFPAnnotations(const uint8_t* value,
+                                       uint16_t lane_mask,
+                                       PrintRegisterFormat format);
+  template <typename T>
+  void PrintRegisterValueFPAnnotations(const T& sim_register,
+                                       uint16_t lane_mask,
+                                       PrintRegisterFormat format) {
+    PrintRegisterValueFPAnnotations(sim_register.GetBytes(), lane_mask, format);
+  }
+  template <typename T>
+  void PrintRegisterValueFPAnnotations(const T& sim_register,
+                                       PrintRegisterFormat format) {
+    PrintRegisterValueFPAnnotations(sim_register.GetBytes(),
+                                    GetPrintRegLaneMask(format),
+                                    format);
+  }
+
+
   // The argument `address` is the address of `start byte`.
   void PrintZRead(uintptr_t address,
                   unsigned reg_code,
@@ -1912,33 +2207,6 @@ class Simulator : public DecoderVisitor {
   void PrintPRead(uintptr_t address, unsigned reg_code);
   void PrintPWrite(uintptr_t address, unsigned reg_code);
 
-  // Like Print* (above), but respect GetTraceParameters().
-  void LogRead(uintptr_t address,
-               unsigned reg_code,
-               PrintRegisterFormat format) {
-    if (GetTraceParameters() & LOG_REGS) PrintRead(address, reg_code, format);
-  }
-  void LogWrite(uintptr_t address,
-                unsigned reg_code,
-                PrintRegisterFormat format) {
-    if (GetTraceParameters() & LOG_WRITE) PrintWrite(address, reg_code, format);
-  }
-  void LogVRead(uintptr_t address,
-                unsigned reg_code,
-                PrintRegisterFormat format,
-                unsigned lane = 0) {
-    if (GetTraceParameters() & LOG_VREGS) {
-      PrintVRead(address, reg_code, format, lane);
-    }
-  }
-  void LogVWrite(uintptr_t address,
-                 unsigned reg_code,
-                 PrintRegisterFormat format,
-                 unsigned lane = 0) {
-    if (GetTraceParameters() & LOG_WRITE) {
-      PrintVWrite(address, reg_code, format, lane);
-    }
-  }
   void LogZRead(uintptr_t address,
                 unsigned reg_code,
                 PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
@@ -1971,16 +2239,6 @@ class Simulator : public DecoderVisitor {
   }
 
   // Helper functions for register tracing.
-  void PrintRegisterRawHelper(unsigned code,
-                              Reg31Mode r31mode,
-                              int size_in_bytes = kXRegSizeInBytes);
-  void PrintVRegisterRawHelper(unsigned code,
-                               int bytes = kQRegSizeInBytes,
-                               int lsb = 0);
-  void PrintVRegisterFPHelper(unsigned code,
-                              unsigned lane_size_in_bytes,
-                              int lane_count = 1,
-                              int rightmost_lane = 0);
   void PrintZRegisterRawHelper(unsigned code,
                                int lane_size,
                                int data_size = 0,
@@ -1996,6 +2254,7 @@ class Simulator : public DecoderVisitor {
                                      Reg31Mode mode = Reg31IsZeroRegister);
   static const char* XRegNameForCode(unsigned code,
                                      Reg31Mode mode = Reg31IsZeroRegister);
+  static const char* BRegNameForCode(unsigned code);
   static const char* HRegNameForCode(unsigned code);
   static const char* SRegNameForCode(unsigned code);
   static const char* DRegNameForCode(unsigned code);
@@ -2018,6 +2277,22 @@ class Simulator : public DecoderVisitor {
   int GetTraceParameters() const { return trace_parameters_; }
   VIXL_DEPRECATED("GetTraceParameters", int trace_parameters() const) {
     return GetTraceParameters();
+  }
+
+  bool ShouldTraceWrites() const {
+    return (GetTraceParameters() & LOG_WRITE) != 0;
+  }
+  bool ShouldTraceRegs() const {
+    return (GetTraceParameters() & LOG_REGS) != 0;
+  }
+  bool ShouldTraceVRegs() const {
+    return (GetTraceParameters() & LOG_VREGS) != 0;
+  }
+  bool ShouldTraceSysRegs() const {
+    return (GetTraceParameters() & LOG_SYSREGS) != 0;
+  }
+  bool ShouldTraceBranches() const {
+    return (GetTraceParameters() & LOG_BRANCH) != 0;
   }
 
   void SetTraceParameters(int parameters);
@@ -4038,6 +4313,7 @@ class Simulator : public DecoderVisitor {
 
   static const char* xreg_names[];
   static const char* wreg_names[];
+  static const char* breg_names[];
   static const char* hreg_names[];
   static const char* sreg_names[];
   static const char* dreg_names[];

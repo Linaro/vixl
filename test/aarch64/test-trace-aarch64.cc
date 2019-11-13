@@ -2841,13 +2841,13 @@ static void TraceTestHelper(bool coloured_trace,
     scratch_buffer[i] = i & 0xff;
   }
   // Used for offset addressing.
-  simulator.WriteRegister(0, scratch_buffer);
+  simulator.WriteXRegister(0, reinterpret_cast<uintptr_t>(scratch_buffer));
   // Used for pre-/post-index addressing.
-  simulator.WriteRegister(1, scratch_buffer);
+  simulator.WriteXRegister(1, reinterpret_cast<uintptr_t>(scratch_buffer));
 
   const int kPostIndexRegisterStep = 13;  // Arbitrary interesting value.
   // Used for post-index offsets.
-  simulator.WriteRegister(2, kPostIndexRegisterStep);
+  simulator.WriteXRegister(2, kPostIndexRegisterStep);
 
   // Initialize the other registers with unique values.
   uint64_t initial_base_u64 = 0x0100001000100101;
