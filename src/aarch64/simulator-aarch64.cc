@@ -132,6 +132,7 @@ void Simulator::ResetSystemRegisters() {
   // Reset the system registers.
   nzcv_ = SimSystemRegister::DefaultValueFor(NZCV);
   fpcr_ = SimSystemRegister::DefaultValueFor(FPCR);
+  ResetFFR();
 }
 
 void Simulator::ResetRegisters() {
@@ -177,6 +178,12 @@ void Simulator::ResetPRegisters() {
   }
 }
 
+void Simulator::ResetFFR() {
+  VIXL_ASSERT((GetPredicateLengthInBytes() % kHRegSizeInBytes) == 0);
+  int default_active_lanes = GetPredicateLengthInBytes() / kHRegSizeInBytes;
+  ffr_register_.Write(static_cast<uint16_t>(GetUintMask(default_active_lanes)));
+}
+
 void Simulator::ResetState() {
   ResetSystemRegisters();
   ResetRegisters();
@@ -204,8 +211,11 @@ void Simulator::SetVectorLengthInBits(unsigned vector_length) {
     pregisters_[i].SetSizeInBytes(GetPredicateLengthInBytes());
   }
 
+  ffr_register_.SetSizeInBytes(GetPredicateLengthInBytes());
+
   ResetVRegisters();
   ResetPRegisters();
+  ResetFFR();
 }
 
 Simulator::~Simulator() {
@@ -10791,10 +10801,11 @@ void Simulator::VisitSVEPredicateReadFromFFR_Predicated(
 
 void Simulator::VisitSVEPredicateReadFromFFR_Unpredicated(
     const Instruction* instr) {
-  USE(instr);
+  LogicPRegister pd(ReadPRegister(instr->GetPd()));
+  LogicPRegister ffr(ReadFFR());
   switch (instr->Mask(SVEPredicateReadFromFFR_UnpredicatedMask)) {
     case RDFFR_p_f:
-      VIXL_UNIMPLEMENTED();
+      mov(pd, ffr);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -10899,9 +10910,11 @@ void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
 void Simulator::VisitSVEFFRInitialise(const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVEFFRInitialiseMask)) {
-    case SETFFR_f:
-      VIXL_UNIMPLEMENTED();
+    case SETFFR_f: {
+      LogicPRegister ffr(ReadFFR());
+      ffr.SetAllBits();
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
@@ -10911,9 +10924,20 @@ void Simulator::VisitSVEFFRInitialise(const Instruction* instr) {
 void Simulator::VisitSVEFFRWriteFromPredicate(const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVEFFRWriteFromPredicateMask)) {
-    case WRFFR_f_p:
-      VIXL_UNIMPLEMENTED();
+    case WRFFR_f_p: {
+      SimPRegister pn(ReadPRegister(instr->GetPn()));
+      bool last_active = true;
+      for (unsigned i = 0; i < pn.GetSizeInBits(); i++) {
+        bool active = pn.GetBit(i);
+        if (active && !last_active) {
+          // `pn` is non-monotonic. This is UNPREDICTABLE.
+          VIXL_ABORT();
+        }
+        last_active = active;
+      }
+      mov(ReadFFR(), pn);
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

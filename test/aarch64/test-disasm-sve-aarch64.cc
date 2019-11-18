@@ -4432,13 +4432,12 @@ TEST(sve_ptest) {
   COMPARE_MACRO(Ptest(p0, p1.VnB()), "ptest p0, p1.b");
 }
 
-TEST(sve_predicate_misc) {
-  // TODO: Replace this with separate tests.
+TEST(sve_read_ffr) {
   SETUP();
 
+  COMPARE_PREFIX(rdffr(p13.VnB()), "rdffr p13.b");
 #if 0
   COMPARE_PREFIX(rdffrs(p14.VnB(), p9.Zeroing()), "rdffrs <Pd>.B, <Pg>/Z");
-  COMPARE_PREFIX(rdffr(p13.VnB()), "rdffr <Pd>.B");
   COMPARE_PREFIX(rdffr(p5.VnB(), p14.Zeroing()), "rdffr <Pd>.B, <Pg>/Z");
 #endif
 
@@ -4641,10 +4640,8 @@ TEST(sve_vector_select) {
 TEST(sve_write_ffr) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX((), "setffr  ");
-  COMPARE_PREFIX(wrffr(p9.VnB()), "wrffr <Pn>.B");
-#endif
+  COMPARE_PREFIX(setffr(), "setffr");
+  COMPARE_PREFIX(wrffr(p9.VnB()), "wrffr p9.b");
 
   CLEANUP();
 }

@@ -10192,5 +10192,54 @@ TEST_SVE(sve_bitwise_shift_wide_elements_unpredicated_lsl) {
   // clang-format on
 }
 
+TEST_SVE(sve_setffr) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Ptrue(p15.VnB());
+  __ Setffr();
+  __ Rdffr(p14.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(p14.VnB(), p15.VnB());
+  }
+}
+
+static void WrffrHelper(Test* config, unsigned active_lanes) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int inputs[kPRegMaxSize] = {0};
+  VIXL_ASSERT(active_lanes <= kPRegMaxSize);
+  for (unsigned i = 0; i < active_lanes; i++) {
+    // The rightmost (highest-indexed) array element maps to the lowest-numbered
+    // lane.
+    inputs[kPRegMaxSize - i - 1] = 1;
+  }
+
+  Initialise(&masm, p1.VnB(), inputs);
+  __ Wrffr(p1.VnB());
+  __ Rdffr(p2.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(p1.VnB(), p2.VnB());
+  }
+}
+
+TEST_SVE(sve_wrffr) {
+  int active_lanes_inputs[] = {0, 1, 7, 10, 32, 48, kPRegMaxSize};
+  for (size_t i = 0; i < ArrayLength(active_lanes_inputs); i++) {
+    WrffrHelper(config, active_lanes_inputs[i]);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

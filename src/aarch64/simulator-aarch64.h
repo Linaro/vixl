@@ -214,6 +214,8 @@ class SimRegisterBase {
 
 typedef SimRegisterBase<kXRegSize> SimRegister;      // r0-r31
 typedef SimRegisterBase<kPRegMaxSize> SimPRegister;  // p0-p15
+// FFR has the same format as a predicate register.
+typedef SimPRegister SimFFRRegister;
 
 // v0-v31 and z0-z31
 class SimVRegister : public SimRegisterBase<kZRegMaxSize> {
@@ -1147,6 +1149,8 @@ class Simulator : public DecoderVisitor {
     VIXL_ASSERT(code < kNumberOfPRegisters);
     return pregisters_[code];
   }
+
+  SimFFRRegister& ReadFFR() { return ffr_register_; }
 
   // As above, with parameterized size and return type. The value is
   // either zero-extended or truncated to fit, as required.
@@ -2318,6 +2322,7 @@ class Simulator : public DecoderVisitor {
   void ResetRegisters();
   void ResetVRegisters();
   void ResetPRegisters();
+  void ResetFFR();
 
   bool ConditionPassed(Condition cond) {
     switch (cond) {
@@ -3940,6 +3945,9 @@ class Simulator : public DecoderVisitor {
 
   // SVE predicate registers.
   SimPRegister pregisters_[kNumberOfPRegisters];
+
+  // SVE first-fault register.
+  SimFFRRegister ffr_register_;
 
   // A pseudo SVE predicate register with all bits set to true.
   SimPRegister pregister_all_true_;
