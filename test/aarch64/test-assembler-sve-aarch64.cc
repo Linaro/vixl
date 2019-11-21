@@ -3806,6 +3806,152 @@ TEST_SVE(sve_sqincd_xw) {
   QIncXWHelper(config, &MacroAssembler::Sqincd, 16, kDRegSize, INT32_MAX - 42);
 }
 
+typedef void (MacroAssembler::*IncDecZFn)(const ZRegister& dst,
+                                          int pattern,
+                                          int multiplier);
+typedef void (MacroAssembler::*AddSubFn)(const ZRegister& dst,
+                                         const ZRegister& src1,
+                                         const ZRegister& src2);
+
+static void IncDecZHelper(Test* config,
+                          IncDecZFn fn,
+                          CntFn cnt,
+                          AddSubFn addsub,
+                          int multiplier,
+                          int lane_size_in_bits) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t acc_inputs[] = {0x7766554433221100,
+                           0xffffffffffffffff,
+                           0x0000000000000000,
+                           0xffffffff0000ffff,
+                           0x7fffffffffffffff,
+                           0x8000000000000000,
+                           0x7fffffff7fff7fff,
+                           0x8000000080008000};
+
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    for (int j = 0; j < 4; j++) {
+      InsrHelper(&masm, ZRegister(i, kDRegSize), acc_inputs);
+    }
+  }
+  for (unsigned i = 0; i < 15; i++) {
+    __ Mov(XRegister(i), 0);
+  }
+
+  (masm.*fn)(z16.WithLaneSize(lane_size_in_bits), SVE_POW2, multiplier);
+  (masm.*fn)(z17.WithLaneSize(lane_size_in_bits), SVE_VL1, multiplier);
+  (masm.*fn)(z18.WithLaneSize(lane_size_in_bits), SVE_VL2, multiplier);
+  (masm.*fn)(z19.WithLaneSize(lane_size_in_bits), SVE_VL3, multiplier);
+  (masm.*fn)(z20.WithLaneSize(lane_size_in_bits), SVE_VL4, multiplier);
+  (masm.*fn)(z21.WithLaneSize(lane_size_in_bits), SVE_VL7, multiplier);
+  (masm.*fn)(z22.WithLaneSize(lane_size_in_bits), SVE_VL8, multiplier);
+  (masm.*fn)(z23.WithLaneSize(lane_size_in_bits), SVE_VL16, multiplier);
+  (masm.*fn)(z24.WithLaneSize(lane_size_in_bits), SVE_VL64, multiplier);
+  (masm.*fn)(z25.WithLaneSize(lane_size_in_bits), SVE_VL256, multiplier);
+  (masm.*fn)(z26.WithLaneSize(lane_size_in_bits), 16, multiplier);
+  (masm.*fn)(z27.WithLaneSize(lane_size_in_bits), 28, multiplier);
+  (masm.*fn)(z28.WithLaneSize(lane_size_in_bits), SVE_MUL3, multiplier);
+  (masm.*fn)(z29.WithLaneSize(lane_size_in_bits), SVE_MUL4, multiplier);
+  (masm.*fn)(z30.WithLaneSize(lane_size_in_bits), SVE_ALL, multiplier);
+
+  // Perform computation using alternative instructions.
+  (masm.*cnt)(x0, SVE_POW2, multiplier);
+  (masm.*cnt)(x1, SVE_VL1, multiplier);
+  (masm.*cnt)(x2, SVE_VL2, multiplier);
+  (masm.*cnt)(x3, SVE_VL3, multiplier);
+  (masm.*cnt)(x4, SVE_VL4, multiplier);
+  (masm.*cnt)(x5, SVE_VL7, multiplier);
+  (masm.*cnt)(x6, SVE_VL8, multiplier);
+  (masm.*cnt)(x7, SVE_VL16, multiplier);
+  (masm.*cnt)(x8, SVE_VL64, multiplier);
+  (masm.*cnt)(x9, SVE_VL256, multiplier);
+  (masm.*cnt)(x10, 16, multiplier);
+  (masm.*cnt)(x11, 28, multiplier);
+  (masm.*cnt)(x12, SVE_MUL3, multiplier);
+  (masm.*cnt)(x13, SVE_MUL4, multiplier);
+  (masm.*cnt)(x14, SVE_ALL, multiplier);
+
+  ZRegister zscratch = z15.WithLaneSize(lane_size_in_bits);
+  for (unsigned i = 0; i < 15; i++) {
+    ZRegister zsrcdst = ZRegister(i, lane_size_in_bits);
+    Register x = Register(i, kXRegSize);
+    __ Dup(zscratch, x);
+    (masm.*addsub)(zsrcdst, zsrcdst, zscratch);
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(z0, z16);
+    ASSERT_EQUAL_SVE(z1, z17);
+    ASSERT_EQUAL_SVE(z2, z18);
+    ASSERT_EQUAL_SVE(z3, z19);
+    ASSERT_EQUAL_SVE(z4, z20);
+    ASSERT_EQUAL_SVE(z5, z21);
+    ASSERT_EQUAL_SVE(z6, z22);
+    ASSERT_EQUAL_SVE(z7, z23);
+    ASSERT_EQUAL_SVE(z8, z24);
+    ASSERT_EQUAL_SVE(z9, z25);
+    ASSERT_EQUAL_SVE(z10, z26);
+    ASSERT_EQUAL_SVE(z11, z27);
+    ASSERT_EQUAL_SVE(z12, z28);
+    ASSERT_EQUAL_SVE(z13, z29);
+    ASSERT_EQUAL_SVE(z14, z30);
+  }
+}
+
+TEST_SVE(sve_inc_dec_vec) {
+  CntFn cnth = &MacroAssembler::Cnth;
+  CntFn cntw = &MacroAssembler::Cntw;
+  CntFn cntd = &MacroAssembler::Cntd;
+  AddSubFn sub = &MacroAssembler::Sub;
+  AddSubFn add = &MacroAssembler::Add;
+  for (int mult = 1; mult <= 16; mult += 5) {
+    IncDecZHelper(config, &MacroAssembler::Dech, cnth, sub, mult, kHRegSize);
+    IncDecZHelper(config, &MacroAssembler::Decw, cntw, sub, mult, kSRegSize);
+    IncDecZHelper(config, &MacroAssembler::Decd, cntd, sub, mult, kDRegSize);
+    IncDecZHelper(config, &MacroAssembler::Inch, cnth, add, mult, kHRegSize);
+    IncDecZHelper(config, &MacroAssembler::Incw, cntw, add, mult, kSRegSize);
+    IncDecZHelper(config, &MacroAssembler::Incd, cntd, add, mult, kDRegSize);
+  }
+}
+
+TEST_SVE(sve_unsigned_sat_inc_dec_vec) {
+  CntFn cnth = &MacroAssembler::Cnth;
+  CntFn cntw = &MacroAssembler::Cntw;
+  CntFn cntd = &MacroAssembler::Cntd;
+  AddSubFn sub = &MacroAssembler::Uqsub;
+  AddSubFn add = &MacroAssembler::Uqadd;
+  for (int mult = 1; mult <= 16; mult += 5) {
+    IncDecZHelper(config, &MacroAssembler::Uqdech, cnth, sub, mult, kHRegSize);
+    IncDecZHelper(config, &MacroAssembler::Uqdecw, cntw, sub, mult, kSRegSize);
+    IncDecZHelper(config, &MacroAssembler::Uqdecd, cntd, sub, mult, kDRegSize);
+    IncDecZHelper(config, &MacroAssembler::Uqinch, cnth, add, mult, kHRegSize);
+    IncDecZHelper(config, &MacroAssembler::Uqincw, cntw, add, mult, kSRegSize);
+    IncDecZHelper(config, &MacroAssembler::Uqincd, cntd, add, mult, kDRegSize);
+  }
+}
+
+TEST_SVE(sve_signed_sat_inc_dec_vec) {
+  CntFn cnth = &MacroAssembler::Cnth;
+  CntFn cntw = &MacroAssembler::Cntw;
+  CntFn cntd = &MacroAssembler::Cntd;
+  AddSubFn sub = &MacroAssembler::Sqsub;
+  AddSubFn add = &MacroAssembler::Sqadd;
+  for (int mult = 1; mult <= 16; mult += 5) {
+    IncDecZHelper(config, &MacroAssembler::Sqdech, cnth, sub, mult, kHRegSize);
+    IncDecZHelper(config, &MacroAssembler::Sqdecw, cntw, sub, mult, kSRegSize);
+    IncDecZHelper(config, &MacroAssembler::Sqdecd, cntd, sub, mult, kDRegSize);
+    IncDecZHelper(config, &MacroAssembler::Sqinch, cnth, add, mult, kHRegSize);
+    IncDecZHelper(config, &MacroAssembler::Sqincw, cntw, add, mult, kSRegSize);
+    IncDecZHelper(config, &MacroAssembler::Sqincd, cntd, add, mult, kDRegSize);
+  }
+}
+
 typedef void (MacroAssembler::*ArithPredicatedFn)(const ZRegister& zd,
                                                   const PRegisterM& pg,
                                                   const ZRegister& zn,

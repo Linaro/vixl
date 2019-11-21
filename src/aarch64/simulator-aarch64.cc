@@ -7349,30 +7349,39 @@ void Simulator::VisitSVEIncDecRegisterByElementCount(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIncDecVectorByElementCount(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
   switch (instr->Mask(SVEIncDecVectorByElementCountMask)) {
     case DECD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case DECW_z_zs:
-      VIXL_UNIMPLEMENTED();
+      count = -count;
       break;
     case INCD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INCH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case INCW_z_zs:
-      VIXL_UNIMPLEMENTED();
+      // Nothing to do.
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+  dup_immediate(vform,
+                scratch,
+                IncDecN(0,
+                        count * multiplier,
+                        LaneSizeInBitsFromFormat(vform)));
+  add(vform, zd, zd, scratch);
 }
 
 void Simulator::VisitSVESaturatingIncDecRegisterByElementCount(
@@ -7453,43 +7462,43 @@ void Simulator::VisitSVESaturatingIncDecRegisterByElementCount(
 
 void Simulator::VisitSVESaturatingIncDecVectorByElementCount(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+  dup_immediate(vform,
+                scratch,
+                IncDecN(0,
+                        count * multiplier,
+                        LaneSizeInBitsFromFormat(vform)));
+
   switch (instr->Mask(SVESaturatingIncDecVectorByElementCountMask)) {
     case SQDECD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQDECW_z_zs:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, zd, zd, scratch).SignedSaturate(vform);
       break;
     case SQINCD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case SQINCW_z_zs:
-      VIXL_UNIMPLEMENTED();
+      add(vform, zd, zd, scratch).SignedSaturate(vform);
       break;
     case UQDECD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQDECW_z_zs:
-      VIXL_UNIMPLEMENTED();
+      sub(vform, zd, zd, scratch).UnsignedSaturate(vform);
       break;
     case UQINCD_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQINCH_z_zs:
-      VIXL_UNIMPLEMENTED();
-      break;
     case UQINCW_z_zs:
-      VIXL_UNIMPLEMENTED();
+      add(vform, zd, zd, scratch).UnsignedSaturate(vform);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -8134,12 +8143,13 @@ uint64_t Simulator::IncDecN(uint64_t acc,
   acc &= mask;  // Ignore initial accumulator high bits.
   uint64_t result = (acc + delta) & mask;
 
-  bool acc_negative = ((acc & sign_mask) != 0);
-  bool delta_negative = delta < 0;
   bool result_negative = ((result & sign_mask) != 0);
 
   if (is_saturating) {
     if (is_signed) {
+      bool acc_negative = ((acc & sign_mask) != 0);
+      bool delta_negative = delta < 0;
+
       // If the signs of the operands are the same, but different from the
       // result, there was an overflow.
       if ((acc_negative == delta_negative) &&
@@ -8194,7 +8204,6 @@ void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
-  USE(instr);
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());

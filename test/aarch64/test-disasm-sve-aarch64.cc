@@ -472,23 +472,182 @@ TEST(sve_unsigned_sat_incdec_reg_element_count) {
   CLEANUP();
 }
 
-TEST(sve_element_count_remainder) {
+TEST(sve_vector_dec_element_count) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(sqdecd(z13.VnD(), int pattern), "sqdecd <Zdn>.D{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(sqdech(z16.VnH(), int pattern), "sqdech <Zdn>.H{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(sqdecw(z9.VnS(), int pattern), "sqdecw <Zdn>.S{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(sqincd(z18.VnD(), int pattern), "sqincd <Zdn>.D{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(sqinch(z30.VnH(), int pattern), "sqinch <Zdn>.H{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(sqincw(z17.VnS(), int pattern), "sqincw <Zdn>.S{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(uqdecd(z10.VnD(), int pattern), "uqdecd <Zdn>.D{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(uqdech(z25.VnH(), int pattern), "uqdech <Zdn>.H{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(uqdecw(z1.VnS(), int pattern), "uqdecw <Zdn>.S{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(uqincd(z12.VnD(), int pattern), "uqincd <Zdn>.D{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(uqinch(z28.VnH(), int pattern), "uqinch <Zdn>.H{, <pattern>{, MUL #<imm>}}");
-  COMPARE_PREFIX(uqincw(z0.VnS(), int pattern), "uqincw <Zdn>.S{, <pattern>{, MUL #<imm>}}");
-#endif
+  COMPARE_MACRO(Decd(z14.VnD()), "decd z14.d");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_POW2), "decd z14.d, pow2");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_VL1), "decd z14.d, vl1");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_VL2), "decd z14.d, vl2");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_VL16), "decd z14.d, vl16");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_VL256), "decd z14.d, vl256");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_MUL4), "decd z14.d, mul4");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_MUL3), "decd z14.d, mul3");
+  COMPARE_MACRO(Decd(z14.VnD(), SVE_ALL), "decd z14.d");
+
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_POW2, 1), "decd z19.d, pow2");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_VL1, 16), "decd z19.d, vl1, mul #16");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_VL2, 15), "decd z19.d, vl2, mul #15");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_VL16, 14), "decd z19.d, vl16, mul #14");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_VL256, 8), "decd z19.d, vl256, mul #8");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_MUL4, 4), "decd z19.d, mul4, mul #4");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_MUL3, 3), "decd z19.d, mul3, mul #3");
+  COMPARE_MACRO(Decd(z19.VnD(), SVE_ALL, 2), "decd z19.d, all, mul #2");
+
+  COMPARE_MACRO(Dech(z27.VnH(), SVE_POW2, 1), "dech z27.h, pow2");
+  COMPARE_MACRO(Decw(z27.VnS(), SVE_VL1, 16), "decw z27.s, vl1, mul #16");
+  COMPARE_MACRO(Dech(z27.VnH(), SVE_VL2, 15), "dech z27.h, vl2, mul #15");
+  COMPARE_MACRO(Decw(z27.VnS(), SVE_VL16, 14), "decw z27.s, vl16, mul #14");
+  COMPARE_MACRO(Dech(z27.VnH(), SVE_VL256, 8), "dech z27.h, vl256, mul #8");
+  COMPARE_MACRO(Decw(z27.VnS(), SVE_MUL4, 4), "decw z27.s, mul4, mul #4");
+  COMPARE_MACRO(Dech(z27.VnH(), SVE_MUL3, 3), "dech z27.h, mul3, mul #3");
+  COMPARE_MACRO(Decw(z27.VnS(), SVE_ALL, 2), "decw z27.s, all, mul #2");
+
+  COMPARE_MACRO(Sqdecd(z13.VnD()), "sqdecd z13.d");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_POW2), "sqdecd z13.d, pow2");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_VL1), "sqdecd z13.d, vl1");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_VL2), "sqdecd z13.d, vl2");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_VL16), "sqdecd z13.d, vl16");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_VL256), "sqdecd z13.d, vl256");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_MUL4), "sqdecd z13.d, mul4");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_MUL3), "sqdecd z13.d, mul3");
+  COMPARE_MACRO(Sqdecd(z13.VnD(), SVE_ALL), "sqdecd z13.d");
+
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_POW2, 1), "sqdecd z9.d, pow2");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_VL1, 16), "sqdecd z9.d, vl1, mul #16");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_VL2, 15), "sqdecd z9.d, vl2, mul #15");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_VL16, 14), "sqdecd z9.d, vl16, mul #14");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_VL256, 8), "sqdecd z9.d, vl256, mul #8");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_MUL4, 4), "sqdecd z9.d, mul4, mul #4");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_MUL3, 3), "sqdecd z9.d, mul3, mul #3");
+  COMPARE_MACRO(Sqdecd(z9.VnD(), SVE_ALL, 2), "sqdecd z9.d, all, mul #2");
+
+  COMPARE_MACRO(Sqdech(z31.VnH(), SVE_POW2, 1), "sqdech z31.h, pow2");
+  COMPARE_MACRO(Sqdecw(z31.VnS(), SVE_VL1, 16), "sqdecw z31.s, vl1, mul #16");
+  COMPARE_MACRO(Sqdech(z31.VnH(), SVE_VL2, 15), "sqdech z31.h, vl2, mul #15");
+  COMPARE_MACRO(Sqdecw(z31.VnS(), SVE_VL16, 14), "sqdecw z31.s, vl16, mul #14");
+  COMPARE_MACRO(Sqdech(z31.VnH(), SVE_VL256, 8), "sqdech z31.h, vl256, mul #8");
+  COMPARE_MACRO(Sqdecw(z31.VnS(), SVE_MUL4, 4), "sqdecw z31.s, mul4, mul #4");
+  COMPARE_MACRO(Sqdech(z31.VnH(), SVE_MUL3, 3), "sqdech z31.h, mul3, mul #3");
+  COMPARE_MACRO(Sqdecw(z31.VnS(), SVE_ALL, 2), "sqdecw z31.s, all, mul #2");
+
+  COMPARE_MACRO(Uqdecd(z1.VnD()), "uqdecd z1.d");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_POW2), "uqdecd z1.d, pow2");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_VL1), "uqdecd z1.d, vl1");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_VL2), "uqdecd z1.d, vl2");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_VL16), "uqdecd z1.d, vl16");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_VL256), "uqdecd z1.d, vl256");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_MUL4), "uqdecd z1.d, mul4");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_MUL3), "uqdecd z1.d, mul3");
+  COMPARE_MACRO(Uqdecd(z1.VnD(), SVE_ALL), "uqdecd z1.d");
+
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_POW2, 1), "uqdecd z7.d, pow2");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_VL1, 16), "uqdecd z7.d, vl1, mul #16");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_VL2, 15), "uqdecd z7.d, vl2, mul #15");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_VL16, 14), "uqdecd z7.d, vl16, mul #14");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_VL256, 8), "uqdecd z7.d, vl256, mul #8");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_MUL4, 4), "uqdecd z7.d, mul4, mul #4");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_MUL3, 3), "uqdecd z7.d, mul3, mul #3");
+  COMPARE_MACRO(Uqdecd(z7.VnD(), SVE_ALL, 2), "uqdecd z7.d, all, mul #2");
+
+  COMPARE_MACRO(Uqdech(z26.VnH(), SVE_POW2, 1), "uqdech z26.h, pow2");
+  COMPARE_MACRO(Uqdecw(z26.VnS(), SVE_VL1, 16), "uqdecw z26.s, vl1, mul #16");
+  COMPARE_MACRO(Uqdech(z26.VnH(), SVE_VL2, 15), "uqdech z26.h, vl2, mul #15");
+  COMPARE_MACRO(Uqdecw(z26.VnS(), SVE_VL16, 14), "uqdecw z26.s, vl16, mul #14");
+  COMPARE_MACRO(Uqdech(z26.VnH(), SVE_VL256, 8), "uqdech z26.h, vl256, mul #8");
+  COMPARE_MACRO(Uqdecw(z26.VnS(), SVE_MUL4, 4), "uqdecw z26.s, mul4, mul #4");
+  COMPARE_MACRO(Uqdech(z26.VnH(), SVE_MUL3, 3), "uqdech z26.h, mul3, mul #3");
+  COMPARE_MACRO(Uqdecw(z26.VnS(), SVE_ALL, 2), "uqdecw z26.s, all, mul #2");
+
+  CLEANUP();
+}
+
+TEST(sve_vector_inc_element_count) {
+  SETUP();
+
+  COMPARE_MACRO(Incd(z16.VnD()), "incd z16.d");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_POW2), "incd z16.d, pow2");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_VL1), "incd z16.d, vl1");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_VL2), "incd z16.d, vl2");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_VL16), "incd z16.d, vl16");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_VL256), "incd z16.d, vl256");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_MUL4), "incd z16.d, mul4");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_MUL3), "incd z16.d, mul3");
+  COMPARE_MACRO(Incd(z16.VnD(), SVE_ALL), "incd z16.d");
+
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_POW2, 1), "incd z18.d, pow2");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_VL1, 16), "incd z18.d, vl1, mul #16");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_VL2, 15), "incd z18.d, vl2, mul #15");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_VL16, 14), "incd z18.d, vl16, mul #14");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_VL256, 8), "incd z18.d, vl256, mul #8");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_MUL4, 4), "incd z18.d, mul4, mul #4");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_MUL3, 3), "incd z18.d, mul3, mul #3");
+  COMPARE_MACRO(Incd(z18.VnD(), SVE_ALL, 2), "incd z18.d, all, mul #2");
+
+  COMPARE_MACRO(Inch(z24.VnH(), SVE_POW2, 1), "inch z24.h, pow2");
+  COMPARE_MACRO(Incw(z24.VnS(), SVE_VL1, 16), "incw z24.s, vl1, mul #16");
+  COMPARE_MACRO(Inch(z24.VnH(), SVE_VL2, 15), "inch z24.h, vl2, mul #15");
+  COMPARE_MACRO(Incw(z24.VnS(), SVE_VL16, 14), "incw z24.s, vl16, mul #14");
+  COMPARE_MACRO(Inch(z24.VnH(), SVE_VL256, 8), "inch z24.h, vl256, mul #8");
+  COMPARE_MACRO(Incw(z24.VnS(), SVE_MUL4, 4), "incw z24.s, mul4, mul #4");
+  COMPARE_MACRO(Inch(z24.VnH(), SVE_MUL3, 3), "inch z24.h, mul3, mul #3");
+  COMPARE_MACRO(Incw(z24.VnS(), SVE_ALL, 2), "incw z24.s, all, mul #2");
+
+  COMPARE_MACRO(Sqincd(z10.VnD()), "sqincd z10.d");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_POW2), "sqincd z10.d, pow2");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_VL1), "sqincd z10.d, vl1");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_VL2), "sqincd z10.d, vl2");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_VL16), "sqincd z10.d, vl16");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_VL256), "sqincd z10.d, vl256");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_MUL4), "sqincd z10.d, mul4");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_MUL3), "sqincd z10.d, mul3");
+  COMPARE_MACRO(Sqincd(z10.VnD(), SVE_ALL), "sqincd z10.d");
+
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_POW2, 1), "sqincd z3.d, pow2");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_VL1, 16), "sqincd z3.d, vl1, mul #16");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_VL2, 15), "sqincd z3.d, vl2, mul #15");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_VL16, 14), "sqincd z3.d, vl16, mul #14");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_VL256, 8), "sqincd z3.d, vl256, mul #8");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_MUL4, 4), "sqincd z3.d, mul4, mul #4");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_MUL3, 3), "sqincd z3.d, mul3, mul #3");
+  COMPARE_MACRO(Sqincd(z3.VnD(), SVE_ALL, 2), "sqincd z3.d, all, mul #2");
+
+  COMPARE_MACRO(Sqinch(z24.VnH(), SVE_POW2, 1), "sqinch z24.h, pow2");
+  COMPARE_MACRO(Sqincw(z24.VnS(), SVE_VL1, 16), "sqincw z24.s, vl1, mul #16");
+  COMPARE_MACRO(Sqinch(z24.VnH(), SVE_VL2, 15), "sqinch z24.h, vl2, mul #15");
+  COMPARE_MACRO(Sqincw(z24.VnS(), SVE_VL16, 14), "sqincw z24.s, vl16, mul #14");
+  COMPARE_MACRO(Sqinch(z24.VnH(), SVE_VL256, 8), "sqinch z24.h, vl256, mul #8");
+  COMPARE_MACRO(Sqincw(z24.VnS(), SVE_MUL4, 4), "sqincw z24.s, mul4, mul #4");
+  COMPARE_MACRO(Sqinch(z24.VnH(), SVE_MUL3, 3), "sqinch z24.h, mul3, mul #3");
+  COMPARE_MACRO(Sqincw(z24.VnS(), SVE_ALL, 2), "sqincw z24.s, all, mul #2");
+
+  COMPARE_MACRO(Uqincd(z10.VnD()), "uqincd z10.d");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_POW2), "uqincd z10.d, pow2");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_VL1), "uqincd z10.d, vl1");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_VL2), "uqincd z10.d, vl2");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_VL16), "uqincd z10.d, vl16");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_VL256), "uqincd z10.d, vl256");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_MUL4), "uqincd z10.d, mul4");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_MUL3), "uqincd z10.d, mul3");
+  COMPARE_MACRO(Uqincd(z10.VnD(), SVE_ALL), "uqincd z10.d");
+
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_POW2, 1), "uqincd z6.d, pow2");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_VL1, 16), "uqincd z6.d, vl1, mul #16");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_VL2, 15), "uqincd z6.d, vl2, mul #15");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_VL16, 14), "uqincd z6.d, vl16, mul #14");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_VL256, 8), "uqincd z6.d, vl256, mul #8");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_MUL4, 4), "uqincd z6.d, mul4, mul #4");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_MUL3, 3), "uqincd z6.d, mul3, mul #3");
+  COMPARE_MACRO(Uqincd(z6.VnD(), SVE_ALL, 2), "uqincd z6.d, all, mul #2");
+
+  COMPARE_MACRO(Uqinch(z20.VnH(), SVE_POW2, 1), "uqinch z20.h, pow2");
+  COMPARE_MACRO(Uqincw(z20.VnS(), SVE_VL1, 16), "uqincw z20.s, vl1, mul #16");
+  COMPARE_MACRO(Uqinch(z20.VnH(), SVE_VL2, 15), "uqinch z20.h, vl2, mul #15");
+  COMPARE_MACRO(Uqincw(z20.VnS(), SVE_VL16, 14), "uqincw z20.s, vl16, mul #14");
+  COMPARE_MACRO(Uqinch(z20.VnH(), SVE_VL256, 8), "uqinch z20.h, vl256, mul #8");
+  COMPARE_MACRO(Uqincw(z20.VnS(), SVE_MUL4, 4), "uqincw z20.s, mul4, mul #4");
+  COMPARE_MACRO(Uqinch(z20.VnH(), SVE_MUL3, 3), "uqinch z20.h, mul3, mul #3");
+  COMPARE_MACRO(Uqincw(z20.VnS(), SVE_ALL, 2), "uqincw z20.s, all, mul #2");
 
   CLEANUP();
 }

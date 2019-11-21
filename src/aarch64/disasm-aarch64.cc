@@ -7064,21 +7064,27 @@ void Disassembler::VisitSVEFPUnaryOp(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+static const char *IncDecFormHelper(const Instruction *instr,
+                                    const char *reg_pat_mul_form,
+                                    const char *reg_pat_form,
+                                    const char *reg_form) {
+  if (instr->ExtractBits(19, 16) == 0) {
+    if (instr->ExtractBits(9, 5) == SVE_ALL) {
+      // Use the register only form if the multiplier is one (encoded as zero)
+      // and the pattern is SVE_ALL.
+      return reg_form;
+    }
+    // Use the register and pattern form if the multiplier is one.
+    return reg_pat_form;
+  }
+  return reg_pat_mul_form;
+}
+
 void Disassembler::VisitSVEIncDecRegisterByElementCount(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Xdn>{, <pattern>{, MUL #<imm>}}
-  const char *form = "'Xd, 'Ipc, mul #'u1916+1";
-
-  // Omit the immediate if it's one, which is encoded as zero.
-  if (instr->ExtractBits(19, 16) == 0) {
-    form = "'Xd, 'Ipc";
-
-    // Also omit the pattern if it's the default ('ALL').
-    if (instr->ExtractBits(9, 5) == SVE_ALL) {
-      form = "'Xd";
-    }
-  }
+  const char *form =
+      IncDecFormHelper(instr, "'Xd, 'Ipc, mul #'u1916+1", "'Xd, 'Ipc", "'Xd");
 
   switch (instr->Mask(SVEIncDecRegisterByElementCountMask)) {
     case DECB_r_rs:
@@ -7115,40 +7121,32 @@ void Disassembler::VisitSVEIncDecRegisterByElementCount(
 void Disassembler::VisitSVEIncDecVectorByElementCount(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVEIncDecVectorByElementCount)";
+  const char *form = IncDecFormHelper(instr,
+                                      "'Zd.'t, 'Ipc, mul #'u1916+1",
+                                      "'Zd.'t, 'Ipc",
+                                      "'Zd.'t");
 
   switch (instr->Mask(SVEIncDecVectorByElementCountMask)) {
-    // DECD <Zdn>.D{, <pattern>{, MUL #<imm>}}
     case DECD_z_zs:
       mnemonic = "decd";
-      form = "'Zd.d{, #'u0905{, MUL #<imm>}}";
       break;
-    // DECH <Zdn>.H{, <pattern>{, MUL #<imm>}}
     case DECH_z_zs:
       mnemonic = "dech";
-      form = "'Zd.h{, #'u0905{, MUL #<imm>}}";
       break;
-    // DECW <Zdn>.S{, <pattern>{, MUL #<imm>}}
     case DECW_z_zs:
       mnemonic = "decw";
-      form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
-    // INCD <Zdn>.D{, <pattern>{, MUL #<imm>}}
     case INCD_z_zs:
       mnemonic = "incd";
-      form = "'Zd.d{, #'u0905{, MUL #<imm>}}";
       break;
-    // INCH <Zdn>.H{, <pattern>{, MUL #<imm>}}
     case INCH_z_zs:
       mnemonic = "inch";
-      form = "'Zd.h{, #'u0905{, MUL #<imm>}}";
       break;
-    // INCW <Zdn>.S{, <pattern>{, MUL #<imm>}}
     case INCW_z_zs:
       mnemonic = "incw";
-      form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
     default:
+      form = "(SVEIncDecVectorByElementCount)";
       break;
   }
   Format(instr, mnemonic, form);
@@ -8048,21 +8046,14 @@ void Disassembler::VisitSVEReverseWithinElements(const Instruction *instr) {
 void Disassembler::VisitSVESaturatingIncDecRegisterByElementCount(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Xdn>{, <pattern>{, MUL #<imm>}}
-  const char *form = "'R20d, 'Ipc, mul #'u1916+1";
-  const char *form_sx = "'Xd, 'Wd, 'Ipc, mul #'u1916+1";
-
-  // Omit the immediate if it's one, which is encoded as zero.
-  if (instr->ExtractBits(19, 16) == 0) {
-    form = "'R20d, 'Ipc";
-    form_sx = "'Xd, 'Wd, 'Ipc";
-
-    // Also omit the pattern if it's the default ('ALL').
-    if (instr->ExtractBits(9, 5) == SVE_ALL) {
-      form = "'R20d";
-      form_sx = "'Xd, 'Wd";
-    }
-  }
+  const char *form = IncDecFormHelper(instr,
+                                      "'R20d, 'Ipc, mul #'u1916+1",
+                                      "'R20d, 'Ipc",
+                                      "'R20d");
+  const char *form_sx = IncDecFormHelper(instr,
+                                         "'Xd, 'Wd, 'Ipc, mul #'u1916+1",
+                                         "'Xd, 'Wd, 'Ipc",
+                                         "'Xd, 'Wd");
 
   switch (instr->Mask(SVESaturatingIncDecRegisterByElementCountMask)) {
     case SQDECB_r_rs_sx:
@@ -8162,65 +8153,47 @@ void Disassembler::VisitSVESaturatingIncDecRegisterByElementCount(
 void Disassembler::VisitSVESaturatingIncDecVectorByElementCount(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.D{, <pattern>{, MUL #<imm>}}
-  const char *form = "'Zd.d{, #'u0905{, MUL #<imm>}}";
+  const char *form = IncDecFormHelper(instr,
+                                      "'Zd.'t, 'Ipc, mul #'u1916+1",
+                                      "'Zd.'t, 'Ipc",
+                                      "'Zd.'t");
 
   switch (instr->Mask(SVESaturatingIncDecVectorByElementCountMask)) {
-    // SQDECD <Zdn>.D{, <pattern>{, MUL #<imm>}}
     case SQDECD_z_zs:
       mnemonic = "sqdecd";
       break;
-    // SQDECH <Zdn>.H{, <pattern>{, MUL #<imm>}}
     case SQDECH_z_zs:
       mnemonic = "sqdech";
-      form = "'Zd.h{, #'u0905{, MUL #<imm>}}";
       break;
-    // SQDECW <Zdn>.S{, <pattern>{, MUL #<imm>}}
     case SQDECW_z_zs:
       mnemonic = "sqdecw";
-      form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
-    // SQINCD <Zdn>.D{, <pattern>{, MUL #<imm>}}
     case SQINCD_z_zs:
       mnemonic = "sqincd";
       break;
-    // SQINCH <Zdn>.H{, <pattern>{, MUL #<imm>}}
     case SQINCH_z_zs:
       mnemonic = "sqinch";
-      form = "'Zd.h{, #'u0905{, MUL #<imm>}}";
       break;
-    // SQINCW <Zdn>.S{, <pattern>{, MUL #<imm>}}
     case SQINCW_z_zs:
       mnemonic = "sqincw";
-      form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
-    // UQDECD <Zdn>.D{, <pattern>{, MUL #<imm>}}
     case UQDECD_z_zs:
       mnemonic = "uqdecd";
       break;
-    // UQDECH <Zdn>.H{, <pattern>{, MUL #<imm>}}
     case UQDECH_z_zs:
       mnemonic = "uqdech";
-      form = "'Zd.h{, #'u0905{, MUL #<imm>}}";
       break;
-    // UQDECW <Zdn>.S{, <pattern>{, MUL #<imm>}}
     case UQDECW_z_zs:
       mnemonic = "uqdecw";
-      form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
-    // UQINCD <Zdn>.D{, <pattern>{, MUL #<imm>}}
     case UQINCD_z_zs:
       mnemonic = "uqincd";
       break;
-    // UQINCH <Zdn>.H{, <pattern>{, MUL #<imm>}}
     case UQINCH_z_zs:
       mnemonic = "uqinch";
-      form = "'Zd.h{, #'u0905{, MUL #<imm>}}";
       break;
-    // UQINCW <Zdn>.S{, <pattern>{, MUL #<imm>}}
     case UQINCW_z_zs:
       mnemonic = "uqincw";
-      form = "'Zd.s{, #'u0905{, MUL #<imm>}}";
       break;
     default:
       form = "(SVEElementCount)";
@@ -8597,18 +8570,8 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
 
 void Disassembler::VisitSVEElementCount(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Xdn>{, <pattern>{, MUL #<imm>}}
-  const char *form = "'Xd, 'Ipc, mul #'u1916+1";
-
-  // Omit the immediate if it's one, which is encoded as zero.
-  if (instr->ExtractBits(19, 16) == 0) {
-    form = "'Xd, 'Ipc";
-
-    // Also omit the pattern if it's the default ('ALL').
-    if (instr->ExtractBits(9, 5) == SVE_ALL) {
-      form = "'Xd";
-    }
-  }
+  const char *form =
+      IncDecFormHelper(instr, "'Xd, 'Ipc, mul #'u1916+1", "'Xd, 'Ipc", "'Xd");
 
   switch (instr->Mask(SVEElementCountMask)) {
     case CNTB_r_s:
