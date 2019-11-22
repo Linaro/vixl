@@ -2738,6 +2738,146 @@ static void GenerateTestSequenceNEONFP(MacroAssembler* masm) {
 }
 
 
+static void GenerateTestSequenceSVE(MacroAssembler* masm) {
+  ExactAssemblyScope guard(masm,
+                           masm->GetBuffer()->GetRemainingBytes(),
+                           ExactAssemblyScope::kMaximumSize);
+  CPUFeaturesScope feature_guard(masm, CPUFeatures::kSVE);
+
+  // Simple, unpredicated loads and stores.
+  __ str(p12.VnD(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ str(p13.VnS(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ str(p14.VnH(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ str(p15.VnB(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(p8.VnD(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(p9.VnS(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(p10.VnH(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(p11.VnB(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+
+  __ str(z0.VnD(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ str(z1.VnS(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ str(z2.VnH(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ str(z3.VnB(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(z20.VnD(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(z21.VnS(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(z22.VnH(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+  __ ldr(z23.VnB(), SVEMemOperand(x0, 11, SVE_MUL_VL));
+
+  // Structured accesses.
+  __ st1b(z0.VnB(), p2, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st1h(z1.VnH(), p1, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st1w(z2.VnS(), p1, SVEMemOperand(x0, x3, LSL, 2));
+  __ st1d(z3.VnD(), p2, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1b(z20.VnB(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1h(z21.VnH(), p2.Zeroing(), SVEMemOperand(x0, x2, LSL, 1));
+  __ ld1w(z22.VnS(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1d(z23.VnD(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+
+  // Structured, packed accesses.
+  __ st1b(z2.VnH(), p1, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st1b(z3.VnS(), p2, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st1b(z4.VnD(), p2, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st1h(z0.VnS(), p1, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st1h(z1.VnD(), p1, SVEMemOperand(x0, x2, LSL, 1));
+  __ st1w(z2.VnD(), p1, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1b(z20.VnH(), p1.Zeroing(), SVEMemOperand(x0, x2));
+  __ ld1b(z21.VnS(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1b(z22.VnD(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1h(z23.VnS(), p2.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1h(z24.VnD(), p2.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1w(z20.VnD(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1sb(z21.VnH(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1sb(z22.VnS(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1sb(z23.VnD(), p2.Zeroing(), SVEMemOperand(x0, x2));
+  __ ld1sh(z24.VnS(), p2.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1sh(z20.VnD(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld1sw(z21.VnD(), p1.Zeroing(), SVEMemOperand(x0, 3, SVE_MUL_VL));
+
+  // Structured, interleaved accesses.
+  __ st2b(z0.VnB(), z1.VnB(), p4, SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ st2h(z1.VnH(), z2.VnH(), p4, SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ st2w(z2.VnS(), z3.VnS(), p3, SVEMemOperand(x0, x2, LSL, 2));
+  __ st2d(z3.VnD(), z4.VnD(), p4, SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ ld2b(z20.VnB(), z21.VnB(), p5.Zeroing(), SVEMemOperand(x0, x2));
+  __ ld2h(z21.VnH(), z22.VnH(), p6.Zeroing(), SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ ld2w(z22.VnS(), z23.VnS(), p6.Zeroing(), SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ ld2d(z23.VnD(), z24.VnD(), p5.Zeroing(), SVEMemOperand(x0, 4, SVE_MUL_VL));
+
+  __ st3b(z4.VnB(), z5.VnB(), z6.VnB(), p4, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st3h(z5.VnH(), z6.VnH(), z7.VnH(), p4, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st3w(z6.VnS(), z7.VnS(), z8.VnS(), p3, SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ st3d(z7.VnD(), z8.VnD(), z9.VnD(), p4, SVEMemOperand(x0, x2, LSL, 3));
+  __ ld3b(z24.VnB(),
+          z25.VnB(),
+          z26.VnB(),
+          p5.Zeroing(),
+          SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld3h(z25.VnH(),
+          z26.VnH(),
+          z27.VnH(),
+          p6.Zeroing(),
+          SVEMemOperand(x0, x2, LSL, 1));
+  __ ld3w(z26.VnS(),
+          z27.VnS(),
+          z28.VnS(),
+          p6.Zeroing(),
+          SVEMemOperand(x0, 3, SVE_MUL_VL));
+  __ ld3d(z27.VnD(),
+          z28.VnD(),
+          z29.VnD(),
+          p5.Zeroing(),
+          SVEMemOperand(x0, 3, SVE_MUL_VL));
+
+  __ st4b(z31.VnB(),
+          z0.VnB(),
+          z1.VnB(),
+          z2.VnB(),
+          p4,
+          SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ st4h(z0.VnH(),
+          z1.VnH(),
+          z2.VnH(),
+          z3.VnH(),
+          p4,
+          SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ st4w(z1.VnS(),
+          z2.VnS(),
+          z3.VnS(),
+          z4.VnS(),
+          p3,
+          SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ st4d(z2.VnD(),
+          z3.VnD(),
+          z4.VnD(),
+          z5.VnD(),
+          p4,
+          SVEMemOperand(x0, x2, LSL, 3));
+  __ ld4b(z25.VnB(),
+          z26.VnB(),
+          z27.VnB(),
+          z28.VnB(),
+          p5.Zeroing(),
+          SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ ld4h(z26.VnH(),
+          z27.VnH(),
+          z28.VnH(),
+          z29.VnH(),
+          p6.Zeroing(),
+          SVEMemOperand(x0, 4, SVE_MUL_VL));
+  __ ld4w(z27.VnS(),
+          z28.VnS(),
+          z29.VnS(),
+          z30.VnS(),
+          p6.Zeroing(),
+          SVEMemOperand(x0, x2, LSL, 2));
+  __ ld4d(z28.VnD(),
+          z29.VnD(),
+          z30.VnD(),
+          z31.VnD(),
+          p5.Zeroing(),
+          SVEMemOperand(x0, 4, SVE_MUL_VL));
+}
+
 static void MaskAddresses(const char* trace) {
 #ifdef __APPLE__
 #define MAYBE_ANSI_C_QUOTE "$"
@@ -2827,14 +2967,18 @@ static void TraceTestHelper(bool coloured_trace,
 
   Decoder decoder;
   Simulator simulator(&decoder, trace_stream);
-  simulator.SetCPUFeatures(CPUFeatures::AArch64LegacyBaseline());
   simulator.SetColouredTrace(coloured_trace);
   simulator.SetTraceParameters(trace_parameters);
   simulator.SilenceExclusiveAccessWarning();
 
+  const int vl_in_bytes = 5 * kZRegMinSizeInBytes;
+  const int vl_in_bits = vl_in_bytes * kBitsPerByte;
+  const int pl_in_bits = vl_in_bits / kZRegBitsPerPRegBit;
+  simulator.SetVectorLengthInBits(vl_in_bits);
+
   // Set up a scratch buffer so we can test loads and stores.
-  const int kScratchSize = 64 * KBytes;
-  const int kScratchGuardSize = 128;
+  const int kScratchSize = vl_in_bytes * 1024;
+  const int kScratchGuardSize = vl_in_bytes;
   char scratch_buffer[kScratchSize + kScratchGuardSize];
   for (size_t i = 0; i < (sizeof(scratch_buffer) / sizeof(scratch_buffer[0]));
        i++) {
@@ -2859,22 +3003,41 @@ static void TraceTestHelper(bool coloured_trace,
     // not printed.
     simulator.WriteRegister(i, initial_base_u64 * i, Simulator::NoRegLog);
   }
-  float initial_base_f32 = 1.2345f;
-  double initial_base_f64 = 1.3456f;
-  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    // Try to initialise V registers with reasonable FP values.
-    uint64_t low = (DoubleToRawbits(initial_base_f64 * i) & ~kSRegMask) |
-                   FloatToRawbits(initial_base_f32 * i);
-    uint64_t high = low ^ 0x0005555500555555;
-    LogicVRegister reg(simulator.ReadVRegister(i));
-    reg.SetUint(kFormat2D, 0, low);
-    reg.SetUint(kFormat2D, 1, high);
+  for (unsigned r = 0; r < kNumberOfVRegisters; r++) {
+    LogicVRegister reg(simulator.ReadVRegister(r));
+    // Try to initialise Z registers with reasonable FP values. We prioritise
+    // setting double values, then floats and half-precision values. The lanes
+    // overlap, so this is a compromise, but d0, s0 and h0 views all see similar
+    // arithmetic values.
+    //
+    // The exponent of each value is set to the (biased) register number. We set
+    // the double, float and half-precision exponents where we can.
+    uint64_t base = 0x3ff000003f803c00 + (0x0010000000800400 * (0x7f + r));
+    for (unsigned lane = 0; lane < (vl_in_bytes / kDRegSizeInBytes); lane++) {
+      uint64_t mantissas = 0x0000000100010001 * (lane & 0x7f);
+      reg.SetUint(kFormatVnD, lane, base | mantissas);
+    }
+  }
+  for (unsigned r = 0; r < kNumberOfPRegisters; r++) {
+    LogicPRegister reg(simulator.ReadPRegister(r));
+    // Set `r` active lanes between each inactive lane.
+    for (unsigned bit = 0; bit < pl_in_bits; bit++) {
+      reg.SetActive(kFormatVnB, bit, ((bit + 1) % (r + 2)) != 0);
+    }
+    // Completely clear some Q-sized blocks. The trace will completely omit
+    // these for stores.
+    for (unsigned chunk = 0; chunk < (vl_in_bits / kQRegSize); chunk++) {
+      if (((chunk + 1) % (r + 2)) == 0) {
+        reg.SetActiveMask(chunk, static_cast<uint16_t>(0));
+      }
+    }
   }
 
   GenerateTestSequenceBase(&masm);
   GenerateTestSequenceFP(&masm);
   GenerateTestSequenceNEON(&masm);
   GenerateTestSequenceNEONFP(&masm);
+  GenerateTestSequenceSVE(&masm);
   masm.Ret();
   masm.FinalizeCode();
 

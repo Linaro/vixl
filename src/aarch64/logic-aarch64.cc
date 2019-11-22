@@ -6456,16 +6456,23 @@ void Simulator::SVEStructuredStoreHelper(VectorFormat vform,
     }
   }
 
-  // TODO: Come up with a better trace format, and update NEON to match.
-  // This implementation matches the NEON format, for contiguous, unpredicated
-  // stores. It doesn't work for non-contiguous addressing, and doesn't take
-  // predication into account.
-  VIXL_ASSERT(addr.IsContiguous());
-  for (int r = 0; r < reg_count; r++) {
-    LogZWrite(addr.GetElementAddress(0, r),
-              zt_codes[r],
-              GetPrintRegisterFormat(vform),
-              msize_in_bytes);
+  if (ShouldTraceWrites()) {
+    PrintRegisterFormat format = GetPrintRegisterFormat(vform);
+    if (esize_in_bytes_log2 == msize_in_bytes_log2) {
+      // Use an FP format where it's likely that we're accessing FP data.
+      format = GetPrintRegisterFormatTryFP(format);
+    }
+    // Stores don't represent a change to the source register's value, so only
+    // print the relevant part of the value.
+    format = GetPrintRegPartial(format);
+
+    PrintZStructAccess(zt_code,
+                       reg_count,
+                       pg,
+                       format,
+                       msize_in_bytes,
+                       "->",
+                       addr);
   }
 }
 
@@ -6474,12 +6481,13 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
                                         unsigned zt_code,
                                         const LogicSVEAddressVector& addr,
                                         bool is_signed) {
+  int esize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
   int msize_in_bytes_log2 = addr.GetMsizeInBytesLog2();
   int msize_in_bytes = addr.GetMsizeInBytes();
   int reg_count = addr.GetRegCount();
 
   VIXL_ASSERT(zt_code < kNumberOfZRegisters);
-  VIXL_ASSERT(LaneSizeInBytesLog2FromFormat(vform) >= msize_in_bytes_log2);
+  VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
   VIXL_ASSERT((reg_count >= 1) && (reg_count <= 4));
 
   unsigned zt_codes[4] = {zt_code,
@@ -6520,16 +6528,19 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
     }
   }
 
-  // TODO: Come up with a better trace format, and update NEON to match.
-  // This implementation matches the NEON format, for contiguous, unpredicated
-  // stores. It doesn't work for non-contiguous addressing, and doesn't take
-  // predication into account.
-  VIXL_ASSERT(addr.IsContiguous());
-  for (int r = 0; r < reg_count; r++) {
-    LogZRead(addr.GetElementAddress(0, r),
-             zt_codes[r],
-             GetPrintRegisterFormat(vform),
-             msize_in_bytes);
+  if (ShouldTraceVRegs()) {
+    PrintRegisterFormat format = GetPrintRegisterFormat(vform);
+    if ((esize_in_bytes_log2 == msize_in_bytes_log2) && !is_signed) {
+      // Use an FP format where it's likely that we're accessing FP data.
+      format = GetPrintRegisterFormatTryFP(format);
+    }
+    PrintZStructAccess(zt_code,
+                       reg_count,
+                       pg,
+                       format,
+                       msize_in_bytes,
+                       "<-",
+                       addr);
   }
 }
 

@@ -290,12 +290,10 @@ class LogicPRegister {
     return register_.GetSizeInBytes() / sizeof(ChunkType);
   }
 
-  ChunkType GetChunk(int lane) const {
-    return register_.GetLane<ChunkType>(lane);
-  }
+  ChunkType GetChunk(int lane) const { return GetActiveMask<ChunkType>(lane); }
 
   void SetChunk(int lane, ChunkType new_value) {
-    register_.Insert<ChunkType>(lane, new_value);
+    SetActiveMask(lane, new_value);
   }
 
   void SetAllBits() {
@@ -306,6 +304,16 @@ class LogicPRegister {
          lane++) {
       SetChunk(lane, bits);
     }
+  }
+
+  template <typename T>
+  T GetActiveMask(int lane) const {
+    return register_.GetLane<T>(lane);
+  }
+
+  template <typename T>
+  void SetActiveMask(int lane, T new_value) {
+    register_.Insert<T>(lane, new_value);
   }
 
   void Clear() { register_.Clear(); }
@@ -795,7 +803,7 @@ class LogicSVEAddressVector {
 
   int GetRegCount() const { return reg_count_; }
 
-  // Full per-element calculation for structured accesses.
+  // Full per-element address calculation for structured accesses.
   //
   // Note that the register number argument (`reg`) is zero-based.
   uint64_t GetElementAddress(int lane, int reg) const {
@@ -817,6 +825,13 @@ class LogicSVEAddressVector {
       VIXL_UNIMPLEMENTED();
       return 0;
     }
+  }
+
+  // Full per-struct address calculation for structured accesses.
+  uint64_t GetStructAddress(int lane) const {
+    // Individual structures are always contiguous in memory, for both
+    // scatter-gather and contiguous accesses.
+    return GetElementAddress(lane, 0);
   }
 
   // TODO: Update this once we support scatter-gather modes.
@@ -1791,14 +1806,13 @@ class Simulator : public DecoderVisitor {
 #undef VIXL_DECL_PRINT_REG_NEON
 #undef VIXL_DECL_PRINT_REG_NEON_FP
 
-// We never print whole SVE regisers, so all SVE formats have
-// kPrintRegPartial.
-#define VIXL_DECL_PRINT_REG_SVE(type) \
-  kPrintRegVn##type =                 \
-      kPrintRegLaneSize##type | kPrintRegPartial | kPrintRegAsSVEVector
-#define VIXL_DECL_PRINT_REG_SVE_FP(type) \
-  VIXL_DECL_PRINT_REG_SVE(type)          \
-  , kPrintRegVn##type##FP = kPrintRegVn##type | kPrintRegAsFP
+#define VIXL_DECL_PRINT_REG_SVE(type)                                 \
+  kPrintRegVn##type = kPrintRegLaneSize##type | kPrintRegAsSVEVector, \
+  kPrintRegVn##type##Partial = kPrintRegVn##type | kPrintRegPartial
+#define VIXL_DECL_PRINT_REG_SVE_FP(type)                       \
+  VIXL_DECL_PRINT_REG_SVE(type)                                \
+  , kPrintRegVn##type##FP = kPrintRegVn##type | kPrintRegAsFP, \
+    kPrintRegVn##type##PartialFP = kPrintRegVn##type##Partial | kPrintRegAsFP
     VIXL_DECL_PRINT_REG_SVE(B),
     VIXL_DECL_PRINT_REG_SVE_FP(H),
     VIXL_DECL_PRINT_REG_SVE_FP(S),
@@ -1813,6 +1827,20 @@ class Simulator : public DecoderVisitor {
     // Every PrintRegisterFormat has a kPrintRegPartial counterpart, so the
     // result of this cast will always be well-defined.
     return static_cast<PrintRegisterFormat>(format | kPrintRegPartial);
+  }
+
+  // For SVE formats, return the format of a Q register part of it.
+  PrintRegisterFormat GetPrintRegAsQChunkOfSVE(PrintRegisterFormat format) {
+    VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+    // Keep the FP and lane size fields.
+    int q_format = format & (kPrintRegLaneSizeMask | kPrintRegAsFP);
+    // The resulting format must always be partial, because we're not formatting
+    // the whole Z register.
+    q_format |= (kPrintRegAsQVector | kPrintRegPartial);
+
+    // This cast is always safe because NEON QVector formats support every
+    // combination of FP and lane size that SVE formats do.
+    return static_cast<PrintRegisterFormat>(q_format);
   }
 
   unsigned GetPrintRegLaneSizeInBytesLog2(PrintRegisterFormat format) {
@@ -1996,13 +2024,21 @@ class Simulator : public DecoderVisitor {
   void PrintVRegister(int code,
                       PrintRegisterFormat format = kPrintReg1Q,
                       const char* suffix = "\n");
-  // TODO: Update the SVE forms to match the others.
-  void PrintZRegister(unsigned code,
-                      PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
-                      int bytes = 0,
-                      int start_byte = 0);
-  void PrintPRegister(unsigned code,
-                      PrintRegisterFormat format = kPrintRegLaneSizeUnknown);
+  // PrintZRegister and PrintPRegister print over several lines, so they cannot
+  // allow the suffix to be overridden.
+  void PrintZRegister(int code, PrintRegisterFormat format = kPrintRegVnQ);
+  void PrintPRegister(int code, PrintRegisterFormat format = kPrintRegVnQ);
+  // Print a single Q-sized part of a Z register, or the corresponding two-byte
+  // part of a P register. These print single lines, and therefore allow the
+  // suffix to be overridden. The format must include the kPrintRegPartial flag.
+  void PrintPartialZRegister(int code,
+                             int q_index,
+                             PrintRegisterFormat format = kPrintRegVnQ,
+                             const char* suffix = "\n");
+  void PrintPartialPRegister(int code,
+                             int q_index,
+                             PrintRegisterFormat format = kPrintRegVnQ,
+                             const char* suffix = "\n");
 
   // Like Print*Register (above), but respect trace parameters.
   void LogRegister(unsigned code, PrintRegisterFormat format) {
@@ -2040,6 +2076,22 @@ class Simulator : public DecoderVisitor {
   void PrintWrite(int rt_code, PrintRegisterFormat format, uintptr_t address);
   void PrintVRead(int rt_code, PrintRegisterFormat format, uintptr_t address);
   void PrintVWrite(int rt_code, PrintRegisterFormat format, uintptr_t address);
+  // Simple, unpredicated SVE accesses always access the whole vector, and never
+  // know the lane type, so there's no need to accept a `format`.
+  void PrintZRead(int rt_code, uintptr_t address) {
+    vregisters_[rt_code].NotifyRegisterLogged();
+    PrintZAccess(rt_code, "<-", address);
+  }
+  void PrintZWrite(int rt_code, uintptr_t address) {
+    PrintZAccess(rt_code, "->", address);
+  }
+  void PrintPRead(int rt_code, uintptr_t address) {
+    pregisters_[rt_code].NotifyRegisterLogged();
+    PrintPAccess(rt_code, "<-", address);
+  }
+  void PrintPWrite(int rt_code, uintptr_t address) {
+    PrintPAccess(rt_code, "->", address);
+  }
 
   // Like Print* (above), but respect GetTraceParameters().
   void LogRead(int rt_code, PrintRegisterFormat format, uintptr_t address) {
@@ -2062,6 +2114,18 @@ class Simulator : public DecoderVisitor {
   void LogVWrite(int rt_code, PrintRegisterFormat format, uintptr_t address) {
     if (ShouldTraceWrites()) PrintVWrite(rt_code, format, address);
   }
+  void LogZRead(int rt_code, uintptr_t address) {
+    if (ShouldTraceVRegs()) PrintZRead(rt_code, address);
+  }
+  void LogZWrite(int rt_code, uintptr_t address) {
+    if (ShouldTraceWrites()) PrintZWrite(rt_code, address);
+  }
+  void LogPRead(int rt_code, uintptr_t address) {
+    if (ShouldTraceVRegs()) PrintPRead(rt_code, address);
+  }
+  void LogPWrite(int rt_code, uintptr_t address) {
+    if (ShouldTraceWrites()) PrintPWrite(rt_code, address);
+  }
 
   // Helpers for the above, where the access operation is parameterised.
   // - For loads, set op = "<-".
@@ -2074,6 +2138,10 @@ class Simulator : public DecoderVisitor {
                     PrintRegisterFormat format,
                     const char* op,
                     uintptr_t address);
+  // Simple, unpredicated SVE accesses always access the whole vector, and never
+  // know the lane type, so these don't accept a `format`.
+  void PrintZAccess(int rt_code, const char* op, uintptr_t address);
+  void PrintPAccess(int rt_code, const char* op, uintptr_t address);
 
   // Multiple-structure accesses.
   void PrintVStructAccess(int rt_code,
@@ -2095,6 +2163,15 @@ class Simulator : public DecoderVisitor {
                                      const char* op,
                                      uintptr_t address);
 
+  // Multiple-structure accesses.
+  void PrintZStructAccess(int rt_code,
+                          int reg_count,
+                          const LogicPRegister& pg,
+                          PrintRegisterFormat format,
+                          int msize_in_bytes,
+                          const char* op,
+                          const LogicSVEAddressVector& addr);
+
   // Register-printing helper for all structured accessors.
   //
   // All lanes (according to `format`) are printed, but lanes indicated by
@@ -2102,6 +2179,13 @@ class Simulator : public DecoderVisitor {
   // the printed register, in a manner similar to SVE's predicates. Currently,
   // this is used to determine when to print human-readable FP annotations.
   void PrintVRegistersForStructuredAccess(int rt_code,
+                                          int reg_count,
+                                          uint16_t focus_mask,
+                                          PrintRegisterFormat format);
+
+  // As for the VRegister variant, but print partial Z register names.
+  void PrintZRegistersForStructuredAccess(int rt_code,
+                                          int q_index,
                                           int reg_count,
                                           uint16_t focus_mask,
                                           PrintRegisterFormat format);
@@ -2169,9 +2253,15 @@ class Simulator : public DecoderVisitor {
   template <typename T>
   void PrintRegisterValue(const T& sim_register, PrintRegisterFormat format) {
     PrintRegisterValue(sim_register.GetBytes(),
-                       sim_register.GetSizeInBytes(),
+                       std::min(sim_register.GetSizeInBytes(),
+                                kQRegSizeInBytes),
                        format);
   }
+
+  // As above, but format as an SVE predicate value, using binary notation with
+  // spaces between each bit so that they align with the Z register bytes that
+  // they predicate.
+  void PrintPRegisterValue(uint16_t value);
 
   void PrintRegisterValueFPAnnotations(const uint8_t* value,
                                        uint16_t lane_mask,
@@ -2189,62 +2279,6 @@ class Simulator : public DecoderVisitor {
                                     GetPrintRegLaneMask(format),
                                     format);
   }
-
-
-  // The argument `address` is the address of `start byte`.
-  void PrintZRead(uintptr_t address,
-                  unsigned reg_code,
-                  PrintRegisterFormat format,
-                  unsigned data_size = 0,
-                  int bytes = 0,
-                  int start_byte = 0);
-  void PrintZWrite(uintptr_t address,
-                   unsigned reg_code,
-                   PrintRegisterFormat format,
-                   unsigned data_size = 0,
-                   int bytes = 0,
-                   int start_byte = 0);
-  void PrintPRead(uintptr_t address, unsigned reg_code);
-  void PrintPWrite(uintptr_t address, unsigned reg_code);
-
-  void LogZRead(uintptr_t address,
-                unsigned reg_code,
-                PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
-                unsigned data_size = 0,
-                int bytes = 0,
-                int start_byte = 0) {
-    if (GetTraceParameters() & LOG_VREGS) {
-      PrintZRead(address, reg_code, format, data_size, bytes, start_byte);
-    }
-  }
-  void LogZWrite(uintptr_t address,
-                 unsigned reg_code,
-                 PrintRegisterFormat format = kPrintRegLaneSizeUnknown,
-                 unsigned data_size = 0,
-                 int bytes = 0,
-                 int start_byte = 0) {
-    if (GetTraceParameters() & LOG_WRITE) {
-      PrintZWrite(address, reg_code, format, data_size, bytes, start_byte);
-    }
-  }
-  void LogPRead(uintptr_t address, unsigned reg_code) {
-    if (GetTraceParameters() & LOG_VREGS) {
-      PrintPRead(address, reg_code);
-    }
-  }
-  void LogPWrite(uintptr_t address, unsigned reg_code) {
-    if (GetTraceParameters() & LOG_WRITE) {
-      PrintPWrite(address, reg_code);
-    }
-  }
-
-  // Helper functions for register tracing.
-  void PrintZRegisterRawHelper(unsigned code,
-                               int lane_size,
-                               int data_size = 0,
-                               int bytes = 0,
-                               int start_byte = 0);
-  void PrintPRegisterRawHelper(unsigned code, int lsb);
 
   VIXL_NO_RETURN void DoUnreachable(const Instruction* instr);
   void DoTrace(const Instruction* instr);

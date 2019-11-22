@@ -709,13 +709,13 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormat(
       return kPrintReg1D;
 
     case kFormatVnB:
-      return kPrintRegLaneSizeB;
+      return kPrintRegVnB;
     case kFormatVnH:
-      return kPrintRegLaneSizeH;
+      return kPrintRegVnH;
     case kFormatVnS:
-      return kPrintRegLaneSizeS;
+      return kPrintRegVnS;
     case kFormatVnD:
-      return kPrintRegLaneSizeD;
+      return kPrintRegVnD;
   }
 }
 
@@ -1032,140 +1032,133 @@ void Simulator::PrintVRegistersForStructuredAccess(int rt_code,
   }
 }
 
-void Simulator::PrintZRegisterRawHelper(
-    unsigned code, int lane_size, int data_size, int bytes, int start_byte) {
-  VIXL_ASSERT(lane_size >= data_size);
-  // Currently only support printing of 128-bit length value and it must have
-  // 128-bit alignement.
-  VIXL_ASSERT((bytes % kQRegSizeInBytes) == 0);
-  VIXL_ASSERT((start_byte % kQRegSizeInBytes) == 0);
+void Simulator::PrintZRegistersForStructuredAccess(int rt_code,
+                                                   int q_index,
+                                                   int reg_count,
+                                                   uint16_t focus_mask,
+                                                   PrintRegisterFormat format) {
+  bool print_fp = (format & kPrintRegAsFP) != 0;
+  // Suppress FP formatting, so we can specify the lanes we're interested in.
+  PrintRegisterFormat format_no_fp =
+      static_cast<PrintRegisterFormat>(format & ~kPrintRegAsFP);
 
-  // The template for vector types:
-  //   "# z{code}<m+127:m>: 0x33333333222222221111111100000000",
-  // where m is multiple of 128b.
-  // An example with bytes=16 starting from a bit 128:
-  //   "# z{code}<255:128>: 0x77777777666666665555555544444444".
-  // A qlane from a bit zero with lane=4, data=2, and bytes=16:
-  //   "#   z{code}<127:0>: 0x    3333    2222    1111    0000".
+  PrintRegisterFormat format_q = GetPrintRegAsQChunkOfSVE(format);
 
-  std::stringstream prefix;
-  prefix << ZRegNameForCode(code) << "<"
-         << ((start_byte + bytes) * kBitsPerByte) - 1 << ":"
-         << (start_byte * kBitsPerByte) << ">";
+  const unsigned size = kQRegSizeInBytes;
+  unsigned byte_index = q_index * size;
+  const uint8_t* value = vregisters_[rt_code].GetBytes() + byte_index;
+  VIXL_ASSERT((byte_index + size) <= vregisters_[rt_code].GetSizeInBytes());
 
-  fprintf(stream_,
-          "# %s%13s: %s0x",
-          clr_vreg_name,
-          prefix.str().c_str(),
-          clr_vreg_value);
-
-  // Print the 128-bit length of register, lane by lane.
-  for (int i = kQRegSizeInBytes / lane_size; i > 0; i--) {
-    VIXL_ASSERT((kQRegSizeInBytes % lane_size) == 0);
-    // Skip the irrelevant part of value from lane if any.
-    for (int skips = lane_size - data_size; skips > 0; skips--) {
-      fprintf(stream_, "  ");
-      bytes--;
+  for (int r = 0; r < reg_count; r++) {
+    int code = (rt_code + r) % kNumberOfZRegisters;
+    PrintPartialZRegister(code, q_index, format_no_fp, "");
+    if (print_fp) {
+      PrintRegisterValueFPAnnotations(value, focus_mask, format_q);
     }
-
-    // [`first_byte`, `last_byte`] represent the interval of bytes that are
-    // printed in each lane.
-    int last_byte = start_byte + bytes - 1;
-    int first_byte = last_byte - data_size + 1;
-    // Print the specified part of the value, byte by byte.
-    int lane_idx = last_byte >> kQRegSizeInBytesLog2;
-    qreg_t rawbits = vregisters_[code].GetLane<qreg_t>(lane_idx);
-    for (int byte = last_byte; byte >= first_byte; --byte) {
-      fprintf(stream_, "%02x", rawbits.val[byte % kQRegSizeInBytes]);
-      bytes--;
-    }
+    fprintf(stream_, "\n");
   }
-  fprintf(stream_, "%s", clr_normal);
 }
 
-void Simulator::PrintPRegisterRawHelper(unsigned code, int lsb) {
-  // There are no predicated store-predicate instructions, so we can always
-  // print the full register, but this helper prints a single run of 16 bits
-  // (from `lsb`).
-  VIXL_ASSERT(code < kNumberOfPRegisters);
-  int bits = kQRegSize / kZRegBitsPerPRegBit;
-  int msb = lsb + bits - 1;
-  VIXL_ASSERT(static_cast<unsigned>(msb) < pregisters_[code].GetSizeInBits());
-  VIXL_ASSERT((lsb % bits) == 0);
+void Simulator::PrintZRegister(int code, PrintRegisterFormat format) {
+  // We're going to print the register in parts, so force a partial format.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned i = 0; i < (vl / kQRegSize); i++) {
+    PrintPartialZRegister(code, i, format);
+  }
+  vregisters_[code].NotifyRegisterLogged();
+}
 
-  // The template for P registers:
-  //   "# p{code}<m+15:m>:  0b 0 0 0 0 1 0 1 1 0 1 1 1 0 1 0 0",
-  // where m is multiple of 16.
+void Simulator::PrintPRegister(int code, PrintRegisterFormat format) {
+  // We're going to print the register in parts, so force a partial format.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned i = 0; i < (vl / kQRegSize); i++) {
+    PrintPartialPRegister(code, i, format);
+  }
+  pregisters_[code].NotifyRegisterLogged();
+}
 
-  // Each printed bit aligns with the least-significant nibble of the
-  // corresponding Z-register lane, to make predicate behaviour easy to follow.
+void Simulator::PrintPartialZRegister(int code,
+                                      int q_index,
+                                      PrintRegisterFormat format,
+                                      const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfZRegisters);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  VIXL_ASSERT((format & kPrintRegPartial) != 0);
+  VIXL_ASSERT((q_index * kQRegSize) < GetVectorLengthInBits());
 
-  std::stringstream prefix;
-  prefix << PRegNameForCode(code) << "<" << msb << ":" << lsb << ">";
+  // We _only_ trace partial Z register values in Q-sized chunks, because
+  // they're often too large to reasonably fit on a single line. Each line
+  // implies nothing about the unprinted bits.
+  //   "# z{code}<127:0>: 0x{-------------value------------}"
+
+  format = GetPrintRegAsQChunkOfSVE(format);
+
+  const unsigned size = kQRegSizeInBytes;
+  unsigned byte_index = q_index * size;
+  const uint8_t* value = vregisters_[code].GetBytes() + byte_index;
+  VIXL_ASSERT((byte_index + size) <= vregisters_[code].GetSizeInBytes());
+
+  int lsb = q_index * kQRegSize;
+  int msb = lsb + kQRegSize - 1;
+  std::stringstream name;
+  name << ZRegNameForCode(code) << '<' << msb << ':' << lsb << '>';
 
   fprintf(stream_,
-          "# %s%13s: %s0b",
-          clr_preg_name,
-          prefix.str().c_str(),
-          clr_preg_value);
+          "# %s%*s: %s",
+          clr_vreg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_vreg_value);
+  PrintRegisterValue(value, size, format);
+  fprintf(stream_, "%s", clr_normal);
+  if ((format & kPrintRegAsFP) != 0) {
+    PrintRegisterValueFPAnnotations(value, GetPrintRegLaneMask(format), format);
+  }
+  fprintf(stream_, "%s", suffix);
+}
 
-  // Print the 16-bit length of register, lane by lane.
+void Simulator::PrintPartialPRegister(int code,
+                                      int q_index,
+                                      PrintRegisterFormat format,
+                                      const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfPRegisters);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  VIXL_ASSERT((format & kPrintRegPartial) != 0);
+  VIXL_ASSERT((q_index * kQRegSize) < GetVectorLengthInBits());
+
+  // We don't currently use the format for anything here.
+  USE(format);
+
+  // We _only_ trace partial P register values, because they're often too large
+  // to reasonably fit on a single line. Each line implies nothing about the
+  // unprinted bits.
+  //
+  // We print values in binary, with spaces between each bit, in order for the
+  // bits to align with the Z register bytes that they predicate.
+  //   "# p{code}<15:0>: 0b{-------------value------------}"
+
+  int print_size_in_bits = kQRegSize / kZRegBitsPerPRegBit;
+  int lsb = q_index * print_size_in_bits;
+  int msb = lsb + print_size_in_bits - 1;
+  std::stringstream name;
+  name << PRegNameForCode(code) << '<' << msb << ':' << lsb << '>';
+
+  fprintf(stream_,
+          "# %s%*s: %s0b",
+          clr_preg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_preg_value);
   for (int i = msb; i >= lsb; i--) {
     fprintf(stream_, " %c", pregisters_[code].GetBit(i) ? '1' : '0');
   }
-  fprintf(stream_, "%s", clr_normal);
-}
-
-void Simulator::PrintZRegister(unsigned code,
-                               PrintRegisterFormat format,
-                               int bytes,
-                               int start_byte) {
-  vregisters_[code].NotifyRegisterLogged();
-  if (bytes == 0) {
-    // If no byte size specified, print the whole length of register.
-    bytes = GetVectorLengthInBytes();
-  }
-
-  int lane_size;
-  switch (format) {
-    case kPrintRegLaneSizeUnknown:
-      // If no lane size specified, set to 128-bit lane by default.
-      lane_size = kQRegSizeInBytes;
-      break;
-    case kPrintRegLaneSizeB:
-    case kPrintRegLaneSizeH:
-    case kPrintRegLaneSizeS:
-    case kPrintRegLaneSizeD:
-      lane_size = GetPrintRegLaneSizeInBytes(format);
-      break;
-    default:
-      lane_size = 0;
-      VIXL_UNIMPLEMENTED();
-      break;
-  }
-
-  while (bytes > 0) {
-    PrintZRegisterRawHelper(code,
-                            lane_size,
-                            lane_size,
-                            kQRegSizeInBytes,
-                            start_byte + bytes - kQRegSizeInBytes);
-    bytes -= kQRegSizeInBytes;
-    fprintf(stream_, "\n");
-  }
-}
-
-void Simulator::PrintPRegister(unsigned code, PrintRegisterFormat format) {
-  USE(format);
-  pregisters_[code].NotifyRegisterLogged();
-  // There are no predicated store-predicate instructions, so we can simply
-  // print the full register.
-  int bits_per_chunk = kQRegSize / kZRegBitsPerPRegBit;
-  int bits = pregisters_[code].GetSizeInBits();
-  for (int lsb = bits - bits_per_chunk; lsb >= 0; lsb -= bits_per_chunk) {
-    PrintPRegisterRawHelper(code, lsb);
-    fprintf(stream_, "\n");
-  }
+  fprintf(stream_, "%s%s", clr_normal, suffix);
 }
 
 void Simulator::PrintSystemRegister(SystemRegister id) {
@@ -1304,7 +1297,7 @@ void Simulator::PrintVAccess(int code,
           clr_normal);
 }
 
-void Simulator::PrintVStructAccess(int code,
+void Simulator::PrintVStructAccess(int rt_code,
                                    int reg_count,
                                    PrintRegisterFormat format,
                                    const char* op,
@@ -1318,7 +1311,7 @@ void Simulator::PrintVStructAccess(int code,
   //   "#              ╙───── {struct_value} -> {highest_address}"
 
   uint16_t lane_mask = GetPrintRegLaneMask(format);
-  PrintVRegistersForStructuredAccess(code, reg_count, lane_mask, format);
+  PrintVRegistersForStructuredAccess(rt_code, reg_count, lane_mask, format);
 
   int reg_size_in_bytes = GetPrintRegSizeInBytes(format);
   int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
@@ -1371,6 +1364,115 @@ void Simulator::PrintVReplicatingStructAccess(int rt_code,
   PrintPartialAccess(lane_mask, 0, reg_count, lane_size_in_bytes, op, address);
 }
 
+void Simulator::PrintZAccess(int rt_code, const char* op, uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // Scalar-format accesses are split into separate chunks, each of which uses a
+  // simple format:
+  //   "#   z{code}<127:0>: 0x{value} -> {address}"
+  //   "# z{code}<255:128>: 0x{value} -> {address + 16}"
+  //   "# z{code}<383:256>: 0x{value} -> {address + 32}"
+  // etc
+
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned q_index = 0; q_index < (vl / kQRegSize); q_index++) {
+    // Suppress the newline, so the access annotation goes on the same line.
+    PrintPartialZRegister(rt_code, q_index, kPrintRegVnQPartial, "");
+    fprintf(stream_,
+            " %s %s0x%016" PRIxPTR "%s\n",
+            op,
+            clr_memory_address,
+            address,
+            clr_normal);
+    address += kQRegSizeInBytes;
+  }
+}
+
+void Simulator::PrintZStructAccess(int rt_code,
+                                   int reg_count,
+                                   const LogicPRegister& pg,
+                                   PrintRegisterFormat format,
+                                   int msize_in_bytes,
+                                   const char* op,
+                                   const LogicSVEAddressVector& addr) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# z{code}<255:128>: 0x{value}"
+  //   "#     ...<255:128>: 0x{value}"
+  //   "#                       ║   ╙─ {struct_value} -> {first_address}"
+  //   "#                       ╙───── {struct_value} -> {last_address}"
+
+  // We're going to print the register in parts, so force a partial format.
+  bool skip_inactive_chunks = (format & kPrintRegPartial) != 0;
+  format = GetPrintRegPartial(format);
+
+  int esize_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  int lanes_per_q = kQRegSizeInBytes / esize_in_bytes;
+  for (unsigned q_index = 0; q_index < (vl / kQRegSize); q_index++) {
+    uint16_t pred =
+        pg.GetActiveMask<uint16_t>(q_index) & GetPrintRegLaneMask(format);
+    if ((pred == 0) && skip_inactive_chunks) continue;
+
+    PrintZRegistersForStructuredAccess(rt_code,
+                                       q_index,
+                                       reg_count,
+                                       pred,
+                                       format);
+    if (pred == 0) {
+      // This register chunk has no active lanes. The loop below would print
+      // nothing, so leave a blank line to keep structures grouped together.
+      fprintf(stream_, "#\n");
+      continue;
+    }
+    for (int i = 0; i < lanes_per_q; i++) {
+      uint16_t access = 1 << (i * esize_in_bytes);
+      int lane = (q_index * lanes_per_q) + i;
+      // Skip inactive lanes.
+      if ((pred & access) == 0) continue;
+      pred = PrintPartialAccess(access,
+                                pred,
+                                reg_count,
+                                msize_in_bytes,
+                                op,
+                                addr.GetStructAddress(lane));
+    }
+  }
+
+  // We print the whole register, even for stores.
+  for (int i = 0; i < reg_count; i++) {
+    vregisters_[(rt_code + i) % kNumberOfZRegisters].NotifyRegisterLogged();
+  }
+}
+
+void Simulator::PrintPAccess(int code, const char* op, uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // Scalar-format accesses are split into separate chunks, each of which uses a
+  // simple format:
+  //   "#  p{code}<15:0>: 0b{value} -> {address}"
+  //   "# p{code}<31:16>: 0b{value} -> {address + 2}"
+  //   "# p{code}<47:32>: 0b{value} -> {address + 4}"
+  // etc
+
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned q_index = 0; q_index < (vl / kQRegSize); q_index++) {
+    // Suppress the newline, so the access annotation goes on the same line.
+    PrintPartialPRegister(code, q_index, kPrintRegVnQPartial, "");
+    fprintf(stream_,
+            " %s %s0x%016" PRIxPTR "%s\n",
+            op,
+            clr_memory_address,
+            address,
+            clr_normal);
+    address += kQRegSizeInBytes;
+  }
+}
+
 void Simulator::PrintRead(int rt_code,
                           PrintRegisterFormat format,
                           uintptr_t address) {
@@ -1413,52 +1515,6 @@ void Simulator::PrintVRead(int rt_code,
   PrintVAccess(rt_code, format, "<-", address);
 }
 
-void Simulator::PrintZRead(uintptr_t address,
-                           unsigned reg_code,
-                           PrintRegisterFormat format,
-                           unsigned data_size,
-                           int bytes,
-                           int start_byte) {
-  vregisters_[reg_code].NotifyRegisterLogged();
-
-  // The templates:
-  //   "# v{code}<m:n>: 0x{rawbits} <- {address}"
-  // An example that prints an unpredicated memory read from a particular memory
-  // location to the specified portion of Z register.
-  // 0x00007fff00000000: 0x11110000 0x33332222 0x55554444 0x77776666
-  // 0x00007fff00000010: 0x99998888 0xbbbbaaaa 0xddddcccc 0xffffeeee
-  // The corresponding output is:
-  // Zt<255:128>: 0x77776666555544443333222211110000 <- 0x00007fff00000000
-  // Zt<383:256>: 0xffffeeeeddddccccbbbbaaaa99998888 <- 0x00007fff00000010
-
-  if (format == kPrintRegLaneSizeUnknown) format = kPrintRegLaneSizeQ;
-  int lane_size = GetPrintRegLaneSizeInBytes(format);
-  if (data_size == 0) {
-    // Let the full lane of value are relevent.
-    data_size = lane_size;
-  }
-  if (bytes == 0) {
-    // If no byte size specified, print the whole length of register.
-    bytes = GetVectorLengthInBytes();
-  }
-
-  const int last_byte = start_byte + bytes - 1;
-  while (start_byte < last_byte) {
-    PrintZRegisterRawHelper(reg_code,
-                            lane_size,
-                            data_size,
-                            kQRegSizeInBytes,
-                            start_byte);
-    fprintf(stream_,
-            " <- %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-    start_byte += kQRegSizeInBytes;
-    address += kQRegSizeInBytes;
-  }
-}
-
 void Simulator::PrintWrite(int rt_code,
                            PrintRegisterFormat format,
                            uintptr_t address) {
@@ -1476,95 +1532,11 @@ void Simulator::PrintVWrite(int rt_code,
   // Because this trace doesn't represent a change to the source register's
   // value, only print the relevant part of the value.
   format = GetPrintRegPartial(format);
+  // It only makes sense to write scalar values here. Vectors are handled by
+  // PrintVStructAccess.
   VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-  vregisters_[rt_code].NotifyRegisterLogged();
   PrintVAccess(rt_code, format, "->", address);
 }
-
-void Simulator::PrintZWrite(uintptr_t address,
-                            unsigned reg_code,
-                            PrintRegisterFormat format,
-                            unsigned data_size,
-                            int bytes,
-                            int start_byte) {
-  // The templates:
-  //   "# v{code}<m:n>: 0x{rawbits} -> {address}"
-  // An example that prints an unpredicated memory write from the specified
-  // portion of Z register to a particular memory location.
-  // Zt<255:128>: 0x77776666555544443333222211110000 -> 0x00007fff00000000
-  // Zt<383:256>: 0xffffeeeeddddccccbbbbaaaa99998888 -> 0x00007fff00000010
-
-  if (format == kPrintRegLaneSizeUnknown) format = kPrintRegLaneSizeQ;
-  int lane_size = GetPrintRegLaneSizeInBytes(format);
-  if (data_size == 0) {
-    // If no data size was specified, print the whole of each lane.
-    data_size = lane_size;
-  }
-  if (bytes == 0) {
-    // If no byte size was specified, print the whole register.
-    bytes = GetVectorLengthInBytes();
-  }
-
-  const int last_byte = start_byte + bytes - 1;
-  while (start_byte <= last_byte) {
-    PrintZRegisterRawHelper(reg_code,
-                            lane_size,
-                            data_size,
-                            kQRegSizeInBytes,
-                            start_byte);
-    fprintf(stream_,
-            " -> %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-    start_byte += kQRegSizeInBytes;
-    address += kQRegSizeInBytes;
-  }
-}
-
-void Simulator::PrintPRead(uintptr_t address, unsigned reg_code) {
-  pregisters_[reg_code].NotifyRegisterLogged();
-
-  // There are no predicated load-predicate instructions, so we can always
-  // print the full register.
-  //
-  // The template for P registers:
-  //   "# p{code}<m+15:m>:  0b 0 0 0 0 1 0 1 1 0 1 1 1 0 1 0 0 <- {address}",
-  // where m is multiple of 16.
-
-  int bytes_per_chunk = kQRegSizeInBytes / kZRegBitsPerPRegBit;
-  int bytes = pregisters_[reg_code].GetSizeInBytes();
-  for (int byte = bytes - bytes_per_chunk; byte >= 0; byte -= bytes_per_chunk) {
-    PrintPRegisterRawHelper(reg_code, byte * kBitsPerByte);
-    fprintf(stream_,
-            " <- %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-    address += bytes_per_chunk;
-  }
-}
-
-void Simulator::PrintPWrite(uintptr_t address, unsigned reg_code) {
-  // There are no predicated store-predicate instructions, so we can always
-  // print the full register.
-  //
-  // The template for P registers:
-  //   "# p{code}<m+15:m>:  0b 0 0 0 0 1 0 1 1 0 1 1 1 0 1 0 0 -> {address}",
-  // where m is multiple of 16.
-  int bytes_per_chunk = kQRegSizeInBytes / kZRegBitsPerPRegBit;
-  int bytes = pregisters_[reg_code].GetSizeInBytes();
-  for (int byte = bytes - bytes_per_chunk; byte >= 0; byte -= bytes_per_chunk) {
-    PrintPRegisterRawHelper(reg_code, byte * kBitsPerByte);
-    fprintf(stream_,
-            " -> %s0x%016" PRIxPTR "%s\n",
-            clr_memory_address,
-            address,
-            clr_normal);
-    address += bytes_per_chunk;
-  }
-}
-
 
 void Simulator::PrintTakenBranch(const Instruction* target) {
   fprintf(stream_,
@@ -1573,7 +1545,6 @@ void Simulator::PrintTakenBranch(const Instruction* target) {
           clr_normal,
           reinterpret_cast<uint64_t>(target));
 }
-
 
 // Visitors---------------------------------------------------------------------
 
@@ -5998,8 +5969,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       VIXL_UNIMPLEMENTED();
   }
 
-  bool do_trace = log_read ? ((GetTraceParameters() & LOG_VREGS) != 0)
-                           : ((GetTraceParameters() & LOG_WRITE) != 0);
+  bool do_trace = log_read ? ShouldTraceVRegs() : ShouldTraceWrites();
   if (do_trace) {
     PrintRegisterFormat print_format =
         GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
@@ -9432,7 +9402,7 @@ void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {
       for (int i = 0; i < pl; i++) {
         pt.Insert(i, Memory::Read<uint8_t>(address + i));
       }
-      LogPRead(address, instr->GetPt());
+      LogPRead(instr->GetPt(), address);
       break;
     }
     default:
@@ -9453,7 +9423,7 @@ void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
       for (int i = 0; i < vl; i++) {
         zt.Insert(i, Memory::Read<uint8_t>(address + i));
       }
-      LogZRead(address, instr->GetRt());
+      LogZRead(instr->GetRt(), address);
       break;
     }
     default:
@@ -10406,7 +10376,7 @@ void Simulator::VisitSVEStorePredicateRegister(const Instruction* instr) {
       for (int i = 0; i < pl; i++) {
         Memory::Write(address + i, pt.GetLane<uint8_t>(i));
       }
-      LogPWrite(address, instr->GetPt());
+      LogPWrite(instr->GetPt(), address);
       break;
     }
     default:
@@ -10426,7 +10396,7 @@ void Simulator::VisitSVEStoreVectorRegister(const Instruction* instr) {
       for (int i = 0; i < vl; i++) {
         Memory::Write(address + i, zt.GetLane<uint8_t>(i));
       }
-      LogZWrite(address, instr->GetRt());
+      LogZWrite(instr->GetRt(), address);
       break;
     }
     default:
