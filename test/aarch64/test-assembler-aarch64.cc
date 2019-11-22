@@ -5941,6 +5941,66 @@ TEST(csel_reg) {
   }
 }
 
+TEST(csel_zero) {
+  SETUP();
+
+  START();
+
+  __ Mov(x15, 0x0);
+  __ Mov(x16, 0x0000001f0000002f);
+
+  // Check results when zero registers are used as inputs
+  // for Csinc, Csinv and Csneg for both true and false conditions.
+  __ Cmp(x15, 0);
+  __ Csinc(x0, x16, xzr, eq);
+  __ Csinc(x1, xzr, x16, eq);
+  __ Cmp(x15, 1);
+  __ Csinc(w2, w16, wzr, eq);
+  __ Csinc(w3, wzr, w16, eq);
+
+  __ Csinc(x4, xzr, xzr, eq);
+
+  __ Cmp(x15, 0);
+  __ Csinv(x5, x16, xzr, eq);
+  __ Csinv(x6, xzr, x16, eq);
+  __ Cmp(x15, 1);
+  __ Csinv(w7, w16, wzr, eq);
+  __ Csinv(w8, wzr, w16, eq);
+
+  __ Csinv(x9, xzr, xzr, eq);
+
+  __ Cmp(x15, 0);
+  __ Csneg(x10, x16, xzr, eq);
+  __ Csneg(x11, xzr, x16, eq);
+  __ Cmp(x15, 1);
+  __ Csneg(w12, w16, wzr, eq);
+  __ Csneg(w13, wzr, w16, eq);
+
+  __ Csneg(x14, xzr, xzr, eq);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0x0000001f0000002f, x0);
+    ASSERT_EQUAL_64(0x0, x1);
+    ASSERT_EQUAL_32(0x1, w2);
+    ASSERT_EQUAL_32(0x30, w3);
+    ASSERT_EQUAL_64(0x1, x4);
+    ASSERT_EQUAL_64(0x0000001f0000002f, x5);
+    ASSERT_EQUAL_64(0x0, x6);
+    ASSERT_EQUAL_32(0xffffffff, w7);
+    ASSERT_EQUAL_32(0xffffffd0, w8);
+    ASSERT_EQUAL_64(0xffffffffffffffff, x9);
+    ASSERT_EQUAL_64(0x0000001f0000002f, x10);
+    ASSERT_EQUAL_64(0x0, x11);
+    ASSERT_EQUAL_32(0x0, w12);
+    ASSERT_EQUAL_32(0xffffffd1, w13);
+    ASSERT_EQUAL_64(0x0, x14);
+  }
+}
+
 
 TEST(csel_imm) {
   SETUP();
