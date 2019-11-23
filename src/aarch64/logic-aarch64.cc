@@ -1749,6 +1749,20 @@ LogicVRegister Simulator::sel(VectorFormat vform,
 }
 
 
+LogicPRegister Simulator::sel(LogicPRegister dst,
+                              const LogicPRegister& pg,
+                              const LogicPRegister& src1,
+                              const LogicPRegister& src2) {
+  for (int i = 0; i < dst.GetChunkCount(); i++) {
+    LogicPRegister::ChunkType mask = pg.GetChunk(i);
+    LogicPRegister::ChunkType result =
+        (mask & src1.GetChunk(i)) | (~mask & src2.GetChunk(i));
+    dst.SetChunk(i, result);
+  }
+  return dst;
+}
+
+
 LogicVRegister Simulator::sli(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
@@ -2901,6 +2915,21 @@ LogicVRegister Simulator::mov_zeroing(VectorFormat vform,
   SimVRegister zero;
   dup_immediate(vform, zero, 0);
   return sel(vform, dst, pg, src, zero);
+}
+
+
+LogicPRegister Simulator::mov_merging(LogicPRegister dst,
+                                      const LogicPRegister& pg,
+                                      const LogicPRegister& src) {
+  return sel(dst, pg, src, dst);
+}
+
+
+LogicPRegister Simulator::mov_zeroing(LogicPRegister dst,
+                                      const LogicPRegister& pg,
+                                      const LogicPRegister& src) {
+  SimPRegister all_false;
+  return sel(dst, pg, src, pfalse(all_false));
 }
 
 
@@ -6203,50 +6232,40 @@ LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
 
 LogicPRegister Simulator::SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
                                                     LogicPRegister pd,
-                                                    const LogicPRegister& pg,
                                                     const LogicPRegister& pn,
-                                                    const LogicPRegister& pm,
-                                                    FlagsUpdate flags) {
-  // TODO: Transfer:
-  // and(s) -> mov(s) when Pm == Pg.
-  // eor(s) -> not(s) when Pm == Pg.
-  // orr(s) -> mov(s) when Pn == Pm && Pm == Pg.
-  for (int i = 0; i < pd.GetChunkCount(); i++) {
+                                                    const LogicPRegister& pm) {
+  for (int i = 0; i < pn.GetChunkCount(); i++) {
     LogicPRegister::ChunkType op1 = pn.GetChunk(i);
     LogicPRegister::ChunkType op2 = pm.GetChunk(i);
-    LogicPRegister::ChunkType mask = pg.GetChunk(i);
     LogicPRegister::ChunkType result;
     switch (op) {
       case ANDS_p_p_pp_z:
       case AND_p_p_pp_z:
-        result = mask & (op1 & op2);
+        result = op1 & op2;
         break;
       case BICS_p_p_pp_z:
       case BIC_p_p_pp_z:
-        result = mask & (op1 & ~op2);
+        result = op1 & ~op2;
         break;
       case EORS_p_p_pp_z:
       case EOR_p_p_pp_z:
-        result = mask & (op1 ^ op2);
+        result = op1 ^ op2;
         break;
       case NANDS_p_p_pp_z:
       case NAND_p_p_pp_z:
-        result = mask & ~(op1 & op2);
+        result = ~(op1 & op2);
         break;
       case NORS_p_p_pp_z:
       case NOR_p_p_pp_z:
-        result = mask & ~(op1 | op2);
+        result = ~(op1 | op2);
         break;
       case ORNS_p_p_pp_z:
       case ORN_p_p_pp_z:
-        result = mask & (op1 | ~op2);
+        result = op1 | ~op2;
         break;
       case ORRS_p_p_pp_z:
       case ORR_p_p_pp_z:
-        result = mask & (op1 | op2);
-        break;
-      case SEL_p_p_pp:
-        result = (mask & op1) | (~mask & op2);
+        result = op1 | op2;
         break;
       default:
         result = 0;
@@ -6254,8 +6273,6 @@ LogicPRegister Simulator::SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
     }
     pd.SetChunk(i, result);
   }
-
-  if (flags == SetFlags) PredTest(kFormatVnB, pg, pd);
   return pd;
 }
 

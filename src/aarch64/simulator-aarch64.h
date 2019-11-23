@@ -2923,6 +2923,12 @@ class Simulator : public DecoderVisitor {
                              LogicVRegister dst,
                              const SimPRegister& pg,
                              const LogicVRegister& src);
+  LogicPRegister mov_merging(LogicPRegister dst,
+                             const LogicPRegister& pg,
+                             const LogicPRegister& src);
+  LogicPRegister mov_zeroing(LogicPRegister dst,
+                             const LogicPRegister& pg,
+                             const LogicPRegister& src);
   LogicVRegister movi(VectorFormat vform, LogicVRegister dst, uint64_t imm);
   LogicVRegister mvni(VectorFormat vform, LogicVRegister dst, uint64_t imm);
   LogicVRegister orr(VectorFormat vform,
@@ -2942,6 +2948,10 @@ class Simulator : public DecoderVisitor {
                      const SimPRegister& pg,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
+  LogicPRegister sel(LogicPRegister dst,
+                     const LogicPRegister& pg,
+                     const LogicPRegister& src1,
+                     const LogicPRegister& src2);
   LogicVRegister sminmax(VectorFormat vform,
                          LogicVRegister dst,
                          const LogicVRegister& src1,
@@ -3856,10 +3866,8 @@ class Simulator : public DecoderVisitor {
 
   LogicPRegister SVEPredicateLogicalHelper(SVEPredicateLogicalOp op,
                                            LogicPRegister Pd,
-                                           const LogicPRegister& pg,
                                            const LogicPRegister& pn,
-                                           const LogicPRegister& pm,
-                                           FlagsUpdate flags);
+                                           const LogicPRegister& pm);
 
   LogicVRegister SVEBitwiseImmHelper(SVEBitwiseLogicalWithImm_UnpredicatedOp op,
                                      VectorFormat vform,

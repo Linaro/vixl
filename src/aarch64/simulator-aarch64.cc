@@ -10706,6 +10706,11 @@ void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
 
 void Simulator::VisitSVEPredicateLogical(const Instruction* instr) {
   Instr op = instr->Mask(SVEPredicateLogicalMask);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister& pm = ReadPRegister(instr->GetPm());
+  SimPRegister result;
   switch (op) {
     case ANDS_p_p_pp_z:
     case AND_p_p_pp_z:
@@ -10721,20 +10726,22 @@ void Simulator::VisitSVEPredicateLogical(const Instruction* instr) {
     case ORN_p_p_pp_z:
     case ORRS_p_p_pp_z:
     case ORR_p_p_pp_z:
-    case SEL_p_p_pp: {
-      FlagsUpdate flags =
-          instr->Mask(SVEPredicateLogicalSetFlagsBit) ? SetFlags : LeaveFlags;
       SVEPredicateLogicalHelper(static_cast<SVEPredicateLogicalOp>(op),
-                                ReadPRegister(instr->GetPd()),
-                                ReadPRegister(instr->ExtractBits(13, 10)),
-                                ReadPRegister(instr->GetPn()),
-                                ReadPRegister(instr->GetPm()),
-                                flags);
+                                result,
+                                pn,
+                                pm);
       break;
-    }
+    case SEL_p_p_pp:
+      sel(pd, pg, pn, pm);
+      return;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  mov_zeroing(pd, pg, result);
+  if (instr->Mask(SVEPredicateLogicalSetFlagsBit) != 0) {
+    PredTest(kFormatVnB, pg, pd);
   }
 }
 
@@ -10787,15 +10794,26 @@ void Simulator::VisitSVEPredicateNextActive(const Instruction* instr) {
 
 void Simulator::VisitSVEPredicateReadFromFFR_Predicated(
     const Instruction* instr) {
-  USE(instr);
+  LogicPRegister pd(ReadPRegister(instr->GetPd()));
+  LogicPRegister pg(ReadPRegister(instr->GetPn()));
+  FlagsUpdate flags = LeaveFlags;
   switch (instr->Mask(SVEPredicateReadFromFFR_PredicatedMask)) {
     case RDFFR_p_p_f:
+      // Do nothing.
+      break;
     case RDFFRS_p_p_f:
-      VIXL_UNIMPLEMENTED();
+      flags = SetFlags;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  LogicPRegister ffr(ReadFFR());
+  mov_zeroing(pd, pg, ffr);
+
+  if (flags == SetFlags) {
+    PredTest(kFormatVnB, pg, pd);
   }
 }
 

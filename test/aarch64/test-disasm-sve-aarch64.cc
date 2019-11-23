@@ -4436,10 +4436,8 @@ TEST(sve_read_ffr) {
   SETUP();
 
   COMPARE_PREFIX(rdffr(p13.VnB()), "rdffr p13.b");
-#if 0
-  COMPARE_PREFIX(rdffrs(p14.VnB(), p9.Zeroing()), "rdffrs <Pd>.B, <Pg>/Z");
-  COMPARE_PREFIX(rdffr(p5.VnB(), p14.Zeroing()), "rdffr <Pd>.B, <Pg>/Z");
-#endif
+  COMPARE_PREFIX(rdffrs(p14.VnB(), p9.Zeroing()), "rdffrs p14.b, p9/z");
+  COMPARE_PREFIX(rdffr(p5.VnB(), p14.Zeroing()), "rdffr p5.b, p14/z");
 
   CLEANUP();
 }

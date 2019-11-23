@@ -10241,5 +10241,73 @@ TEST_SVE(sve_wrffr) {
   }
 }
 
+template <size_t N>
+static void RdffrHelper(Test* config,
+                        size_t active_lanes,
+                        const int (&pg_inputs)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  VIXL_ASSERT(active_lanes <= kPRegMaxSize);
+
+  // The rightmost (highest-indexed) array element maps to the lowest-numbered
+  // lane.
+  int pd[kPRegMaxSize] = {0};
+  for (unsigned i = 0; i < active_lanes; i++) {
+    pd[kPRegMaxSize - i - 1] = 1;
+  }
+
+  int pg[kPRegMaxSize] = {0};
+  for (unsigned i = 0; i < N; i++) {
+    pg[kPRegMaxSize - i - 1] = pg_inputs[i];
+  }
+
+  int pd_expected[kPRegMaxSize] = {0};
+  for (unsigned i = 0; i < std::min(active_lanes, N); i++) {
+    int lane = kPRegMaxSize - i - 1;
+    pd_expected[lane] = pd[lane] & pg[lane];
+  }
+
+  Initialise(&masm, p0.VnB(), pg);
+  Initialise(&masm, p1.VnB(), pd);
+
+  // The unpredicated form of rdffr has been tested in `WrffrHelper`.
+  __ Wrffr(p1.VnB());
+  __ Rdffr(p14.VnB(), p0.Zeroing());
+  __ Rdffrs(p13.VnB(), p0.Zeroing());
+  __ Mrs(x8, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(pd_expected, p14.VnB());
+    ASSERT_EQUAL_SVE(pd_expected, p13.VnB());
+    StatusFlags nzcv_expected =
+        GetPredTestFlags(pd_expected, pg, core.GetSVELaneCount(kBRegSize));
+    ASSERT_EQUAL_64(nzcv_expected, x8);
+  }
+}
+
+TEST_SVE(sve_rdffr_rdffrs) {
+  // clang-format off
+  int active_lanes_inputs[] = {0, 1, 15, 26, 39, 47, kPRegMaxSize};
+  int pg_inputs_0[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int pg_inputs_1[] = {1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+  int pg_inputs_2[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+  int pg_inputs_3[] = {0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1};
+  int pg_inputs_4[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  // clang-format on
+
+  for (size_t i = 0; i < ArrayLength(active_lanes_inputs); i++) {
+    RdffrHelper(config, active_lanes_inputs[i], pg_inputs_0);
+    RdffrHelper(config, active_lanes_inputs[i], pg_inputs_1);
+    RdffrHelper(config, active_lanes_inputs[i], pg_inputs_2);
+    RdffrHelper(config, active_lanes_inputs[i], pg_inputs_3);
+    RdffrHelper(config, active_lanes_inputs[i], pg_inputs_4);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
