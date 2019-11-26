@@ -7669,58 +7669,61 @@ void Disassembler::VisitSVELoadMultipleStructures_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVELoadMultipleStructures_ScalarPlusImm)";
 
-  switch (instr->ExtractBits(22, 21)) {
-    case 1:  // ST2*
-      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210/z, ['Xns'ISveSvl]";
-      break;
-    case 2:  // ST3*
-      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210/z, ['Xns'ISveSvl]";
-      break;
-    case 3:  // ST4*
-      form =
-          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
-          "p'u1210/z, ['Xns'ISveSvl]";
-      break;
-    default:
-      break;
-  }
+  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210/z, ['Xns'ISveSvl]";
+  const char *form_3 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210/z, ['Xns'ISveSvl]";
+  const char *form_4 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "p'u1210/z, ['Xns'ISveSvl]";
 
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
     case LD2B_z_p_bi_contiguous:
       mnemonic = "ld2b";
+      form = form_2;
       break;
     case LD2D_z_p_bi_contiguous:
       mnemonic = "ld2d";
+      form = form_2;
       break;
     case LD2H_z_p_bi_contiguous:
       mnemonic = "ld2h";
+      form = form_2;
       break;
     case LD2W_z_p_bi_contiguous:
       mnemonic = "ld2w";
+      form = form_2;
       break;
     case LD3B_z_p_bi_contiguous:
       mnemonic = "ld3b";
+      form = form_3;
       break;
     case LD3D_z_p_bi_contiguous:
       mnemonic = "ld3d";
+      form = form_3;
       break;
     case LD3H_z_p_bi_contiguous:
       mnemonic = "ld3h";
+      form = form_3;
       break;
     case LD3W_z_p_bi_contiguous:
       mnemonic = "ld3w";
+      form = form_3;
       break;
     case LD4B_z_p_bi_contiguous:
       mnemonic = "ld4b";
+      form = form_4;
       break;
     case LD4D_z_p_bi_contiguous:
       mnemonic = "ld4d";
+      form = form_4;
       break;
     case LD4H_z_p_bi_contiguous:
       mnemonic = "ld4h";
+      form = form_4;
       break;
     case LD4W_z_p_bi_contiguous:
       mnemonic = "ld4w";
+      form = form_4;
       break;
     default:
       break;
@@ -7733,59 +7736,62 @@ void Disassembler::VisitSVELoadMultipleStructures_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVELoadMultipleStructures_ScalarPlusScalar)";
 
-  switch (instr->ExtractBits(22, 21)) {
-    case 1:  // LD2*
-      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210/z, ['Xns, 'Xm'NSveS]";
-      break;
-    case 2:  // LD3*
-      form =
-          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210/z, ['Xns, 'Xm'NSveS]";
-      break;
-    case 3:  // LD4*
-      form =
-          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
-          "p'u1210/z, ['Xns, 'Xm'NSveS]";
-      break;
-    default:
-      break;
-  }
+  const char *form_2 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210/z, ['Xns, 'Xm'NSveS]";
+  const char *form_3 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210/z, ['Xns, 'Xm'NSveS]";
+  const char *form_4 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "p'u1210/z, ['Xns, 'Xm'NSveS]";
 
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusScalarMask)) {
     case LD2B_z_p_br_contiguous:
       mnemonic = "ld2b";
+      form = form_2;
       break;
     case LD2D_z_p_br_contiguous:
       mnemonic = "ld2d";
+      form = form_2;
       break;
     case LD2H_z_p_br_contiguous:
       mnemonic = "ld2h";
+      form = form_2;
       break;
     case LD2W_z_p_br_contiguous:
       mnemonic = "ld2w";
+      form = form_2;
       break;
     case LD3B_z_p_br_contiguous:
       mnemonic = "ld3b";
+      form = form_3;
       break;
     case LD3D_z_p_br_contiguous:
       mnemonic = "ld3d";
+      form = form_3;
       break;
     case LD3H_z_p_br_contiguous:
       mnemonic = "ld3h";
+      form = form_3;
       break;
     case LD3W_z_p_br_contiguous:
       mnemonic = "ld3w";
+      form = form_3;
       break;
     case LD4B_z_p_br_contiguous:
       mnemonic = "ld4b";
+      form = form_4;
       break;
     case LD4D_z_p_br_contiguous:
       mnemonic = "ld4d";
+      form = form_4;
       break;
     case LD4H_z_p_br_contiguous:
       mnemonic = "ld4h";
+      form = form_4;
       break;
     case LD4W_z_p_br_contiguous:
       mnemonic = "ld4w";
+      form = form_4;
       break;
     default:
       break;
@@ -8219,58 +8225,61 @@ void Disassembler::VisitSVEStoreMultipleStructures_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStoreMultipleStructures_ScalarPlusImm)";
 
-  switch (instr->ExtractBits(22, 21)) {
-    case 1:  // ST2*
-      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210, ['Xns'ISveSvl]";
-      break;
-    case 2:  // ST3*
-      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210, ['Xns'ISveSvl]";
-      break;
-    case 3:  // ST4*
-      form =
-          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
-          "p'u1210, ['Xns'ISveSvl]";
-      break;
-    default:
-      break;
-  }
+  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210, ['Xns'ISveSvl]";
+  const char *form_3 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210, ['Xns'ISveSvl]";
+  const char *form_4 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "p'u1210, ['Xns'ISveSvl]";
 
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusImmMask)) {
     case ST2B_z_p_bi_contiguous:
       mnemonic = "st2b";
+      form = form_2;
       break;
     case ST2H_z_p_bi_contiguous:
       mnemonic = "st2h";
+      form = form_2;
       break;
     case ST2W_z_p_bi_contiguous:
       mnemonic = "st2w";
+      form = form_2;
       break;
     case ST2D_z_p_bi_contiguous:
       mnemonic = "st2d";
+      form = form_2;
       break;
     case ST3B_z_p_bi_contiguous:
       mnemonic = "st3b";
+      form = form_3;
       break;
     case ST3H_z_p_bi_contiguous:
       mnemonic = "st3h";
+      form = form_3;
       break;
     case ST3W_z_p_bi_contiguous:
       mnemonic = "st3w";
+      form = form_3;
       break;
     case ST3D_z_p_bi_contiguous:
       mnemonic = "st3d";
+      form = form_3;
       break;
     case ST4B_z_p_bi_contiguous:
       mnemonic = "st4b";
+      form = form_4;
       break;
     case ST4H_z_p_bi_contiguous:
       mnemonic = "st4h";
+      form = form_4;
       break;
     case ST4W_z_p_bi_contiguous:
       mnemonic = "st4w";
+      form = form_4;
       break;
     case ST4D_z_p_bi_contiguous:
       mnemonic = "st4d";
+      form = form_4;
       break;
     default:
       break;
@@ -8283,59 +8292,61 @@ void Disassembler::VisitSVEStoreMultipleStructures_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStoreMultipleStructures_ScalarPlusScalar)";
 
-  switch (instr->ExtractBits(22, 21)) {
-    case 1:  // ST2*
-      form = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210, ['Xns, 'Xm'NSveS]";
-      break;
-    case 2:  // ST3*
-      form =
-          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210, ['Xns, 'Xm'NSveS]";
-      break;
-    case 3:  // ST4*
-      form =
-          "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
-          "p'u1210, ['Xns, 'Xm'NSveS]";
-      break;
-    default:
-      break;
-  }
+  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, p'u1210, ['Xns, 'Xm'NSveS]";
+  const char *form_3 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, p'u1210, ['Xns, 'Xm'NSveS]";
+  const char *form_4 =
+      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "p'u1210, ['Xns, 'Xm'NSveS]";
 
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusScalarMask)) {
     case ST2B_z_p_br_contiguous:
       mnemonic = "st2b";
+      form = form_2;
       break;
     case ST2D_z_p_br_contiguous:
       mnemonic = "st2d";
+      form = form_2;
       break;
     case ST2H_z_p_br_contiguous:
       mnemonic = "st2h";
+      form = form_2;
       break;
     case ST2W_z_p_br_contiguous:
       mnemonic = "st2w";
+      form = form_2;
       break;
     case ST3B_z_p_br_contiguous:
       mnemonic = "st3b";
+      form = form_3;
       break;
     case ST3D_z_p_br_contiguous:
       mnemonic = "st3d";
+      form = form_3;
       break;
     case ST3H_z_p_br_contiguous:
       mnemonic = "st3h";
+      form = form_3;
       break;
     case ST3W_z_p_br_contiguous:
       mnemonic = "st3w";
+      form = form_3;
       break;
     case ST4B_z_p_br_contiguous:
       mnemonic = "st4b";
+      form = form_4;
       break;
     case ST4D_z_p_br_contiguous:
       mnemonic = "st4d";
+      form = form_4;
       break;
     case ST4H_z_p_br_contiguous:
       mnemonic = "st4h";
+      form = form_4;
       break;
     case ST4W_z_p_br_contiguous:
       mnemonic = "st4w";
+      form = form_4;
       break;
     default:
       break;
