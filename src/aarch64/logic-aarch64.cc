@@ -2583,7 +2583,7 @@ LogicVRegister Simulator::ext(VectorFormat vform,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
                               int index) {
-  uint8_t result[16];
+  uint8_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   for (int i = 0; i < laneCount - index; ++i) {
     result[i] = src1.Uint(vform, i + index);

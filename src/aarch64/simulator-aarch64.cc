@@ -10648,10 +10648,19 @@ void Simulator::VisitSVEReversePredicateElements(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPermuteVectorExtract(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  // Second source register "Zm" is encoded where "Zn" would usually be.
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+
+  const int imm8h_mask = 0x001F0000;
+  const int imm8l_mask = 0x00001C00;
+  int index = instr->ExtractBits<imm8h_mask | imm8l_mask>();
+  int vl = GetVectorLengthInBytes();
+  index = (index >= vl) ? 0 : index;
+
   switch (instr->Mask(SVEPermuteVectorExtractMask)) {
     case EXT_z_zi_des:
-      VIXL_UNIMPLEMENTED();
+      ext(kFormatVnB, zdn, zdn, zm, index);
       break;
     default:
       VIXL_UNIMPLEMENTED();

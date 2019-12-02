@@ -5683,7 +5683,8 @@ void Assembler::zip2(const PRegisterWithLaneSize& pd,
 
 void Assembler::ext(const ZRegister& zd,
                     const ZRegister& zn,
-                    const ZRegister& zm) {
+                    const ZRegister& zm,
+                    unsigned offset) {
   // EXT <Zdn>.B, <Zdn>.B, <Zm>.B, #<imm>
   //  0000 0101 001. .... 000. .... .... ....
   //  imm8h<20:16> | imm8l<12:10> | Zm<9:5> | Zdn<4:0>
@@ -5691,8 +5692,12 @@ void Assembler::ext(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(IsUint8(offset));
 
-  Emit(EXT_z_zi_des | Rd(zd) | Rn(zm));
+  int imm8h = ExtractUnsignedBitfield32(7, 3, offset);
+  int imm8l = ExtractUnsignedBitfield32(2, 0, offset);
+  Emit(EXT_z_zi_des | Rd(zd) | Rn(zm) | ImmUnsignedField<20, 16>(imm8h) |
+       ImmUnsignedField<12, 10>(imm8l));
 }
 
 // SVEPermuteVectorInterleaving.

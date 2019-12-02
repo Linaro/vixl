@@ -4338,10 +4338,21 @@ TEST(sve_permute_predicate) {
 TEST(sve_permute_vector_extract) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(ext(z10.VnB(), z10.VnB(), z2.VnB()), "ext <Zdn>.B, <Zdn>.B, <Zm>.B, #<imm>");
-#endif
-
+  COMPARE_MACRO(Ext(z10.VnB(), z10.VnB(), z2.VnB(), 0),
+                "ext z10.b, z10.b, z2.b, #0");
+  COMPARE_MACRO(Ext(z10.VnB(), z10.VnB(), z2.VnB(), 1),
+                "ext z10.b, z10.b, z2.b, #1");
+  COMPARE_MACRO(Ext(z2.VnB(), z2.VnB(), z10.VnB(), 254),
+                "ext z2.b, z2.b, z10.b, #254");
+  COMPARE_MACRO(Ext(z2.VnB(), z2.VnB(), z10.VnB(), 255),
+                "ext z2.b, z2.b, z10.b, #255");
+  COMPARE_MACRO(Ext(z2.VnB(), z4.VnB(), z10.VnB(), 127),
+                "movprfx z2, z4\n"
+                "ext z2.b, z2.b, z10.b, #127");
+  COMPARE_MACRO(Ext(z2.VnB(), z12.VnB(), z2.VnB(), 2),
+                "movprfx z31, z12\n"
+                "ext z31.b, z31.b, z2.b, #2\n"
+                "orr z2.d, z31.d, z31.d");
   CLEANUP();
 }
 

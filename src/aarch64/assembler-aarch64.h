@@ -4053,7 +4053,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void eorv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Extract vector from pair of vectors.
-  void ext(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+  void ext(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           unsigned offset);
 
   // Floating-point absolute difference (predicated).
   void fabd(const ZRegister& zd,

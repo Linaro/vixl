@@ -1384,5 +1384,27 @@ void MacroAssembler::Ftmad(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::Ext(const ZRegister& zd,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         unsigned offset) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    // zd = ext(zn, zd, offset)
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, zn);
+      ext(scratch, scratch, zm, offset);
+    }
+    Mov(zd, scratch);
+  } else {
+    // zd = ext(zn, zm, offset)
+    // zd = ext(zd, zd, offset)
+    MovprfxHelperScope guard(this, zd, zn);
+    ext(zd, zd, zm, offset);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

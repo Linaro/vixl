@@ -4065,11 +4065,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     eorv(vd, pg, zn);
   }
-  void Ext(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ext(zd, zn, zm);
-  }
+  void Ext(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           unsigned offset);
   void Fabd(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,

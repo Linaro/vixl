@@ -12866,5 +12866,78 @@ TEST_SVE(sve_fadda) {
   }
 }
 
+TEST_SVE(sve_extract) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Index(z0.VnB(), 0, 1);
+
+  __ Mov(z1, z0);
+  __ Mov(z2, z0);
+  __ Mov(z3, z0);
+  __ Mov(z4, z0);
+  __ Mov(z5, z0);
+  __ Mov(z6, z0);
+
+  __ Ext(z1, z1, z0, 0);
+  __ Ext(z2, z2, z0, 1);
+  __ Ext(z3, z3, z0, 15);
+  __ Ext(z4, z4, z0, 31);
+  __ Ext(z5, z5, z0, 47);
+  __ Ext(z6, z6, z0, 255);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(z1, z0);
+
+    int lane_count = core.GetSVELaneCount(kBRegSize);
+    if (lane_count == 16) {
+      uint64_t z2_expected[] = {0x000f0e0d0c0b0a09, 0x0807060504030201};
+      ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    } else {
+      uint64_t z2_expected[] = {0x100f0e0d0c0b0a09, 0x0807060504030201};
+      ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    }
+
+    if (lane_count == 16) {
+      uint64_t z3_expected[] = {0x0e0d0c0b0a090807, 0x060504030201000f};
+      ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    } else {
+      uint64_t z3_expected[] = {0x1e1d1c1b1a191817, 0x161514131211100f};
+      ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    }
+
+    if (lane_count < 32) {
+      ASSERT_EQUAL_SVE(z4, z0);
+    } else if (lane_count == 32) {
+      uint64_t z4_expected[] = {0x0e0d0c0b0a090807, 0x060504030201001f};
+      ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+    } else {
+      uint64_t z4_expected[] = {0x2e2d2c2b2a292827, 0x262524232221201f};
+      ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+    }
+
+    if (lane_count < 48) {
+      ASSERT_EQUAL_SVE(z5, z0);
+    } else if (lane_count == 48) {
+      uint64_t z5_expected[] = {0x0e0d0c0b0a090807, 0x060504030201002f};
+      ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+    } else {
+      uint64_t z5_expected[] = {0x3e3d3c3b3a393837, 0x363534333231302f};
+      ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+    }
+
+    if (lane_count < 256) {
+      ASSERT_EQUAL_SVE(z6, z0);
+    } else {
+      uint64_t z6_expected[] = {0x0e0d0c0b0a090807, 0x06050403020100ff};
+      ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
+    }
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

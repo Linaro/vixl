@@ -9407,10 +9407,9 @@ void Disassembler::VisitSVEPermuteVectorExtract(const Instruction *instr) {
   const char *form = "(SVEPermuteVectorExtract)";
 
   switch (instr->Mask(SVEPermuteVectorExtractMask)) {
-    // EXT <Zdn>.B, <Zdn>.B, <Zm>.B, #<imm>
     case EXT_z_zi_des:
       mnemonic = "ext";
-      form = "'Zd.b, 'Zd.b, 'Zn.b, #<imm>";
+      form = "'Zd.b, 'Zd.b, 'Zn.b, #'u2016:1210";
       break;
     default:
       break;
