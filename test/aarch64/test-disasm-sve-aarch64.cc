@@ -4445,12 +4445,14 @@ TEST(sve_read_ffr) {
 TEST(sve_propagate_break) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(brkpas(p12.VnB(), p0.Zeroing(), p12.VnB(), p11.VnB()), "brkpas <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(brkpa(p1.VnB(), p2.Zeroing(), p13.VnB(), p8.VnB()), "brkpa <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(brkpbs(p14.VnB(), p1.Zeroing(), p8.VnB(), p3.VnB()), "brkpbs <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-  COMPARE_PREFIX(brkpb(p2.VnB(), p5.Zeroing(), p0.VnB(), p14.VnB()), "brkpb <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B");
-#endif
+  COMPARE_PREFIX(brkpas(p12.VnB(), p0.Zeroing(), p12.VnB(), p11.VnB()),
+                 "brkpas p12.b, p0/z, p12.b, p11.b");
+  COMPARE_PREFIX(brkpa(p1.VnB(), p2.Zeroing(), p13.VnB(), p8.VnB()),
+                 "brkpa p1.b, p2/z, p13.b, p8.b");
+  COMPARE_PREFIX(brkpbs(p14.VnB(), p1.Zeroing(), p8.VnB(), p3.VnB()),
+                 "brkpbs p14.b, p1/z, p8.b, p3.b");
+  COMPARE_PREFIX(brkpb(p2.VnB(), p5.Zeroing(), p0.VnB(), p14.VnB()),
+                 "brkpb p2.b, p5/z, p0.b, p14.b");
 
   CLEANUP();
 }

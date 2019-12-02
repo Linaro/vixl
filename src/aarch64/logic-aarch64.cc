@@ -6423,6 +6423,42 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
   }
 }
 
+LogicPRegister Simulator::brkpa(LogicPRegister pd,
+                                const LogicPRegister& pg,
+                                const LogicPRegister& pn,
+                                const LogicPRegister& pm) {
+  bool last_active = IsLastActive(kFormatVnB, pg, pn);
+
+  for (int i = 0; i < LaneCountFromFormat(kFormatVnB); i++) {
+    bool active = false;
+    if (pg.IsActive(kFormatVnB, i)) {
+      active = last_active;
+      last_active = last_active && !pm.IsActive(kFormatVnB, i);
+    }
+    pd.SetActive(kFormatVnB, i, active);
+  }
+
+  return pd;
+}
+
+LogicPRegister Simulator::brkpb(LogicPRegister pd,
+                                const LogicPRegister& pg,
+                                const LogicPRegister& pn,
+                                const LogicPRegister& pm) {
+  bool last_active = IsLastActive(kFormatVnB, pg, pn);
+
+  for (int i = 0; i < LaneCountFromFormat(kFormatVnB); i++) {
+    bool active = false;
+    if (pg.IsActive(kFormatVnB, i)) {
+      last_active = last_active && !pm.IsActive(kFormatVnB, i);
+      active = last_active;
+    }
+    pd.SetActive(kFormatVnB, i, active);
+  }
+
+  return pd;
+}
+
 int Simulator::GetFirstActive(VectorFormat vform,
                               const LogicPRegister& pg) const {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {

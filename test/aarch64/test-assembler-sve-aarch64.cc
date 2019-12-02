@@ -10309,5 +10309,228 @@ TEST_SVE(sve_rdffr_rdffrs) {
   }
 }
 
+typedef void (MacroAssembler::*BrkpFn)(const PRegisterWithLaneSize& pd,
+                                       const PRegisterZ& pg,
+                                       const PRegisterWithLaneSize& pn,
+                                       const PRegisterWithLaneSize& pm);
+
+template <typename Tg, typename Tn, typename Td>
+static void BrkpaBrkpbHelper(Test* config,
+                             BrkpFn macro,
+                             BrkpFn macro_set_flags,
+                             const Tg& pg_inputs,
+                             const Tn& pn_inputs,
+                             const Tn& pm_inputs,
+                             const Td& pd_expected) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  PRegister pg = p15;
+  PRegister pn = p14;
+  PRegister pm = p13;
+  Initialise(&masm, pg.VnB(), pg_inputs);
+  Initialise(&masm, pn.VnB(), pn_inputs);
+  Initialise(&masm, pm.VnB(), pm_inputs);
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  __ Mov(x10, NZCVFlag);
+  __ Msr(NZCV, x10);
+
+  (masm.*macro_set_flags)(p0.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
+  __ Mrs(x0, NZCV);
+
+  (masm.*macro)(p1.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(pd_expected, p0.VnB());
+
+    // Check that the flags were properly set.
+    StatusFlags nzcv_expected =
+        GetPredTestFlags(pd_expected,
+                         pg_inputs,
+                         core.GetSVELaneCount(kBRegSize));
+    ASSERT_EQUAL_64(nzcv_expected, x0);
+    ASSERT_EQUAL_SVE(p0.VnB(), p1.VnB());
+  }
+}
+
+template <typename Tg, typename Tn, typename Td>
+static void BrkpaHelper(Test* config,
+                        const Tg& pg_inputs,
+                        const Tn& pn_inputs,
+                        const Tn& pm_inputs,
+                        const Td& pd_expected) {
+  BrkpaBrkpbHelper(config,
+                   &MacroAssembler::Brkpa,
+                   &MacroAssembler::Brkpas,
+                   pg_inputs,
+                   pn_inputs,
+                   pm_inputs,
+                   pd_expected);
+}
+
+template <typename Tg, typename Tn, typename Td>
+static void BrkpbHelper(Test* config,
+                        const Tg& pg_inputs,
+                        const Tn& pn_inputs,
+                        const Tn& pm_inputs,
+                        const Td& pd_expected) {
+  BrkpaBrkpbHelper(config,
+                   &MacroAssembler::Brkpb,
+                   &MacroAssembler::Brkpbs,
+                   pg_inputs,
+                   pn_inputs,
+                   pm_inputs,
+                   pd_expected);
+}
+
+TEST_SVE(sve_brkpb) {
+  // clang-format off
+  // The last active element of `pn` are `true` in all vector length configurations.
+  //                                | boundary of 128-bits VL.
+  //                                v
+  int pg_1[] =      {1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  int pg_2[] =      {1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  int pg_3[] =      {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+
+  //                 | highest-numbered lane                lowest-numbered lane |
+  //                 v                                                           v
+  int pn_1[] =      {1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
+  int pn_2[] =      {1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+  int pn_3[] =      {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1};
+
+  int pm_1[] =      {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
+  int pm_2[] =      {0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int pm_3[] =      {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+
+  //                                                                    | first active
+  //                                                                    v
+  int exp_1_1_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+  //                                            | first active
+  //                                            v
+  int exp_1_2_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  //                                                                    | first active
+  //                                                                    v
+  int exp_1_3_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+
+  BrkpbHelper(config, pg_1, pn_1, pm_1, exp_1_1_1);
+  BrkpbHelper(config, pg_1, pn_2, pm_2, exp_1_2_2);
+  BrkpbHelper(config, pg_1, pn_3, pm_3, exp_1_3_3);
+
+  //                                               | first active
+  //                                               v
+  int exp_2_1_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  //                                            | first active
+  //                                            v
+  int exp_2_2_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  //                                                                 | first active
+  //                                                                 v
+  int exp_2_3_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+  BrkpbHelper(config, pg_2, pn_1, pm_2, exp_2_1_2);
+  BrkpbHelper(config, pg_2, pn_2, pm_3, exp_2_2_3);
+  BrkpbHelper(config, pg_2, pn_3, pm_1, exp_2_3_1);
+
+  //                                                                    | first active
+  //                                                                    v
+  int exp_3_1_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+  //                                                                    | first active
+  //                                                                    v
+  int exp_3_2_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+  //                                      | first active
+  //                                      v
+  int exp_3_3_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  BrkpbHelper(config, pg_3, pn_1, pm_3, exp_3_1_3);
+  BrkpbHelper(config, pg_3, pn_2, pm_1, exp_3_2_1);
+  BrkpbHelper(config, pg_3, pn_3, pm_2, exp_3_3_2);
+
+  // The last active element of `pn` are `false` in all vector length configurations.
+  //                       | last active lane when VL > 128 bits.
+  //                       v
+  //                                   | last active lane when VL == 128 bits.
+  //                                   v
+  int pg_4[] =      {0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  int exp_4_x_x[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  BrkpbHelper(config, pg_4, pn_1, pm_1, exp_4_x_x);
+  BrkpbHelper(config, pg_4, pn_2, pm_2, exp_4_x_x);
+  BrkpbHelper(config, pg_4, pn_3, pm_3, exp_4_x_x);
+  // clang-format on
+}
+
+TEST_SVE(sve_brkpa) {
+  // clang-format off
+  // The last active element of `pn` are `true` in all vector length configurations.
+  //                                | boundary of 128-bits VL.
+  //                                v
+  int pg_1[] =      {1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  int pg_2[] =      {1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  int pg_3[] =      {1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+
+  //                 | highest-numbered lane                lowest-numbered lane |
+  //                 v                                                           v
+  int pn_1[] =      {1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
+  int pn_2[] =      {1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0};
+  int pn_3[] =      {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1};
+
+  int pm_1[] =      {1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
+  int pm_2[] =      {0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int pm_3[] =      {0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+
+  //                                                                    | first active
+  //                                                                    v
+  int exp_1_1_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0};
+  //                                            | first active
+  //                                            v
+  int exp_1_2_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  //                                                                    | first active
+  //                                                                    v
+  int exp_1_3_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0};
+
+  BrkpaHelper(config, pg_1, pn_1, pm_1, exp_1_1_1);
+  BrkpaHelper(config, pg_1, pn_2, pm_2, exp_1_2_2);
+  BrkpaHelper(config, pg_1, pn_3, pm_3, exp_1_3_3);
+
+  //                                               | first active
+  //                                               v
+  int exp_2_1_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  //                                            | first active
+  //                                            v
+  int exp_2_2_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  //                                                                 | first active
+  //                                                                 v
+  int exp_2_3_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1};
+  BrkpaHelper(config, pg_2, pn_1, pm_2, exp_2_1_2);
+  BrkpaHelper(config, pg_2, pn_2, pm_3, exp_2_2_3);
+  BrkpaHelper(config, pg_2, pn_3, pm_1, exp_2_3_1);
+
+  //                                                                    | first active
+  //                                                                    v
+  int exp_3_1_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
+  //                                                                    | first active
+  //                                                                    v
+  int exp_3_2_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
+  //                                      | first active
+  //                                      v
+  int exp_3_3_2[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  BrkpaHelper(config, pg_3, pn_1, pm_3, exp_3_1_3);
+  BrkpaHelper(config, pg_3, pn_2, pm_1, exp_3_2_1);
+  BrkpaHelper(config, pg_3, pn_3, pm_2, exp_3_3_2);
+
+  // The last active element of `pn` are `false` in all vector length configurations.
+  //                       | last active lane when VL > 128 bits.
+  //                       v
+  //                                   | last active lane when VL == 128 bits.
+  //                                   v
+  int pg_4[] =      {0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1};
+  int exp_4_x_x[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  BrkpaHelper(config, pg_4, pn_1, pm_1, exp_4_x_x);
+  BrkpaHelper(config, pg_4, pn_2, pm_2, exp_4_x_x);
+  BrkpaHelper(config, pg_4, pn_3, pm_3, exp_4_x_x);
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

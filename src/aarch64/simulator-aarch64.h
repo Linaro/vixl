@@ -2536,6 +2536,14 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  LogicPRegister brkpa(LogicPRegister pd,
+                       const LogicPRegister& pg,
+                       const LogicPRegister& pn,
+                       const LogicPRegister& pm);
+  LogicPRegister brkpb(LogicPRegister pd,
+                       const LogicPRegister& pg,
+                       const LogicPRegister& pn,
+                       const LogicPRegister& pm);
   // dst = srca + src1 * src2
   LogicVRegister mla(VectorFormat vform,
                      LogicVRegister dst,

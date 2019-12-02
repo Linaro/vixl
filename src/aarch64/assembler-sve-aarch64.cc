@@ -6346,7 +6346,7 @@ void Assembler::brkpa(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(BRKPA_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(BRKPA_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::brkpas(const PRegisterWithLaneSize& pd,
@@ -6360,7 +6360,7 @@ void Assembler::brkpas(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(BRKPAS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(BRKPAS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::brkpb(const PRegisterWithLaneSize& pd,
@@ -6374,7 +6374,7 @@ void Assembler::brkpb(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(BRKPB_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(BRKPB_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::brkpbs(const PRegisterWithLaneSize& pd,
@@ -6388,7 +6388,7 @@ void Assembler::brkpbs(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(BRKPBS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(BRKPBS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 // SVEStackFrameAdjustment.

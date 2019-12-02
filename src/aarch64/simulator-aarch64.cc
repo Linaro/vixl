@@ -10858,23 +10858,32 @@ void Simulator::VisitSVEPredicateZero(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPropagateBreak(const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister& pm = ReadPRegister(instr->GetPm());
+
+  bool set_flags = false;
   switch (instr->Mask(SVEPropagateBreakMask)) {
     case BRKPAS_p_p_pp:
-      VIXL_UNIMPLEMENTED();
-      break;
+      set_flags = true;
+      VIXL_FALLTHROUGH();
     case BRKPA_p_p_pp:
-      VIXL_UNIMPLEMENTED();
+      brkpa(pd, pg, pn, pm);
       break;
     case BRKPBS_p_p_pp:
-      VIXL_UNIMPLEMENTED();
-      break;
+      set_flags = true;
+      VIXL_FALLTHROUGH();
     case BRKPB_p_p_pp:
-      VIXL_UNIMPLEMENTED();
+      brkpb(pd, pg, pn, pm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (set_flags) {
+    PredTest(kFormatVnB, pg, pd);
   }
 }
 
