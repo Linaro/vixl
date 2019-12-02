@@ -10541,24 +10541,58 @@ void Simulator::VisitSVECopyIntImm_Predicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEReverseWithinElements(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  // In NEON, the chunk size in which elements are REVersed is in the
+  // instruction mnemonic, and the element size attached to the register.
+  // SVE reverses the semantics; the mapping to logic functions below is to
+  // account for this.
+  VectorFormat chunk_form = instr->GetSVEVectorFormat();
+  VectorFormat element_form = kFormatUndefined;
+
   switch (instr->Mask(SVEReverseWithinElementsMask)) {
     case RBIT_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      rbit(chunk_form, result, zn);
       break;
     case REVB_z_z:
-      VIXL_UNIMPLEMENTED();
+      VIXL_ASSERT((chunk_form == kFormatVnH) || (chunk_form == kFormatVnS) ||
+                  (chunk_form == kFormatVnD));
+      element_form = kFormatVnB;
       break;
     case REVH_z_z:
-      VIXL_UNIMPLEMENTED();
+      VIXL_ASSERT((chunk_form == kFormatVnS) || (chunk_form == kFormatVnD));
+      element_form = kFormatVnH;
       break;
     case REVW_z_z:
-      VIXL_UNIMPLEMENTED();
+      VIXL_ASSERT(chunk_form == kFormatVnD);
+      element_form = kFormatVnS;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  if (instr->Mask(SVEReverseWithinElementsMask) != RBIT_z_p_z) {
+    VIXL_ASSERT(element_form != kFormatUndefined);
+    switch (chunk_form) {
+      case kFormatVnH:
+        rev16(element_form, result, zn);
+        break;
+      case kFormatVnS:
+        rev32(element_form, result, zn);
+        break;
+      case kFormatVnD:
+        rev64(element_form, result, zn);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+    }
+  }
+
+  mov_merging(chunk_form, zd, pg, result);
 }
 
 void Simulator::VisitSVEVectorSplice_Destructive(const Instruction* instr) {

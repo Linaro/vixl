@@ -2439,7 +2439,7 @@ LogicVRegister Simulator::not_(VectorFormat vform,
 LogicVRegister Simulator::rbit(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src) {
-  uint64_t result[16];
+  uint64_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   int laneSizeInBits = LaneSizeInBitsFromFormat(vform);
   uint64_t reversed_value;
@@ -2478,7 +2478,7 @@ LogicVRegister Simulator::rev_byte(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src,
                                    int revSize) {
-  uint64_t result[16];
+  uint64_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   int laneSize = LaneSizeInBytesFromFormat(vform);
   int lanesPerLoop = revSize / laneSize;

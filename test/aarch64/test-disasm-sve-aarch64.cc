@@ -4165,20 +4165,38 @@ TEST(sve_permute_vector_predicated) {
   COMPARE_PREFIX(lastb(h14, p5, z2.VnH()), "lastb <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(lastb(s14, p5, z2.VnS()), "lastb <V><d>, <Pg>, <Zn>.<T>");
   COMPARE_PREFIX(lastb(d14, p5, z2.VnD()), "lastb <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(rbit(z22.VnB(), p2.Merging(), z24.VnB()), "rbit <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(rbit(z22.VnH(), p2.Merging(), z24.VnH()), "rbit <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(rbit(z22.VnS(), p2.Merging(), z24.VnS()), "rbit <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(rbit(z22.VnD(), p2.Merging(), z24.VnD()), "rbit <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(revb(z14.VnH(), p7.Merging(), z25.VnH()), "revb <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(revb(z14.VnS(), p7.Merging(), z25.VnS()), "revb <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(revb(z14.VnD(), p7.Merging(), z25.VnD()), "revb <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(revh(z16.Vn?(), p2.Merging(), z4.Vn?()), "revh <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(revw(z26.VnD(), p5.Merging(), z10.VnD()), "revw <Zd>.D, <Pg>/M, <Zn>.D");
   COMPARE_PREFIX(splice(z7.VnB(), p6, z7.VnB(), z2.VnB()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(splice(z7.VnH(), p6, z7.VnH(), z2.VnH()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(splice(z7.VnS(), p6, z7.VnS(), z2.VnS()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(splice(z7.VnD(), p6, z7.VnD(), z2.VnD()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
 #endif
+
+  CLEANUP();
+}
+
+TEST(sve_reverse) {
+  SETUP();
+
+  COMPARE_MACRO(Rbit(z22.VnB(), p2.Merging(), z24.VnB()),
+                "rbit z22.b, p2/m, z24.b");
+  COMPARE_MACRO(Rbit(z22.VnH(), p2.Merging(), z24.VnH()),
+                "rbit z22.h, p2/m, z24.h");
+  COMPARE_MACRO(Rbit(z22.VnS(), p2.Merging(), z24.VnS()),
+                "rbit z22.s, p2/m, z24.s");
+  COMPARE_MACRO(Rbit(z22.VnD(), p2.Merging(), z24.VnD()),
+                "rbit z22.d, p2/m, z24.d");
+  COMPARE_MACRO(Revb(z14.VnH(), p7.Merging(), z25.VnH()),
+                "revb z14.h, p7/m, z25.h");
+  COMPARE_MACRO(Revb(z14.VnS(), p7.Merging(), z25.VnS()),
+                "revb z14.s, p7/m, z25.s");
+  COMPARE_MACRO(Revb(z14.VnD(), p7.Merging(), z25.VnD()),
+                "revb z14.d, p7/m, z25.d");
+  COMPARE_MACRO(Revh(z16.VnS(), p2.Merging(), z4.VnS()),
+                "revh z16.s, p2/m, z4.s");
+  COMPARE_MACRO(Revh(z16.VnD(), p2.Merging(), z4.VnD()),
+                "revh z16.d, p2/m, z4.d");
+  COMPARE_MACRO(Revw(z26.VnD(), p5.Merging(), z10.VnD()),
+                "revw z26.d, p5/m, z10.d");
 
   CLEANUP();
 }

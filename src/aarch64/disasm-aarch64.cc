@@ -8014,28 +8014,34 @@ void Disassembler::VisitSVEReverseVectorElements(const Instruction *instr) {
 
 void Disassembler::VisitSVEReverseWithinElements(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVEReverseWithinElements)";
+  const char *form = "'Zd.'t, p'u1210/m, 'Zn.'t";
 
+  unsigned size = instr->GetSVESize();
   switch (instr->Mask(SVEReverseWithinElementsMask)) {
-    // RBIT <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case RBIT_z_p_z:
       mnemonic = "rbit";
-      form = "'Zd.'t, p'u1210/m, 'Zn.'t";
       break;
-    // REVB <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case REVB_z_z:
-      mnemonic = "revb";
-      form = "'Zd.'t, p'u1210/m, 'Zn.'t";
+      if ((size == kHRegSizeInBytesLog2) || (size == kSRegSizeInBytesLog2) ||
+          (size == kDRegSizeInBytesLog2)) {
+        mnemonic = "revb";
+      } else {
+        form = "(SVEReverseWithinElements)";
+      }
       break;
-    // REVH <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case REVH_z_z:
-      mnemonic = "revh";
-      form = "'Zd.<T>, p'u1210/m, 'Zn.<T>";
+      if ((size == kSRegSizeInBytesLog2) || (size == kDRegSizeInBytesLog2)) {
+        mnemonic = "revh";
+      } else {
+        form = "(SVEReverseWithinElements)";
+      }
       break;
-    // REVW <Zd>.D, <Pg>/M, <Zn>.D
     case REVW_z_z:
-      mnemonic = "revw";
-      form = "'Zd.d, p'u1210/m, 'Zn.d";
+      if (size == kDRegSizeInBytesLog2) {
+        mnemonic = "revw";
+      } else {
+        form = "(SVEReverseWithinElements)";
+      }
       break;
     default:
       break;

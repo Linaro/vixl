@@ -5903,7 +5903,7 @@ void Assembler::rbit(const ZRegister& zd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
 
-  Emit(RBIT_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(RBIT_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::revb(const ZRegister& zd,
@@ -5915,9 +5915,9 @@ void Assembler::revb(const ZRegister& zd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
-  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zd.IsLaneSizeH() || zd.IsLaneSizeS() || zd.IsLaneSizeD());
 
-  Emit(REVB_z_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(REVB_z_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::revh(const ZRegister& zd,
@@ -5928,8 +5928,10 @@ void Assembler::revh(const ZRegister& zd,
   //  size<23:22> | opc<17:16> = 01 | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeD());
 
-  Emit(REVH_z_z | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(REVH_z_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::revw(const ZRegister& zd,
@@ -5940,8 +5942,10 @@ void Assembler::revw(const ZRegister& zd,
   //  size<23:22> | opc<17:16> = 10 | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(REVW_z_z | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(REVW_z_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::splice(const ZRegister& zd,

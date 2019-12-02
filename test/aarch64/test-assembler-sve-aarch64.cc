@@ -10532,5 +10532,98 @@ TEST_SVE(sve_brkpa) {
   // clang-format on
 }
 
+TEST_SVE(sve_rbit) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t inputs[] = {0xaaaaaaaa55555555, 0xaaaa5555aa55aa55};
+  InsrHelper(&masm, z0.VnD(), inputs);
+
+  __ Ptrue(p1.VnB());
+  int pred[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1};
+  Initialise(&masm, p2.VnB(), pred);
+
+  __ Rbit(z0.VnB(), p1.Merging(), z0.VnB());
+  __ Rbit(z0.VnB(), p1.Merging(), z0.VnB());
+
+  __ Rbit(z1.VnB(), p1.Merging(), z0.VnB());
+  __ Rbit(z2.VnH(), p1.Merging(), z0.VnH());
+  __ Rbit(z3.VnS(), p1.Merging(), z0.VnS());
+  __ Rbit(z4.VnD(), p1.Merging(), z0.VnD());
+
+  __ Dup(z5.VnB(), 0x42);
+  __ Rbit(z5.VnB(), p2.Merging(), z0.VnB());
+  __ Dup(z6.VnB(), 0x42);
+  __ Rbit(z6.VnS(), p2.Merging(), z0.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(inputs, z0.VnD());
+
+    uint64_t expected_z1[] = {0x55555555aaaaaaaa, 0x5555aaaa55aa55aa};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+    uint64_t expected_z2[] = {0x55555555aaaaaaaa, 0x5555aaaaaa55aa55};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0x55555555aaaaaaaa, 0xaaaa5555aa55aa55};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0xaaaaaaaa55555555, 0xaa55aa55aaaa5555};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0x4255425542aa42aa, 0x4255424242aa42aa};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0x55555555aaaaaaaa, 0x42424242aa55aa55};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+  }
+}
+
+TEST_SVE(sve_rev_bhw) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t inputs[] = {0xaaaaaaaa55555555, 0xaaaa5555aa55aa55};
+  InsrHelper(&masm, z0.VnD(), inputs);
+
+  __ Ptrue(p1.VnB());
+  int pred[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1};
+  Initialise(&masm, p2.VnB(), pred);
+
+  __ Revb(z1.VnH(), p1.Merging(), z0.VnH());
+  __ Revb(z2.VnS(), p1.Merging(), z0.VnS());
+  __ Revb(z3.VnD(), p1.Merging(), z0.VnD());
+  __ Revh(z4.VnS(), p1.Merging(), z0.VnS());
+  __ Revh(z5.VnD(), p1.Merging(), z0.VnD());
+  __ Revw(z6.VnD(), p1.Merging(), z0.VnD());
+
+  __ Dup(z7.VnB(), 0x42);
+  __ Revb(z7.VnH(), p2.Merging(), z0.VnH());
+  __ Dup(z8.VnB(), 0x42);
+  __ Revh(z8.VnS(), p2.Merging(), z0.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t expected_z1[] = {0xaaaaaaaa55555555, 0xaaaa555555aa55aa};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+    uint64_t expected_z2[] = {0xaaaaaaaa55555555, 0x5555aaaa55aa55aa};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0x55555555aaaaaaaa, 0x55aa55aa5555aaaa};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0xaaaaaaaa55555555, 0x5555aaaaaa55aa55};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0x55555555aaaaaaaa, 0xaa55aa555555aaaa};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0x55555555aaaaaaaa, 0xaa55aa55aaaa5555};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0xaaaaaaaa55555555, 0xaaaa424255aa55aa};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z8[] = {0xaaaaaaaa55555555, 0x42424242aa55aa55};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
