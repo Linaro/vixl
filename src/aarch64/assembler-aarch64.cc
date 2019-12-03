@@ -1044,7 +1044,7 @@ void Assembler::cls(const Register& rd, const Register& rn) {
   V(auti, AUTI)             \
   V(autd, AUTD)
 
-#define DEFINE_ASM_FUNCS(PRE, OP)                                  \
+#define VIXL_DEFINE_ASM_FUNC(PRE, OP)                              \
   void Assembler::PRE##a(const Register& xd, const Register& xn) { \
     VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));                      \
     VIXL_ASSERT(xd.Is64Bits() && xn.Is64Bits());                   \
@@ -1069,8 +1069,8 @@ void Assembler::cls(const Register& rd, const Register& rn) {
     Emit(SF(xd) | OP##ZB | Rd(xd));                                \
   }
 
-PAUTH_VARIATIONS(DEFINE_ASM_FUNCS)
-#undef DEFINE_ASM_FUNCS
+PAUTH_VARIATIONS(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 void Assembler::pacga(const Register& xd,
                       const Register& xn,
@@ -1635,7 +1635,7 @@ void Assembler::ldlar(const Register& rt, const MemOperand& src) {
   V(casal, CASAL)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP)                                          \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                     \
   void Assembler::FN(const Register& rs,                                 \
                      const Register& rt,                                 \
                      const MemOperand& src) {                            \
@@ -1644,8 +1644,8 @@ void Assembler::ldlar(const Register& rt, const MemOperand& src) {
     LoadStoreExclusive op = rt.Is64Bits() ? OP##_x : OP##_w;             \
     Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
   }
-COMPARE_AND_SWAP_W_X_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+COMPARE_AND_SWAP_W_X_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 // clang-format off
 #define COMPARE_AND_SWAP_W_LIST(V) \
@@ -1659,7 +1659,7 @@ COMPARE_AND_SWAP_W_X_LIST(DEFINE_ASM_FUNC)
   V(casalh, CASALH)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP)                                          \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                     \
   void Assembler::FN(const Register& rs,                                 \
                      const Register& rt,                                 \
                      const MemOperand& src) {                            \
@@ -1667,8 +1667,8 @@ COMPARE_AND_SWAP_W_X_LIST(DEFINE_ASM_FUNC)
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
     Emit(OP | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
   }
-COMPARE_AND_SWAP_W_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+COMPARE_AND_SWAP_W_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -1679,7 +1679,7 @@ COMPARE_AND_SWAP_W_LIST(DEFINE_ASM_FUNC)
   V(caspal, CASPAL)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP)                                          \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                     \
   void Assembler::FN(const Register& rs,                                 \
                      const Register& rs1,                                \
                      const Register& rt,                                 \
@@ -1694,8 +1694,8 @@ COMPARE_AND_SWAP_W_LIST(DEFINE_ASM_FUNC)
     LoadStoreExclusive op = rt.Is64Bits() ? OP##_x : OP##_w;             \
     Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
   }
-COMPARE_AND_SWAP_PAIR_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+COMPARE_AND_SWAP_PAIR_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 // These macros generate all the variations of the atomic memory operations,
 // e.g. ldadd, ldadda, ldaddb, staddl, etc.
@@ -2425,7 +2425,7 @@ void Assembler::NEON3DifferentHN(const VRegister& vd,
 // clang-format on
 
 
-#define DEFINE_ASM_FUNC(FN, OP, AS)                   \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, AS)                   \
 void Assembler::FN(const VRegister& vd,               \
                    const VRegister& vn,               \
                    const VRegister& vm) {             \
@@ -2433,8 +2433,8 @@ void Assembler::FN(const VRegister& vd,               \
   VIXL_ASSERT(AS);                                    \
   NEON3DifferentL(vd, vn, vm, OP);                    \
 }
-NEON_3DIFF_LONG_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_3DIFF_LONG_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 // clang-format off
 #define NEON_3DIFF_HN_LIST(V)         \
@@ -2448,7 +2448,7 @@ NEON_3DIFF_LONG_LIST(DEFINE_ASM_FUNC)
   V(rsubhn2, NEON_RSUBHN2, vd.IsQ())
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP, AS)          \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, AS)     \
   void Assembler::FN(const VRegister& vd,    \
                      const VRegister& vn,    \
                      const VRegister& vm) {  \
@@ -2456,8 +2456,8 @@ NEON_3DIFF_LONG_LIST(DEFINE_ASM_FUNC)
     VIXL_ASSERT(AS);                         \
     NEON3DifferentHN(vd, vn, vm, OP);        \
   }
-NEON_3DIFF_HN_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_3DIFF_HN_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 void Assembler::uaddw(const VRegister& vd,
                       const VRegister& vn,
@@ -3105,7 +3105,7 @@ void Assembler::NEONFP16ConvertToInt(const VRegister& vd,
   V(fcvtau, NEON_FCVTAU, FCVTAU)     \
   V(fcvtas, NEON_FCVTAS, FCVTAS)
 
-#define DEFINE_ASM_FUNCS(FN, VEC_OP, SCA_OP)                     \
+#define VIXL_DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP)                 \
   void Assembler::FN(const Register& rd, const VRegister& vn) {  \
     VIXL_ASSERT(CPUHas(CPUFeatures::kFP));                       \
     if (vn.IsH()) VIXL_ASSERT(CPUHas(CPUFeatures::kFPHalf));     \
@@ -3120,8 +3120,8 @@ void Assembler::NEONFP16ConvertToInt(const VRegister& vd,
       NEONFPConvertToInt(vd, vn, VEC_OP);                        \
     }                                                            \
   }
-NEON_FP2REGMISC_FCVT_LIST(DEFINE_ASM_FUNCS)
-#undef DEFINE_ASM_FUNCS
+NEON_FP2REGMISC_FCVT_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 void Assembler::fcvtzs(const Register& rd, const VRegister& vn, int fbits) {
@@ -3309,7 +3309,7 @@ void Assembler::NEON3SameFP16(const VRegister& vd,
   V(frecpe,  NEON_FRECPE,  NEON_FRECPE_scalar,  NEON_FRECPE_H_scalar)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP, SCA_OP_H)                        \
+#define VIXL_DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP, SCA_OP_H)                   \
   void Assembler::FN(const VRegister& vd, const VRegister& vn) {             \
     VIXL_ASSERT(CPUHas(CPUFeatures::kFP));                                   \
     Instr op;                                                                \
@@ -3349,8 +3349,8 @@ void Assembler::NEON3SameFP16(const VRegister& vd,
       NEONFP2RegMisc(vd, vn, op);                                            \
     }                                                                        \
   }
-NEON_FP2REGMISC_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_FP2REGMISC_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 // clang-format off
 #define NEON_FP2REGMISC_V85_LIST(V)       \
@@ -3360,7 +3360,7 @@ NEON_FP2REGMISC_LIST(DEFINE_ASM_FUNC)
   V(frint64z,  NEON_FRINT64Z,  FRINT64Z)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP)                                    \
+#define VIXL_DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP)                               \
   void Assembler::FN(const VRegister& vd, const VRegister& vn) {               \
     VIXL_ASSERT(CPUHas(CPUFeatures::kFP, CPUFeatures::kFrintToFixedSizedInt)); \
     Instr op;                                                                  \
@@ -3374,8 +3374,8 @@ NEON_FP2REGMISC_LIST(DEFINE_ASM_FUNC)
     }                                                                          \
     NEONFP2RegMisc(vd, vn, op);                                                \
   }
-NEON_FP2REGMISC_V85_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_FP2REGMISC_V85_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 void Assembler::NEONFP2RegMiscFP16(const VRegister& vd,
                                    const VRegister& vn,
@@ -3639,7 +3639,7 @@ void Assembler::frecpx(const VRegister& vd, const VRegister& vn) {
   V(uqrshl,   NEON_UQRSHL,   true)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP, AS)          \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, AS)     \
   void Assembler::FN(const VRegister& vd,    \
                      const VRegister& vn,    \
                      const VRegister& vm) {  \
@@ -3647,8 +3647,8 @@ void Assembler::frecpx(const VRegister& vd, const VRegister& vn) {
     VIXL_ASSERT(AS);                         \
     NEON3Same(vd, vn, vm, OP);               \
   }
-NEON_3SAME_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_3SAME_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 // clang-format off
 #define NEON_FP3SAME_OP_LIST(V)                                        \
@@ -3681,7 +3681,7 @@ NEON_3SAME_LIST(DEFINE_ASM_FUNC)
 // TODO: This macro is complicated because it classifies the instructions in the
 // macro list above, and treats each case differently. It could be somewhat
 // simpler if we were to split the macro, at the cost of some duplication.
-#define DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP, SCA_OP_H)                    \
+#define VIXL_DEFINE_ASM_FUNC(FN, VEC_OP, SCA_OP, SCA_OP_H)               \
   void Assembler::FN(const VRegister& vd,                                \
                      const VRegister& vn,                                \
                      const VRegister& vm) {                              \
@@ -3721,8 +3721,8 @@ NEON_3SAME_LIST(DEFINE_ASM_FUNC)
       NEONFP3Same(vd, vn, vm, op);                                       \
     }                                                                    \
   }
-NEON_FP3SAME_OP_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_FP3SAME_OP_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -3733,7 +3733,7 @@ NEON_FP3SAME_OP_LIST(DEFINE_ASM_FUNC)
   V(fmlsl2,  NEON_FMLSL2)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, VEC_OP)                         \
+#define VIXL_DEFINE_ASM_FUNC(FN, VEC_OP)                    \
   void Assembler::FN(const VRegister& vd,                   \
                      const VRegister& vn,                   \
                      const VRegister& vm) {                 \
@@ -3745,8 +3745,8 @@ NEON_FP3SAME_OP_LIST(DEFINE_ASM_FUNC)
                 (vd.Is4S() && vn.Is4H() && vm.Is4H()));     \
     Emit(FPFormat(vd) | VEC_OP | Rm(vm) | Rn(vn) | Rd(vd)); \
   }
-NEON_FHM_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_FHM_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 void Assembler::addp(const VRegister& vd, const VRegister& vn) {
@@ -4139,7 +4139,7 @@ void Assembler::udot(const VRegister& vd,
   V(sqrdmulh, NEON_SQRDMULH_byelement, true)          \
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP, AS)                     \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, AS)                     \
   void Assembler::FN(const VRegister& vd,               \
                      const VRegister& vn,               \
                      const VRegister& vm,               \
@@ -4148,8 +4148,8 @@ void Assembler::udot(const VRegister& vd,
     VIXL_ASSERT(AS);                                    \
     NEONByElement(vd, vn, vm, vm_index, OP);            \
   }
-NEON_BYELEMENT_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_BYELEMENT_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -4158,7 +4158,7 @@ NEON_BYELEMENT_LIST(DEFINE_ASM_FUNC)
   V(sqrdmlsh, NEON_SQRDMLSH_byelement)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP)                                 \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                            \
   void Assembler::FN(const VRegister& vd,                       \
                      const VRegister& vn,                       \
                      const VRegister& vm,                       \
@@ -4166,8 +4166,8 @@ NEON_BYELEMENT_LIST(DEFINE_ASM_FUNC)
     VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kRDM)); \
     NEONByElement(vd, vn, vm, vm_index, OP);                    \
   }
-NEON_BYELEMENT_RDM_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_BYELEMENT_RDM_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -4178,7 +4178,7 @@ NEON_BYELEMENT_RDM_LIST(DEFINE_ASM_FUNC)
   V(fmulx, NEON_FMULX_byelement, NEON_FMULX_H_byelement)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP, OP_H)                                  \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, OP_H)                             \
   void Assembler::FN(const VRegister& vd,                              \
                      const VRegister& vn,                              \
                      const VRegister& vm,                              \
@@ -4187,8 +4187,8 @@ NEON_BYELEMENT_RDM_LIST(DEFINE_ASM_FUNC)
     if (vd.IsLaneSizeH()) VIXL_ASSERT(CPUHas(CPUFeatures::kNEONHalf)); \
     NEONFPByElement(vd, vn, vm, vm_index, OP, OP_H);                   \
   }
-NEON_FPBYELEMENT_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_FPBYELEMENT_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -4214,7 +4214,7 @@ NEON_FPBYELEMENT_LIST(DEFINE_ASM_FUNC)
 // clang-format on
 
 
-#define DEFINE_ASM_FUNC(FN, OP, AS)           \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, AS)      \
   void Assembler::FN(const VRegister& vd,     \
                      const VRegister& vn,     \
                      const VRegister& vm,     \
@@ -4223,8 +4223,8 @@ NEON_FPBYELEMENT_LIST(DEFINE_ASM_FUNC)
     VIXL_ASSERT(AS);                          \
     NEONByElementL(vd, vn, vm, vm_index, OP); \
   }
-NEON_BYELEMENT_LONG_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_BYELEMENT_LONG_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -4236,7 +4236,7 @@ NEON_BYELEMENT_LONG_LIST(DEFINE_ASM_FUNC)
 // clang-format on
 
 
-#define DEFINE_ASM_FUNC(FN, OP)                                        \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                   \
   void Assembler::FN(const VRegister& vd,                              \
                      const VRegister& vn,                              \
                      const VRegister& vm,                              \
@@ -4253,8 +4253,8 @@ NEON_BYELEMENT_LONG_LIST(DEFINE_ASM_FUNC)
     Emit(FPFormat(vd) | OP | Rd(vd) | Rn(vn) | Rm(vm) |                \
          ImmNEONHLM(vm_index, 3));                                     \
   }
-NEON_BYELEMENT_FHM_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_BYELEMENT_FHM_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 void Assembler::suqadd(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
@@ -4764,13 +4764,13 @@ void Assembler::NEONAcrossLanes(const VRegister& vd,
   V(uminv,   NEON_UMINV)
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP)                                  \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                             \
   void Assembler::FN(const VRegister& vd, const VRegister& vn) { \
     VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));                     \
     NEONAcrossLanes(vd, vn, OP, 0);                              \
   }
-NEON_ACROSSLANES_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_ACROSSLANES_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 // clang-format off
@@ -4781,15 +4781,15 @@ NEON_ACROSSLANES_LIST(DEFINE_ASM_FUNC)
   V(fminnmv, NEON_FMINNMV, NEON_FMINNMV_H) \
 // clang-format on
 
-#define DEFINE_ASM_FUNC(FN, OP, OP_H)                            \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, OP_H)                            \
   void Assembler::FN(const VRegister& vd, const VRegister& vn) { \
     VIXL_ASSERT(CPUHas(CPUFeatures::kFP, CPUFeatures::kNEON));   \
     if (vd.Is1H()) VIXL_ASSERT(CPUHas(CPUFeatures::kNEONHalf));  \
     VIXL_ASSERT(vd.Is1S() || vd.Is1H());                         \
     NEONAcrossLanes(vd, vn, OP, OP_H);                           \
   }
-NEON_ACROSSLANES_FP_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+NEON_ACROSSLANES_FP_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 
 void Assembler::NEONPerm(const VRegister& vd,

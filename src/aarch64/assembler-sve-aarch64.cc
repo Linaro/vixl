@@ -409,14 +409,14 @@ void Assembler::lsr(const ZRegister& zd,
   V(uqincw, (rdn.IsX() ? UQINCW_r_rs_x : UQINCW_r_rs_uw)) \
   V(uqincd, (rdn.IsX() ? UQINCD_r_rs_x : UQINCD_r_rs_uw))
 
-#define DEFINE_ASM_FUNC(FN, OP)                                          \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                     \
   void Assembler::FN(const Register& rdn, int pattern, int multiplier) { \
     VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                              \
     Emit(OP | Rd(rdn) | ImmSVEPredicateConstraint(pattern) |             \
          ImmUnsignedField<19, 16>(multiplier - 1));                      \
   }
-VIXL_SVE_INC_DEC_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+VIXL_SVE_INC_DEC_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 #define VIXL_SVE_SQX_INC_DEC_LIST(V) \
   V(sqdecb, SQDECB)                  \
@@ -428,7 +428,7 @@ VIXL_SVE_INC_DEC_LIST(DEFINE_ASM_FUNC)
   V(sqincw, SQINCW)                  \
   V(sqincd, SQINCD)
 
-#define DEFINE_ASM_FUNC(FN, OP)                                       \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                  \
   void Assembler::FN(const Register& xd,                              \
                      const Register& wn,                              \
                      int pattern,                                     \
@@ -439,8 +439,8 @@ VIXL_SVE_INC_DEC_LIST(DEFINE_ASM_FUNC)
     Emit(OP##_r_rs_sx | Rd(xd) | ImmSVEPredicateConstraint(pattern) | \
          ImmUnsignedField<19, 16>(multiplier - 1));                   \
   }
-VIXL_SVE_SQX_INC_DEC_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+VIXL_SVE_SQX_INC_DEC_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 #define VIXL_SVE_INC_DEC_VEC_LIST(V) \
   V(dech, DEC, H)                    \
@@ -462,15 +462,15 @@ VIXL_SVE_SQX_INC_DEC_LIST(DEFINE_ASM_FUNC)
   V(uqincw, UQINC, W)                \
   V(uqincd, UQINC, D)
 
-#define DEFINE_ASM_FUNC(FN, OP, T)                                        \
+#define VIXL_DEFINE_ASM_FUNC(FN, OP, T)                                   \
   void Assembler::FN(const ZRegister& zdn, int pattern, int multiplier) { \
     VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                               \
     VIXL_ASSERT(zdn.GetLaneSizeInBytes() == k##T##RegSizeInBytes);        \
     Emit(OP##T##_z_zs | Rd(zdn) | ImmSVEPredicateConstraint(pattern) |    \
          ImmUnsignedField<19, 16>(multiplier - 1));                       \
   }
-VIXL_SVE_INC_DEC_VEC_LIST(DEFINE_ASM_FUNC)
-#undef DEFINE_ASM_FUNC
+VIXL_SVE_INC_DEC_VEC_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
 
 // SVEFPAccumulatingReduction.
 
