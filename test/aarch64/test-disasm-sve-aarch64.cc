@@ -200,6 +200,11 @@ TEST(sve_bitwise_shift_predicated) {
 TEST(sve_bitwise_shift_unpredicated) {
   SETUP();
 
+  // Test lsl with reserved D-sized lane field.
+  COMPARE_PREFIX(dci(0x04ef8e15), "unimplemented");
+  // Test asr with reserved tsz field.
+  COMPARE_PREFIX(dci(0x04209345), "unimplemented");
+
   COMPARE_PREFIX(asr(z4.VnB(), z27.VnB(), 1), "asr z4.b, z27.b, #1");
   COMPARE_PREFIX(asr(z5.VnB(), z26.VnB(), 8), "asr z5.b, z26.b, #8");
   COMPARE_PREFIX(asr(z6.VnH(), z25.VnH(), 1), "asr z6.h, z25.h, #1");

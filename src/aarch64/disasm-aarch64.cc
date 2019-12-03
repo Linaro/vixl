@@ -8554,11 +8554,15 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
       if (tsize != 0) {
         // The tsz field must not be zero.
         form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
+      } else {
+        mnemonic = "unimplemented";
       }
       break;
     case kWide:
-      if (instr->GetSVESize() != kDRegSize) {
+      if (static_cast<unsigned>(instr->GetSVESize()) <= kSRegSizeInBytesLog2) {
         form = "'Zd.'t, 'Zn.'t, 'Zm.d";
+      } else {
+        mnemonic = "unimplemented";
       }
       break;
     default:
