@@ -1342,8 +1342,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
-    VIXL_ASSERT(!rn.IsZero());
-    VIXL_ASSERT(!rm.IsZero());
     VIXL_ASSERT((cond != al) && (cond != nv));
     SingleEmissionCheckScope guard(this);
     csinc(rd, rn, rm, cond);
@@ -1354,8 +1352,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
-    VIXL_ASSERT(!rn.IsZero());
-    VIXL_ASSERT(!rm.IsZero());
     VIXL_ASSERT((cond != al) && (cond != nv));
     SingleEmissionCheckScope guard(this);
     csinv(rd, rn, rm, cond);
@@ -1366,8 +1362,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              Condition cond) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!rd.IsZero());
-    VIXL_ASSERT(!rn.IsZero());
-    VIXL_ASSERT(!rm.IsZero());
     VIXL_ASSERT((cond != al) && (cond != nv));
     SingleEmissionCheckScope guard(this);
     csneg(rd, rn, rm, cond);

@@ -66,10 +66,10 @@ const IDRegister::Field AA64ISAR1::kLRCPC(20);
 const IDRegister::Field AA64ISAR1::kGPA(24);
 const IDRegister::Field AA64ISAR1::kGPI(28);
 const IDRegister::Field AA64ISAR1::kFRINTTS(32);
-const IDRegister::Field AA64ISAR1::kSB(36);
-const IDRegister::Field AA64ISAR1::kSPECRES(40);
 
 const IDRegister::Field AA64MMFR1::kLO(16);
+
+const IDRegister::Field AA64MMFR2::kAT(32);
 
 CPUFeatures AA64PFR0::GetCPUFeatures() const {
   CPUFeatures f;
@@ -77,6 +77,7 @@ CPUFeatures AA64PFR0::GetCPUFeatures() const {
   if (Get(kFP) >= 1) f.Combine(CPUFeatures::kFPHalf);
   if (Get(kAdvSIMD) >= 0) f.Combine(CPUFeatures::kNEON);
   if (Get(kAdvSIMD) >= 1) f.Combine(CPUFeatures::kNEONHalf);
+  if (Get(kRAS) >= 1) f.Combine(CPUFeatures::kRAS);
   if (Get(kSVE) >= 1) f.Combine(CPUFeatures::kSVE);
   if (Get(kDIT) >= 1) f.Combine(CPUFeatures::kDIT);
   return f;
@@ -111,6 +112,7 @@ CPUFeatures AA64ISAR0::GetCPUFeatures() const {
 CPUFeatures AA64ISAR1::GetCPUFeatures() const {
   CPUFeatures f;
   if (Get(kDPB) >= 1) f.Combine(CPUFeatures::kDCPoP);
+  if (Get(kDPB) >= 2) f.Combine(CPUFeatures::kDCCVADP);
   if (Get(kJSCVT) >= 1) f.Combine(CPUFeatures::kJSCVT);
   if (Get(kFCMA) >= 1) f.Combine(CPUFeatures::kFcma);
   if (Get(kLRCPC) >= 1) f.Combine(CPUFeatures::kRCpc);
@@ -129,6 +131,12 @@ CPUFeatures AA64ISAR1::GetCPUFeatures() const {
 CPUFeatures AA64MMFR1::GetCPUFeatures() const {
   CPUFeatures f;
   if (Get(kLO) >= 1) f.Combine(CPUFeatures::kLORegions);
+  return f;
+}
+
+CPUFeatures AA64MMFR2::GetCPUFeatures() const {
+  CPUFeatures f;
+  if (Get(kAT) >= 1) f.Combine(CPUFeatures::kUSCAT);
   return f;
 }
 
@@ -163,45 +171,50 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
   // Map each set bit onto a feature. Ideally, we'd use HWCAP_* macros rather
   // than explicit bits, but explicit bits allow us to identify features that
   // the toolchain doesn't know about.
-  static const CPUFeatures::Feature kFeatureBits[] = {
-      // Bits 0-7
-      CPUFeatures::kFP,
-      CPUFeatures::kNEON,
-      CPUFeatures::kNone,  // "EVTSTRM", which VIXL doesn't track.
-      CPUFeatures::kAES,
-      CPUFeatures::kPmull1Q,
-      CPUFeatures::kSHA1,
-      CPUFeatures::kSHA2,
-      CPUFeatures::kCRC32,
-      // Bits 8-15
-      CPUFeatures::kAtomics,
-      CPUFeatures::kFPHalf,
-      CPUFeatures::kNEONHalf,
-      CPUFeatures::kIDRegisterEmulation,
-      CPUFeatures::kRDM,
-      CPUFeatures::kJSCVT,
-      CPUFeatures::kFcma,
-      CPUFeatures::kRCpc,
-      // Bits 16-23
-      CPUFeatures::kDCPoP,
-      CPUFeatures::kSHA3,
-      CPUFeatures::kSM3,
-      CPUFeatures::kSM4,
-      CPUFeatures::kDotProduct,
-      CPUFeatures::kSHA512,
-      CPUFeatures::kSVE,
-      CPUFeatures::kFHM,
-      // Bits 24-27
-      CPUFeatures::kDIT,
-      CPUFeatures::kUSCAT,
-      CPUFeatures::kRCpcImm,
-      CPUFeatures::kFlagM
-      // Bits 28-31 are unassigned.
-  };
+  static const CPUFeatures::Feature kFeatureBits[] =
+      {// Bits 0-7
+       CPUFeatures::kFP,
+       CPUFeatures::kNEON,
+       CPUFeatures::kNone,  // "EVTSTRM", which VIXL doesn't track.
+       CPUFeatures::kAES,
+       CPUFeatures::kPmull1Q,
+       CPUFeatures::kSHA1,
+       CPUFeatures::kSHA2,
+       CPUFeatures::kCRC32,
+       // Bits 8-15
+       CPUFeatures::kAtomics,
+       CPUFeatures::kFPHalf,
+       CPUFeatures::kNEONHalf,
+       CPUFeatures::kIDRegisterEmulation,
+       CPUFeatures::kRDM,
+       CPUFeatures::kJSCVT,
+       CPUFeatures::kFcma,
+       CPUFeatures::kRCpc,
+       // Bits 16-23
+       CPUFeatures::kDCPoP,
+       CPUFeatures::kSHA3,
+       CPUFeatures::kSM3,
+       CPUFeatures::kSM4,
+       CPUFeatures::kDotProduct,
+       CPUFeatures::kSHA512,
+       CPUFeatures::kSVE,
+       CPUFeatures::kFHM,
+       // Bits 24-27
+       CPUFeatures::kDIT,
+       CPUFeatures::kUSCAT,
+       CPUFeatures::kRCpcImm,
+       CPUFeatures::kFlagM,
+       // Bits 28-31
+       CPUFeatures::kNone,  // "ssbs"
+       CPUFeatures::kNone,  // "sb"
+       CPUFeatures::kPAuth,
+       CPUFeatures::kPAuthGeneric};
   static const size_t kFeatureBitCount =
       sizeof(kFeatureBits) / sizeof(kFeatureBits[0]);
 
   unsigned long auxv = getauxval(AT_HWCAP);  // NOLINT(runtime/int)
+
+  // TODO: Also examine AT_HWCAP2.
 
   VIXL_STATIC_ASSERT(kFeatureBitCount < (sizeof(auxv) * kBitsPerByte));
   for (size_t i = 0; i < kFeatureBitCount; i++) {
@@ -225,10 +238,10 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
     return NAME(value);                                \
   }
 #else  // __aarch64__
-#define VIXL_READ_ID_REG(NAME)                                        \
-  NAME CPU::Read##NAME() {                                            \
-    /* TODO: Use VIXL_UNREACHABLE once it works in release builds. */ \
-    VIXL_ABORT();                                                     \
+#define VIXL_READ_ID_REG(NAME) \
+  NAME CPU::Read##NAME() {     \
+    VIXL_UNREACHABLE();        \
+    return NAME(0);            \
   }
 #endif  // __aarch64__
 

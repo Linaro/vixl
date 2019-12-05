@@ -92,6 +92,7 @@ class AA64PFR0 : public IDRegister {
  private:
   static const Field kFP;
   static const Field kAdvSIMD;
+  static const Field kRAS;
   static const Field kSVE;
   static const Field kDIT;
 };
@@ -143,8 +144,6 @@ class AA64ISAR1 : public IDRegister {
   static const Field kGPA;
   static const Field kGPI;
   static const Field kFRINTTS;
-  static const Field kSB;
-  static const Field kSPECRES;
 };
 
 class AA64MMFR1 : public IDRegister {
@@ -155,6 +154,16 @@ class AA64MMFR1 : public IDRegister {
 
  private:
   static const Field kLO;
+};
+
+class AA64MMFR2 : public IDRegister {
+ public:
+  explicit AA64MMFR2(uint64_t value) : IDRegister(value) {}
+
+  CPUFeatures GetCPUFeatures() const;
+
+ private:
+  static const Field kAT;
 };
 
 class CPU {
@@ -219,7 +228,8 @@ class CPU {
   V(AA64PFR1)                       \
   V(AA64ISAR0)                      \
   V(AA64ISAR1)                      \
-  V(AA64MMFR1)
+  V(AA64MMFR1)                      \
+  V(AA64MMFR2)
 
 #define VIXL_READ_ID_REG(NAME) static NAME Read##NAME();
   // On native AArch64 platforms, read the named CPU ID registers. These require
