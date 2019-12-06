@@ -5510,8 +5510,10 @@ void Assembler::punpkhi(const PRegisterWithLaneSize& pd,
   //  H<16> = 1 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pd.IsLaneSizeH());
+  VIXL_ASSERT(pn.IsLaneSizeB());
 
-  Emit(PUNPKHI_p_p | Pd(pd) | Rx<8, 5>(pn));
+  Emit(PUNPKHI_p_p | Pd(pd) | Pn(pn));
 }
 
 void Assembler::punpklo(const PRegisterWithLaneSize& pd,
@@ -5521,8 +5523,10 @@ void Assembler::punpklo(const PRegisterWithLaneSize& pd,
   //  H<16> = 0 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pd.IsLaneSizeH());
+  VIXL_ASSERT(pn.IsLaneSizeB());
 
-  Emit(PUNPKLO_p_p | Pd(pd) | Rx<8, 5>(pn));
+  Emit(PUNPKLO_p_p | Pd(pd) | Pn(pn));
 }
 
 void Assembler::rev(const PRegisterWithLaneSize& pd,
@@ -5532,8 +5536,9 @@ void Assembler::rev(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn));
 
-  Emit(REV_p_p | Pd(pd) | Rx<8, 5>(pn));
+  Emit(REV_p_p | SVESize(pd) | Pd(pd) | Rx<8, 5>(pn));
 }
 
 void Assembler::trn1(const PRegisterWithLaneSize& pd,
@@ -5544,8 +5549,9 @@ void Assembler::trn1(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pm<19:16> | opc<12:11> = 10 | H<10> = 0 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn, pm));
 
-  Emit(TRN1_p_pp | Pd(pd) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(TRN1_p_pp | SVESize(pd) | Pd(pd) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::trn2(const PRegisterWithLaneSize& pd,
@@ -5556,8 +5562,9 @@ void Assembler::trn2(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pm<19:16> | opc<12:11> = 10 | H<10> = 1 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn, pm));
 
-  Emit(TRN2_p_pp | Pd(pd) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(TRN2_p_pp | SVESize(pd) | Pd(pd) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::uzp1(const PRegisterWithLaneSize& pd,
@@ -5568,8 +5575,9 @@ void Assembler::uzp1(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pm<19:16> | opc<12:11> = 01 | H<10> = 0 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn, pm));
 
-  Emit(UZP1_p_pp | Pd(pd) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(UZP1_p_pp | SVESize(pd) | Pd(pd) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::uzp2(const PRegisterWithLaneSize& pd,
@@ -5580,8 +5588,9 @@ void Assembler::uzp2(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pm<19:16> | opc<12:11> = 01 | H<10> = 1 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn, pm));
 
-  Emit(UZP2_p_pp | Pd(pd) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(UZP2_p_pp | SVESize(pd) | Pd(pd) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::zip1(const PRegisterWithLaneSize& pd,
@@ -5592,8 +5601,9 @@ void Assembler::zip1(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pm<19:16> | opc<12:11> = 00 | H<10> = 0 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn, pm));
 
-  Emit(ZIP1_p_pp | Pd(pd) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(ZIP1_p_pp | SVESize(pd) | Pd(pd) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::zip2(const PRegisterWithLaneSize& pd,
@@ -5604,8 +5614,9 @@ void Assembler::zip2(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Pm<19:16> | opc<12:11> = 00 | H<10> = 1 | Pn<8:5> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(pd, pn, pm));
 
-  Emit(ZIP2_p_pp | Pd(pd) | Rx<8, 5>(pn) | Rx<19, 16>(pm));
+  Emit(ZIP2_p_pp | SVESize(pd) | Pd(pd) | Pn(pn) | Pm(pm));
 }
 
 // SVEPermuteVectorExtract.

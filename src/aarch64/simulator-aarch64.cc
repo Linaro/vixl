@@ -372,6 +372,25 @@ const char* Simulator::PRegNameForCode(unsigned code) {
   return preg_names[code];
 }
 
+SimVRegister Simulator::ExpandToSimVRegister(const SimPRegister& pg) {
+  SimVRegister ones, result;
+  dup_immediate(kFormatVnB, ones, 0xff);
+  mov_zeroing(kFormatVnB, result, pg, ones);
+  return result;
+}
+
+void Simulator::ExtractFromSimVRegister(SimPRegister& pd, SimVRegister vreg) {
+  SimVRegister zero;
+  dup_immediate(kFormatVnB, zero, 0);
+  SVEIntCompareVectorsHelper(ne,
+                             kFormatVnB,
+                             pd,
+                             GetPTrue(),
+                             vreg,
+                             zero,
+                             false,
+                             LeaveFlags);
+}
 
 #define COLOUR(colour_code) "\033[0;" colour_code "m"
 #define COLOUR_BOLD(colour_code) "\033[1;" colour_code "m"
@@ -10464,53 +10483,73 @@ void Simulator::VisitSVEPropagateBreakToNextPartition(
 }
 
 void Simulator::VisitSVEUnpackPredicateElements(const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+
+  SimVRegister temp = Simulator::ExpandToSimVRegister(pn);
+  SimVRegister zero;
+  dup_immediate(kFormatVnB, zero, 0);
+
   switch (instr->Mask(SVEUnpackPredicateElementsMask)) {
     case PUNPKHI_p_p:
-      VIXL_UNIMPLEMENTED();
+      zip2(kFormatVnB, temp, temp, zero);
       break;
     case PUNPKLO_p_p:
-      VIXL_UNIMPLEMENTED();
+      zip1(kFormatVnB, temp, temp, zero);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  Simulator::ExtractFromSimVRegister(pd, temp);
 }
 
 void Simulator::VisitSVEPermutePredicateElements(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister& pm = ReadPRegister(instr->GetPm());
+
+  SimVRegister temp0 = Simulator::ExpandToSimVRegister(pn);
+  SimVRegister temp1 = Simulator::ExpandToSimVRegister(pm);
+
   switch (instr->Mask(SVEPermutePredicateElementsMask)) {
     case TRN1_p_pp:
-      VIXL_UNIMPLEMENTED();
+      trn1(vform, temp0, temp0, temp1);
       break;
     case TRN2_p_pp:
-      VIXL_UNIMPLEMENTED();
+      trn2(vform, temp0, temp0, temp1);
       break;
     case UZP1_p_pp:
-      VIXL_UNIMPLEMENTED();
+      uzp1(vform, temp0, temp0, temp1);
       break;
     case UZP2_p_pp:
-      VIXL_UNIMPLEMENTED();
+      uzp2(vform, temp0, temp0, temp1);
       break;
     case ZIP1_p_pp:
-      VIXL_UNIMPLEMENTED();
+      zip1(vform, temp0, temp0, temp1);
       break;
     case ZIP2_p_pp:
-      VIXL_UNIMPLEMENTED();
+      zip2(vform, temp0, temp0, temp1);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  Simulator::ExtractFromSimVRegister(pd, temp0);
 }
 
 void Simulator::VisitSVEReversePredicateElements(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEReversePredicateElementsMask)) {
-    case REV_p_p:
-      VIXL_UNIMPLEMENTED();
+    case REV_p_p: {
+      VectorFormat vform = instr->GetSVEVectorFormat();
+      SimPRegister& pn = ReadPRegister(instr->GetPn());
+      SimPRegister& pd = ReadPRegister(instr->GetPd());
+      SimVRegister temp = Simulator::ExpandToSimVRegister(pn);
+      rev(vform, temp, temp);
+      Simulator::ExtractFromSimVRegister(pd, temp);
       break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

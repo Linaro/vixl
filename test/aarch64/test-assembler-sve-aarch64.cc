@@ -10695,5 +10695,348 @@ TEST_SVE(sve_fexpa) {
   }
 }
 
+TEST_SVE(sve_rev_p) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm,
+             p0.VnB(),
+             0xabcdabcdabcdabcd,
+             0xabcdabcdabcdabcd,
+             0xabcdabcdabcdabcd,
+             0xabcdabcdabcdabcd);
+
+  __ Rev(p1.VnB(), p0.VnB());
+  __ Rev(p2.VnH(), p0.VnH());
+  __ Rev(p3.VnS(), p0.VnS());
+  __ Rev(p4.VnD(), p0.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p1_expected[] = {1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1};
+    ASSERT_EQUAL_SVE(p1_expected, p1.VnB());
+    int p2_expected[] = {0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    int p3_expected[] = {1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+    int p4_expected[] = {1, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 1};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+  }
+}
+
+TEST_SVE(sve_trn_p_bh) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm, p0.VnB(), 0xa5a55a5a);
+  __ Pfalse(p1.VnB());
+
+  __ Trn1(p2.VnB(), p0.VnB(), p0.VnB());
+  __ Trn2(p3.VnB(), p0.VnB(), p0.VnB());
+  __ Trn1(p4.VnB(), p1.VnB(), p0.VnB());
+  __ Trn2(p5.VnB(), p1.VnB(), p0.VnB());
+  __ Trn1(p6.VnB(), p0.VnB(), p1.VnB());
+  __ Trn2(p7.VnB(), p0.VnB(), p1.VnB());
+
+  __ Trn1(p8.VnH(), p0.VnH(), p0.VnH());
+  __ Trn2(p9.VnH(), p0.VnH(), p0.VnH());
+  __ Trn1(p10.VnH(), p1.VnH(), p0.VnH());
+  __ Trn2(p11.VnH(), p1.VnH(), p0.VnH());
+  __ Trn1(p12.VnH(), p0.VnH(), p1.VnH());
+  __ Trn2(p13.VnH(), p0.VnH(), p1.VnH());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    int p2_expected[] = {1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0};
+    int p3_expected[] = {0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0};
+    int p5_expected[] = {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnB());
+
+    int p6_expected[] = {0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0};
+    int p7_expected[] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnB());
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
+
+    int p8_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    int p9_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnB());
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnB());
+
+    int p10_expected[] = {0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0};
+    int p11_expected[] = {0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnB());
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnB());
+
+    int p12_expected[] = {0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0};
+    int p13_expected[] = {0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p12_expected, p12.VnB());
+    ASSERT_EQUAL_SVE(p13_expected, p13.VnB());
+  }
+}
+
+TEST_SVE(sve_trn_p_sd) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm, p0.VnB(), 0x55a55aaa);
+  __ Pfalse(p1.VnB());
+
+  __ Trn1(p2.VnS(), p0.VnS(), p0.VnS());
+  __ Trn2(p3.VnS(), p0.VnS(), p0.VnS());
+  __ Trn1(p4.VnS(), p1.VnS(), p0.VnS());
+  __ Trn2(p5.VnS(), p1.VnS(), p0.VnS());
+  __ Trn1(p6.VnS(), p0.VnS(), p1.VnS());
+  __ Trn2(p7.VnS(), p0.VnS(), p1.VnS());
+
+  __ Trn1(p8.VnD(), p0.VnD(), p0.VnD());
+  __ Trn2(p9.VnD(), p0.VnD(), p0.VnD());
+  __ Trn1(p10.VnD(), p1.VnD(), p0.VnD());
+  __ Trn2(p11.VnD(), p1.VnD(), p0.VnD());
+  __ Trn1(p12.VnD(), p0.VnD(), p1.VnD());
+  __ Trn2(p13.VnD(), p0.VnD(), p1.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    int p2_expected[] = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
+    int p3_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0};
+    int p5_expected[] = {0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnB());
+
+    int p6_expected[] = {0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0};
+    int p7_expected[] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnB());
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
+
+    int p8_expected[] = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0};
+    int p9_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnB());
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnB());
+
+    int p10_expected[] = {1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int p11_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnB());
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnB());
+
+    int p12_expected[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0};
+    int p13_expected[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p12_expected, p12.VnB());
+    ASSERT_EQUAL_SVE(p13_expected, p13.VnB());
+  }
+}
+
+TEST_SVE(sve_zip_p_bh) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm,
+             p0.VnB(),
+             0x5a5a5a5a5a5a5a5a,
+             0x5a5a5a5a5a5a5a5a,
+             0x5a5a5a5a5a5a5a5a,
+             0x5a5a5a5a5a5a5a5a);
+  __ Pfalse(p1.VnB());
+
+  __ Zip1(p2.VnB(), p0.VnB(), p0.VnB());
+  __ Zip2(p3.VnB(), p0.VnB(), p0.VnB());
+  __ Zip1(p4.VnB(), p1.VnB(), p0.VnB());
+  __ Zip2(p5.VnB(), p1.VnB(), p0.VnB());
+  __ Zip1(p6.VnB(), p0.VnB(), p1.VnB());
+  __ Zip2(p7.VnB(), p0.VnB(), p1.VnB());
+
+  __ Zip1(p8.VnH(), p0.VnH(), p0.VnH());
+  __ Zip2(p9.VnH(), p0.VnH(), p0.VnH());
+  __ Zip1(p10.VnH(), p1.VnH(), p0.VnH());
+  __ Zip2(p11.VnH(), p1.VnH(), p0.VnH());
+  __ Zip1(p12.VnH(), p0.VnH(), p1.VnH());
+  __ Zip2(p13.VnH(), p0.VnH(), p1.VnH());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    int p2_expected[] = {0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0};
+    int p3_expected[] = {0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+    int p5_expected[] = {0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnB());
+
+    int p6_expected[] = {0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0};
+    int p7_expected[] = {0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnB());
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
+
+    int p8_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+    int p9_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnB());
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnB());
+
+    int p10_expected[] = {0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+    int p11_expected[] = {0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnB());
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnB());
+
+    int p12_expected[] = {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0};
+    int p13_expected[] = {0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p12_expected, p12.VnB());
+    ASSERT_EQUAL_SVE(p13_expected, p13.VnB());
+  }
+}
+
+TEST_SVE(sve_zip_p_sd) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm,
+             p0.VnB(),
+             0x5a5a5a5a5a5a5a5a,
+             0x5a5a5a5a5a5a5a5a,
+             0x5a5a5a5a5a5a5a5a,
+             0x5a5a5a5a5a5a5a5a);
+  __ Pfalse(p1.VnB());
+
+  __ Zip1(p2.VnS(), p0.VnS(), p0.VnS());
+  __ Zip2(p3.VnS(), p0.VnS(), p0.VnS());
+  __ Zip1(p4.VnS(), p1.VnS(), p0.VnS());
+  __ Zip2(p5.VnS(), p1.VnS(), p0.VnS());
+  __ Zip1(p6.VnS(), p0.VnS(), p1.VnS());
+  __ Zip2(p7.VnS(), p0.VnS(), p1.VnS());
+
+  __ Zip1(p8.VnD(), p0.VnD(), p0.VnD());
+  __ Zip2(p9.VnD(), p0.VnD(), p0.VnD());
+  __ Zip1(p10.VnD(), p1.VnD(), p0.VnD());
+  __ Zip2(p11.VnD(), p1.VnD(), p0.VnD());
+  __ Zip1(p12.VnD(), p0.VnD(), p1.VnD());
+  __ Zip2(p13.VnD(), p0.VnD(), p1.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    int p2_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+    int p3_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    ASSERT_EQUAL_SVE(p3_expected, p3.VnB());
+
+    int p4_expected[] = {0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0};
+    int p5_expected[] = {0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p4_expected, p4.VnB());
+    ASSERT_EQUAL_SVE(p5_expected, p5.VnB());
+
+    int p6_expected[] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0};
+    int p7_expected[] = {0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p6_expected, p6.VnB());
+    ASSERT_EQUAL_SVE(p7_expected, p7.VnB());
+
+    int p8_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    int p9_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p8_expected, p8.VnB());
+    ASSERT_EQUAL_SVE(p9_expected, p9.VnB());
+
+    int p10_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    int p11_expected[] = {0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p10_expected, p10.VnB());
+    ASSERT_EQUAL_SVE(p11_expected, p11.VnB());
+
+    int p12_expected[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    int p13_expected[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+    ASSERT_EQUAL_SVE(p12_expected, p12.VnB());
+    ASSERT_EQUAL_SVE(p13_expected, p13.VnB());
+  }
+}
+
+TEST_SVE(sve_uzp_p) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm,
+             p0.VnB(),
+             0xf0f0ff00ffff0000,
+             0x4242424242424242,
+             0x5a5a5a5a5a5a5a5a,
+             0x0123456789abcdef);
+  __ Rev(p1.VnB(), p0.VnB());
+
+  __ Zip1(p2.VnB(), p0.VnB(), p1.VnB());
+  __ Zip2(p3.VnB(), p0.VnB(), p1.VnB());
+  __ Uzp1(p4.VnB(), p2.VnB(), p3.VnB());
+  __ Uzp2(p5.VnB(), p2.VnB(), p3.VnB());
+
+  __ Zip1(p2.VnH(), p0.VnH(), p1.VnH());
+  __ Zip2(p3.VnH(), p0.VnH(), p1.VnH());
+  __ Uzp1(p6.VnH(), p2.VnH(), p3.VnH());
+  __ Uzp2(p7.VnH(), p2.VnH(), p3.VnH());
+
+  __ Zip1(p2.VnS(), p0.VnS(), p1.VnS());
+  __ Zip2(p3.VnS(), p0.VnS(), p1.VnS());
+  __ Uzp1(p8.VnS(), p2.VnS(), p3.VnS());
+  __ Uzp2(p9.VnS(), p2.VnS(), p3.VnS());
+
+  __ Zip1(p2.VnD(), p0.VnD(), p1.VnD());
+  __ Zip2(p3.VnD(), p0.VnD(), p1.VnD());
+  __ Uzp1(p10.VnD(), p2.VnD(), p3.VnD());
+  __ Uzp2(p11.VnD(), p2.VnD(), p3.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(p0, p4);
+    ASSERT_EQUAL_SVE(p1, p5);
+    ASSERT_EQUAL_SVE(p0, p6);
+    ASSERT_EQUAL_SVE(p1, p7);
+    ASSERT_EQUAL_SVE(p0, p8);
+    ASSERT_EQUAL_SVE(p1, p9);
+    ASSERT_EQUAL_SVE(p0, p10);
+    ASSERT_EQUAL_SVE(p1, p11);
+  }
+}
+
+TEST_SVE(sve_punpk) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  Initialise(&masm,
+             p0.VnB(),
+             0xf0a0f0a0f0a0f0a0,
+             0xf0a0f0a0f0a0f0a0,
+             0xa0f0a0f0a0f0a0f0,
+             0xa0f0a0f0a0f0a0f0);
+  __ Punpklo(p1.VnH(), p0.VnB());
+  __ Punpkhi(p2.VnH(), p0.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p1_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0};
+    int p2_expected[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p1_expected, p1.VnB());
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

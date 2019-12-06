@@ -2467,8 +2467,10 @@ LogicVRegister Simulator::rev(VectorFormat vform,
                               const LogicVRegister& src) {
   VIXL_ASSERT(IsSVEFormat(vform));
   int lane_count = LaneCountFromFormat(vform);
-  for (int i = 0; i < lane_count; i++) {
+  for (int i = 0; i < lane_count / 2; i++) {
+    uint64_t t = src.Uint(vform, i);
     dst.SetUint(vform, i, src.Uint(vform, lane_count - i - 1));
+    dst.SetUint(vform, lane_count - i - 1, t);
   }
   return dst;
 }
@@ -4069,7 +4071,7 @@ LogicVRegister Simulator::trn1(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  uint64_t result[16];
+  uint64_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   int pairs = laneCount / 2;
   for (int i = 0; i < pairs; ++i) {
@@ -4089,7 +4091,7 @@ LogicVRegister Simulator::trn2(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  uint64_t result[16];
+  uint64_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   int pairs = laneCount / 2;
   for (int i = 0; i < pairs; ++i) {
@@ -4109,7 +4111,7 @@ LogicVRegister Simulator::zip1(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  uint64_t result[16];
+  uint64_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   int pairs = laneCount / 2;
   for (int i = 0; i < pairs; ++i) {
@@ -4129,7 +4131,7 @@ LogicVRegister Simulator::zip2(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  uint64_t result[16];
+  uint64_t result[kZRegMaxSizeInBytes];
   int laneCount = LaneCountFromFormat(vform);
   int pairs = laneCount / 2;
   for (int i = 0; i < pairs; ++i) {
@@ -4149,7 +4151,7 @@ LogicVRegister Simulator::uzp1(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  uint64_t result[32];
+  uint64_t result[kZRegMaxSizeInBytes * 2];
   int laneCount = LaneCountFromFormat(vform);
   for (int i = 0; i < laneCount; ++i) {
     result[i] = src1.Uint(vform, i);
@@ -4168,7 +4170,7 @@ LogicVRegister Simulator::uzp2(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  uint64_t result[32];
+  uint64_t result[kZRegMaxSizeInBytes * 2];
   int laneCount = LaneCountFromFormat(vform);
   for (int i = 0; i < laneCount; ++i) {
     result[i] = src1.Uint(vform, i);
@@ -6207,7 +6209,8 @@ LogicPRegister Simulator::SVEIntCompareVectorsHelper(Condition cond,
                                                      const LogicPRegister& mask,
                                                      const LogicVRegister& src1,
                                                      const LogicVRegister& src2,
-                                                     bool is_wide_elements) {
+                                                     bool is_wide_elements,
+                                                     FlagsUpdate flags) {
   for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
     bool result = false;
     if (mask.IsActive(vform, lane)) {
@@ -6275,7 +6278,7 @@ LogicPRegister Simulator::SVEIntCompareVectorsHelper(Condition cond,
     dst.SetActive(vform, lane, result);
   }
 
-  PredTest(vform, mask, dst);
+  if (flags == SetFlags) PredTest(vform, mask, dst);
 
   return dst;
 }

@@ -4210,7 +4210,8 @@ class Simulator : public DecoderVisitor {
                                             const LogicPRegister& mask,
                                             const LogicVRegister& src1,
                                             const LogicVRegister& src2,
-                                            bool is_wide_elements = false);
+                                            bool is_wide_elements = false,
+                                            FlagsUpdate flags = SetFlags);
 
   // Store each active zt<i>[lane] to `addr.GetElementAddress(lane, ...)`.
   //
@@ -4413,6 +4414,17 @@ class Simulator : public DecoderVisitor {
       return 0.0;
     }
   }
+
+  // Construct a SimVRegister from a SimPRegister, where each byte-sized lane of
+  // the destination is set to all true (0xff) when the corresponding
+  // predicate flag is set, and false (0x00) otherwise.
+  SimVRegister ExpandToSimVRegister(const SimPRegister& preg);
+
+  // Set each predicate flag in pd where the corresponding byte-sized lane in
+  // vreg is non-zero. Clear the flag, otherwise. This is almost the opposite
+  // operation to ExpandToSimVRegister(), except that any non-zero lane is
+  // interpreted as true.
+  void ExtractFromSimVRegister(SimPRegister& pd, SimVRegister vreg);
 
   bool coloured_trace_;
 

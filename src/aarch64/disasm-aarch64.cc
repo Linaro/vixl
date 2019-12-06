@@ -7872,31 +7872,24 @@ void Disassembler::VisitSVEPartitionBreakCondition(const Instruction *instr) {
 
 void Disassembler::VisitSVEPermutePredicateElements(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
   const char *form = "'Pd.'t, 'Pn.'t, 'Pm.'t";
 
   switch (instr->Mask(SVEPermutePredicateElementsMask)) {
-    // TRN1 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
     case TRN1_p_pp:
       mnemonic = "trn1";
       break;
-    // TRN2 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
     case TRN2_p_pp:
       mnemonic = "trn2";
       break;
-    // UZP1 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
     case UZP1_p_pp:
       mnemonic = "uzp1";
       break;
-    // UZP2 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
     case UZP2_p_pp:
       mnemonic = "uzp2";
       break;
-    // ZIP1 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
     case ZIP1_p_pp:
       mnemonic = "zip1";
       break;
-    // ZIP2 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
     case ZIP2_p_pp:
       mnemonic = "zip2";
       break;
@@ -7997,7 +7990,6 @@ void Disassembler::VisitSVEReversePredicateElements(const Instruction *instr) {
   const char *form = "(SVEReversePredicateElements)";
 
   switch (instr->Mask(SVEReversePredicateElementsMask)) {
-    // REV <Pd>.<T>, <Pn>.<T>
     case REV_p_p:
       mnemonic = "rev";
       form = "'Pd.'t, 'Pn.'t";
