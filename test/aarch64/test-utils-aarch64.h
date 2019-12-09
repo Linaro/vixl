@@ -203,6 +203,7 @@ class RegisterDump {
   }
 
   inline int GetSVELaneCount(int lane_size_in_bits) const {
+    VIXL_ASSERT(lane_size_in_bits > 0);
     VIXL_ASSERT((dump_.vl_ % lane_size_in_bits) == 0);
     uint64_t count = dump_.vl_ / lane_size_in_bits;
     VIXL_ASSERT(count <= INT_MAX);

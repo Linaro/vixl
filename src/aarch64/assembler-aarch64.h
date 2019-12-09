@@ -4788,13 +4788,42 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterZ& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous load first-fault unsigned bytes to vector (scalar index).
+  // Contiguous load first-fault unsigned bytes to vector.
   void ldff1b(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Gather load first-fault unsigned bytes to vector (vector index).
+  // Contiguous load first-fault unsigned halfwords to vector.
+  void ldff1h(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault unsigned words to vector.
+  void ldff1w(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault doublewords to vector.
+  void ldff1d(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault signed bytes to vector.
+  void ldff1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load first-fault signed halfwords to vector.
+  void ldff1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load first-fault signed words to vector.
+  void ldff1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Gather load first-fault unsigned bytes to vector.
   void ldff1b(const ZRegister& zt,
               const PRegisterZ& pg,
               const Register& xn,
@@ -4805,12 +4834,6 @@ class Assembler : public vixl::internal::AssemblerBase {
               const PRegisterZ& pg,
               const ZRegister& zn,
               int imm5);
-
-  // Contiguous load first-fault doublewords to vector (scalar index).
-  void ldff1d(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
 
   // Gather load first-fault doublewords to vector (vector index).
   void ldff1d(const ZRegister& zt,
@@ -4824,13 +4847,6 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zn,
               int imm5);
 
-  // Contiguous load first-fault unsigned halfwords to vector (scalar
-  // index).
-  void ldff1h(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
-
   // Gather load first-fault unsigned halfwords to vector (vector index).
   void ldff1h(const ZRegister& zt,
               const PRegisterZ& pg,
@@ -4842,12 +4858,6 @@ class Assembler : public vixl::internal::AssemblerBase {
               const PRegisterZ& pg,
               const ZRegister& zn,
               int imm5);
-
-  // Contiguous load first-fault signed bytes to vector (scalar index).
-  void ldff1sb(const ZRegister& zt,
-               const PRegisterZ& pg,
-               const Register& xn,
-               const Register& rm);
 
   // Gather load first-fault signed bytes to vector (vector index).
   void ldff1sb(const ZRegister& zt,
@@ -4861,12 +4871,6 @@ class Assembler : public vixl::internal::AssemblerBase {
                const ZRegister& zn,
                int imm5);
 
-  // Contiguous load first-fault signed halfwords to vector (scalar index).
-  void ldff1sh(const ZRegister& zt,
-               const PRegisterZ& pg,
-               const Register& xn,
-               const Register& rm);
-
   // Gather load first-fault signed halfwords to vector (vector index).
   void ldff1sh(const ZRegister& zt,
                const PRegisterZ& pg,
@@ -4879,12 +4883,6 @@ class Assembler : public vixl::internal::AssemblerBase {
                const ZRegister& zn,
                int imm5);
 
-  // Contiguous load first-fault signed words to vector (scalar index).
-  void ldff1sw(const ZRegister& zt,
-               const PRegisterZ& pg,
-               const Register& xn,
-               const Register& rm);
-
   // Gather load first-fault signed words to vector (vector index).
   void ldff1sw(const ZRegister& zt,
                const PRegisterZ& pg,
@@ -4896,12 +4894,6 @@ class Assembler : public vixl::internal::AssemblerBase {
                const PRegisterZ& pg,
                const ZRegister& zn,
                int imm5);
-
-  // Contiguous load first-fault unsigned words to vector (scalar index).
-  void ldff1w(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
 
   // Gather load first-fault unsigned words to vector (vector index).
   void ldff1w(const ZRegister& zt,
@@ -6779,6 +6771,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                     const PRegisterZ& pg,
                     const SVEMemOperand& addr,
                     bool is_signed);
+
+  // E.g. ldff1b, ldff1h, ...
+  void SVELdff1Helper(unsigned msize_in_bytes_log2,
+                      const ZRegister& zt,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr,
+                      bool is_signed);
 
   // Common code for the helpers above.
   void SVELdSt1Helper(unsigned msize_in_bytes_log2,

@@ -1070,6 +1070,29 @@ void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
   }
 }
 
+template <typename Tf>
+void MacroAssembler::SVELoadFFHelper(int msize_in_bytes_log2,
+                                     const ZRegister& zt,
+                                     const PRegisterZ& pg,
+                                     const SVEMemOperand& addr,
+                                     Tf fn) {
+  // These instructions have no scalar-plus-immediate form at all, so we don't
+  // do immediate synthesis. However, we cannot currently distinguish "[x0]"
+  // from "[x0, #0]" so we have to permit `IsScalar()` here.
+  VIXL_ASSERT(addr.IsScalarPlusImmediate() || !addr.IsScalar());
+
+  if (addr.IsScalar() || (addr.IsScalarPlusScalar() &&
+                          addr.IsEquivalentToLSL(msize_in_bytes_log2))) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, addr);
+    return;
+  }
+
+  // TODO: Handle scatter-gather forms.
+
+  VIXL_UNIMPLEMENTED();
+}
+
 void MacroAssembler::Ld1b(const ZRegister& zt,
                           const PRegisterZ& pg,
                           const SVEMemOperand& addr) {
@@ -1189,6 +1212,83 @@ void MacroAssembler::St1d(const ZRegister& zt,
                       pg,
                       addr,
                       static_cast<SVEStore1Fn>(&Assembler::st1d));
+}
+
+void MacroAssembler::Ldff1b(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kBRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1b));
+}
+
+void MacroAssembler::Ldff1h(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kHRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1h));
+}
+
+void MacroAssembler::Ldff1w(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kSRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1w));
+}
+
+void MacroAssembler::Ldff1d(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kDRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1d));
+}
+
+void MacroAssembler::Ldff1sb(const ZRegister& zt,
+                             const PRegisterZ& pg,
+                             const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kBRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1sb));
+}
+
+void MacroAssembler::Ldff1sh(const ZRegister& zt,
+                             const PRegisterZ& pg,
+                             const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kHRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1sh));
+}
+
+void MacroAssembler::Ldff1sw(const ZRegister& zt,
+                             const PRegisterZ& pg,
+                             const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadFFHelper(kSRegSizeInBytesLog2,
+                  zt,
+                  pg,
+                  addr,
+                  static_cast<SVELoad1Fn>(&Assembler::ldff1sw));
 }
 
 void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,

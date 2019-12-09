@@ -6918,6 +6918,91 @@ LogicPRegister Simulator::brkpb(LogicPRegister pd,
   return pd;
 }
 
+void Simulator::SVEFaultTolerantLoadHelper(VectorFormat vform,
+                                           const LogicPRegister& pg,
+                                           unsigned zt_code,
+                                           const LogicSVEAddressVector& addr,
+                                           SVEFaultTolerantLoadType type,
+                                           bool is_signed) {
+  int esize_in_bytes = LaneSizeInBytesFromFormat(vform);
+  int msize_in_bits = addr.GetMsizeInBits();
+  int msize_in_bytes = addr.GetMsizeInBytes();
+
+  VIXL_ASSERT(zt_code < kNumberOfZRegisters);
+  VIXL_ASSERT(esize_in_bytes >= msize_in_bytes);
+  VIXL_ASSERT(addr.GetRegCount() == 1);
+
+  LogicVRegister zt = ReadVRegister(zt_code);
+  LogicPRegister ffr = ReadFFR();
+
+  // Non-faulting loads are allowed to fail arbitrarily. To stress user
+  // code, fail a random element in roughly one in eight full-vector loads.
+  uint32_t rnd = static_cast<uint32_t>(jrand48(rand_state_));
+  int fake_fault_at_lane = rnd % (LaneCountFromFormat(vform) * 8);
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t value = 0;
+
+    if (pg.IsActive(vform, i)) {
+      uint64_t element_address = addr.GetElementAddress(i, 0);
+
+      if (type == kSVEFirstFaultLoad) {
+        // First-faulting loads always load the first active element, regardless
+        // of FFR. The result will be discarded if its FFR lane is inactive, but
+        // it could still generate a fault.
+        value = Memory::Read(msize_in_bytes, element_address);
+        // All subsequent elements have non-fault semantics.
+        type = kSVENonFaultLoad;
+
+      } else if (ffr.IsActive(vform, i)) {
+        // Simulation of fault-tolerant loads relies on system calls, and is
+        // likely to be relatively slow, so we only actually perform the load if
+        // its FFR lane is active.
+
+        bool can_read = (i < fake_fault_at_lane) &&
+                        CanReadMemory(element_address, msize_in_bytes);
+        if (can_read) {
+          value = Memory::Read(msize_in_bytes, element_address);
+        } else {
+          // Propagate the fault to the end of FFR.
+          for (int j = i; j < LaneCountFromFormat(vform); j++) {
+            ffr.SetActive(vform, j, false);
+          }
+        }
+      }
+    }
+
+    // The architecture permits a few possible results for inactive FFR lanes
+    // (including those caused by a fault in this instruction). We choose to
+    // leave the register value unchanged (like merging predication) because
+    // no other input to this instruction can have the same behaviour.
+    //
+    // Note that this behaviour takes precedence over pg's zeroing predication.
+
+    if (ffr.IsActive(vform, i)) {
+      int msb = msize_in_bits - 1;
+      if (is_signed) {
+        zt.SetInt(vform, i, ExtractSignedBitfield64(msb, 0, value));
+      } else {
+        zt.SetUint(vform, i, ExtractUnsignedBitfield64(msb, 0, value));
+      }
+    }
+  }
+
+  if (ShouldTraceVRegs()) {
+    PrintRegisterFormat format = GetPrintRegisterFormat(vform);
+    if ((esize_in_bytes == msize_in_bytes) && !is_signed) {
+      // Use an FP format where it's likely that we're accessing FP data.
+      format = GetPrintRegisterFormatTryFP(format);
+    }
+    // Log accessed lanes that are active in both pg and ffr. PrintZStructAccess
+    // expects a single mask, so combine the two predicates.
+    SimPRegister mask;
+    SVEPredicateLogicalHelper(AND_p_p_pp_z, mask, pg, ffr);
+    PrintZStructAccess(zt_code, 1, mask, format, msize_in_bytes, "<-", addr);
+  }
+}
+
 int Simulator::GetFirstActive(VectorFormat vform,
                               const LogicPRegister& pg) const {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {

@@ -6150,90 +6150,58 @@ void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEContiguousFirstFaultLoad_ScalarPlusScalar)";
 
+  bool rm_is_zr = instr->GetRm() == kZeroRegCode;
+
+  const char *form_zr = "{ 'Zt.'tls }, p'u1210/z, ['Xns]";
+  const char *form_zr_s = "{ 'Zt.'tlss }, p'u1210/z, ['Xns]";
+
   switch (instr->Mask(SVEContiguousFirstFaultLoad_ScalarPlusScalarMask)) {
-    // LDFF1B { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1B_z_p_br_u16:
-      mnemonic = "ldff1b";
-      form = "{ 'Zt.h }, p'u1210/z, ['Xns{, 'Rm}]";
-      break;
-    // LDFF1B { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1B_z_p_br_u32:
-      mnemonic = "ldff1b";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, 'Rm}]";
-      break;
-    // LDFF1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1B_z_p_br_u64:
-      mnemonic = "ldff1b";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm}]";
-      break;
-    // LDFF1B { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1B_z_p_br_u8:
       mnemonic = "ldff1b";
-      form = "{ 'Zt.b }, p'u1210/z, ['Xns{, 'Rm}]";
+      form = rm_is_zr ? form_zr : "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm]";
       break;
-    // LDFF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #3}]
     case LDFF1D_z_p_br_u64:
       mnemonic = "ldff1d";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm, LSL #3}]";
+      form =
+          rm_is_zr ? form_zr : "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm, lsl #3]";
       break;
-    // LDFF1H { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
     case LDFF1H_z_p_br_u16:
-      mnemonic = "ldff1h";
-      form = "{ 'Zt.h }, p'u1210/z, ['Xns{, 'Rm, LSL #1}]";
-      break;
-    // LDFF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
     case LDFF1H_z_p_br_u32:
-      mnemonic = "ldff1h";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, 'Rm, LSL #1}]";
-      break;
-    // LDFF1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
     case LDFF1H_z_p_br_u64:
       mnemonic = "ldff1h";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm, LSL #1}]";
+      form =
+          rm_is_zr ? form_zr : "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm, lsl #1]";
       break;
-    // LDFF1SB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1SB_z_p_br_s16:
-      mnemonic = "ldff1sb";
-      form = "{ 'Zt.h }, p'u1210/z, ['Xns{, 'Rm}]";
-      break;
-    // LDFF1SB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1SB_z_p_br_s32:
-      mnemonic = "ldff1sb";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, 'Rm}]";
-      break;
-    // LDFF1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
     case LDFF1SB_z_p_br_s64:
       mnemonic = "ldff1sb";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm}]";
+      form = rm_is_zr ? form_zr_s : "{ 'Zt.'tlss }, p'u1210/z, ['Xns, 'Xm]";
       break;
-    // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
     case LDFF1SH_z_p_br_s32:
-      mnemonic = "ldff1sh";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, 'Rm, LSL #1}]";
-      break;
-    // LDFF1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
     case LDFF1SH_z_p_br_s64:
       mnemonic = "ldff1sh";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm, LSL #1}]";
+      form = rm_is_zr ? form_zr_s
+                      : "{ 'Zt.'tlss }, p'u1210/z, ['Xns, 'Xm, lsl #1]";
       break;
-    // LDFF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]
     case LDFF1SW_z_p_br_s64:
       mnemonic = "ldff1sw";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm, LSL #2}]";
+      form = rm_is_zr ? form_zr_s
+                      : "{ 'Zt.'tlss }, p'u1210/z, ['Xns, 'Xm, lsl #2]";
       break;
-    // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]
     case LDFF1W_z_p_br_u32:
-      mnemonic = "ldff1w";
-      form = "{ 'Zt.s }, p'u1210/z, ['Xns{, 'Rm, LSL #2}]";
-      break;
-    // LDFF1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]
     case LDFF1W_z_p_br_u64:
       mnemonic = "ldff1w";
-      form = "{ 'Zt.d }, p'u1210/z, ['Xns{, 'Rm, LSL #2}]";
+      form =
+          rm_is_zr ? form_zr : "{ 'Zt.'tls }, p'u1210/z, ['Xns, 'Xm, lsl #2]";
       break;
     default:
       break;
   }
+
   Format(instr, mnemonic, form);
 }
 

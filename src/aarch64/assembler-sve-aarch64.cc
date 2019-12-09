@@ -3676,13 +3676,48 @@ void Assembler::SVELd1Helper(unsigned msize_in_bytes_log2,
                              const PRegisterZ& pg,
                              const SVEMemOperand& addr,
                              bool is_signed) {
+  if (addr.IsScalarPlusScalar()) {
+    // Rm must not be xzr.
+    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());
+  }
+
   Instr op;
   if (addr.IsScalarPlusImmediate()) {
     op = SVEContiguousLoad_ScalarPlusImmFixed;
   } else if (addr.IsScalarPlusScalar()) {
     op = SVEContiguousLoad_ScalarPlusScalarFixed;
   } else {
-    // TODO: Handle scatter forms here.
+    // TODO: Handle gather forms here.
+    VIXL_UNIMPLEMENTED();
+    op = 0xffffffff;
+  }
+  SVELdSt1Helper(msize_in_bytes_log2, zt, pg, addr, is_signed, op);
+}
+
+void Assembler::SVELdff1Helper(unsigned msize_in_bytes_log2,
+                               const ZRegister& zt,
+                               const PRegisterZ& pg,
+                               const SVEMemOperand& addr,
+                               bool is_signed) {
+  if (addr.IsScalar()) {
+    // SVEMemOperand(x0) is treated as a scalar-plus-immediate form ([x0, #0]).
+    // In these instructions, we want to treat it as [x0, xzr].
+    SVEMemOperand addr_scalar_plus_scalar(addr.GetScalarBase(), xzr);
+    // Guard against infinite recursion.
+    VIXL_ASSERT(!addr_scalar_plus_scalar.IsScalar());
+    SVELdff1Helper(msize_in_bytes_log2,
+                   zt,
+                   pg,
+                   addr_scalar_plus_scalar,
+                   is_signed);
+    return;
+  }
+
+  Instr op;
+  if (addr.IsScalarPlusScalar()) {
+    op = SVEContiguousFirstFaultLoad_ScalarPlusScalarFixed;
+  } else {
+    // TODO: Handle gather forms here.
     VIXL_UNIMPLEMENTED();
     op = 0xffffffff;
   }
@@ -3693,6 +3728,11 @@ void Assembler::SVELd234Helper(int num_regs,
                                const ZRegister& zt1,
                                const PRegisterZ& pg,
                                const SVEMemOperand& addr) {
+  if (addr.IsScalarPlusScalar()) {
+    // Rm must not be xzr.
+    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());
+  }
+
   Instr op;
   if (addr.IsScalarPlusImmediate()) {
     op = SVELoadMultipleStructures_ScalarPlusImmFixed;
@@ -3758,6 +3798,15 @@ VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD1)
 VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD2)
 VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD3)
 VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LD4)
+
+#define VIXL_DEFINE_LD1S(MSZ, LANE_SIZE)                                \
+  void Assembler::ld1s##MSZ(const ZRegister& zt,                        \
+                            const PRegisterZ& pg,                       \
+                            const SVEMemOperand& addr) {                \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                             \
+    SVELd1Helper(k##LANE_SIZE##RegSizeInBytesLog2, zt, pg, addr, true); \
+  }
+VIXL_SVE_LOAD_STORE_SIGNED_VARIANT_LIST(VIXL_DEFINE_LD1S)
 
 // SVEMem32BitGatherAndUnsizedContiguous.
 
@@ -4793,136 +4842,23 @@ void Assembler::ld1rqw(const ZRegister& zt,
        ImmField<19, 16>(imm4));
 }
 
-void Assembler::ld1sb(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kBRegSizeInBytesLog2, zt, pg, addr, true);
-}
+#define VIXL_DEFINE_LDFF1(MSZ, LANE_SIZE)                                  \
+  void Assembler::ldff1##MSZ(const ZRegister& zt,                          \
+                             const PRegisterZ& pg,                         \
+                             const SVEMemOperand& addr) {                  \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                                \
+    SVELdff1Helper(k##LANE_SIZE##RegSizeInBytesLog2, zt, pg, addr, false); \
+  }
+VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LDFF1)
 
-void Assembler::ld1sh(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kHRegSizeInBytesLog2, zt, pg, addr, true);
-}
-
-void Assembler::ld1sw(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const SVEMemOperand& addr) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  SVELd1Helper(kSRegSizeInBytesLog2, zt, pg, addr, true);
-}
-
-// This prototype maps to 4 instruction encodings:
-//  LDFF1B_z_p_br_u16
-//  LDFF1B_z_p_br_u32
-//  LDFF1B_z_p_br_u64
-//  LDFF1B_z_p_br_u8
-void Assembler::ldff1b(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // LDFF1B { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
-  //  1010 0100 001. .... 011. .... .... ....
-  //  dtype<24:21> = 0001 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1B_z_p_br_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ldff1d(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // LDFF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #3}]
-  //  1010 0101 111. .... 011. .... .... ....
-  //  dtype<24:21> = 1111 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1D_z_p_br_u64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 3 instruction encodings:
-//  LDFF1H_z_p_br_u16
-//  LDFF1H_z_p_br_u32
-//  LDFF1H_z_p_br_u64
-void Assembler::ldff1h(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // LDFF1H { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
-  //  1010 0100 101. .... 011. .... .... ....
-  //  dtype<24:21> = 0101 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1H_z_p_br_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 3 instruction encodings:
-//  LDFF1SB_z_p_br_s16
-//  LDFF1SB_z_p_br_s32
-//  LDFF1SB_z_p_br_s64
-void Assembler::ldff1sb(const ZRegister& zt,
-                        const PRegisterZ& pg,
-                        const Register& xn,
-                        const Register& rm) {
-  // LDFF1SB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>}]
-  //  1010 0101 110. .... 011. .... .... ....
-  //  dtype<24:21> = 1110 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1SB_z_p_br_s16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LDFF1SH_z_p_br_s32
-//  LDFF1SH_z_p_br_s64
-void Assembler::ldff1sh(const ZRegister& zt,
-                        const PRegisterZ& pg,
-                        const Register& xn,
-                        const Register& rm) {
-  // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]
-  //  1010 0101 001. .... 011. .... .... ....
-  //  dtype<24:21> = 1001 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1SH_z_p_br_s32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::ldff1sw(const ZRegister& zt,
-                        const PRegisterZ& pg,
-                        const Register& xn,
-                        const Register& rm) {
-  // LDFF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]
-  //  1010 0100 100. .... 011. .... .... ....
-  //  dtype<24:21> = 0100 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1SW_z_p_br_s64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LDFF1W_z_p_br_u32
-//  LDFF1W_z_p_br_u64
-void Assembler::ldff1w(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]
-  //  1010 0101 010. .... 011. .... .... ....
-  //  dtype<24:21> = 1010 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LDFF1W_z_p_br_u32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
+#define VIXL_DEFINE_LDFF1S(MSZ, LANE_SIZE)                                \
+  void Assembler::ldff1s##MSZ(const ZRegister& zt,                        \
+                              const PRegisterZ& pg,                       \
+                              const SVEMemOperand& addr) {                \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                               \
+    SVELdff1Helper(k##LANE_SIZE##RegSizeInBytesLog2, zt, pg, addr, true); \
+  }
+VIXL_SVE_LOAD_STORE_SIGNED_VARIANT_LIST(VIXL_DEFINE_LDFF1S)
 
 // This prototype maps to 4 instruction encodings:
 //  LDNF1B_z_p_bi_u16
@@ -5164,8 +5100,8 @@ Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
   }
 
   if (addr.IsScalarPlusScalar()) {
-    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());  // Rm must not be xzr.
-    VIXL_ASSERT(addr.IsEquivalentToLSL(msize_in_bytes_log2));
+    VIXL_ASSERT(addr.GetScalarOffset().IsZero() ||
+                addr.IsEquivalentToLSL(msize_in_bytes_log2));
     USE(msize_in_bytes_log2);
     return RnSP(addr.GetScalarBase()) | Rm(addr.GetScalarOffset());
   }
@@ -5179,6 +5115,11 @@ void Assembler::SVESt1Helper(unsigned msize_in_bytes_log2,
                              const ZRegister& zt,
                              const PRegister& pg,
                              const SVEMemOperand& addr) {
+  if (addr.IsScalarPlusScalar()) {
+    // Rm must not be xzr.
+    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());
+  }
+
   Instr op;
   if (addr.IsScalarPlusImmediate()) {
     op = SVEContiguousStore_ScalarPlusImmFixed;
@@ -5196,6 +5137,11 @@ void Assembler::SVESt234Helper(int num_regs,
                                const ZRegister& zt1,
                                const PRegister& pg,
                                const SVEMemOperand& addr) {
+  if (addr.IsScalarPlusScalar()) {
+    // Rm must not be xzr.
+    VIXL_ASSERT(!addr.GetScalarOffset().IsZero());
+  }
+
   Instr op;
   if (addr.IsScalarPlusImmediate()) {
     op = SVEStoreMultipleStructures_ScalarPlusImmFixed;

@@ -486,6 +486,11 @@ class SVEMemOperand {
 
   // "scalar-plus-immediate", like [x0], [x0, #42] or [x0, #42, MUL_VL]
   // The only supported modifiers are NO_SVE_OFFSET_MODIFIER or SVE_MUL_VL.
+  //
+  // Note that VIXL cannot currently distinguish between `SVEMemOperand(x0)` and
+  // `SVEMemOperand(x0, 0)`. This is only significant in scalar-plus-scalar
+  // instructions where xm defaults to xzr. However, users should not rely on
+  // `SVEMemOperand(x0, 0)` being accepted in such cases.
   explicit SVEMemOperand(Register base,
                          uint64_t offset = 0,
                          SVEOffsetModifier mod = NO_SVE_OFFSET_MODIFIER)

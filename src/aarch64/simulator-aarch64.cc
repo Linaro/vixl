@@ -26,6 +26,9 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
+#include <errno.h>
+#include <unistd.h>
+
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -69,6 +72,9 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   // Ensure that shift operations act as the simulator expects.
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
+
+  // Set up a dummy pipe for CanReadMemory.
+  VIXL_CHECK(pipe(dummy_pipe_fd_) == 0);
 
   instruction_stats_ = false;
 
@@ -120,8 +126,8 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
 
   // Initialize the common state of RNDR and RNDRRS.
   uint16_t seed[3] = {11, 22, 33};
-  VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rndr_state_));
-  memcpy(rndr_state_, seed, sizeof(rndr_state_));
+  VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rand_state_));
+  memcpy(rand_state_, seed, sizeof(rand_state_));
 
   // Initialize all bits of pseudo predicate register to true.
   LogicPRegister ones(pregister_all_true_);
@@ -226,6 +232,9 @@ Simulator::~Simulator() {
 
   decoder_->RemoveVisitor(instrumentation_);
   delete instrumentation_;
+
+  close(dummy_pipe_fd_[0]);
+  close(dummy_pipe_fd_[1]);
 }
 
 
@@ -2509,6 +2518,65 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   }
 }
 
+bool Simulator::CanReadMemory(uintptr_t address, size_t size) {
+  // To simulate fault-tolerant loads, we need to know what host addresses we
+  // can access without generating a real fault. One way to do that is to
+  // attempt to `write()` the memory to a dummy pipe[1]. This is more portable
+  // and less intrusive than using (global) signal handlers.
+  //
+  // [1]: https://stackoverflow.com/questions/7134590
+
+  size_t written = 0;
+  bool can_read = true;
+  // `write` will normally return after one invocation, but it is allowed to
+  // handle only part of the operation, so wrap it in a loop.
+  while (can_read && (written < size)) {
+    ssize_t result = write(dummy_pipe_fd_[1],
+                           reinterpret_cast<void*>(address + written),
+                           size - written);
+    if (result > 0) {
+      written += result;
+    } else {
+      switch (result) {
+        case -EPERM:
+        case -EFAULT:
+          // The address range is not accessible.
+          // `write` is supposed to return -EFAULT in this case, but in practice
+          // it seems to return -EPERM, so we accept that too.
+          can_read = false;
+          break;
+        case -EINTR:
+          // The call was interrupted by a signal. Just try again.
+          break;
+        default:
+          // Any other error is fatal.
+          VIXL_ABORT();
+      }
+    }
+  }
+  // Drain the read side of the pipe. If we don't do this, we'll leak memory as
+  // the dummy data is buffered. As before, we expect to drain the whole write
+  // in one invocation, but cannot guarantee that, so we wrap it in a loop. This
+  // function is primarily intended to implement SVE fault-tolerant loads, so
+  // the maximum Z register size is a good default buffer size.
+  char buffer[kZRegMaxSizeInBytes];
+  while (written > 0) {
+    ssize_t result = read(dummy_pipe_fd_[0],
+                          reinterpret_cast<void*>(buffer),
+                          sizeof(buffer));
+    // `read` blocks, and returns 0 only at EOF. We should not hit EOF until
+    // we've read everything that was written, so treat 0 as an error.
+    if (result > 0) {
+      VIXL_ASSERT(static_cast<size_t>(result) <= written);
+      written -= result;
+    } else {
+      // For -EINTR, just try again. We can't handle any other error.
+      VIXL_CHECK(result == -EINTR);
+    }
+  }
+
+  return can_read;
+}
 
 void Simulator::PrintExclusiveAccessWarning() {
   if (print_exclusive_access_warning_) {
@@ -2522,7 +2590,6 @@ void Simulator::PrintExclusiveAccessWarning() {
     print_exclusive_access_warning_ = false;
   }
 }
-
 
 void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   LoadStoreExclusive op =
@@ -4475,8 +4542,8 @@ void Simulator::VisitSystem(const Instruction* instr) {
             break;
           case RNDR:
           case RNDRRS: {
-            uint64_t high = jrand48(rndr_state_);
-            uint64_t low = jrand48(rndr_state_);
+            uint64_t high = jrand48(rand_state_);
+            uint64_t low = jrand48(rand_state_);
             uint64_t rand_num = (high << 32) | (low & 0xffffffff);
             WriteXRegister(instr->GetRt(), rand_num);
             // Simulate successful random number generation.
@@ -9803,60 +9870,50 @@ void Simulator::VisitSVE64BitGatherPrefetch_VectorPlusImm(
 
 void Simulator::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
     const Instruction* instr) {
+  bool is_signed;
   USE(instr);
-  switch (instr->Mask(SVEContiguousFirstFaultLoad_ScalarPlusScalarMask)) {
-    case LDFF1B_z_p_br_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_br_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1B_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
     case LDFF1B_z_p_br_u8:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1D_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
+    case LDFF1B_z_p_br_u16:
+    case LDFF1B_z_p_br_u32:
+    case LDFF1B_z_p_br_u64:
     case LDFF1H_z_p_br_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_br_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
+    case LDFF1W_z_p_br_u32:
+    case LDFF1W_z_p_br_u64:
+    case LDFF1D_z_p_br_u64:
+      is_signed = false;
       break;
     case LDFF1SB_z_p_br_s16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SB_z_p_br_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SB_z_p_br_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SH_z_p_br_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SH_z_p_br_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SW_z_p_br_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_br_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1W_z_p_br_u64:
-      VIXL_UNIMPLEMENTED();
+      is_signed = true;
       break;
     default:
-      VIXL_UNIMPLEMENTED();
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
       break;
   }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t offset = ReadXRegister(instr->GetRm());
+  offset <<= msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEFaultTolerantLoadHelper(vform,
+                             ReadPRegister(instr->GetPgLow8()),
+                             instr->GetRt(),
+                             addr,
+                             kSVEFirstFaultLoad,
+                             is_signed);
 }
 
 void Simulator::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(

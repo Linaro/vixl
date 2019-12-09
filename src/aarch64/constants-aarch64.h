@@ -65,6 +65,12 @@ const unsigned kNumberOfGoverningPRegisters = 8;
   V(w, S)                            \
   V(d, D)
 
+// Sign-extending loads don't have double-word variants.
+#define VIXL_SVE_LOAD_STORE_SIGNED_VARIANT_LIST(V) \
+  V(b, B)                            \
+  V(h, H)                            \
+  V(w, S)
+
 #define INSTRUCTION_FIELDS_LIST(V_)                                          \
 /* Register fields */                                                        \
 V_(Rd, 4, 0, ExtractBits)         /* Destination register.                */ \

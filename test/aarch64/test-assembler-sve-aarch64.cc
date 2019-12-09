@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <sys/mman.h>
+#include <unistd.h>
 
 #include <cfloat>
 #include <cmath>
@@ -8164,6 +8165,173 @@ TEST_SVE(sve_ld234_st234_scalar_plus_imm_sp) {
     // stored.
     // TODO: Actually do this, once loads are implemented.
   }
+}
+
+TEST_SVE(sve_ldff1_scalar_plus_scalar) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int vl = config->sve_vl_in_bytes();
+  size_t page_size = sysconf(_SC_PAGE_SIZE);
+  VIXL_ASSERT(page_size > static_cast<size_t>(vl));
+
+  // Allocate two pages, then mprotect the second one to make it inaccessible.
+  uintptr_t data = reinterpret_cast<uintptr_t>(mmap(NULL,
+                                                    page_size * 2,
+                                                    PROT_READ | PROT_WRITE,
+                                                    MAP_PRIVATE | MAP_ANONYMOUS,
+                                                    -1,
+                                                    0));
+  mprotect(reinterpret_cast<void*>(data + page_size), page_size, PROT_NONE);
+
+  // Fill the accessible page with arbitrary data.
+  for (size_t i = 0; i < page_size; i++) {
+    // Reverse bits so we get a mixture of positive and negative values.
+    uint8_t byte = ReverseBits(static_cast<uint8_t>(i));
+    memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
+  }
+
+  __ Mov(x20, data);
+
+  PRegister all = p7;
+  __ Ptrue(all.VnB());
+
+  size_t offset_modifier = 0;
+
+  // The highest adddress at which a load stopped. Every FF load should fault at
+  // `data + page_size`, so this value should not exceed that value. However,
+  // the architecture allows fault-tolerant loads to fault arbitrarily, so the
+  // real value may be lower.
+  //
+  // This is used to check that the `mprotect` above really does make the second
+  // page inaccessible, and that the resulting FFR from each load reflects that.
+  Register limit = x22;
+  __ Mov(limit, 0);
+
+  // If the FFR grows unexpectedly, we increment this register by the
+  // difference. FFR should never grow, except when explicitly set.
+  Register ffr_grow_count = x23;
+  __ Mov(ffr_grow_count, 0);
+
+#define VIXL_EMIT_LDFF1_TEST(LDFF1, M_SIZE, Zt, E_SIZE, LD1, ZtRef)            \
+  do {                                                                         \
+    /* Set the offset so that the load is guaranteed to start in the */        \
+    /* accessible page, but end in the inaccessible one. */                    \
+    VIXL_ASSERT((page_size % k##M_SIZE##RegSizeInBytes) == 0);                 \
+    VIXL_ASSERT((vl % k##M_SIZE##RegSizeInBytes) == 0);                        \
+    size_t elements_per_page = page_size / k##M_SIZE##RegSizeInBytes;          \
+    size_t elements_per_access = vl / k##E_SIZE##RegSizeInBytes;               \
+    size_t min_offset = (elements_per_page - elements_per_access) + 1;         \
+    size_t max_offset = elements_per_page - 1;                                 \
+    size_t offset =                                                            \
+        min_offset + (offset_modifier % (max_offset - min_offset + 1));        \
+    offset_modifier++;                                                         \
+    __ Mov(x21, offset);                                                       \
+    __ Setffr();                                                               \
+    __ LDFF1(Zt.Vn##E_SIZE(),                                                  \
+             all.Zeroing(),                                                    \
+             SVEMemOperand(x20, x21, LSL, k##M_SIZE##RegSizeInBytesLog2));     \
+    __ Rdffrs(p0.VnB(), all.Zeroing());                                        \
+    /* Execute another LDFF1 with no offset, so that every element could be */ \
+    /* read. It should respect FFR, and load no more than we loaded the */     \
+    /* first time. */                                                          \
+    __ LDFF1(ZtRef.Vn##E_SIZE(), all.Zeroing(), SVEMemOperand(x20));           \
+    __ Rdffrs(p1.VnB(), all.Zeroing());                                        \
+    __ Cntp(x0, all, p1.VnB());                                                \
+    __ Uqdecp(x0, p0.VnB());                                                   \
+    __ Add(ffr_grow_count, ffr_grow_count, x0);                                \
+    /* Use the FFR to predicate the normal load. If it wasn't properly set, */ \
+    /* the normal load will abort. */                                          \
+    __ LD1(ZtRef.Vn##E_SIZE(),                                                 \
+           p0.Zeroing(),                                                       \
+           SVEMemOperand(x20, x21, LSL, k##M_SIZE##RegSizeInBytesLog2));       \
+    /* Work out the address after the one that was just accessed. */           \
+    __ Incp(x21, p0.Vn##E_SIZE());                                             \
+    __ Add(x0, x20, Operand(x21, LSL, k##M_SIZE##RegSizeInBytesLog2));         \
+    __ Cmp(limit, x0);                                                         \
+    __ Csel(limit, limit, x0, hs);                                             \
+    /* Clear lanes inactive in FFR. These have an undefined result. */         \
+    /* TODO: Use the 'Not' and 'Mov' aliases once they are implemented. */     \
+    __ Eor(p0.Vn##E_SIZE(), all.Zeroing(), p0.Vn##E_SIZE(), all.Vn##E_SIZE()); \
+    __ Cpy(Zt.Vn##E_SIZE(), p0.Merging(), 0);                                  \
+  } while (0)
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1b, B, z0, B, Ld1b, z16);
+  VIXL_EMIT_LDFF1_TEST(Ldff1b, B, z1, H, Ld1b, z17);
+  VIXL_EMIT_LDFF1_TEST(Ldff1b, B, z2, S, Ld1b, z18);
+  VIXL_EMIT_LDFF1_TEST(Ldff1b, B, z3, D, Ld1b, z19);
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1h, H, z4, H, Ld1h, z20);
+  VIXL_EMIT_LDFF1_TEST(Ldff1h, H, z5, S, Ld1h, z21);
+  VIXL_EMIT_LDFF1_TEST(Ldff1h, H, z6, D, Ld1h, z22);
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1w, S, z7, S, Ld1w, z23);
+  VIXL_EMIT_LDFF1_TEST(Ldff1w, S, z8, D, Ld1w, z24);
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1d, D, z9, D, Ld1d, z25);
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1sb, B, z10, H, Ld1sb, z26);
+  VIXL_EMIT_LDFF1_TEST(Ldff1sb, B, z11, S, Ld1sb, z27);
+  VIXL_EMIT_LDFF1_TEST(Ldff1sb, B, z12, D, Ld1sb, z28);
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1sh, H, z13, S, Ld1sh, z29);
+  VIXL_EMIT_LDFF1_TEST(Ldff1sh, H, z14, D, Ld1sh, z30);
+
+  VIXL_EMIT_LDFF1_TEST(Ldff1sw, S, z15, D, Ld1sw, z31);
+
+#undef VIXL_EMIT_LDFF1_TEST
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uintptr_t expected_limit = data + page_size;
+    uintptr_t measured_limit = core.xreg(limit.GetCode());
+    VIXL_CHECK(measured_limit <= expected_limit);
+    if (measured_limit < expected_limit) {
+      // We can't fail the test for this case, but a warning is helpful for
+      // manually-run tests.
+      printf(
+          "WARNING: All fault-tolerant loads detected faults before the\n"
+          "expected limit. This is architecturally possible, but improbable,\n"
+          "and could be a symptom of another problem.\n");
+    }
+
+    ASSERT_EQUAL_64(0, ffr_grow_count);
+
+    // Ldff1b
+    ASSERT_EQUAL_SVE(z0.VnB(), z16.VnB());
+    ASSERT_EQUAL_SVE(z1.VnH(), z17.VnH());
+    ASSERT_EQUAL_SVE(z2.VnS(), z18.VnS());
+    ASSERT_EQUAL_SVE(z3.VnD(), z19.VnD());
+
+    // Ldff1h
+    ASSERT_EQUAL_SVE(z4.VnH(), z20.VnH());
+    ASSERT_EQUAL_SVE(z5.VnS(), z21.VnS());
+    ASSERT_EQUAL_SVE(z6.VnD(), z22.VnD());
+
+    // Ldff1w
+    ASSERT_EQUAL_SVE(z7.VnS(), z23.VnS());
+    ASSERT_EQUAL_SVE(z8.VnD(), z24.VnD());
+
+    // Ldff1d
+    ASSERT_EQUAL_SVE(z9.VnD(), z25.VnD());
+
+    // Ldff1sb
+    ASSERT_EQUAL_SVE(z10.VnH(), z26.VnH());
+    ASSERT_EQUAL_SVE(z11.VnS(), z27.VnS());
+    ASSERT_EQUAL_SVE(z12.VnD(), z28.VnD());
+
+    // Ldff1sh
+    ASSERT_EQUAL_SVE(z13.VnS(), z29.VnS());
+    ASSERT_EQUAL_SVE(z14.VnD(), z30.VnD());
+
+    // Ldff1sw
+    ASSERT_EQUAL_SVE(z15.VnD(), z31.VnD());
+  }
+
+  munmap(reinterpret_cast<void*>(data), page_size * 2);
 }
 
 typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,

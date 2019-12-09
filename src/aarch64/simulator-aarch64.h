@@ -792,8 +792,12 @@ class LogicSVEAddressVector {
     VIXL_ASSERT(HasMsize());
     return msize_in_bytes_log2_;
   }
+  int GetMsizeInBitsLog2() const {
+    return GetMsizeInBytesLog2() + kBitsPerByteLog2;
+  }
 
   int GetMsizeInBytes() const { return 1 << GetMsizeInBytesLog2(); }
+  int GetMsizeInBits() const { return 1 << GetMsizeInBitsLog2(); }
 
   void SetRegCount(int reg_count) {
     VIXL_ASSERT(reg_count >= 1);  // E.g. ld1/st1
@@ -4285,6 +4289,33 @@ class Simulator : public DecoderVisitor {
                                const LogicSVEAddressVector& addr,
                                bool is_signed = false);
 
+  enum SVEFaultTolerantLoadType {
+    // - Elements active in both FFR and pg are accessed as usual. If the access
+    //   fails, the corresponding lane and all subsequent lanes are filled with
+    //   an unpredictable value, and made inactive in FFR.
+    //
+    // - Elements active in FFR but not pg are set to zero.
+    //
+    // - Elements that are not active in FFR are filled with an unpredictable
+    //   value, regardless of pg.
+    kSVENonFaultLoad,
+
+    // If type == kSVEFirstFaultLoad, the behaviour is the same, except that the
+    // first active element is always accessed, regardless of FFR, and will
+    // generate a real fault if it is inaccessible. If the lane is not active in
+    // FFR, the actual value loaded into the result is still unpredictable.
+    kSVEFirstFaultLoad
+  };
+
+  // Load with first-faulting or non-faulting load semantics, respecting and
+  // updating FFR.
+  void SVEFaultTolerantLoadHelper(VectorFormat vform,
+                                  const LogicPRegister& pg,
+                                  unsigned zt_code,
+                                  const LogicSVEAddressVector& addr,
+                                  SVEFaultTolerantLoadType type,
+                                  bool is_signed);
+
   LogicVRegister SVEBitwiseShiftHelper(Shift shift_op,
                                        VectorFormat vform,
                                        LogicVRegister dst,
@@ -4426,6 +4457,13 @@ class Simulator : public DecoderVisitor {
   static const PACKey kPACKeyDB;
   static const PACKey kPACKeyGA;
 
+  bool CanReadMemory(uintptr_t address, size_t size);
+
+  // CanReadMemory needs dummy file descriptors, so we use a pipe. We can save
+  // some system call overhead by opening them on construction, rather than on
+  // every call to CanReadMemory.
+  int dummy_pipe_fd_[2];
+
   template <typename T>
   static T FPDefaultNaN();
 
@@ -4505,8 +4543,11 @@ class Simulator : public DecoderVisitor {
   CPUFeaturesAuditor cpu_features_auditor_;
   std::vector<CPUFeatures> saved_cpu_features_;
 
-  // The simulated state of RNDR and RNDRRS for generating a random number.
-  uint16_t rndr_state_[3];
+  // State for *rand48 functions, used to simulate randomness with repeatable
+  // behaviour (so that tests are deterministic). This is used to simulate RNDR
+  // and RNDRRS, as well as to simulate a source of entropy for architecturally
+  // undefined behaviour.
+  uint16_t rand_state_[3];
 
   // A configurable size of SVE vector registers.
   unsigned vector_length_;

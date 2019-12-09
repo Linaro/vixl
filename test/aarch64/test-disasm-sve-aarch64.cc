@@ -3221,6 +3221,54 @@ TEST(sve_ld4_scalar_plus_scalar) {
   CLEANUP();
 }
 
+TEST(sve_ff_contiguous) {
+  SETUP();
+
+  COMPARE_PREFIX(ldff1b(z24.VnB(), p1.Zeroing(), SVEMemOperand(x21)),
+                 "ldff1b { z24.b }, p1/z, [x21]");
+  COMPARE_PREFIX(ldff1b(z22.VnH(), p5.Zeroing(), SVEMemOperand(x5, x28)),
+                 "ldff1b { z22.h }, p5/z, [x5, x28]");
+  COMPARE_PREFIX(ldff1b(z2.VnS(), p5.Zeroing(), SVEMemOperand(sp, x11)),
+                 "ldff1b { z2.s }, p5/z, [sp, x11]");
+  COMPARE_PREFIX(ldff1b(z12.VnD(), p3.Zeroing(), SVEMemOperand(x26, xzr)),
+                 "ldff1b { z12.d }, p3/z, [x26]");
+  COMPARE_PREFIX(ldff1h(z21.VnH(), p3.Zeroing(), SVEMemOperand(x27)),
+                 "ldff1h { z21.h }, p3/z, [x27]");
+  COMPARE_PREFIX(ldff1h(z11.VnS(),
+                        p6.Zeroing(),
+                        SVEMemOperand(sp, x15, LSL, 1)),
+                 "ldff1h { z11.s }, p6/z, [sp, x15, lsl #1]");
+  COMPARE_PREFIX(ldff1h(z6.VnD(), p7.Zeroing(), SVEMemOperand(x8, xzr, LSL, 1)),
+                 "ldff1h { z6.d }, p7/z, [x8]");
+  COMPARE_PREFIX(ldff1w(z11.VnS(), p7.Zeroing(), SVEMemOperand(sp)),
+                 "ldff1w { z11.s }, p7/z, [sp]");
+  COMPARE_PREFIX(ldff1w(z6.VnD(), p6.Zeroing(), SVEMemOperand(x5, x0, LSL, 2)),
+                 "ldff1w { z6.d }, p6/z, [x5, x0, lsl #2]");
+  COMPARE_PREFIX(ldff1d(z0.VnD(), p3.Zeroing(), SVEMemOperand(x15, x1, LSL, 3)),
+                 "ldff1d { z0.d }, p3/z, [x15, x1, lsl #3]");
+
+  COMPARE_PREFIX(ldff1sb(z31.VnH(), p4.Zeroing(), SVEMemOperand(x10, x25)),
+                 "ldff1sb { z31.h }, p4/z, [x10, x25]");
+  COMPARE_PREFIX(ldff1sb(z25.VnS(), p7.Zeroing(), SVEMemOperand(sp, x20)),
+                 "ldff1sb { z25.s }, p7/z, [sp, x20]");
+  COMPARE_PREFIX(ldff1sb(z20.VnD(), p3.Zeroing(), SVEMemOperand(x19, xzr)),
+                 "ldff1sb { z20.d }, p3/z, [x19]");
+  COMPARE_PREFIX(ldff1sh(z18.VnS(),
+                         p3.Zeroing(),
+                         SVEMemOperand(sp, x0, LSL, 1)),
+                 "ldff1sh { z18.s }, p3/z, [sp, x0, lsl #1]");
+  COMPARE_PREFIX(ldff1sh(z30.VnD(),
+                         p1.Zeroing(),
+                         SVEMemOperand(x28, xzr, LSL, 1)),
+                 "ldff1sh { z30.d }, p1/z, [x28]");
+  COMPARE_PREFIX(ldff1sw(z3.VnD(),
+                         p4.Zeroing(),
+                         SVEMemOperand(x22, x18, LSL, 2)),
+                 "ldff1sw { z3.d }, p4/z, [x22, x18, lsl #2]");
+
+  CLEANUP();
+}
+
 TEST(sve_mem_contiguous_load) {
   SETUP();
 
@@ -3233,22 +3281,6 @@ TEST(sve_mem_contiguous_load) {
   COMPARE_PREFIX(ld1rqh(z1.VnH(), p7.Zeroing(), x9, x9), "ld1rqh { <Zt>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]");
   COMPARE_PREFIX(ld1rqw(z22.VnS(), p3.Zeroing(), x31, int imm4), "ld1rqw { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
   COMPARE_PREFIX(ld1rqw(z12.VnS(), p4.Zeroing(), x6, x6), "ld1rqw { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]");
-  COMPARE_PREFIX(ldff1b(z2.VnH(), p1.Zeroing(), x23, x23), "ldff1b { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1b(z21.VnS(), p0.Zeroing(), x19, x19), "ldff1b { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1b(z16.VnD(), p2.Zeroing(), x16, x16), "ldff1b { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1b(z24.VnB(), p7.Zeroing(), x15, x15), "ldff1b { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1d(z19.VnD(), p4.Zeroing(), x8, x8), "ldff1d { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #3}]");
-  COMPARE_PREFIX(ldff1h(z18.VnH(), p6.Zeroing(), x10, x10), "ldff1h { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]");
-  COMPARE_PREFIX(ldff1h(z31.VnS(), p4.Zeroing(), x1, x1), "ldff1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]");
-  COMPARE_PREFIX(ldff1h(z1.VnD(), p0.Zeroing(), x8, x8), "ldff1h { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]");
-  COMPARE_PREFIX(ldff1sb(z12.VnH(), p2.Zeroing(), x10, x10), "ldff1sb { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1sb(z14.VnS(), p1.Zeroing(), x0, x0), "ldff1sb { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1sb(z29.VnD(), p4.Zeroing(), x24, x24), "ldff1sb { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>}]");
-  COMPARE_PREFIX(ldff1sh(z0.VnS(), p4.Zeroing(), x30, x30), "ldff1sh { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]");
-  COMPARE_PREFIX(ldff1sh(z11.VnD(), p4.Zeroing(), x29, x29), "ldff1sh { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #1}]");
-  COMPARE_PREFIX(ldff1sw(z26.VnD(), p6.Zeroing(), x19, x19), "ldff1sw { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]");
-  COMPARE_PREFIX(ldff1w(z15.VnS(), p1.Zeroing(), x15, x15), "ldff1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]");
-  COMPARE_PREFIX(ldff1w(z12.VnD(), p7.Zeroing(), x22, x22), "ldff1w { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, <Xm>, LSL #2}]");
   COMPARE_PREFIX(ldnf1b(z1.VnH(), p0.Zeroing(), x25, int imm4), "ldnf1b { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(ldnf1b(z0.VnS(), p0.Zeroing(), x2, int imm4), "ldnf1b { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(ldnf1b(z31.VnD(), p6.Zeroing(), x0, int imm4), "ldnf1b { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]");
