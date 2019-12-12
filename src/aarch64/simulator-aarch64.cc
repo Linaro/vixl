@@ -7023,10 +7023,10 @@ void Simulator::VisitNEONScalarShiftImmediate(const Instruction* instr) {
   NEONFormatDecoder nfd(instr, &map);
   VectorFormat vf = nfd.GetVectorFormat();
 
-  int highestSetBit = HighestSetBitPosition(instr->GetImmNEONImmh());
-  int immhimmb = instr->GetImmNEONImmhImmb();
-  int right_shift = (16 << highestSetBit) - immhimmb;
-  int left_shift = immhimmb - (8 << highestSetBit);
+  int highest_set_bit = HighestSetBitPosition(instr->GetImmNEONImmh());
+  int immh_immb = instr->GetImmNEONImmhImmb();
+  int right_shift = (16 << highest_set_bit) - immh_immb;
+  int left_shift = immh_immb - (8 << highest_set_bit);
   switch (instr->Mask(NEONScalarShiftImmediateMask)) {
     case NEON_SHL_scalar:
       shl(vf, rd, rn, left_shift);
@@ -7131,10 +7131,10 @@ void Simulator::VisitNEONShiftImmediate(const Instruction* instr) {
        {NF_UNDEF, NF_8H, NF_4S, NF_4S, NF_2D, NF_2D, NF_2D, NF_2D}};
   VectorFormat vf_l = nfd.GetVectorFormat(&map_l);
 
-  int highestSetBit = HighestSetBitPosition(instr->GetImmNEONImmh());
-  int immhimmb = instr->GetImmNEONImmhImmb();
-  int right_shift = (16 << highestSetBit) - immhimmb;
-  int left_shift = immhimmb - (8 << highestSetBit);
+  int highest_set_bit = HighestSetBitPosition(instr->GetImmNEONImmh());
+  int immh_immb = instr->GetImmNEONImmhImmb();
+  int right_shift = (16 << highest_set_bit) - immh_immb;
+  int left_shift = immh_immb - (8 << highest_set_bit);
 
   switch (instr->Mask(NEONShiftImmediateMask)) {
     case NEON_SHL:

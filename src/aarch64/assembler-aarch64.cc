@@ -4871,9 +4871,9 @@ void Assembler::NEONShiftLeftImmediate(const VRegister& vd,
                                        const VRegister& vn,
                                        int shift,
                                        NEONShiftImmediateOp op) {
-  int laneSizeInBits = vn.GetLaneSizeInBits();
-  VIXL_ASSERT((shift >= 0) && (shift < laneSizeInBits));
-  NEONShiftImmediate(vd, vn, op, (laneSizeInBits + shift) << 16);
+  int lane_size_in_bits = vn.GetLaneSizeInBits();
+  VIXL_ASSERT((shift >= 0) && (shift < lane_size_in_bits));
+  NEONShiftImmediate(vd, vn, op, (lane_size_in_bits + shift) << 16);
 }
 
 
@@ -4881,9 +4881,9 @@ void Assembler::NEONShiftRightImmediate(const VRegister& vd,
                                         const VRegister& vn,
                                         int shift,
                                         NEONShiftImmediateOp op) {
-  int laneSizeInBits = vn.GetLaneSizeInBits();
-  VIXL_ASSERT((shift >= 1) && (shift <= laneSizeInBits));
-  NEONShiftImmediate(vd, vn, op, ((2 * laneSizeInBits) - shift) << 16);
+  int lane_size_in_bits = vn.GetLaneSizeInBits();
+  VIXL_ASSERT((shift >= 1) && (shift <= lane_size_in_bits));
+  NEONShiftImmediate(vd, vn, op, ((2 * lane_size_in_bits) - shift) << 16);
 }
 
 
@@ -4891,9 +4891,9 @@ void Assembler::NEONShiftImmediateL(const VRegister& vd,
                                     const VRegister& vn,
                                     int shift,
                                     NEONShiftImmediateOp op) {
-  int laneSizeInBits = vn.GetLaneSizeInBits();
-  VIXL_ASSERT((shift >= 0) && (shift < laneSizeInBits));
-  int immh_immb = (laneSizeInBits + shift) << 16;
+  int lane_size_in_bits = vn.GetLaneSizeInBits();
+  VIXL_ASSERT((shift >= 0) && (shift < lane_size_in_bits));
+  int immh_immb = (lane_size_in_bits + shift) << 16;
 
   VIXL_ASSERT((vn.Is8B() && vd.Is8H()) || (vn.Is4H() && vd.Is4S()) ||
               (vn.Is2S() && vd.Is2D()) || (vn.Is16B() && vd.Is8H()) ||
@@ -4909,9 +4909,9 @@ void Assembler::NEONShiftImmediateN(const VRegister& vd,
                                     int shift,
                                     NEONShiftImmediateOp op) {
   Instr q, scalar;
-  int laneSizeInBits = vd.GetLaneSizeInBits();
-  VIXL_ASSERT((shift >= 1) && (shift <= laneSizeInBits));
-  int immh_immb = (2 * laneSizeInBits - shift) << 16;
+  int lane_size_in_bits = vd.GetLaneSizeInBits();
+  VIXL_ASSERT((shift >= 1) && (shift <= lane_size_in_bits));
+  int immh_immb = (2 * lane_size_in_bits - shift) << 16;
 
   if (vn.IsScalar()) {
     VIXL_ASSERT((vd.Is1B() && vn.Is1H()) || (vd.Is1H() && vn.Is1S()) ||

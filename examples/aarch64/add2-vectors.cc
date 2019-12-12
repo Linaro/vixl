@@ -38,12 +38,12 @@ using namespace vixl::aarch64;
  * and returns the results in the first vector.
  */
 void GenerateAdd2Vectors(MacroAssembler* masm) {
-  // void add2_vectors(uint8_t *vec*, const uint8_t *vecB, unsigned size)
+  // void add2_vectors(uint8_t *vec_a, const uint8_t *vec_b, unsigned size)
   // Argument locations:
-  //    vecA (pointer) -> x0
-  //    vecB (pointer) -> x1
+  //    vec_a (pointer) -> x0
+  //    vec_b (pointer) -> x1
   //    size (integer) -> w2
-  // Result returned in vecA.
+  // Result returned in vec_a.
 
   Label loop16, loopr, end;
 
@@ -109,48 +109,48 @@ int main(void) {
 
   // Initialize input data for the example function.
   // clang-format: off
-  uint8_t vecA[] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
-                    13, 14, 15, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
-                    10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
-  uint8_t vecB[] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
-                    29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
-                    26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36};
+  uint8_t vec_a[] = {0,  1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12,
+                     13, 14, 15, 0,  1,  2,  3,  4,  5,  6,  7,  8,  9,
+                     10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
+  uint8_t vec_b[] = {16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28,
+                     29, 30, 31, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
+                     26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36};
   // clang-format on
-  uint8_t vecC[ARRAY_SIZE(vecA)];
+  uint8_t vec_c[ARRAY_SIZE(vec_a)];
 
   // Check whether the number of elements in both vectors match.
-  VIXL_CHECK(ARRAY_SIZE(vecA) == ARRAY_SIZE(vecB));
+  VIXL_CHECK(ARRAY_SIZE(vec_a) == ARRAY_SIZE(vec_b));
 
   // Compute the result in C.
-  for (unsigned i = 0; i < ARRAY_SIZE(vecA); i++) {
-    vecC[i] = vecA[i] + vecB[i];
+  for (unsigned i = 0; i < ARRAY_SIZE(vec_a); i++) {
+    vec_c[i] = vec_a[i] + vec_b[i];
   }
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-  uintptr_t vecA_addr = reinterpret_cast<uintptr_t>(vecA);
-  uintptr_t vecB_addr = reinterpret_cast<uintptr_t>(vecB);
+  uintptr_t vec_a_addr = reinterpret_cast<uintptr_t>(vec_a);
+  uintptr_t vec_b_addr = reinterpret_cast<uintptr_t>(vec_b);
 
   // Configure register environment in the simulator.
   Decoder decoder;
   Simulator simulator(&decoder);
-  simulator.WriteXRegister(0, vecA_addr);
-  simulator.WriteXRegister(1, vecB_addr);
-  simulator.WriteXRegister(2, ARRAY_SIZE(vecA));
-  PrintVector(vecA, ARRAY_SIZE(vecA));
+  simulator.WriteXRegister(0, vec_a_addr);
+  simulator.WriteXRegister(1, vec_b_addr);
+  simulator.WriteXRegister(2, ARRAY_SIZE(vec_a));
+  PrintVector(vec_a, ARRAY_SIZE(vec_a));
   printf(" +\n");
-  PrintVector(vecB, ARRAY_SIZE(vecB));
+  PrintVector(vec_b, ARRAY_SIZE(vec_b));
 
   // Run the example function in the simulator.
   simulator.RunFrom(masm.GetLabelAddress<Instruction*>(&add2_vectors));
   printf(" =\n");
-  PrintVector(vecA, ARRAY_SIZE(vecA));
+  PrintVector(vec_a, ARRAY_SIZE(vec_a));
 
   // Check that the computed value in NEON matches the C version.
-  for (unsigned i = 0; i < ARRAY_SIZE(vecA); i++) {
-    VIXL_CHECK(vecC[i] == vecA[i]);
+  for (unsigned i = 0; i < ARRAY_SIZE(vec_a); i++) {
+    VIXL_CHECK(vec_c[i] == vec_a[i]);
   }
 #else
-  USE(vecC);
+  USE(vec_c);
 
   // Placeholder to run test natively.
   printf("Running tests natively is not supported yet.\n");

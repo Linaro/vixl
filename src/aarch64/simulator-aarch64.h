@@ -3177,7 +3177,7 @@ class Simulator : public DecoderVisitor {
   LogicVRegister rev_byte(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src,
-                          int revSize);
+                          int rev_size);
   LogicVRegister rev16(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src);
@@ -3675,9 +3675,9 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& src);
   LogicVRegister extractnarrow(VectorFormat vform,
                                LogicVRegister dst,
-                               bool dstIsSigned,
+                               bool dst_is_signed,
                                const LogicVRegister& src,
-                               bool srcIsSigned);
+                               bool src_is_signed);
   LogicVRegister xtn(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src);

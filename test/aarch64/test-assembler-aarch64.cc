@@ -1531,8 +1531,8 @@ typedef void (MacroAssembler::*TestBranchSignature)(const Register& rt,
 static void TbzRangePoolLimitHelper(TestBranchSignature test_branch) {
   const int kTbzRange = 32768;
   const int kNumLdrLiteral = kTbzRange / 4;
-  const int fuzzRange = 2;
-  for (int n = kNumLdrLiteral - fuzzRange; n <= kNumLdrLiteral + fuzzRange;
+  const int fuzz_range = 2;
+  for (int n = kNumLdrLiteral - fuzz_range; n <= kNumLdrLiteral + fuzz_range;
        ++n) {
     for (int margin = -32; margin < 32; margin += 4) {
       SETUP();

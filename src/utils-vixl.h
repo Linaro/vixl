@@ -508,11 +508,11 @@ T ReverseBits(T value) {
 
 
 template <typename T>
-inline T SignExtend(T val, int bitSize) {
-  VIXL_ASSERT(bitSize > 0);
-  T mask = (T(2) << (bitSize - 1)) - T(1);
+inline T SignExtend(T val, int size_in_bits) {
+  VIXL_ASSERT(size_in_bits > 0);
+  T mask = (T(2) << (size_in_bits - 1)) - T(1);
   val &= mask;
-  T sign_bits = -((val >> (bitSize - 1)) << bitSize);
+  T sign_bits = -((val >> (size_in_bits - 1)) << size_in_bits);
   val |= sign_bits;
   return val;
 }
