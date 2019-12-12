@@ -1956,14 +1956,15 @@ TEST(sve_int_compare_vectors) {
 TEST(sve_int_misc_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fexpa(z5.VnH(), z9.VnH()), "fexpa <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(fexpa(z5.VnS(), z9.VnS()), "fexpa <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(fexpa(z5.VnD(), z9.VnD()), "fexpa <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(ftssel(z17.VnH(), z24.VnH(), z14.VnH()), "ftssel <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(ftssel(z17.VnS(), z24.VnS(), z14.VnS()), "ftssel <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(ftssel(z17.VnD(), z24.VnD(), z14.VnD()), "ftssel <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-#endif
+  COMPARE_PREFIX(fexpa(z5.VnH(), z9.VnH()), "fexpa z5.h, z9.h");
+  COMPARE_PREFIX(fexpa(z5.VnS(), z9.VnS()), "fexpa z5.s, z9.s");
+  COMPARE_PREFIX(fexpa(z5.VnD(), z9.VnD()), "fexpa z5.d, z9.d");
+  COMPARE_PREFIX(ftssel(z17.VnH(), z24.VnH(), z14.VnH()),
+                 "ftssel z17.h, z24.h, z14.h");
+  COMPARE_PREFIX(ftssel(z17.VnS(), z24.VnS(), z14.VnS()),
+                 "ftssel z17.s, z24.s, z14.s");
+  COMPARE_PREFIX(ftssel(z17.VnD(), z24.VnD(), z14.VnD()),
+                 "ftssel z17.d, z24.d, z14.d");
   COMPARE_PREFIX(movprfx(z24, z1), "movprfx z24, z1");
 
   CLEANUP();

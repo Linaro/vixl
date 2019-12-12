@@ -8652,10 +8652,16 @@ void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPExponentialAccelerator(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  VIXL_ASSERT((vform == kFormatVnH) || (vform == kFormatVnS) ||
+              (vform == kFormatVnD));
+
   switch (instr->Mask(SVEFPExponentialAcceleratorMask)) {
     case FEXPA_z_z:
-      VIXL_UNIMPLEMENTED();
+      fexpa(vform, zd, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -8664,10 +8670,17 @@ void Simulator::VisitSVEFPExponentialAccelerator(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPTrigSelectCoefficient(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  VIXL_ASSERT((vform == kFormatVnH) || (vform == kFormatVnS) ||
+              (vform == kFormatVnD));
+
   switch (instr->Mask(SVEFPTrigSelectCoefficientMask)) {
     case FTSSEL_z_zz:
-      VIXL_UNIMPLEMENTED();
+      ftssel(vform, zd, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -8693,7 +8706,6 @@ void Simulator::VisitSVEConstructivePrefix_Unpredicated(
 }
 
 void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
-  USE(instr);
   VectorFormat vform = instr->GetSVEVectorFormat();
 
   SimVRegister& zd = ReadVRegister(instr->GetRd());

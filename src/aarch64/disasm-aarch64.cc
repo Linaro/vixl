@@ -6960,11 +6960,14 @@ void Disassembler::VisitSVEFPExponentialAccelerator(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPExponentialAccelerator)";
 
+  unsigned size = instr->GetSVESize();
   switch (instr->Mask(SVEFPExponentialAcceleratorMask)) {
-    // FEXPA <Zd>.<T>, <Zn>.<T>
     case FEXPA_z_z:
-      mnemonic = "fexpa";
-      form = "'Zd.'t, 'Zn.'t";
+      if ((size == kHRegSizeInBytesLog2) || (size == kSRegSizeInBytesLog2) ||
+          (size == kDRegSizeInBytesLog2)) {
+        mnemonic = "fexpa";
+        form = "'Zd.'t, 'Zn.'t";
+      }
       break;
     default:
       break;
@@ -7032,11 +7035,14 @@ void Disassembler::VisitSVEFPTrigSelectCoefficient(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPTrigSelectCoefficient)";
 
+  unsigned size = instr->GetSVESize();
   switch (instr->Mask(SVEFPTrigSelectCoefficientMask)) {
-    // FTSSEL <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FTSSEL_z_zz:
-      mnemonic = "ftssel";
-      form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
+      if ((size == kHRegSizeInBytesLog2) || (size == kSRegSizeInBytesLog2) ||
+          (size == kDRegSizeInBytesLog2)) {
+        mnemonic = "ftssel";
+        form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
+      }
       break;
     default:
       break;

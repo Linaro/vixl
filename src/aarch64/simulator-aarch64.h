@@ -3621,6 +3621,13 @@ class Simulator : public DecoderVisitor {
   LogicVRegister frecpx(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src);
+  LogicVRegister ftssel(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
+  LogicVRegister fexpa(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src);
   template <typename T>
   LogicVRegister fabs_(VectorFormat vform,
                        LogicVRegister dst,
@@ -3632,7 +3639,6 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
-
   LogicVRegister frint(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,

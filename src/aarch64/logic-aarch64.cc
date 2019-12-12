@@ -6023,6 +6023,116 @@ LogicVRegister Simulator::frecpx(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::ftssel(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
+  unsigned lane_bits = LaneSizeInBitsFromFormat(vform);
+  uint64_t sign_bit = UINT64_C(1) << (lane_bits - 1);
+  uint64_t one;
+
+  if (lane_bits == kHRegSize) {
+    one = Float16ToRawbits(Float16(1.0));
+  } else if (lane_bits == kSRegSize) {
+    one = FloatToRawbits(1.0);
+  } else {
+    VIXL_ASSERT(lane_bits == kDRegSize);
+    one = DoubleToRawbits(1.0);
+  }
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    // Use integer accessors for this operation, as this is a data manipulation
+    // task requiring no calculation.
+    uint64_t op = src1.Uint(vform, i);
+
+    // Only the bottom two bits of the src2 register are significant, indicating
+    // the quadrant. Bit 0 controls whether src1 or 1.0 is written to dst. Bit 1
+    // determines the sign of the value written to dst.
+    uint64_t q = src2.Uint(vform, i);
+    if ((q & 1) == 1) op = one;
+    if ((q & 2) == 2) op ^= sign_bit;
+
+    dst.SetUint(vform, i, op);
+  }
+
+  return dst;
+}
+
+LogicVRegister Simulator::fexpa(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src) {
+  static const uint64_t fexpa_coeff16[] = {0x0000, 0x0016, 0x002d, 0x0045,
+                                           0x005d, 0x0075, 0x008e, 0x00a8,
+                                           0x00c2, 0x00dc, 0x00f8, 0x0114,
+                                           0x0130, 0x014d, 0x016b, 0x0189,
+                                           0x01a8, 0x01c8, 0x01e8, 0x0209,
+                                           0x022b, 0x024e, 0x0271, 0x0295,
+                                           0x02ba, 0x02e0, 0x0306, 0x032e,
+                                           0x0356, 0x037f, 0x03a9, 0x03d4};
+
+  static const uint64_t fexpa_coeff32[] =
+      {0x000000, 0x0164d2, 0x02cd87, 0x043a29, 0x05aac3, 0x071f62, 0x08980f,
+       0x0a14d5, 0x0b95c2, 0x0d1adf, 0x0ea43a, 0x1031dc, 0x11c3d3, 0x135a2b,
+       0x14f4f0, 0x16942d, 0x1837f0, 0x19e046, 0x1b8d3a, 0x1d3eda, 0x1ef532,
+       0x20b051, 0x227043, 0x243516, 0x25fed7, 0x27cd94, 0x29a15b, 0x2b7a3a,
+       0x2d583f, 0x2f3b79, 0x3123f6, 0x3311c4, 0x3504f3, 0x36fd92, 0x38fbaf,
+       0x3aff5b, 0x3d08a4, 0x3f179a, 0x412c4d, 0x4346cd, 0x45672a, 0x478d75,
+       0x49b9be, 0x4bec15, 0x4e248c, 0x506334, 0x52a81e, 0x54f35b, 0x5744fd,
+       0x599d16, 0x5bfbb8, 0x5e60f5, 0x60ccdf, 0x633f89, 0x65b907, 0x68396a,
+       0x6ac0c7, 0x6d4f30, 0x6fe4ba, 0x728177, 0x75257d, 0x77d0df, 0x7a83b3,
+       0x7d3e0c};
+
+  static const uint64_t fexpa_coeff64[] =
+      {0X0000000000000, 0X02c9a3e778061, 0X059b0d3158574, 0X0874518759bc8,
+       0X0b5586cf9890f, 0X0e3ec32d3d1a2, 0X11301d0125b51, 0X1429aaea92de0,
+       0X172b83c7d517b, 0X1a35beb6fcb75, 0X1d4873168b9aa, 0X2063b88628cd6,
+       0X2387a6e756238, 0X26b4565e27cdd, 0X29e9df51fdee1, 0X2d285a6e4030b,
+       0X306fe0a31b715, 0X33c08b26416ff, 0X371a7373aa9cb, 0X3a7db34e59ff7,
+       0X3dea64c123422, 0X4160a21f72e2a, 0X44e086061892d, 0X486a2b5c13cd0,
+       0X4bfdad5362a27, 0X4f9b2769d2ca7, 0X5342b569d4f82, 0X56f4736b527da,
+       0X5ab07dd485429, 0X5e76f15ad2148, 0X6247eb03a5585, 0X6623882552225,
+       0X6a09e667f3bcd, 0X6dfb23c651a2f, 0X71f75e8ec5f74, 0X75feb564267c9,
+       0X7a11473eb0187, 0X7e2f336cf4e62, 0X82589994cce13, 0X868d99b4492ed,
+       0X8ace5422aa0db, 0X8f1ae99157736, 0X93737b0cdc5e5, 0X97d829fde4e50,
+       0X9c49182a3f090, 0Xa0c667b5de565, 0Xa5503b23e255d, 0Xa9e6b5579fdbf,
+       0Xae89f995ad3ad, 0Xb33a2b84f15fb, 0Xb7f76f2fb5e47, 0Xbcc1e904bc1d2,
+       0Xc199bdd85529c, 0Xc67f12e57d14b, 0Xcb720dcef9069, 0Xd072d4a07897c,
+       0Xd5818dcfba487, 0Xda9e603db3285, 0Xdfc97337b9b5f, 0Xe502ee78b3ff6,
+       0Xea4afa2a490da, 0Xefa1bee615a27, 0Xf50765b6e4540, 0Xfa7c1819e90d8};
+
+  unsigned lane_size = LaneSizeInBitsFromFormat(vform);
+  int index_highbit = 5;
+  int op_highbit, op_shift;
+  const uint64_t* fexpa_coeff;
+
+  if (lane_size == kHRegSize) {
+    index_highbit = 4;
+    VIXL_ASSERT(ArrayLength(fexpa_coeff16) == (1U << (index_highbit + 1)));
+    fexpa_coeff = fexpa_coeff16;
+    op_highbit = 9;
+    op_shift = 10;
+  } else if (lane_size == kSRegSize) {
+    VIXL_ASSERT(ArrayLength(fexpa_coeff32) == (1U << (index_highbit + 1)));
+    fexpa_coeff = fexpa_coeff32;
+    op_highbit = 13;
+    op_shift = 23;
+  } else {
+    VIXL_ASSERT(lane_size == kDRegSize);
+    VIXL_ASSERT(ArrayLength(fexpa_coeff64) == (1U << (index_highbit + 1)));
+    fexpa_coeff = fexpa_coeff64;
+    op_highbit = 16;
+    op_shift = 52;
+  }
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t op = src.Uint(vform, i);
+    uint64_t result = fexpa_coeff[Bits(op, index_highbit, 0)];
+    result |= (Bits(op, op_highbit, index_highbit + 1) << op_shift);
+    dst.SetUint(vform, i, result);
+  }
+  return dst;
+}
+
 LogicVRegister Simulator::scvtf(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
