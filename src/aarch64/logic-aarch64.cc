@@ -6547,6 +6547,43 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
   }
 }
 
+LogicPRegister Simulator::brka(LogicPRegister pd,
+                               const LogicPRegister& pg,
+                               const LogicPRegister& pn) {
+  bool break_ = false;
+  for (int i = 0; i < LaneCountFromFormat(kFormatVnB); i++) {
+    if (pg.IsActive(kFormatVnB, i)) {
+      pd.SetActive(kFormatVnB, i, !break_);
+      break_ |= pn.IsActive(kFormatVnB, i);
+    }
+  }
+
+  return pd;
+}
+
+LogicPRegister Simulator::brkb(LogicPRegister pd,
+                               const LogicPRegister& pg,
+                               const LogicPRegister& pn) {
+  bool break_ = false;
+  for (int i = 0; i < LaneCountFromFormat(kFormatVnB); i++) {
+    if (pg.IsActive(kFormatVnB, i)) {
+      break_ |= pn.IsActive(kFormatVnB, i);
+      pd.SetActive(kFormatVnB, i, !break_);
+    }
+  }
+
+  return pd;
+}
+
+LogicPRegister Simulator::brkn(LogicPRegister pdm,
+                               const LogicPRegister& pg,
+                               const LogicPRegister& pn) {
+  if (!IsLastActive(kFormatVnB, pg, pn)) {
+    pfalse(pdm);
+  }
+  return pdm;
+}
+
 LogicPRegister Simulator::brkpa(LogicPRegister pd,
                                 const LogicPRegister& pg,
                                 const LogicPRegister& pn,

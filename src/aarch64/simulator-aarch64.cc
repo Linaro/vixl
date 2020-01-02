@@ -10446,39 +10446,56 @@ void Simulator::VisitSVEMulIndex(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPartitionBreakCondition(const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister result;
+
   switch (instr->Mask(SVEPartitionBreakConditionMask)) {
     case BRKAS_p_p_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case BRKA_p_p_p:
-      VIXL_UNIMPLEMENTED();
+      brka(result, pg, pn);
       break;
     case BRKBS_p_p_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
     case BRKB_p_p_p:
-      VIXL_UNIMPLEMENTED();
+      brkb(result, pg, pn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  if (instr->ExtractBit(4) == 1) {
+    mov_merging(pd, pg, result);
+  } else {
+    mov_zeroing(pd, pg, result);
+  }
+
+  // Set flag if needed.
+  if (instr->ExtractBit(22) == 1) {
+    PredTest(kFormatVnB, pg, pd);
+  }
 }
 
 void Simulator::VisitSVEPropagateBreakToNextPartition(
     const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pdm = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+
   switch (instr->Mask(SVEPropagateBreakToNextPartitionMask)) {
     case BRKNS_p_p_pp:
-      VIXL_UNIMPLEMENTED();
-      break;
     case BRKN_p_p_pp:
-      VIXL_UNIMPLEMENTED();
+      brkn(pdm, pg, pn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  // Set flag if needed.
+  if (instr->ExtractBit(22) == 1) {
+    PredTest(kFormatVnB, pg, pdm);
   }
 }
 

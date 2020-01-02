@@ -2845,6 +2845,15 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  LogicPRegister brka(LogicPRegister pd,
+                      const LogicPRegister& pg,
+                      const LogicPRegister& pn);
+  LogicPRegister brkb(LogicPRegister pd,
+                      const LogicPRegister& pg,
+                      const LogicPRegister& pn);
+  LogicPRegister brkn(LogicPRegister pdm,
+                      const LogicPRegister& pg,
+                      const LogicPRegister& pn);
   LogicPRegister brkpa(LogicPRegister pd,
                        const LogicPRegister& pg,
                        const LogicPRegister& pn,

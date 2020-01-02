@@ -5426,79 +5426,65 @@ void Assembler::udot(const ZRegister& zda, const ZRegister& zn) {
 void Assembler::brka(const PRegisterWithLaneSize& pd,
                      const PRegister& pg,
                      const PRegisterWithLaneSize& pn) {
-  // BRKA <Pd>.B, <Pg>/<ZM>, <Pn>.B
-  //  0010 0101 0001 0000 01.. ..0. .... ....
-  //  B<23> = 0 | S<22> = 0 | Pg<13:10> | Pn<8:5> | M<4> | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
+  VIXL_ASSERT(pd.IsLaneSizeB() && pn.IsLaneSizeB());
 
-  Emit(BRKA_p_p_p | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Instr m = pg.IsMerging() ? 0x00000010 : 0x00000000;
+  Emit(BRKA_p_p_p | Pd(pd) | Rx<13, 10>(pg) | m | Pn(pn));
 }
 
 void Assembler::brkas(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const PRegisterWithLaneSize& pn) {
-  // BRKAS <Pd>.B, <Pg>/Z, <Pn>.B
-  //  0010 0101 0101 0000 01.. ..0. ...0 ....
-  //  B<23> = 0 | S<22> = 1 | Pg<13:10> | Pn<8:5> | M<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pd.IsLaneSizeB() && pn.IsLaneSizeB());
 
-  Emit(BRKAS_p_p_p_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Emit(BRKAS_p_p_p_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn));
 }
 
 void Assembler::brkb(const PRegisterWithLaneSize& pd,
                      const PRegister& pg,
                      const PRegisterWithLaneSize& pn) {
-  // BRKB <Pd>.B, <Pg>/<ZM>, <Pn>.B
-  //  0010 0101 1001 0000 01.. ..0. .... ....
-  //  B<23> = 1 | S<22> = 0 | Pg<13:10> | Pn<8:5> | M<4> | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
+  VIXL_ASSERT(pd.IsLaneSizeB() && pn.IsLaneSizeB());
 
-  Emit(BRKB_p_p_p | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Instr m = pg.IsMerging() ? 0x00000010 : 0x00000000;
+  Emit(BRKB_p_p_p | Pd(pd) | Rx<13, 10>(pg) | m | Pn(pn));
 }
 
 void Assembler::brkbs(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const PRegisterWithLaneSize& pn) {
-  // BRKBS <Pd>.B, <Pg>/Z, <Pn>.B
-  //  0010 0101 1101 0000 01.. ..0. ...0 ....
-  //  B<23> = 1 | S<22> = 1 | Pg<13:10> | Pn<8:5> | M<4> = 0 | Pd<3:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pd.IsLaneSizeB() && pn.IsLaneSizeB());
 
-  Emit(BRKBS_p_p_p_z | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Emit(BRKBS_p_p_p_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn));
 }
 
 void Assembler::brkn(const PRegisterWithLaneSize& pd,
                      const PRegisterZ& pg,
                      const PRegisterWithLaneSize& pn,
                      const PRegisterWithLaneSize& pm) {
-  // BRKN <Pdm>.B, <Pg>/Z, <Pn>.B, <Pdm>.B
-  //  0010 0101 0001 1000 01.. ..0. ...0 ....
-  //  S<22> = 0 | Pg<13:10> | Pn<8:5> | Pdm<3:0>
-
   USE(pm);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pd.IsLaneSizeB() && pn.IsLaneSizeB());
   VIXL_ASSERT(pd.Is(pm));
 
-  Emit(BRKN_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Emit(BRKN_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn));
 }
 
 void Assembler::brkns(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
                       const PRegisterWithLaneSize& pn,
                       const PRegisterWithLaneSize& pm) {
-  // BRKNS <Pdm>.B, <Pg>/Z, <Pn>.B, <Pdm>.B
-  //  0010 0101 0101 1000 01.. ..0. ...0 ....
-  //  S<22> = 1 | Pg<13:10> | Pn<8:5> | Pdm<3:0>
-
   USE(pm);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(pd.IsLaneSizeB() && pn.IsLaneSizeB());
   VIXL_ASSERT(pd.Is(pm));
 
-  Emit(BRKNS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Rx<8, 5>(pn));
+  Emit(BRKNS_p_p_pp | Pd(pd) | Rx<13, 10>(pg) | Pn(pn));
 }
 
 // SVEPermutePredicate.

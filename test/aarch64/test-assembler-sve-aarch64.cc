@@ -11038,5 +11038,298 @@ TEST_SVE(sve_punpk) {
   }
 }
 
+typedef void (MacroAssembler::*BrkFn)(const PRegisterWithLaneSize& pd,
+                                      const PRegister& pg,
+                                      const PRegisterWithLaneSize& pn);
+
+typedef void (MacroAssembler::*BrksFn)(const PRegisterWithLaneSize& pd,
+                                       const PRegisterZ& pg,
+                                       const PRegisterWithLaneSize& pn);
+
+template <typename T, size_t N>
+static void BrkaBrkbHelper(Test* config,
+                           BrkFn macro,
+                           BrksFn macro_set_flags,
+                           const T (&pd_inputs)[N],
+                           const T (&pg_inputs)[N],
+                           const T (&pn_inputs)[N],
+                           const T (&pd_z_expected)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  PRegister pg = p10;
+  PRegister pn = p9;
+  PRegister pd_z = p0;
+  PRegister pd_z_s = p1;
+  PRegister pd_m = p2;
+  Initialise(&masm, pg.VnB(), pg_inputs);
+  Initialise(&masm, pn.VnB(), pn_inputs);
+  Initialise(&masm, pd_m.VnB(), pd_inputs);
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  __ Mov(x10, NZCVFlag);
+  __ Msr(NZCV, x10);
+
+  (masm.*macro)(pd_z.VnB(), pg.Zeroing(), pn.VnB());
+  (masm.*macro_set_flags)(pd_z_s.VnB(), pg.Zeroing(), pn.VnB());
+  __ Mrs(x0, NZCV);
+
+  (masm.*macro)(pd_m.VnB(), pg.Merging(), pn.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(pd_z_expected, pd_z.VnB());
+
+    // Check that the flags were properly set.
+    StatusFlags nzcv_expected =
+        GetPredTestFlags(pd_z_expected,
+                         pg_inputs,
+                         core.GetSVELaneCount(kBRegSize));
+    ASSERT_EQUAL_64(nzcv_expected, x0);
+    ASSERT_EQUAL_SVE(pd_z.VnB(), pd_z_s.VnB());
+
+    T pd_m_expected[N];
+    // Set expected `pd` result on merging predication.
+    for (size_t i = 0; i < N; i++) {
+      pd_m_expected[i] = pg_inputs[i] ? pd_z_expected[i] : pd_inputs[i];
+    }
+    ASSERT_EQUAL_SVE(pd_m_expected, pd_m.VnB());
+  }
+}
+
+template <typename T>
+static void BrkaHelper(Test* config,
+                       const T& pd_inputs,
+                       const T& pg_inputs,
+                       const T& pn_inputs,
+                       const T& pd_expected) {
+  BrkaBrkbHelper(config,
+                 &MacroAssembler::Brka,
+                 &MacroAssembler::Brkas,
+                 pd_inputs,
+                 pg_inputs,
+                 pn_inputs,
+                 pd_expected);
+}
+
+TEST_SVE(sve_brka) {
+  // clang-format off
+  //                              | boundary of 128-bits VL.
+  //                              v
+  int pd[] =      {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  //               | highest-numbered lane                lowest-numbered lane |
+  //               v                                                           v
+  int pg_1[] =    {1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  int pg_2[] =    {1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+
+  int pn_1[] =    {1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
+  int pn_2[] =    {1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int pn_3[] =    {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1};
+
+  //                                                                  | first break
+  //                                                                  v
+  int exp_1_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0};
+  //                              | first break
+  //                              v
+  int exp_1_2[] = {0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  //                                                      | first break
+  //                                                      v
+  int exp_1_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+
+  BrkaHelper(config, pd, pg_1, pn_1, exp_1_1);
+  BrkaHelper(config, pd, pg_1, pn_2, exp_1_2);
+  BrkaHelper(config, pd, pg_1, pn_3, exp_1_3);
+
+  //                                                               | first break
+  //                                                               v
+  int exp_2_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1};
+  //                                       | first break
+  //                                       v
+  int exp_2_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  //                                                                           | first break
+  //                                                                           v
+  int exp_2_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  BrkaHelper(config, pd, pg_2, pn_1, exp_2_1);
+  BrkaHelper(config, pd, pg_2, pn_2, exp_2_2);
+  BrkaHelper(config, pd, pg_2, pn_3, exp_2_3);
+
+  // The all-inactive zeroing predicate sets destination predicate all-false.
+  int pg_3[] =    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp_3_x[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  BrkaHelper(config, pd, pg_3, pn_1, exp_3_x);
+  BrkaHelper(config, pd, pg_3, pn_2, exp_3_x);
+  BrkaHelper(config, pd, pg_3, pn_3, exp_3_x);
+  // clang-format on
+}
+
+template <typename T>
+static void BrkbHelper(Test* config,
+                       const T& pd_inputs,
+                       const T& pg_inputs,
+                       const T& pn_inputs,
+                       const T& pd_expected) {
+  BrkaBrkbHelper(config,
+                 &MacroAssembler::Brkb,
+                 &MacroAssembler::Brkbs,
+                 pd_inputs,
+                 pg_inputs,
+                 pn_inputs,
+                 pd_expected);
+}
+
+TEST_SVE(sve_brkb) {
+  // clang-format off
+  //                              | boundary of 128-bits VL.
+  //                              v
+  int pd[] =      {1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+  //               | highest-numbered lane                lowest-numbered lane |
+  //               v                                                           v
+  int pg_1[] =    {1, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  int pg_2[] =    {1, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+
+  int pn_1[] =    {1, 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0};
+  int pn_2[] =    {1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int pn_3[] =    {1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 0, 1, 1};
+
+  //                                                                  | first break
+  //                                                                  v
+  int exp_1_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0};
+  //                              | first break
+  //                              v
+  int exp_1_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+  //                                                      | first break
+  //                                                      v
+  int exp_1_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0};
+
+  BrkbHelper(config, pd, pg_1, pn_1, exp_1_1);
+  BrkbHelper(config, pd, pg_1, pn_2, exp_1_2);
+  BrkbHelper(config, pd, pg_1, pn_3, exp_1_3);
+
+  //                                                               | first break
+  //                                                               v
+  int exp_2_1[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+  //                                       | first break
+  //                                       v
+  int exp_2_2[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1};
+  //                                                                           | first break
+  //                                                                           v
+  int exp_2_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  BrkbHelper(config, pd, pg_2, pn_1, exp_2_1);
+  BrkbHelper(config, pd, pg_2, pn_2, exp_2_2);
+  BrkbHelper(config, pd, pg_2, pn_3, exp_2_3);
+
+  // The all-inactive zeroing predicate sets destination predicate all-false.
+  int pg_3[] =    {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int exp_3_x[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  BrkbHelper(config, pd, pg_3, pn_1, exp_3_x);
+  BrkbHelper(config, pd, pg_3, pn_2, exp_3_x);
+  BrkbHelper(config, pd, pg_3, pn_3, exp_3_x);
+  // clang-format on
+}
+
+typedef void (MacroAssembler::*BrknFn)(const PRegisterWithLaneSize& pd,
+                                       const PRegisterZ& pg,
+                                       const PRegisterWithLaneSize& pn,
+                                       const PRegisterWithLaneSize& pm);
+
+typedef void (MacroAssembler::*BrknsFn)(const PRegisterWithLaneSize& pd,
+                                        const PRegisterZ& pg,
+                                        const PRegisterWithLaneSize& pn,
+                                        const PRegisterWithLaneSize& pm);
+
+enum BrknDstPredicateState { kAllFalse, kUnchanged };
+
+template <typename T, size_t N>
+static void BrknHelper(Test* config,
+                       BrknFn macro,
+                       BrknsFn macro_set_flags,
+                       const T (&pd_inputs)[N],
+                       const T (&pg_inputs)[N],
+                       const T (&pn_inputs)[N],
+                       const T (&pm_inputs)[N],
+                       BrknDstPredicateState expected_pd_state) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  PRegister pg = p10;
+  PRegister pn = p9;
+  PRegister pm = p8;
+  PRegister pdm = p0;
+  PRegister pd = p1;
+  PRegister pd_s = p2;
+  Initialise(&masm, pg.VnB(), pg_inputs);
+  Initialise(&masm, pn.VnB(), pn_inputs);
+  Initialise(&masm, pm.VnB(), pm_inputs);
+  Initialise(&masm, pdm.VnB(), pm_inputs);
+  Initialise(&masm, pd.VnB(), pd_inputs);
+  Initialise(&masm, pd_s.VnB(), pd_inputs);
+
+  // Initialise NZCV to an impossible value, to check that we actually write it.
+  __ Mov(x10, NZCVFlag);
+  __ Msr(NZCV, x10);
+
+  (masm.*macro)(pdm.VnB(), pg.Zeroing(), pn.VnB(), pdm.VnB());
+  // !pd.Aliases(pm).
+  (masm.*macro)(pd.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
+  (masm.*macro_set_flags)(pd_s.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
+  __ Mrs(x0, NZCV);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    T all_false[N] = {0};
+    if (expected_pd_state == kAllFalse) {
+      ASSERT_EQUAL_SVE(all_false, pd.VnB());
+    } else {
+      ASSERT_EQUAL_SVE(pm_inputs, pd.VnB());
+    }
+    ASSERT_EQUAL_SVE(pm_inputs, pm.VnB());
+
+    // Check that the flags were properly set.
+    StatusFlags nzcv_expected =
+        GetPredTestFlags((expected_pd_state == kAllFalse) ? all_false
+                                                          : pm_inputs,
+                         pg_inputs,
+                         core.GetSVELaneCount(kBRegSize));
+    ASSERT_EQUAL_64(nzcv_expected, x0);
+    ASSERT_EQUAL_SVE(pd.VnB(), pdm.VnB());
+    ASSERT_EQUAL_SVE(pd.VnB(), pd_s.VnB());
+  }
+}
+
+TEST_SVE(sve_brkn) {
+  // clang-format off
+  int pd[] =   {1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+  int pm[] =   {0, 1, 1, 1, 1, 0, 0, 1, 0, 1};
+
+  int pg_1[] =  {1, 1, 0, 0, 1, 0, 1, 1, 0, 0};
+  int pg_2[] =  {0, 0, 0, 1, 1, 1, 0, 0, 1, 1};
+  int pg_3[] =  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};  // all-false
+
+  int pn_1[] =  {1, 0, 0, 0, 0, 1, 1, 0, 0, 0};
+  int pn_2[] =  {0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  int pn_3[] =  {0, 0, 0, 0, 1, 1, 0, 0, 1, 1};
+
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_1, pn_1, pm, kUnchanged);
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_1, pn_2, pm, kAllFalse);
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_1, pn_3, pm, kAllFalse);
+
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_2, pn_1, pm, kAllFalse);
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_2, pn_2, pm, kUnchanged);
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_2, pn_3, pm, kAllFalse);
+
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_3, pn_1, pm, kAllFalse);
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_3, pn_2, pm, kAllFalse);
+  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_3, pn_3, pm, kAllFalse);
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

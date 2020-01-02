@@ -3594,16 +3594,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const PRegisterWithLaneSize& pn,
             const PRegisterWithLaneSize& pm) {
     VIXL_ASSERT(allow_macro_instructions_);
+    if (!pd.Aliases(pm)) {
+      Mov(pd, pm);
+    }
     SingleEmissionCheckScope guard(this);
-    brkn(pd, pg, pn, pm);
+    brkn(pd, pg, pn, pd);
   }
   void Brkns(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const PRegisterWithLaneSize& pn,
              const PRegisterWithLaneSize& pm) {
     VIXL_ASSERT(allow_macro_instructions_);
+    if (!pd.Aliases(pm)) {
+      Mov(pd, pm);
+    }
     SingleEmissionCheckScope guard(this);
-    brkns(pd, pg, pn, pm);
+    brkns(pd, pg, pn, pd);
   }
   void Brkpa(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,

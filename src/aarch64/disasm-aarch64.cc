@@ -7841,28 +7841,21 @@ void Disassembler::VisitSVELoadVectorRegister(const Instruction *instr) {
 
 void Disassembler::VisitSVEPartitionBreakCondition(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPartitionBreakCondition)";
+  const char *form = (instr->ExtractBit(4) == 1) ? "'Pd.b, p'u1310/m, 'Pn.b"
+                                                 : "'Pd.b, p'u1310/z, 'Pn.b";
 
   switch (instr->Mask(SVEPartitionBreakConditionMask)) {
-    // BRKAS <Pd>.B, <Pg>/Z, <Pn>.B
     case BRKAS_p_p_p_z:
       mnemonic = "brkas";
-      form = "'Pd.b, p'u1310/z, 'Pn.b";
       break;
-    // BRKA <Pd>.B, <Pg>/<ZM>, <Pn>.B
     case BRKA_p_p_p:
       mnemonic = "brka";
-      form = "'Pd.b, p'u1310/<ZM>, 'Pn.b";
       break;
-    // BRKBS <Pd>.B, <Pg>/Z, <Pn>.B
     case BRKBS_p_p_p_z:
       mnemonic = "brkbs";
-      form = "'Pd.b, p'u1310/z, 'Pn.b";
       break;
-    // BRKB <Pd>.B, <Pg>/<ZM>, <Pn>.B
     case BRKB_p_p_p:
       mnemonic = "brkb";
-      form = "'Pd.b, p'u1310/<ZM>, 'Pn.b";
       break;
     default:
       break;

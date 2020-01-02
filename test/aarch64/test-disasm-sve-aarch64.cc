@@ -4010,14 +4010,29 @@ TEST(sve_mul_index) {
 TEST(sve_partition_break) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(brkas(p8.VnB(), p5.Zeroing(), p4.VnB()), "brkas <Pd>.B, <Pg>/Z, <Pn>.B");
-  COMPARE_PREFIX(brka(p11.VnB(), p7, p15.VnB()), "brka <Pd>.B, <Pg>/<ZM>, <Pn>.B");
-  COMPARE_PREFIX(brkbs(p6.VnB(), p9.Zeroing(), p14.VnB()), "brkbs <Pd>.B, <Pg>/Z, <Pn>.B");
-  COMPARE_PREFIX(brkb(p11.VnB(), p6, p4.VnB()), "brkb <Pd>.B, <Pg>/<ZM>, <Pn>.B");
-  COMPARE_PREFIX(brkns(p2.VnB(), p11.Zeroing(), p0.VnB(), p2.VnB()), "brkns <Pdm>.B, <Pg>/Z, <Pn>.B, <Pdm>.B");
-  COMPARE_PREFIX(brkn(p4.VnB(), p3.Zeroing(), p1.VnB(), p4.VnB()), "brkn <Pdm>.B, <Pg>/Z, <Pn>.B, <Pdm>.B");
-#endif
+  COMPARE_PREFIX(brkas(p8.VnB(), p5.Zeroing(), p4.VnB()),
+                 "brkas p8.b, p5/z, p4.b");
+  COMPARE_PREFIX(brka(p11.VnB(), p7.Zeroing(), p15.VnB()),
+                 "brka p11.b, p7/z, p15.b");
+  COMPARE_PREFIX(brka(p12.VnB(), p8.Merging(), p13.VnB()),
+                 "brka p12.b, p8/m, p13.b");
+  COMPARE_PREFIX(brkbs(p6.VnB(), p9.Zeroing(), p14.VnB()),
+                 "brkbs p6.b, p9/z, p14.b");
+  COMPARE_PREFIX(brkb(p11.VnB(), p6.Zeroing(), p4.VnB()),
+                 "brkb p11.b, p6/z, p4.b");
+  COMPARE_PREFIX(brkb(p12.VnB(), p7.Merging(), p5.VnB()),
+                 "brkb p12.b, p7/m, p5.b");
+  COMPARE_PREFIX(brkns(p2.VnB(), p11.Zeroing(), p0.VnB(), p2.VnB()),
+                 "brkns p2.b, p11/z, p0.b, p2.b");
+  COMPARE_PREFIX(brkn(p4.VnB(), p3.Zeroing(), p1.VnB(), p4.VnB()),
+                 "brkn p4.b, p3/z, p1.b, p4.b");
+
+  COMPARE_MACRO(Brkns(p3.VnB(), p10.Zeroing(), p2.VnB(), p5.VnB()),
+                "mov p3.b, p5.b\n"
+                "brkns p3.b, p10/z, p2.b, p3.b");
+  COMPARE_MACRO(Brkn(p5.VnB(), p4.Zeroing(), p3.VnB(), p7.VnB()),
+                "mov p5.b, p7.b\n"
+                "brkn p5.b, p4/z, p3.b, p5.b");
 
   CLEANUP();
 }
