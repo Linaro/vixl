@@ -157,7 +157,8 @@ int IDRegister::Get(IDRegister::Field field) const {
 
 CPUFeatures CPU::InferCPUFeaturesFromIDRegisters() {
   CPUFeatures f;
-#define VIXL_COMBINE_ID_REG(NAME) f.Combine(Read##NAME().GetCPUFeatures());
+#define VIXL_COMBINE_ID_REG(NAME, MRS_ARG) \
+  f.Combine(Read##NAME().GetCPUFeatures());
   VIXL_AARCH64_ID_REG_LIST(VIXL_COMBINE_ID_REG)
 #undef VIXL_COMBINE_ID_REG
   return f;
@@ -231,17 +232,17 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
 
 
 #ifdef __aarch64__
-#define VIXL_READ_ID_REG(NAME)                         \
-  NAME CPU::Read##NAME() {                             \
-    uint64_t value = 0;                                \
-    __asm__("mrs %0, ID_" #NAME "_EL1" : "=r"(value)); \
-    return NAME(value);                                \
+#define VIXL_READ_ID_REG(NAME, MRS_ARG)        \
+  NAME CPU::Read##NAME() {                     \
+    uint64_t value = 0;                        \
+    __asm__("mrs %0, " MRS_ARG : "=r"(value)); \
+    return NAME(value);                        \
   }
 #else  // __aarch64__
-#define VIXL_READ_ID_REG(NAME) \
-  NAME CPU::Read##NAME() {     \
-    VIXL_UNREACHABLE();        \
-    return NAME(0);            \
+#define VIXL_READ_ID_REG(NAME, MRS_ARG) \
+  NAME CPU::Read##NAME() {              \
+    VIXL_UNREACHABLE();                 \
+    return NAME(0);                     \
   }
 #endif  // __aarch64__
 

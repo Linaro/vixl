@@ -223,15 +223,17 @@ class CPU {
   }
 
  private:
-#define VIXL_AARCH64_ID_REG_LIST(V) \
-  V(AA64PFR0)                       \
-  V(AA64PFR1)                       \
-  V(AA64ISAR0)                      \
-  V(AA64ISAR1)                      \
-  V(AA64MMFR1)                      \
-  V(AA64MMFR2)
+#define VIXL_AARCH64_ID_REG_LIST(V)                                         \
+  V(AA64PFR0, "ID_AA64PFR0_EL1")                                            \
+  V(AA64PFR1, "ID_AA64PFR1_EL1")                                            \
+  V(AA64ISAR0, "ID_AA64ISAR0_EL1")                                          \
+  V(AA64ISAR1, "ID_AA64ISAR1_EL1")                                          \
+  V(AA64MMFR1, "ID_AA64MMFR1_EL1")                                          \
+  /* AA64MMFR2 is RES0 before Armv8.2. We can always safely read it, but */ \
+  /* some compilers don't accept its symbolic name for Arm8.0 targets. */   \
+  V(AA64MMFR2, "S3_0_C0_C7_2")
 
-#define VIXL_READ_ID_REG(NAME) static NAME Read##NAME();
+#define VIXL_READ_ID_REG(NAME, MRS_ARG) static NAME Read##NAME();
   // On native AArch64 platforms, read the named CPU ID registers. These require
   // CPUFeatures::kIDRegisterEmulation, and should not be called on non-AArch64
   // platforms.
