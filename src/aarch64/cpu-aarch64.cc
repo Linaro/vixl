@@ -39,6 +39,7 @@ namespace aarch64 {
 
 const IDRegister::Field AA64PFR0::kFP(16, Field::kSigned);
 const IDRegister::Field AA64PFR0::kAdvSIMD(20, Field::kSigned);
+const IDRegister::Field AA64PFR0::kRAS(28);
 const IDRegister::Field AA64PFR0::kSVE(32);
 const IDRegister::Field AA64PFR0::kDIT(48);
 
