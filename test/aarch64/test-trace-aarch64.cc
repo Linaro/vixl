@@ -3128,6 +3128,7 @@ static void PrintDisassemblerTestHelper(const char* prefix,
   GenerateTestSequenceFP(&masm);
   GenerateTestSequenceNEON(&masm);
   GenerateTestSequenceNEONFP(&masm);
+  GenerateTestSequenceSVE(&masm);
   masm.FinalizeCode();
 
   Decoder decoder;
