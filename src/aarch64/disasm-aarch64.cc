@@ -6575,7 +6575,7 @@ void Disassembler::VisitSVECopyFPImm_Predicated(const Instruction *instr) {
     // FCPY <Zd>.<T>, <Pg>/M, #<const>
     case FCPY_z_p_i:
       mnemonic = "fcpy";
-      form = "'Zd.'t, p'u1916/m, 'IFPSve";
+      form = "'Zd.'t, 'Pm/m, 'IFPSve";
       break;
     default:
       break;
@@ -6615,15 +6615,15 @@ void Disassembler::VisitSVECopyIntImm_Predicated(const Instruction *instr) {
       bool m = instr->ExtractBit(14) != 0;
       if (sh) {
         if (m) {
-          form = "'Zd.'t, p'u1916/m, #'s1205, lsl #8";
+          form = "'Zd.'t, 'Pm/m, #'s1205, lsl #8";
         } else {
-          form = "'Zd.'t, p'u1916/z, #'s1205, lsl #8";
+          form = "'Zd.'t, 'Pm/z, #'s1205, lsl #8";
         }
       } else {
         if (m) {
-          form = "'Zd.'t, p'u1916/m, #'s1205";
+          form = "'Zd.'t, 'Pm/m, #'s1205";
         } else {
-          form = "'Zd.'t, p'u1916/z, #'s1205";
+          form = "'Zd.'t, 'Pm/z, #'s1205";
         }
       }
       break;
@@ -6717,7 +6717,7 @@ void Disassembler::VisitSVEFFRWriteFromPredicate(const Instruction *instr) {
     // WRFFR <Pn>.B
     case WRFFR_f_p:
       mnemonic = "wrffr";
-      form = "p'u0805.b";
+      form = "'Pn.b";
       break;
     default:
       break;
@@ -7847,22 +7847,22 @@ void Disassembler::VisitSVEPartitionBreakCondition(const Instruction *instr) {
     // BRKAS <Pd>.B, <Pg>/Z, <Pn>.B
     case BRKAS_p_p_p_z:
       mnemonic = "brkas";
-      form = "'Pd.b, p'u1310/z, p'u0805.b";
+      form = "'Pd.b, p'u1310/z, 'Pn.b";
       break;
     // BRKA <Pd>.B, <Pg>/<ZM>, <Pn>.B
     case BRKA_p_p_p:
       mnemonic = "brka";
-      form = "'Pd.b, p'u1310/<ZM>, p'u0805.b";
+      form = "'Pd.b, p'u1310/<ZM>, 'Pn.b";
       break;
     // BRKBS <Pd>.B, <Pg>/Z, <Pn>.B
     case BRKBS_p_p_p_z:
       mnemonic = "brkbs";
-      form = "'Pd.b, p'u1310/z, p'u0805.b";
+      form = "'Pd.b, p'u1310/z, 'Pn.b";
       break;
     // BRKB <Pd>.B, <Pg>/<ZM>, <Pn>.B
     case BRKB_p_p_p:
       mnemonic = "brkb";
-      form = "'Pd.b, p'u1310/<ZM>, p'u0805.b";
+      form = "'Pd.b, p'u1310/<ZM>, 'Pn.b";
       break;
     default:
       break;
@@ -7873,7 +7873,7 @@ void Disassembler::VisitSVEPartitionBreakCondition(const Instruction *instr) {
 void Disassembler::VisitSVEPermutePredicateElements(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
-  const char *form = "'Pd.'t, p'u0805.'t, p'u1916.'t";
+  const char *form = "'Pd.'t, 'Pn.'t, 'Pm.'t";
 
   switch (instr->Mask(SVEPermutePredicateElementsMask)) {
     // TRN1 <Pd>.<T>, <Pn>.<T>, <Pm>.<T>
@@ -7914,7 +7914,7 @@ void Disassembler::VisitSVEPredicateFirstActive(const Instruction *instr) {
     // PFIRST <Pdn>.B, <Pg>, <Pdn>.B
     case PFIRST_p_p_p:
       mnemonic = "pfirst";
-      form = "'Pd.b, p'u0805, 'Pd.b";
+      form = "'Pd.b, 'Pn, 'Pd.b";
       break;
     default:
       break;
@@ -7947,7 +7947,7 @@ void Disassembler::VisitSVEPredicateTest(const Instruction *instr) {
     // PTEST <Pg>, <Pn>.B
     case PTEST_p_p:
       mnemonic = "ptest";
-      form = "p'u1310, p'u0805.b";
+      form = "p'u1310, 'Pn.b";
       break;
     default:
       break;
@@ -7975,7 +7975,7 @@ void Disassembler::VisitSVEPropagateBreakToNextPartition(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Pdm>.B, <Pg>/Z, <Pn>.B, <Pdm>.B
-  const char *form = "'Pd.b, p'u1310/z, p'u0805.b, 'Pd.b";
+  const char *form = "'Pd.b, p'u1310/z, 'Pn.b, 'Pd.b";
 
   switch (instr->Mask(SVEPropagateBreakToNextPartitionMask)) {
     // BRKNS <Pdm>.B, <Pg>/Z, <Pn>.B, <Pdm>.B
@@ -8000,7 +8000,7 @@ void Disassembler::VisitSVEReversePredicateElements(const Instruction *instr) {
     // REV <Pd>.<T>, <Pn>.<T>
     case REV_p_p:
       mnemonic = "rev";
-      form = "'Pd.'t, p'u0805.'t";
+      form = "'Pd.'t, 'Pn.'t";
       break;
     default:
       break;
@@ -8413,7 +8413,7 @@ void Disassembler::VisitSVETableLookup(const Instruction *instr) {
 void Disassembler::VisitSVEUnpackPredicateElements(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Pd>.H, <Pn>.B
-  const char *form = "'Pd.h, p'u0805.b";
+  const char *form = "'Pd.h, 'Pn.b";
 
   switch (instr->Mask(SVEUnpackPredicateElementsMask)) {
     // PUNPKHI <Pd>.H, <Pn>.B
@@ -9005,7 +9005,7 @@ void Disassembler::VisitSVEIncDecByPredicateCount(const Instruction *instr) {
     // <Xdn>, <Pg>.<T>
     case DECP_r_p_r:
     case INCP_r_p_r:
-      form = "'Xd, p'u0805.'t";
+      form = "'Xd, 'Pn.'t";
       break;
     // <Zdn>.<T>, <Pg>
     case DECP_z_p_z:
@@ -9014,24 +9014,24 @@ void Disassembler::VisitSVEIncDecByPredicateCount(const Instruction *instr) {
     case SQINCP_z_p_z:
     case UQDECP_z_p_z:
     case UQINCP_z_p_z:
-      form = "'Zd.'t, p'u0805";
+      form = "'Zd.'t, 'Pn";
       break;
     // <Xdn>, <Pg>.<T>, <Wdn>
     case SQDECP_r_p_r_sx:
     case SQINCP_r_p_r_sx:
-      form = "'Xd, p'u0805.'t, 'Wd";
+      form = "'Xd, 'Pn.'t, 'Wd";
       break;
     // <Xdn>, <Pg>.<T>
     case SQDECP_r_p_r_x:
     case SQINCP_r_p_r_x:
     case UQDECP_r_p_r_x:
     case UQINCP_r_p_r_x:
-      form = "'Xd, p'u0805.'t";
+      form = "'Xd, 'Pn.'t";
       break;
     // <Wdn>, <Pg>.<T>
     case UQDECP_r_p_r_uw:
     case UQINCP_r_p_r_uw:
-      form = "'Wd, p'u0805.'t";
+      form = "'Wd, 'Pn.'t";
       break;
     default:
       break;
@@ -9625,7 +9625,7 @@ void Disassembler::VisitSVEPredicateNextActive(const Instruction *instr) {
   VIXL_STATIC_ASSERT(SVEPredicateNextActiveFMask == SVEPredicateNextActiveMask);
   VIXL_ASSERT(instr->Mask(SVEPredicateNextActiveMask) == PNEXT_p_p_p);
 
-  Format(instr, "pnext", "'Pd.'t, p'u0805, 'Pd.'t");
+  Format(instr, "pnext", "'Pd.'t, 'Pn, 'Pd.'t");
 }
 
 void Disassembler::VisitSVEPredicateReadFromFFR_Predicated(
@@ -9636,7 +9636,7 @@ void Disassembler::VisitSVEPredicateReadFromFFR_Predicated(
     case RDFFR_p_p_f:
     case RDFFRS_p_p_f:
       mnemonic = instr->ExtractBit(22) ? "rdffrs" : "rdffr";
-      form = "'Pd.b, p'u0805/z";
+      form = "'Pd.b, 'Pn/z";
       break;
     default:
       break;
@@ -9647,7 +9647,7 @@ void Disassembler::VisitSVEPredicateReadFromFFR_Predicated(
 void Disassembler::VisitSVEPropagateBreak(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   // <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
-  const char *form = "'Pd.b, p'u1310/z, p'u0805.b, p'u1916.b";
+  const char *form = "'Pd.b, p'u1310/z, 'Pn.b, 'Pm.b";
 
   switch (instr->Mask(SVEPropagateBreakMask)) {
     // BRKPAS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
