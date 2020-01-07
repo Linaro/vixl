@@ -7966,21 +7966,37 @@ void Simulator::VisitSVEFPFastReduction(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = kFormatUndefined;
+  unsigned zm_code = instr->GetRm() & 0xf;
+  unsigned index = instr->ExtractBits(20, 19);
+
   switch (instr->Mask(SVEFPMulIndexMask)) {
     case FMUL_z_zzi_d:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnD;
+      index >>= 1;  // Only bit 20 is the index for D lanes.
       break;
+    case FMUL_z_zzi_h_i3h:
+      index += 4;  // Bit 22 (i3h) is the top bit of index.
+      VIXL_FALLTHROUGH();
     case FMUL_z_zzi_h:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnH;
+      zm_code &= 7;  // Three bits used for zm.
       break;
     case FMUL_z_zzi_s:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
+      zm_code &= 7;  // Three bits used for zm.
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister temp;
+
+  dup_element(vform, temp, ReadVRegister(zm_code), index);
+  fmul(vform, zd, zn, temp);
 }
 
 void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {

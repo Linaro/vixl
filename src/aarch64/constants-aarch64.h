@@ -3602,8 +3602,9 @@ enum SVEFPMulAddIndexOp {
 enum SVEFPMulIndexOp {
   SVEFPMulIndexFixed = 0x64202000,
   SVEFPMulIndexFMask = 0xFF20FC00,
-  SVEFPMulIndexMask = 0xFFA0FC00,
+  SVEFPMulIndexMask = 0xFFE0FC00,
   FMUL_z_zzi_h = SVEFPMulIndexFixed,
+  FMUL_z_zzi_h_i3h = FMUL_z_zzi_h | 0x00400000,
   FMUL_z_zzi_s = SVEFPMulIndexFixed | 0x00800000,
   FMUL_z_zzi_d = SVEFPMulIndexFixed | 0x00C00000
 };

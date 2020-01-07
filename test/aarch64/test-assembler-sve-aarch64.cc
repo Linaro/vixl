@@ -11431,5 +11431,70 @@ TEST_SVE(sve_zip_uzp) {
     ASSERT_EQUAL_SVE(z1.VnD(), z17.VnD());
   }
 }
+
+TEST_SVE(sve_fpmul_index) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in0[] = {0x3ff000003f803c00, 0xbff00000bf80bc00};
+  uint64_t in1[] = {0x3ff012343ff03c76, 0xbff01234bff0bc76};
+
+  InsrHelper(&masm, z0.VnD(), in0);
+  InsrHelper(&masm, z1.VnD(), in1);
+
+  __ Fmul(z2.VnH(), z1.VnH(), z0.VnH(), 0);
+  __ Fmul(z3.VnH(), z1.VnH(), z0.VnH(), 1);
+  __ Fmul(z4.VnH(), z1.VnH(), z0.VnH(), 4);
+  __ Fmul(z5.VnH(), z1.VnH(), z0.VnH(), 7);
+
+  __ Fmul(z6.VnS(), z1.VnS(), z0.VnS(), 0);
+  __ Fmul(z7.VnS(), z1.VnS(), z0.VnS(), 1);
+  __ Fmul(z8.VnS(), z1.VnS(), z0.VnS(), 2);
+  __ Fmul(z9.VnS(), z1.VnS(), z0.VnS(), 3);
+
+  __ Fmul(z10.VnD(), z1.VnD(), z0.VnD(), 0);
+  __ Fmul(z11.VnD(), z1.VnD(), z0.VnD(), 1);
+
+  // Compute the results using other instructions.
+  __ Dup(z12.VnH(), z0.VnH(), 0);
+  __ Fmul(z12.VnH(), z1.VnH(), z12.VnH());
+  __ Dup(z13.VnH(), z0.VnH(), 1);
+  __ Fmul(z13.VnH(), z1.VnH(), z13.VnH());
+  __ Dup(z14.VnH(), z0.VnH(), 4);
+  __ Fmul(z14.VnH(), z1.VnH(), z14.VnH());
+  __ Dup(z15.VnH(), z0.VnH(), 7);
+  __ Fmul(z15.VnH(), z1.VnH(), z15.VnH());
+
+  __ Dup(z16.VnS(), z0.VnS(), 0);
+  __ Fmul(z16.VnS(), z1.VnS(), z16.VnS());
+  __ Dup(z17.VnS(), z0.VnS(), 1);
+  __ Fmul(z17.VnS(), z1.VnS(), z17.VnS());
+  __ Dup(z18.VnS(), z0.VnS(), 2);
+  __ Fmul(z18.VnS(), z1.VnS(), z18.VnS());
+  __ Dup(z19.VnS(), z0.VnS(), 3);
+  __ Fmul(z19.VnS(), z1.VnS(), z19.VnS());
+
+  __ Dup(z20.VnD(), z0.VnD(), 0);
+  __ Fmul(z20.VnD(), z1.VnD(), z20.VnD());
+  __ Dup(z21.VnD(), z0.VnD(), 1);
+  __ Fmul(z21.VnD(), z1.VnD(), z21.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z12.VnH(), z2.VnH());
+    ASSERT_EQUAL_SVE(z13.VnH(), z3.VnH());
+    ASSERT_EQUAL_SVE(z14.VnH(), z4.VnH());
+    ASSERT_EQUAL_SVE(z15.VnH(), z5.VnH());
+    ASSERT_EQUAL_SVE(z16.VnS(), z6.VnS());
+    ASSERT_EQUAL_SVE(z17.VnS(), z7.VnS());
+    ASSERT_EQUAL_SVE(z18.VnS(), z8.VnS());
+    ASSERT_EQUAL_SVE(z19.VnS(), z9.VnS());
+    ASSERT_EQUAL_SVE(z20.VnD(), z10.VnD());
+    ASSERT_EQUAL_SVE(z21.VnD(), z11.VnD());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -4309,7 +4309,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Floating-point multiply by indexed elements.
-  void fmul(const ZRegister& zd, const ZRegister& zn);
+  void fmul(const ZRegister& zd,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            unsigned index);
 
   // Floating-point multiply vectors (unpredicated).
   void fmul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);

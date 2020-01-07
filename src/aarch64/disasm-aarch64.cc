@@ -8822,20 +8822,18 @@ void Disassembler::VisitSVEFPMulIndex(const Instruction *instr) {
   const char *form = "(SVEFPMulIndex)";
 
   switch (instr->Mask(SVEFPMulIndexMask)) {
-    // FMUL <Zd>.D, <Zn>.D, <Zm>.D[<imm>]
     case FMUL_z_zzi_d:
       mnemonic = "fmul";
-      form = "'Zd.d, 'Zn.d, <Zm>.d[<imm>]";
+      form = "'Zd.d, 'Zn.d, z'u1916.d['u2020]";
       break;
-    // FMUL <Zd>.H, <Zn>.H, <Zm>.H[<imm>]
     case FMUL_z_zzi_h:
+    case FMUL_z_zzi_h_i3h:
       mnemonic = "fmul";
-      form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>]";
+      form = "'Zd.h, 'Zn.h, z'u1816.h['u2222:2019]";
       break;
-    // FMUL <Zd>.S, <Zn>.S, <Zm>.S[<imm>]
     case FMUL_z_zzi_s:
       mnemonic = "fmul";
-      form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>]";
+      form = "'Zd.s, 'Zn.s, z'u1816.s['u2019]";
       break;
     default:
       break;

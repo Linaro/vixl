@@ -1069,11 +1069,28 @@ TEST(sve_fp_mul_add_index) {
 TEST(sve_fp_mul_index) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fmul(z12.VnD(), z3.VnD()), "fmul <Zd>.D, <Zn>.D, <Zm>.D[<imm>]");
-  COMPARE_PREFIX(fmul(z22.VnH(), z2.VnH()), "fmul <Zd>.H, <Zn>.H, <Zm>.H[<imm>]");
-  COMPARE_PREFIX(fmul(z2.VnS(), z8.VnS()), "fmul <Zd>.S, <Zn>.S, <Zm>.S[<imm>]");
-#endif
+  COMPARE_PREFIX(fmul(z12.VnD(), z3.VnD(), z4.VnD(), 0),
+                 "fmul z12.d, z3.d, z4.d[0]");
+  COMPARE_PREFIX(fmul(z12.VnD(), z3.VnD(), z4.VnD(), 1),
+                 "fmul z12.d, z3.d, z4.d[1]");
+
+  COMPARE_PREFIX(fmul(z22.VnH(), z2.VnH(), z3.VnH(), 0),
+                 "fmul z22.h, z2.h, z3.h[0]");
+  COMPARE_PREFIX(fmul(z22.VnH(), z2.VnH(), z3.VnH(), 3),
+                 "fmul z22.h, z2.h, z3.h[3]");
+  COMPARE_PREFIX(fmul(z22.VnH(), z2.VnH(), z3.VnH(), 4),
+                 "fmul z22.h, z2.h, z3.h[4]");
+  COMPARE_PREFIX(fmul(z22.VnH(), z2.VnH(), z3.VnH(), 7),
+                 "fmul z22.h, z2.h, z3.h[7]");
+
+  COMPARE_PREFIX(fmul(z2.VnS(), z8.VnS(), z7.VnS(), 0),
+                 "fmul z2.s, z8.s, z7.s[0]");
+  COMPARE_PREFIX(fmul(z2.VnS(), z8.VnS(), z7.VnS(), 1),
+                 "fmul z2.s, z8.s, z7.s[1]");
+  COMPARE_PREFIX(fmul(z2.VnS(), z8.VnS(), z7.VnS(), 2),
+                 "fmul z2.s, z8.s, z7.s[2]");
+  COMPARE_PREFIX(fmul(z2.VnS(), z8.VnS(), z7.VnS(), 3),
+                 "fmul z2.s, z8.s, z7.s[3]");
 
   CLEANUP();
 }

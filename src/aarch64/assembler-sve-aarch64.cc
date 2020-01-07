@@ -1433,17 +1433,54 @@ void Assembler::fmls(const ZRegister& zda, const ZRegister& zn) {
 // SVEFPMulIndex.
 
 // This prototype maps to 3 instruction encodings:
-//  FMUL_z_zzi_d
-//  FMUL_z_zzi_h
-//  FMUL_z_zzi_s
-void Assembler::fmul(const ZRegister& zd, const ZRegister& zn) {
-  // FMUL <Zd>.D, <Zn>.D, <Zm>.D[<imm>]
-  //  0110 0100 111. .... 0010 00.. .... ....
-  //  size<23:22> = 11 | opc<20:16> | Zn<9:5> | Zd<4:0>
+void Assembler::fmul(const ZRegister& zd,
+                     const ZRegister& zn,
+                     const ZRegister& zm,
+                     unsigned index) {
+  // FMUL <Zd>.<T>, <Zn>.<T>, <Zm>.<T>[<imm>]
+  //  0110 0100 ..1. .... 0010 00.. .... ....
+  //  size<23:22> | opc<20:16> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(FMUL_z_zzi_d | Rd(zd) | Rn(zn));
+  Instr op = 0xffffffff;
+  Instr size = SVESize(zd);
+  Instr zm_with_index = Rm(zm);
+
+  // Allowable register number and lane index depends on the lane size.
+  switch (zd.GetLaneSizeInBytes()) {
+    case kHRegSizeInBytes:
+      VIXL_ASSERT(zm.GetCode() <= 7);
+      VIXL_ASSERT(IsUint3(index));
+      // For H-sized lanes, size is encoded as 0b0x, where x is used as the top
+      // bit of the index. So, if index is less than four, the top bit of index
+      // is zero, and therefore size is 0b00. Otherwise, it's 0b01, the usual
+      // encoding for H-sized lanes.
+      if (index < 4) size = 0;
+      // Top two bits of "zm" encode the index.
+      zm_with_index |= (index & 3) << (Rm_offset + 3);
+      op = FMUL_z_zzi_h;
+      break;
+    case kSRegSizeInBytes:
+      VIXL_ASSERT(zm.GetCode() <= 7);
+      VIXL_ASSERT(IsUint2(index));
+      // Top two bits of "zm" encode the index.
+      zm_with_index |= (index & 3) << (Rm_offset + 3);
+      op = FMUL_z_zzi_s;
+      break;
+    case kDRegSizeInBytes:
+      VIXL_ASSERT(zm.GetCode() <= 15);
+      VIXL_ASSERT(IsUint1(index));
+      // Top bit of "zm" encodes the index.
+      zm_with_index |= (index & 1) << (Rm_offset + 4);
+      op = FMUL_z_zzi_d;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+
+  Emit(op | size | Rd(zd) | Rn(zn) | zm_with_index);
 }
 
 // SVEFPUnaryOpPredicated.

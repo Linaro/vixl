@@ -4378,10 +4378,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fmul(zd, pg, zn, zm);
   }
-  void Fmul(const ZRegister& zd, const ZRegister& zn) {
+  void Fmul(const ZRegister& zd,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            unsigned index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fmul(zd, zn);
+    fmul(zd, zn, zm, index);
   }
   void Fmul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
