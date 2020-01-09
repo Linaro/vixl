@@ -10586,25 +10586,29 @@ void Simulator::VisitSVEPermuteVectorExtract(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
   switch (instr->Mask(SVEPermuteVectorInterleavingMask)) {
     case TRN1_z_zz:
-      VIXL_UNIMPLEMENTED();
+      trn1(vform, zd, zn, zm);
       break;
     case TRN2_z_zz:
-      VIXL_UNIMPLEMENTED();
+      trn2(vform, zd, zn, zm);
       break;
     case UZP1_z_zz:
-      VIXL_UNIMPLEMENTED();
+      uzp1(vform, zd, zn, zm);
       break;
     case UZP2_z_zz:
-      VIXL_UNIMPLEMENTED();
+      uzp2(vform, zd, zn, zm);
       break;
     case ZIP1_z_zz:
-      VIXL_UNIMPLEMENTED();
+      zip1(vform, zd, zn, zm);
       break;
     case ZIP2_z_zz:
-      VIXL_UNIMPLEMENTED();
+      zip2(vform, zd, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

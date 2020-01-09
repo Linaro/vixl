@@ -11331,5 +11331,105 @@ TEST_SVE(sve_brkn) {
   // clang-format on
 }
 
+TEST_SVE(sve_trn) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in0[] = {0xffeeddccbbaa9988, 0x7766554433221100};
+  uint64_t in1[] = {0xaa55aa55aa55aa55, 0x55aa55aa55aa55aa};
+  InsrHelper(&masm, z0.VnD(), in0);
+  InsrHelper(&masm, z1.VnD(), in1);
+
+  __ Trn1(z2.VnB(), z0.VnB(), z1.VnB());
+  __ Trn2(z3.VnB(), z0.VnB(), z1.VnB());
+  __ Trn1(z4.VnH(), z0.VnH(), z1.VnH());
+  __ Trn2(z5.VnH(), z0.VnH(), z1.VnH());
+  __ Trn1(z6.VnS(), z0.VnS(), z1.VnS());
+  __ Trn2(z7.VnS(), z0.VnS(), z1.VnS());
+  __ Trn1(z8.VnD(), z0.VnD(), z1.VnD());
+  __ Trn2(z9.VnD(), z0.VnD(), z1.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z2[] = {0x55ee55cc55aa5588, 0xaa66aa44aa22aa00};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0xaaffaaddaabbaa99, 0x5577555555335511};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0xaa55ddccaa559988, 0x55aa554455aa1100};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0xaa55ffeeaa55bbaa, 0x55aa776655aa3322};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0xaa55aa55bbaa9988, 0x55aa55aa33221100};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0xaa55aa55ffeeddcc, 0x55aa55aa77665544};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z8[] = {0x55aa55aa55aa55aa, 0x7766554433221100};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+    uint64_t expected_z9[] = {0xaa55aa55aa55aa55, 0xffeeddccbbaa9988};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+  }
+}
+
+TEST_SVE(sve_zip_uzp) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Dup(z0.VnD(), 0xffeeddccbbaa9988);
+  __ Insr(z0.VnD(), 0x7766554433221100);
+  __ Dup(z1.VnD(), 0xaa55aa55aa55aa55);
+  __ Insr(z1.VnD(), 0x55aa55aa55aa55aa);
+
+  __ Zip1(z2.VnB(), z0.VnB(), z1.VnB());
+  __ Zip2(z3.VnB(), z0.VnB(), z1.VnB());
+  __ Zip1(z4.VnH(), z0.VnH(), z1.VnH());
+  __ Zip2(z5.VnH(), z0.VnH(), z1.VnH());
+  __ Zip1(z6.VnS(), z0.VnS(), z1.VnS());
+  __ Zip2(z7.VnS(), z0.VnS(), z1.VnS());
+  __ Zip1(z8.VnD(), z0.VnD(), z1.VnD());
+  __ Zip2(z9.VnD(), z0.VnD(), z1.VnD());
+
+  __ Uzp1(z10.VnB(), z2.VnB(), z3.VnB());
+  __ Uzp2(z11.VnB(), z2.VnB(), z3.VnB());
+  __ Uzp1(z12.VnH(), z4.VnH(), z5.VnH());
+  __ Uzp2(z13.VnH(), z4.VnH(), z5.VnH());
+  __ Uzp1(z14.VnS(), z6.VnS(), z7.VnS());
+  __ Uzp2(z15.VnS(), z6.VnS(), z7.VnS());
+  __ Uzp1(z16.VnD(), z8.VnD(), z9.VnD());
+  __ Uzp2(z17.VnD(), z8.VnD(), z9.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z2[] = {0x5577aa665555aa44, 0x5533aa225511aa00};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0xaaff55eeaadd55cc, 0xaabb55aaaa995588};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0x55aa776655aa5544, 0x55aa332255aa1100};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0xaa55ffeeaa55ddcc, 0xaa55bbaaaa559988};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0x55aa55aa77665544, 0x55aa55aa33221100};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0xaa55aa55ffeeddcc, 0xaa55aa55bbaa9988};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z8[] = {0x55aa55aa55aa55aa, 0x7766554433221100};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+    uint64_t expected_z9[] = {0xaa55aa55aa55aa55, 0xffeeddccbbaa9988};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+
+    // Check uzp is the opposite of zip.
+    ASSERT_EQUAL_SVE(z0.VnD(), z10.VnD());
+    ASSERT_EQUAL_SVE(z1.VnD(), z11.VnD());
+    ASSERT_EQUAL_SVE(z0.VnD(), z12.VnD());
+    ASSERT_EQUAL_SVE(z1.VnD(), z13.VnD());
+    ASSERT_EQUAL_SVE(z0.VnD(), z14.VnD());
+    ASSERT_EQUAL_SVE(z1.VnD(), z15.VnD());
+    ASSERT_EQUAL_SVE(z0.VnD(), z16.VnD());
+    ASSERT_EQUAL_SVE(z1.VnD(), z17.VnD());
+  }
+}
 }  // namespace aarch64
 }  // namespace vixl
