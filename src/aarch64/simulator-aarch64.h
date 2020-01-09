@@ -4433,7 +4433,8 @@ class Simulator : public DecoderVisitor {
   // vreg is non-zero. Clear the flag, otherwise. This is almost the opposite
   // operation to ExpandToSimVRegister(), except that any non-zero lane is
   // interpreted as true.
-  void ExtractFromSimVRegister(SimPRegister& pd, SimVRegister vreg);
+  void ExtractFromSimVRegister(
+      SimPRegister& pd, SimVRegister vreg);  // NOLINT(runtime/references)
 
   bool coloured_trace_;
 
