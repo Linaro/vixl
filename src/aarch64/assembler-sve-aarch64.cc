@@ -1720,46 +1720,94 @@ void Assembler::fsqrt(const ZRegister& zd,
   Emit(FSQRT_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
-// This prototype maps to 7 instruction encodings:
-//  SCVTF_z_p_z_h2fp16
-//  SCVTF_z_p_z_w2d
-//  SCVTF_z_p_z_w2fp16
-//  SCVTF_z_p_z_w2s
-//  SCVTF_z_p_z_x2d
-//  SCVTF_z_p_z_x2fp16
-//  SCVTF_z_p_z_x2s
 void Assembler::scvtf(const ZRegister& zd,
                       const PRegisterM& pg,
                       const ZRegister& zn) {
-  // SCVTF <Zd>.H, <Pg>/M, <Zn>.H
-  //  0110 0101 0101 0010 101. .... .... ....
-  //  opc<23:22> = 01 | opc2<18:17> = 01 | U<16> = 0 | Pg<12:10> | Zn<9:5> |
-  //  Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr op = 0xffffffff;
+  switch (zn.GetLaneSizeInBytes()) {
+    case kHRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = SCVTF_z_p_z_h2fp16;
+          break;
+      }
+      break;
+    case kSRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = SCVTF_z_p_z_w2fp16;
+          break;
+        case kSRegSizeInBytes:
+          op = SCVTF_z_p_z_w2s;
+          break;
+        case kDRegSizeInBytes:
+          op = SCVTF_z_p_z_w2d;
+          break;
+      }
+      break;
+    case kDRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = SCVTF_z_p_z_x2fp16;
+          break;
+        case kSRegSizeInBytes:
+          op = SCVTF_z_p_z_x2s;
+          break;
+        case kDRegSizeInBytes:
+          op = SCVTF_z_p_z_x2d;
+          break;
+      }
+      break;
+  }
+  VIXL_ASSERT(op != 0xffffffff);
 
-  Emit(SCVTF_z_p_z_h2fp16 | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
-// This prototype maps to 7 instruction encodings:
-//  UCVTF_z_p_z_h2fp16
-//  UCVTF_z_p_z_w2d
-//  UCVTF_z_p_z_w2fp16
-//  UCVTF_z_p_z_w2s
-//  UCVTF_z_p_z_x2d
-//  UCVTF_z_p_z_x2fp16
-//  UCVTF_z_p_z_x2s
 void Assembler::ucvtf(const ZRegister& zd,
                       const PRegisterM& pg,
                       const ZRegister& zn) {
-  // UCVTF <Zd>.H, <Pg>/M, <Zn>.H
-  //  0110 0101 0101 0011 101. .... .... ....
-  //  opc<23:22> = 01 | opc2<18:17> = 01 | U<16> = 1 | Pg<12:10> | Zn<9:5> |
-  //  Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr op = 0xffffffff;
+  switch (zn.GetLaneSizeInBytes()) {
+    case kHRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = UCVTF_z_p_z_h2fp16;
+          break;
+      }
+      break;
+    case kSRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = UCVTF_z_p_z_w2fp16;
+          break;
+        case kSRegSizeInBytes:
+          op = UCVTF_z_p_z_w2s;
+          break;
+        case kDRegSizeInBytes:
+          op = UCVTF_z_p_z_w2d;
+          break;
+      }
+      break;
+    case kDRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = UCVTF_z_p_z_x2fp16;
+          break;
+        case kSRegSizeInBytes:
+          op = UCVTF_z_p_z_x2s;
+          break;
+        case kDRegSizeInBytes:
+          op = UCVTF_z_p_z_x2d;
+          break;
+      }
+      break;
+  }
+  VIXL_ASSERT(op != 0xffffffff);
 
-  Emit(UCVTF_z_p_z_h2fp16 | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 // SVEFPUnaryOpUnpredicated.

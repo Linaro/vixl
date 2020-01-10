@@ -6189,23 +6189,103 @@ LogicVRegister Simulator::fexpa(VectorFormat vform,
 }
 
 LogicVRegister Simulator::scvtf(VectorFormat vform,
+                                unsigned dst_data_size_in_bits,
+                                unsigned src_data_size_in_bits,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src,
+                                FPRounding round,
+                                int fbits) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    int64_t value = ExtractSignedBitfield64(src_data_size_in_bits - 1,
+                                            0,
+                                            src.Uint(vform, i));
+
+    switch (dst_data_size_in_bits) {
+      case kHRegSize: {
+        SimFloat16 result = FixedToFloat16(value, fbits, round);
+        dst.SetUint(vform, i, Float16ToRawbits(result));
+        break;
+      }
+      case kSRegSize: {
+        float result = FixedToFloat(value, fbits, round);
+        dst.SetUint(vform, i, FloatToRawbits(result));
+        break;
+      }
+      case kDRegSize: {
+        double result = FixedToDouble(value, fbits, round);
+        dst.SetUint(vform, i, DoubleToRawbits(result));
+        break;
+      }
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+
+  return dst;
+}
+
+LogicVRegister Simulator::scvtf(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
                                 int fbits,
                                 FPRounding round) {
+  return scvtf(vform,
+               LaneSizeInBitsFromFormat(vform),
+               LaneSizeInBitsFromFormat(vform),
+               dst,
+               GetPTrue(),
+               src,
+               round,
+               fbits);
+}
+
+LogicVRegister Simulator::ucvtf(VectorFormat vform,
+                                unsigned dst_data_size_in_bits,
+                                unsigned src_data_size_in_bits,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src,
+                                FPRounding round,
+                                int fbits) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-      SimFloat16 result = FixedToFloat16(src.Int(kFormatH, i), fbits, round);
-      dst.SetFloat<SimFloat16>(i, result);
-    } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-      float result = FixedToFloat(src.Int(kFormatS, i), fbits, round);
-      dst.SetFloat<float>(i, result);
-    } else {
-      VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
-      double result = FixedToDouble(src.Int(kFormatD, i), fbits, round);
-      dst.SetFloat<double>(i, result);
+    if (!pg.IsActive(vform, i)) continue;
+
+    uint64_t value = ExtractUnsignedBitfield64(src_data_size_in_bits - 1,
+                                               0,
+                                               src.Uint(vform, i));
+
+    switch (dst_data_size_in_bits) {
+      case kHRegSize: {
+        SimFloat16 result = UFixedToFloat16(value, fbits, round);
+        dst.SetUint(vform, i, Float16ToRawbits(result));
+        break;
+      }
+      case kSRegSize: {
+        float result = UFixedToFloat(value, fbits, round);
+        dst.SetUint(vform, i, FloatToRawbits(result));
+        break;
+      }
+      case kDRegSize: {
+        double result = UFixedToDouble(value, fbits, round);
+        dst.SetUint(vform, i, DoubleToRawbits(result));
+        break;
+      }
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
     }
   }
+
   return dst;
 }
 
@@ -6214,20 +6294,14 @@ LogicVRegister Simulator::ucvtf(VectorFormat vform,
                                 const LogicVRegister& src,
                                 int fbits,
                                 FPRounding round) {
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-      SimFloat16 result = UFixedToFloat16(src.Uint(kFormatH, i), fbits, round);
-      dst.SetFloat<SimFloat16>(i, result);
-    } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-      float result = UFixedToFloat(src.Uint(kFormatS, i), fbits, round);
-      dst.SetFloat<float>(i, result);
-    } else {
-      VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
-      double result = UFixedToDouble(src.Uint(kFormatD, i), fbits, round);
-      dst.SetFloat<double>(i, result);
-    }
-  }
-  return dst;
+  return ucvtf(vform,
+               LaneSizeInBitsFromFormat(vform),
+               LaneSizeInBitsFromFormat(vform),
+               dst,
+               GetPTrue(),
+               src,
+               round,
+               fbits);
 }
 
 LogicVRegister Simulator::unpk(VectorFormat vform,

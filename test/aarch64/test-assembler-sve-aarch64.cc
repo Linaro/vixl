@@ -11991,5 +11991,381 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
   // clang-format on
 }
 
+struct CvtfTestDataSet {
+  uint64_t int_value;
+  uint64_t scvtf_result;
+  uint64_t ucvtf_result;
+};
+
+template <size_t N>
+static void TestUScvtfHelper(Test* config,
+                             int dst_type_size_in_bits,
+                             int src_type_size_in_bits,
+                             const int (&pg_inputs)[N],
+                             const CvtfTestDataSet (&data_set)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // Unpack the data from the array of struct into individual arrays that can
+  // simplify the testing.
+  uint64_t zn_inputs[N];
+  uint64_t expected_zd_scvtf_all_active[N];
+  uint64_t expected_zd_ucvtf_all_active[N];
+  for (size_t i = 0; i < N; i++) {
+    zn_inputs[i] = data_set[i].int_value;
+    expected_zd_scvtf_all_active[i] = data_set[i].scvtf_result;
+    expected_zd_ucvtf_all_active[i] = data_set[i].ucvtf_result;
+  }
+
+  // If the input and result types have a different size, the instruction
+  // operates on elements of the largest specified type.
+  int lane_size_in_bits =
+      std::max(dst_type_size_in_bits, src_type_size_in_bits);
+
+  ZRegister zd_scvtf_all_active = z25;
+  ZRegister zd_ucvtf_all_active = z26;
+  ZRegister zn = z27;
+  InsrHelper(&masm, zn.WithLaneSize(lane_size_in_bits), zn_inputs);
+
+  PRegisterWithLaneSize pg_all_active = p0.WithLaneSize(lane_size_in_bits);
+  __ Ptrue(pg_all_active);
+
+  // Test integer conversions with all lanes actived.
+  __ Scvtf(zd_scvtf_all_active.WithLaneSize(dst_type_size_in_bits),
+           pg_all_active.Merging(),
+           zn.WithLaneSize(src_type_size_in_bits));
+  __ Ucvtf(zd_ucvtf_all_active.WithLaneSize(dst_type_size_in_bits),
+           pg_all_active.Merging(),
+           zn.WithLaneSize(src_type_size_in_bits));
+
+  ZRegister zd_scvtf_merged = z23;
+  ZRegister zd_ucvtf_merged = z24;
+
+  PRegisterWithLaneSize pg_merged = p1.WithLaneSize(lane_size_in_bits);
+  Initialise(&masm, pg_merged, pg_inputs);
+
+  uint64_t snan;
+  switch (lane_size_in_bits) {
+    case kHRegSize:
+      snan = 0x7c11;
+      break;
+    case kSRegSize:
+      snan = 0x7f951111;
+      break;
+    case kDRegSize:
+      snan = 0x7ff5555511111111;
+      break;
+  }
+  __ Dup(zd_scvtf_merged.WithLaneSize(lane_size_in_bits), snan);
+  __ Dup(zd_ucvtf_merged.WithLaneSize(lane_size_in_bits), snan);
+
+  // Use the same `zn` inputs to test integer conversions but some lanes are set
+  // inactive.
+  __ Scvtf(zd_scvtf_merged.WithLaneSize(dst_type_size_in_bits),
+           pg_merged.Merging(),
+           zn.WithLaneSize(src_type_size_in_bits));
+  __ Ucvtf(zd_ucvtf_merged.WithLaneSize(dst_type_size_in_bits),
+           pg_merged.Merging(),
+           zn.WithLaneSize(src_type_size_in_bits));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(expected_zd_scvtf_all_active,
+                     zd_scvtf_all_active.WithLaneSize(lane_size_in_bits));
+    ASSERT_EQUAL_SVE(expected_zd_ucvtf_all_active,
+                     zd_ucvtf_all_active.WithLaneSize(lane_size_in_bits));
+
+    uint64_t expected_zd_scvtf_merged[N];
+    for (size_t i = 0; i < N; i++) {
+      expected_zd_scvtf_merged[i] =
+          pg_inputs[i] ? expected_zd_scvtf_all_active[i] : snan;
+    }
+    ASSERT_EQUAL_SVE(expected_zd_scvtf_merged,
+                     zd_scvtf_merged.WithLaneSize(lane_size_in_bits));
+
+    uint64_t expected_zd_ucvtf_merged[N];
+    for (size_t i = 0; i < N; i++) {
+      expected_zd_ucvtf_merged[i] =
+          pg_inputs[i] ? expected_zd_ucvtf_all_active[i] : snan;
+    }
+    ASSERT_EQUAL_SVE(expected_zd_ucvtf_merged,
+                     zd_ucvtf_merged.WithLaneSize(lane_size_in_bits));
+  }
+}
+
+TEST_SVE(scvtf_ucvtf_h_s_d_to_float16) {
+  // clang-format off
+  CvtfTestDataSet data_set_1[] = {
+    // Simple conversions of positive numbers which require no rounding; the
+    // results should not depened on the rounding mode, and ucvtf and scvtf should
+    // produce the same result.
+    {0x0000, 0x0000, 0x0000},
+    {0x0001, 0x3c00, 0x3c00},
+    {0x0010, 0x4c00, 0x4c00},
+    {0x0080, 0x5800, 0x5800},
+    {0x0400, 0x6400, 0x6400},
+    // Conversions which require rounding.
+    {0x4000, 0x7400, 0x7400},
+    {0x4001, 0x7400, 0x7400},
+    // Round up to produce a result that's too big for the input to represent.
+    {0x7ff0, 0x77ff, 0x77ff},
+    {0x7ff1, 0x77ff, 0x77ff},
+    {0x7ffe, 0x7800, 0x7800},
+    {0x7fff, 0x7800, 0x7800}};
+  int pg_1[] = {1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1};
+  TestUScvtfHelper(config, kHRegSize, kDRegSize, pg_1, data_set_1);
+  TestUScvtfHelper(config, kHRegSize, kSRegSize, pg_1, data_set_1);
+  TestUScvtfHelper(config, kHRegSize, kHRegSize, pg_1, data_set_1);
+
+  CvtfTestDataSet data_set_2[] = {
+    // Test mantissa extremities.
+    {0x0401, 0x6401, 0x6401},
+    {0x4020, 0x7402, 0x7402},
+    // The largest int16_t that fits in a float16.
+    {0xffef, 0xcc40, 0x7bff},
+    // Values that would be negative if treated as an int16_t.
+    {0xff00, 0xdc00, 0x7bf8},
+    {0x8000, 0xf800, 0x7800},
+    {0x8100, 0xf7f0, 0x7808},
+    // Check for bit pattern reproduction.
+    {0x0123, 0x5c8c, 0x5c8c},
+    {0x0cde, 0x6a6f, 0x6a6f},
+    // Simple conversions of negative int64_t values. These require no rounding,
+    // and the results should not depend on the rounding mode.
+    {0xf800, 0xe800, 0x7bc0},
+    {0xfc00, 0xe400, 0x7be0},
+    {0xc000, 0xf400, 0x7a00},
+    // Check rounding of negative int16_t values.
+    {0x8ffe, 0xf700, 0x7880},
+    {0x8fff, 0xf700, 0x7880},
+    {0xffee, 0xcc80, 0x7bff},
+    {0xffef, 0xcc40, 0x7bff}};
+  int pg_2[] = {1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1};
+  // `32-bit to float16` and `64-bit to float16` of above tests has been tested
+  // in `ucvtf` of `16-bit to float16`.
+  TestUScvtfHelper(config, kHRegSize, kHRegSize, pg_2, data_set_2);
+  // clang-format on
+}
+
+TEST_SVE(scvtf_ucvtf_s_to_float) {
+  // clang-format off
+  int dst_lane_size = kSRegSize;
+  int src_lane_size = kSRegSize;
+
+  // Simple conversions of positive numbers which require no rounding; the
+  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // produce the same result.
+  CvtfTestDataSet data_set_1[] = {
+    {0x00000000, 0x00000000, 0x00000000},
+    {0x00000001, 0x3f800000, 0x3f800000},
+    {0x00004000, 0x46800000, 0x46800000},
+    {0x00010000, 0x47800000, 0x47800000},
+    {0x40000000, 0x4e800000, 0x4e800000}};
+  int pg_1[] = {1, 0, 1, 0, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_1, data_set_1);
+
+  CvtfTestDataSet data_set_2[] = {
+    // Test mantissa extremities.
+    {0x00800001, 0x4b000001, 0x4b000001},
+    {0x40400000, 0x4e808000, 0x4e808000},
+    // The largest int32_t that fits in a double.
+    {0x7fffff80, 0x4effffff, 0x4effffff},
+    // Values that would be negative if treated as an int32_t.
+    {0xffffffff, 0xbf800000, 0x4f800000},
+    {0xffffff00, 0xc3800000, 0x4f7fffff},
+    {0x80000000, 0xcf000000, 0x4f000000},
+    {0x80000001, 0xcf000000, 0x4f000000},
+    // Check for bit pattern reproduction.
+    {0x089abcde, 0x4d09abce, 0x4d09abce},
+    {0x12345678, 0x4d91a2b4, 0x4d91a2b4}};
+  int pg_2[] = {1, 0, 1, 0, 1, 1, 1, 0, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_2, data_set_2);
+
+  // Simple conversions of negative int32_t values. These require no rounding,
+  // and the results should not depend on the rounding mode.
+  CvtfTestDataSet data_set_3[] = {
+    {0xffffc000, 0xc6800000, 0x4f7fffc0},
+    {0xffff0000, 0xc7800000, 0x4f7fff00},
+    {0xc0000000, 0xce800000, 0x4f400000},
+    // Conversions which require rounding.
+    {0x72800000, 0x4ee50000, 0x4ee50000},
+    {0x72800001, 0x4ee50000, 0x4ee50000},
+    {0x73000000, 0x4ee60000, 0x4ee60000},
+    // Check rounding of negative int32_t values.
+    {0x80000140, 0xcefffffe, 0x4f000001},
+    {0x80000141, 0xcefffffd, 0x4f000001},
+    {0x80000180, 0xcefffffd, 0x4f000002},
+    // Round up to produce a result that's too big for the input to represent.
+    {0x7fffffc0, 0x4f000000, 0x4f000000},
+    {0x7fffffff, 0x4f000000, 0x4f000000}};
+  int pg_3[] = {1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_3, data_set_3);
+  // clang-format on
+}
+
+TEST_SVE(scvtf_ucvtf_d_to_float) {
+  // clang-format off
+  int dst_lane_size = kSRegSize;
+  int src_lane_size = kDRegSize;
+
+  // Simple conversions of positive numbers which require no rounding; the
+  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // produce the same result.
+  CvtfTestDataSet data_set_1[] = {
+    {0x0000000000000000, 0x00000000, 0x00000000},
+    {0x0000000000000001, 0x3f800000, 0x3f800000},
+    {0x0000000040000000, 0x4e800000, 0x4e800000},
+    {0x0000000100000000, 0x4f800000, 0x4f800000},
+    {0x4000000000000000, 0x5e800000, 0x5e800000}};
+  int pg_1[] = {1, 1, 0, 1, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_1, data_set_1);
+
+  CvtfTestDataSet data_set_2[] = {
+    // Test mantissa extremities.
+    {0x0010000000000001, 0x59800000, 0x59800000},
+    {0x4008000000000000, 0x5e801000, 0x5e801000},
+    // The largest int32_t that fits in a float.
+    {0x000000007fffff80, 0x4effffff, 0x4effffff},
+    // Values that would be negative if treated as an int32_t.
+    {0x00000000ffffffff, 0x4f800000, 0x4f800000},
+    {0x00000000ffffff00, 0x4f7fffff, 0x4f7fffff},
+    {0x0000000080000000, 0x4f000000, 0x4f000000},
+    {0x0000000080000100, 0x4f000001, 0x4f000001},
+    // The largest int64_t that fits in a float.
+    {0x7fffff8000000000, 0x5effffff, 0x5effffff},
+    // Check for bit pattern reproduction.
+    {0x0123456789abcde0, 0x5b91a2b4, 0x5b91a2b4},
+    {0x0000000000876543, 0x4b076543, 0x4b076543}};
+  int pg_2[] = {1, 0, 0, 0, 1, 0, 0, 0, 0, 1};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_2, data_set_2);
+
+  CvtfTestDataSet data_set_3[] = {
+    // Simple conversions of negative int64_t values. These require no rounding,
+    // and the results should not depend on the rounding mode.
+    {0xffffffffc0000000, 0xce800000, 0x5f800000},
+    {0xffffffff00000000, 0xcf800000, 0x5f800000},
+    {0xc000000000000000, 0xde800000, 0x5f400000},
+    // Conversions which require rounding.
+    {0x0000800002800000, 0x57000002, 0x57000002},
+    {0x0000800002800001, 0x57000003, 0x57000003},
+    {0x0000800003000000, 0x57000003, 0x57000003},
+    // Check rounding of negative int64_t values.
+    {0x8000014000000000, 0xdefffffe, 0x5f000001},
+    {0x8000014000000001, 0xdefffffd, 0x5f000001},
+    {0x8000018000000000, 0xdefffffd, 0x5f000002},
+    // Round up to produce a result that's too big for the input to represent.
+    {0x00000000ffffff80, 0x4f800000, 0x4f800000},
+    {0x00000000ffffffff, 0x4f800000, 0x4f800000},
+    {0xffffff8000000000, 0xd3000000, 0x5f800000},
+    {0xffffffffffffffff, 0xbf800000, 0x5f800000}};
+  int pg_3[] = {0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_3, data_set_3);
+  // clang-format on
+}
+
+TEST_SVE(scvtf_ucvtf_d_to_double) {
+  // clang-format off
+  int dst_lane_size = kDRegSize;
+  int src_lane_size = kDRegSize;
+
+  // Simple conversions of positive numbers which require no rounding; the
+  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // produce the same result.
+  CvtfTestDataSet data_set_1[] = {
+    {0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
+    {0x0000000000000001, 0x3ff0000000000000, 0x3ff0000000000000},
+    {0x0000000040000000, 0x41d0000000000000, 0x41d0000000000000},
+    {0x0000000100000000, 0x41f0000000000000, 0x41f0000000000000},
+    {0x4000000000000000, 0x43d0000000000000, 0x43d0000000000000}};
+  int pg_1[] = {0, 1, 1, 0, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_1, data_set_1);
+
+  CvtfTestDataSet data_set_2[] = {
+    // Test mantissa extremities.
+    {0x0010000000000001, 0x4330000000000001, 0x4330000000000001},
+    {0x4008000000000000, 0x43d0020000000000, 0x43d0020000000000},
+    // The largest int32_t that fits in a double.
+    {0x000000007fffffff, 0x41dfffffffc00000, 0x41dfffffffc00000},
+    // Values that would be negative if treated as an int32_t.
+    {0x00000000ffffffff, 0x41efffffffe00000, 0x41efffffffe00000},
+    {0x0000000080000000, 0x41e0000000000000, 0x41e0000000000000},
+    {0x0000000080000001, 0x41e0000000200000, 0x41e0000000200000},
+    // The largest int64_t that fits in a double.
+    {0x7ffffffffffffc00, 0x43dfffffffffffff, 0x43dfffffffffffff},
+    // Check for bit pattern reproduction.
+    {0x0123456789abcde0, 0x43723456789abcde, 0x43723456789abcde},
+    {0x0000000012345678, 0x41b2345678000000, 0x41b2345678000000}};
+  int pg_2[] = {1, 1, 1, 1, 1, 0, 0, 0, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_2, data_set_2);
+
+  CvtfTestDataSet data_set_3[] = {
+    // Simple conversions of negative int64_t values. These require no rounding,
+    // and the results should not depend on the rounding mode.
+    {0xffffffffc0000000, 0xc1d0000000000000, 0x43effffffff80000},
+    {0xffffffff00000000, 0xc1f0000000000000, 0x43efffffffe00000},
+    {0xc000000000000000, 0xc3d0000000000000, 0x43e8000000000000},
+    // Conversions which require rounding.
+    {0x1000000000000280, 0x43b0000000000002, 0x43b0000000000002},
+    {0x1000000000000281, 0x43b0000000000003, 0x43b0000000000003},
+    {0x1000000000000300, 0x43b0000000000003, 0x43b0000000000003},
+    // Check rounding of negative int64_t values.
+    {0x8000000000000a00, 0xc3dffffffffffffe, 0x43e0000000000001},
+    {0x8000000000000a01, 0xc3dffffffffffffd, 0x43e0000000000001},
+    {0x8000000000000c00, 0xc3dffffffffffffd, 0x43e0000000000002},
+    // Round up to produce a result that's too big for the input to represent.
+    {0x7ffffffffffffe00, 0x43e0000000000000, 0x43e0000000000000},
+    {0x7fffffffffffffff, 0x43e0000000000000, 0x43e0000000000000},
+    {0xfffffffffffffc00, 0xc090000000000000, 0x43f0000000000000},
+    {0xffffffffffffffff, 0xbff0000000000000, 0x43f0000000000000}};
+  int pg_3[] = {1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_3, data_set_3);
+  // clang-format on
+}
+
+TEST_SVE(scvtf_ucvtf_s_to_double) {
+  // clang-format off
+  int dst_lane_size = kDRegSize;
+  int src_lane_size = kSRegSize;
+
+  // Simple conversions of positive numbers which require no rounding; the
+  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // produce the same result.
+  CvtfTestDataSet data_set_1[] = {
+    {0x00000000, 0x0000000000000000, 0x0000000000000000},
+    {0x00000001, 0x3ff0000000000000, 0x3ff0000000000000},
+    {0x00004000, 0x40d0000000000000, 0x40d0000000000000},
+    {0x00010000, 0x40f0000000000000, 0x40f0000000000000},
+    {0x40000000, 0x41d0000000000000, 0x41d0000000000000}};
+  int pg_1[] = {1, 0, 0, 0, 1};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_1, data_set_1);
+
+  CvtfTestDataSet data_set_2[] = {
+    // Test mantissa extremities.
+    {0x40000400, 0x41d0000100000000, 0x41d0000100000000},
+    // The largest int32_t that fits in a double.
+    {0x7fffffff, 0x41dfffffffc00000, 0x41dfffffffc00000},
+    // Values that would be negative if treated as an int32_t.
+    {0xffffffff, 0xbff0000000000000, 0x41efffffffe00000},
+    {0x80000000, 0xc1e0000000000000, 0x41e0000000000000},
+    {0x80000001, 0xc1dfffffffc00000, 0x41e0000000200000},
+    // Check for bit pattern reproduction.
+    {0x089abcde, 0x41a13579bc000000, 0x41a13579bc000000},
+    {0x12345678, 0x41b2345678000000, 0x41b2345678000000},
+    // Simple conversions of negative int32_t values. These require no rounding,
+    // and the results should not depend on the rounding mode.
+    {0xffffc000, 0xc0d0000000000000, 0x41effff800000000},
+    {0xffff0000, 0xc0f0000000000000, 0x41efffe000000000},
+    {0xc0000000, 0xc1d0000000000000, 0x41e8000000000000}};
+  int pg_2[] = {1, 0, 1, 0, 0, 1, 1, 0, 1, 1};
+  TestUScvtfHelper(config, dst_lane_size, src_lane_size, pg_2, data_set_2);
+
+  // Note that IEEE 754 double-precision format has 52-bits fraction, so all
+  // 32-bits integers are representable in double.
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

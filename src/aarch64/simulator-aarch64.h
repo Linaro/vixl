@@ -3533,10 +3533,26 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& src,
                      int shift);
   LogicVRegister scvtf(VectorFormat vform,
+                       unsigned dst_data_size_in_bits,
+                       unsigned src_data_size_in_bits,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src,
+                       FPRounding round,
+                       int fbits = 0);
+  LogicVRegister scvtf(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,
                        int fbits,
                        FPRounding rounding_mode);
+  LogicVRegister ucvtf(VectorFormat vform,
+                       unsigned dst_data_size,
+                       unsigned src_data_size,
+                       LogicVRegister dst,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src,
+                       FPRounding round,
+                       int fbits = 0);
   LogicVRegister ucvtf(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,
