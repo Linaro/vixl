@@ -1098,21 +1098,35 @@ TEST(sve_fp_mul_index) {
 TEST(sve_fp_unary_op_predicated) {
   SETUP();
 
+  COMPARE_PREFIX(fcvtzs(z29.VnS(), p5.Merging(), z8.VnD()),
+                 "fcvtzs z29.s, p5/m, z8.d");
+  COMPARE_PREFIX(fcvtzs(z30.VnD(), p5.Merging(), z8.VnD()),
+                 "fcvtzs z30.d, p5/m, z8.d");
+  COMPARE_PREFIX(fcvtzs(z14.VnH(), p1.Merging(), z29.VnH()),
+                 "fcvtzs z14.h, p1/m, z29.h");
+  COMPARE_PREFIX(fcvtzs(z11.VnS(), p3.Merging(), z16.VnH()),
+                 "fcvtzs z11.s, p3/m, z16.h");
+  COMPARE_PREFIX(fcvtzs(z4.VnD(), p7.Merging(), z4.VnH()),
+                 "fcvtzs z4.d, p7/m, z4.h");
+  COMPARE_PREFIX(fcvtzs(z24.VnS(), p1.Merging(), z4.VnS()),
+                 "fcvtzs z24.s, p1/m, z4.s");
+  COMPARE_PREFIX(fcvtzs(z25.VnD(), p4.Merging(), z24.VnS()),
+                 "fcvtzs z25.d, p4/m, z24.s");
+  COMPARE_PREFIX(fcvtzu(z16.VnS(), p7.Merging(), z14.VnD()),
+                 "fcvtzu z16.s, p7/m, z14.d");
+  COMPARE_PREFIX(fcvtzu(z31.VnD(), p1.Merging(), z16.VnD()),
+                 "fcvtzu z31.d, p1/m, z16.d");
+  COMPARE_PREFIX(fcvtzu(z12.VnH(), p2.Merging(), z27.VnH()),
+                 "fcvtzu z12.h, p2/m, z27.h");
+  COMPARE_PREFIX(fcvtzu(z26.VnS(), p6.Merging(), z29.VnH()),
+                 "fcvtzu z26.s, p6/m, z29.h");
+  COMPARE_PREFIX(fcvtzu(z29.VnD(), p5.Merging(), z27.VnH()),
+                 "fcvtzu z29.d, p5/m, z27.h");
+  COMPARE_PREFIX(fcvtzu(z13.VnS(), p2.Merging(), z17.VnS()),
+                 "fcvtzu z13.s, p2/m, z17.s");
+  COMPARE_PREFIX(fcvtzu(z25.VnD(), p7.Merging(), z28.VnS()),
+                 "fcvtzu z25.d, p7/m, z28.s");
 #if 0
-  COMPARE_PREFIX(fcvtzs(z29.VnS(), p5.Merging(), z8.VnD()), "fcvtzs <Zd>.S, <Pg>/M, <Zn>.D");
-  COMPARE_PREFIX(fcvtzs(z30.VnD(), p5.Merging(), z8.VnD()), "fcvtzs <Zd>.D, <Pg>/M, <Zn>.D");
-  COMPARE_PREFIX(fcvtzs(z14.VnH(), p1.Merging(), z29.VnH()), "fcvtzs <Zd>.H, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvtzs(z11.VnS(), p3.Merging(), z16.VnH()), "fcvtzs <Zd>.S, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvtzs(z4.VnD(), p7.Merging(), z4.VnH()), "fcvtzs <Zd>.D, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvtzs(z24.VnS(), p1.Merging(), z4.VnS()), "fcvtzs <Zd>.S, <Pg>/M, <Zn>.S");
-  COMPARE_PREFIX(fcvtzs(z25.VnD(), p4.Merging(), z24.VnS()), "fcvtzs <Zd>.D, <Pg>/M, <Zn>.S");
-  COMPARE_PREFIX(fcvtzu(z16.VnS(), p7.Merging(), z14.VnD()), "fcvtzu <Zd>.S, <Pg>/M, <Zn>.D");
-  COMPARE_PREFIX(fcvtzu(z31.VnD(), p1.Merging(), z16.VnD()), "fcvtzu <Zd>.D, <Pg>/M, <Zn>.D");
-  COMPARE_PREFIX(fcvtzu(z12.VnH(), p2.Merging(), z27.VnH()), "fcvtzu <Zd>.H, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvtzu(z26.VnS(), p6.Merging(), z29.VnH()), "fcvtzu <Zd>.S, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvtzu(z29.VnD(), p5.Merging(), z27.VnH()), "fcvtzu <Zd>.D, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvtzu(z13.VnS(), p2.Merging(), z17.VnS()), "fcvtzu <Zd>.S, <Pg>/M, <Zn>.S");
-  COMPARE_PREFIX(fcvtzu(z25.VnD(), p7.Merging(), z28.VnS()), "fcvtzu <Zd>.D, <Pg>/M, <Zn>.S");
   COMPARE_PREFIX(fcvt(z5.VnH(), p2.Merging(), z11.VnD()), "fcvt <Zd>.H, <Pg>/M, <Zn>.D");
   COMPARE_PREFIX(fcvt(z30.VnS(), p7.Merging(), z0.VnD()), "fcvt <Zd>.S, <Pg>/M, <Zn>.D");
   COMPARE_PREFIX(fcvt(z10.VnD(), p0.Merging(), z17.VnH()), "fcvt <Zd>.D, <Pg>/M, <Zn>.H");

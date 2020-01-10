@@ -5448,62 +5448,115 @@ LogicVRegister Simulator::frint(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::fcvts(VectorFormat vform,
+                                unsigned dst_data_size_in_bits,
+                                unsigned src_data_size_in_bits,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src,
+                                FPRounding round,
+                                int fbits) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    uint64_t value = ExtractUnsignedBitfield64(src_data_size_in_bits - 1,
+                                               0,
+                                               src.Uint(vform, i));
+    double result = RawbitsWithSizeToFP<double>(src_data_size_in_bits, value) *
+                    std::pow(2.0, fbits);
+
+    switch (dst_data_size_in_bits) {
+      case kHRegSize:
+        dst.SetInt(vform, i, FPToInt16(result, round));
+        break;
+      case kSRegSize:
+        dst.SetInt(vform, i, FPToInt32(result, round));
+        break;
+      case kDRegSize:
+        dst.SetInt(vform, i, FPToInt64(result, round));
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+
+  return dst;
+}
 
 LogicVRegister Simulator::fcvts(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
-                                FPRounding rounding_mode,
+                                FPRounding round,
                                 int fbits) {
   dst.ClearForWrite(vform);
-  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      SimFloat16 op =
-          static_cast<double>(src.Float<SimFloat16>(i)) * std::pow(2.0, fbits);
-      dst.SetInt(vform, i, FPToInt16(op, rounding_mode));
-    }
-  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      float op = src.Float<float>(i) * std::pow(2.0f, fbits);
-      dst.SetInt(vform, i, FPToInt32(op, rounding_mode));
-    }
-  } else {
-    VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
-    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      double op = src.Float<double>(i) * std::pow(2.0, fbits);
-      dst.SetInt(vform, i, FPToInt64(op, rounding_mode));
-    }
-  }
-  return dst;
+  return fcvts(vform,
+               LaneSizeInBitsFromFormat(vform),
+               LaneSizeInBitsFromFormat(vform),
+               dst,
+               GetPTrue(),
+               src,
+               round,
+               fbits);
 }
 
+LogicVRegister Simulator::fcvtu(VectorFormat vform,
+                                unsigned dst_data_size_in_bits,
+                                unsigned src_data_size_in_bits,
+                                LogicVRegister dst,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src,
+                                FPRounding round,
+                                int fbits) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    uint64_t value = ExtractUnsignedBitfield64(src_data_size_in_bits - 1,
+                                               0,
+                                               src.Uint(vform, i));
+    double result = RawbitsWithSizeToFP<double>(src_data_size_in_bits, value) *
+                    std::pow(2.0, fbits);
+
+    switch (dst_data_size_in_bits) {
+      case kHRegSize:
+        dst.SetUint(vform, i, FPToUInt16(result, round));
+        break;
+      case kSRegSize:
+        dst.SetUint(vform, i, FPToUInt32(result, round));
+        break;
+      case kDRegSize:
+        dst.SetUint(vform, i, FPToUInt64(result, round));
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+
+  return dst;
+}
 
 LogicVRegister Simulator::fcvtu(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
-                                FPRounding rounding_mode,
+                                FPRounding round,
                                 int fbits) {
   dst.ClearForWrite(vform);
-  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      SimFloat16 op =
-          static_cast<double>(src.Float<SimFloat16>(i)) * std::pow(2.0, fbits);
-      dst.SetUint(vform, i, FPToUInt16(op, rounding_mode));
-    }
-  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      float op = src.Float<float>(i) * std::pow(2.0f, fbits);
-      dst.SetUint(vform, i, FPToUInt32(op, rounding_mode));
-    }
-  } else {
-    VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
-    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      double op = src.Float<double>(i) * std::pow(2.0, fbits);
-      dst.SetUint(vform, i, FPToUInt64(op, rounding_mode));
-    }
-  }
-  return dst;
+  return fcvtu(vform,
+               LaneSizeInBitsFromFormat(vform),
+               LaneSizeInBitsFromFormat(vform),
+               dst,
+               GetPTrue(),
+               src,
+               round,
+               fbits);
 }
-
 
 LogicVRegister Simulator::fcvtl(VectorFormat vform,
                                 LogicVRegister dst,

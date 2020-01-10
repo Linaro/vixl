@@ -11496,5 +11496,500 @@ TEST_SVE(sve_fpmul_index) {
   }
 }
 
+typedef void (MacroAssembler::*FcvtFn)(const ZRegister& zd,
+                                       const PRegisterM& pg,
+                                       const ZRegister& zn);
+
+template <typename F, size_t N>
+static void TestFcvtzsFcvtzuHelper(
+    Test* config,
+    FcvtFn macro,
+    int dst_type_size_in_bits,
+    int src_type_size_in_bits,
+    const F (&zn_inputs)[N],
+    const int (&pg_inputs)[N],
+    const uint64_t (&zd_expected_all_active)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  // If the input and result types have a different size, the instruction
+  // options on elements of the largest specified type is determined by the
+  // larger type.
+  int lane_size_in_bits =
+      std::max(dst_type_size_in_bits, src_type_size_in_bits);
+
+  ZRegister zd_all_active = z25;
+  ZRegister zd_merged = z26;
+  ZRegister zn = z27;
+
+  uint64_t zn_rawbits[N];
+  FPToRawbitsWithSize(zn_inputs, zn_rawbits, src_type_size_in_bits);
+  InsrHelper(&masm, zn.WithLaneSize(lane_size_in_bits), zn_rawbits);
+
+  PRegisterWithLaneSize pg_all_active = p0.WithLaneSize(lane_size_in_bits);
+  __ Ptrue(pg_all_active);
+
+  // Test floating-point conversions with all lanes actived.
+  (masm.*macro)(zd_all_active.WithLaneSize(dst_type_size_in_bits),
+                pg_all_active.Merging(),
+                zn.WithLaneSize(src_type_size_in_bits));
+
+  PRegisterWithLaneSize pg_merged = p1.WithLaneSize(lane_size_in_bits);
+  Initialise(&masm, pg_merged, pg_inputs);
+
+  __ Dup(zd_merged.VnD(), 0x0bad0bad0bad0bad);
+
+  // Use the same `zn` inputs to test floating-point conversions but partial
+  // lanes are set inactive.
+  (masm.*macro)(zd_merged.WithLaneSize(dst_type_size_in_bits),
+                pg_merged.Merging(),
+                zn.WithLaneSize(src_type_size_in_bits));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zd_expected_all_active,
+                     zd_all_active.WithLaneSize(lane_size_in_bits));
+
+    uint64_t zd_expected_merged[N];
+    for (unsigned i = 0; i < N; i++) {
+      zd_expected_merged[i] =
+          pg_inputs[i] ? zd_expected_all_active[i]
+                       : 0x0bad0bad0bad0bad & GetUintMask(lane_size_in_bits);
+    }
+    ASSERT_EQUAL_SVE(zd_expected_merged,
+                     zd_merged.WithLaneSize(lane_size_in_bits));
+  }
+}
+
+TEST_SVE(fcvtzs_fcvtzu_float16) {
+  // clang-format off
+  const double h_max_float16 = kHMaxInt;        // Largest float16 == INT16_MAX.
+  const double h_min_float16 = -h_max_float16;  // Smallest float16 > INT16_MIN.
+  const double largest_float16 = 0xffe0;        // 65504
+  const double smallest_float16 = -largest_float16;
+  const double h_max_int_sub_one = kHMaxInt - 1;
+  const double h_min_int_add_one = kHMinInt + 1;
+
+  double zn_inputs[] = {1.0,
+                        1.1,
+                        1.5,
+                        -1.5,
+                        h_max_float16,
+                        h_min_float16,
+                        largest_float16,
+                        smallest_float16,
+                        kFP64PositiveInfinity,
+                        kFP64NegativeInfinity,
+                        h_max_int_sub_one,
+                        h_min_int_add_one};
+
+  int pg_inputs[] = {0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+
+  uint64_t expected_fcvtzs_fp162h[] = {1,
+                                       1,
+                                       1,
+                                       0xffff,
+                                       0x7fff,
+                                       0x8000,
+                                       0x7fff,
+                                       0x8000,
+                                       0x7fff,
+                                       0x8000,
+                                       0x7fff,
+                                       0x8000};
+
+  uint64_t expected_fcvtzu_fp162h[] = {1,
+                                       1,
+                                       1,
+                                       0,
+                                       0x8000,
+                                       0,
+                                       0xffe0,
+                                       0,
+                                       0xffff,
+                                       0,
+                                       0x8000,
+                                       0};
+
+  // Float16 to 16-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kHRegSize,
+                         kHRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_fp162h);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kHRegSize,
+                         kHRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_fp162h);
+
+  uint64_t expected_fcvtzs_fp162w[] = {1,
+                                       1,
+                                       1,
+                                       0xffffffff,
+                                       0x8000,
+                                       0xffff8000,
+                                       0xffe0,
+                                       0xffff0020,
+                                       0x7fffffff,
+                                       0x80000000,
+                                       0x8000,
+                                       0xffff8000};
+
+  uint64_t expected_fcvtzu_fp162w[] = {1,
+                                       1,
+                                       1,
+                                       0,
+                                       0x8000,
+                                       0,
+                                       0xffe0,
+                                       0,
+                                       0xffffffff,
+                                       0,
+                                       0x8000,
+                                       0};
+
+  // Float16 to 32-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kSRegSize,
+                         kHRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_fp162w);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kSRegSize,
+                         kHRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_fp162w);
+
+  uint64_t expected_fcvtzs_fp162x[] = {1,
+                                       1,
+                                       1,
+                                       0xffffffffffffffff,
+                                       0x8000,
+                                       0xffffffffffff8000,
+                                       0xffe0,
+                                       0xffffffffffff0020,
+                                       0x7fffffffffffffff,
+                                       0x8000000000000000,
+                                       0x8000,
+                                       0xffffffffffff8000};
+
+  uint64_t expected_fcvtzu_fp162x[] = {1,
+                                       1,
+                                       1,
+                                       0,
+                                       0x8000,
+                                       0,
+                                       0xffe0,
+                                       0,
+                                       0xffffffffffffffff,
+                                       0,
+                                       0x8000,
+                                       0};
+
+  // Float16 to 64-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kDRegSize,
+                         kHRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_fp162x);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kDRegSize,
+                         kHRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_fp162x);
+  // clang-format on
+}
+
+TEST_SVE(fcvtzs_fcvtzu_float) {
+  const double w_max_float = 0x7fffff80;          // Largest float < INT32_MAX.
+  const double w_min_float = -w_max_float;        // Smallest float > INT32_MIN.
+  const double x_max_float = 0x7fffff8000000000;  // Largest float < INT64_MAX.
+  const double x_min_float = -x_max_float;        // Smallest float > INT64_MIN.
+  const double w_max_int_sub_one = kWMaxInt - 1;
+  const double w_min_int_add_one = kWMinInt + 1;
+  const double x_max_int_sub_one = kXMaxInt - 1;
+  const double x_min_int_add_one = kXMinInt + 1;
+
+  // clang-format off
+  double zn_inputs[] = {1.0,
+                        1.1,
+                        1.5,
+                        -1.5,
+                        w_max_float,
+                        w_min_float,
+                        x_max_float,
+                        x_min_float,
+                        kFP64PositiveInfinity,
+                        kFP64NegativeInfinity,
+                        w_max_int_sub_one,
+                        w_min_int_add_one,
+                        x_max_int_sub_one,
+                        x_min_int_add_one};
+
+  int pg_inputs[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0};
+
+  uint64_t expected_fcvtzs_s2w[] = {1,
+                                    1,
+                                    1,
+                                    0xffffffff,
+                                    0x7fffff80,
+                                    0x80000080,
+                                    0x7fffffff,
+                                    0x80000000,
+                                    0x7fffffff,
+                                    0x80000000,
+                                    0x7fffffff,
+                                    0x80000000,
+                                    0x7fffffff,
+                                    0x80000000};
+
+  uint64_t expected_fcvtzu_s2w[] =  {1,
+                                     1,
+                                     1,
+                                     0,
+                                     0x7fffff80,
+                                     0,
+                                     0xffffffff,
+                                     0,
+                                     0xffffffff,
+                                     0,
+                                     0x80000000,
+                                     0,
+                                     0xffffffff,
+                                     0};
+
+  // Float to 32-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kSRegSize,
+                         kSRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_s2w);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kSRegSize,
+                         kSRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_s2w);
+
+  uint64_t expected_fcvtzs_s2x[] = {1,
+                                    1,
+                                    1,
+                                    0xffffffffffffffff,
+                                    0x7fffff80,
+                                    0xffffffff80000080,
+                                    0x7fffff8000000000,
+                                    0x8000008000000000,
+                                    0x7fffffffffffffff,
+                                    0x8000000000000000,
+                                    0x80000000,
+                                    0xffffffff80000000,
+                                    0x7fffffffffffffff,
+                                    0x8000000000000000};
+
+  uint64_t expected_fcvtzu_s2x[] = {1,
+                                    1,
+                                    1,
+                                    0,
+                                    0x7fffff80,
+                                    0,
+                                    0x7fffff8000000000,
+                                    0,
+                                    0xffffffffffffffff,
+                                    0,
+                                    0x0000000080000000,
+                                    0,
+                                    0x8000000000000000,
+                                    0};
+
+  // Float to 64-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kDRegSize,
+                         kSRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_s2x);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kDRegSize,
+                         kSRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_s2x);
+  // clang-format on
+}
+
+TEST_SVE(fcvtzs_fcvtzu_double) {
+  // clang-format off
+  const double w_max_float = 0x7fffff80;          // Largest float < INT32_MAX.
+  const double w_min_float = -w_max_float;        // Smallest float > INT32_MIN.
+  const double x_max_float = 0x7fffff8000000000;  // Largest float < INT64_MAX.
+  const double x_min_float = -x_max_float;        // Smallest float > INT64_MIN.
+  const double w_max_double = kWMaxInt;           // Largest double == INT32_MAX.
+  const double w_min_double = -w_max_double;      // Smallest double > INT32_MIN.
+  const double x_max_double = 0x7ffffffffffffc00; // Largest double < INT64_MAX.
+  const double x_min_double = -x_max_double;      // Smallest double > INT64_MIN.
+  const double w_max_int_sub_one = kWMaxInt - 1;
+  const double w_min_int_add_one = kWMinInt + 1;
+  const double x_max_int_sub_one = kXMaxInt - 1;
+  const double x_min_int_add_one = kXMinInt + 1;
+
+  double zn_inputs[] = {1.0,
+                        1.1,
+                        1.5,
+                        -1.5,
+                        w_max_float,
+                        w_min_float,
+                        x_max_float,
+                        x_min_float,
+                        w_max_double,
+                        w_min_double,
+                        x_max_double,
+                        x_min_double,
+                        kFP64PositiveInfinity,
+                        kFP64NegativeInfinity,
+                        w_max_int_sub_one,
+                        w_min_int_add_one,
+                        x_max_int_sub_one,
+                        x_min_int_add_one};
+
+  int pg_inputs[] = {1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0};
+
+  uint64_t expected_fcvtzs_d2w[] = {1,
+                                    1,
+                                    1,
+                                    0xffffffffffffffff,
+                                    0x7fffff80,
+                                    0xffffffff80000080,
+                                    0x7fffffff,
+                                    0xffffffff80000000,
+                                    0x7fffffff,
+                                    0xffffffff80000001,
+                                    0x7fffffff,
+                                    0xffffffff80000000,
+                                    0x7fffffff,
+                                    0xffffffff80000000,
+                                    0x7ffffffe,
+                                    0xffffffff80000001,
+                                    0x7fffffff,
+                                    0xffffffff80000000};
+
+  uint64_t expected_fcvtzu_d2w[] = {1,
+                                    1,
+                                    1,
+                                    0,
+                                    0x7fffff80,
+                                    0,
+                                    0xffffffff,
+                                    0,
+                                    0x7fffffff,
+                                    0,
+                                    0xffffffff,
+                                    0,
+                                    0xffffffff,
+                                    0,
+                                    0x7ffffffe,
+                                    0,
+                                    0xffffffff,
+                                    0};
+
+  // Double to 32-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kSRegSize,
+                         kDRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_d2w);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kSRegSize,
+                         kDRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_d2w);
+
+  uint64_t expected_fcvtzs_d2x[] = {1,
+                                    1,
+                                    1,
+                                    0xffffffffffffffff,
+                                    0x7fffff80,
+                                    0xffffffff80000080,
+                                    0x7fffff8000000000,
+                                    0x8000008000000000,
+                                    0x7fffffff,
+                                    0xffffffff80000001,
+                                    0x7ffffffffffffc00,
+                                    0x8000000000000400,
+                                    0x7fffffffffffffff,
+                                    0x8000000000000000,
+                                    0x7ffffffe,
+                                    0xffffffff80000001,
+                                    0x7fffffffffffffff,
+                                    0x8000000000000000};
+
+  uint64_t expected_fcvtzu_d2x[] = {1,
+                                    1,
+                                    1,
+                                    0,
+                                    0x7fffff80,
+                                    0,
+                                    0x7fffff8000000000,
+                                    0,
+                                    0x7fffffff,
+                                    0,
+                                    0x7ffffffffffffc00,
+                                    0,
+                                    0xffffffffffffffff,
+                                    0,
+                                    0x000000007ffffffe,
+                                    0,
+                                    0x8000000000000000,
+                                    0};
+
+  // Double to 64-bit integers.
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzs,
+                         kDRegSize,
+                         kDRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzs_d2x);
+
+  TestFcvtzsFcvtzuHelper(config,
+                         &MacroAssembler::Fcvtzu,
+                         kDRegSize,
+                         kDRegSize,
+                         zn_inputs,
+                         pg_inputs,
+                         expected_fcvtzu_d2x);
+  // clang-format on
+}
+
 }  // namespace aarch64
 }  // namespace vixl

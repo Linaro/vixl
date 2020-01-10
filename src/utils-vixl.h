@@ -1376,6 +1376,22 @@ uint64_t FPToRawbitsWithSize(unsigned size_in_bits, T value) {
   VIXL_UNREACHABLE();
   return 0;
 }
+
+template <typename T>
+T RawbitsWithSizeToFP(unsigned size_in_bits, uint64_t value) {
+  VIXL_ASSERT(IsUintN(size_in_bits, value));
+  switch (size_in_bits) {
+    case 16:
+      return StaticCastFPTo<T>(RawbitsToFloat16(static_cast<uint16_t>(value)));
+    case 32:
+      return StaticCastFPTo<T>(RawbitsToFloat(static_cast<uint32_t>(value)));
+    case 64:
+      return StaticCastFPTo<T>(RawbitsToDouble(value));
+  }
+  VIXL_UNREACHABLE();
+  return 0;
+}
+
 }  // namespace vixl
 
 #endif  // VIXL_UTILS_H

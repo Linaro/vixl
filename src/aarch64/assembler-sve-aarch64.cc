@@ -1504,46 +1504,94 @@ void Assembler::fcvt(const ZRegister& zd,
   Emit(FCVT_z_p_z_d2h | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
-// This prototype maps to 7 instruction encodings:
-//  FCVTZS_z_p_z_d2w
-//  FCVTZS_z_p_z_d2x
-//  FCVTZS_z_p_z_fp162h
-//  FCVTZS_z_p_z_fp162w
-//  FCVTZS_z_p_z_fp162x
-//  FCVTZS_z_p_z_s2w
-//  FCVTZS_z_p_z_s2x
 void Assembler::fcvtzs(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FCVTZS <Zd>.S, <Pg>/M, <Zn>.D
-  //  0110 0101 1101 1000 101. .... .... ....
-  //  opc<23:22> = 11 | opc2<18:17> = 00 | U<16> = 0 | Pg<12:10> | Zn<9:5> |
-  //  Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr op = 0xffffffff;
+  switch (zn.GetLaneSizeInBytes()) {
+    case kHRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = FCVTZS_z_p_z_fp162h;
+          break;
+        case kSRegSizeInBytes:
+          op = FCVTZS_z_p_z_fp162w;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVTZS_z_p_z_fp162x;
+          break;
+      }
+      break;
+    case kSRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kSRegSizeInBytes:
+          op = FCVTZS_z_p_z_s2w;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVTZS_z_p_z_s2x;
+          break;
+      }
+      break;
+    case kDRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kSRegSizeInBytes:
+          op = FCVTZS_z_p_z_d2w;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVTZS_z_p_z_d2x;
+          break;
+      }
+      break;
+  }
+  VIXL_ASSERT(op != 0xffffffff);
 
-  Emit(FCVTZS_z_p_z_d2w | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
-// This prototype maps to 7 instruction encodings:
-//  FCVTZU_z_p_z_d2w
-//  FCVTZU_z_p_z_d2x
-//  FCVTZU_z_p_z_fp162h
-//  FCVTZU_z_p_z_fp162w
-//  FCVTZU_z_p_z_fp162x
-//  FCVTZU_z_p_z_s2w
-//  FCVTZU_z_p_z_s2x
 void Assembler::fcvtzu(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FCVTZU <Zd>.S, <Pg>/M, <Zn>.D
-  //  0110 0101 1101 1001 101. .... .... ....
-  //  opc<23:22> = 11 | opc2<18:17> = 00 | U<16> = 1 | Pg<12:10> | Zn<9:5> |
-  //  Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr op = 0xffffffff;
+  switch (zn.GetLaneSizeInBytes()) {
+    case kHRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = FCVTZU_z_p_z_fp162h;
+          break;
+        case kSRegSizeInBytes:
+          op = FCVTZU_z_p_z_fp162w;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVTZU_z_p_z_fp162x;
+          break;
+      }
+      break;
+    case kSRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kSRegSizeInBytes:
+          op = FCVTZU_z_p_z_s2w;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVTZU_z_p_z_s2x;
+          break;
+      }
+      break;
+    case kDRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kSRegSizeInBytes:
+          op = FCVTZU_z_p_z_d2w;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVTZU_z_p_z_d2x;
+          break;
+      }
+      break;
+  }
+  VIXL_ASSERT(op != 0xffffffff);
 
-  Emit(FCVTZU_z_p_z_d2w | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frecpx(const ZRegister& zd,

@@ -8060,53 +8060,63 @@ void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPConvertToInt(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int dst_data_size;
+  int src_data_size;
+
   switch (instr->Mask(SVEFPConvertToIntMask)) {
     case FCVTZS_z_p_z_d2w:
-      VIXL_UNIMPLEMENTED();
+    case FCVTZU_z_p_z_d2w:
+      dst_data_size = kSRegSize;
+      src_data_size = kDRegSize;
       break;
     case FCVTZS_z_p_z_d2x:
-      VIXL_UNIMPLEMENTED();
+    case FCVTZU_z_p_z_d2x:
+      dst_data_size = kDRegSize;
+      src_data_size = kDRegSize;
       break;
     case FCVTZS_z_p_z_fp162h:
-      VIXL_UNIMPLEMENTED();
+    case FCVTZU_z_p_z_fp162h:
+      dst_data_size = kHRegSize;
+      src_data_size = kHRegSize;
       break;
     case FCVTZS_z_p_z_fp162w:
-      VIXL_UNIMPLEMENTED();
+    case FCVTZU_z_p_z_fp162w:
+      dst_data_size = kSRegSize;
+      src_data_size = kHRegSize;
       break;
     case FCVTZS_z_p_z_fp162x:
-      VIXL_UNIMPLEMENTED();
+    case FCVTZU_z_p_z_fp162x:
+      dst_data_size = kDRegSize;
+      src_data_size = kHRegSize;
       break;
     case FCVTZS_z_p_z_s2w:
-      VIXL_UNIMPLEMENTED();
+    case FCVTZU_z_p_z_s2w:
+      dst_data_size = kSRegSize;
+      src_data_size = kSRegSize;
       break;
     case FCVTZS_z_p_z_s2x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FCVTZU_z_p_z_d2w:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FCVTZU_z_p_z_d2x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FCVTZU_z_p_z_fp162h:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FCVTZU_z_p_z_fp162w:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FCVTZU_z_p_z_fp162x:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FCVTZU_z_p_z_s2w:
-      VIXL_UNIMPLEMENTED();
-      break;
     case FCVTZU_z_p_z_s2x:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kDRegSize;
+      src_data_size = kSRegSize;
       break;
     default:
       VIXL_UNIMPLEMENTED();
+      dst_data_size = 0;
+      src_data_size = 0;
       break;
+  }
+
+  VectorFormat vform =
+      SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
+  USE(vform);
+
+  if (instr->ExtractBit(16) == 0) {
+    fcvts(vform, dst_data_size, src_data_size, zd, pg, zn, FPZero);
+  } else {
+    fcvtu(vform, dst_data_size, src_data_size, zd, pg, zn, FPZero);
   }
 }
 
