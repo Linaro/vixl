@@ -3959,6 +3959,11 @@ class Simulator : public DecoderVisitor {
                         LogicVRegister dst,
                         const LogicVRegister& src1,
                         const LogicVRegister& src2);
+  LogicVRegister ftmad(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       unsigned index);
   LogicVRegister fexpa(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src);
@@ -4277,6 +4282,14 @@ class Simulator : public DecoderVisitor {
                                        const LogicVRegister& src1,
                                        const LogicVRegister& src2,
                                        bool is_wide_elements);
+
+  template <typename T>
+  LogicVRegister FTMaddHelper(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src1,
+                              const LogicVRegister& src2,
+                              uint64_t coeff_pos,
+                              uint64_t coeff_neg);
 
   // Return the first or last active lane, or -1 if none are active.
   int GetFirstActive(VectorFormat vform, const LogicPRegister& pg) const;

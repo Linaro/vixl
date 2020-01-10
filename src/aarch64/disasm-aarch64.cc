@@ -7019,11 +7019,15 @@ void Disassembler::VisitSVEFPTrigMulAddCoefficient(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPTrigMulAddCoefficient)";
 
+  unsigned size = instr->GetSVESize();
   switch (instr->Mask(SVEFPTrigMulAddCoefficientMask)) {
     // FTMAD <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, #<imm>
     case FTMAD_z_zzi:
-      mnemonic = "ftmad";
-      form = "'Zd.'t, 'Zd.'t, 'Zn.'t, #'u1816";
+      if ((size == kHRegSizeInBytesLog2) || (size == kSRegSizeInBytesLog2) ||
+          (size == kDRegSizeInBytesLog2)) {
+        mnemonic = "ftmad";
+        form = "'Zd.'t, 'Zd.'t, 'Zn.'t, #'u1816";
+      }
       break;
     default:
       break;

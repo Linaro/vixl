@@ -4530,11 +4530,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ftmad(const ZRegister& zd,
              const ZRegister& zn,
              const ZRegister& zm,
-             int imm3) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ftmad(zd, zn, zm, imm3);
-  }
+             int imm3);
   void Ftsmul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

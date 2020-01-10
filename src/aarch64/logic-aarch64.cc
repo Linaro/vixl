@@ -6113,6 +6113,129 @@ LogicVRegister Simulator::ftssel(VectorFormat vform,
   return dst;
 }
 
+template <typename T>
+LogicVRegister Simulator::FTMaddHelper(VectorFormat vform,
+                                       LogicVRegister dst,
+                                       const LogicVRegister& src1,
+                                       const LogicVRegister& src2,
+                                       uint64_t coeff_pos,
+                                       uint64_t coeff_neg) {
+  SimVRegister zero;
+  dup_immediate(kFormatVnB, zero, 0);
+
+  SimVRegister cf;
+  SimVRegister cfn;
+  dup_immediate(vform, cf, coeff_pos);
+  dup_immediate(vform, cfn, coeff_neg);
+
+  // The specification requires testing the top bit of the raw value, rather
+  // than the sign of the floating point number, so use an integer comparison
+  // here.
+  SimPRegister is_neg;
+  SVEIntCompareVectorsHelper(lt,
+                             vform,
+                             is_neg,
+                             GetPTrue(),
+                             src2,
+                             zero,
+                             false,
+                             LeaveFlags);
+  mov_merging(vform, cf, is_neg, cfn);
+
+  SimVRegister temp;
+  fabs_<T>(vform, temp, src2);
+  // TODO: Use four argument fmla, when available.
+  fmla<T>(vform, cf, src1, temp);
+  mov(vform, dst, cf);
+  return dst;
+}
+
+
+LogicVRegister Simulator::ftmad(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2,
+                                unsigned index) {
+  static const uint64_t ftmad_coeff16[] = {0x3c00,
+                                           0xb155,
+                                           0x2030,
+                                           0x0000,
+                                           0x0000,
+                                           0x0000,
+                                           0x0000,
+                                           0x0000,
+                                           0x3c00,
+                                           0xb800,
+                                           0x293a,
+                                           0x0000,
+                                           0x0000,
+                                           0x0000,
+                                           0x0000,
+                                           0x0000};
+
+  static const uint64_t ftmad_coeff32[] = {0x3f800000,
+                                           0xbe2aaaab,
+                                           0x3c088886,
+                                           0xb95008b9,
+                                           0x36369d6d,
+                                           0x00000000,
+                                           0x00000000,
+                                           0x00000000,
+                                           0x3f800000,
+                                           0xbf000000,
+                                           0x3d2aaaa6,
+                                           0xbab60705,
+                                           0x37cd37cc,
+                                           0x00000000,
+                                           0x00000000,
+                                           0x00000000};
+
+  static const uint64_t ftmad_coeff64[] = {0x3ff0000000000000,
+                                           0xbfc5555555555543,
+                                           0x3f8111111110f30c,
+                                           0xbf2a01a019b92fc6,
+                                           0x3ec71de351f3d22b,
+                                           0xbe5ae5e2b60f7b91,
+                                           0x3de5d8408868552f,
+                                           0x0000000000000000,
+                                           0x3ff0000000000000,
+                                           0xbfe0000000000000,
+                                           0x3fa5555555555536,
+                                           0xbf56c16c16c13a0b,
+                                           0x3efa01a019b1e8d8,
+                                           0xbe927e4f7282f468,
+                                           0x3e21ee96d2641b13,
+                                           0xbda8f76380fbb401};
+  VIXL_ASSERT((index + 8) < ArrayLength(ftmad_coeff64));
+  VIXL_ASSERT(ArrayLength(ftmad_coeff16) == ArrayLength(ftmad_coeff64));
+  VIXL_ASSERT(ArrayLength(ftmad_coeff32) == ArrayLength(ftmad_coeff64));
+
+  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
+    FTMaddHelper<SimFloat16>(vform,
+                             dst,
+                             src1,
+                             src2,
+                             ftmad_coeff16[index],
+                             ftmad_coeff16[index + 8]);
+  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
+    FTMaddHelper<float>(vform,
+                        dst,
+                        src1,
+                        src2,
+                        ftmad_coeff32[index],
+                        ftmad_coeff32[index + 8]);
+  } else {
+    VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
+    FTMaddHelper<double>(vform,
+                         dst,
+                         src1,
+                         src2,
+                         ftmad_coeff64[index],
+                         ftmad_coeff64[index + 8]);
+  }
+  return dst;
+}
+
 LogicVRegister Simulator::fexpa(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {

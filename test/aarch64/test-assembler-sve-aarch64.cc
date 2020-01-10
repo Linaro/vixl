@@ -11505,6 +11505,99 @@ TEST_SVE(sve_fpmul_index) {
   }
 }
 
+TEST_SVE(sve_ftmad) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t in_h0[] = {0x7c027e01fc02fe01,
+                      0x3c003c00bc00bc00,
+                      0x3c003c00bc00bc00};
+  uint64_t in_h1[] = {0xfe01fc027e017e01,
+                      0x3c00bc003c00bc00,
+                      0x3c00bc003c00bc00};
+  uint64_t in_s0[] = {0x7f800002ffc00001,
+                      0x3f8000003f800000,
+                      0xbf800000bf800000};
+  uint64_t in_s1[] = {0xffc00001ffc00001,
+                      0x3f800000bf800000,
+                      0x3f800000bf800000};
+  uint64_t in_d0[] = {0x7ff8000000000001,
+                      0x3ff0000000000000,
+                      0xbff0000000000000};
+  uint64_t in_d1[] = {0xfff0000000000002,
+                      0xbff0000000000000,
+                      0x3ff0000000000000};
+  InsrHelper(&masm, z0.VnD(), in_h0);
+  InsrHelper(&masm, z1.VnD(), in_h1);
+  InsrHelper(&masm, z2.VnD(), in_s0);
+  InsrHelper(&masm, z3.VnD(), in_s1);
+  InsrHelper(&masm, z4.VnD(), in_d0);
+  InsrHelper(&masm, z5.VnD(), in_d1);
+
+  __ Mov(z6, z0);
+  __ Ftmad(z6.VnH(), z6.VnH(), z1.VnH(), 0);
+  __ Mov(z7, z0);
+  __ Ftmad(z7.VnH(), z7.VnH(), z1.VnH(), 1);
+  __ Mov(z8, z0);
+  __ Ftmad(z8.VnH(), z8.VnH(), z1.VnH(), 2);
+
+  __ Mov(z9, z2);
+  __ Ftmad(z9.VnS(), z9.VnS(), z3.VnS(), 0);
+  __ Mov(z10, z2);
+  __ Ftmad(z10.VnS(), z10.VnS(), z3.VnS(), 3);
+  __ Mov(z11, z2);
+  __ Ftmad(z11.VnS(), z11.VnS(), z3.VnS(), 4);
+
+  __ Mov(z12, z4);
+  __ Ftmad(z12.VnD(), z12.VnD(), z5.VnD(), 0);
+  __ Mov(z13, z4);
+  __ Ftmad(z13.VnD(), z13.VnD(), z5.VnD(), 5);
+  __ Mov(z14, z4);
+  __ Ftmad(z14.VnD(), z14.VnD(), z5.VnD(), 7);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z6[] = {0x7e027e02fe02fe01,
+                              0x4000400000000000,
+                              0x4000400000000000};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0x7e027e02fe02fe01,
+                              0x3aab3800bcabbe00,
+                              0x3aab3800bcabbe00};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z8[] = {0x7e027e02fe02fe01,
+                              0x3c083c2abbefbbac,
+                              0x3c083c2abbefbbac};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+    uint64_t expected_z9[] = {0x7fc00002ffc00001,
+                              0x4000000040000000,
+                              0x0000000000000000};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    uint64_t expected_z10[] = {0x7fc00002ffc00001,
+                               0x3f7ff2ff3f7fa4fc,
+                               0xbf800680bf802d82};
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+    uint64_t expected_z11[] = {0x7fc00002ffc00001,
+                               0x3f8000173f8000cd,
+                               0xbf7fffd2bf7ffe66};
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
+    uint64_t expected_z12[] = {0x7ff8000000000002,
+                               0x4000000000000000,
+                               0x0000000000000000};
+    ASSERT_EQUAL_SVE(expected_z12, z12.VnD());
+    uint64_t expected_z13[] = {0x7ff8000000000002,
+                               0x3fefffff6c0d846c,
+                               0xbff0000006b978ae};
+    ASSERT_EQUAL_SVE(expected_z13, z13.VnD());
+    uint64_t expected_z14[] = {0x7ff8000000000002,
+                               0x3feffffffffe708a,
+                               0xbff0000000000000};
+    ASSERT_EQUAL_SVE(expected_z14, z14.VnD());
+  }
+}
+
 typedef void (MacroAssembler::*FcvtFn)(const ZRegister& zd,
                                        const PRegisterM& pg,
                                        const ZRegister& zn);

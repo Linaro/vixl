@@ -857,7 +857,8 @@ void Assembler::ftmad(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FTMAD_z_zzi | SVESize(zd) | Rd(zd) | Rn(zm) | ImmField<18, 16>(imm3));
+  Emit(FTMAD_z_zzi | SVESize(zd) | Rd(zd) | Rn(zm) |
+       ImmUnsignedField<18, 16>(imm3));
 }
 
 // SVEFPArithmeticUnpredicated.

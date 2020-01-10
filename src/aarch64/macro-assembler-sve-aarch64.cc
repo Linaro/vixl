@@ -1236,5 +1236,22 @@ void MacroAssembler::Udot(const ZRegister& zd,
   SVESdotUdotHelper(&Assembler::udot, zd, za, zn, zm);
 }
 
+void MacroAssembler::Ftmad(const ZRegister& zd,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           int imm3) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zm);
+    Mov(scratch, zm);
+    MovprfxHelperScope guard(this, zd, zn);
+    ftmad(zd, zd, scratch, imm3);
+  } else {
+    MovprfxHelperScope guard(this, zd, zn);
+    ftmad(zd, zd, zm, imm3);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

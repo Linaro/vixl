@@ -7801,10 +7801,13 @@ void Simulator::VisitSVEFPArithmeticWithImm_Predicated(
 }
 
 void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+
   switch (instr->Mask(SVEFPTrigMulAddCoefficientMask)) {
     case FTMAD_z_zzi:
-      VIXL_UNIMPLEMENTED();
+      ftmad(vform, zd, zd, zm, instr->ExtractBits(18, 16));
       break;
     default:
       VIXL_UNIMPLEMENTED();

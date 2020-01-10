@@ -696,6 +696,32 @@ TEST(sve_fp_arithmetic_predicated) {
                  "fmin z11.s, p4/m, z11.s, z30.s");
   COMPARE_PREFIX(fmin(z21.VnD(), p6.Merging(), z21.VnD(), z30.VnD()),
                  "fmin z21.d, p6/m, z21.d, z30.d");
+  COMPARE_PREFIX(ftmad(z21.VnH(), z21.VnH(), z22.VnH(), 0),
+                 "ftmad z21.h, z21.h, z22.h, #0");
+  COMPARE_PREFIX(ftmad(z21.VnH(), z21.VnH(), z22.VnH(), 2),
+                 "ftmad z21.h, z21.h, z22.h, #2");
+  COMPARE_PREFIX(ftmad(z2.VnH(), z2.VnH(), z21.VnH(), 7),
+                 "ftmad z2.h, z2.h, z21.h, #7");
+  COMPARE_PREFIX(ftmad(z21.VnS(), z21.VnS(), z22.VnS(), 0),
+                 "ftmad z21.s, z21.s, z22.s, #0");
+  COMPARE_PREFIX(ftmad(z21.VnS(), z21.VnS(), z22.VnS(), 2),
+                 "ftmad z21.s, z21.s, z22.s, #2");
+  COMPARE_PREFIX(ftmad(z2.VnS(), z2.VnS(), z21.VnS(), 7),
+                 "ftmad z2.s, z2.s, z21.s, #7");
+  COMPARE_PREFIX(ftmad(z21.VnD(), z21.VnD(), z22.VnD(), 0),
+                 "ftmad z21.d, z21.d, z22.d, #0");
+  COMPARE_PREFIX(ftmad(z21.VnD(), z21.VnD(), z22.VnD(), 2),
+                 "ftmad z21.d, z21.d, z22.d, #2");
+  COMPARE_PREFIX(ftmad(z2.VnD(), z2.VnD(), z21.VnD(), 7),
+                 "ftmad z2.d, z2.d, z21.d, #7");
+
+  COMPARE_MACRO(Ftmad(z3.VnH(), z2.VnH(), z1.VnH(), 1),
+                "movprfx z3, z2\n"
+                "ftmad z3.h, z3.h, z1.h, #1");
+  COMPARE_MACRO(Ftmad(z6.VnS(), z4.VnS(), z6.VnS(), 1),
+                "orr z31.d, z6.d, z6.d\n"
+                "movprfx z6, z4\n"
+                "ftmad z6.s, z6.s, z31.s, #1");
 #if 0
   COMPARE_PREFIX(fabd(z31.VnH(), p7.Merging(), z31.VnH(), z17.VnH()), "fabd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fabd(z31.VnS(), p7.Merging(), z31.VnS(), z17.VnS()), "fabd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
@@ -748,9 +774,6 @@ TEST(sve_fp_arithmetic_predicated) {
   COMPARE_PREFIX(fsub(z16.VnH(), p5.Merging(), z16.VnH(), z26.VnH()), "fsub <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fsub(z16.VnS(), p5.Merging(), z16.VnS(), z26.VnS()), "fsub <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
   COMPARE_PREFIX(fsub(z16.VnD(), p5.Merging(), z16.VnD(), z26.VnD()), "fsub <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(ftmad(z21.VnH(), z21.VnH(), z22.VnH(), int imm3), "ftmad <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, #<imm>");
-  COMPARE_PREFIX(ftmad(z21.VnS(), z21.VnS(), z22.VnS(), int imm3), "ftmad <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, #<imm>");
-  COMPARE_PREFIX(ftmad(z21.VnD(), z21.VnD(), z22.VnD(), int imm3), "ftmad <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, #<imm>");
 #endif
 
   CLEANUP();
