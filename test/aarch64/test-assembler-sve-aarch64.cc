@@ -5215,7 +5215,7 @@ TEST_SVE(sve_permute_vector_unpredicated) {
   }
 }
 
-TEST_SVE(sve_permute_vector_unpredicated_uppack_vector_elements) {
+TEST_SVE(sve_permute_vector_unpredicated_unpack_vector_elements) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
@@ -5240,6 +5240,12 @@ TEST_SVE(sve_permute_vector_unpredicated_uppack_vector_elements) {
   __ Uunpklo(z19.VnH(), z9.VnB());
   __ Uunpklo(z20.VnS(), z9.VnH());
   __ Uunpklo(z21.VnD(), z9.VnS());
+
+  // Test unpacking with same source and destination.
+  __ Mov(z22, z9);
+  __ Sunpklo(z22.VnH(), z22.VnB());
+  __ Mov(z23, z9);
+  __ Uunpklo(z23.VnH(), z23.VnB());
 
   END();
 
@@ -5339,6 +5345,9 @@ TEST_SVE(sve_permute_vector_unpredicated_uppack_vector_elements) {
       uint64_t input = core.zreg_lane<uint32_t>(z9.GetCode(), i);
       ASSERT_EQUAL_64(expected, input);
     }
+
+    ASSERT_EQUAL_SVE(z13, z22);
+    ASSERT_EQUAL_SVE(z19, z23);
   }
 }
 

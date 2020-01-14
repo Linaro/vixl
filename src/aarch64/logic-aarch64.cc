@@ -6314,16 +6314,26 @@ LogicVRegister Simulator::unpk(VectorFormat vform,
   const int src_start_lane = (unpack_type == kLoHalf) ? 0 : lane_count;
 
   switch (extend_type) {
-    case kSignedExtend:
+    case kSignedExtend: {
+      int64_t result[kZRegMaxSizeInBytes];
       for (int i = 0; i < lane_count; ++i) {
-        dst.SetInt(vform, i, src.Int(vform_half, i + src_start_lane));
+        result[i] = src.Int(vform_half, i + src_start_lane);
+      }
+      for (int i = 0; i < lane_count; ++i) {
+        dst.SetInt(vform, i, result[i]);
       }
       break;
-    case kUnsignedExtend:
+    }
+    case kUnsignedExtend: {
+      uint64_t result[kZRegMaxSizeInBytes];
       for (int i = 0; i < lane_count; ++i) {
-        dst.SetUint(vform, i, src.Uint(vform_half, i + src_start_lane));
+        result[i] = src.Uint(vform_half, i + src_start_lane);
+      }
+      for (int i = 0; i < lane_count; ++i) {
+        dst.SetUint(vform, i, result[i]);
       }
       break;
+    }
     default:
       VIXL_UNREACHABLE();
   }
