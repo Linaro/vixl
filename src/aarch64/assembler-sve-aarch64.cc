@@ -508,7 +508,7 @@ void Assembler::fabd(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FABD_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FABD_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fadd(const ZRegister& zd,
@@ -541,7 +541,7 @@ void Assembler::fadd(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FADD_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FADD_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fdiv(const ZRegister& zd,
@@ -558,7 +558,7 @@ void Assembler::fdiv(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FDIV_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FDIV_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fdivr(const ZRegister& zd,
@@ -575,7 +575,7 @@ void Assembler::fdivr(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FDIVR_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FDIVR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fmax(const ZRegister& zd,
@@ -608,7 +608,7 @@ void Assembler::fmax(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMAX_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FMAX_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fmaxnm(const ZRegister& zd,
@@ -641,7 +641,7 @@ void Assembler::fmaxnm(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMAXNM_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FMAXNM_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fmin(const ZRegister& zd,
@@ -674,7 +674,7 @@ void Assembler::fmin(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMIN_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FMIN_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fminnm(const ZRegister& zd,
@@ -707,7 +707,7 @@ void Assembler::fminnm(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMINNM_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FMINNM_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fmul(const ZRegister& zd,
@@ -740,7 +740,7 @@ void Assembler::fmul(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMUL_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FMUL_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fmulx(const ZRegister& zd,
@@ -757,7 +757,7 @@ void Assembler::fmulx(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMULX_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FMULX_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fscale(const ZRegister& zd,
@@ -774,7 +774,7 @@ void Assembler::fscale(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FSCALE_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FSCALE_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fsub(const ZRegister& zd,
@@ -807,7 +807,7 @@ void Assembler::fsub(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FSUB_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FSUB_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::fsubr(const ZRegister& zd,
@@ -840,7 +840,7 @@ void Assembler::fsubr(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FSUBR_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FSUBR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::ftmad(const ZRegister& zd,

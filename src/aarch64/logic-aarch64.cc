@@ -6349,6 +6349,55 @@ LogicVRegister Simulator::fexpa(VectorFormat vform,
   return dst;
 }
 
+template <typename T>
+LogicVRegister Simulator::fscale(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
+  T two = T(2.0);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    T s1 = src1.Float<T>(i);
+    if (!IsNaN(s1)) {
+      int64_t scale = src2.Int(vform, i);
+      // TODO: this is a low-performance implementation, but it's simple and
+      // less likely to be buggy. Consider replacing it with something faster.
+
+      // Scales outside of these bounds become infinity or zero, so there's no
+      // point iterating further.
+      scale = std::min<int64_t>(std::max<int64_t>(scale, -2048), 2048);
+
+      // Compute s1 * 2 ^ scale. If scale is positive, multiply by two and
+      // decrement scale until it's zero.
+      while (scale-- > 0) {
+        s1 = FPMul(s1, two);
+      }
+
+      // If scale is negative, divide by two and increment scale until it's
+      // zero. Initially, scale is (src2 - 1), so we pre-increment.
+      while (++scale < 0) {
+        s1 = FPDiv(s1, two);
+      }
+    }
+    dst.SetFloat<T>(i, s1);
+  }
+  return dst;
+}
+
+LogicVRegister Simulator::fscale(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
+  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
+    fscale<SimFloat16>(vform, dst, src1, src2);
+  } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
+    fscale<float>(vform, dst, src1, src2);
+  } else {
+    VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
+    fscale<double>(vform, dst, src1, src2);
+  }
+  return dst;
+}
+
 LogicVRegister Simulator::scvtf(VectorFormat vform,
                                 unsigned dst_data_size_in_bits,
                                 unsigned src_data_size_in_bits,

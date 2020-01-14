@@ -4072,11 +4072,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fabd(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fabd(zd, pg, zn, zm);
-  }
+            const ZRegister& zm,
+            FPMacroNaNPropagationOption nan_option);
   void Fabs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4106,11 +4103,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fadd(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fadd(zd, pg, zn, zm);
-  }
+            const ZRegister& zm,
+            FPMacroNaNPropagationOption nan_option);
   void Fadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4250,12 +4244,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcvtzu(zd, pg, zn);
   }
-  void Fdiv(
-      const ZRegister& zd,
-      const PRegisterM& pg,
-      const ZRegister& zn,
-      const ZRegister& zm,
-      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
+  void Fdiv(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
   void Fdup(const ZRegister& zd, double imm);
   void Fdup(const ZRegister& zd, float imm);
   void Fdup(const ZRegister& zd, Float16 imm);
@@ -4286,11 +4278,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fmaxnm(const ZRegister& zd,
               const PRegisterM& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmaxnm(zd, pg, zn, zm);
-  }
+              const ZRegister& zm,
+              FPMacroNaNPropagationOption nan_option);
   void Fmaxnmv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4315,11 +4304,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fminnm(const ZRegister& zd,
               const PRegisterM& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fminnm(zd, pg, zn, zm);
-  }
+              const ZRegister& zm,
+              FPMacroNaNPropagationOption nan_option);
   void Fminnmv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4372,11 +4358,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fmul(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmul(zd, pg, zn, zm);
-  }
+            const ZRegister& zm,
+            FPMacroNaNPropagationOption nan_option);
   void Fmul(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
@@ -4393,11 +4376,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fmulx(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmulx(zd, pg, zn, zm);
-  }
+             const ZRegister& zm,
+             FPMacroNaNPropagationOption nan_option);
   void Fneg(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4498,11 +4478,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fscale(const ZRegister& zd,
               const PRegisterM& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fscale(zd, pg, zn, zm);
-  }
+              const ZRegister& zm);
   void Fsqrt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4516,11 +4492,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fsub(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fsub(zd, pg, zn, zm);
-  }
+            const ZRegister& zm);
   void Fsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6803,8 +6775,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                         const ZRegister& zn,
                                         const ZRegister& zm,
                                         SVEArithPredicatedFn fn,
-                                        SVEArithPredicatedFn rev_fn,
-                                        FPMacroNaNPropagationOption nan_option);
+                                        SVEArithPredicatedFn rev_fn);
 
   void FPCommutativeArithmeticHelper(const ZRegister& zd,
                                      const PRegisterM& pg,

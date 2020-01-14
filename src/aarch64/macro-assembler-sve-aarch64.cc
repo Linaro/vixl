@@ -535,38 +535,15 @@ void MacroAssembler::FPNoncommutativeArithmeticHelper(
     const ZRegister& zn,
     const ZRegister& zm,
     SVEArithPredicatedFn fn,
-    SVEArithPredicatedFn rev_fn,
-    FPMacroNaNPropagationOption nan_option) {
-  ResolveFPNaNPropagationOption(&nan_option);
-
+    SVEArithPredicatedFn rev_fn) {
   if (zd.Aliases(zn)) {
     // E.g. zd = zd / zm
     SingleEmissionCheckScope guard(this);
     (this->*fn)(zd, pg, zn, zm);
   } else if (zd.Aliases(zm)) {
-    switch (nan_option) {
-      case FastNaNPropagation: {
-        // E.g. zd = zn / zd
-        SingleEmissionCheckScope guard(this);
-        (this->*rev_fn)(zd, pg, zm, zn);
-        return;
-      }
-      case StrictNaNPropagation: {
-        UseScratchRegisterScope temps(this);
-        // Use a scratch register to keep the argument order exactly as
-        // specified.
-        ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zn);
-        {
-          MovprfxHelperScope guard(this, scratch, pg, zn);
-          (this->*fn)(scratch, pg, scratch, zm);
-        }
-        Mov(zd, scratch);
-        return;
-      }
-      case NoFPMacroNaNPropagationSelected:
-        VIXL_UNREACHABLE();
-        return;
-    }
+    // E.g. zd = zn / zd
+    SingleEmissionCheckScope guard(this);
+    (this->*rev_fn)(zd, pg, zm, zn);
   } else {
     // E.g. zd = zn / zm
     MovprfxHelperScope guard(this, zd, pg, zn);
@@ -619,8 +596,7 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
 void MacroAssembler::Fdiv(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& zn,
-                          const ZRegister& zm,
-                          FPMacroNaNPropagationOption nan_option) {
+                          const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
   FPNoncommutativeArithmeticHelper(zd,
                                    pg,
@@ -629,8 +605,82 @@ void MacroAssembler::Fdiv(const ZRegister& zd,
                                    static_cast<SVEArithPredicatedFn>(
                                        &Assembler::fdiv),
                                    static_cast<SVEArithPredicatedFn>(
-                                       &Assembler::fdivr),
-                                   nan_option);
+                                       &Assembler::fdivr));
+}
+
+void MacroAssembler::Fsub(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPNoncommutativeArithmeticHelper(zd,
+                                   pg,
+                                   zn,
+                                   zm,
+                                   static_cast<SVEArithPredicatedFn>(
+                                       &Assembler::fsub),
+                                   static_cast<SVEArithPredicatedFn>(
+                                       &Assembler::fsubr));
+}
+
+void MacroAssembler::Fadd(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPCommutativeArithmeticHelper(zd,
+                                pg,
+                                zn,
+                                zm,
+                                static_cast<SVEArithPredicatedFn>(
+                                    &Assembler::fadd),
+                                nan_option);
+}
+
+void MacroAssembler::Fabd(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPCommutativeArithmeticHelper(zd,
+                                pg,
+                                zn,
+                                zm,
+                                static_cast<SVEArithPredicatedFn>(
+                                    &Assembler::fabd),
+                                nan_option);
+}
+
+void MacroAssembler::Fmul(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPCommutativeArithmeticHelper(zd,
+                                pg,
+                                zn,
+                                zm,
+                                static_cast<SVEArithPredicatedFn>(
+                                    &Assembler::fmul),
+                                nan_option);
+}
+
+void MacroAssembler::Fmulx(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPCommutativeArithmeticHelper(zd,
+                                pg,
+                                zn,
+                                zm,
+                                static_cast<SVEArithPredicatedFn>(
+                                    &Assembler::fmulx),
+                                nan_option);
 }
 
 void MacroAssembler::Fmax(const ZRegister& zd,
@@ -660,6 +710,36 @@ void MacroAssembler::Fmin(const ZRegister& zd,
                                 zm,
                                 static_cast<SVEArithPredicatedFn>(
                                     &Assembler::fmin),
+                                nan_option);
+}
+
+void MacroAssembler::Fmaxnm(const ZRegister& zd,
+                            const PRegisterM& pg,
+                            const ZRegister& zn,
+                            const ZRegister& zm,
+                            FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPCommutativeArithmeticHelper(zd,
+                                pg,
+                                zn,
+                                zm,
+                                static_cast<SVEArithPredicatedFn>(
+                                    &Assembler::fmaxnm),
+                                nan_option);
+}
+
+void MacroAssembler::Fminnm(const ZRegister& zd,
+                            const PRegisterM& pg,
+                            const ZRegister& zn,
+                            const ZRegister& zm,
+                            FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPCommutativeArithmeticHelper(zd,
+                                pg,
+                                zn,
+                                zm,
+                                static_cast<SVEArithPredicatedFn>(
+                                    &Assembler::fminnm),
                                 nan_option);
 }
 
@@ -1348,6 +1428,23 @@ void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
     // zd = za + (zn . zm)
     MovprfxHelperScope guard(this, zd, za);
     (this->*fn)(zd, zn, zm);
+  }
+}
+
+void MacroAssembler::Fscale(const ZRegister& zd,
+                            const PRegisterM& pg,
+                            const ZRegister& zn,
+                            const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zm);
+    Mov(scratch, zm);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fscale(zd, pg, zd, scratch);
+  } else {
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fscale(zd, pg, zd, zm);
   }
 }
 

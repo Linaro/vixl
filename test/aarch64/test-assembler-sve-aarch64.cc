@@ -9686,10 +9686,17 @@ typedef void (MacroAssembler::*FPArithPredicatedFn)(
     const ZRegister& zm,
     FPMacroNaNPropagationOption nan_option);
 
+typedef void (MacroAssembler::*FPArithPredicatedNoNaNOptFn)(
+    const ZRegister& zd,
+    const PRegisterM& pg,
+    const ZRegister& zn,
+    const ZRegister& zm);
+
 template <typename Ti, typename Te, size_t N>
 static void FPBinArithHelper(
     Test* config,
     FPArithPredicatedFn macro,
+    FPArithPredicatedNoNaNOptFn macro_nonan,
     unsigned lane_size_in_bits,
     const Ti (&zd_inputs)[N],
     const int (&pg_inputs)[N],
@@ -9697,6 +9704,7 @@ static void FPBinArithHelper(
     const Ti (&zm_inputs)[N],
     const Te (&zd_expected)[N],
     FPMacroNaNPropagationOption nan_option = FastNaNPropagation) {
+  VIXL_ASSERT((macro == NULL) ^ (macro_nonan == NULL));
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
@@ -9723,7 +9731,11 @@ static void FPBinArithHelper(
   // `instr` zdn, pg, zdn, zm
   ZRegister dn_result = z0.WithLaneSize(lane_size_in_bits);
   __ Mov(dn_result, zn);
-  (masm.*macro)(dn_result, pg.Merging(), dn_result, zm, nan_option);
+  if (macro_nonan == NULL) {
+    (masm.*macro)(dn_result, pg.Merging(), dn_result, zm, nan_option);
+  } else {
+    (masm.*macro_nonan)(dn_result, pg.Merging(), dn_result, zm);
+  }
 
   // Based on whether zd and zm registers are aliased, the macro of instructions
   // (`Instr`) swaps the order of operands if it has the commutative property,
@@ -9731,7 +9743,11 @@ static void FPBinArithHelper(
   // `instr` zdm, pg, zn, zdm
   ZRegister dm_result = z1.WithLaneSize(lane_size_in_bits);
   __ Mov(dm_result, zm);
-  (masm.*macro)(dm_result, pg.Merging(), zn, dm_result, nan_option);
+  if (macro_nonan == NULL) {
+    (masm.*macro)(dm_result, pg.Merging(), zn, dm_result, nan_option);
+  } else {
+    (masm.*macro_nonan)(dm_result, pg.Merging(), zn, dm_result);
+  }
 
   // The macro of instructions (`Instr`) automatically selects between `instr`
   // and movprfx + `instr` based on whether zd and zn registers are aliased.
@@ -9741,7 +9757,11 @@ static void FPBinArithHelper(
   // `instr` zd, pg, zn, zm
   ZRegister d_result = z2.WithLaneSize(lane_size_in_bits);
   __ Mov(d_result, zd);
-  (masm.*macro)(d_result, pg.Merging(), zn, zm, nan_option);
+  if (macro_nonan == NULL) {
+    (masm.*macro)(d_result, pg.Merging(), zn, zm, nan_option);
+  } else {
+    (masm.*macro_nonan)(d_result, pg.Merging(), zn, zm);
+  }
 
   END();
 
@@ -9803,6 +9823,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
                       Float16ToRawbits(kFP16NegativeInfinity)};
 
   FPBinArithHelper(config,
+                   NULL,
                    &MacroAssembler::Fdiv,
                    kHRegSize,
                    zd_in,
@@ -9823,6 +9844,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
                       FloatToRawbits(kFP32NegativeInfinity)};
 
   FPBinArithHelper(config,
+                   NULL,
                    &MacroAssembler::Fdiv,
                    kSRegSize,
                    zd_in,
@@ -9843,6 +9865,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fdiv) {
                       DoubleToRawbits(kFP64NegativeInfinity)};
 
   FPBinArithHelper(config,
+                   NULL,
                    &MacroAssembler::Fdiv,
                    kDRegSize,
                    zd_in,
@@ -9924,8 +9947,7 @@ static void ProcessNaNsHelper(Test* config,
                      zd_expected);
   }
 
-  FPArithPredicatedFn predicated_macro[] = {&MacroAssembler::Fdiv,
-                                            &MacroAssembler::Fmax,
+  FPArithPredicatedFn predicated_macro[] = {&MacroAssembler::Fmax,
                                             &MacroAssembler::Fmin};
   int pg_inputs[N];
   // With an all-true predicate, this helper aims to compare with special
@@ -9934,9 +9956,22 @@ static void ProcessNaNsHelper(Test* config,
     pg_inputs[i] = 1;
   }
 
+  FPBinArithHelper(config,
+                   NULL,
+                   &MacroAssembler::Fdiv,
+                   lane_size_in_bits,
+                   // With an all-true predicate, the value in zd is
+                   // irrelevant to the operations.
+                   zn_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected);
+
   for (size_t i = 0; i < ArrayLength(predicated_macro); i++) {
     FPBinArithHelper(config,
                      predicated_macro[i],
+                     NULL,
                      lane_size_in_bits,
                      // With an all-true predicate, the value in zd is
                      // irrelevant to the operations.
@@ -10138,6 +10173,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_h) {
                                 Float16ToRawbits(kFP16PositiveInfinity)};
   FPBinArithHelper(config,
                    &MacroAssembler::Fmax,
+                   NULL,
                    kHRegSize,
                    zd_inputs,
                    pg_inputs,
@@ -10155,6 +10191,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_h) {
                                 Float16ToRawbits(kFP16NegativeInfinity)};
   FPBinArithHelper(config,
                    &MacroAssembler::Fmin,
+                   NULL,
                    kHRegSize,
                    zd_inputs,
                    pg_inputs,
@@ -10193,6 +10230,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_s) {
                                 FloatToRawbits(kFP32PositiveInfinity)};
   FPBinArithHelper(config,
                    &MacroAssembler::Fmax,
+                   NULL,
                    kSRegSize,
                    zd_inputs,
                    pg_inputs,
@@ -10210,6 +10248,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_s) {
                                 FloatToRawbits(kFP32NegativeInfinity)};
   FPBinArithHelper(config,
                    &MacroAssembler::Fmin,
+                   NULL,
                    kSRegSize,
                    zd_inputs,
                    pg_inputs,
@@ -10248,6 +10287,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_d) {
                                 DoubleToRawbits(kFP64PositiveInfinity)};
   FPBinArithHelper(config,
                    &MacroAssembler::Fmax,
+                   NULL,
                    kDRegSize,
                    zd_inputs,
                    pg_inputs,
@@ -10265,6 +10305,7 @@ TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_d) {
                                 DoubleToRawbits(kFP64NegativeInfinity)};
   FPBinArithHelper(config,
                    &MacroAssembler::Fmin,
+                   NULL,
                    kDRegSize,
                    zd_inputs,
                    pg_inputs,
@@ -11951,6 +11992,235 @@ TEST_SVE(sve_ftmad) {
                                0x3feffffffffe708a,
                                0xbff0000000000000};
     ASSERT_EQUAL_SVE(expected_z14, z14.VnD());
+  }
+}
+
+static void BasicFPArithHelper(MacroAssembler* masm,
+                               int lane_size_in_bits,
+                               const uint64_t (&inputs)[2],
+                               const uint64_t (&inputs_fmulx)[2],
+                               const uint64_t (&inputs_nans)[2]) {
+  int ls = lane_size_in_bits;
+
+  for (int i = 0; i < 16; i++) {
+    InsrHelper(masm, z0.VnD(), inputs);
+  }
+  ZRegister rvrs = z1.WithLaneSize(ls);
+  masm->Rev(rvrs, z0.WithLaneSize(ls));
+
+  int pred[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1};
+  Initialise(masm, p2.VnB(), pred);
+  PRegisterM p2m = p2.Merging();
+
+  masm->Mov(z2, z0);
+  masm->Fadd(z2.WithLaneSize(ls),
+             p2m,
+             z2.WithLaneSize(ls),
+             rvrs,
+             FastNaNPropagation);
+  masm->Mov(z3, z0);
+  masm->Fsub(z3.WithLaneSize(ls), p2m, z3.WithLaneSize(ls), rvrs);
+  masm->Mov(z4, z0);
+  masm->Fsub(z4.WithLaneSize(ls), p2m, rvrs, z4.WithLaneSize(ls));
+  masm->Mov(z5, z0);
+  masm->Fabd(z5.WithLaneSize(ls),
+             p2m,
+             z5.WithLaneSize(ls),
+             rvrs,
+             FastNaNPropagation);
+  masm->Mov(z6, z0);
+  masm->Fmul(z6.WithLaneSize(ls),
+             p2m,
+             z6.WithLaneSize(ls),
+             rvrs,
+             FastNaNPropagation);
+
+  for (int i = 0; i < 16; i++) {
+    InsrHelper(masm, z7.VnD(), inputs_fmulx);
+  }
+  masm->Rev(z8.WithLaneSize(ls), z7.WithLaneSize(ls));
+  masm->Fmulx(z7.WithLaneSize(ls),
+              p2m,
+              z7.WithLaneSize(ls),
+              z8.WithLaneSize(ls),
+              FastNaNPropagation);
+
+  InsrHelper(masm, z8.VnD(), inputs_nans);
+  masm->Mov(z9, z8);
+  masm->Fminnm(z9.WithLaneSize(ls),
+               p2m,
+               z9.WithLaneSize(ls),
+               rvrs,
+               FastNaNPropagation);
+  masm->Mov(z10, z8);
+  masm->Fmaxnm(z10.WithLaneSize(ls),
+               p2m,
+               z10.WithLaneSize(ls),
+               rvrs,
+               FastNaNPropagation);
+}
+
+TEST_SVE(sve_fp_arith_pred_h) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t inputs[] = {0x4800470046004500, 0x4400420040003c00};
+  uint64_t inputs_fmulx[] = {0x7c00fc007c00fc00, 0x0000800000008000};
+  uint64_t inputs_nans[] = {0x7fffffff7fffffff, 0x7bfffbff7fbbfbff};
+
+  BasicFPArithHelper(&masm, kHRegSize, inputs, inputs_fmulx, inputs_nans);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z2[] = {0x4880488048804880, 0x4880420048804880};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0x4700450042003c00, 0xbc004200c500c700};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0xc700c500c200bc00, 0x3c00420045004700};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0x4700450042003c00, 0x3c00420045004700};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0x48004b004c804d00, 0x4d0042004b004800};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0xc000c000c000c000, 0xc0008000c000c000};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z9[] = {0x3c00400042004400, 0x4500fbff4700fbff};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    uint64_t expected_z10[] = {0x3c00400042004400, 0x7bfffbff47004800};
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+  }
+}
+
+TEST_SVE(sve_fp_arith_pred_s) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t inputs[] = {0x4080000040400000, 0x400000003f800000};
+  uint64_t inputs_fmulx[] = {0x7f800000ff800000, 0x0000000080000000};
+  uint64_t inputs_nans[] = {0x7fffffffffffffff, 0x41000000c1000000};
+
+  BasicFPArithHelper(&masm, kSRegSize, inputs, inputs_fmulx, inputs_nans);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z2[] = {0x40a0000040a00000, 0x4000000040a00000};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0x404000003f800000, 0x40000000c0400000};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0xc0400000bf800000, 0x4000000040400000};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0x404000003f800000, 0x4000000040400000};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0x4080000040c00000, 0x4000000040800000};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0xc0000000c0000000, 0x00000000c0000000};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z9[] = {0x3f80000040000000, 0x41000000c1000000};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    uint64_t expected_z10[] = {0x3f80000040000000, 0x4100000040800000};
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+  }
+}
+
+TEST_SVE(sve_fp_arith_pred_d) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t inputs[] = {0x4000000000000000, 0x3ff0000000000000};
+  uint64_t inputs_fmulx[] = {0x7ff0000000000000, 0x8000000000000000};
+  uint64_t inputs_nans[] = {0x7fffffffffffffff, 0x4100000000000000};
+
+  BasicFPArithHelper(&masm, kDRegSize, inputs, inputs_fmulx, inputs_nans);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z2[] = {0x4008000000000000, 0x4008000000000000};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    uint64_t expected_z3[] = {0x3ff0000000000000, 0xbff0000000000000};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    uint64_t expected_z4[] = {0xbff0000000000000, 0x3ff0000000000000};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0x3ff0000000000000, 0x3ff0000000000000};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    uint64_t expected_z6[] = {0x4000000000000000, 0x4000000000000000};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0xc000000000000000, 0xc000000000000000};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    uint64_t expected_z9[] = {0x3ff0000000000000, 0x4000000000000000};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    uint64_t expected_z10[] = {0x3ff0000000000000, 0x4100000000000000};
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+  }
+}
+
+TEST_SVE(sve_fscale) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  uint64_t inputs_h[] = {0x4800470046004500, 0x4400420040003c00};
+  InsrHelper(&masm, z0.VnD(), inputs_h);
+  uint64_t inputs_s[] = {0x4080000040400000, 0x400000003f800000};
+  InsrHelper(&masm, z1.VnD(), inputs_s);
+  uint64_t inputs_d[] = {0x40f0000000000000, 0x4000000000000000};
+  InsrHelper(&masm, z2.VnD(), inputs_d);
+
+  uint64_t scales[] = {0x00080002fff8fffe, 0x00100001fff0ffff};
+  InsrHelper(&masm, z3.VnD(), scales);
+
+  __ Ptrue(p0.VnB());
+  int pred[] = {0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1};
+  Initialise(&masm, p1.VnB(), pred);
+
+  __ Mov(z4, z0);
+  __ Fscale(z4.VnH(), p0.Merging(), z4.VnH(), z3.VnH());
+  __ Mov(z5, z0);
+  __ Fscale(z5.VnH(), p1.Merging(), z5.VnH(), z3.VnH());
+
+  __ Sunpklo(z3.VnS(), z3.VnH());
+  __ Mov(z6, z1);
+  __ Fscale(z6.VnS(), p0.Merging(), z6.VnS(), z3.VnS());
+  __ Mov(z7, z1);
+  __ Fscale(z7.VnS(), p1.Merging(), z7.VnS(), z3.VnS());
+
+  __ Sunpklo(z3.VnD(), z3.VnS());
+  __ Mov(z8, z2);
+  __ Fscale(z8.VnD(), p0.Merging(), z8.VnD(), z3.VnD());
+  __ Mov(z9, z2);
+  __ Fscale(z9.VnD(), p1.Merging(), z9.VnD(), z3.VnD());
+
+  // Test full double precision range scaling.
+  __ Dup(z10.VnD(), 2045);
+  __ Dup(z11.VnD(), 0x0010000000000000);  // 2^-1022
+  __ Fscale(z11.VnD(), p0.Merging(), z11.VnD(), z10.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    uint64_t expected_z4[] = {0x68004f0026003d00, 0x7c00460002003800};
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    uint64_t expected_z5[] = {0x68004f0026004500, 0x7c00420002003800};
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+
+    uint64_t expected_z6[] = {0x4880000040c00000, 0x380000003f000000};
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    uint64_t expected_z7[] = {0x4880000040400000, 0x400000003f000000};
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+
+    uint64_t expected_z8[] = {0x3ff0000000000000, 0x3ff0000000000000};
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+    uint64_t expected_z9[] = {0x40f0000000000000, 0x3ff0000000000000};
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+
+    uint64_t expected_z11[] = {0x7fe0000000000000, 0x7fe0000000000000};
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
   }
 }
 

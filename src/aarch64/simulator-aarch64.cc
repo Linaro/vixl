@@ -7792,10 +7792,10 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
 
   switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
     case FABD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fabd(vform, result, zdn, zm);
       break;
     case FADD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fadd(vform, result, zdn, zm);
       break;
     case FDIVR_z_p_zz:
       fdiv(vform, result, zm, zdn);
@@ -7804,31 +7804,31 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
       fdiv(vform, result, zdn, zm);
       break;
     case FMAXNM_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fmaxnm(vform, result, zdn, zm);
       break;
     case FMAX_z_p_zz:
       fmax(vform, result, zdn, zm);
       break;
     case FMINNM_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fminnm(vform, result, zdn, zm);
       break;
     case FMIN_z_p_zz:
       fmin(vform, result, zdn, zm);
       break;
     case FMULX_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fmulx(vform, result, zdn, zm);
       break;
     case FMUL_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fmul(vform, result, zdn, zm);
       break;
     case FSCALE_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fscale(vform, result, zdn, zm);
       break;
     case FSUBR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fsub(vform, result, zm, zdn);
       break;
     case FSUB_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fsub(vform, result, zdn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

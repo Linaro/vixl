@@ -6739,59 +6739,45 @@ void Disassembler::VisitSVEFPArithmeticWithImm_Predicated(
 
 void Disassembler::VisitSVEFPArithmetic_Predicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
   const char *form = "'Zd.'t, p'u1210/m, 'Zd.'t, 'Zn.'t";
 
   switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
-    // FABD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FABD_z_p_zz:
       mnemonic = "fabd";
       break;
-    // FADD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FADD_z_p_zz:
       mnemonic = "fadd";
       break;
-    // FDIVR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FDIVR_z_p_zz:
       mnemonic = "fdivr";
       break;
-    // FDIV <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FDIV_z_p_zz:
       mnemonic = "fdiv";
       break;
-    // FMAXNM <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FMAXNM_z_p_zz:
       mnemonic = "fmaxnm";
       break;
-    // FMAX <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FMAX_z_p_zz:
       mnemonic = "fmax";
       break;
-    // FMINNM <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FMINNM_z_p_zz:
       mnemonic = "fminnm";
       break;
-    // FMIN <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FMIN_z_p_zz:
       mnemonic = "fmin";
       break;
-    // FMULX <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FMULX_z_p_zz:
       mnemonic = "fmulx";
       break;
-    // FMUL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FMUL_z_p_zz:
       mnemonic = "fmul";
       break;
-    // FSCALE <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FSCALE_z_p_zz:
       mnemonic = "fscale";
       break;
-    // FSUBR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FSUBR_z_p_zz:
       mnemonic = "fsubr";
       break;
-    // FSUB <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case FSUB_z_p_zz:
       mnemonic = "fsub";
       break;

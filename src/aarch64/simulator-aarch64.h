@@ -3999,6 +3999,15 @@ class Simulator : public DecoderVisitor {
                        LogicVRegister dst,
                        const LogicVRegister& src);
   template <typename T>
+  LogicVRegister fscale(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
+  LogicVRegister fscale(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
+  template <typename T>
   LogicVRegister fabs_(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src);
