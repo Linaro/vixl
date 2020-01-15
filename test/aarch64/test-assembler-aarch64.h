@@ -80,10 +80,6 @@ namespace aarch64 {
 #define __ masm.
 #define TEST(name) TEST_(AARCH64_ASM_##name)
 
-// PushCalleeSavedRegisters(), PopCalleeSavedRegisters() and Dump() use NEON, so
-// we need to enable it in the infrastructure code for each test.
-static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
-
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Run tests with the simulator.
 
@@ -150,14 +146,6 @@ static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
   }                                                                      \
   __ Ret();                                                              \
   masm.FinalizeCode()
-
-inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
-  // The Simulator can run any test that VIXL can assemble.
-  USE(required);
-  *queried_can_run = true;
-  return true;
-}
-
 
 #define RUN()                                                                  \
   RUN_WITHOUT_SEEN_FEATURE_CHECK();                                            \
@@ -255,32 +243,6 @@ inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 // This just provides compatibility with VIXL_INCLUDE_SIMULATOR_AARCH64 builds.
 // We cannot run seen-feature checks when running natively.
 #define RUN_WITHOUT_SEEN_FEATURE_CHECK() RUN()
-
-inline bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
-  CPUFeatures cpu = CPUFeatures::InferFromOS();
-  // If InferFromOS fails, assume that basic features are present.
-  if (cpu.HasNoFeatures()) cpu = CPUFeatures::AArch64LegacyBaseline();
-
-  VIXL_ASSERT(cpu.Has(kInfrastructureCPUFeatures));
-
-  if (cpu.Has(required)) {
-    *queried_can_run = true;
-    return true;
-  }
-
-  // Only warn if we haven't already checked CanRun(...).
-  if (!*queried_can_run) {
-    *queried_can_run = true;
-    CPUFeatures missing = required.Without(cpu);
-    // Note: This message needs to match REGEXP_MISSING_FEATURES from
-    // tools/threaded_test.py.
-    std::cout << "SKIPPED: Missing features: { " << missing << " }\n";
-    std::cout << "This test requires the following features to run its "
-                 "generated code on this CPU: "
-              << required << "\n";
-  }
-  return false;
-}
 
 #endif  // ifdef VIXL_INCLUDE_SIMULATOR_AARCH64.
 

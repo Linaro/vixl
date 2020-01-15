@@ -119,4 +119,10 @@ int64_t LiteralExample(int64_t a, int64_t b);
 // Generate a few examples of runtime calls.
 void GenerateRuntimeCallExamples(vixl::aarch64::MacroAssembler* masm);
 
+// Generate a function with the following prototype:
+//    size_t sve_strlen(const char* str);
+//
+// The function implements the standard `strlen` using SVE.
+void GenerateSVEStrlen(vixl::aarch64::MacroAssembler* masm);
+
 #endif  // VIXL_EXAMPLE_EXAMPLES_H_

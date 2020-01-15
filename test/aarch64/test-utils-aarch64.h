@@ -562,6 +562,27 @@ class StrictNaNPropagationMacroAssembler : public MacroAssembler {
   }
 };
 
+// If the required features are available, return true.
+// Otherwise:
+//  - Print a warning message, unless *queried_can_run indicates that we've
+//    already done so.
+//  - Return false.
+//
+// If *queried_can_run is NULL, it is treated as false. Otherwise, it is set to
+// true, regardless of the return value.
+//
+// The warning message printed on failure is used by tools/threaded_tests.py to
+// count skipped tests. A test must not print more than one such warning
+// message. It is safe to call CanRun multiple times per test, as long as
+// queried_can_run is propagated correctly between calls, and the first call to
+// CanRun requires every feature that is required by subsequent calls. If
+// queried_can_run is NULL, CanRun must not be called more than once per test.
+bool CanRun(const CPUFeatures& required, bool* queried_can_run = NULL);
+
+// PushCalleeSavedRegisters(), PopCalleeSavedRegisters() and Dump() use NEON, so
+// we need to enable it in the infrastructure code for each test.
+static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
+
 }  // namespace aarch64
 }  // namespace vixl
 
