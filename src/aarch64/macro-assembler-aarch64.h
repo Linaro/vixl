@@ -4095,10 +4095,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     facgt(pd, pg, zn, zm);
   }
-  void Fadd(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Fadd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fadd(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fadd(zd, pg, zd, imm);
   }
   void Fadd(const ZRegister& zd,
             const PRegisterM& pg,
@@ -4264,16 +4267,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fmad(zdn, pg, zm, za);
   }
+  void Fmax(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fmax(zd, pg, zd, imm);
+  }
   void Fmax(
       const ZRegister& zd,
       const PRegisterM& pg,
       const ZRegister& zn,
       const ZRegister& zm,
       FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
-  void Fmaxnm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Fmaxnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              double imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmaxnm(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fmaxnm(zd, pg, zd, imm);
   }
   void Fmaxnm(const ZRegister& zd,
               const PRegisterM& pg,
@@ -4290,16 +4304,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fmaxv(vd, pg, zn);
   }
+  void Fmin(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fmin(zd, pg, zd, imm);
+  }
   void Fmin(
       const ZRegister& zd,
       const PRegisterM& pg,
       const ZRegister& zn,
       const ZRegister& zm,
       FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
-  void Fminnm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Fminnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              double imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fminnm(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fminnm(zd, pg, zd, imm);
   }
   void Fminnm(const ZRegister& zd,
               const PRegisterM& pg,
@@ -4350,10 +4375,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fmsb(zdn, pg, zm, za);
   }
-  void Fmul(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Fmul(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmul(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fmul(zd, pg, zd, imm);
   }
   void Fmul(const ZRegister& zd,
             const PRegisterM& pg,
@@ -4484,10 +4512,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fsqrt(zd, pg, zn);
   }
-  void Fsub(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Fsub(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fsub(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fsub(zd, pg, zd, imm);
+  }
+  void Fsub(const ZRegister& zd,
+            const PRegisterM& pg,
+            double imm,
+            const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fsubr(zd, pg, zd, imm);
   }
   void Fsub(const ZRegister& zd,
             const PRegisterM& pg,

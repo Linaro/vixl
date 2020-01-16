@@ -4080,7 +4080,10 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Floating-point add immediate (predicated).
-  void fadd(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fadd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
 
   // Floating-point add vector (predicated).
   void fadd(const ZRegister& zd,
@@ -4226,7 +4229,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& za);
 
   // Floating-point maximum with immediate (predicated).
-  void fmax(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fmax(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
 
   // Floating-point maximum (predicated).
   void fmax(const ZRegister& zd,
@@ -4235,7 +4241,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Floating-point maximum number with immediate (predicated).
-  void fmaxnm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fmaxnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              double imm);
 
   // Floating-point maximum number (predicated).
   void fmaxnm(const ZRegister& zd,
@@ -4250,7 +4259,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void fmaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Floating-point minimum with immediate (predicated).
-  void fmin(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fmin(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
 
   // Floating-point minimum (predicated).
   void fmin(const ZRegister& zd,
@@ -4259,7 +4271,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Floating-point minimum number with immediate (predicated).
-  void fminnm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fminnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              double imm);
 
   // Floating-point minimum number (predicated).
   void fminnm(const ZRegister& zd,
@@ -4303,7 +4318,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& za);
 
   // Floating-point multiply by immediate (predicated).
-  void fmul(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fmul(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
 
   // Floating-point multiply vectors (predicated).
   void fmul(const ZRegister& zd,
@@ -4403,7 +4421,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void fsqrt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Floating-point subtract immediate (predicated).
-  void fsub(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fsub(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
 
   // Floating-point subtract vectors (predicated).
   void fsub(const ZRegister& zd,
@@ -4415,7 +4436,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void fsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Floating-point reversed subtract from immediate (predicated).
-  void fsubr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void fsubr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             double imm);
 
   // Floating-point reversed subtract vectors (predicated).
   void fsubr(const ZRegister& zd,

@@ -7782,7 +7782,6 @@ void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
-  USE(instr);
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
   SimVRegister& zm = ReadVRegister(instr->GetRn());
@@ -7839,36 +7838,54 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
 
 void Simulator::VisitSVEFPArithmeticWithImm_Predicated(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  int i1 = instr->ExtractBit(5);
+  SimVRegister add_sub_imm, min_max_imm, mul_imm;
+  uint64_t half = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform), 0.5);
+  uint64_t one = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform), 1.0);
+  uint64_t two = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform), 2.0);
+  dup_immediate(vform, add_sub_imm, i1 ? one : half);
+  dup_immediate(vform, min_max_imm, i1 ? one : 0);
+  dup_immediate(vform, mul_imm, i1 ? two : half);
+
   switch (instr->Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
     case FADD_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fadd(vform, result, zdn, add_sub_imm);
       break;
     case FMAXNM_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fmaxnm(vform, result, zdn, min_max_imm);
       break;
     case FMAX_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fmax(vform, result, zdn, min_max_imm);
       break;
     case FMINNM_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fminnm(vform, result, zdn, min_max_imm);
       break;
     case FMIN_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fmin(vform, result, zdn, min_max_imm);
       break;
     case FMUL_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fmul(vform, result, zdn, mul_imm);
       break;
     case FSUBR_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fsub(vform, result, add_sub_imm, zdn);
       break;
     case FSUB_z_p_zs:
-      VIXL_UNIMPLEMENTED();
+      fsub(vform, result, zdn, add_sub_imm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {

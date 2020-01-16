@@ -513,7 +513,8 @@ void Assembler::fabd(const ZRegister& zd,
 
 void Assembler::fadd(const ZRegister& zd,
                      const PRegisterM& pg,
-                     const ZRegister& zn) {
+                     const ZRegister& zn,
+                     double imm) {
   // FADD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1000 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 000 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -523,8 +524,10 @@ void Assembler::fadd(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT((imm == 0.5) || (imm == 1.0));
 
-  Emit(FADD_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FADD_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fadd(const ZRegister& zd,
@@ -580,7 +583,8 @@ void Assembler::fdivr(const ZRegister& zd,
 
 void Assembler::fmax(const ZRegister& zd,
                      const PRegisterM& pg,
-                     const ZRegister& zn) {
+                     const ZRegister& zn,
+                     double imm) {
   // FMAX <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1110 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 110 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -590,8 +594,10 @@ void Assembler::fmax(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(((imm == 0.0) && (copysign(1.0, imm) == 1.0)) || (imm == 1.0));
 
-  Emit(FMAX_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FMAX_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fmax(const ZRegister& zd,
@@ -613,7 +619,8 @@ void Assembler::fmax(const ZRegister& zd,
 
 void Assembler::fmaxnm(const ZRegister& zd,
                        const PRegisterM& pg,
-                       const ZRegister& zn) {
+                       const ZRegister& zn,
+                       double imm) {
   // FMAXNM <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1100 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 100 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -623,8 +630,10 @@ void Assembler::fmaxnm(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(((imm == 0.0) && (copysign(1.0, imm) == 1.0)) || (imm == 1.0));
 
-  Emit(FMAXNM_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FMAXNM_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fmaxnm(const ZRegister& zd,
@@ -646,7 +655,8 @@ void Assembler::fmaxnm(const ZRegister& zd,
 
 void Assembler::fmin(const ZRegister& zd,
                      const PRegisterM& pg,
-                     const ZRegister& zn) {
+                     const ZRegister& zn,
+                     double imm) {
   // FMIN <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1111 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 111 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -656,8 +666,10 @@ void Assembler::fmin(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(((imm == 0.0) && (copysign(1.0, imm) == 1.0)) || (imm == 1.0));
 
-  Emit(FMIN_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FMIN_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fmin(const ZRegister& zd,
@@ -679,7 +691,8 @@ void Assembler::fmin(const ZRegister& zd,
 
 void Assembler::fminnm(const ZRegister& zd,
                        const PRegisterM& pg,
-                       const ZRegister& zn) {
+                       const ZRegister& zn,
+                       double imm) {
   // FMINNM <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1101 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 101 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -689,8 +702,10 @@ void Assembler::fminnm(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(((imm == 0.0) && (copysign(1.0, imm) == 1.0)) || (imm == 1.0));
 
-  Emit(FMINNM_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FMINNM_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fminnm(const ZRegister& zd,
@@ -712,7 +727,8 @@ void Assembler::fminnm(const ZRegister& zd,
 
 void Assembler::fmul(const ZRegister& zd,
                      const PRegisterM& pg,
-                     const ZRegister& zn) {
+                     const ZRegister& zn,
+                     double imm) {
   // FMUL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1010 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 010 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -722,8 +738,10 @@ void Assembler::fmul(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT((imm == 0.5) || (imm == 2.0));
 
-  Emit(FMUL_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 2.0) ? (1 << 5) : 0;
+  Emit(FMUL_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fmul(const ZRegister& zd,
@@ -779,7 +797,8 @@ void Assembler::fscale(const ZRegister& zd,
 
 void Assembler::fsub(const ZRegister& zd,
                      const PRegisterM& pg,
-                     const ZRegister& zn) {
+                     const ZRegister& zn,
+                     double imm) {
   // FSUB <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1001 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 001 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -789,8 +808,10 @@ void Assembler::fsub(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT((imm == 0.5) || (imm == 1.0));
 
-  Emit(FSUB_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FSUB_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fsub(const ZRegister& zd,
@@ -812,7 +833,8 @@ void Assembler::fsub(const ZRegister& zd,
 
 void Assembler::fsubr(const ZRegister& zd,
                       const PRegisterM& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double imm) {
   // FSUBR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
   //  0110 0101 ..01 1011 100. ..00 00.. ....
   //  size<23:22> | opc<18:16> = 011 | Pg<12:10> | i1<5> | Zdn<4:0>
@@ -822,8 +844,10 @@ void Assembler::fsubr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT((imm == 0.5) || (imm == 1.0));
 
-  Emit(FSUBR_z_p_zs | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg));
+  Instr i1 = (imm == 1.0) ? (1 << 5) : 0;
+  Emit(FSUBR_z_p_zs | SVESize(zd) | Rd(zd) | PgLow8(pg) | i1);
 }
 
 void Assembler::fsubr(const ZRegister& zd,

@@ -6695,43 +6695,44 @@ void Disassembler::VisitSVEFFRWriteFromPredicate(const Instruction *instr) {
 void Disassembler::VisitSVEFPArithmeticWithImm_Predicated(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
-  const char *form = "'Zd.'t, p'u1210/m, 'Zd.'t, <const>";
+  const char *form00 = "'Zd.'t, p'u1210/m, 'Zd.'t, #0.0";
+  const char *form05 = "'Zd.'t, p'u1210/m, 'Zd.'t, #0.5";
+  const char *form10 = "'Zd.'t, p'u1210/m, 'Zd.'t, #1.0";
+  const char *form20 = "'Zd.'t, p'u1210/m, 'Zd.'t, #2.0";
+  int i1 = instr->ExtractBit(5);
+  const char *form = i1 ? form10 : form00;
 
   switch (instr->Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
-    // FADD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FADD_z_p_zs:
       mnemonic = "fadd";
+      form = i1 ? form10 : form05;
       break;
-    // FMAXNM <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FMAXNM_z_p_zs:
       mnemonic = "fmaxnm";
       break;
-    // FMAX <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FMAX_z_p_zs:
       mnemonic = "fmax";
       break;
-    // FMINNM <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FMINNM_z_p_zs:
       mnemonic = "fminnm";
       break;
-    // FMIN <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FMIN_z_p_zs:
       mnemonic = "fmin";
       break;
-    // FMUL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FMUL_z_p_zs:
       mnemonic = "fmul";
+      form = i1 ? form20 : form05;
       break;
-    // FSUBR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FSUBR_z_p_zs:
       mnemonic = "fsubr";
+      form = i1 ? form10 : form05;
       break;
-    // FSUB <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <const>
     case FSUB_z_p_zs:
       mnemonic = "fsub";
+      form = i1 ? form10 : form05;
       break;
     default:
+      form = "(SVEFPArithmeticWithImm_Predicated)";
       break;
   }
   Format(instr, mnemonic, form);
