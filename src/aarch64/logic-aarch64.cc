@@ -7080,6 +7080,51 @@ int Simulator::GetPredicateConstraintLaneCount(VectorFormat vform,
   return 0;
 }
 
+uint64_t LogicSVEAddressVector::GetStructAddress(int lane) const {
+  if (IsContiguous()) {
+    return base_ + (lane * GetRegCount()) * GetMsizeInBytes();
+  }
+
+  VIXL_ASSERT(IsScatterGather());
+  VIXL_ASSERT(vector_ != NULL);
+
+  // For scatter-gather accesses, we need to extract the offset from vector_,
+  // and apply modifiers.
+
+  uint64_t offset = 0;
+  switch (vector_form_) {
+    case kFormatVnS:
+      offset = vector_->GetLane<uint32_t>(lane);
+      break;
+    case kFormatVnD:
+      offset = vector_->GetLane<uint64_t>(lane);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  switch (vector_mod_) {
+    case SVE_MUL_VL:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case SVE_LSL:
+      // We apply the shift below. There's nothing to do here.
+      break;
+    case NO_SVE_OFFSET_MODIFIER:
+      VIXL_ASSERT(vector_shift_ == 0);
+      break;
+    case SVE_UXTW:
+      offset = ExtractUnsignedBitfield64(kWRegSize - 1, 0, offset);
+      break;
+    case SVE_SXTW:
+      offset = ExtractSignedBitfield64(kWRegSize - 1, 0, offset);
+      break;
+  }
+
+  return base_ + (offset << vector_shift_);
+}
+
 
 }  // namespace aarch64
 }  // namespace vixl

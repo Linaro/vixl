@@ -8334,6 +8334,194 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
   munmap(reinterpret_cast<void*>(data), page_size * 2);
 }
 
+// Test gather loads by comparing them with the result of a set of equivalent
+// scalar loads.
+template <typename F>
+static void GatherLoadHelper(Test* config,
+                             unsigned msize_in_bits,
+                             unsigned esize_in_bits,
+                             F sve_ld1,
+                             bool is_signed) {
+  // SVE supports 32- and 64-bit addressing for gather loads.
+  VIXL_ASSERT((esize_in_bits == kSRegSize) || (esize_in_bits == kDRegSize));
+  static const unsigned kMaxLaneCount = kZRegMaxSize / kSRegSize;
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  unsigned msize_in_bytes = msize_in_bits / kBitsPerByte;
+  unsigned esize_in_bytes = esize_in_bits / kBitsPerByte;
+  int vl = config->sve_vl_in_bytes();
+
+  // Use a fixed seed for nrand48() so that test runs are reproducible.
+  unsigned short seed[3] = {1, 2, 3};  // NOLINT(runtime/int)
+
+  // Fill a buffer with arbitrary data.
+  size_t buffer_size = vl * 64;
+  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
+  for (size_t i = 0; i < buffer_size; i++) {
+    uint8_t byte = nrand48(seed) & 0xff;
+    memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
+  }
+
+  // Vectors of random addresses and offsets into the buffer.
+  uint64_t addresses[kMaxLaneCount];
+  uint64_t offsets[kMaxLaneCount];
+  uint64_t max_address = 0;
+  for (unsigned i = 0; i < kMaxLaneCount; i++) {
+    uint64_t rnd = nrand48(seed);
+    // Limit the range to the set of completely-accessible elements in memory.
+    offsets[i] = rnd % (buffer_size - msize_in_bytes);
+    addresses[i] = data + offsets[i];
+    max_address = std::max(max_address, addresses[i]);
+  }
+
+  // Maximised offsets, to ensure that the address calculation is modulo-2^64,
+  // and that the vector addresses are not sign-extended.
+  uint64_t uint_e_max = (esize_in_bits == kDRegSize) ? UINT64_MAX : UINT32_MAX;
+  uint64_t maxed_offsets[kMaxLaneCount];
+  uint64_t maxed_offsets_imm = max_address - uint_e_max;
+  for (unsigned i = 0; i < kMaxLaneCount; i++) {
+    maxed_offsets[i] = addresses[i] - maxed_offsets_imm;
+  }
+
+  ZRegister zn = z0.WithLaneSize(esize_in_bits);
+  ZRegister zt_addresses = z1.WithLaneSize(esize_in_bits);
+  ZRegister zt_offsets = z2.WithLaneSize(esize_in_bits);
+  ZRegister zt_maxed = z3.WithLaneSize(esize_in_bits);
+  ZRegister zt_ref = z4.WithLaneSize(esize_in_bits);
+
+  PRegisterZ pg = p0.Zeroing();
+  Initialise(&masm,
+             pg,
+             0x9abcdef012345678,
+             0xabcdef0123456789,
+             0xf4f3f1f0fefdfcfa,
+             0xf9f8f6f5f3f2f0ff);
+
+  // Execute each load.
+
+  if (esize_in_bits == kDRegSize) {
+    // Only test `addresses` if we can use 64-bit pointers. InsrHelper will fail
+    // if any value won't fit in a lane of zn.
+    InsrHelper(&masm, zn, addresses);
+    (masm.*sve_ld1)(zt_addresses, pg, SVEMemOperand(zn));
+  }
+
+  InsrHelper(&masm, zn, offsets);
+  (masm.*sve_ld1)(zt_offsets, pg, SVEMemOperand(zn, data));
+
+  InsrHelper(&masm, zn, maxed_offsets);
+  (masm.*sve_ld1)(zt_maxed, pg, SVEMemOperand(zn, maxed_offsets_imm));
+
+  // TODO: Also test scalar-plus-vector SVEMemOperands.
+  // TODO: Also test first-fault loads.
+
+  // Generate a reference result using scalar loads.
+
+  ZRegister lane_numbers = z10.WithLaneSize(esize_in_bits);
+  __ Index(lane_numbers, 0, 1);
+  __ Dup(zt_ref, 0);
+  for (unsigned i = 0; i < (vl / esize_in_bytes); i++) {
+    __ Mov(x0, addresses[ArrayLength(addresses) - i - 1]);
+    Register rt(0, esize_in_bits);
+    if (is_signed) {
+      switch (msize_in_bits) {
+        case kBRegSize:
+          __ Ldrsb(rt, MemOperand(x0));
+          break;
+        case kHRegSize:
+          __ Ldrsh(rt, MemOperand(x0));
+          break;
+        case kWRegSize:
+          __ Ldrsw(rt, MemOperand(x0));
+          break;
+      }
+    } else {
+      switch (msize_in_bits) {
+        case kBRegSize:
+          __ Ldrb(rt, MemOperand(x0));
+          break;
+        case kHRegSize:
+          __ Ldrh(rt, MemOperand(x0));
+          break;
+        case kWRegSize:
+          __ Ldr(rt.W(), MemOperand(x0));
+          break;
+        case kXRegSize:
+          __ Ldr(rt, MemOperand(x0));
+          break;
+      }
+    }
+
+    // Emulate predication.
+    __ Cmpeq(p7.WithLaneSize(esize_in_bits), pg, lane_numbers, i);
+    __ Cpy(zt_ref, p7.Merging(), rt);
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    if (esize_in_bits == kDRegSize) {
+      ASSERT_EQUAL_SVE(zt_ref, zt_addresses);
+    }
+    ASSERT_EQUAL_SVE(zt_ref, zt_offsets);
+    ASSERT_EQUAL_SVE(zt_ref, zt_maxed);
+  }
+
+  free(reinterpret_cast<void*>(data));
+}
+
+TEST_SVE(sve_ld1b_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kBRegSize, kDRegSize, &MacroAssembler::Ld1b, false);
+}
+
+TEST_SVE(sve_ld1h_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kHRegSize, kDRegSize, &MacroAssembler::Ld1h, false);
+}
+
+TEST_SVE(sve_ld1w_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1w, false);
+}
+
+TEST_SVE(sve_ld1d_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kDRegSize, kDRegSize, &MacroAssembler::Ld1d, false);
+}
+
+TEST_SVE(sve_ld1sb_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kBRegSize, kDRegSize, &MacroAssembler::Ld1sb, true);
+}
+
+TEST_SVE(sve_ld1sh_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kHRegSize, kDRegSize, &MacroAssembler::Ld1sh, true);
+}
+
+TEST_SVE(sve_ld1sw_64bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1sw, true);
+}
+
+TEST_SVE(sve_ld1b_32bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kBRegSize, kSRegSize, &MacroAssembler::Ld1b, false);
+}
+
+TEST_SVE(sve_ld1h_32bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1h, false);
+}
+
+TEST_SVE(sve_ld1w_32bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kSRegSize, kSRegSize, &MacroAssembler::Ld1w, false);
+}
+
+TEST_SVE(sve_ld1sb_32bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kBRegSize, kSRegSize, &MacroAssembler::Ld1sb, true);
+}
+
+TEST_SVE(sve_ld1sh_32bit_vector_plus_immediate) {
+  GatherLoadHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1sh, true);
+}
+
 typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,
                                              const ZRegister& zn,
                                              const IntegerOperand imm);

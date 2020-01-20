@@ -1051,12 +1051,39 @@ void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
     return;
   }
 
-  // TODO: Handle scatter-gather forms.
+  if (addr.IsVectorPlusImmediate()) {
+    uint64_t offset = addr.GetImmediateOffset();
+    if (IsMultiple(offset, (1 << msize_in_bytes_log2)) &&
+        IsUint5(offset >> msize_in_bytes_log2)) {
+      SingleEmissionCheckScope guard(this);
+      (this->*fn)(zt, pg, addr);
+      return;
+    }
+  }
+
+  if (addr.IsScalarPlusVector()) {
+    VIXL_UNIMPLEMENTED();
+  }
 
   UseScratchRegisterScope temps(this);
   if (addr.IsScatterGather()) {
-    // TODO: Use Adr(ZRegister, ...) to synthesise the address in the same way
-    // as the non-scatter-gather forms.
+    // In scatter-gather modes, zt and zn/zm have the same lane size. However,
+    // for 32-bit accesses, the result of each lane's address calculation still
+    // requires 64 bits; we can't naively use `Adr` for the address calculation
+    // because it would truncate each address to 32 bits.
+
+    if (addr.IsVectorPlusImmediate()) {
+      // Synthesise the immediate in an X register, then use a
+      // scalar-plus-vector access with the original vector.
+      Register scratch = temps.AcquireX();
+      Mov(scratch, addr.GetImmediateOffset());
+      SingleEmissionCheckScope guard(this);
+      SVEOffsetModifier om =
+          zt.IsLaneSizeS() ? SVE_UXTW : NO_SVE_OFFSET_MODIFIER;
+      (this->*fn)(zt, pg, SVEMemOperand(scratch, addr.GetVectorBase(), om));
+      return;
+    }
+
     VIXL_UNIMPLEMENTED();
   } else {
     Register scratch = temps.AcquireX();
@@ -1076,9 +1103,15 @@ void MacroAssembler::SVELoadFFHelper(int msize_in_bytes_log2,
                                      const PRegisterZ& pg,
                                      const SVEMemOperand& addr,
                                      Tf fn) {
-  // These instructions have no scalar-plus-immediate form at all, so we don't
-  // do immediate synthesis. However, we cannot currently distinguish "[x0]"
-  // from "[x0, #0]" so we have to permit `IsScalar()` here.
+  if (addr.IsScatterGather()) {
+    // Scatter-gather first-fault loads share encodings with normal loads.
+    SVELoadStore1Helper(msize_in_bytes_log2, zt, pg, addr, fn);
+    return;
+  }
+
+  // Contiguous first-faulting loads have no scalar-plus-immediate form at all,
+  // so we don't do immediate synthesis. However, we cannot currently
+  // distinguish "[x0]" from "[x0, #0]" so we have to permit `IsScalar()` here.
   VIXL_ASSERT(addr.IsScalarPlusImmediate() || !addr.IsScalar());
 
   if (addr.IsScalar() || (addr.IsScalarPlusScalar() &&
@@ -1087,8 +1120,6 @@ void MacroAssembler::SVELoadFFHelper(int msize_in_bytes_log2,
     (this->*fn)(zt, pg, addr);
     return;
   }
-
-  // TODO: Handle scatter-gather forms.
 
   VIXL_UNIMPLEMENTED();
 }

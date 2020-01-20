@@ -9282,38 +9282,35 @@ void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
   USE(instr);
   switch (instr->Mask(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask)) {
     case LD1B_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1H_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SB_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1B_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SB_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SH_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1W_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+  bool is_signed = instr->ExtractBit(14) == 0;
+  bool is_ff = instr->ExtractBit(13) == 1;
+  // Note that these instructions don't use the Dtype encoding.
+  int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
+  uint64_t base = ReadXRegister(instr->GetRn());
+  LogicSVEAddressVector addr(base, &ReadVRegister(instr->GetRm()), kFormatVnS);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  if (is_ff) {
+    VIXL_UNIMPLEMENTED();
+  } else {
+    SVEStructuredLoadHelper(kFormatVnS,
+                            ReadPRegister(instr->GetPgLow8()),
+                            instr->GetRt(),
+                            addr,
+                            is_signed);
   }
 }
 
@@ -9647,50 +9644,39 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
   USE(instr);
   switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask)) {
     case LD1B_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1D_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1H_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SB_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SW_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1B_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1D_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SB_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SH_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SW_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1W_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+  bool is_signed = instr->ExtractBit(14) == 0;
+  bool is_ff = instr->ExtractBit(13) == 1;
+  // Note that these instructions don't use the Dtype encoding.
+  int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
+  uint64_t base = ReadXRegister(instr->GetRn());
+  LogicSVEAddressVector addr(base, &ReadVRegister(instr->GetRm()), kFormatVnD);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  if (is_ff) {
+    VIXL_UNIMPLEMENTED();
+  } else {
+    SVEStructuredLoadHelper(kFormatVnD,
+                            ReadPRegister(instr->GetPgLow8()),
+                            instr->GetRt(),
+                            addr,
+                            is_signed);
   }
 }
 
@@ -9749,53 +9735,41 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
 
 void Simulator::VisitSVE64BitGatherLoad_VectorPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE64BitGatherLoad_VectorPlusImmMask)) {
     case LD1B_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1D_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1H_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SB_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SW_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1B_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1D_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SB_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SH_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SW_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1W_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+  bool is_signed = instr->ExtractBit(14) == 0;
+  bool is_ff = instr->ExtractBit(13) == 1;
+  // Note that these instructions don't use the Dtype encoding.
+  int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
+  uint64_t imm = instr->ExtractBits(20, 16) << msize_in_bytes_log2;
+  LogicSVEAddressVector addr(imm, &ReadVRegister(instr->GetRn()), kFormatVnD);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  if (is_ff) {
+    VIXL_UNIMPLEMENTED();
+  } else {
+    SVEStructuredLoadHelper(kFormatVnD,
+                            ReadPRegister(instr->GetPgLow8()),
+                            instr->GetRt(),
+                            addr,
+                            is_signed);
   }
 }
 

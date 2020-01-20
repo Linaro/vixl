@@ -4519,23 +4519,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Gather load unsigned bytes to vector (immediate index).
-  void ld1b(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const ZRegister& zn,
-            int imm5);
-
   // Gather load doublewords to vector (vector index).
   void ld1d(const ZRegister& zt,
             const PRegisterZ& pg,
             const Register& xn,
             const ZRegister& zm);
-
-  // Gather load doublewords to vector (immediate index).
-  void ld1d(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const ZRegister& zn,
-            int imm5);
 
   // Gather load unsigned halfwords to vector (vector index).
   void ld1h(const ZRegister& zt,
@@ -4543,23 +4531,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Gather load unsigned halfwords to vector (immediate index).
-  void ld1h(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const ZRegister& zn,
-            int imm5);
-
   // Gather load unsigned words to vector (vector index).
   void ld1w(const ZRegister& zt,
             const PRegisterZ& pg,
             const Register& xn,
             const ZRegister& zm);
-
-  // Gather load unsigned words to vector (immediate index).
-  void ld1w(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const ZRegister& zn,
-            int imm5);
 
   // Load and broadcast unsigned byte to vector.
   void ld1rb(const ZRegister& zt,
@@ -4674,35 +4650,17 @@ class Assembler : public vixl::internal::AssemblerBase {
              const Register& xn,
              const ZRegister& zm);
 
-  // Gather load signed bytes to vector (immediate index).
-  void ld1sb(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const ZRegister& zn,
-             int imm5);
-
   // Gather load signed halfwords to vector (vector index).
   void ld1sh(const ZRegister& zt,
              const PRegisterZ& pg,
              const Register& xn,
              const ZRegister& zm);
 
-  // Gather load signed halfwords to vector (immediate index).
-  void ld1sh(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const ZRegister& zn,
-             int imm5);
-
   // Gather load signed words to vector (vector index).
   void ld1sw(const ZRegister& zt,
              const PRegisterZ& pg,
              const Register& xn,
              const ZRegister& zm);
-
-  // Gather load signed words to vector (immediate index).
-  void ld1sw(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const ZRegister& zn,
-             int imm5);
 
   // Contiguous load two-byte structures to two vectors.
   void ld2b(const ZRegister& zt1,
@@ -6760,12 +6718,14 @@ class Assembler : public vixl::internal::AssemblerBase {
                             const SVEMemOperand& addr);
 
   // E.g. st1b, st1h, ...
+  // This supports both contiguous and scatter stores.
   void SVESt1Helper(unsigned msize_in_bytes_log2,
                     const ZRegister& zt,
                     const PRegister& pg,
                     const SVEMemOperand& addr);
 
   // E.g. ld1b, ld1h, ...
+  // This supports both contiguous and gather loads.
   void SVELd1Helper(unsigned msize_in_bytes_log2,
                     const ZRegister& zt,
                     const PRegisterZ& pg,
@@ -6773,6 +6733,7 @@ class Assembler : public vixl::internal::AssemblerBase {
                     bool is_signed);
 
   // E.g. ldff1b, ldff1h, ...
+  // This supports both contiguous and gather loads.
   void SVELdff1Helper(unsigned msize_in_bytes_log2,
                       const ZRegister& zt,
                       const PRegisterZ& pg,
@@ -6786,6 +6747,14 @@ class Assembler : public vixl::internal::AssemblerBase {
                       const SVEMemOperand& addr,
                       bool is_signed,
                       Instr op);
+
+  // Common code for the helpers above.
+  void SVELd1GatherHelper(unsigned msize_in_bytes_log2,
+                          const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr,
+                          bool is_signed,
+                          bool is_first_fault);
 
   // E.g. st2b, st3h, ...
   void SVESt234Helper(int num_regs,

@@ -582,6 +582,7 @@ class SVEMemOperand {
            regoffset_.IsNone() && (mod_ == NO_SVE_OFFSET_MODIFIER);
   }
 
+  bool IsContiguous() const { return !IsScatterGather(); }
   bool IsScatterGather() const {
     return base_.IsZRegister() || regoffset_.IsZRegister();
   }

@@ -763,18 +763,49 @@ class LogicVRegister {
 
 // Represent an SVE addressing mode and abstract per-lane address generation to
 // make iteration easy.
+//
+// Contiguous accesses are described with a simple base address, the memory
+// occupied by each lane (`SetMsizeInBytesLog2()`) and the number of elements in
+// each struct (`SetRegCount()`).
+//
+// Scatter-gather accesses also require a SimVRegister and information about how
+// to extract lanes from it.
 class LogicSVEAddressVector {
  public:
+  // scalar-plus-scalar
+  // scalar-plus-immediate
   explicit LogicSVEAddressVector(uint64_t base)
       : base_(base),
         msize_in_bytes_log2_(kUnknownMsizeInBytesLog2),
-        reg_count_(1) {}
+        reg_count_(1),
+        vector_(NULL),
+        vector_form_(kFormatUndefined),
+        vector_mod_(NO_SVE_OFFSET_MODIFIER),
+        vector_shift_(0) {}
 
-  LogicSVEAddressVector(uint64_t base, const SimVRegister& vector)
-      : base_(base) {
-    USE(vector);
-    VIXL_UNIMPLEMENTED();
-  }
+  // scalar-plus-vector
+  // vector-plus-immediate
+  //    `base` should be the constant used for each element. That is, the value
+  //    of `xn`, or `#<imm>`.
+  //    `vector` should be the SimVRegister with offsets for each element. The
+  //    vector format must be specified; SVE scatter/gather accesses typically
+  //    support both 32-bit and 64-bit addressing.
+  //
+  //    `mod` and `shift` correspond to the modifiers applied to each element in
+  //    scalar-plus-vector forms, such as those used for unpacking and
+  //    sign-extension. They are not used for vector-plus-immediate.
+  LogicSVEAddressVector(uint64_t base,
+                        const SimVRegister* vector,
+                        VectorFormat vform,
+                        SVEOffsetModifier mod = NO_SVE_OFFSET_MODIFIER,
+                        int shift = 0)
+      : base_(base),
+        msize_in_bytes_log2_(kUnknownMsizeInBytesLog2),
+        reg_count_(1),
+        vector_(vector),
+        vector_form_(vform),
+        vector_mod_(mod),
+        vector_shift_(shift) {}
 
   // Set `msize` -- the memory occupied by each lane -- for address
   // calculations.
@@ -812,39 +843,26 @@ class LogicSVEAddressVector {
   // Note that the register number argument (`reg`) is zero-based.
   uint64_t GetElementAddress(int lane, int reg) const {
     VIXL_ASSERT(reg < GetRegCount());
-    if (IsContiguous()) {
-      // Contiguous elements are interleaved as follows:
-      //
-      //    ...
-      //    base + (6 * msize_in_bytes): zt[2]
-      //    base + (5 * msize_in_bytes): zt3[1]
-      //    base + (4 * msize_in_bytes): zt2[1]
-      //    base + (3 * msize_in_bytes): zt[1]
-      //    base + (2 * msize_in_bytes): zt3[0]
-      //    base + (1 * msize_in_bytes): zt2[0]
-      //    base + (0 * msize_in_bytes): zt[0]
-      uint64_t index = (lane * GetRegCount()) + reg;
-      return base_ + (index * GetMsizeInBytes());
-    } else {
-      VIXL_UNIMPLEMENTED();
-      return 0;
-    }
+    // Individual structures are always contiguous in memory, so this
+    // implementation works for both contiguous and scatter-gather addressing.
+    return GetStructAddress(lane) + (reg * GetMsizeInBytes());
   }
 
   // Full per-struct address calculation for structured accesses.
-  uint64_t GetStructAddress(int lane) const {
-    // Individual structures are always contiguous in memory, for both
-    // scatter-gather and contiguous accesses.
-    return GetElementAddress(lane, 0);
-  }
+  uint64_t GetStructAddress(int lane) const;
 
-  // TODO: Update this once we support scatter-gather modes.
-  bool IsContiguous() const { return true; }
+  bool IsContiguous() const { return vector_ == NULL; }
+  bool IsScatterGather() const { return !IsContiguous(); }
 
  private:
   uint64_t base_;
   int msize_in_bytes_log2_;
   int reg_count_;
+
+  const SimVRegister* vector_;
+  VectorFormat vector_form_;
+  SVEOffsetModifier vector_mod_;
+  int vector_shift_;
 
   static const int kUnknownMsizeInBytesLog2 = -1;
 };
