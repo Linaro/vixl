@@ -2599,6 +2599,44 @@ LogicVRegister Simulator::ext(VectorFormat vform,
 }
 
 template <typename T>
+LogicVRegister Simulator::fadda(VectorFormat vform,
+                                LogicVRegister acc,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  T result = acc.Float<T>(0);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    result = FPAdd(result, src.Float<T>(i));
+  }
+  VectorFormat vform_dst =
+      ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
+  acc.ClearForWrite(vform_dst);
+  acc.SetFloat(0, result);
+  return acc;
+}
+
+LogicVRegister Simulator::fadda(VectorFormat vform,
+                                LogicVRegister acc,
+                                const LogicPRegister& pg,
+                                const LogicVRegister& src) {
+  switch (LaneSizeInBitsFromFormat(vform)) {
+    case kHRegSize:
+      fadda<SimFloat16>(vform, acc, pg, src);
+      break;
+    case kSRegSize:
+      fadda<float>(vform, acc, pg, src);
+      break;
+    case kDRegSize:
+      fadda<double>(vform, acc, pg, src);
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+  return acc;
+}
+
+template <typename T>
 LogicVRegister Simulator::fcadd(VectorFormat vform,
                                 LogicVRegister dst,          // d
                                 const LogicVRegister& src1,  // n

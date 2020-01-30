@@ -660,11 +660,9 @@ TEST(sve_vector_inc_element_count) {
 TEST(sve_fp_accumulating_reduction) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fadda(h10, p2, h10, z0.VnH()), "fadda <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(fadda(s10, p2, s10, z0.VnS()), "fadda <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(fadda(d10, p2, d10, z0.VnD()), "fadda <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-#endif
+  COMPARE_PREFIX(fadda(h10, p2, h10, z0.VnH()), "fadda h10, p2, h10, z0.h");
+  COMPARE_PREFIX(fadda(s10, p2, s10, z0.VnS()), "fadda s10, p2, s10, z0.s");
+  COMPARE_PREFIX(fadda(d10, p2, d10, z0.VnD()), "fadda d10, p2, d10, z0.d");
 
   CLEANUP();
 }

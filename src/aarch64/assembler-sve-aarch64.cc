@@ -486,10 +486,10 @@ void Assembler::fadda(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.Is(vn));
   VIXL_ASSERT(vd.IsScalar());
-  VIXL_ASSERT(vn.IsScalar());
   VIXL_ASSERT(zm.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(zm, vd));
 
-  Emit(FADDA_v_p_z | SVESize(zm) | Rd(vd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(FADDA_v_p_z | SVESize(zm) | Rd(vd) | PgLow8(pg) | Rn(zm));
 }
 
 // SVEFPArithmetic_Predicated.

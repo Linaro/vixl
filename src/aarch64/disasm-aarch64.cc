@@ -8613,10 +8613,9 @@ void Disassembler::VisitSVEFPAccumulatingReduction(const Instruction *instr) {
   const char *form = "(SVEFPAccumulatingReduction)";
 
   switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
-    // FADDA <V><dn>, <Pg>, <V><dn>, <Zm>.<T>
     case FADDA_v_p_z:
       mnemonic = "fadda";
-      form = "'Vd, p'u1210, 'Vd, 'Zn.'t";
+      form = "'t'u0400, p'u1210, 't'u0400, 'Zn.'t";
       break;
     default:
       break;

@@ -3216,6 +3216,15 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src1,
                        const LogicVRegister& src2,
                        int rot);
+  template <typename T>
+  LogicVRegister fadda(VectorFormat vform,
+                       LogicVRegister acc,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
+  LogicVRegister fadda(VectorFormat vform,
+                       LogicVRegister acc,
+                       const LogicPRegister& pg,
+                       const LogicVRegister& src);
   LogicVRegister index(VectorFormat vform,
                        LogicVRegister dst,
                        uint64_t start,

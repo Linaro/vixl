@@ -12469,5 +12469,46 @@ TEST_SVE(scvtf_ucvtf_s_to_double) {
   // clang-format on
 }
 
+TEST_SVE(sve_fadda) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                          CPUFeatures::kFP,
+                          CPUFeatures::kFPHalf);
+  START();
+
+  __ Ptrue(p0.VnB());
+  __ Pfalse(p1.VnB());
+  __ Zip1(p1.VnH(), p0.VnH(), p1.VnH());
+
+  __ Index(z0.VnS(), 3, 3);
+  __ Scvtf(z0.VnS(), p0.Merging(), z0.VnS());
+  __ Fmov(s2, 2.0);
+  __ Fadda(s2, p0, s2, z0.VnS());
+
+  __ Index(z0.VnD(), -7, -7);
+  __ Scvtf(z0.VnD(), p0.Merging(), z0.VnD());
+  __ Fmov(d3, 3.0);
+  __ Fadda(d3, p0, d3, z0.VnD());
+
+  __ Index(z0.VnH(), 1, 1);
+  __ Scvtf(z0.VnH(), p0.Merging(), z0.VnH());
+  __ Fmov(h4, 0);
+  __ Fadda(h4, p1, h4, z0.VnH());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // Sum of 1 .. n is n+1 * n/2, ie. n(n+1)/2.
+    int n = core.GetSVELaneCount(kSRegSize);
+    ASSERT_EQUAL_FP32(2 + 3 * ((n + 1) * (n / 2)), s2);
+
+    n /= 2;  // Half as many lanes.
+    ASSERT_EQUAL_FP64(3 + -7 * ((n + 1) * (n / 2)), d3);
+
+    // Sum of first n odd numbers is n^2.
+    n = core.GetSVELaneCount(kHRegSize) / 2;  // Half are odd numbers.
+    ASSERT_EQUAL_FP16(Float16(n * n), h4);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

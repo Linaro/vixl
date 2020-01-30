@@ -7699,10 +7699,14 @@ void Simulator::VisitSVEElementCount(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
   switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
     case FADDA_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      fadda(vform, vdn, pg, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
