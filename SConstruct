@@ -251,8 +251,10 @@ vars.AddVariables(
     DefaultVariable('code_buffer_allocator',
                     'Configure the allocation mechanism in the CodeBuffer',
                     ['malloc', 'mmap']),
-    ('std', 'C++ standard. The standards tested are: %s.' % \
-                                         ', '.join(config.tested_cpp_standards)),
+    ('std',
+     'C++ standard. The standards tested are: %s.' % \
+     ', '.join(config.tested_cpp_standards),
+     config.tested_cpp_standards[0]),
     ('compiler_wrapper', 'Command to prefix to the C and C++ compiler (e.g ccache)', '')
     )
 
@@ -381,21 +383,12 @@ def ConfigureEnvironmentForCompiler(env):
   if env['negative_testing'] == 'on' and env['mode'] == 'debug' \
       and compiler >= 'gcc-6':
     env.Append(CPPFLAGS = ['-Wno-terminate'])
-    # The C++11 compatibility warning will also be triggered for this case, as
-    # the behavior of throwing from desctructors has changed.
-    if 'std' in env and env['std'] == 'c++98':
-      env.Append(CPPFLAGS = ['-Wno-c++11-compat'])
 
-  # When compiling with c++98 (the default), allow long long constants.
-  if 'std' not in env or env['std'] == 'c++98':
-    env.Append(CPPFLAGS = ['-Wno-long-long'])
-    env.Append(CPPFLAGS = ['-Wno-variadic-macros'])
-  # When compiling with c++11, suggest missing override keywords on methods.
-  if 'std' in env and env['std'] in ['c++11', 'c++14']:
-    if compiler >= 'gcc-5':
-      env.Append(CPPFLAGS = ['-Wsuggest-override'])
-    elif compiler >= 'clang-3.6':
-      env.Append(CPPFLAGS = ['-Winconsistent-missing-override'])
+  # Suggest missing override keywords on methods.
+  if compiler >= 'gcc-5':
+    env.Append(CPPFLAGS = ['-Wsuggest-override'])
+  elif compiler >= 'clang-3.6':
+    env.Append(CPPFLAGS = ['-Winconsistent-missing-override'])
 
 
 def ConfigureEnvironment(env):
