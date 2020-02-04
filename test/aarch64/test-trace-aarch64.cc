@@ -30,6 +30,9 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fstream>
+#include <regex>
+
 #include "test-runner.h"
 #include "test-utils-aarch64.h"
 
@@ -2879,44 +2882,39 @@ static void GenerateTestSequenceSVE(MacroAssembler* masm) {
 }
 
 static void MaskAddresses(const char* trace) {
-#ifdef __APPLE__
-#define MAYBE_ANSI_C_QUOTE "$"
-#define ESCAPE(c) "\\\\" #c
-  const char* sed_options = "-i \"\" -E";
-#else
-#define MAYBE_ANSI_C_QUOTE
-#define ESCAPE(c) "\\" #c
-  const char* sed_options = "-i -E";
-#endif
-#define COLOUR "(\x1b" ESCAPE([) "[01];([0-9][0-9])?m)?"
-  struct {
-    const char* search;
-    const char* replace;
-  } patterns[] =
+#define VIXL_COLOUR "(\x1b\\[[01];([0-9][0-9])?m)?"
+  // All patterns are replaced with "$1~~~~~~~~~~~~~~~~".
+  std::regex patterns[] =
       {// Mask registers that hold addresses that change from run to run.
-       {"((x0|x1|x2|sp): " COLOUR "0x)[0-9a-f]{16}",
-        ESCAPE(1) "~~~~~~~~~~~~~~~~"},
+       std::regex("((x0|x1|x2|sp): " VIXL_COLOUR "0x)[0-9a-f]{16}"),
        // Mask accessed memory addresses.
-       {"((<-|->) " COLOUR "0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
+       std::regex("((<-|->) " VIXL_COLOUR "0x)[0-9a-f]{16}"),
        // Mask instruction addresses.
-       {"^0x[0-9a-f]{16}", "0x~~~~~~~~~~~~~~~~"},
+       std::regex("^(0x)[0-9a-f]{16}"),
        // Mask branch targets.
-       {"(Branch" COLOUR " to 0x)[0-9a-f]{16}", ESCAPE(1) "~~~~~~~~~~~~~~~~"},
-       {"addr 0x[0-9a-f]+", "addr 0x~~~~~~~~~~~~~~~~"}};
-  const size_t patterns_length = sizeof(patterns) / sizeof(patterns[0]);
-  // Rewrite `trace`, masking addresses and other values that legitimately vary
-  // from run to run.
-  char command[1024];
-  for (size_t i = 0; i < patterns_length; i++) {
-    size_t length = snprintf(command,
-                             sizeof(command),
-                             "sed %s " MAYBE_ANSI_C_QUOTE "'s/%s/%s/' '%s'",
-                             sed_options,
-                             patterns[i].search,
-                             patterns[i].replace,
-                             trace);
-    VIXL_CHECK(length < sizeof(command));
-    VIXL_CHECK(system(command) == 0);
+       std::regex("(Branch" VIXL_COLOUR " to 0x)[0-9a-f]{16}"),
+       // Mask explicit address annotations.
+       std::regex("(addr 0x)[0-9a-f]+")};
+#undef VIXL_COLOUR
+
+  std::vector<std::string> lines;
+  std::ifstream in(trace);
+  while (!in.eof()) {
+    std::string line;
+    std::getline(in, line);
+    for (auto&& pattern : patterns) {
+      line = std::regex_replace(line, pattern, "$1~~~~~~~~~~~~~~~~");
+    }
+    lines.push_back(line);
+  }
+  in.close();
+
+  // `getline` produces an empty line after a terminal "\n".
+  if (lines.back().empty()) lines.pop_back();
+
+  std::ofstream out(trace, std::ofstream::trunc);
+  for (auto&& line : lines) {
+    out << line << "\n";
   }
 }
 
