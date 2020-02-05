@@ -389,21 +389,13 @@ if __name__ == '__main__':
         mode = 'release',
         target = 'a64,a32,t32')
 
-    # Builds for Thumb32 target only.
+    # Debug builds for individual targets.
     list_options += ListCombinations(
-        compiler = args.compiler,
+        compiler = args.compiler[0],
         negative_testing = 'off',
         std = args.std,
-        mode = args.mode,
-        target = 't32')
-
-    # Builds for Aarch64 target only.
-    list_options += ListCombinations(
-        compiler = args.compiler,
-        negative_testing = 'off',
-        std = args.std,
-        mode = args.mode,
-        target = 'a64')
+        mode = 'debug',
+        target = ['a32', 't32', 'a64'])
   else:
     list_options = ListCombinations(
         compiler = args.compiler,
