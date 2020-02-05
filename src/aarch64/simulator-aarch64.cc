@@ -8032,28 +8032,49 @@ void Simulator::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
   }
 }
 
+typedef LogicVRegister (Simulator::*FastReduceFn)(VectorFormat vform,
+                                                  LogicVRegister dst,
+                                                  const LogicVRegister& src);
+
 void Simulator::VisitSVEFPFastReduction(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+
+  uint64_t inactive_value = 0;
+  FastReduceFn fn = nullptr;
+
   switch (instr->Mask(SVEFPFastReductionMask)) {
     case FADDV_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      fn = &Simulator::faddv;
       break;
     case FMAXNMV_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64DefaultNaN);
+      fn = &Simulator::fmaxnmv;
       break;
     case FMAXV_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64NegativeInfinity);
+      fn = &Simulator::fmaxv;
       break;
     case FMINNMV_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64DefaultNaN);
+      fn = &Simulator::fminnmv;
       break;
     case FMINV_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64PositiveInfinity);
+      fn = &Simulator::fminv;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SimVRegister scratch;
+  dup_immediate(vform, scratch, inactive_value);
+  mov_merging(vform, scratch, pg, zn);
+  if (fn != nullptr) (this->*fn)(vform, vd, scratch);
 }
 
 void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {

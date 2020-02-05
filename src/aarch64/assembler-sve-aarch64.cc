@@ -1235,8 +1235,9 @@ void Assembler::faddv(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(zn, vd));
 
-  Emit(FADDV_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FADDV_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fmaxnmv(const VRegister& vd,
@@ -1249,8 +1250,9 @@ void Assembler::fmaxnmv(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(zn, vd));
 
-  Emit(FMAXNMV_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FMAXNMV_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fmaxv(const VRegister& vd,
@@ -1263,8 +1265,9 @@ void Assembler::fmaxv(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(zn, vd));
 
-  Emit(FMAXV_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FMAXV_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fminnmv(const VRegister& vd,
@@ -1277,8 +1280,9 @@ void Assembler::fminnmv(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(zn, vd));
 
-  Emit(FMINNMV_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FMINNMV_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fminv(const VRegister& vd,
@@ -1291,8 +1295,9 @@ void Assembler::fminv(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(AreSameLaneSize(zn, vd));
 
-  Emit(FMINV_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FMINV_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 // SVEFPMulAdd.

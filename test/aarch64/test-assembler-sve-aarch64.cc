@@ -13345,5 +13345,101 @@ TEST_SVE(sve_extract) {
   }
 }
 
+TEST_SVE(sve_fp_paired_across) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+
+  START();
+
+  __ Ptrue(p0.VnB());
+  __ Pfalse(p1.VnB());
+  __ Zip1(p2.VnS(), p0.VnS(), p1.VnS());
+  __ Zip1(p3.VnD(), p0.VnD(), p1.VnD());
+  __ Zip1(p4.VnH(), p0.VnH(), p1.VnH());
+
+  __ Index(z0.VnS(), 3, 3);
+  __ Scvtf(z0.VnS(), p0.Merging(), z0.VnS());
+  __ Faddv(s1, p0, z0.VnS());
+  __ Fminv(s2, p2, z0.VnS());
+  __ Fmaxv(s3, p2, z0.VnS());
+
+  __ Index(z0.VnD(), -7, -7);
+  __ Scvtf(z0.VnD(), p0.Merging(), z0.VnD());
+  __ Faddv(d4, p0, z0.VnD());
+  __ Fminv(d5, p3, z0.VnD());
+  __ Fmaxv(d6, p3, z0.VnD());
+
+  __ Index(z0.VnH(), 1, 1);
+  __ Scvtf(z0.VnH(), p0.Merging(), z0.VnH());
+  __ Faddv(h7, p4, z0.VnH());
+  __ Fminv(h8, p4, z0.VnH());
+  __ Fmaxv(h9, p4, z0.VnH());
+
+  __ Dup(z10.VnH(), 0);
+  __ Fdiv(z10.VnH(), p0.Merging(), z10.VnH(), z10.VnH());
+  __ Insr(z10.VnH(), 0x5140);
+  __ Insr(z10.VnH(), 0xd140);
+  __ Ext(z10.VnB(), z10.VnB(), z10.VnB(), 2);
+  __ Fmaxnmv(h11, p0, z10.VnH());
+  __ Fmaxnmv(h12, p4, z10.VnH());
+  __ Fminnmv(h13, p0, z10.VnH());
+  __ Fminnmv(h14, p4, z10.VnH());
+
+  __ Dup(z10.VnS(), 0);
+  __ Fdiv(z10.VnS(), p0.Merging(), z10.VnS(), z10.VnS());
+  __ Insr(z10.VnS(), 0x42280000);
+  __ Insr(z10.VnS(), 0xc2280000);
+  __ Ext(z10.VnB(), z10.VnB(), z10.VnB(), 4);
+  __ Fmaxnmv(s15, p0, z10.VnS());
+  __ Fmaxnmv(s16, p2, z10.VnS());
+  __ Fminnmv(s17, p0, z10.VnS());
+  __ Fminnmv(s18, p2, z10.VnS());
+
+  __ Dup(z10.VnD(), 0);
+  __ Fdiv(z10.VnD(), p0.Merging(), z10.VnD(), z10.VnD());
+  __ Insr(z10.VnD(), 0x4045000000000000);
+  __ Insr(z10.VnD(), 0xc045000000000000);
+  __ Ext(z10.VnB(), z10.VnB(), z10.VnB(), 8);
+  __ Fmaxnmv(d19, p0, z10.VnD());
+  __ Fmaxnmv(d20, p3, z10.VnD());
+  __ Fminnmv(d21, p0, z10.VnD());
+  __ Fminnmv(d22, p3, z10.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    // Sum of 1 .. n is n+1 * n/2, ie. n(n+1)/2.
+    int n = core.GetSVELaneCount(kSRegSize);
+    ASSERT_EQUAL_FP32(3 * ((n + 1) * (n / 2)), s1);
+    ASSERT_EQUAL_FP32(3, s2);
+    ASSERT_EQUAL_FP32(3 * n - 3, s3);
+
+    n /= 2;  // Half as many lanes.
+    ASSERT_EQUAL_FP64(-7 * ((n + 1) * (n / 2)), d4);
+    ASSERT_EQUAL_FP64(-7 * (n - 1), d5);
+    ASSERT_EQUAL_FP64(-7, d6);
+
+    // Sum of first n odd numbers is n^2.
+    n = core.GetSVELaneCount(kHRegSize) / 2;  // Half are odd numbers.
+    ASSERT_EQUAL_FP16(Float16(n * n), h7);
+    ASSERT_EQUAL_FP16(Float16(1), h8);
+
+    n = core.GetSVELaneCount(kHRegSize);
+    ASSERT_EQUAL_FP16(Float16(n - 1), h9);
+
+    ASSERT_EQUAL_FP16(Float16(42), h11);
+    ASSERT_EQUAL_FP16(Float16(42), h12);
+    ASSERT_EQUAL_FP16(Float16(-42), h13);
+    ASSERT_EQUAL_FP16(Float16(42), h14);
+    ASSERT_EQUAL_FP32(42, s15);
+    ASSERT_EQUAL_FP32(42, s16);
+    ASSERT_EQUAL_FP32(-42, s17);
+    ASSERT_EQUAL_FP32(42, s18);
+    ASSERT_EQUAL_FP64(42, d19);
+    ASSERT_EQUAL_FP64(42, d20);
+    ASSERT_EQUAL_FP64(-42, d21);
+    ASSERT_EQUAL_FP64(42, d22);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

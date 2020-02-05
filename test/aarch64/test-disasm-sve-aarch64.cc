@@ -1155,23 +1155,21 @@ TEST(sve_fp_complex_mul_add_index) {
 TEST(sve_fp_fast_reduction) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(faddv(h26, p6, z16.VnH()), "faddv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(faddv(s26, p6, z16.VnS()), "faddv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(faddv(d26, p6, z16.VnD()), "faddv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fmaxnmv(h28, p1, z0.VnH()), "fmaxnmv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fmaxnmv(s28, p1, z0.VnS()), "fmaxnmv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fmaxnmv(d28, p1, z0.VnD()), "fmaxnmv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fmaxv(h3, p1, z23.VnH()), "fmaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fmaxv(s3, p1, z23.VnS()), "fmaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fmaxv(d3, p1, z23.VnD()), "fmaxv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fminnmv(h20, p6, z21.VnH()), "fminnmv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fminnmv(s20, p6, z21.VnS()), "fminnmv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fminnmv(d20, p6, z21.VnD()), "fminnmv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fminv(h10, p4, z27.VnH()), "fminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fminv(s10, p4, z27.VnS()), "fminv <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(fminv(d10, p4, z27.VnD()), "fminv <V><d>, <Pg>, <Zn>.<T>");
-#endif
+  COMPARE_PREFIX(faddv(h26, p6, z16.VnH()), "faddv h26, p6, z16.h");
+  COMPARE_PREFIX(faddv(s26, p6, z16.VnS()), "faddv s26, p6, z16.s");
+  COMPARE_PREFIX(faddv(d26, p6, z16.VnD()), "faddv d26, p6, z16.d");
+  COMPARE_PREFIX(fmaxnmv(h28, p1, z0.VnH()), "fmaxnmv h28, p1, z0.h");
+  COMPARE_PREFIX(fmaxnmv(s28, p1, z0.VnS()), "fmaxnmv s28, p1, z0.s");
+  COMPARE_PREFIX(fmaxnmv(d28, p1, z0.VnD()), "fmaxnmv d28, p1, z0.d");
+  COMPARE_PREFIX(fmaxv(h3, p1, z23.VnH()), "fmaxv h3, p1, z23.h");
+  COMPARE_PREFIX(fmaxv(s3, p1, z23.VnS()), "fmaxv s3, p1, z23.s");
+  COMPARE_PREFIX(fmaxv(d3, p1, z23.VnD()), "fmaxv d3, p1, z23.d");
+  COMPARE_PREFIX(fminnmv(h20, p6, z21.VnH()), "fminnmv h20, p6, z21.h");
+  COMPARE_PREFIX(fminnmv(s20, p6, z21.VnS()), "fminnmv s20, p6, z21.s");
+  COMPARE_PREFIX(fminnmv(d20, p6, z21.VnD()), "fminnmv d20, p6, z21.d");
+  COMPARE_PREFIX(fminv(h10, p4, z27.VnH()), "fminv h10, p4, z27.h");
+  COMPARE_PREFIX(fminv(s10, p4, z27.VnS()), "fminv s10, p4, z27.s");
+  COMPARE_PREFIX(fminv(d10, p4, z27.VnD()), "fminv d10, p4, z27.d");
 
   CLEANUP();
 }

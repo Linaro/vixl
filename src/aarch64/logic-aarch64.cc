@@ -5285,75 +5285,131 @@ NEON_FPPAIRWISE_LIST(DEFINE_NEON_FP_PAIR_OP)
 #undef DEFINE_NEON_FP_PAIR_OP
 
 template <typename T>
-LogicVRegister Simulator::fminmaxv(VectorFormat vform,
-                                   LogicVRegister dst,
-                                   const LogicVRegister& src,
-                                   typename TFPMinMaxOp<T>::type Op) {
-  VIXL_ASSERT((vform == kFormat4H) || (vform == kFormat8H) ||
-              (vform == kFormat4S));
-  USE(vform);
-  T result1 = (this->*Op)(src.Float<T>(0), src.Float<T>(1));
-  T result2 = (this->*Op)(src.Float<T>(2), src.Float<T>(3));
-  if (vform == kFormat8H) {
-    T result3 = (this->*Op)(src.Float<T>(4), src.Float<T>(5));
-    T result4 = (this->*Op)(src.Float<T>(6), src.Float<T>(7));
-    result1 = (this->*Op)(result1, result3);
-    result2 = (this->*Op)(result2, result4);
+LogicVRegister Simulator::FPPairedAcrossHelper(VectorFormat vform,
+                                               LogicVRegister dst,
+                                               const LogicVRegister& src,
+                                               typename TFPPairOp<T>::type fn,
+                                               uint64_t inactive_value) {
+  int lane_count = LaneCountFromFormat(vform);
+  T result[kZRegMaxSizeInBytes / sizeof(T)];
+  // Copy the source vector into a working array. Initialise the unused elements
+  // at the end of the array to the same value that a false predicate would set.
+  for (int i = 0; i < static_cast<int>(ArrayLength(result)); i++) {
+    result[i] = (i < lane_count)
+                    ? src.Float<T>(i)
+                    : RawbitsWithSizeToFP<T>(sizeof(T) * 8, inactive_value);
   }
-  T result = (this->*Op)(result1, result2);
+
+  // Pairwise reduce the elements to a single value, using the pair op function
+  // argument.
+  for (int step = 1; step < lane_count; step *= 2) {
+    for (int i = 0; i < lane_count; i += step * 2) {
+      result[i] = (this->*fn)(result[i], result[i + step]);
+    }
+  }
   dst.ClearForWrite(ScalarFormatFromFormat(vform));
-  dst.SetFloat<T>(0, result);
+  dst.SetFloat<T>(0, result[0]);
   return dst;
 }
 
+LogicVRegister Simulator::FPPairedAcrossHelper(
+    VectorFormat vform,
+    LogicVRegister dst,
+    const LogicVRegister& src,
+    typename TFPPairOp<SimFloat16>::type fn16,
+    typename TFPPairOp<float>::type fn32,
+    typename TFPPairOp<double>::type fn64,
+    uint64_t inactive_value) {
+  switch (LaneSizeInBitsFromFormat(vform)) {
+    case kHRegSize:
+      return FPPairedAcrossHelper<SimFloat16>(vform,
+                                              dst,
+                                              src,
+                                              fn16,
+                                              inactive_value);
+    case kSRegSize:
+      return FPPairedAcrossHelper<float>(vform, dst, src, fn32, inactive_value);
+    default:
+      VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
+      return FPPairedAcrossHelper<double>(vform,
+                                          dst,
+                                          src,
+                                          fn64,
+                                          inactive_value);
+  }
+}
+
+LogicVRegister Simulator::faddv(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src) {
+  return FPPairedAcrossHelper(vform,
+                              dst,
+                              src,
+                              &Simulator::FPAdd<SimFloat16>,
+                              &Simulator::FPAdd<float>,
+                              &Simulator::FPAdd<double>,
+                              0);
+}
 
 LogicVRegister Simulator::fmaxv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    return fminmaxv<SimFloat16>(vform, dst, src, &Simulator::FPMax<SimFloat16>);
-  } else {
-    return fminmaxv<float>(vform, dst, src, &Simulator::FPMax<float>);
-  }
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  uint64_t inactive_value =
+      FPToRawbitsWithSize(lane_size, kFP64NegativeInfinity);
+  return FPPairedAcrossHelper(vform,
+                              dst,
+                              src,
+                              &Simulator::FPMax<SimFloat16>,
+                              &Simulator::FPMax<float>,
+                              &Simulator::FPMax<double>,
+                              inactive_value);
 }
 
 
 LogicVRegister Simulator::fminv(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    return fminmaxv<SimFloat16>(vform, dst, src, &Simulator::FPMin<SimFloat16>);
-  } else {
-    return fminmaxv<float>(vform, dst, src, &Simulator::FPMin<float>);
-  }
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  uint64_t inactive_value =
+      FPToRawbitsWithSize(lane_size, kFP64PositiveInfinity);
+  return FPPairedAcrossHelper(vform,
+                              dst,
+                              src,
+                              &Simulator::FPMin<SimFloat16>,
+                              &Simulator::FPMin<float>,
+                              &Simulator::FPMin<double>,
+                              inactive_value);
 }
 
 
 LogicVRegister Simulator::fmaxnmv(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
-  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    return fminmaxv<SimFloat16>(vform,
-                                dst,
-                                src,
-                                &Simulator::FPMaxNM<SimFloat16>);
-  } else {
-    return fminmaxv<float>(vform, dst, src, &Simulator::FPMaxNM<float>);
-  }
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  uint64_t inactive_value = FPToRawbitsWithSize(lane_size, kFP64DefaultNaN);
+  return FPPairedAcrossHelper(vform,
+                              dst,
+                              src,
+                              &Simulator::FPMaxNM<SimFloat16>,
+                              &Simulator::FPMaxNM<float>,
+                              &Simulator::FPMaxNM<double>,
+                              inactive_value);
 }
 
 
 LogicVRegister Simulator::fminnmv(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
-  if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    return fminmaxv<SimFloat16>(vform,
-                                dst,
-                                src,
-                                &Simulator::FPMinNM<SimFloat16>);
-  } else {
-    return fminmaxv<float>(vform, dst, src, &Simulator::FPMinNM<float>);
-  }
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  uint64_t inactive_value = FPToRawbitsWithSize(lane_size, kFP64DefaultNaN);
+  return FPPairedAcrossHelper(vform,
+                              dst,
+                              src,
+                              &Simulator::FPMinNM<SimFloat16>,
+                              &Simulator::FPMinNM<float>,
+                              &Simulator::FPMinNM<double>,
+                              inactive_value);
 }
 
 

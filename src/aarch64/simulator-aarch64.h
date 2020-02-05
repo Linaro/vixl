@@ -4133,15 +4133,25 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src);
 
   template <typename T>
-  struct TFPMinMaxOp {
+  struct TFPPairOp {
     typedef T (Simulator::*type)(T a, T b);
   };
 
   template <typename T>
-  LogicVRegister fminmaxv(VectorFormat vform,
-                          LogicVRegister dst,
-                          const LogicVRegister& src,
-                          typename TFPMinMaxOp<T>::type Op);
+  LogicVRegister FPPairedAcrossHelper(VectorFormat vform,
+                                      LogicVRegister dst,
+                                      const LogicVRegister& src,
+                                      typename TFPPairOp<T>::type fn,
+                                      uint64_t inactive_value);
+
+  LogicVRegister FPPairedAcrossHelper(
+      VectorFormat vform,
+      LogicVRegister dst,
+      const LogicVRegister& src,
+      typename TFPPairOp<vixl::internal::SimFloat16>::type fn16,
+      typename TFPPairOp<float>::type fn32,
+      typename TFPPairOp<double>::type fn64,
+      uint64_t inactive_value);
 
   LogicVRegister fminv(VectorFormat vform,
                        LogicVRegister dst,
@@ -4155,6 +4165,9 @@ class Simulator : public DecoderVisitor {
   LogicVRegister fmaxnmv(VectorFormat vform,
                          LogicVRegister dst,
                          const LogicVRegister& src);
+  LogicVRegister faddv(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src);
 
   static const uint32_t CRC32_POLY = 0x04C11DB7;
   static const uint32_t CRC32C_POLY = 0x1EDC6F41;

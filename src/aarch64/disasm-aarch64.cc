@@ -8744,27 +8744,21 @@ void Disassembler::VisitSVEFPComplexMulAddIndex(const Instruction *instr) {
 
 void Disassembler::VisitSVEFPFastReduction(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <V><d>, <Pg>, <Zn>.<T>
-  const char *form = "'Vd, p'u1210, 'Zn.'t";
+  const char *form = "'t'u0400, p'u1210, 'Zn.'t";
 
   switch (instr->Mask(SVEFPFastReductionMask)) {
-    // FADDV <V><d>, <Pg>, <Zn>.<T>
     case FADDV_v_p_z:
       mnemonic = "faddv";
       break;
-    // FMAXNMV <V><d>, <Pg>, <Zn>.<T>
     case FMAXNMV_v_p_z:
       mnemonic = "fmaxnmv";
       break;
-    // FMAXV <V><d>, <Pg>, <Zn>.<T>
     case FMAXV_v_p_z:
       mnemonic = "fmaxv";
       break;
-    // FMINNMV <V><d>, <Pg>, <Zn>.<T>
     case FMINNMV_v_p_z:
       mnemonic = "fminnmv";
       break;
-    // FMINV <V><d>, <Pg>, <Zn>.<T>
     case FMINV_v_p_z:
       mnemonic = "fminv";
       break;
