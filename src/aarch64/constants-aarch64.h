@@ -277,6 +277,9 @@ enum Condition {
   hs = cs,  // C set            Unsigned higher or same.
   lo = cc,  // C clear          Unsigned lower.
 
+  // Floating-point additional condition code.
+  uo,       // Unordered comparison.
+
   // SVE predicate condition aliases.
   sve_none  = eq,  // No active elements were true.
   sve_any   = ne,  // An active element was true.

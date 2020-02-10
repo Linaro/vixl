@@ -4115,6 +4115,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     facgt(pd, pg, zn, zm);
   }
+  void Facle(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    facge(pd, pg, zm, zn);
+  }
+  void Faclt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    facgt(pd, pg, zm, zn);
+  }
   void Fadd(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
@@ -4219,12 +4235,28 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcmle(pd, pg, zn);
   }
+  void Fcmle(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcmge(pd, pg, zm, zn);
+  }
   void Fcmlt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     fcmlt(pd, pg, zn);
+  }
+  void Fcmlt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    fcmgt(pd, pg, zm, zn);
   }
   void Fcmne(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,

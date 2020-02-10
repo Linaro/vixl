@@ -388,11 +388,13 @@ SimVRegister Simulator::ExpandToSimVRegister(const SimPRegister& pg) {
   return result;
 }
 
-void Simulator::ExtractFromSimVRegister(SimPRegister& pd, SimVRegister vreg) {
+void Simulator::ExtractFromSimVRegister(VectorFormat vform,
+                                        SimPRegister& pd,
+                                        SimVRegister vreg) {
   SimVRegister zero;
   dup_immediate(kFormatVnB, zero, 0);
   SVEIntCompareVectorsHelper(ne,
-                             kFormatVnB,
+                             vform,
                              pd,
                              GetPTrue(),
                              vreg,
@@ -7941,33 +7943,42 @@ void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPCompareVectors(const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister result;
+
   switch (instr->Mask(SVEFPCompareVectorsMask)) {
     case FACGE_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fabscmp(vform, result, zn, zm, ge);
       break;
     case FACGT_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fabscmp(vform, result, zn, zm, gt);
       break;
     case FCMEQ_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zm, eq);
       break;
     case FCMGE_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zm, ge);
       break;
     case FCMGT_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zm, gt);
       break;
     case FCMNE_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zm, ne);
       break;
     case FCMUO_p_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zm, uo);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  ExtractFromSimVRegister(vform, pd, result);
+  mov_zeroing(pd, pg, pd);
 }
 
 void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
@@ -10697,7 +10708,7 @@ void Simulator::VisitSVEUnpackPredicateElements(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
   }
-  Simulator::ExtractFromSimVRegister(pd, temp);
+  Simulator::ExtractFromSimVRegister(kFormatVnB, pd, temp);
 }
 
 void Simulator::VisitSVEPermutePredicateElements(const Instruction* instr) {
@@ -10732,7 +10743,7 @@ void Simulator::VisitSVEPermutePredicateElements(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
   }
-  Simulator::ExtractFromSimVRegister(pd, temp0);
+  Simulator::ExtractFromSimVRegister(kFormatVnB, pd, temp0);
 }
 
 void Simulator::VisitSVEReversePredicateElements(const Instruction* instr) {
@@ -10743,7 +10754,7 @@ void Simulator::VisitSVEReversePredicateElements(const Instruction* instr) {
       SimPRegister& pd = ReadPRegister(instr->GetPd());
       SimVRegister temp = Simulator::ExpandToSimVRegister(pn);
       rev(vform, temp, temp);
-      Simulator::ExtractFromSimVRegister(pd, temp);
+      Simulator::ExtractFromSimVRegister(kFormatVnB, pd, temp);
       break;
     }
     default:

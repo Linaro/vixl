@@ -4575,12 +4575,13 @@ class Simulator : public DecoderVisitor {
   // predicate flag is set, and false (0x00) otherwise.
   SimVRegister ExpandToSimVRegister(const SimPRegister& preg);
 
-  // Set each predicate flag in pd where the corresponding byte-sized lane in
-  // vreg is non-zero. Clear the flag, otherwise. This is almost the opposite
+  // Set each predicate flag in pd where the corresponding assigned-sized lane
+  // in vreg is non-zero. Clear the flag, otherwise. This is almost the opposite
   // operation to ExpandToSimVRegister(), except that any non-zero lane is
   // interpreted as true.
-  void ExtractFromSimVRegister(
-      SimPRegister& pd, SimVRegister vreg);  // NOLINT(runtime/references)
+  void ExtractFromSimVRegister(VectorFormat vform,
+                               SimPRegister& pd,  // NOLINT(runtime/references)
+                               SimVRegister vreg);
 
   bool coloured_trace_;
 

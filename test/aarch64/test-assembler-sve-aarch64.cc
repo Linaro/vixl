@@ -14502,5 +14502,201 @@ TEST_SVE(sve_process_nans_half) {
                      StrictNaNPropagation);
 }
 
+typedef void (MacroAssembler::*FCmpFn)(const PRegisterWithLaneSize& pd,
+                                       const PRegisterZ& pg,
+                                       const ZRegister& zn,
+                                       const ZRegister& zm);
+
+typedef void (MacroAssembler::*CmpFn)(const PRegisterWithLaneSize& pd,
+                                      const PRegisterZ& pg,
+                                      const ZRegister& zn,
+                                      const ZRegister& zm);
+
+static FCmpFn GetFpAbsCompareFn(Condition cond) {
+  switch (cond) {
+    case ge:
+      return &MacroAssembler::Facge;
+    case gt:
+      return &MacroAssembler::Facgt;
+    case le:
+      return &MacroAssembler::Facle;
+    case lt:
+      return &MacroAssembler::Faclt;
+    default:
+      VIXL_UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
+static FCmpFn GetFpCompareFn(Condition cond) {
+  switch (cond) {
+    case ge:
+      return &MacroAssembler::Fcmge;
+    case gt:
+      return &MacroAssembler::Fcmgt;
+    case le:
+      return &MacroAssembler::Fcmle;
+    case lt:
+      return &MacroAssembler::Fcmlt;
+    case eq:
+      return &MacroAssembler::Fcmeq;
+    case ne:
+      return &MacroAssembler::Fcmne;
+    case uo:
+      return &MacroAssembler::Fcmuo;
+    default:
+      VIXL_UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
+static CmpFn GetIntCompareFn(Condition cond) {
+  switch (cond) {
+    case ge:
+      return &MacroAssembler::Cmpge;
+    case gt:
+      return &MacroAssembler::Cmpgt;
+    case le:
+      return &MacroAssembler::Cmple;
+    case lt:
+      return &MacroAssembler::Cmplt;
+    case eq:
+      return &MacroAssembler::Cmpeq;
+    case ne:
+      return &MacroAssembler::Cmpne;
+    default:
+      VIXL_UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
+template <size_t N>
+static void TestFpCompareHelper(Test* config,
+                                int lane_size_in_bits,
+                                Condition cond,
+                                const double (&zn_inputs)[N],
+                                const double (&zm_inputs)[N],
+                                const int (&pd_expected)[N],
+                                bool is_absolute = false) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zt_int_1 = z1.WithLaneSize(lane_size_in_bits);
+  ZRegister zt_int_2 = z2.WithLaneSize(lane_size_in_bits);
+  ZRegister zt_int_3 = z3.WithLaneSize(lane_size_in_bits);
+  ZRegister zt_fp_1 = z11.WithLaneSize(lane_size_in_bits);
+  ZRegister zt_fp_2 = z12.WithLaneSize(lane_size_in_bits);
+  ZRegister zt_fp_3 = z13.WithLaneSize(lane_size_in_bits);
+  ZRegister fp_one = z31.WithLaneSize(lane_size_in_bits);
+
+  PRegisterWithLaneSize pd_result_int_1 = p15.WithLaneSize(lane_size_in_bits);
+  PRegisterWithLaneSize pd_result_fp_1 = p14.WithLaneSize(lane_size_in_bits);
+  PRegisterWithLaneSize pd_result_int_2 = p13.WithLaneSize(lane_size_in_bits);
+  PRegisterWithLaneSize pd_result_fp_2 = p12.WithLaneSize(lane_size_in_bits);
+
+  FCmpFn fcmp = is_absolute ? GetFpAbsCompareFn(cond) : GetFpCompareFn(cond);
+  __ Ptrue(p1.VnB());
+
+  if (cond != uo) {
+    int pg_inputs[] = {1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 0, 1, 1, 1};
+    Initialise(&masm, p0.WithLaneSize(lane_size_in_bits), pg_inputs);
+
+    __ Fdup(fp_one, 0.1f);
+
+    __ Index(zt_int_1, 3, 3);
+    __ Scvtf(zt_fp_1, p0.Merging(), zt_int_1);
+    __ Fadd(zt_fp_1, zt_fp_1, fp_one);
+
+    __ Index(zt_int_2, 3, -10);
+    __ Scvtf(zt_fp_2, p0.Merging(), zt_int_2);
+    __ Fadd(zt_fp_2, zt_fp_2, fp_one);
+
+    __ Index(zt_int_3, 3, 2);
+    __ Scvtf(zt_fp_3, p0.Merging(), zt_int_3);
+    __ Fadd(zt_fp_3, zt_fp_3, fp_one);
+
+
+    // There is no absolute comparison in integer type, use `abs` with `cmp<cc>`
+    // to synthesize the expected result for `fac<cc>`.
+    if (is_absolute == true) {
+      __ Abs(zt_int_2, p1.Merging(), zt_int_2);
+    }
+
+    CmpFn cmp = GetIntCompareFn(cond);
+    (masm.*cmp)(pd_result_int_1, p0.Zeroing(), zt_int_1, zt_int_2);
+    (masm.*fcmp)(pd_result_fp_1, p0.Zeroing(), zt_fp_1, zt_fp_2);
+
+    (masm.*cmp)(pd_result_int_2, p0.Zeroing(), zt_int_1, zt_int_3);
+    (masm.*fcmp)(pd_result_fp_2, p0.Zeroing(), zt_fp_1, zt_fp_3);
+  }
+
+  uint64_t zn_inputs_rawbits[N];
+  uint64_t zm_inputs_rawbits[N];
+  FPToRawbitsWithSize(zn_inputs, zn_inputs_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zm_inputs, zm_inputs_rawbits, lane_size_in_bits);
+
+  ZRegister zn_fp = z14.WithLaneSize(lane_size_in_bits);
+  ZRegister zm_fp = z15.WithLaneSize(lane_size_in_bits);
+  InsrHelper(&masm, zn_fp, zn_inputs_rawbits);
+  InsrHelper(&masm, zm_fp, zm_inputs_rawbits);
+
+  PRegisterWithLaneSize pd_result_fp_3 = p11.WithLaneSize(lane_size_in_bits);
+  (masm.*fcmp)(pd_result_fp_3, p1.Zeroing(), zn_fp, zm_fp);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    if (cond != uo) {
+      ASSERT_EQUAL_SVE(pd_result_int_1, pd_result_fp_1);
+      ASSERT_EQUAL_SVE(pd_result_int_2, pd_result_fp_2);
+    }
+    ASSERT_EQUAL_SVE(pd_expected, pd_result_fp_3);
+  }
+}
+
+TEST_SVE(sve_fp_compare_vectors) {
+  double inf_p = kFP64PositiveInfinity;
+  double inf_n = kFP64NegativeInfinity;
+  double nan = kFP64DefaultNaN;
+
+  // Normal floating point comparison has been tested in the helper.
+  double zn[] = {0.0, inf_n, 1.0, inf_p, inf_p, nan, 0.0, nan};
+  double zm[] = {-0.0, inf_n, inf_n, -2.0, inf_n, nan, nan, inf_p};
+
+  int pd_fcm_gt[] = {0, 0, 1, 1, 1, 0, 0, 0};
+  int pd_fcm_lt[] = {0, 0, 0, 0, 0, 0, 0, 0};
+  int pd_fcm_ge[] = {1, 1, 1, 1, 1, 0, 0, 0};
+  int pd_fcm_le[] = {1, 1, 0, 0, 0, 0, 0, 0};
+  int pd_fcm_eq[] = {1, 1, 0, 0, 0, 0, 0, 0};
+  int pd_fcm_ne[] = {0, 0, 1, 1, 1, 0, 0, 0};
+  int pd_fcm_uo[] = {0, 0, 0, 0, 0, 1, 1, 1};
+  int pd_fac_gt[] = {0, 0, 0, 1, 0, 0, 0, 0};
+  int pd_fac_lt[] = {0, 0, 1, 0, 0, 0, 0, 0};
+  int pd_fac_ge[] = {1, 1, 0, 1, 1, 0, 0, 0};
+  int pd_fac_le[] = {1, 1, 1, 0, 1, 0, 0, 0};
+
+  int lane_sizes[] = {kHRegSize, kSRegSize, kDRegSize};
+
+  for (size_t i = 0; i < ArrayLength(lane_sizes); i++) {
+    int lane_size = lane_sizes[i];
+    // Test floating-point compare vectors.
+    TestFpCompareHelper(config, lane_size, gt, zn, zm, pd_fcm_gt);
+    TestFpCompareHelper(config, lane_size, lt, zn, zm, pd_fcm_lt);
+    TestFpCompareHelper(config, lane_size, ge, zn, zm, pd_fcm_ge);
+    TestFpCompareHelper(config, lane_size, le, zn, zm, pd_fcm_le);
+    TestFpCompareHelper(config, lane_size, eq, zn, zm, pd_fcm_eq);
+    TestFpCompareHelper(config, lane_size, ne, zn, zm, pd_fcm_ne);
+    TestFpCompareHelper(config, lane_size, uo, zn, zm, pd_fcm_uo);
+
+    // Test floating-point absolute compare vectors.
+    TestFpCompareHelper(config, lane_size, gt, zn, zm, pd_fac_gt, true);
+    TestFpCompareHelper(config, lane_size, lt, zn, zm, pd_fac_lt, true);
+    TestFpCompareHelper(config, lane_size, ge, zn, zm, pd_fac_ge, true);
+    TestFpCompareHelper(config, lane_size, le, zn, zm, pd_fac_le, true);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

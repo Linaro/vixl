@@ -4855,6 +4855,11 @@ LogicVRegister Simulator::fcmp(VectorFormat vform,
     T op1 = src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
     T nan_result = FPProcessNaNs(op1, op2);
+
+    if (cond == uo) {
+      result = IsNaN(nan_result);
+    }
+
     if (!IsNaN(nan_result)) {
       switch (cond) {
         case eq:
@@ -4871,6 +4876,13 @@ LogicVRegister Simulator::fcmp(VectorFormat vform,
           break;
         case lt:
           result = (op1 < op2);
+          break;
+        case ne:
+          result = (op1 != op2);
+          break;
+        case uo:
+          // do nothing.
+          VIXL_ASSERT(result == false);
           break;
         default:
           VIXL_UNREACHABLE();
