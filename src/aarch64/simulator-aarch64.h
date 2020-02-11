@@ -619,6 +619,12 @@ class LogicVRegister {
     register_.Insert(index, value);
   }
 
+  template <typename T>
+  void SetFloat(VectorFormat vform, int index, T value) const {
+    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
+    register_.Insert(index, value);
+  }
+
   // When setting a result in a register larger than the result itself, the top
   // bits of the register must be cleared.
   void ClearForWrite(VectorFormat vform) const {

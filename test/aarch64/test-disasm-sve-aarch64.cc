@@ -1352,14 +1352,12 @@ TEST(sve_fp_unary_op_predicated) {
 TEST(sve_fp_unary_op_unpredicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(frecpe(z0.VnH(), z2.VnH()), "frecpe <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(frecpe(z0.VnS(), z2.VnS()), "frecpe <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(frecpe(z0.VnD(), z2.VnD()), "frecpe <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(frsqrte(z27.VnH(), z14.VnH()), "frsqrte <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(frsqrte(z27.VnS(), z14.VnS()), "frsqrte <Zd>.<T>, <Zn>.<T>");
-  COMPARE_PREFIX(frsqrte(z27.VnD(), z14.VnD()), "frsqrte <Zd>.<T>, <Zn>.<T>");
-#endif
+  COMPARE_PREFIX(frecpe(z0.VnH(), z2.VnH()), "frecpe z0.h, z2.h");
+  COMPARE_PREFIX(frecpe(z0.VnS(), z2.VnS()), "frecpe z0.s, z2.s");
+  COMPARE_PREFIX(frecpe(z0.VnD(), z2.VnD()), "frecpe z0.d, z2.d");
+  COMPARE_PREFIX(frsqrte(z27.VnH(), z14.VnH()), "frsqrte z27.h, z14.h");
+  COMPARE_PREFIX(frsqrte(z27.VnS(), z14.VnS()), "frsqrte z27.s, z14.s");
+  COMPARE_PREFIX(frsqrte(z27.VnD(), z14.VnD()), "frsqrte z27.d, z14.d");
 
   CLEANUP();
 }

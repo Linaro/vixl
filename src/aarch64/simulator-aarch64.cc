@@ -8366,13 +8366,17 @@ void Simulator::VisitSVEIntConvertToFP(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+
   switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
     case FRECPE_z_z:
-      VIXL_UNIMPLEMENTED();
+      frecpe(vform, zd, zn, fpcr_rounding);
       break;
     case FRSQRTE_z_z:
-      VIXL_UNIMPLEMENTED();
+      frsqrte(vform, zd, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -8381,8 +8385,6 @@ void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->ExtractBits(8, 5));
 

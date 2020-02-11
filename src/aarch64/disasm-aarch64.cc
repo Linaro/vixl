@@ -8879,15 +8879,12 @@ void Disassembler::VisitSVEFPMulAddIndex(const Instruction *instr) {
 
 void Disassembler::VisitSVEFPUnaryOpUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.<T>, <Zn>.<T>
   const char *form = "'Zd.'t, 'Zn.'t";
 
   switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
-    // FRECPE <Zd>.<T>, <Zn>.<T>
     case FRECPE_z_z:
       mnemonic = "frecpe";
       break;
-    // FRSQRTE <Zd>.<T>, <Zn>.<T>
     case FRSQRTE_z_z:
       mnemonic = "frsqrte";
       break;

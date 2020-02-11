@@ -5862,18 +5862,18 @@ LogicVRegister Simulator::frsqrte(VectorFormat vform,
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       SimFloat16 input = src.Float<SimFloat16>(i);
-      dst.SetFloat(i, FPRecipSqrtEstimate<SimFloat16>(input));
+      dst.SetFloat(vform, i, FPRecipSqrtEstimate<SimFloat16>(input));
     }
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       float input = src.Float<float>(i);
-      dst.SetFloat(i, FPRecipSqrtEstimate<float>(input));
+      dst.SetFloat(vform, i, FPRecipSqrtEstimate<float>(input));
     }
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       double input = src.Float<double>(i);
-      dst.SetFloat(i, FPRecipSqrtEstimate<double>(input));
+      dst.SetFloat(vform, i, FPRecipSqrtEstimate<double>(input));
     }
   }
   return dst;
@@ -6008,18 +6008,18 @@ LogicVRegister Simulator::frecpe(VectorFormat vform,
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       SimFloat16 input = src.Float<SimFloat16>(i);
-      dst.SetFloat(i, FPRecipEstimate<SimFloat16>(input, round));
+      dst.SetFloat(vform, i, FPRecipEstimate<SimFloat16>(input, round));
     }
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       float input = src.Float<float>(i);
-      dst.SetFloat(i, FPRecipEstimate<float>(input, round));
+      dst.SetFloat(vform, i, FPRecipEstimate<float>(input, round));
     }
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       double input = src.Float<double>(i);
-      dst.SetFloat(i, FPRecipEstimate<double>(input, round));
+      dst.SetFloat(vform, i, FPRecipEstimate<double>(input, round));
     }
   }
   return dst;

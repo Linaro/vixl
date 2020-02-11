@@ -13441,5 +13441,53 @@ TEST_SVE(sve_fp_paired_across) {
   }
 }
 
+TEST_SVE(sve_frecpe_frsqrte) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+
+  START();
+
+  __ Ptrue(p0.VnB());
+
+  __ Index(z0.VnH(), 0, 1);
+  __ Fdup(z1.VnH(), Float16(1));
+  __ Fscale(z1.VnH(), p0.Merging(), z1.VnH(), z0.VnH());
+  __ Insr(z1.VnH(), 0);
+  __ Frsqrte(z2.VnH(), z1.VnH());
+  __ Frecpe(z1.VnH(), z1.VnH());
+
+  __ Index(z0.VnS(), 0, 1);
+  __ Fdup(z3.VnS(), Float16(1));
+  __ Fscale(z3.VnS(), p0.Merging(), z3.VnS(), z0.VnS());
+  __ Insr(z3.VnS(), 0);
+  __ Frsqrte(z4.VnS(), z3.VnS());
+  __ Frecpe(z3.VnS(), z3.VnS());
+
+  __ Index(z0.VnD(), 0, 1);
+  __ Fdup(z5.VnD(), Float16(1));
+  __ Fscale(z5.VnD(), p0.Merging(), z5.VnD(), z0.VnD());
+  __ Insr(z5.VnD(), 0);
+  __ Frsqrte(z6.VnD(), z5.VnD());
+  __ Frecpe(z5.VnD(), z5.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t z1_expected[] = {0x23fc27fc2bfc2ffc, 0x33fc37fc3bfc7c00};
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+    uint64_t z2_expected[] = {0x2ffc31a433fc35a4, 0x37fc39a43bfc7c00};
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+
+    uint64_t z3_expected[] = {0x3e7f80003eff8000, 0x3f7f80007f800000};
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    uint64_t z4_expected[] = {0x3eff80003f348000, 0x3f7f80007f800000};
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+
+    uint64_t z5_expected[] = {0x3feff00000000000, 0x7ff0000000000000};
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+    uint64_t z6_expected[] = {0x3feff00000000000, 0x7ff0000000000000};
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
