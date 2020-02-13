@@ -3540,11 +3540,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Asr(const ZRegister& zd,
            const PRegisterM& pg,
            const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    asr(zd, pg, zn, zm);
-  }
+           const ZRegister& zm);
   void Asr(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5214,11 +5210,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Lsl(const ZRegister& zd,
            const PRegisterM& pg,
            const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    lsl(zd, pg, zn, zm);
-  }
+           const ZRegister& zm);
   void Lsl(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5237,11 +5229,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Lsr(const ZRegister& zd,
            const PRegisterM& pg,
            const ZRegister& zn,
-           const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    lsr(zd, pg, zn, zm);
-  }
+           const ZRegister& zm);
   void Lsr(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6877,13 +6865,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                       const ZRegister& zm,
                                       SVEArithPredicatedFn fn,
                                       SVEArithPredicatedFn rev_fn);
-
-  void FPNoncommutativeArithmeticHelper(const ZRegister& zd,
-                                        const PRegisterM& pg,
-                                        const ZRegister& zn,
-                                        const ZRegister& zm,
-                                        SVEArithPredicatedFn fn,
-                                        SVEArithPredicatedFn rev_fn);
 
   void FPCommutativeArithmeticHelper(const ZRegister& zd,
                                      const PRegisterM& pg,

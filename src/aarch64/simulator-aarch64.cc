@@ -7453,49 +7453,83 @@ void Simulator::VisitSVEBitwiseShiftByImm_Predicated(const Instruction* instr) {
 
 void Simulator::VisitSVEBitwiseShiftByVector_Predicated(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister result;
+  SimVRegister shiftand;  // Vector to be shifted.
+  SimVRegister shiftor;   // Vector shift amount.
+
+  Shift shift_op = ASR;
+  mov(vform, shiftand, zdn);
+  mov(vform, shiftor, zm);
+
   switch (instr->Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
     case ASRR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
+      mov(vform, shiftand, zm);
+      mov(vform, shiftor, zdn);
+      VIXL_FALLTHROUGH();
     case ASR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
       break;
     case LSLR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
+      mov(vform, shiftand, zm);
+      mov(vform, shiftor, zdn);
+      VIXL_FALLTHROUGH();
     case LSL_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSL;
       break;
     case LSRR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
-      break;
+      mov(vform, shiftand, zm);
+      mov(vform, shiftor, zdn);
+      VIXL_FALLTHROUGH();
     case LSR_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSR;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  SVEBitwiseShiftHelper(shift_op,
+                        vform,
+                        result,
+                        shiftand,
+                        shiftor,
+                        /* is_wide_elements = */ false);
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEBitwiseShiftByWideElements_Predicated(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister result;
+  Shift shift_op = ASR;
+
   switch (instr->Mask(SVEBitwiseShiftByWideElements_PredicatedMask)) {
     case ASR_z_p_zw:
-      VIXL_UNIMPLEMENTED();
       break;
     case LSL_z_p_zw:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSL;
       break;
     case LSR_z_p_zw:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSR;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  SVEBitwiseShiftHelper(shift_op,
+                        vform,
+                        result,
+                        zdn,
+                        zm,
+                        /* is_wide_elements = */ true);
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {

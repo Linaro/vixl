@@ -529,28 +529,6 @@ void MacroAssembler::NoncommutativeArithmeticHelper(
   }
 }
 
-void MacroAssembler::FPNoncommutativeArithmeticHelper(
-    const ZRegister& zd,
-    const PRegisterM& pg,
-    const ZRegister& zn,
-    const ZRegister& zm,
-    SVEArithPredicatedFn fn,
-    SVEArithPredicatedFn rev_fn) {
-  if (zd.Aliases(zn)) {
-    // E.g. zd = zd / zm
-    SingleEmissionCheckScope guard(this);
-    (this->*fn)(zd, pg, zn, zm);
-  } else if (zd.Aliases(zm)) {
-    // E.g. zd = zn / zd
-    SingleEmissionCheckScope guard(this);
-    (this->*rev_fn)(zd, pg, zm, zn);
-  } else {
-    // E.g. zd = zn / zm
-    MovprfxHelperScope guard(this, zd, pg, zn);
-    (this->*fn)(zd, pg, zd, zm);
-  }
-}
-
 void MacroAssembler::FPCommutativeArithmeticHelper(
     const ZRegister& zd,
     const PRegisterM& pg,
@@ -593,19 +571,64 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
   }
 }
 
+void MacroAssembler::Asr(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::asr),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::asrr));
+}
+
+void MacroAssembler::Lsl(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::lsl),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::lslr));
+}
+
+void MacroAssembler::Lsr(const ZRegister& zd,
+                         const PRegisterM& pg,
+                         const ZRegister& zn,
+                         const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::lsr),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::lsrr));
+}
+
 void MacroAssembler::Fdiv(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  FPNoncommutativeArithmeticHelper(zd,
-                                   pg,
-                                   zn,
-                                   zm,
-                                   static_cast<SVEArithPredicatedFn>(
-                                       &Assembler::fdiv),
-                                   static_cast<SVEArithPredicatedFn>(
-                                       &Assembler::fdivr));
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::fdiv),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::fdivr));
 }
 
 void MacroAssembler::Fsub(const ZRegister& zd,
@@ -613,14 +636,14 @@ void MacroAssembler::Fsub(const ZRegister& zd,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  FPNoncommutativeArithmeticHelper(zd,
-                                   pg,
-                                   zn,
-                                   zm,
-                                   static_cast<SVEArithPredicatedFn>(
-                                       &Assembler::fsub),
-                                   static_cast<SVEArithPredicatedFn>(
-                                       &Assembler::fsubr));
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::fsub),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::fsubr));
 }
 
 void MacroAssembler::Fadd(const ZRegister& zd,

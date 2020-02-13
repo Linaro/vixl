@@ -159,9 +159,6 @@ void Assembler::asr(const ZRegister& zd,
   Emit(ASR_z_p_zi | Rd(zd) | Rx<12, 10>(pg));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  ASR_z_p_zw
-//  ASR_z_p_zz
 void Assembler::asr(const ZRegister& zd,
                     const PRegisterM& pg,
                     const ZRegister& zn,
@@ -174,10 +171,14 @@ void Assembler::asr(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
-  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
-  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(ASR_z_p_zw | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm) ||
+              ((zm.GetLaneSizeInBytes() == kDRegSizeInBytes) &&
+               (zd.GetLaneSizeInBytes() != kDRegSizeInBytes)));
+  Instr op = ASR_z_p_zw;
+  if (AreSameLaneSize(zd, zn, zm)) {
+    op = ASR_z_p_zz;
+  }
+  Emit(op | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::asrd(const ZRegister& zd,
@@ -209,7 +210,7 @@ void Assembler::asrr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(ASRR_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(ASRR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::lsl(const ZRegister& zd,
@@ -227,9 +228,6 @@ void Assembler::lsl(const ZRegister& zd,
   Emit(LSL_z_p_zi | Rd(zd) | Rx<12, 10>(pg));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  LSL_z_p_zw
-//  LSL_z_p_zz
 void Assembler::lsl(const ZRegister& zd,
                     const PRegisterM& pg,
                     const ZRegister& zn,
@@ -242,10 +240,14 @@ void Assembler::lsl(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
-  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
-  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(LSL_z_p_zw | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm) ||
+              ((zm.GetLaneSizeInBytes() == kDRegSizeInBytes) &&
+               (zd.GetLaneSizeInBytes() != kDRegSizeInBytes)));
+  Instr op = LSL_z_p_zw;
+  if (AreSameLaneSize(zd, zn, zm)) {
+    op = LSL_z_p_zz;
+  }
+  Emit(op | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::lslr(const ZRegister& zd,
@@ -262,7 +264,7 @@ void Assembler::lslr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(LSLR_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(LSLR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::lsr(const ZRegister& zd,
@@ -280,9 +282,6 @@ void Assembler::lsr(const ZRegister& zd,
   Emit(LSR_z_p_zi | Rd(zd) | Rx<12, 10>(pg));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  LSR_z_p_zw
-//  LSR_z_p_zz
 void Assembler::lsr(const ZRegister& zd,
                     const PRegisterM& pg,
                     const ZRegister& zn,
@@ -295,10 +294,14 @@ void Assembler::lsr(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zd.Is(zn));
-  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
-  VIXL_ASSERT(zd.GetLaneSizeInBytes() != kDRegSizeInBytes);
-
-  Emit(LSR_z_p_zw | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm) ||
+              ((zm.GetLaneSizeInBytes() == kDRegSizeInBytes) &&
+               (zd.GetLaneSizeInBytes() != kDRegSizeInBytes)));
+  Instr op = LSR_z_p_zw;
+  if (AreSameLaneSize(zd, zn, zm)) {
+    op = LSR_z_p_zz;
+  }
+  Emit(op | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::lsrr(const ZRegister& zd,
@@ -315,7 +318,7 @@ void Assembler::lsrr(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(LSRR_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(LSRR_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 // SVEBitwiseShiftUnpredicated.

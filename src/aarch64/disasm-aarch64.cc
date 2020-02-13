@@ -5878,35 +5878,29 @@ void Disassembler::VisitSVEBitwiseShiftByImm_Predicated(
 void Disassembler::VisitSVEBitwiseShiftByVector_Predicated(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
   const char *form = "'Zd.'t, p'u1210/m, 'Zd.'t, 'Zn.'t";
 
   switch (instr->Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
-    // ASRR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case ASRR_z_p_zz:
       mnemonic = "asrr";
       break;
-    // ASR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case ASR_z_p_zz:
       mnemonic = "asr";
       break;
-    // LSLR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case LSLR_z_p_zz:
       mnemonic = "lslr";
       break;
-    // LSL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case LSL_z_p_zz:
       mnemonic = "lsl";
       break;
-    // LSRR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case LSRR_z_p_zz:
       mnemonic = "lsrr";
       break;
-    // LSR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>
     case LSR_z_p_zz:
       mnemonic = "lsr";
       break;
     default:
+      form = "(SVEBitwiseShiftByVector_Predicated)";
       break;
   }
   Format(instr, mnemonic, form);
@@ -5915,24 +5909,25 @@ void Disassembler::VisitSVEBitwiseShiftByVector_Predicated(
 void Disassembler::VisitSVEBitwiseShiftByWideElements_Predicated(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.D
   const char *form = "'Zd.'t, p'u1210/m, 'Zd.'t, 'Zn.d";
 
-  switch (instr->Mask(SVEBitwiseShiftByWideElements_PredicatedMask)) {
-    // ASR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.D
-    case ASR_z_p_zw:
-      mnemonic = "asr";
-      break;
-    // LSL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.D
-    case LSL_z_p_zw:
-      mnemonic = "lsl";
-      break;
-    // LSR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.D
-    case LSR_z_p_zw:
-      mnemonic = "lsr";
-      break;
-    default:
-      break;
+  if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
+    form = "(SVEBitwiseShiftByWideElements_Predicated)";
+  } else {
+    switch (instr->Mask(SVEBitwiseShiftByWideElements_PredicatedMask)) {
+      case ASR_z_p_zw:
+        mnemonic = "asr";
+        break;
+      case LSL_z_p_zw:
+        mnemonic = "lsl";
+        break;
+      case LSR_z_p_zw:
+        mnemonic = "lsr";
+        break;
+      default:
+        form = "(SVEBitwiseShiftByWideElements_Predicated)";
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
