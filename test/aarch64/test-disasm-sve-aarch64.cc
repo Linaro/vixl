@@ -4658,14 +4658,14 @@ TEST(sve_permute_vector_unpredicated) {
   // Test dup with reserved tsz field.
   COMPARE_PREFIX(dci(0x05202000), "unimplemented");
 
-  COMPARE_PREFIX(insr(z15.VnB(), w13), "insr z15.b, w13");
-  COMPARE_PREFIX(insr(z16.VnH(), w14), "insr z16.h, w14");
-  COMPARE_PREFIX(insr(z17.VnS(), w15), "insr z17.s, w15");
-  COMPARE_PREFIX(insr(z18.VnD(), x16), "insr z18.d, x16");
-  COMPARE_PREFIX(insr(z5.VnB(), b3), "insr z5.b, b3");
-  COMPARE_PREFIX(insr(z6.VnH(), h15), "insr z6.h, h15");
-  COMPARE_PREFIX(insr(z7.VnS(), s22), "insr z7.s, s22");
-  COMPARE_PREFIX(insr(z8.VnD(), d30), "insr z8.d, d30");
+  COMPARE(insr(z15.VnB(), w13), "insr z15.b, w13");
+  COMPARE(insr(z16.VnH(), w14), "insr z16.h, w14");
+  COMPARE(insr(z17.VnS(), w15), "insr z17.s, w15");
+  COMPARE(insr(z18.VnD(), x16), "insr z18.d, x16");
+  COMPARE(insr(z5.VnB(), b3), "insr z5.b, b3");
+  COMPARE(insr(z6.VnH(), h15), "insr z6.h, h15");
+  COMPARE(insr(z7.VnS(), s22), "insr z7.s, s22");
+  COMPARE(insr(z8.VnD(), d30), "insr z8.d, d30");
   COMPARE_PREFIX(rev(z13.VnB(), z10.VnB()), "rev z13.b, z10.b");
   COMPARE_PREFIX(rev(z14.VnH(), z10.VnH()), "rev z14.h, z10.h");
   COMPARE_PREFIX(rev(z15.VnS(), z10.VnS()), "rev z15.s, z10.s");

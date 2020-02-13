@@ -7125,9 +7125,9 @@ void Disassembler::VisitSVEInsertGeneralRegister(const Instruction *instr) {
     case INSR_z_r:
       mnemonic = "insr";
       if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
-        form = "'Zd.'t, 'Xn.'t";
+        form = "'Zd.'t, 'Xn";
       } else {
-        form = "'Zd.'t, 'Wn.'t";
+        form = "'Zd.'t, 'Wn";
       }
       break;
     default:
@@ -7145,7 +7145,7 @@ void Disassembler::VisitSVEInsertSIMDFPScalarRegister(
     // INSR <Zdn>.<T>, <V><m>
     case INSR_z_v:
       mnemonic = "insr";
-      form = "'Zd.'t, 'Vnv.'t";
+      form = "'Zd.'t, 'Vnv";
       break;
     default:
       break;
