@@ -1045,17 +1045,24 @@ TEST(sve_fp_arithmetic_unpredicated) {
                  "fsub z14.s, z24.s, z9.s");
   COMPARE_PREFIX(fsub(z14.VnD(), z4.VnD(), z19.VnD()),
                  "fsub z14.d, z4.d, z19.d");
-#if 0
-  COMPARE_PREFIX(frecps(z14.VnH(), z29.VnH(), z18.VnH()), "frecps <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(frecps(z14.VnS(), z29.VnS(), z18.VnS()), "frecps <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(frecps(z14.VnD(), z29.VnD(), z18.VnD()), "frecps <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(frsqrts(z5.VnH(), z6.VnH(), z28.VnH()), "frsqrts <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(frsqrts(z5.VnS(), z6.VnS(), z28.VnS()), "frsqrts <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(frsqrts(z5.VnD(), z6.VnD(), z28.VnD()), "frsqrts <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(ftsmul(z21.VnH(), z17.VnH(), z24.VnH()), "ftsmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(ftsmul(z21.VnS(), z17.VnS(), z24.VnS()), "ftsmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(ftsmul(z21.VnD(), z17.VnD(), z24.VnD()), "ftsmul <Zd>.<T>, <Zn>.<T>, <Zm>.<T>");
-#endif
+  COMPARE_PREFIX(frecps(z14.VnH(), z29.VnH(), z18.VnH()),
+                 "frecps z14.h, z29.h, z18.h");
+  COMPARE_PREFIX(frecps(z14.VnS(), z29.VnS(), z18.VnS()),
+                 "frecps z14.s, z29.s, z18.s");
+  COMPARE_PREFIX(frecps(z14.VnD(), z29.VnD(), z18.VnD()),
+                 "frecps z14.d, z29.d, z18.d");
+  COMPARE_PREFIX(frsqrts(z5.VnH(), z6.VnH(), z28.VnH()),
+                 "frsqrts z5.h, z6.h, z28.h");
+  COMPARE_PREFIX(frsqrts(z5.VnS(), z6.VnS(), z28.VnS()),
+                 "frsqrts z5.s, z6.s, z28.s");
+  COMPARE_PREFIX(frsqrts(z5.VnD(), z6.VnD(), z28.VnD()),
+                 "frsqrts z5.d, z6.d, z28.d");
+  COMPARE_PREFIX(ftsmul(z21.VnH(), z17.VnH(), z24.VnH()),
+                 "ftsmul z21.h, z17.h, z24.h");
+  COMPARE_PREFIX(ftsmul(z21.VnS(), z17.VnS(), z24.VnS()),
+                 "ftsmul z21.s, z17.s, z24.s");
+  COMPARE_PREFIX(ftsmul(z21.VnD(), z17.VnD(), z24.VnD()),
+                 "ftsmul z21.d, z17.d, z24.d");
 
   CLEANUP();
 }

@@ -3992,6 +3992,10 @@ class Simulator : public DecoderVisitor {
   LogicVRegister frecpx(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src);
+  LogicVRegister ftsmul(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
   LogicVRegister ftssel(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src1,

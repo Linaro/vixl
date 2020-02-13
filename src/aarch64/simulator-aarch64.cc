@@ -7919,16 +7919,16 @@ void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
       fmul(vform, zd, zn, zm);
       break;
     case FRECPS_z_zz:
-      VIXL_UNIMPLEMENTED();
+      frecps(vform, zd, zn, zm);
       break;
     case FRSQRTS_z_zz:
-      VIXL_UNIMPLEMENTED();
+      frsqrts(vform, zd, zn, zm);
       break;
     case FSUB_z_zz:
       fsub(vform, zd, zn, zm);
       break;
     case FTSMUL_z_zz:
-      VIXL_UNIMPLEMENTED();
+      ftsmul(vform, zd, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

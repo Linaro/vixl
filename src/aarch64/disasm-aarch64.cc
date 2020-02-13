@@ -8579,31 +8579,24 @@ void Disassembler::VisitSVEFPAccumulatingReduction(const Instruction *instr) {
 
 void Disassembler::VisitSVEFPArithmeticUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
   const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
 
   switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
-    // FADD <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FADD_z_zz:
       mnemonic = "fadd";
       break;
-    // FMUL <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FMUL_z_zz:
       mnemonic = "fmul";
       break;
-    // FRECPS <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FRECPS_z_zz:
       mnemonic = "frecps";
       break;
-    // FRSQRTS <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FRSQRTS_z_zz:
       mnemonic = "frsqrts";
       break;
-    // FSUB <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FSUB_z_zz:
       mnemonic = "fsub";
       break;
-    // FTSMUL <Zd>.<T>, <Zn>.<T>, <Zm>.<T>
     case FTSMUL_z_zz:
       mnemonic = "ftsmul";
       break;
