@@ -72,7 +72,7 @@ class PRegisterZ;
 // The encoding is such that CPURegister objects are cheap to pass by value.
 class CPURegister {
  public:
-  enum RegisterBank {
+  enum RegisterBank : uint8_t {
     kNoRegisterBank = 0,
     kRRegisterBank,
     kVRegisterBank,
@@ -395,7 +395,7 @@ class CPURegister {
   }
 
  protected:
-  enum EncodedSize {
+  enum EncodedSize : uint8_t {
     // Ensure that kUnknownSize (and therefore kNoRegister) is encoded as zero.
     kEncodedUnknownSize = 0,
 
@@ -486,7 +486,7 @@ class CPURegister {
 
   static unsigned GetMaxCodeFor(CPURegister::RegisterBank bank);
 
-  enum Qualifiers {
+  enum Qualifiers : uint8_t {
     kNoQualifiers = 0,
     // Used by P registers.
     kMerging,
@@ -506,12 +506,15 @@ class CPURegister {
         lane_size_(lane_size) {}
 
   // TODO: Check that access to these fields is reasonably efficient.
-  unsigned code_ : 6;
-  RegisterBank bank_ : 2;
-  EncodedSize size_ : 4;
-  Qualifiers qualifiers_ : 2;
-  EncodedSize lane_size_ : 4;
+  uint8_t code_;
+  RegisterBank bank_;
+  EncodedSize size_;
+  Qualifiers qualifiers_;
+  EncodedSize lane_size_;
 };
+// Ensure that CPURegisters can fit in a single (64-bit) register. This is a
+// proxy for being "cheap to pass by value", which is hard to check directly.
+VIXL_STATIC_ASSERT(sizeof(CPURegister) <= sizeof(uint64_t));
 
 // TODO: Add constexpr constructors.
 #define VIXL_DECLARE_REGISTER_COMMON(NAME, REGISTER_TYPE, PARENT_TYPE) \

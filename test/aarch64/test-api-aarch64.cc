@@ -338,11 +338,30 @@ TEST(constructors_cpu) {
 
 #ifdef __aarch64__
 static void CPURegisterByValueHelper(CPURegister reg) {
-  CPURegister out;
-  // Verify that `reg` can be passed in one register.
-  // The early-clobber ("=&r") ensures that `out` and `in` are allocated
-  // to different registers.
-  asm("  mov %w[out], %w[in]\n" : [out] "=&r"(out) : [in] "r"(reg));
+  // Test that `reg` can be passed in one register. We'd like to use
+  // __attribute__((naked)) for this, but it isn't supported for AArch64, so
+  // generate a function using VIXL instead.
+
+  MacroAssembler masm;
+  // CPURegister fn(int dummy, CPURegister reg);
+  // Move `reg` to its result register.
+  __ Mov(x0, x1);
+  // Clobber all other result registers.
+  __ Mov(x1, 0xfffffffffffffff1);
+  __ Mov(x2, 0xfffffffffffffff2);
+  __ Mov(x3, 0xfffffffffffffff3);
+  __ Mov(x4, 0xfffffffffffffff4);
+  __ Mov(x5, 0xfffffffffffffff5);
+  __ Mov(x6, 0xfffffffffffffff6);
+  __ Mov(x7, 0xfffffffffffffff7);
+  __ Ret();
+  masm.FinalizeCode();
+
+  CodeBuffer* buffer = masm.GetBuffer();
+  auto fn = buffer->GetStartAddress<CPURegister (*)(int, CPURegister)>();
+  buffer->SetExecutable();
+  CPURegister out = fn(42, reg);
+
   VIXL_CHECK(out.Is(reg));
 }
 
