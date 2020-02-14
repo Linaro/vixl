@@ -556,6 +556,26 @@ class MovprfxHelperScope : public ExactAssemblyScope {
   //
   // The best way to handle this in an instruction-agnostic way is probably to
   // use variadic templates.
+
+ private:
+  inline bool ShouldGenerateMovprfx(const ZRegister& dst,
+                                    const ZRegister& src) {
+    VIXL_ASSERT(AreSameLaneSize(dst, src));
+    return !dst.Aliases(src);
+  }
+
+  inline bool ShouldGenerateMovprfx(const ZRegister& dst,
+                                    const PRegister& pg,
+                                    const ZRegister& src) {
+    VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
+    // We need to emit movprfx in two cases:
+    //  1. To give a predicated merging unary instruction zeroing predication.
+    //  2. To make destructive instructions constructive.
+    //
+    // There are no predicated zeroing instructions that can take movprfx, so we
+    // will never generate an unnecessary movprfx with this logic.
+    return pg.IsZeroing() || ShouldGenerateMovprfx(dst, src);
+  }
 };
 
 
@@ -6921,9 +6941,10 @@ MovprfxHelperScope::MovprfxHelperScope(MacroAssembler* masm,
                                        const ZRegister& dst,
                                        const ZRegister& src)
     : ExactAssemblyScope(masm,
-                         dst.Aliases(src) ? (kInstructionSize)
-                                          : (2 * kInstructionSize)) {
-  if (!dst.Aliases(src)) {
+                         ShouldGenerateMovprfx(dst, src)
+                             ? (2 * kInstructionSize)
+                             : kInstructionSize) {
+  if (ShouldGenerateMovprfx(dst, src)) {
     masm->movprfx(dst, src);
   }
 }
@@ -6933,11 +6954,10 @@ MovprfxHelperScope::MovprfxHelperScope(MacroAssembler* masm,
                                        const PRegister& pg,
                                        const ZRegister& src)
     : ExactAssemblyScope(masm,
-                         dst.Aliases(src) ? (kInstructionSize)
-                                          : (2 * kInstructionSize)) {
-  VIXL_ASSERT(AreSameLaneSize(dst, src));
-  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
-  if (!dst.Aliases(src)) {
+                         ShouldGenerateMovprfx(dst, pg, src)
+                             ? (2 * kInstructionSize)
+                             : kInstructionSize) {
+  if (ShouldGenerateMovprfx(dst, pg, src)) {
     masm->movprfx(dst, pg, src);
   }
 }
