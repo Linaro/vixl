@@ -8331,33 +8331,42 @@ void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPRoundToIntegralValue(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+  bool exact_exception = false;
+
   switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
     case FRINTA_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fpcr_rounding = FPTieAway;
       break;
     case FRINTI_z_p_z:
-      VIXL_UNIMPLEMENTED();
-      break;
+      break;  // Use FPCR rounding mode.
     case FRINTM_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fpcr_rounding = FPNegativeInfinity;
       break;
     case FRINTN_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fpcr_rounding = FPTieEven;
       break;
     case FRINTP_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fpcr_rounding = FPPositiveInfinity;
       break;
     case FRINTX_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      exact_exception = true;
       break;
     case FRINTZ_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fpcr_rounding = FPZero;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SimVRegister result;
+  frint(vform, result, zn, fpcr_rounding, exact_exception, kFrintToInteger);
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::VisitSVEIntConvertToFP(const Instruction* instr) {

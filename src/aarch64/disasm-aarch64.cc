@@ -6931,35 +6931,27 @@ void Disassembler::VisitSVEFPExponentialAccelerator(const Instruction *instr) {
 
 void Disassembler::VisitSVEFPRoundToIntegralValue(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.<T>, <Pg>/M, <Zn>.<T>
   const char *form = "'Zd.'t, p'u1210/m, 'Zn.'t";
 
   switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
-    // FRINTA <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTA_z_p_z:
       mnemonic = "frinta";
       break;
-    // FRINTI <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTI_z_p_z:
       mnemonic = "frinti";
       break;
-    // FRINTM <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTM_z_p_z:
       mnemonic = "frintm";
       break;
-    // FRINTN <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTN_z_p_z:
       mnemonic = "frintn";
       break;
-    // FRINTP <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTP_z_p_z:
       mnemonic = "frintp";
       break;
-    // FRINTX <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTX_z_p_z:
       mnemonic = "frintx";
       break;
-    // FRINTZ <Zd>.<T>, <Pg>/M, <Zn>.<T>
     case FRINTZ_z_p_z:
       mnemonic = "frintz";
       break;

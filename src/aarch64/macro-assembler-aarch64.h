@@ -4465,35 +4465,70 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     frinta(zd, pg, zn);
   }
+  void Frinta(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frinta(zd, pg.Merging(), zn);
+  }
   void Frinti(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frinti(zd, pg, zn);
+  }
+  void Frinti(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frinti(zd, pg.Merging(), zn);
   }
   void Frintm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frintm(zd, pg, zn);
   }
+  void Frintm(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frintm(zd, pg.Merging(), zn);
+  }
   void Frintn(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frintn(zd, pg, zn);
+  }
+  void Frintn(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frintn(zd, pg.Merging(), zn);
   }
   void Frintp(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frintp(zd, pg, zn);
   }
+  void Frintp(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frintp(zd, pg.Merging(), zn);
+  }
   void Frintx(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frintx(zd, pg, zn);
   }
+  void Frintx(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frintx(zd, pg.Merging(), zn);
+  }
   void Frintz(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     frintz(zd, pg, zn);
+  }
+  void Frintz(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    frintz(zd, pg.Merging(), zn);
   }
   void Frsqrte(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);

@@ -1659,99 +1659,71 @@ void Assembler::frecpx(const ZRegister& zd,
 void Assembler::frinta(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTA <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0100 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 100 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTA_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTA_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frinti(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTI <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0111 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 111 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTI_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTI_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frintm(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTM <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0010 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 010 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTM_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTM_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frintn(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTN <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0000 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 000 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTN_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTN_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frintp(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTP <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0001 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 001 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTP_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTP_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frintx(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTX <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0110 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 110 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTX_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTX_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frintz(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
-  // FRINTZ <Zd>.<T>, <Pg>/M, <Zn>.<T>
-  //  0110 0101 ..00 0011 101. .... .... ....
-  //  size<23:22> | opc<18:16> = 011 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRINTZ_z_p_z | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(FRINTZ_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fsqrt(const ZRegister& zd,
