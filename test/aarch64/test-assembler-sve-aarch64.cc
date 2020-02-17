@@ -14507,6 +14507,10 @@ typedef void (MacroAssembler::*FCmpFn)(const PRegisterWithLaneSize& pd,
                                        const ZRegister& zn,
                                        const ZRegister& zm);
 
+typedef void (MacroAssembler::*FCmpZeroFn)(const PRegisterWithLaneSize& pd,
+                                           const PRegisterZ& pg,
+                                           const ZRegister& zn);
+
 typedef void (MacroAssembler::*CmpFn)(const PRegisterWithLaneSize& pd,
                                       const PRegisterZ& pg,
                                       const ZRegister& zn,
@@ -14544,6 +14548,26 @@ static FCmpFn GetFpCompareFn(Condition cond) {
       return &MacroAssembler::Fcmne;
     case uo:
       return &MacroAssembler::Fcmuo;
+    default:
+      VIXL_UNIMPLEMENTED();
+      return NULL;
+  }
+}
+
+static FCmpZeroFn GetFpCompareZeroFn(Condition cond) {
+  switch (cond) {
+    case ge:
+      return &MacroAssembler::Fcmge;
+    case gt:
+      return &MacroAssembler::Fcmgt;
+    case le:
+      return &MacroAssembler::Fcmle;
+    case lt:
+      return &MacroAssembler::Fcmlt;
+    case eq:
+      return &MacroAssembler::Fcmeq;
+    case ne:
+      return &MacroAssembler::Fcmne;
     default:
       VIXL_UNIMPLEMENTED();
       return NULL;
@@ -14696,6 +14720,95 @@ TEST_SVE(sve_fp_compare_vectors) {
     TestFpCompareHelper(config, lane_size, ge, zn, zm, pd_fac_ge, true);
     TestFpCompareHelper(config, lane_size, le, zn, zm, pd_fac_le, true);
   }
+}
+
+template <size_t N, typename T>
+static void TestFpCompareZeroHelper(Test* config,
+                                    int lane_size_in_bits,
+                                    Condition cond,
+                                    const T (&zn_inputs)[N],
+                                    const int (&pd_expected)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zn = z28.WithLaneSize(lane_size_in_bits);
+  PRegisterWithLaneSize pd = p14.WithLaneSize(lane_size_in_bits);
+
+  uint64_t zn_rawbits[N];
+  FPToRawbitsWithSize(zn_inputs, zn_rawbits, lane_size_in_bits);
+  InsrHelper(&masm, zn, zn_rawbits);
+
+  __ Ptrue(p0.VnB());
+  (masm.*GetFpCompareZeroFn(cond))(pd, p0.Zeroing(), zn);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(pd_expected, pd);
+  }
+}
+
+TEST_SVE(sve_fp_compare_vector_zero) {
+  Float16 fp16_inf_p = kFP16PositiveInfinity;
+  Float16 fp16_inf_n = kFP16NegativeInfinity;
+  Float16 fp16_dn = kFP16DefaultNaN;
+  Float16 fp16_sn = RawbitsToFloat16(0x7c22);
+  Float16 fp16_qn = RawbitsToFloat16(0x7e55);
+
+  float fp32_inf_p = kFP32PositiveInfinity;
+  float fp32_inf_n = kFP32NegativeInfinity;
+  float fp32_dn = kFP32DefaultNaN;
+  float fp32_sn = RawbitsToFloat(0x7f952222);
+  float fp32_qn = RawbitsToFloat(0x7fea2222);
+
+  double fp64_inf_p = kFP64PositiveInfinity;
+  double fp64_inf_n = kFP64NegativeInfinity;
+  double fp64_dn = kFP64DefaultNaN;
+  double fp64_sn = RawbitsToDouble(0x7ff5555511111111);
+  double fp64_qn = RawbitsToDouble(0x7ffaaaaa11111111);
+
+  // Normal floating point comparison has been tested in the non-zero form.
+  Float16 zn_inputs_h[] = {Float16(0.0),
+                           Float16(-0.0),
+                           fp16_inf_p,
+                           fp16_inf_n,
+                           fp16_dn,
+                           fp16_sn,
+                           fp16_qn};
+  float zn_inputs_s[] =
+      {0.0, -0.0, fp32_inf_p, fp32_inf_n, fp32_dn, fp32_sn, fp32_qn};
+  double zn_inputs_d[] =
+      {0.0, -0.0, fp64_inf_p, fp64_inf_n, fp64_dn, fp64_sn, fp64_qn};
+
+  int pd_expected_gt[] = {0, 0, 1, 0, 0, 0, 0};
+  int pd_expected_lt[] = {0, 0, 0, 1, 0, 0, 0};
+  int pd_expected_ge[] = {1, 1, 1, 0, 0, 0, 0};
+  int pd_expected_le[] = {1, 1, 0, 1, 0, 0, 0};
+  int pd_expected_eq[] = {1, 1, 0, 0, 0, 0, 0};
+  int pd_expected_ne[] = {0, 0, 1, 1, 0, 0, 0};
+
+  TestFpCompareZeroHelper(config, kDRegSize, gt, zn_inputs_d, pd_expected_gt);
+  TestFpCompareZeroHelper(config, kDRegSize, lt, zn_inputs_d, pd_expected_lt);
+  TestFpCompareZeroHelper(config, kDRegSize, ge, zn_inputs_d, pd_expected_ge);
+  TestFpCompareZeroHelper(config, kDRegSize, le, zn_inputs_d, pd_expected_le);
+  TestFpCompareZeroHelper(config, kDRegSize, eq, zn_inputs_d, pd_expected_eq);
+  TestFpCompareZeroHelper(config, kDRegSize, ne, zn_inputs_d, pd_expected_ne);
+
+  TestFpCompareZeroHelper(config, kSRegSize, gt, zn_inputs_s, pd_expected_gt);
+  TestFpCompareZeroHelper(config, kSRegSize, lt, zn_inputs_s, pd_expected_lt);
+  TestFpCompareZeroHelper(config, kSRegSize, ge, zn_inputs_s, pd_expected_ge);
+  TestFpCompareZeroHelper(config, kSRegSize, le, zn_inputs_s, pd_expected_le);
+  TestFpCompareZeroHelper(config, kSRegSize, eq, zn_inputs_s, pd_expected_eq);
+  TestFpCompareZeroHelper(config, kSRegSize, ne, zn_inputs_s, pd_expected_ne);
+
+  TestFpCompareZeroHelper(config, kHRegSize, gt, zn_inputs_h, pd_expected_gt);
+  TestFpCompareZeroHelper(config, kHRegSize, lt, zn_inputs_h, pd_expected_lt);
+  TestFpCompareZeroHelper(config, kHRegSize, ge, zn_inputs_h, pd_expected_ge);
+  TestFpCompareZeroHelper(config, kHRegSize, le, zn_inputs_h, pd_expected_le);
+  TestFpCompareZeroHelper(config, kHRegSize, eq, zn_inputs_h, pd_expected_eq);
+  TestFpCompareZeroHelper(config, kHRegSize, ne, zn_inputs_h, pd_expected_ne);
 }
 
 }  // namespace aarch64

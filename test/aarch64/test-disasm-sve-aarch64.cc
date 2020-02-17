@@ -1146,26 +1146,42 @@ TEST(sve_fp_compare_vectors) {
 TEST(sve_fp_compare_with_zero) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fcmeq(p9.VnH(), p1.Zeroing(), z17.VnH()), "fcmeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmeq(p9.VnS(), p1.Zeroing(), z17.VnS()), "fcmeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmeq(p9.VnD(), p1.Zeroing(), z17.VnD()), "fcmeq <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmge(p13.VnH(), p3.Zeroing(), z13.VnH()), "fcmge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmge(p13.VnS(), p3.Zeroing(), z13.VnS()), "fcmge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmge(p13.VnD(), p3.Zeroing(), z13.VnD()), "fcmge <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmgt(p10.VnH(), p2.Zeroing(), z24.VnH()), "fcmgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmgt(p10.VnS(), p2.Zeroing(), z24.VnS()), "fcmgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmgt(p10.VnD(), p2.Zeroing(), z24.VnD()), "fcmgt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmle(p4.VnH(), p7.Zeroing(), z1.VnH()), "fcmle <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmle(p4.VnS(), p7.Zeroing(), z1.VnS()), "fcmle <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmle(p4.VnD(), p7.Zeroing(), z1.VnD()), "fcmle <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmlt(p15.VnH(), p7.Zeroing(), z9.VnH()), "fcmlt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmlt(p15.VnS(), p7.Zeroing(), z9.VnS()), "fcmlt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmlt(p15.VnD(), p7.Zeroing(), z9.VnD()), "fcmlt <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmne(p14.VnH(), p7.Zeroing(), z28.VnH()), "fcmne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmne(p14.VnS(), p7.Zeroing(), z28.VnS()), "fcmne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-  COMPARE_PREFIX(fcmne(p14.VnD(), p7.Zeroing(), z28.VnD()), "fcmne <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0");
-#endif
+  COMPARE_PREFIX(fcmeq(p9.VnH(), p1.Zeroing(), z17.VnH()),
+                 "fcmeq p9.h, p1/z, z17.h, #0.0");
+  COMPARE_PREFIX(fcmeq(p9.VnS(), p1.Zeroing(), z17.VnS()),
+                 "fcmeq p9.s, p1/z, z17.s, #0.0");
+  COMPARE_PREFIX(fcmeq(p9.VnD(), p1.Zeroing(), z17.VnD()),
+                 "fcmeq p9.d, p1/z, z17.d, #0.0");
+  COMPARE_PREFIX(fcmge(p13.VnH(), p3.Zeroing(), z13.VnH()),
+                 "fcmge p13.h, p3/z, z13.h, #0.0");
+  COMPARE_PREFIX(fcmge(p13.VnS(), p3.Zeroing(), z13.VnS()),
+                 "fcmge p13.s, p3/z, z13.s, #0.0");
+  COMPARE_PREFIX(fcmge(p13.VnD(), p3.Zeroing(), z13.VnD()),
+                 "fcmge p13.d, p3/z, z13.d, #0.0");
+  COMPARE_PREFIX(fcmgt(p10.VnH(), p2.Zeroing(), z24.VnH()),
+                 "fcmgt p10.h, p2/z, z24.h, #0.0");
+  COMPARE_PREFIX(fcmgt(p10.VnS(), p2.Zeroing(), z24.VnS()),
+                 "fcmgt p10.s, p2/z, z24.s, #0.0");
+  COMPARE_PREFIX(fcmgt(p10.VnD(), p2.Zeroing(), z24.VnD()),
+                 "fcmgt p10.d, p2/z, z24.d, #0.0");
+  COMPARE_PREFIX(fcmle(p4.VnH(), p7.Zeroing(), z1.VnH()),
+                 "fcmle p4.h, p7/z, z1.h, #0.0");
+  COMPARE_PREFIX(fcmle(p4.VnS(), p7.Zeroing(), z1.VnS()),
+                 "fcmle p4.s, p7/z, z1.s, #0.0");
+  COMPARE_PREFIX(fcmle(p4.VnD(), p7.Zeroing(), z1.VnD()),
+                 "fcmle p4.d, p7/z, z1.d, #0.0");
+  COMPARE_PREFIX(fcmlt(p15.VnH(), p7.Zeroing(), z9.VnH()),
+                 "fcmlt p15.h, p7/z, z9.h, #0.0");
+  COMPARE_PREFIX(fcmlt(p15.VnS(), p7.Zeroing(), z9.VnS()),
+                 "fcmlt p15.s, p7/z, z9.s, #0.0");
+  COMPARE_PREFIX(fcmlt(p15.VnD(), p7.Zeroing(), z9.VnD()),
+                 "fcmlt p15.d, p7/z, z9.d, #0.0");
+  COMPARE_PREFIX(fcmne(p14.VnH(), p7.Zeroing(), z28.VnH()),
+                 "fcmne p14.h, p7/z, z28.h, #0.0");
+  COMPARE_PREFIX(fcmne(p14.VnS(), p7.Zeroing(), z28.VnS()),
+                 "fcmne p14.s, p7/z, z28.s, #0.0");
+  COMPARE_PREFIX(fcmne(p14.VnD(), p7.Zeroing(), z28.VnD()),
+                 "fcmne p14.d, p7/z, z28.d, #0.0");
 
   CLEANUP();
 }

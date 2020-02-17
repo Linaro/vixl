@@ -7982,30 +7982,41 @@ void Simulator::VisitSVEFPCompareVectors(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister result;
+
+  SimVRegister zeros;
+  dup_immediate(kFormatVnD, zeros, 0);
+
   switch (instr->Mask(SVEFPCompareWithZeroMask)) {
     case FCMEQ_p_p_z0:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zeros, eq);
       break;
     case FCMGE_p_p_z0:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zeros, ge);
       break;
     case FCMGT_p_p_z0:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zeros, gt);
       break;
     case FCMLE_p_p_z0:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zeros, le);
       break;
     case FCMLT_p_p_z0:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zeros, lt);
       break;
     case FCMNE_p_p_z0:
-      VIXL_UNIMPLEMENTED();
+      fcmp(vform, result, zn, zeros, ne);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  ExtractFromSimVRegister(vform, pd, result);
+  mov_zeroing(pd, pg, pd);
 }
 
 void Simulator::VisitSVEFPComplexAddition(const Instruction* instr) {
