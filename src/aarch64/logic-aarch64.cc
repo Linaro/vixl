@@ -6728,19 +6728,25 @@ LogicVRegister Simulator::SVEBitwiseShiftHelper(Shift shift_op,
                                                 const LogicVRegister& src2,
                                                 bool is_wide_elements) {
   unsigned lane_size = LaneSizeInBitsFromFormat(vform);
-  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
-    int64_t value = src1.Uint(vform, lane);
-    unsigned shift_amount;
-    if (is_wide_elements) {
-      int d_lane = (lane * lane_size) / kDRegSize;
-      shift_amount =
-          std::min(static_cast<unsigned>(src2.Uint(kFormatVnD, d_lane)),
-                   lane_size);
-    } else {
-      shift_amount = static_cast<unsigned>(src2.Uint(vform, lane));
-    }
+  VectorFormat shift_vform = is_wide_elements ? kFormatVnD : vform;
 
-    int64_t result = ShiftOperand(lane_size, value, shift_op, shift_amount);
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    int shift_src_lane = lane;
+    if (is_wide_elements) {
+      // If the shift amount comes from wide elements, select the D-sized lane
+      // which occupies the corresponding lanes of the value to be shifted.
+      shift_src_lane = (lane * lane_size) / kDRegSize;
+    }
+    uint64_t shift_amount = src2.Uint(shift_vform, shift_src_lane);
+
+    // Saturate shift_amount to the size of the lane that will be shifted.
+    if (shift_amount > lane_size) shift_amount = lane_size;
+
+    uint64_t value = src1.Uint(vform, lane);
+    int64_t result = ShiftOperand(lane_size,
+                                  value,
+                                  shift_op,
+                                  static_cast<unsigned>(shift_amount));
     dst.SetUint(vform, lane, result);
   }
 

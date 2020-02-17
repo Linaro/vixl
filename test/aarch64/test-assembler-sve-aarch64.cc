@@ -10377,6 +10377,16 @@ TEST_SVE(sve_bitwise_shift_wide_elements_unpredicated_lsl) {
                                  inputs_s,
                                  shift_s,
                                  expected_s);
+
+  // Test large shifts outside the range of the "unsigned" type.
+  uint64_t inputs_b2[] = {1, 2, 4, 8, 3, 5, 7, 9,
+                          1, 2, 4, 8, 3, 5, 7, 9};
+  uint64_t shift_b2[] = {1, 0x1000000001};
+  uint64_t expected_b2[] = {2, 4, 8, 16, 6, 10, 14, 18,
+                            0, 0, 0, 0, 0, 0, 0, 0};
+  BitwiseShiftWideElementsHelper(config, LSL, kBRegSize, inputs_b2, shift_b2,
+                                 expected_b2);
+
   // clang-format on
 }
 

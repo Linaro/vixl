@@ -515,53 +515,50 @@ uint64_t Simulator::AddWithCarry(unsigned reg_size,
 
 
 int64_t Simulator::ShiftOperand(unsigned reg_size,
-                                int64_t value,
+                                uint64_t uvalue,
                                 Shift shift_type,
                                 unsigned amount) const {
   VIXL_ASSERT((reg_size == kBRegSize) || (reg_size == kHRegSize) ||
               (reg_size == kSRegSize) || (reg_size == kDRegSize));
-  if (amount == 0) {
-    return value;
-  }
-
-  uint64_t uvalue = static_cast<uint64_t>(value);
-  uint64_t mask = GetUintMask(reg_size);
-  bool is_negative = (uvalue & GetSignMask(reg_size)) != 0;
-  // The behavior is undefined in c++ if the shift amount greater than or equal
-  // to the register lane size. Work out the shifted result based on
-  // architectural behavior before performing the c++ type shfit operations.
-  switch (shift_type) {
-    case LSL:
-      if (amount >= reg_size) {
-        return UINT64_C(0);
+  if (amount > 0) {
+    uint64_t mask = GetUintMask(reg_size);
+    bool is_negative = (uvalue & GetSignMask(reg_size)) != 0;
+    // The behavior is undefined in c++ if the shift amount greater than or
+    // equal to the register lane size. Work out the shifted result based on
+    // architectural behavior before performing the c++ type shfit operations.
+    switch (shift_type) {
+      case LSL:
+        if (amount >= reg_size) {
+          return UINT64_C(0);
+        }
+        uvalue <<= amount;
+        break;
+      case LSR:
+        if (amount >= reg_size) {
+          return UINT64_C(0);
+        }
+        uvalue >>= amount;
+        break;
+      case ASR:
+        if (amount >= reg_size) {
+          return is_negative ? ~UINT64_C(0) : UINT64_C(0);
+        }
+        uvalue >>= amount;
+        if (is_negative) {
+          // Simulate sign-extension to 64 bits.
+          uvalue |= ~UINT64_C(0) << (reg_size - amount);
+        }
+        break;
+      case ROR: {
+        uvalue = RotateRight(uvalue, amount, reg_size);
+        break;
       }
-      uvalue <<= amount;
-      break;
-    case LSR:
-      if (amount >= reg_size) {
-        return UINT64_C(0);
-      }
-      uvalue >>= amount;
-      break;
-    case ASR:
-      if (amount >= reg_size) {
-        return is_negative ? ~UINT64_C(0) : UINT64_C(0);
-      }
-      uvalue >>= amount;
-      if (is_negative) {
-        // Simulate sign-extension to 64 bits.
-        uvalue |= ~UINT64_C(0) << (reg_size - amount);
-      }
-      break;
-    case ROR: {
-      uvalue = RotateRight(uvalue, amount, reg_size);
-      break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        return 0;
     }
-    default:
-      VIXL_UNIMPLEMENTED();
-      return 0;
+    uvalue &= mask;
   }
-  uvalue &= mask;
 
   int64_t result;
   memcpy(&result, &uvalue, sizeof(result));

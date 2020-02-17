@@ -2750,7 +2750,7 @@ class Simulator : public DecoderVisitor {
   }
 
   int64_t ShiftOperand(unsigned reg_size,
-                       int64_t value,
+                       uint64_t value,
                        Shift shift_type,
                        unsigned amount) const;
   int64_t ExtendValue(unsigned reg_width,
