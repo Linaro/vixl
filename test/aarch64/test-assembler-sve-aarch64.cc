@@ -9925,224 +9925,6 @@ TEST_SVE(sve_select) {
   }
 }
 
-// Execute a number of instructions which all use ProcessNaNs, and check that
-// they all propagate NaNs correctly.
-template <typename Ti, typename Te, size_t N>
-static void ProcessNaNsHelper(Test* config,
-                              int lane_size_in_bits,
-                              const Ti (&zn_inputs)[N],
-                              const Ti (&zm_inputs)[N],
-                              const Te (&zd_expected)[N],
-                              FPMacroNaNPropagationOption nan_option) {
-  ArithFn unpredicated_macro[] = {&MacroAssembler::Fadd,
-                                  &MacroAssembler::Fsub,
-                                  &MacroAssembler::Fmul};
-
-  for (size_t i = 0; i < ArrayLength(unpredicated_macro); i++) {
-    FPBinArithHelper(config,
-                     unpredicated_macro[i],
-                     lane_size_in_bits,
-                     zn_inputs,
-                     zm_inputs,
-                     zd_expected);
-  }
-
-  FPArithPredicatedFn predicated_macro[] = {&MacroAssembler::Fmax,
-                                            &MacroAssembler::Fmin};
-  int pg_inputs[N];
-  // With an all-true predicate, this helper aims to compare with special
-  // numbers.
-  for (size_t i = 0; i < N; i++) {
-    pg_inputs[i] = 1;
-  }
-
-  FPBinArithHelper(config,
-                   NULL,
-                   &MacroAssembler::Fdiv,
-                   lane_size_in_bits,
-                   // With an all-true predicate, the value in zd is
-                   // irrelevant to the operations.
-                   zn_inputs,
-                   pg_inputs,
-                   zn_inputs,
-                   zm_inputs,
-                   zd_expected);
-
-  for (size_t i = 0; i < ArrayLength(predicated_macro); i++) {
-    FPBinArithHelper(config,
-                     predicated_macro[i],
-                     NULL,
-                     lane_size_in_bits,
-                     // With an all-true predicate, the value in zd is
-                     // irrelevant to the operations.
-                     zn_inputs,
-                     pg_inputs,
-                     zn_inputs,
-                     zm_inputs,
-                     zd_expected,
-                     nan_option);
-  }
-}
-
-TEST_SVE(sve_process_nans_double) {
-  // Use non-standard NaNs to check that the payload bits are preserved.
-  double sn = RawbitsToDouble(0x7ff5555511111111);
-  double sm = RawbitsToDouble(0x7ff5555522222222);
-  double qn = RawbitsToDouble(0x7ffaaaaa11111111);
-  double qm = RawbitsToDouble(0x7ffaaaaa22222222);
-  VIXL_ASSERT(IsSignallingNaN(sn));
-  VIXL_ASSERT(IsSignallingNaN(sm));
-  VIXL_ASSERT(IsQuietNaN(qn));
-  VIXL_ASSERT(IsQuietNaN(qm));
-
-  // The input NaNs after passing through ProcessNaN.
-  uint64_t sn_proc = 0x7ffd555511111111;
-  uint64_t sm_proc = 0x7ffd555522222222;
-  uint64_t qn_proc = DoubleToRawbits(qn);
-  uint64_t qm_proc = DoubleToRawbits(qm);
-
-  // Quiet NaNs are propagated.
-  double zn_inputs_1[] = {qn, 0.0, 0.0, qm, qn, qm};
-  double zm_inputs_1[] = {0.0, qn, qm, 0.0, qm, qn};
-  uint64_t zd_expected_1[] =
-      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
-  ProcessNaNsHelper(config,
-                    kDRegSize,
-                    zn_inputs_1,
-                    zm_inputs_1,
-                    zd_expected_1,
-                    StrictNaNPropagation);
-
-  // Signalling NaNs are propagated.
-  double zn_inputs_2[] = {sn, 0.0, 0.0, sm, sn, sm};
-  double zm_inputs_2[] = {0.0, sn, sm, 0.0, sm, sn};
-  uint64_t zd_expected_2[] =
-      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
-  ProcessNaNsHelper(config,
-                    kDRegSize,
-                    zn_inputs_2,
-                    zm_inputs_2,
-                    zd_expected_2,
-                    StrictNaNPropagation);
-
-  // Signalling NaNs take precedence over quiet NaNs.
-  double zn_inputs_3[] = {sn, qn, sn, sn, qn};
-  double zm_inputs_3[] = {qm, sm, sm, qn, sn};
-  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
-  ProcessNaNsHelper(config,
-                    kDRegSize,
-                    zn_inputs_3,
-                    zm_inputs_3,
-                    zd_expected_3,
-                    StrictNaNPropagation);
-}
-
-TEST_SVE(sve_process_nans_float) {
-  // Use non-standard NaNs to check that the payload bits are preserved.
-  float sn = RawbitsToFloat(0x7f951111);
-  float sm = RawbitsToFloat(0x7f952222);
-  float qn = RawbitsToFloat(0x7fea1111);
-  float qm = RawbitsToFloat(0x7fea2222);
-  VIXL_ASSERT(IsSignallingNaN(sn));
-  VIXL_ASSERT(IsSignallingNaN(sm));
-  VIXL_ASSERT(IsQuietNaN(qn));
-  VIXL_ASSERT(IsQuietNaN(qm));
-
-  // The input NaNs after passing through ProcessNaN.
-  uint32_t sn_proc = 0x7fd51111;
-  uint32_t sm_proc = 0x7fd52222;
-  uint32_t qn_proc = FloatToRawbits(qn);
-  uint32_t qm_proc = FloatToRawbits(qm);
-
-  // Quiet NaNs are propagated.
-  float zn_inputs_1[] = {qn, 0.0f, 0.0f, qm, qn, qm};
-  float zm_inputs_1[] = {0.0f, qn, qm, 0.0f, qm, qn};
-  uint64_t zd_expected_1[] =
-      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
-  ProcessNaNsHelper(config,
-                    kSRegSize,
-                    zn_inputs_1,
-                    zm_inputs_1,
-                    zd_expected_1,
-                    StrictNaNPropagation);
-
-  // Signalling NaNs are propagated.
-  float zn_inputs_2[] = {sn, 0.0f, 0.0f, sm, sn, sm};
-  float zm_inputs_2[] = {0.0f, sn, sm, 0.0f, sm, sn};
-  uint64_t zd_expected_2[] =
-      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
-  ProcessNaNsHelper(config,
-                    kSRegSize,
-                    zn_inputs_2,
-                    zm_inputs_2,
-                    zd_expected_2,
-                    StrictNaNPropagation);
-
-  // Signalling NaNs take precedence over quiet NaNs.
-  float zn_inputs_3[] = {sn, qn, sn, sn, qn};
-  float zm_inputs_3[] = {qm, sm, sm, qn, sn};
-  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
-  ProcessNaNsHelper(config,
-                    kSRegSize,
-                    zn_inputs_3,
-                    zm_inputs_3,
-                    zd_expected_3,
-                    StrictNaNPropagation);
-}
-
-TEST_SVE(sve_process_nans_half) {
-  // Use non-standard NaNs to check that the payload bits are preserved.
-  Float16 sn(RawbitsToFloat16(0x7c11));
-  Float16 sm(RawbitsToFloat16(0xfc22));
-  Float16 qn(RawbitsToFloat16(0x7e33));
-  Float16 qm(RawbitsToFloat16(0xfe44));
-  VIXL_ASSERT(IsSignallingNaN(sn));
-  VIXL_ASSERT(IsSignallingNaN(sm));
-  VIXL_ASSERT(IsQuietNaN(qn));
-  VIXL_ASSERT(IsQuietNaN(qm));
-
-  // The input NaNs after passing through ProcessNaN.
-  uint16_t sn_proc = 0x7e11;
-  uint16_t sm_proc = 0xfe22;
-  uint16_t qn_proc = Float16ToRawbits(qn);
-  uint16_t qm_proc = Float16ToRawbits(qm);
-
-  // Quiet NaNs are propagated.
-  Float16 zn_inputs_1[] = {qn, Float16(0.0), Float16(0.0), qm, qn, qm};
-  Float16 zm_inputs_1[] = {Float16(0.0), qn, qm, Float16(0.0), qm, qn};
-  uint64_t zd_expected_1[] =
-      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
-  ProcessNaNsHelper(config,
-                    kHRegSize,
-                    zn_inputs_1,
-                    zm_inputs_1,
-                    zd_expected_1,
-                    StrictNaNPropagation);
-
-  // Signalling NaNs are propagated.
-  Float16 zn_inputs_2[] = {sn, Float16(0.0), Float16(0.0), sm, sn, sm};
-  Float16 zm_inputs_2[] = {Float16(0.0), sn, sm, Float16(0.0), sm, sn};
-  uint64_t zd_expected_2[] =
-      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
-  ProcessNaNsHelper(config,
-                    kHRegSize,
-                    zn_inputs_2,
-                    zm_inputs_2,
-                    zd_expected_2,
-                    StrictNaNPropagation);
-
-  // Signalling NaNs take precedence over quiet NaNs.
-  Float16 zn_inputs_3[] = {sn, qn, sn, sn, qn};
-  Float16 zm_inputs_3[] = {qm, sm, sm, qn, sn};
-  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
-  ProcessNaNsHelper(config,
-                    kHRegSize,
-                    zn_inputs_3,
-                    zm_inputs_3,
-                    zd_expected_3,
-                    StrictNaNPropagation);
-}
-
 TEST_SVE(sve_binary_arithmetic_predicated_fmax_fmin_h) {
   double zd_inputs[] = {1.1, 2.2, 3.3, 4.4, 5.5, 6.6, 7.7, 8.8};
   double zn_inputs[] = {-2.1,
@@ -13588,5 +13370,912 @@ TEST_SVE(sve_ftsmul) {
     ASSERT_EQUAL_SVE(z8_expected, z8.VnD());
   }
 }
+
+typedef void (MacroAssembler::*FPMulAccFn)(
+    const ZRegister& zd,
+    const PRegisterM& pg,
+    const ZRegister& za,
+    const ZRegister& zn,
+    const ZRegister& zm,
+    FPMacroNaNPropagationOption nan_option);
+
+// The `pg_inputs` is used for examining the predication correctness internally.
+// It does not imply the value of `result` argument. `result` stands for the
+// expected result on all-true predication.
+template <typename T, size_t N>
+static void FPMulAccHelper(
+    Test* config,
+    FPMulAccFn macro,
+    unsigned lane_size_in_bits,
+    const int (&pg_inputs)[N],
+    const T (&za_inputs)[N],
+    const T (&zn_inputs)[N],
+    const T (&zm_inputs)[N],
+    const uint64_t (&result)[N],
+    FPMacroNaNPropagationOption nan_option = FastNaNPropagation) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  ZRegister zd = z0.WithLaneSize(lane_size_in_bits);
+  ZRegister za = z1.WithLaneSize(lane_size_in_bits);
+  ZRegister zn = z2.WithLaneSize(lane_size_in_bits);
+  ZRegister zm = z3.WithLaneSize(lane_size_in_bits);
+
+  uint64_t za_rawbits[N];
+  uint64_t zn_rawbits[N];
+  uint64_t zm_rawbits[N];
+
+  FPToRawbitsWithSize(za_inputs, za_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zn_inputs, zn_rawbits, lane_size_in_bits);
+  FPToRawbitsWithSize(zm_inputs, zm_rawbits, lane_size_in_bits);
+
+  InsrHelper(&masm, za, za_rawbits);
+  InsrHelper(&masm, zn, zn_rawbits);
+  InsrHelper(&masm, zm, zm_rawbits);
+
+  uint64_t zd_rawbits[N];
+  for (size_t i = 0; i < N; i++) {
+    // Initialize `zd` with a signalling NaN.
+    switch (lane_size_in_bits) {
+      case kHRegSize:
+        zd_rawbits[i] = 0x7c99;
+        break;
+      case kSRegSize:
+        zd_rawbits[i] = 0x7f959999;
+        break;
+      case kDRegSize:
+        zd_rawbits[i] = 0x7ff5555599999999;
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+  InsrHelper(&masm, zd, zd_rawbits);
+
+  Initialise(&masm, p0.WithLaneSize(lane_size_in_bits), pg_inputs);
+
+  // Fmla  macro automatically selects between fmla,  fmad  and movprfx + fmla
+  // Fmls                 `ditto`              fmls,  fmsb  and movprfx + fmls
+  // Fnmla                `ditto`              fnmla, fnmad and movprfx + fnmla
+  // Fnmls                `ditto`              fnmls, fnmsb and movprfx + fnmls
+  // based on what registers are aliased.
+  ZRegister da_result = z10.WithLaneSize(lane_size_in_bits);
+  ZRegister dn_result = z11.WithLaneSize(lane_size_in_bits);
+  ZRegister dm_result = z12.WithLaneSize(lane_size_in_bits);
+  ZRegister d_result = z13.WithLaneSize(lane_size_in_bits);
+
+  __ Mov(da_result, za);
+  (masm.*macro)(da_result, p0.Merging(), da_result, zn, zm, nan_option);
+
+  __ Mov(dn_result, zn);
+  (masm.*macro)(dn_result, p0.Merging(), za, dn_result, zm, nan_option);
+
+  __ Mov(dm_result, zm);
+  (masm.*macro)(dm_result, p0.Merging(), za, zn, dm_result, nan_option);
+
+  __ Mov(d_result, zd);
+  (masm.*macro)(d_result, p0.Merging(), za, zn, zm, nan_option);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(za_rawbits, za);
+    ASSERT_EQUAL_SVE(zn_rawbits, zn);
+    ASSERT_EQUAL_SVE(zm_rawbits, zm);
+
+    uint64_t da_expected[N];
+    uint64_t dn_expected[N];
+    uint64_t dm_expected[N];
+    uint64_t d_expected[N];
+    for (size_t i = 0; i < N; i++) {
+      da_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : za_rawbits[i];
+      dn_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : zn_rawbits[i];
+      dm_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : zm_rawbits[i];
+      d_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : zd_rawbits[i];
+    }
+
+    ASSERT_EQUAL_SVE(da_expected, da_result);
+    ASSERT_EQUAL_SVE(dn_expected, dn_result);
+    ASSERT_EQUAL_SVE(dm_expected, dm_result);
+    ASSERT_EQUAL_SVE(d_expected, d_result);
+  }
+}
+
+TEST_SVE(sve_fmla_fmad) {
+  // fmla : zd = za + zn * zm
+  double za_inputs[] = {-39.0, 1.0, -3.0, 2.0};
+  double zn_inputs[] = {-5.0, -20.0, 9.0, 8.0};
+  double zm_inputs[] = {9.0, -5.0, 4.0, 5.0};
+  int pg_inputs[] = {1, 1, 0, 1};
+
+  uint64_t fmla_result_h[] = {Float16ToRawbits(Float16(-84.0)),
+                              Float16ToRawbits(Float16(101.0)),
+                              Float16ToRawbits(Float16(33.0)),
+                              Float16ToRawbits(Float16(42.0))};
+
+  // `fmad` has been tested in the helper.
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmla,
+                 kHRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fmla_result_h);
+
+  uint64_t fmla_result_s[] = {FloatToRawbits(-84.0f),
+                              FloatToRawbits(101.0f),
+                              FloatToRawbits(33.0f),
+                              FloatToRawbits(42.0f)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmla,
+                 kSRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fmla_result_s);
+
+  uint64_t fmla_result_d[] = {DoubleToRawbits(-84.0),
+                              DoubleToRawbits(101.0),
+                              DoubleToRawbits(33.0),
+                              DoubleToRawbits(42.0)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmla,
+                 kDRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fmla_result_d);
+}
+
+TEST_SVE(sve_fmls_fmsb) {
+  // fmls : zd = za - zn * zm
+  double za_inputs[] = {-39.0, 1.0, -3.0, 2.0};
+  double zn_inputs[] = {-5.0, -20.0, 9.0, 8.0};
+  double zm_inputs[] = {9.0, -5.0, 4.0, 5.0};
+  int pg_inputs[] = {1, 0, 1, 1};
+
+  uint64_t fmls_result_h[] = {Float16ToRawbits(Float16(6.0)),
+                              Float16ToRawbits(Float16(-99.0)),
+                              Float16ToRawbits(Float16(-39.0)),
+                              Float16ToRawbits(Float16(-38.0))};
+
+  // `fmsb` has been tested in the helper.
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmls,
+                 kHRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fmls_result_h);
+
+  uint64_t fmls_result_s[] = {FloatToRawbits(6.0f),
+                              FloatToRawbits(-99.0f),
+                              FloatToRawbits(-39.0f),
+                              FloatToRawbits(-38.0f)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmls,
+                 kSRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fmls_result_s);
+
+  uint64_t fmls_result_d[] = {DoubleToRawbits(6.0),
+                              DoubleToRawbits(-99.0),
+                              DoubleToRawbits(-39.0),
+                              DoubleToRawbits(-38.0)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmls,
+                 kDRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fmls_result_d);
+}
+
+TEST_SVE(sve_fnmla_fnmad) {
+  // fnmla : zd = -za - zn * zm
+  double za_inputs[] = {-39.0, 1.0, -3.0, 2.0};
+  double zn_inputs[] = {-5.0, -20.0, 9.0, 8.0};
+  double zm_inputs[] = {9.0, -5.0, 4.0, 5.0};
+  int pg_inputs[] = {0, 1, 1, 1};
+
+  uint64_t fnmla_result_h[] = {Float16ToRawbits(Float16(84.0)),
+                               Float16ToRawbits(Float16(-101.0)),
+                               Float16ToRawbits(Float16(-33.0)),
+                               Float16ToRawbits(Float16(-42.0))};
+
+  // `fnmad` has been tested in the helper.
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmla,
+                 kHRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fnmla_result_h);
+
+  uint64_t fnmla_result_s[] = {FloatToRawbits(84.0f),
+                               FloatToRawbits(-101.0f),
+                               FloatToRawbits(-33.0f),
+                               FloatToRawbits(-42.0f)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmla,
+                 kSRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fnmla_result_s);
+
+  uint64_t fnmla_result_d[] = {DoubleToRawbits(84.0),
+                               DoubleToRawbits(-101.0),
+                               DoubleToRawbits(-33.0),
+                               DoubleToRawbits(-42.0)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmla,
+                 kDRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fnmla_result_d);
+}
+
+TEST_SVE(sve_fnmls_fnmsb) {
+  // fnmls : zd = -za + zn * zm
+  double za_inputs[] = {-39.0, 1.0, -3.0, 2.0};
+  double zn_inputs[] = {-5.0, -20.0, 9.0, 8.0};
+  double zm_inputs[] = {9.0, -5.0, 4.0, 5.0};
+  int pg_inputs[] = {1, 1, 1, 0};
+
+  uint64_t fnmls_result_h[] = {Float16ToRawbits(Float16(-6.0)),
+                               Float16ToRawbits(Float16(99.0)),
+                               Float16ToRawbits(Float16(39.0)),
+                               Float16ToRawbits(Float16(38.0))};
+
+  // `fnmsb` has been tested in the helper.
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmls,
+                 kHRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fnmls_result_h);
+
+  uint64_t fnmls_result_s[] = {FloatToRawbits(-6.0f),
+                               FloatToRawbits(99.0f),
+                               FloatToRawbits(39.0f),
+                               FloatToRawbits(38.0f)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmls,
+                 kSRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fnmls_result_s);
+
+  uint64_t fnmls_result_d[] = {DoubleToRawbits(-6.0),
+                               DoubleToRawbits(99.0),
+                               DoubleToRawbits(39.0),
+                               DoubleToRawbits(38.0)};
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmls,
+                 kDRegSize,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 fnmls_result_d);
+}
+
+// Execute a number of instructions which all use ProcessNaNs, and check that
+// they all propagate NaNs correctly.
+template <typename Ti, typename Td, size_t N>
+static void ProcessNaNsHelper(Test* config,
+                              int lane_size_in_bits,
+                              const Ti (&zn_inputs)[N],
+                              const Ti (&zm_inputs)[N],
+                              const Td (&zd_expected)[N],
+                              FPMacroNaNPropagationOption nan_option) {
+  ArithFn arith_unpredicated_macro[] = {&MacroAssembler::Fadd,
+                                        &MacroAssembler::Fsub,
+                                        &MacroAssembler::Fmul};
+
+  for (size_t i = 0; i < ArrayLength(arith_unpredicated_macro); i++) {
+    FPBinArithHelper(config,
+                     arith_unpredicated_macro[i],
+                     lane_size_in_bits,
+                     zn_inputs,
+                     zm_inputs,
+                     zd_expected);
+  }
+
+  FPArithPredicatedFn arith_predicated_macro[] = {&MacroAssembler::Fmax,
+                                                  &MacroAssembler::Fmin};
+  int pg_inputs[N];
+  // With an all-true predicate, this helper aims to compare with special
+  // numbers.
+  for (size_t i = 0; i < N; i++) {
+    pg_inputs[i] = 1;
+  }
+
+  // fdivr propagates the quotient (Zm) preferentially, so we don't actually
+  // need any special handling for StrictNaNPropagation.
+  FPBinArithHelper(config,
+                   NULL,
+                   &MacroAssembler::Fdiv,
+                   lane_size_in_bits,
+                   // With an all-true predicate, the value in zd is
+                   // irrelevant to the operations.
+                   zn_inputs,
+                   pg_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected);
+
+  for (size_t i = 0; i < ArrayLength(arith_predicated_macro); i++) {
+    FPBinArithHelper(config,
+                     arith_predicated_macro[i],
+                     NULL,
+                     lane_size_in_bits,
+                     // With an all-true predicate, the value in zd is
+                     // irrelevant to the operations.
+                     zn_inputs,
+                     pg_inputs,
+                     zn_inputs,
+                     zm_inputs,
+                     zd_expected,
+                     nan_option);
+  }
+}
+
+template <typename Ti, typename Td, size_t N>
+static void ProcessNaNsHelper3(Test* config,
+                               int lane_size_in_bits,
+                               const Ti (&za_inputs)[N],
+                               const Ti (&zn_inputs)[N],
+                               const Ti (&zm_inputs)[N],
+                               const Td (&zd_expected_fmla)[N],
+                               const Td (&zd_expected_fmls)[N],
+                               const Td (&zd_expected_fnmla)[N],
+                               const Td (&zd_expected_fnmls)[N],
+                               FPMacroNaNPropagationOption nan_option) {
+  int pg_inputs[N];
+  // With an all-true predicate, this helper aims to compare with special
+  // numbers.
+  for (size_t i = 0; i < N; i++) {
+    pg_inputs[i] = 1;
+  }
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmla,
+                 lane_size_in_bits,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_fmla,
+                 nan_option);
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fmls,
+                 lane_size_in_bits,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_fmls,
+                 nan_option);
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmla,
+                 lane_size_in_bits,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_fnmla,
+                 nan_option);
+
+  FPMulAccHelper(config,
+                 &MacroAssembler::Fnmls,
+                 lane_size_in_bits,
+                 pg_inputs,
+                 za_inputs,
+                 zn_inputs,
+                 zm_inputs,
+                 zd_expected_fnmls,
+                 nan_option);
+}
+
+TEST_SVE(sve_process_nans_double) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  double sa = RawbitsToDouble(0x7ff5555511111111);
+  double sn = RawbitsToDouble(0x7ff5555522222222);
+  double sm = RawbitsToDouble(0x7ff5555533333333);
+  double qa = RawbitsToDouble(0x7ffaaaaa11111111);
+  double qn = RawbitsToDouble(0x7ffaaaaa22222222);
+  double qm = RawbitsToDouble(0x7ffaaaaa33333333);
+  VIXL_ASSERT(IsSignallingNaN(sa));
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qa));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  uint64_t sa_proc = 0x7ffd555511111111;
+  uint64_t sn_proc = 0x7ffd555522222222;
+  uint64_t sm_proc = 0x7ffd555533333333;
+  uint64_t qa_proc = DoubleToRawbits(qa);
+  uint64_t qn_proc = DoubleToRawbits(qn);
+  uint64_t qm_proc = DoubleToRawbits(qm);
+  uint64_t sa_proc_n = sa_proc ^ kDSignMask;
+  uint64_t sn_proc_n = sn_proc ^ kDSignMask;
+  uint64_t qa_proc_n = qa_proc ^ kDSignMask;
+  uint64_t qn_proc_n = qn_proc ^ kDSignMask;
+
+  // Quiet NaNs are propagated.
+  double zn_inputs_1[] = {qn, 0.0, 0.0, qm, qn, qm};
+  double zm_inputs_1[] = {0.0, qn, qm, 0.0, qm, qn};
+  uint64_t zd_expected_1[] =
+      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
+
+  ProcessNaNsHelper(config,
+                    kDRegSize,
+                    zn_inputs_1,
+                    zm_inputs_1,
+                    zd_expected_1,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs are propagated.
+  double zn_inputs_2[] = {sn, 0.0, 0.0, sm, sn, sm};
+  double zm_inputs_2[] = {0.0, sn, sm, 0.0, sm, sn};
+  uint64_t zd_expected_2[] =
+      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
+  ProcessNaNsHelper(config,
+                    kDRegSize,
+                    zn_inputs_2,
+                    zm_inputs_2,
+                    zd_expected_2,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  double zn_inputs_3[] = {sn, qn, sn, sn, qn};
+  double zm_inputs_3[] = {qm, sm, sm, qn, sn};
+  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
+  ProcessNaNsHelper(config,
+                    kDRegSize,
+                    zn_inputs_3,
+                    zm_inputs_3,
+                    zd_expected_3,
+                    StrictNaNPropagation);
+
+  double za_inputs_4[] = {qa, qa, 0.0, 0.0, qa, qa};
+  double zn_inputs_4[] = {qn, 0.0, 0.0, qn, qn, qn};
+  double zm_inputs_4[] = {0.0, qm, qm, qm, qm, 0.0};
+
+  // If `a` is propagated, its sign is inverted by fnmla and fnmls.
+  // If `n` is propagated, its sign is inverted by fmls and fnmla.
+  // If `m` is propagated, its sign is never inverted.
+  uint64_t zd_expected_fmla_4[] =
+      {qa_proc, qa_proc, qm_proc, qn_proc, qa_proc, qa_proc};
+  uint64_t zd_expected_fmls_4[] =
+      {qa_proc, qa_proc, qm_proc, qn_proc_n, qa_proc, qa_proc};
+  uint64_t zd_expected_fnmla_4[] =
+      {qa_proc_n, qa_proc_n, qm_proc, qn_proc_n, qa_proc_n, qa_proc_n};
+  uint64_t zd_expected_fnmls_4[] =
+      {qa_proc_n, qa_proc_n, qm_proc, qn_proc, qa_proc_n, qa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kDRegSize,
+                     za_inputs_4,
+                     zn_inputs_4,
+                     zm_inputs_4,
+                     zd_expected_fmla_4,
+                     zd_expected_fmls_4,
+                     zd_expected_fnmla_4,
+                     zd_expected_fnmls_4,
+                     StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  double za_inputs_5[] = {qa, qa, sa, sa, sa};
+  double zn_inputs_5[] = {qn, sn, sn, sn, qn};
+  double zm_inputs_5[] = {sm, qm, sm, qa, sm};
+  uint64_t zd_expected_fmla_5[] = {sm_proc, sn_proc, sa_proc, sa_proc, sa_proc};
+  uint64_t zd_expected_fmls_5[] = {sm_proc,
+                                   sn_proc_n,
+                                   sa_proc,
+                                   sa_proc,
+                                   sa_proc};
+  uint64_t zd_expected_fnmla_5[] = {sm_proc,
+                                    sn_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n};
+  uint64_t zd_expected_fnmls_5[] = {sm_proc,
+                                    sn_proc,
+                                    sa_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kDRegSize,
+                     za_inputs_5,
+                     zn_inputs_5,
+                     zm_inputs_5,
+                     zd_expected_fmla_5,
+                     zd_expected_fmls_5,
+                     zd_expected_fnmla_5,
+                     zd_expected_fnmls_5,
+                     StrictNaNPropagation);
+
+  const double inf = kFP64PositiveInfinity;
+  const double inf_n = kFP64NegativeInfinity;
+  uint64_t inf_proc = DoubleToRawbits(inf);
+  uint64_t inf_proc_n = DoubleToRawbits(inf_n);
+  uint64_t d_inf_proc = DoubleToRawbits(kFP64DefaultNaN);
+
+  double za_inputs_6[] = {qa, qa, 0.0f, -0.0f, qa, sa};
+  double zn_inputs_6[] = {inf, -0.0f, -0.0f, inf, inf_n, inf};
+  double zm_inputs_6[] = {0.0f, inf_n, inf, inf, inf, 0.0f};
+
+  // quiet_nan + (0.0 * inf) produces the default NaN, not quiet_nan. Ditto for
+  // (inf * 0.0). On the other hand, quiet_nan + (inf * inf) propagates the
+  // quiet_nan.
+  uint64_t zd_expected_fmla_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc, qa_proc, sa_proc};
+  uint64_t zd_expected_fmls_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc_n, qa_proc, sa_proc};
+  uint64_t zd_expected_fnmla_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc_n, qa_proc_n, sa_proc_n};
+  uint64_t zd_expected_fnmls_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc, qa_proc_n, sa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kDRegSize,
+                     za_inputs_6,
+                     zn_inputs_6,
+                     zm_inputs_6,
+                     zd_expected_fmla_6,
+                     zd_expected_fmls_6,
+                     zd_expected_fnmla_6,
+                     zd_expected_fnmls_6,
+                     StrictNaNPropagation);
+}
+
+TEST_SVE(sve_process_nans_float) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  float sa = RawbitsToFloat(0x7f951111);
+  float sn = RawbitsToFloat(0x7f952222);
+  float sm = RawbitsToFloat(0x7f953333);
+  float qa = RawbitsToFloat(0x7fea1111);
+  float qn = RawbitsToFloat(0x7fea2222);
+  float qm = RawbitsToFloat(0x7fea3333);
+  VIXL_ASSERT(IsSignallingNaN(sa));
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qa));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  uint32_t sa_proc = 0x7fd51111;
+  uint32_t sn_proc = 0x7fd52222;
+  uint32_t sm_proc = 0x7fd53333;
+  uint32_t qa_proc = FloatToRawbits(qa);
+  uint32_t qn_proc = FloatToRawbits(qn);
+  uint32_t qm_proc = FloatToRawbits(qm);
+  uint32_t sa_proc_n = sa_proc ^ kSSignMask;
+  uint32_t sn_proc_n = sn_proc ^ kSSignMask;
+  uint32_t qa_proc_n = qa_proc ^ kSSignMask;
+  uint32_t qn_proc_n = qn_proc ^ kSSignMask;
+
+  // Quiet NaNs are propagated.
+  float zn_inputs_1[] = {qn, 0.0f, 0.0f, qm, qn, qm};
+  float zm_inputs_1[] = {0.0f, qn, qm, 0.0f, qm, qn};
+  uint64_t zd_expected_1[] =
+      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
+
+  ProcessNaNsHelper(config,
+                    kSRegSize,
+                    zn_inputs_1,
+                    zm_inputs_1,
+                    zd_expected_1,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs are propagated.
+  float zn_inputs_2[] = {sn, 0.0f, 0.0f, sm, sn, sm};
+  float zm_inputs_2[] = {0.0f, sn, sm, 0.0f, sm, sn};
+  uint64_t zd_expected_2[] =
+      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
+  ProcessNaNsHelper(config,
+                    kSRegSize,
+                    zn_inputs_2,
+                    zm_inputs_2,
+                    zd_expected_2,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  float zn_inputs_3[] = {sn, qn, sn, sn, qn};
+  float zm_inputs_3[] = {qm, sm, sm, qn, sn};
+  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
+  ProcessNaNsHelper(config,
+                    kSRegSize,
+                    zn_inputs_3,
+                    zm_inputs_3,
+                    zd_expected_3,
+                    StrictNaNPropagation);
+
+  float za_inputs_4[] = {qa, qa, 0.0f, 0.0f, qa, qa};
+  float zn_inputs_4[] = {qn, 0.0f, 0.0f, qn, qn, qn};
+  float zm_inputs_4[] = {0.0f, qm, qm, qm, qm, 0.0f};
+
+  // If `a` is propagated, its sign is inverted by fnmla and fnmls.
+  // If `n` is propagated, its sign is inverted by fmls and fnmla.
+  // If `m` is propagated, its sign is never inverted.
+  uint64_t zd_expected_fmla_4[] =
+      {qa_proc, qa_proc, qm_proc, qn_proc, qa_proc, qa_proc};
+  uint64_t zd_expected_fmls_4[] =
+      {qa_proc, qa_proc, qm_proc, qn_proc_n, qa_proc, qa_proc};
+  uint64_t zd_expected_fnmla_4[] =
+      {qa_proc_n, qa_proc_n, qm_proc, qn_proc_n, qa_proc_n, qa_proc_n};
+  uint64_t zd_expected_fnmls_4[] =
+      {qa_proc_n, qa_proc_n, qm_proc, qn_proc, qa_proc_n, qa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kSRegSize,
+                     za_inputs_4,
+                     zn_inputs_4,
+                     zm_inputs_4,
+                     zd_expected_fmla_4,
+                     zd_expected_fmls_4,
+                     zd_expected_fnmla_4,
+                     zd_expected_fnmls_4,
+                     StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  float za_inputs_5[] = {qa, qa, sa, sa, sa};
+  float zn_inputs_5[] = {qn, sn, sn, sn, qn};
+  float zm_inputs_5[] = {sm, qm, sm, qa, sm};
+  uint64_t zd_expected_fmla_5[] = {sm_proc, sn_proc, sa_proc, sa_proc, sa_proc};
+  uint64_t zd_expected_fmls_5[] = {sm_proc,
+                                   sn_proc_n,
+                                   sa_proc,
+                                   sa_proc,
+                                   sa_proc};
+  uint64_t zd_expected_fnmla_5[] = {sm_proc,
+                                    sn_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n};
+  uint64_t zd_expected_fnmls_5[] = {sm_proc,
+                                    sn_proc,
+                                    sa_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kSRegSize,
+                     za_inputs_5,
+                     zn_inputs_5,
+                     zm_inputs_5,
+                     zd_expected_fmla_5,
+                     zd_expected_fmls_5,
+                     zd_expected_fnmla_5,
+                     zd_expected_fnmls_5,
+                     StrictNaNPropagation);
+
+  const float inf = kFP32PositiveInfinity;
+  const float inf_n = kFP32NegativeInfinity;
+  uint32_t inf_proc = FloatToRawbits(inf);
+  uint32_t inf_proc_n = FloatToRawbits(inf_n);
+  uint32_t d_inf_proc = FloatToRawbits(kFP32DefaultNaN);
+
+  float za_inputs_6[] = {qa, qa, 0.0f, 0.0f, qa, sa};
+  float zn_inputs_6[] = {inf, 0.0f, 0.0f, inf, inf_n, inf};
+  float zm_inputs_6[] = {0.0f, inf_n, inf, inf, inf, 0.0f};
+
+  // quiet_nan + (0.0 * inf) produces the default NaN, not quiet_nan. Ditto for
+  // (inf * 0.0). On the other hand, quiet_nan + (inf * inf) propagates the
+  // quiet_nan.
+  uint64_t zd_expected_fmla_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc, qa_proc, sa_proc};
+  uint64_t zd_expected_fmls_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc_n, qa_proc, sa_proc};
+  uint64_t zd_expected_fnmla_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc_n, qa_proc_n, sa_proc_n};
+  uint64_t zd_expected_fnmls_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc, qa_proc_n, sa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kSRegSize,
+                     za_inputs_6,
+                     zn_inputs_6,
+                     zm_inputs_6,
+                     zd_expected_fmla_6,
+                     zd_expected_fmls_6,
+                     zd_expected_fnmla_6,
+                     zd_expected_fnmls_6,
+                     StrictNaNPropagation);
+}
+
+TEST_SVE(sve_process_nans_half) {
+  // Use non-standard NaNs to check that the payload bits are preserved.
+  Float16 sa(RawbitsToFloat16(0x7c11));
+  Float16 sn(RawbitsToFloat16(0x7c22));
+  Float16 sm(RawbitsToFloat16(0x7c33));
+  Float16 qa(RawbitsToFloat16(0x7e44));
+  Float16 qn(RawbitsToFloat16(0x7e55));
+  Float16 qm(RawbitsToFloat16(0x7e66));
+  VIXL_ASSERT(IsSignallingNaN(sa));
+  VIXL_ASSERT(IsSignallingNaN(sn));
+  VIXL_ASSERT(IsSignallingNaN(sm));
+  VIXL_ASSERT(IsQuietNaN(qa));
+  VIXL_ASSERT(IsQuietNaN(qn));
+  VIXL_ASSERT(IsQuietNaN(qm));
+
+  // The input NaNs after passing through ProcessNaN.
+  uint16_t sa_proc = 0x7e11;
+  uint16_t sn_proc = 0x7e22;
+  uint16_t sm_proc = 0x7e33;
+  uint16_t qa_proc = Float16ToRawbits(qa);
+  uint16_t qn_proc = Float16ToRawbits(qn);
+  uint16_t qm_proc = Float16ToRawbits(qm);
+  uint16_t sa_proc_n = sa_proc ^ kHSignMask;
+  uint16_t sn_proc_n = sn_proc ^ kHSignMask;
+  uint16_t qa_proc_n = qa_proc ^ kHSignMask;
+  uint16_t qn_proc_n = qn_proc ^ kHSignMask;
+  Float16 zero(0.0);
+
+  // Quiet NaNs are propagated.
+  Float16 zn_inputs_1[] = {qn, zero, zero, qm, qn, qm};
+  Float16 zm_inputs_1[] = {zero, qn, qm, zero, qm, qn};
+  uint64_t zd_expected_1[] =
+      {qn_proc, qn_proc, qm_proc, qm_proc, qn_proc, qm_proc};
+
+  ProcessNaNsHelper(config,
+                    kHRegSize,
+                    zn_inputs_1,
+                    zm_inputs_1,
+                    zd_expected_1,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs are propagated.
+  Float16 zn_inputs_2[] = {sn, zero, zero, sm, sn, sm};
+  Float16 zm_inputs_2[] = {zero, sn, sm, zero, sm, sn};
+  uint64_t zd_expected_2[] =
+      {sn_proc, sn_proc, sm_proc, sm_proc, sn_proc, sm_proc};
+  ProcessNaNsHelper(config,
+                    kHRegSize,
+                    zn_inputs_2,
+                    zm_inputs_2,
+                    zd_expected_2,
+                    StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  Float16 zn_inputs_3[] = {sn, qn, sn, sn, qn};
+  Float16 zm_inputs_3[] = {qm, sm, sm, qn, sn};
+  uint64_t zd_expected_3[] = {sn_proc, sm_proc, sn_proc, sn_proc, sn_proc};
+  ProcessNaNsHelper(config,
+                    kHRegSize,
+                    zn_inputs_3,
+                    zm_inputs_3,
+                    zd_expected_3,
+                    StrictNaNPropagation);
+
+  Float16 za_inputs_4[] = {qa, qa, zero, zero, qa, qa};
+  Float16 zn_inputs_4[] = {qn, zero, zero, qn, qn, qn};
+  Float16 zm_inputs_4[] = {zero, qm, qm, qm, qm, zero};
+
+  // If `a` is propagated, its sign is inverted by fnmla and fnmls.
+  // If `n` is propagated, its sign is inverted by fmls and fnmla.
+  // If `m` is propagated, its sign is never inverted.
+  uint64_t zd_expected_fmla_4[] =
+      {qa_proc, qa_proc, qm_proc, qn_proc, qa_proc, qa_proc};
+  uint64_t zd_expected_fmls_4[] =
+      {qa_proc, qa_proc, qm_proc, qn_proc_n, qa_proc, qa_proc};
+  uint64_t zd_expected_fnmla_4[] =
+      {qa_proc_n, qa_proc_n, qm_proc, qn_proc_n, qa_proc_n, qa_proc_n};
+  uint64_t zd_expected_fnmls_4[] =
+      {qa_proc_n, qa_proc_n, qm_proc, qn_proc, qa_proc_n, qa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kHRegSize,
+                     za_inputs_4,
+                     zn_inputs_4,
+                     zm_inputs_4,
+                     zd_expected_fmla_4,
+                     zd_expected_fmls_4,
+                     zd_expected_fnmla_4,
+                     zd_expected_fnmls_4,
+                     StrictNaNPropagation);
+
+  // Signalling NaNs take precedence over quiet NaNs.
+  Float16 za_inputs_5[] = {qa, qa, sa, sa, sa};
+  Float16 zn_inputs_5[] = {qn, sn, sn, sn, qn};
+  Float16 zm_inputs_5[] = {sm, qm, sm, qa, sm};
+  uint64_t zd_expected_fmla_5[] = {sm_proc, sn_proc, sa_proc, sa_proc, sa_proc};
+  uint64_t zd_expected_fmls_5[] = {sm_proc,
+                                   sn_proc_n,
+                                   sa_proc,
+                                   sa_proc,
+                                   sa_proc};
+  uint64_t zd_expected_fnmla_5[] = {sm_proc,
+                                    sn_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n};
+  uint64_t zd_expected_fnmls_5[] = {sm_proc,
+                                    sn_proc,
+                                    sa_proc_n,
+                                    sa_proc_n,
+                                    sa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kHRegSize,
+                     za_inputs_5,
+                     zn_inputs_5,
+                     zm_inputs_5,
+                     zd_expected_fmla_5,
+                     zd_expected_fmls_5,
+                     zd_expected_fnmla_5,
+                     zd_expected_fnmls_5,
+                     StrictNaNPropagation);
+
+  const Float16 inf = kFP16PositiveInfinity;
+  const Float16 inf_n = kFP16NegativeInfinity;
+  uint64_t inf_proc = Float16ToRawbits(inf);
+  uint64_t inf_proc_n = Float16ToRawbits(inf_n);
+  uint64_t d_inf_proc = Float16ToRawbits(kFP16DefaultNaN);
+
+  Float16 za_inputs_6[] = {qa, qa, zero, zero, qa, sa};
+  Float16 zn_inputs_6[] = {inf, zero, zero, inf, inf_n, inf};
+  Float16 zm_inputs_6[] = {zero, inf_n, inf, inf, inf, zero};
+
+  // quiet_nan + (0.0 * inf) produces the default NaN, not quiet_nan. Ditto for
+  // (inf * 0.0). On the other hand, quiet_nan + (inf * inf) propagates the
+  // quiet_nan.
+  uint64_t zd_expected_fmla_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc, qa_proc, sa_proc};
+  uint64_t zd_expected_fmls_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc_n, qa_proc, sa_proc};
+  uint64_t zd_expected_fnmla_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc_n, qa_proc_n, sa_proc_n};
+  uint64_t zd_expected_fnmls_6[] =
+      {d_inf_proc, d_inf_proc, d_inf_proc, inf_proc, qa_proc_n, sa_proc_n};
+
+  ProcessNaNsHelper3(config,
+                     kHRegSize,
+                     za_inputs_6,
+                     zn_inputs_6,
+                     zm_inputs_6,
+                     zd_expected_fmla_6,
+                     zd_expected_fmls_6,
+                     zd_expected_fnmla_6,
+                     zd_expected_fnmls_6,
+                     StrictNaNPropagation);
+}
+
 }  // namespace aarch64
 }  // namespace vixl

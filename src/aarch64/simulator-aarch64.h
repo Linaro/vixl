@@ -3920,19 +3920,23 @@ class Simulator : public DecoderVisitor {
   template <typename T>
   LogicVRegister fmla(VectorFormat vform,
                       LogicVRegister dst,
+                      const LogicVRegister& srca,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
   LogicVRegister fmla(VectorFormat vform,
                       LogicVRegister dst,
+                      const LogicVRegister& srca,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
   template <typename T>
   LogicVRegister fmls(VectorFormat vform,
                       LogicVRegister dst,
+                      const LogicVRegister& srca,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
   LogicVRegister fmls(VectorFormat vform,
                       LogicVRegister dst,
+                      const LogicVRegister& srca,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
   LogicVRegister fnmul(VectorFormat vform,

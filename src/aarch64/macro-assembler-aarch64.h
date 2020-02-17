@@ -4361,27 +4361,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fminv(vd, pg, zn);
   }
-  void Fmla(const ZRegister& zda,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmla(zda, pg, zn, zm);
-  }
+  // zd = za + (zn * zm)
+  void Fmla(
+      const ZRegister& zd,
+      const PRegisterM& pg,
+      const ZRegister& za,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
   void Fmla(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     fmla(zda, zn);
   }
-  void Fmls(const ZRegister& zda,
-            const PRegisterM& pg,
-            const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmls(zda, pg, zn, zm);
-  }
+  // zd = za - (zn * zm)
+  void Fmls(
+      const ZRegister& zd,
+      const PRegisterM& pg,
+      const ZRegister& za,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
   void Fmls(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -4431,38 +4431,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fneg(zd, pg, zn);
   }
-  void Fnmad(const ZRegister& zdn,
-             const PRegisterM& pg,
-             const ZRegister& zm,
-             const ZRegister& za) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fnmad(zdn, pg, zm, za);
-  }
-  void Fnmla(const ZRegister& zda,
-             const PRegisterM& pg,
-             const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fnmla(zda, pg, zn, zm);
-  }
-  void Fnmls(const ZRegister& zda,
-             const PRegisterM& pg,
-             const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fnmls(zda, pg, zn, zm);
-  }
-  void Fnmsb(const ZRegister& zdn,
-             const PRegisterM& pg,
-             const ZRegister& zm,
-             const ZRegister& za) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fnmsb(zdn, pg, zm, za);
-  }
+  void Fnmla(
+      const ZRegister& zda,
+      const PRegisterM& pg,
+      const ZRegister& za,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
+  void Fnmls(
+      const ZRegister& zd,
+      const PRegisterM& pg,
+      const ZRegister& za,
+      const ZRegister& zn,
+      const ZRegister& zm,
+      FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
   void Frecpe(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6842,6 +6824,28 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                      const ZRegister& zm,
                                      SVEArithPredicatedFn fn,
                                      FPMacroNaNPropagationOption nan_option);
+
+  // Floating-point fused multiply-add vectors (predicated), writing addend.
+  typedef void (Assembler::*SVEMulAddPredicatedZdaFn)(const ZRegister& zda,
+                                                      const PRegisterM& pg,
+                                                      const ZRegister& zn,
+                                                      const ZRegister& zm);
+
+  // Floating-point fused multiply-add vectors (predicated), writing
+  // multiplicand.
+  typedef void (Assembler::*SVEMulAddPredicatedZdnFn)(const ZRegister& zdn,
+                                                      const PRegisterM& pg,
+                                                      const ZRegister& zn,
+                                                      const ZRegister& zm);
+
+  void FPMulAddHelper(const ZRegister& zd,
+                      const PRegisterM& pg,
+                      const ZRegister& za,
+                      const ZRegister& zn,
+                      const ZRegister& zm,
+                      SVEMulAddPredicatedZdaFn fn_zda,
+                      SVEMulAddPredicatedZdnFn fn_zdn,
+                      FPMacroNaNPropagationOption nan_option);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

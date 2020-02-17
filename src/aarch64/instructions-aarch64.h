@@ -81,6 +81,7 @@ const uint64_t kXRegMask = UINT64_C(0xffffffffffffffff);
 const uint64_t kHRegMask = UINT64_C(0xffff);
 const uint64_t kSRegMask = UINT64_C(0xffffffff);
 const uint64_t kDRegMask = UINT64_C(0xffffffffffffffff);
+const uint64_t kHSignMask = UINT64_C(0x8000);
 const uint64_t kSSignMask = UINT64_C(0x80000000);
 const uint64_t kDSignMask = UINT64_C(0x8000000000000000);
 const uint64_t kWSignMask = UINT64_C(0x80000000);

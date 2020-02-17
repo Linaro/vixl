@@ -1464,6 +1464,126 @@ void MacroAssembler::Udot(const ZRegister& zd,
   SVESdotUdotHelper(&Assembler::udot, zd, za, zn, zm);
 }
 
+void MacroAssembler::FPMulAddHelper(const ZRegister& zd,
+                                    const PRegisterM& pg,
+                                    const ZRegister& za,
+                                    const ZRegister& zn,
+                                    const ZRegister& zm,
+                                    SVEMulAddPredicatedZdaFn fn_zda,
+                                    SVEMulAddPredicatedZdnFn fn_zdn,
+                                    FPMacroNaNPropagationOption nan_option) {
+  ResolveFPNaNPropagationOption(&nan_option);
+
+  if (zd.Aliases(za)) {
+    // zda = (-)zda + ((-)zn * zm) for fmla, fmls, fnmla and fnmls.
+    SingleEmissionCheckScope guard(this);
+    (this->*fn_zda)(zd, pg, zn, zm);
+  } else if (zd.Aliases(zn)) {
+    // zdn = (-)za + ((-)zdn * zm) for fmad, fmsb, fnmad and fnmsb.
+    SingleEmissionCheckScope guard(this);
+    (this->*fn_zdn)(zd, pg, zm, za);
+  } else if (zd.Aliases(zm)) {
+    switch (nan_option) {
+      case FastNaNPropagation: {
+        // We treat multiplication as commutative in the fast mode, so we can
+        // swap zn and zm.
+        // zdm = (-)za + ((-)zdm * zn) for fmad, fmsb, fnmad and fnmsb.
+        SingleEmissionCheckScope guard(this);
+        (this->*fn_zdn)(zd, pg, zn, za);
+        return;
+      }
+      case StrictNaNPropagation: {
+        UseScratchRegisterScope temps(this);
+        // Use a scratch register to keep the argument order exactly as
+        // specified.
+        ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zn);
+        {
+          MovprfxHelperScope guard(this, scratch, pg, za);
+          // scratch = (-)za + ((-)zn * zm)
+          (this->*fn_zda)(scratch, pg, zn, zm);
+        }
+        Mov(zd, scratch);
+        return;
+      }
+      case NoFPMacroNaNPropagationSelected:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  } else {
+    // zd = (-)za + ((-)zn * zm) for fmla, fmls, fnmla and fnmls.
+    MovprfxHelperScope guard(this, zd, pg, za);
+    (this->*fn_zda)(zd, pg, zn, zm);
+  }
+}
+
+void MacroAssembler::Fmla(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPMulAddHelper(zd,
+                 pg,
+                 za,
+                 zn,
+                 zm,
+                 &Assembler::fmla,
+                 &Assembler::fmad,
+                 nan_option);
+}
+
+void MacroAssembler::Fmls(const ZRegister& zd,
+                          const PRegisterM& pg,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPMulAddHelper(zd,
+                 pg,
+                 za,
+                 zn,
+                 zm,
+                 &Assembler::fmls,
+                 &Assembler::fmsb,
+                 nan_option);
+}
+
+void MacroAssembler::Fnmla(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPMulAddHelper(zd,
+                 pg,
+                 za,
+                 zn,
+                 zm,
+                 &Assembler::fnmla,
+                 &Assembler::fnmad,
+                 nan_option);
+}
+
+void MacroAssembler::Fnmls(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           FPMacroNaNPropagationOption nan_option) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPMulAddHelper(zd,
+                 pg,
+                 za,
+                 zn,
+                 zm,
+                 &Assembler::fnmls,
+                 &Assembler::fnmsb,
+                 nan_option);
+}
+
 void MacroAssembler::Ftmad(const ZRegister& zd,
                            const ZRegister& zn,
                            const ZRegister& zm,

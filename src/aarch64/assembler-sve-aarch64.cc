@@ -1314,8 +1314,7 @@ void Assembler::fmad(const ZRegister& zdn,
   VIXL_ASSERT(AreSameLaneSize(zdn, zm, za));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMAD_z_p_zzz | SVESize(zdn) | Rd(zdn) | Rx<12, 10>(pg) | Rn(zm) |
-       Rm(za));
+  Emit(FMAD_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rn(zm) | Rm(za));
 }
 
 void Assembler::fmla(const ZRegister& zda,
@@ -1330,8 +1329,7 @@ void Assembler::fmla(const ZRegister& zda,
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMLA_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) |
-       Rm(zm));
+  Emit(FMLA_z_p_zzz | SVESize(zda) | Rd(zda) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fmls(const ZRegister& zda,
@@ -1346,8 +1344,7 @@ void Assembler::fmls(const ZRegister& zda,
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMLS_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) |
-       Rm(zm));
+  Emit(FMLS_z_p_zzz | SVESize(zda) | Rd(zda) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fmsb(const ZRegister& zdn,
@@ -1362,8 +1359,7 @@ void Assembler::fmsb(const ZRegister& zdn,
   VIXL_ASSERT(AreSameLaneSize(zdn, zm, za));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FMSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | Rx<12, 10>(pg) | Rn(zm) |
-       Rm(za));
+  Emit(FMSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rn(zm) | Rm(za));
 }
 
 void Assembler::fnmad(const ZRegister& zdn,
@@ -1378,8 +1374,7 @@ void Assembler::fnmad(const ZRegister& zdn,
   VIXL_ASSERT(AreSameLaneSize(zdn, zm, za));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FNMAD_z_p_zzz | SVESize(zdn) | Rd(zdn) | Rx<12, 10>(pg) | Rn(zm) |
-       Rm(za));
+  Emit(FNMAD_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rn(zm) | Rm(za));
 }
 
 void Assembler::fnmla(const ZRegister& zda,
@@ -1394,8 +1389,7 @@ void Assembler::fnmla(const ZRegister& zda,
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FNMLA_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) |
-       Rm(zm));
+  Emit(FNMLA_z_p_zzz | SVESize(zda) | Rd(zda) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fnmls(const ZRegister& zda,
@@ -1410,8 +1404,7 @@ void Assembler::fnmls(const ZRegister& zda,
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FNMLS_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) |
-       Rm(zm));
+  Emit(FNMLS_z_p_zzz | SVESize(zda) | Rd(zda) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fnmsb(const ZRegister& zdn,
@@ -1426,8 +1419,7 @@ void Assembler::fnmsb(const ZRegister& zdn,
   VIXL_ASSERT(AreSameLaneSize(zdn, zm, za));
   VIXL_ASSERT(zdn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FNMSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | Rx<12, 10>(pg) | Rn(zm) |
-       Rm(za));
+  Emit(FNMSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rn(zm) | Rm(za));
 }
 
 // SVEFPMulAddIndex.

@@ -4948,13 +4948,14 @@ LogicVRegister Simulator::fabscmp(VectorFormat vform,
 template <typename T>
 LogicVRegister Simulator::fmla(VectorFormat vform,
                                LogicVRegister dst,
+                               const LogicVRegister& srca,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     T op1 = src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
-    T acc = dst.Float<T>(i);
+    T acc = srca.Float<T>(i);
     T result = FPMulAdd(acc, op1, op2);
     dst.SetFloat(i, result);
   }
@@ -4964,15 +4965,16 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
 
 LogicVRegister Simulator::fmla(VectorFormat vform,
                                LogicVRegister dst,
+                               const LogicVRegister& srca,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    fmla<SimFloat16>(vform, dst, src1, src2);
+    fmla<SimFloat16>(vform, dst, srca, src1, src2);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-    fmla<float>(vform, dst, src1, src2);
+    fmla<float>(vform, dst, srca, src1, src2);
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
-    fmla<double>(vform, dst, src1, src2);
+    fmla<double>(vform, dst, srca, src1, src2);
   }
   return dst;
 }
@@ -4981,13 +4983,14 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
 template <typename T>
 LogicVRegister Simulator::fmls(VectorFormat vform,
                                LogicVRegister dst,
+                               const LogicVRegister& srca,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     T op1 = -src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
-    T acc = dst.Float<T>(i);
+    T acc = srca.Float<T>(i);
     T result = FPMulAdd(acc, op1, op2);
     dst.SetFloat(i, result);
   }
@@ -4997,15 +5000,16 @@ LogicVRegister Simulator::fmls(VectorFormat vform,
 
 LogicVRegister Simulator::fmls(VectorFormat vform,
                                LogicVRegister dst,
+                               const LogicVRegister& srca,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    fmls<SimFloat16>(vform, dst, src1, src2);
+    fmls<SimFloat16>(vform, dst, srca, src1, src2);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-    fmls<float>(vform, dst, src1, src2);
+    fmls<float>(vform, dst, srca, src1, src2);
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
-    fmls<double>(vform, dst, src1, src2);
+    fmls<double>(vform, dst, srca, src1, src2);
   }
   return dst;
 }
@@ -5444,14 +5448,14 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
   SimVRegister temp;
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     LogicVRegister index_reg = dup_element(kFormat8H, temp, src2, index);
-    fmla<SimFloat16>(vform, dst, src1, index_reg);
+    fmla<SimFloat16>(vform, dst, dst, src1, index_reg);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     LogicVRegister index_reg = dup_element(kFormat4S, temp, src2, index);
-    fmla<float>(vform, dst, src1, index_reg);
+    fmla<float>(vform, dst, dst, src1, index_reg);
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     LogicVRegister index_reg = dup_element(kFormat2D, temp, src2, index);
-    fmla<double>(vform, dst, src1, index_reg);
+    fmla<double>(vform, dst, dst, src1, index_reg);
   }
   return dst;
 }
@@ -5466,14 +5470,14 @@ LogicVRegister Simulator::fmls(VectorFormat vform,
   SimVRegister temp;
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     LogicVRegister index_reg = dup_element(kFormat8H, temp, src2, index);
-    fmls<SimFloat16>(vform, dst, src1, index_reg);
+    fmls<SimFloat16>(vform, dst, dst, src1, index_reg);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     LogicVRegister index_reg = dup_element(kFormat4S, temp, src2, index);
-    fmls<float>(vform, dst, src1, index_reg);
+    fmls<float>(vform, dst, dst, src1, index_reg);
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
     LogicVRegister index_reg = dup_element(kFormat2D, temp, src2, index);
-    fmls<double>(vform, dst, src1, index_reg);
+    fmls<double>(vform, dst, dst, src1, index_reg);
   }
   return dst;
 }
@@ -6258,8 +6262,7 @@ LogicVRegister Simulator::FTMaddHelper(VectorFormat vform,
 
   SimVRegister temp;
   fabs_<T>(vform, temp, src2);
-  // TODO: Use four argument fmla, when available.
-  fmla<T>(vform, cf, src1, temp);
+  fmla<T>(vform, cf, cf, src1, temp);
   mov(vform, dst, cf);
   return dst;
 }

@@ -5124,10 +5124,10 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
         fminnm(vf, rd, rn, rm);
         break;
       case NEON_FMLA:
-        fmla(vf, rd, rn, rm);
+        fmla(vf, rd, rd, rn, rm);
         break;
       case NEON_FMLS:
-        fmls(vf, rd, rn, rm);
+        fmls(vf, rd, rd, rn, rm);
         break;
       case NEON_FMULX:
         fmulx(vf, rd, rn, rm);
@@ -5348,13 +5348,11 @@ void Simulator::VisitNEON3SameFP16(const Instruction* instr) {
     B(vf, rd, rn, rm); \
     break;
     SIM_FUNC(FMAXNM, fmaxnm);
-    SIM_FUNC(FMLA, fmla);
     SIM_FUNC(FADD, fadd);
     SIM_FUNC(FMULX, fmulx);
     SIM_FUNC(FMAX, fmax);
     SIM_FUNC(FRECPS, frecps);
     SIM_FUNC(FMINNM, fminnm);
-    SIM_FUNC(FMLS, fmls);
     SIM_FUNC(FSUB, fsub);
     SIM_FUNC(FMIN, fmin);
     SIM_FUNC(FRSQRTS, frsqrts);
@@ -5367,6 +5365,12 @@ void Simulator::VisitNEON3SameFP16(const Instruction* instr) {
     SIM_FUNC(FABD, fabd);
     SIM_FUNC(FMINP, fminp);
 #undef SIM_FUNC
+    case NEON_FMLA_H:
+      fmla(vf, rd, rd, rn, rm);
+      break;
+    case NEON_FMLS_H:
+      fmls(vf, rd, rd, rn, rm);
+      break;
     case NEON_FCMEQ_H:
       fcmp(vf, rd, rn, rm, eq);
       break;
@@ -8112,36 +8116,71 @@ void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {
-  USE(instr);
-  switch (instr->Mask(SVEFPMulAddMask)) {
-    case FMAD_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMLA_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMLS_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMSB_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FNMAD_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FNMLA_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FNMLS_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FNMSB_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-      break;
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  if (instr->ExtractBit(15) == 0) {
+    // Floating-point multiply-accumulate writing addend.
+    SimVRegister& zm = ReadVRegister(instr->GetRm());
+    SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+    switch (instr->Mask(SVEFPMulAddMask)) {
+      // zda = zda + zn * zm
+      case FMLA_z_p_zzz:
+        fmla(vform, result, zd, zn, zm);
+        break;
+      // zda = -zda + -zn * zm
+      case FNMLA_z_p_zzz:
+        fneg(vform, result, zd);
+        fmls(vform, result, result, zn, zm);
+        break;
+      // zda = zda + -zn * zm
+      case FMLS_z_p_zzz:
+        fmls(vform, result, zd, zn, zm);
+        break;
+      // zda = -zda + zn * zm
+      case FNMLS_z_p_zzz:
+        fneg(vform, result, zd);
+        fmla(vform, result, result, zn, zm);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    // Floating-point multiply-accumulate writing multiplicand.
+    SimVRegister& za = ReadVRegister(instr->GetRm());
+    SimVRegister& zm = ReadVRegister(instr->GetRn());
+
+    switch (instr->Mask(SVEFPMulAddMask)) {
+      // zdn = za + zdn * zm
+      case FMAD_z_p_zzz:
+        fmla(vform, result, za, zd, zm);
+        break;
+      // zdn = -za + -zdn * zm
+      case FNMAD_z_p_zzz:
+        fneg(vform, result, za);
+        fmls(vform, result, result, zd, zm);
+        break;
+      // zdn = za + -zdn * zm
+      case FMSB_z_p_zzz:
+        fmls(vform, result, za, zd, zm);
+        break;
+      // zdn = -za + zdn * zm
+      case FNMSB_z_p_zzz:
+        fneg(vform, result, za);
+        fmla(vform, result, result, zd, zm);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
   }
+
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
