@@ -8184,29 +8184,46 @@ void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = kFormatUndefined;
+  unsigned zm_code = 0xffffffff;
+  unsigned index = 0xffffffff;
+
   switch (instr->Mask(SVEFPMulAddIndexMask)) {
     case FMLA_z_zzzi_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMLA_z_zzzi_h:
-      VIXL_UNIMPLEMENTED();
+    case FMLS_z_zzzi_d:
+      vform = kFormatVnD;
+      zm_code = instr->GetRmLow16();
+      // Only bit 20 is the index for D lanes.
+      index = instr->ExtractBit(20);
       break;
     case FMLA_z_zzzi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMLS_z_zzzi_d:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case FMLS_z_zzzi_h:
-      VIXL_UNIMPLEMENTED();
-      break;
     case FMLS_z_zzzi_s:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
+      zm_code = instr->GetRm() & 0x7;  // Three bits used for zm.
+      index = instr->ExtractBits(20, 19);
+      break;
+    case FMLA_z_zzzi_h:
+    case FMLS_z_zzzi_h:
+    case FMLA_z_zzzi_h_i3h:
+    case FMLS_z_zzzi_h_i3h:
+      vform = kFormatVnH;
+      zm_code = instr->GetRm() & 0x7;  // Three bits used for zm.
+      index = (instr->ExtractBit(22) << 2) | instr->ExtractBits(20, 19);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister temp;
+
+  dup_element(vform, temp, ReadVRegister(zm_code), index);
+  if (instr->ExtractBit(10) == 1) {
+    fmls(vform, zd, zd, zn, temp);
+  } else {
+    fmla(vform, zd, zd, zn, temp);
   }
 }
 

@@ -13688,6 +13688,147 @@ TEST_SVE(sve_fnmls_fnmsb) {
                  fnmls_result_d);
 }
 
+typedef void (MacroAssembler::*FPMulAccIdxFn)(const ZRegister& zd,
+                                              const ZRegister& za,
+                                              const ZRegister& zn,
+                                              const ZRegister& zm,
+                                              int index);
+
+template <typename T, size_t N>
+static void FPMulAccIdxHelper(Test* config,
+                              FPMulAccFn macro,
+                              FPMulAccIdxFn macro_idx,
+                              const T (&za_inputs)[N],
+                              const T (&zn_inputs)[N],
+                              const T (&zm_inputs)[N]) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  InsrHelper(&masm, z0.VnD(), zm_inputs);
+  InsrHelper(&masm, z1.VnD(), zn_inputs);
+  InsrHelper(&masm, z2.VnD(), za_inputs);
+
+  __ Mov(z3, z0);
+  (masm.*macro_idx)(z3.VnH(), z2.VnH(), z1.VnH(), z3.VnH(), 0);  // zd == zm
+  __ Mov(z4, z1);
+  (masm.*macro_idx)(z4.VnH(), z2.VnH(), z4.VnH(), z0.VnH(), 1);  // zd == zn
+  __ Mov(z5, z2);
+  (masm.*macro_idx)(z5.VnH(), z5.VnH(), z1.VnH(), z0.VnH(), 4);  // zd == za
+  (masm.*macro_idx)(z6.VnH(), z2.VnH(), z1.VnH(), z0.VnH(), 7);
+
+  __ Mov(z7, z0);
+  (masm.*macro_idx)(z7.VnS(), z2.VnS(), z1.VnS(), z7.VnS(), 0);  // zd == zm
+  __ Mov(z8, z1);
+  (masm.*macro_idx)(z8.VnS(), z2.VnS(), z8.VnS(), z0.VnS(), 1);  // zd == zn
+  __ Mov(z9, z2);
+  (masm.*macro_idx)(z9.VnS(), z9.VnS(), z1.VnS(), z0.VnS(), 2);  // zd == za
+  (masm.*macro_idx)(z10.VnS(), z2.VnS(), z1.VnS(), z0.VnS(), 3);
+
+  __ Mov(z11, z0);
+  (masm.*macro_idx)(z11.VnD(), z2.VnD(), z1.VnD(), z11.VnD(), 0);  // zd == zm
+  __ Mov(z12, z1);
+  (masm.*macro_idx)(z12.VnD(), z2.VnD(), z12.VnD(), z0.VnD(), 1);  // zd == zn
+  __ Mov(z13, z2);
+  (masm.*macro_idx)(z13.VnD(), z13.VnD(), z1.VnD(), z0.VnD(), 0);  // zd == za
+  __ Mov(z14, z0);
+  // zd == zn == zm
+  (masm.*macro_idx)(z14.VnD(), z2.VnD(), z14.VnD(), z14.VnD(), 1);
+
+  __ Ptrue(p0.VnB());
+
+  // Indexed form of Fmla and Fmls won't swap argument, passing strict NaN
+  // propagation mode to ensure the following macros don't swap argument in
+  // any cases.
+  FPMacroNaNPropagationOption option = StrictNaNPropagation;
+  // Compute the results using other instructions.
+  __ Dup(z31.VnH(), z0.VnH(), 0);
+  (masm.*macro)(z15.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
+  __ Dup(z31.VnH(), z0.VnH(), 1);
+  (masm.*macro)(z16.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
+  __ Dup(z31.VnH(), z0.VnH(), 4);
+  (masm.*macro)(z17.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
+  __ Dup(z31.VnH(), z0.VnH(), 7);
+  (masm.*macro)(z18.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
+
+  __ Dup(z31.VnS(), z0.VnS(), 0);
+  (masm.*macro)(z19.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
+  __ Dup(z31.VnS(), z0.VnS(), 1);
+  (masm.*macro)(z20.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
+  __ Dup(z31.VnS(), z0.VnS(), 2);
+  (masm.*macro)(z21.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
+  __ Dup(z31.VnS(), z0.VnS(), 3);
+  (masm.*macro)(z22.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
+
+  __ Dup(z31.VnD(), z0.VnD(), 0);
+  (masm.*macro)(z23.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z31.VnD(), option);
+  __ Dup(z31.VnD(), z0.VnD(), 1);
+  (masm.*macro)(z24.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z31.VnD(), option);
+  __ Dup(z31.VnD(), z0.VnD(), 1);
+  (masm.*macro)(z25.VnD(), p0.Merging(), z2.VnD(), z0.VnD(), z31.VnD(), option);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(z15.VnH(), z3.VnH());
+    ASSERT_EQUAL_SVE(z16.VnH(), z4.VnH());
+    ASSERT_EQUAL_SVE(z17.VnH(), z5.VnH());
+    ASSERT_EQUAL_SVE(z18.VnH(), z6.VnH());
+
+    ASSERT_EQUAL_SVE(z19.VnS(), z7.VnS());
+    ASSERT_EQUAL_SVE(z20.VnS(), z8.VnS());
+    ASSERT_EQUAL_SVE(z21.VnS(), z9.VnS());
+    ASSERT_EQUAL_SVE(z22.VnS(), z10.VnS());
+
+    ASSERT_EQUAL_SVE(z23.VnD(), z11.VnD());
+    ASSERT_EQUAL_SVE(z24.VnD(), z12.VnD());
+    ASSERT_EQUAL_SVE(z11.VnD(), z13.VnD());
+    ASSERT_EQUAL_SVE(z25.VnD(), z14.VnD());
+  }
+}
+
+TEST_SVE(sve_fmla_fmls_index) {
+  uint64_t zm_inputs_1[] = {0x3ff000003f803c00, 0xbff00000bf80bc00};
+  uint64_t zn_inputs_1[] = {0x3ff012343ff03c76, 0xbff01234bff0bc76};
+  uint64_t za_inputs_1[] = {0x3c004000bc00c000, 0x64006800e400e800};
+
+  // Using the vector form of Fmla and Fmls to verify the indexed form.
+  FPMulAccIdxHelper(config,
+                    &MacroAssembler::Fmla,  // vector form
+                    &MacroAssembler::Fmla,  // indexed form
+                    za_inputs_1,
+                    zn_inputs_1,
+                    zm_inputs_1);
+
+  FPMulAccIdxHelper(config,
+                    &MacroAssembler::Fmls,  // vector form
+                    &MacroAssembler::Fmls,  // indexed form
+                    za_inputs_1,
+                    zn_inputs_1,
+                    zm_inputs_1);
+
+  uint64_t zm_inputs_2[] = {0x7ff5555511111111,   // NaN
+                            0xfff0000000000000};  // Infinity
+  uint64_t zn_inputs_2[] = {0x7f9511117fc00000,   // NaN
+                            0x7f800000ff800000};  // Infinity
+  uint64_t za_inputs_2[] = {0x7c11000000007e00,   // NaN
+                            0x000000007c00fc00};  // Infinity
+  FPMulAccIdxHelper(config,
+                    &MacroAssembler::Fmla,  // vector form
+                    &MacroAssembler::Fmla,  // indexed form
+                    za_inputs_2,
+                    zn_inputs_2,
+                    zm_inputs_2);
+
+  FPMulAccIdxHelper(config,
+                    &MacroAssembler::Fmls,  // vector form
+                    &MacroAssembler::Fmls,  // indexed form
+                    za_inputs_2,
+                    zn_inputs_2,
+                    zm_inputs_2);
+}
+
 // Execute a number of instructions which all use ProcessNaNs, and check that
 // they all propagate NaNs correctly.
 template <typename Ti, typename Td, size_t N>

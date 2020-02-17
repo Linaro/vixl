@@ -1347,14 +1347,79 @@ TEST(sve_fp_mul_add_macro_fast_nan_propagation) {
 TEST(sve_fp_mul_add_index) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fmla(z25.VnD(), z9.VnD()), "fmla <Zda>.D, <Zn>.D, <Zm>.D[<imm>]");
-  COMPARE_PREFIX(fmla(z13.VnH(), z7.VnH()), "fmla <Zda>.H, <Zn>.H, <Zm>.H[<imm>]");
-  COMPARE_PREFIX(fmla(z17.VnS(), z27.VnS()), "fmla <Zda>.S, <Zn>.S, <Zm>.S[<imm>]");
-  COMPARE_PREFIX(fmls(z28.VnD(), z2.VnD()), "fmls <Zda>.D, <Zn>.D, <Zm>.D[<imm>]");
-  COMPARE_PREFIX(fmls(z30.VnH(), z29.VnH()), "fmls <Zda>.H, <Zn>.H, <Zm>.H[<imm>]");
-  COMPARE_PREFIX(fmls(z30.VnS(), z1.VnS()), "fmls <Zda>.S, <Zn>.S, <Zm>.S[<imm>]");
-#endif
+  COMPARE_PREFIX(fmla(z25.VnD(), z9.VnD(), z1.VnD(), 0),
+                 "fmla z25.d, z9.d, z1.d[0]");
+  COMPARE_PREFIX(fmla(z25.VnD(), z9.VnD(), z1.VnD(), 1),
+                 "fmla z25.d, z9.d, z1.d[1]");
+
+  COMPARE_PREFIX(fmla(z13.VnH(), z7.VnH(), z7.VnH(), 0),
+                 "fmla z13.h, z7.h, z7.h[0]");
+  COMPARE_PREFIX(fmla(z13.VnH(), z7.VnH(), z7.VnH(), 2),
+                 "fmla z13.h, z7.h, z7.h[2]");
+  COMPARE_PREFIX(fmla(z13.VnH(), z7.VnH(), z7.VnH(), 5),
+                 "fmla z13.h, z7.h, z7.h[5]");
+  COMPARE_PREFIX(fmla(z13.VnH(), z7.VnH(), z7.VnH(), 7),
+                 "fmla z13.h, z7.h, z7.h[7]");
+
+  COMPARE_PREFIX(fmla(z17.VnS(), z27.VnS(), z2.VnS(), 0),
+                 "fmla z17.s, z27.s, z2.s[0]");
+  COMPARE_PREFIX(fmla(z17.VnS(), z27.VnS(), z2.VnS(), 1),
+                 "fmla z17.s, z27.s, z2.s[1]");
+  COMPARE_PREFIX(fmla(z17.VnS(), z27.VnS(), z2.VnS(), 2),
+                 "fmla z17.s, z27.s, z2.s[2]");
+  COMPARE_PREFIX(fmla(z17.VnS(), z27.VnS(), z2.VnS(), 3),
+                 "fmla z17.s, z27.s, z2.s[3]");
+
+  COMPARE_PREFIX(fmls(z28.VnD(), z2.VnD(), z0.VnD(), 0),
+                 "fmls z28.d, z2.d, z0.d[0]");
+  COMPARE_PREFIX(fmls(z28.VnD(), z2.VnD(), z0.VnD(), 1),
+                 "fmls z28.d, z2.d, z0.d[1]");
+
+  COMPARE_PREFIX(fmls(z30.VnH(), z29.VnH(), z7.VnH(), 1),
+                 "fmls z30.h, z29.h, z7.h[1]");
+  COMPARE_PREFIX(fmls(z30.VnH(), z29.VnH(), z7.VnH(), 4),
+                 "fmls z30.h, z29.h, z7.h[4]");
+  COMPARE_PREFIX(fmls(z30.VnH(), z29.VnH(), z7.VnH(), 3),
+                 "fmls z30.h, z29.h, z7.h[3]");
+  COMPARE_PREFIX(fmls(z30.VnH(), z29.VnH(), z7.VnH(), 6),
+                 "fmls z30.h, z29.h, z7.h[6]");
+
+  COMPARE_PREFIX(fmls(z30.VnS(), z1.VnS(), z6.VnS(), 0),
+                 "fmls z30.s, z1.s, z6.s[0]");
+  COMPARE_PREFIX(fmls(z30.VnS(), z1.VnS(), z6.VnS(), 1),
+                 "fmls z30.s, z1.s, z6.s[1]");
+  COMPARE_PREFIX(fmls(z30.VnS(), z1.VnS(), z6.VnS(), 2),
+                 "fmls z30.s, z1.s, z6.s[2]");
+  COMPARE_PREFIX(fmls(z30.VnS(), z1.VnS(), z6.VnS(), 3),
+                 "fmls z30.s, z1.s, z6.s[3]");
+
+  COMPARE_MACRO(Fmla(z10.VnH(), z11.VnH(), z12.VnH(), z4.VnH(), 7),
+                "movprfx z10, z11\n"
+                "fmla z10.h, z12.h, z4.h[7]");
+  COMPARE_MACRO(Fmla(z10.VnH(), z10.VnH(), z12.VnH(), z4.VnH(), 6),
+                "fmla z10.h, z12.h, z4.h[6]");
+  COMPARE_MACRO(Fmla(z11.VnS(), z12.VnS(), z11.VnS(), z5.VnS(), 3),
+                "movprfx z31, z12\n"
+                "fmla z31.s, z11.s, z5.s[3]\n"
+                "orr z11.d, z31.d, z31.d");
+  COMPARE_MACRO(Fmla(z12.VnD(), z13.VnD(), z14.VnD(), z12.VnD(), 1),
+                "movprfx z31, z13\n"
+                "fmla z31.d, z14.d, z12.d[1]\n"
+                "orr z12.d, z31.d, z31.d");
+
+  COMPARE_MACRO(Fmls(z10.VnH(), z11.VnH(), z12.VnH(), z4.VnH(), 7),
+                "movprfx z10, z11\n"
+                "fmls z10.h, z12.h, z4.h[7]");
+  COMPARE_MACRO(Fmls(z10.VnH(), z10.VnH(), z12.VnH(), z4.VnH(), 6),
+                "fmls z10.h, z12.h, z4.h[6]");
+  COMPARE_MACRO(Fmls(z11.VnS(), z12.VnS(), z11.VnS(), z5.VnS(), 3),
+                "movprfx z31, z12\n"
+                "fmls z31.s, z11.s, z5.s[3]\n"
+                "orr z11.d, z31.d, z31.d");
+  COMPARE_MACRO(Fmls(z12.VnD(), z13.VnD(), z14.VnD(), z12.VnD(), 1),
+                "movprfx z31, z13\n"
+                "fmls z31.d, z14.d, z12.d[1]\n"
+                "orr z12.d, z31.d, z31.d");
 
   CLEANUP();
 }

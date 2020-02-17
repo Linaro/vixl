@@ -8834,39 +8834,36 @@ void Disassembler::VisitSVEFPMulAddIndex(const Instruction *instr) {
   const char *form = "(SVEFPMulAddIndex)";
 
   switch (instr->Mask(SVEFPMulAddIndexMask)) {
-    // FMLA <Zda>.D, <Zn>.D, <Zm>.D[<imm>]
     case FMLA_z_zzzi_d:
       mnemonic = "fmla";
-      form = "'Zd.d, 'Zn.d, <Zm>.d[<imm>]";
+      form = "'Zd.d, 'Zn.d, z'u1916.d['u2020]";
       break;
-    // FMLA <Zda>.H, <Zn>.H, <Zm>.H[<imm>]
-    case FMLA_z_zzzi_h:
-      mnemonic = "fmla";
-      form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>]";
-      break;
-    // FMLA <Zda>.S, <Zn>.S, <Zm>.S[<imm>]
     case FMLA_z_zzzi_s:
       mnemonic = "fmla";
-      form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>]";
+      form = "'Zd.s, 'Zn.s, z'u1816.s['u2019]";
       break;
-    // FMLS <Zda>.D, <Zn>.D, <Zm>.D[<imm>]
     case FMLS_z_zzzi_d:
       mnemonic = "fmls";
-      form = "'Zd.d, 'Zn.d, <Zm>.d[<imm>]";
+      form = "'Zd.d, 'Zn.d, z'u1916.d['u2020]";
       break;
-    // FMLS <Zda>.H, <Zn>.H, <Zm>.H[<imm>]
-    case FMLS_z_zzzi_h:
-      mnemonic = "fmls";
-      form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>]";
-      break;
-    // FMLS <Zda>.S, <Zn>.S, <Zm>.S[<imm>]
     case FMLS_z_zzzi_s:
       mnemonic = "fmls";
-      form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>]";
+      form = "'Zd.s, 'Zn.s, z'u1816.s['u2019]";
+      break;
+    case FMLA_z_zzzi_h:
+    case FMLA_z_zzzi_h_i3h:
+      mnemonic = "fmla";
+      form = "'Zd.h, 'Zn.h, z'u1816.h['u2222:2019]";
+      break;
+    case FMLS_z_zzzi_h:
+    case FMLS_z_zzzi_h_i3h:
+      mnemonic = "fmls";
+      form = "'Zd.h, 'Zn.h, z'u1816.h['u2222:2019]";
       break;
     default:
       break;
   }
+
   Format(instr, mnemonic, form);
 }
 

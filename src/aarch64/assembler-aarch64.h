@@ -4297,7 +4297,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Floating-point fused multiply-add by indexed elements
   // (Zda = Zda + Zn * Zm[indexed]).
-  void fmla(const ZRegister& zda, const ZRegister& zn);
+  void fmla(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
 
   // Floating-point fused multiply-subtract vectors (predicated), writing
   // addend [Zda = Zda + -Zn * Zm].
@@ -4308,7 +4311,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Floating-point fused multiply-subtract by indexed elements
   // (Zda = Zda + -Zn * Zm[indexed]).
-  void fmls(const ZRegister& zda, const ZRegister& zn);
+  void fmls(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
 
   // Floating-point fused multiply-subtract vectors (predicated), writing
   // multiplicand [Zdn = Za + -Zdn * Zm].
@@ -6878,6 +6884,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                                 const ZRegister& zn,
                                 int shift,
                                 SVEBitwiseShiftUnpredicatedOp op);
+
+  Instr SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
+                            const ZRegister& zm,
+                            int index,
+                            Instr op_h,
+                            Instr op_s,
+                            Instr op_d);
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

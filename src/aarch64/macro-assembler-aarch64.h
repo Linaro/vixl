@@ -4369,11 +4369,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       const ZRegister& zn,
       const ZRegister& zm,
       FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
-  void Fmla(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmla(zda, zn);
-  }
+  void Fmla(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
   // zd = za - (zn * zm)
   void Fmls(
       const ZRegister& zd,
@@ -4382,11 +4382,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       const ZRegister& zn,
       const ZRegister& zm,
       FPMacroNaNPropagationOption nan_option = NoFPMacroNaNPropagationSelected);
-  void Fmls(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmls(zda, zn);
-  }
+  void Fmls(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
   void Fmsb(const ZRegister& zdn,
             const PRegisterM& pg,
             const ZRegister& zm,
@@ -6846,6 +6846,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                       SVEMulAddPredicatedZdaFn fn_zda,
                       SVEMulAddPredicatedZdnFn fn_zdn,
                       FPMacroNaNPropagationOption nan_option);
+
+  typedef void (Assembler::*SVEMulAddIndexFn)(const ZRegister& zda,
+                                              const ZRegister& zn,
+                                              const ZRegister& zm,
+                                              int index);
+
+  void FPMulAddIndexHelper(SVEMulAddIndexFn fn,
+                           const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           int index);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

@@ -1516,6 +1516,35 @@ void MacroAssembler::FPMulAddHelper(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::FPMulAddIndexHelper(SVEMulAddIndexFn fn,
+                                         const ZRegister& zd,
+                                         const ZRegister& za,
+                                         const ZRegister& zn,
+                                         const ZRegister& zm,
+                                         int index) {
+  if (zd.Aliases(za)) {
+    // zda = zda + (zn * zm[i])
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zd, zn, zm, index);
+
+  } else if (zd.Aliases(zn) || zd.Aliases(zm)) {
+    // zdn = za + (zdn * zm[i])
+    // zdm = za + (zn * zdm[i])
+    // zdnm = za + (zdnm * zdnm[i])
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, za);
+      (this->*fn)(scratch, zn, zm, index);
+    }
+    Mov(zd, scratch);
+  } else {
+    // zd = za + (zn * zm[i])
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, zm, index);
+  }
+}
+
 void MacroAssembler::Fmla(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& za,
@@ -1533,6 +1562,15 @@ void MacroAssembler::Fmla(const ZRegister& zd,
                  nan_option);
 }
 
+void MacroAssembler::Fmla(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int index) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPMulAddIndexHelper(&Assembler::fmla, zd, za, zn, zm, index);
+}
+
 void MacroAssembler::Fmls(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& za,
@@ -1548,6 +1586,15 @@ void MacroAssembler::Fmls(const ZRegister& zd,
                  &Assembler::fmls,
                  &Assembler::fmsb,
                  nan_option);
+}
+
+void MacroAssembler::Fmls(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int index) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  FPMulAddIndexHelper(&Assembler::fmls, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::Fnmla(const ZRegister& zd,
