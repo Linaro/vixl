@@ -7499,8 +7499,6 @@ void Simulator::VisitSVEBitwiseShiftByWideElements_Predicated(
 }
 
 void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
-  USE(instr);
-
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
@@ -7534,7 +7532,12 @@ void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
       unsigned lane_size = shift_and_lane_size.second;
       VIXL_ASSERT(lane_size <= kDRegSizeInBytesLog2);
       VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
-      dup_immediate(vform, scratch, shift_and_lane_size.first);
+      int shift_dist = shift_and_lane_size.first;
+      if (shift_op == LSL) {
+        // Shift distance is computed differently for LSL. Convert the result.
+        shift_dist = (8 << lane_size) - shift_dist;
+      }
+      dup_immediate(vform, scratch, shift_dist);
       SVEBitwiseShiftHelper(shift_op, vform, zd, zn, scratch, false);
       break;
     }

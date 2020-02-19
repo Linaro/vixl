@@ -53,7 +53,7 @@ TEST(sve) {
   COMPARE_PREFIX(mla(z1.VnS(), p7.Merging(), z1.VnS(), z0.VnS()),
                  "mla z1.s, p7/m, z1.s, z0.s");
   COMPARE_PREFIX(asr(z1.VnB(), z0.VnB(), 8), "asr z1.b, z0.b, #8");
-  COMPARE_PREFIX(lsl(z0.VnH(), z1.VnH(), 16), "lsl z0.h, z1.h, #16");
+  COMPARE_PREFIX(lsl(z0.VnH(), z1.VnH(), 15), "lsl z0.h, z1.h, #15");
   COMPARE_PREFIX(lsr(z1.VnS(), z0.VnS(), 32), "lsr z1.s, z0.s, #32");
   COMPARE_PREFIX(and_(p6.VnB(), p7.Zeroing(), p6.VnB(), p7.VnB()),
                  "and p6.b, p7/z, p6.b, p7.b");

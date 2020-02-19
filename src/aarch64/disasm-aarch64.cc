@@ -8475,52 +8475,46 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
   const char *form = "(SVEBitwiseShiftUnpredicated)";
   unsigned tsize =
       (instr->ExtractBits(23, 22) << 2) | instr->ExtractBits(20, 19);
-  enum BitwiseShiftInstrType { kNone, kImm, kWide };
-  BitwiseShiftInstrType instr_type = kNone;
+  unsigned lane_size = instr->GetSVESize();
 
   switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
     case ASR_z_zi:
-      mnemonic = "asr";
-      instr_type = kImm;
-      break;
-    case ASR_z_zw:
-      mnemonic = "asr";
-      instr_type = kWide;
-      break;
-    case LSL_z_zi:
-      mnemonic = "lsl";
-      instr_type = kImm;
-      break;
-    case LSL_z_zw:
-      mnemonic = "lsl";
-      instr_type = kWide;
-      break;
-    case LSR_z_zi:
-      mnemonic = "lsr";
-      instr_type = kImm;
-      break;
-    case LSR_z_zw:
-      mnemonic = "lsr";
-      instr_type = kWide;
-      break;
-    default:
-      break;
-  }
-
-  switch (instr_type) {
-    case kImm:
       if (tsize != 0) {
         // The tsz field must not be zero.
+        mnemonic = "asr";
         form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
-      } else {
-        mnemonic = "unimplemented";
       }
       break;
-    case kWide:
-      if (static_cast<unsigned>(instr->GetSVESize()) <= kSRegSizeInBytesLog2) {
+    case ASR_z_zw:
+      if (lane_size <= kSRegSizeInBytesLog2) {
+        mnemonic = "asr";
         form = "'Zd.'t, 'Zn.'t, 'Zm.d";
-      } else {
-        mnemonic = "unimplemented";
+      }
+      break;
+    case LSL_z_zi:
+      if (tsize != 0) {
+        // The tsz field must not be zero.
+        mnemonic = "lsl";
+        form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSver";
+      }
+      break;
+    case LSL_z_zw:
+      if (lane_size <= kSRegSizeInBytesLog2) {
+        mnemonic = "lsl";
+        form = "'Zd.'t, 'Zn.'t, 'Zm.d";
+      }
+      break;
+    case LSR_z_zi:
+      if (tsize != 0) {
+        // The tsz field must not be zero.
+        mnemonic = "lsr";
+        form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
+      }
+      break;
+    case LSR_z_zw:
+      if (lane_size <= kSRegSizeInBytesLog2) {
+        mnemonic = "lsr";
+        form = "'Zd.'t, 'Zn.'t, 'Zm.d";
       }
       break;
     default:
@@ -10301,8 +10295,16 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             // SVE logical immediate encoding.
             AppendToOutput("#0x%" PRIx64, instr->GetSVEImmLogical());
             return 8;
+          case 'r': {
+            // SVE shift immediate encoding, lsl.
+            std::pair<int, int> shift_and_lane_size =
+                instr->GetSVEImmShiftAndLaneSizeLog2();
+            int lane_bits = 8 << shift_and_lane_size.second;
+            AppendToOutput("#%" PRId32, lane_bits - shift_and_lane_size.first);
+            return 8;
+          }
           case 's': {
-            // SVE shift immediate encoding.
+            // SVE shift immediate encoding, asr and lsr.
             std::pair<int, int> shift_and_lane_size =
                 instr->GetSVEImmShiftAndLaneSizeLog2();
             AppendToOutput("#%" PRId32, shift_and_lane_size.first);

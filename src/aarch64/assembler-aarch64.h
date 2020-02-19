@@ -6882,7 +6882,7 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   void SVEBitwiseShiftImmediate(const ZRegister& zd,
                                 const ZRegister& zn,
-                                int shift,
+                                Instr encoded_imm,
                                 SVEBitwiseShiftUnpredicatedOp op);
 
   Instr SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
