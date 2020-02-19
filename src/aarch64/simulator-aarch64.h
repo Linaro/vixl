@@ -4109,6 +4109,11 @@ class Simulator : public DecoderVisitor {
                        const LogicPRegister& pg,
                        const LogicPRegister& src);
 
+  LogicVRegister asrd(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      int shift);
+
   LogicVRegister andv(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicPRegister& pg,

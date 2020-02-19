@@ -6753,6 +6753,30 @@ LogicVRegister Simulator::SVEBitwiseShiftHelper(Shift shift_op,
   return dst;
 }
 
+LogicVRegister Simulator::asrd(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               int shift) {
+  VIXL_ASSERT((shift > 0) && (static_cast<unsigned>(shift) <=
+                              LaneSizeInBitsFromFormat(vform)));
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int64_t value = src1.Int(vform, i);
+    if (shift <= 63) {
+      if (value < 0) {
+        // The max possible mask is 0x7fff'ffff'ffff'ffff, which can be safely
+        // cast to int64_t, and cannot cause signed overflow in the result.
+        value = value + GetUintMask(shift);
+      }
+      value = ShiftOperand(kDRegSize, value, ASR, shift);
+    } else {
+      value = 0;
+    }
+    dst.SetInt(vform, i, value);
+  }
+  return dst;
+}
+
 LogicVRegister Simulator::SVEBitwiseLogicalUnpredicatedHelper(
     LogicalOp logical_op,
     VectorFormat vform,

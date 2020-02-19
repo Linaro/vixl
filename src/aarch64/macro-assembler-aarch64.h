@@ -3532,10 +3532,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     andv(vd, pg, zn);
   }
-  void Asr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Asr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    asr(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    asr(zd, pg, zd, shift);
   }
   void Asr(const ZRegister& zd,
            const PRegisterM& pg,
@@ -3551,10 +3554,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     asr(zd, zn, zm);
   }
-  void Asrd(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Asrd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    asrd(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    asrd(zd, pg, zd, shift);
   }
   void Bic(const PRegisterWithLaneSize& pd,
            const PRegisterZ& pg,
@@ -5202,10 +5208,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SVELoadStoreScalarImmHelper(rt, addr, &MacroAssembler::ldr);
   }
-  void Lsl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Lsl(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    lsl(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    lsl(zd, pg, zd, shift);
   }
   void Lsl(const ZRegister& zd,
            const PRegisterM& pg,
@@ -5221,10 +5230,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     lsl(zd, zn, zm);
   }
-  void Lsr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Lsr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    lsr(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    lsr(zd, pg, zd, shift);
   }
   void Lsr(const ZRegister& zd,
            const PRegisterM& pg,

@@ -480,9 +480,12 @@ uint64_t Instruction::GetSVEImmLogical() const {
   }
 }
 
-std::pair<int, int> Instruction::GetSVEImmShiftAndLaneSizeLog2() const {
-  Instr tsize = ExtractBits<0x00D80000>();
-  Instr imm_3 = ExtractBits<0x00070000>();
+std::pair<int, int> Instruction::GetSVEImmShiftAndLaneSizeLog2(
+    bool is_predicated) const {
+  Instr tsize =
+      is_predicated ? ExtractBits<0x00C00300>() : ExtractBits<0x00D80000>();
+  Instr imm_3 =
+      is_predicated ? ExtractBits<0x000000E0>() : ExtractBits<0x00070000>();
   if (tsize == 0) {
     // The bit field `tsize` means undefined if it is zero, so return a
     // convenience value kWMinInt to indicate a failure case.

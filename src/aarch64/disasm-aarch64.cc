@@ -5849,28 +5849,29 @@ void Disassembler::VisitSVEBitwiseLogical_Predicated(const Instruction *instr) {
 void Disassembler::VisitSVEBitwiseShiftByImm_Predicated(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, #<const>
-  const char *form = "'Zd.<T>, p'u1210/m, 'Zd.<T>, #<const>";
+  const char *form = "'Zd.'tszp, p'u1210/m, 'Zd.'tszp, 'ITriSveq";
+  unsigned tsize = (instr->ExtractBits(23, 22) << 2) | instr->ExtractBits(9, 8);
 
-  switch (instr->Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
-    // ASRD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, #<const>
-    case ASRD_z_p_zi:
-      mnemonic = "asrd";
-      break;
-    // ASR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, #<const>
-    case ASR_z_p_zi:
-      mnemonic = "asr";
-      break;
-    // LSL <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, #<const>
-    case LSL_z_p_zi:
-      mnemonic = "lsl";
-      break;
-    // LSR <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, #<const>
-    case LSR_z_p_zi:
-      mnemonic = "lsr";
-      break;
-    default:
-      break;
+  if (tsize == 0) {
+    form = "(SVEBitwiseShiftByImm_Predicated)";
+  } else {
+    switch (instr->Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
+      case ASRD_z_p_zi:
+        mnemonic = "asrd";
+        break;
+      case ASR_z_p_zi:
+        mnemonic = "asr";
+        break;
+      case LSL_z_p_zi:
+        mnemonic = "lsl";
+        form = "'Zd.'tszp, p'u1210/m, 'Zd.'tszp, 'ITriSvep";
+        break;
+      case LSR_z_p_zi:
+        mnemonic = "lsr";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -10290,18 +10291,37 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             // SVE logical immediate encoding.
             AppendToOutput("#0x%" PRIx64, instr->GetSVEImmLogical());
             return 8;
-          case 'r': {
-            // SVE shift immediate encoding, lsl.
+          case 'p': {
+            // SVE predicated shift immediate encoding, lsl.
             std::pair<int, int> shift_and_lane_size =
-                instr->GetSVEImmShiftAndLaneSizeLog2();
+                instr->GetSVEImmShiftAndLaneSizeLog2(
+                    /* is_predicated = */ true);
+            int lane_bits = 8 << shift_and_lane_size.second;
+            AppendToOutput("#%" PRId32, lane_bits - shift_and_lane_size.first);
+            return 8;
+          }
+          case 'q': {
+            // SVE predicated shift immediate encoding, asr and lsr.
+            std::pair<int, int> shift_and_lane_size =
+                instr->GetSVEImmShiftAndLaneSizeLog2(
+                    /* is_predicated = */ true);
+            AppendToOutput("#%" PRId32, shift_and_lane_size.first);
+            return 8;
+          }
+          case 'r': {
+            // SVE unpredicated shift immediate encoding, lsl.
+            std::pair<int, int> shift_and_lane_size =
+                instr->GetSVEImmShiftAndLaneSizeLog2(
+                    /* is_predicated = */ false);
             int lane_bits = 8 << shift_and_lane_size.second;
             AppendToOutput("#%" PRId32, lane_bits - shift_and_lane_size.first);
             return 8;
           }
           case 's': {
-            // SVE shift immediate encoding, asr and lsr.
+            // SVE unpredicated shift immediate encoding, asr and lsr.
             std::pair<int, int> shift_and_lane_size =
-                instr->GetSVEImmShiftAndLaneSizeLog2();
+                instr->GetSVEImmShiftAndLaneSizeLog2(
+                    /* is_predicated = */ false);
             AppendToOutput("#%" PRId32, shift_and_lane_size.first);
             return 8;
           }
@@ -11026,16 +11046,22 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
       break;
     case 's':
       if (format[2] == 'z') {
-        VIXL_ASSERT((format[3] == 'x') || (format[3] == 's'));
+        VIXL_ASSERT((format[3] == 'x') || (format[3] == 's') ||
+                    (format[3] == 'p'));
         if (format[3] == 'x') {
           // 'tszx: Indexes.
           std::pair<int, int> index_and_lane_size =
               instr->GetSVEPermuteIndexAndLaneSizeLog2();
           size_in_bytes_log2 = index_and_lane_size.second;
-        } else {
-          // 'tszs: Shifts.
+        } else if (format[3] == 'p') {
+          // 'tszp: Predicated shifts.
           std::pair<int, int> shift_and_lane_size =
-              instr->GetSVEImmShiftAndLaneSizeLog2();
+              instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ true);
+          size_in_bytes_log2 = shift_and_lane_size.second;
+        } else {
+          // 'tszs: Unpredicated shifts.
+          std::pair<int, int> shift_and_lane_size =
+              instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
           size_in_bytes_log2 = shift_and_lane_size.second;
         }
         placeholder_length += 3;  // skip `sz[x|s]`

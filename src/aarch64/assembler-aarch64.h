@@ -3672,7 +3672,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void andv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
 
   // Arithmetic shift right by immediate (predicated).
-  void asr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void asr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift);
 
   // Arithmetic shift right by 64-bit wide elements (predicated).
   void asr(const ZRegister& zd,
@@ -3687,7 +3690,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void asr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Arithmetic shift right for divide by immediate (predicated).
-  void asrd(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void asrd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            int shift);
 
   // Reversed arithmetic shift right by vector (predicated).
   void asrr(const ZRegister& zd,
@@ -4993,7 +4999,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ldr(const CPURegister& rt, const SVEMemOperand& addr);
 
   // Logical shift left by immediate (predicated).
-  void lsl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void lsl(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift);
 
   // Logical shift left by 64-bit wide elements (predicated).
   void lsl(const ZRegister& zd,
@@ -5014,7 +5023,10 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm);
 
   // Logical shift right by immediate (predicated).
-  void lsr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void lsr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift);
 
   // Logical shift right by 64-bit wide elements (predicated).
   void lsr(const ZRegister& zd,
@@ -6880,10 +6892,19 @@ class Assembler : public vixl::internal::AssemblerBase {
                                        int pattern,
                                        int multiplier);
 
+  Instr EncodeSVEShiftImmediate(Shift shift_op,
+                                int shift,
+                                int lane_size_in_bits);
+
   void SVEBitwiseShiftImmediate(const ZRegister& zd,
                                 const ZRegister& zn,
                                 Instr encoded_imm,
                                 SVEBitwiseShiftUnpredicatedOp op);
+
+  void SVEBitwiseShiftImmediatePred(const ZRegister& zdn,
+                                    const PRegisterM& pg,
+                                    Instr encoded_imm,
+                                    SVEBitwiseShiftByImm_PredicatedOp op);
 
   Instr SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
                             const ZRegister& zm,

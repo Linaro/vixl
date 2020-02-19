@@ -7431,24 +7431,50 @@ void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEBitwiseShiftByImm_Predicated(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister scratch;
+  SimVRegister result;
+
+  bool for_division = false;
+  Shift shift_op = NO_SHIFT;
   switch (instr->Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
     case ASRD_z_p_zi:
-      VIXL_UNIMPLEMENTED();
+      shift_op = ASR;
+      for_division = true;
       break;
     case ASR_z_p_zi:
-      VIXL_UNIMPLEMENTED();
+      shift_op = ASR;
       break;
     case LSL_z_p_zi:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSL;
       break;
     case LSR_z_p_zi:
-      VIXL_UNIMPLEMENTED();
+      shift_op = LSR;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ true);
+  unsigned lane_size = shift_and_lane_size.second;
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int shift_dist = shift_and_lane_size.first;
+
+  if ((shift_op == ASR) && for_division) {
+    asrd(vform, result, zdn, shift_dist);
+  } else {
+    if (shift_op == LSL) {
+      // Shift distance is computed differently for LSL. Convert the result.
+      shift_dist = (8 << lane_size) - shift_dist;
+    }
+    dup_immediate(vform, scratch, shift_dist);
+    SVEBitwiseShiftHelper(shift_op, vform, result, zdn, scratch, false);
+  }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEBitwiseShiftByVector_Predicated(
@@ -7562,7 +7588,7 @@ void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
     case LSR_z_zi: {
       SimVRegister scratch;
       std::pair<int, int> shift_and_lane_size =
-          instr->GetSVEImmShiftAndLaneSizeLog2();
+          instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
       unsigned lane_size = shift_and_lane_size.second;
       VIXL_ASSERT(lane_size <= kDRegSizeInBytesLog2);
       VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
