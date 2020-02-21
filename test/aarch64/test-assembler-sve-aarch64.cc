@@ -15964,6 +15964,108 @@ TEST_SVE(sve_fcvt_nan) {
   TestFcvtHelper(config, kDRegSize, kSRegSize, d_inputs, d2s_expected);
 }
 
+template <size_t N, typename T>
+static void TestFrecpxHelper(Test* config,
+                             int lane_size_in_bits,
+                             T (&zn_inputs)[N],
+                             const T (&zd_expected)[N]) {
+  TestFPUnaryPredicatedHelper(config,
+                              lane_size_in_bits,
+                              lane_size_in_bits,
+                              zn_inputs,
+                              zd_expected,
+                              &MacroAssembler::Frecpx,   // Merging form.
+                              &MacroAssembler::Frecpx);  // Zerging form.
+}
+
+TEST_SVE(sve_frecpx_h) {
+  uint64_t zn_inputs[] = {Float16ToRawbits(kFP16PositiveInfinity),
+                          Float16ToRawbits(kFP16NegativeInfinity),
+                          Float16ToRawbits(Float16(0.0)),
+                          Float16ToRawbits(Float16(-0.0)),
+                          0x0001,   // Smallest positive subnormal number.
+                          0x03ff,   // Largest subnormal number.
+                          0x0400,   // Smallest positive normal number.
+                          0x7bff,   // Largest normal number.
+                          0x3bff,   // Largest number less than one.
+                          0x3c01,   // Smallest number larger than one.
+                          0x7c22,   // Signalling NaN.
+                          0x7e55};  // Quiet NaN.
+
+  uint64_t zd_expected[] = {0,
+                            0x8000,
+                            0x7800,
+                            0xf800,
+                            // Exponent of subnormal numbers are zero.
+                            0x7800,
+                            0x7800,
+                            0x7800,
+                            0x0400,
+                            0x4400,
+                            0x4000,
+                            0x7e22,  // To quiet NaN.
+                            0x7e55};
+
+  TestFrecpxHelper(config, kHRegSize, zn_inputs, zd_expected);
+}
+
+TEST_SVE(sve_frecpx_s) {
+  uint64_t zn_inputs[] = {FloatToRawbits(kFP32PositiveInfinity),
+                          FloatToRawbits(kFP32NegativeInfinity),
+                          FloatToRawbits(65504),       // Max half precision.
+                          FloatToRawbits(6.10352e-5),  // Min positive normal.
+                          FloatToRawbits(6.09756e-5),  // Max subnormal.
+                          FloatToRawbits(
+                              5.96046e-8),       // Min positive subnormal.
+                          FloatToRawbits(5e-9),  // Not representable -> zero.
+                          FloatToRawbits(-0.0),
+                          FloatToRawbits(0.0),
+                          0x7f952222,   // Signalling NaN.
+                          0x7fea2222};  // Quiet NaN;
+
+  uint64_t zd_expected[] = {0,           // 0.0
+                            0x80000000,  // -0.0
+                            0x38800000,  // 6.10352e-05
+                            0x47000000,  // 32768
+                            0x47800000,  // 65536
+                            0x4c800000,  // 6.71089e+07
+                            0x4e000000,  // 5.36871e+08
+                            0xff000000,  // -1.70141e+38
+                            0x7f000000,  // 1.70141e+38
+                            0x7fd52222,
+                            0x7fea2222};
+
+  TestFrecpxHelper(config, kSRegSize, zn_inputs, zd_expected);
+}
+
+TEST_SVE(sve_frecpx_d) {
+  uint64_t zn_inputs[] = {DoubleToRawbits(kFP64PositiveInfinity),
+                          DoubleToRawbits(kFP64NegativeInfinity),
+                          DoubleToRawbits(65504),       // Max half precision.
+                          DoubleToRawbits(6.10352e-5),  // Min positive normal.
+                          DoubleToRawbits(6.09756e-5),  // Max subnormal.
+                          DoubleToRawbits(
+                              5.96046e-8),        // Min positive subnormal.
+                          DoubleToRawbits(5e-9),  // Not representable -> zero.
+                          DoubleToRawbits(-0.0),
+                          DoubleToRawbits(0.0),
+                          0x7ff5555511111111,   // Signalling NaN.
+                          0x7ffaaaaa11111111};  // Quiet NaN;
+
+  uint64_t zd_expected[] = {0,                   // 0.0
+                            0x8000000000000000,  // -0.0
+                            0x3f10000000000000,  // 6.10352e-05
+                            0x40e0000000000000,  // 32768
+                            0x40f0000000000000,  // 65536
+                            0x4190000000000000,  // 6.71089e+07
+                            0x41c0000000000000,  // 5.36871e+08
+                            0xffe0000000000000,  // -1.70141e+38
+                            0x7fe0000000000000,  // 1.70141e+38
+                            0x7ffd555511111111,
+                            0x7ffaaaaa11111111};
+
+  TestFrecpxHelper(config, kDRegSize, zn_inputs, zd_expected);
+}
 
 }  // namespace aarch64
 }  // namespace vixl

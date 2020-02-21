@@ -8427,10 +8427,15 @@ void Simulator::VisitSVEFPConvertPrecision(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister result;
+
   switch (instr->Mask(SVEFPUnaryOpMask)) {
     case FRECPX_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      frecpx(vform, result, zn);
       break;
     case FSQRT_z_p_z:
       VIXL_UNIMPLEMENTED();
@@ -8439,6 +8444,7 @@ void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::VisitSVEFPRoundToIntegralValue(const Instruction* instr) {

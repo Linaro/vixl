@@ -6990,20 +6990,22 @@ void Disassembler::VisitSVEFPTrigSelectCoefficient(const Instruction *instr) {
 
 void Disassembler::VisitSVEFPUnaryOp(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.<T>, <Pg>/M, <Zn>.<T>
   const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'t";
 
-  switch (instr->Mask(SVEFPUnaryOpMask)) {
-    // FRECPX <Zd>.<T>, <Pg>/M, <Zn>.<T>
-    case FRECPX_z_p_z:
-      mnemonic = "frecpx";
-      break;
-    // FSQRT <Zd>.<T>, <Pg>/M, <Zn>.<T>
-    case FSQRT_z_p_z:
-      mnemonic = "fsqrt";
-      break;
-    default:
-      break;
+  if (instr->GetSVESize() == kBRegSizeInBytesLog2) {
+    form = "(SVEFPUnaryOp)";
+  } else {
+    switch (instr->Mask(SVEFPUnaryOpMask)) {
+      case FRECPX_z_p_z:
+        mnemonic = "frecpx";
+        break;
+      case FSQRT_z_p_z:
+        mnemonic = "fsqrt";
+        break;
+      default:
+        form = "(SVEFPUnaryOp)";
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
