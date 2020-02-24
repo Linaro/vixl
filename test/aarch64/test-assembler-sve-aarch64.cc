@@ -573,6 +573,564 @@ TEST_SVE(sve_bitwise_unpredicate_logical) {
   }
 }
 
+TEST_SVE(sve_last_r) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Pfalse(p1.VnB());
+  int p2_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int p3_inputs[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  Initialise(&masm, p2.VnB(), p2_inputs);
+  Initialise(&masm, p3.VnB(), p3_inputs);
+  __ Ptrue(p4.VnB());
+
+  __ Index(z0.VnB(), 0x10, 1);
+  __ Lasta(x1, p1, z0.VnB());
+  __ Lastb(x2, p1, z0.VnB());
+  __ Lasta(x3, p2, z0.VnB());
+  __ Lastb(x4, p2, z0.VnB());
+  __ Lasta(x5, p3, z0.VnB());
+  __ Lastb(x6, p3, z0.VnB());
+  __ Lasta(x7, p4, z0.VnB());
+
+  __ Punpklo(p3.VnH(), p3.VnB());
+  __ Index(z0.VnH(), 0x1110, 1);
+  __ Lasta(x9, p1, z0.VnH());
+  __ Lastb(x10, p3, z0.VnH());
+  __ Lasta(x12, p4, z0.VnH());
+
+  __ Index(z0.VnS(), 0x11111110, 1);
+  __ Lastb(x13, p1, z0.VnS());
+  __ Lasta(x14, p2, z0.VnS());
+  __ Lastb(x18, p4, z0.VnS());
+
+  __ Index(z0.VnD(), 0x1111111111111110, 1);
+  __ Lasta(x19, p1, z0.VnD());
+  __ Lastb(x20, p3, z0.VnD());
+  __ Lasta(x21, p3, z0.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0x0000000000000010, x1);
+    ASSERT_EQUAL_64(0x0000000000000011, x3);
+    ASSERT_EQUAL_64(0x0000000000000010, x4);
+    ASSERT_EQUAL_64(0x0000000000000019, x5);
+    ASSERT_EQUAL_64(0x0000000000000018, x6);
+    ASSERT_EQUAL_64(0x0000000000000010, x7);
+    ASSERT_EQUAL_64(0x0000000000001110, x9);
+    ASSERT_EQUAL_64(0x0000000000001110, x12);
+    ASSERT_EQUAL_64(0x0000000011111111, x14);
+    ASSERT_EQUAL_64(0x1111111111111110, x19);
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    switch (vl) {
+      case 128:
+        ASSERT_EQUAL_64(0x000000000000001f, x2);
+        ASSERT_EQUAL_64(0x0000000000001116, x10);
+        ASSERT_EQUAL_64(0x0000000011111113, x13);
+        ASSERT_EQUAL_64(0x0000000011111113, x18);
+        ASSERT_EQUAL_64(0x1111111111111111, x20);
+        ASSERT_EQUAL_64(0x1111111111111110, x21);
+        break;
+      case 384:
+        ASSERT_EQUAL_64(0x000000000000003f, x2);
+        ASSERT_EQUAL_64(0x0000000000001118, x10);
+        ASSERT_EQUAL_64(0x000000001111111b, x13);
+        ASSERT_EQUAL_64(0x000000001111111b, x18);
+        ASSERT_EQUAL_64(0x1111111111111112, x20);
+        ASSERT_EQUAL_64(0x1111111111111113, x21);
+        break;
+      case 2048:
+        ASSERT_EQUAL_64(0x000000000000000f, x2);
+        ASSERT_EQUAL_64(0x0000000000001118, x10);
+        ASSERT_EQUAL_64(0x000000001111114f, x13);
+        ASSERT_EQUAL_64(0x000000001111114f, x18);
+        ASSERT_EQUAL_64(0x1111111111111112, x20);
+        ASSERT_EQUAL_64(0x1111111111111113, x21);
+        break;
+      default:
+        printf("WARNING: Some tests skipped due to unexpected VL.\n");
+        break;
+    }
+  }
+}
+
+TEST_SVE(sve_last_v) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Pfalse(p1.VnB());
+  int p2_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int p3_inputs[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  Initialise(&masm, p2.VnB(), p2_inputs);
+  Initialise(&masm, p3.VnB(), p3_inputs);
+  __ Ptrue(p4.VnB());
+
+  __ Index(z0.VnB(), 0x10, 1);
+  __ Lasta(b1, p1, z0.VnB());
+  __ Lastb(b2, p1, z0.VnB());
+  __ Lasta(b3, p2, z0.VnB());
+  __ Lastb(b4, p2, z0.VnB());
+  __ Lasta(b5, p3, z0.VnB());
+  __ Lastb(b6, p3, z0.VnB());
+  __ Lasta(b7, p4, z0.VnB());
+
+  __ Punpklo(p3.VnH(), p3.VnB());
+  __ Index(z0.VnH(), 0x1110, 1);
+  __ Lasta(h9, p1, z0.VnH());
+  __ Lastb(h10, p3, z0.VnH());
+  __ Lasta(h12, p4, z0.VnH());
+
+  __ Index(z0.VnS(), 0x11111110, 1);
+  __ Lastb(s13, p1, z0.VnS());
+  __ Lasta(s14, p2, z0.VnS());
+  __ Lastb(s18, p4, z0.VnS());
+
+  __ Index(z0.VnD(), 0x1111111111111110, 1);
+  __ Lasta(d19, p1, z0.VnD());
+  __ Lastb(d20, p3, z0.VnD());
+  __ Lasta(d21, p3, z0.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_128(0, 0x0000000000000010, q1);
+    ASSERT_EQUAL_128(0, 0x0000000000000011, q3);
+    ASSERT_EQUAL_128(0, 0x0000000000000010, q4);
+    ASSERT_EQUAL_128(0, 0x0000000000000019, q5);
+    ASSERT_EQUAL_128(0, 0x0000000000000018, q6);
+    ASSERT_EQUAL_128(0, 0x0000000000000010, q7);
+    ASSERT_EQUAL_128(0, 0x0000000000001110, q9);
+    ASSERT_EQUAL_128(0, 0x0000000000001110, q12);
+    ASSERT_EQUAL_128(0, 0x0000000011111111, q14);
+    ASSERT_EQUAL_128(0, 0x1111111111111110, q19);
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    switch (vl) {
+      case 128:
+        ASSERT_EQUAL_128(0, 0x000000000000001f, q2);
+        ASSERT_EQUAL_128(0, 0x0000000000001116, q10);
+        ASSERT_EQUAL_128(0, 0x0000000011111113, q13);
+        ASSERT_EQUAL_128(0, 0x0000000011111113, q18);
+        ASSERT_EQUAL_128(0, 0x1111111111111111, q20);
+        ASSERT_EQUAL_128(0, 0x1111111111111110, q21);
+        break;
+      case 384:
+        ASSERT_EQUAL_128(0, 0x000000000000003f, q2);
+        ASSERT_EQUAL_128(0, 0x0000000000001118, q10);
+        ASSERT_EQUAL_128(0, 0x000000001111111b, q13);
+        ASSERT_EQUAL_128(0, 0x000000001111111b, q18);
+        ASSERT_EQUAL_128(0, 0x1111111111111112, q20);
+        ASSERT_EQUAL_128(0, 0x1111111111111113, q21);
+        break;
+      case 2048:
+        ASSERT_EQUAL_128(0, 0x000000000000000f, q2);
+        ASSERT_EQUAL_128(0, 0x0000000000001118, q10);
+        ASSERT_EQUAL_128(0, 0x000000001111114f, q13);
+        ASSERT_EQUAL_128(0, 0x000000001111114f, q18);
+        ASSERT_EQUAL_128(0, 0x1111111111111112, q20);
+        ASSERT_EQUAL_128(0, 0x1111111111111113, q21);
+        break;
+      default:
+        printf("WARNING: Some tests skipped due to unexpected VL.\n");
+        break;
+    }
+  }
+}
+
+TEST_SVE(sve_clast_r) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Pfalse(p1.VnB());
+  int p2_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int p3_inputs[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  Initialise(&masm, p2.VnB(), p2_inputs);
+  Initialise(&masm, p3.VnB(), p3_inputs);
+  __ Ptrue(p4.VnB());
+
+  __ Index(z0.VnB(), 0x10, 1);
+  __ Mov(x1, -1);
+  __ Mov(x2, -1);
+  __ Clasta(x1, p1, x1, z0.VnB());
+  __ Clastb(x2, p1, x2, z0.VnB());
+  __ Clasta(x3, p2, x3, z0.VnB());
+  __ Clastb(x4, p2, x4, z0.VnB());
+  __ Clasta(x5, p3, x5, z0.VnB());
+  __ Clastb(x6, p3, x6, z0.VnB());
+  __ Clasta(x7, p4, x7, z0.VnB());
+
+  __ Punpklo(p3.VnH(), p3.VnB());
+  __ Index(z0.VnH(), 0x1110, 1);
+  __ Mov(x9, -1);
+  __ Clasta(x9, p1, x9, z0.VnH());
+  __ Clastb(x10, p3, x10, z0.VnH());
+  __ Clasta(x12, p4, x12, z0.VnH());
+
+  __ Index(z0.VnS(), 0x11111110, 1);
+  __ Mov(x13, -1);
+  __ Clasta(x13, p1, x13, z0.VnS());
+  __ Clastb(x14, p2, x14, z0.VnS());
+  __ Clasta(x18, p4, x18, z0.VnS());
+
+  __ Index(z0.VnD(), 0x1111111111111110, 1);
+  __ Mov(x19, -1);
+  __ Clasta(x19, p1, x19, z0.VnD());
+  __ Clastb(x20, p2, x20, z0.VnD());
+  __ Clasta(x21, p4, x21, z0.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(0x00000000000000ff, x1);
+    ASSERT_EQUAL_64(0x00000000000000ff, x2);
+    ASSERT_EQUAL_64(0x0000000000000011, x3);
+    ASSERT_EQUAL_64(0x0000000000000010, x4);
+    ASSERT_EQUAL_64(0x0000000000000019, x5);
+    ASSERT_EQUAL_64(0x0000000000000018, x6);
+    ASSERT_EQUAL_64(0x0000000000000010, x7);
+    ASSERT_EQUAL_64(0x000000000000ffff, x9);
+    ASSERT_EQUAL_64(0x0000000000001110, x12);
+    ASSERT_EQUAL_64(0x00000000ffffffff, x13);
+    ASSERT_EQUAL_64(0x0000000011111110, x14);
+    ASSERT_EQUAL_64(0x0000000011111110, x18);
+    ASSERT_EQUAL_64(0xffffffffffffffff, x19);
+    ASSERT_EQUAL_64(0x1111111111111110, x20);
+    ASSERT_EQUAL_64(0x1111111111111110, x21);
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    switch (vl) {
+      case 128:
+        ASSERT_EQUAL_64(0x0000000000001116, x10);
+        break;
+      case 384:
+        ASSERT_EQUAL_64(0x0000000000001118, x10);
+        break;
+      case 2048:
+        ASSERT_EQUAL_64(0x0000000000001118, x10);
+        break;
+      default:
+        printf("WARNING: Some tests skipped due to unexpected VL.\n");
+        break;
+    }
+  }
+}
+
+TEST_SVE(sve_clast_v) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Pfalse(p1.VnB());
+  int p2_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int p3_inputs[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  Initialise(&masm, p2.VnB(), p2_inputs);
+  Initialise(&masm, p3.VnB(), p3_inputs);
+  __ Ptrue(p4.VnB());
+
+  __ Index(z0.VnB(), 0x10, 1);
+  __ Dup(z1.VnB(), -1);
+  __ Dup(z2.VnB(), -1);
+  __ Clasta(b1, p1, b1, z0.VnB());
+  __ Clastb(b2, p1, b2, z0.VnB());
+  __ Clasta(b3, p2, b3, z0.VnB());
+  __ Clastb(b4, p2, b4, z0.VnB());
+  __ Clasta(b5, p3, b5, z0.VnB());
+  __ Clastb(b6, p3, b6, z0.VnB());
+  __ Clasta(b7, p4, b7, z0.VnB());
+
+  __ Punpklo(p3.VnH(), p3.VnB());
+  __ Index(z0.VnH(), 0x1110, 1);
+  __ Dup(z9.VnB(), -1);
+  __ Clasta(h9, p1, h9, z0.VnH());
+  __ Clastb(h10, p3, h10, z0.VnH());
+  __ Clasta(h12, p4, h12, z0.VnH());
+
+  __ Index(z0.VnS(), 0x11111110, 1);
+  __ Dup(z13.VnB(), -1);
+  __ Clasta(s13, p1, s13, z0.VnS());
+  __ Clastb(s14, p2, s14, z0.VnS());
+  __ Clasta(s18, p4, s18, z0.VnS());
+
+  __ Index(z0.VnD(), 0x1111111111111110, 1);
+  __ Dup(z19.VnB(), -1);
+  __ Clasta(d19, p1, d19, z0.VnD());
+  __ Clastb(d20, p2, d20, z0.VnD());
+  __ Clasta(d21, p4, d21, z0.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_128(0, 0x00000000000000ff, q1);
+    ASSERT_EQUAL_128(0, 0x00000000000000ff, q2);
+    ASSERT_EQUAL_128(0, 0x0000000000000011, q3);
+    ASSERT_EQUAL_128(0, 0x0000000000000010, q4);
+    ASSERT_EQUAL_128(0, 0x0000000000000019, q5);
+    ASSERT_EQUAL_128(0, 0x0000000000000018, q6);
+    ASSERT_EQUAL_128(0, 0x0000000000000010, q7);
+    ASSERT_EQUAL_128(0, 0x000000000000ffff, q9);
+    ASSERT_EQUAL_128(0, 0x0000000000001110, q12);
+    ASSERT_EQUAL_128(0, 0x00000000ffffffff, q13);
+    ASSERT_EQUAL_128(0, 0x0000000011111110, q14);
+    ASSERT_EQUAL_128(0, 0x0000000011111110, q18);
+    ASSERT_EQUAL_128(0, 0xffffffffffffffff, q19);
+    ASSERT_EQUAL_128(0, 0x1111111111111110, q20);
+    ASSERT_EQUAL_128(0, 0x1111111111111110, q21);
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    switch (vl) {
+      case 128:
+        ASSERT_EQUAL_128(0, 0x0000000000001116, q10);
+        break;
+      case 384:
+        ASSERT_EQUAL_128(0, 0x0000000000001118, q10);
+        break;
+      case 2048:
+        ASSERT_EQUAL_128(0, 0x0000000000001118, q10);
+        break;
+      default:
+        printf("WARNING: Some tests skipped due to unexpected VL.\n");
+        break;
+    }
+  }
+}
+
+TEST_SVE(sve_clast_z) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Pfalse(p1.VnB());
+  int p2_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int p3_inputs[] = {0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  Initialise(&masm, p2.VnB(), p2_inputs);
+  Initialise(&masm, p3.VnB(), p3_inputs);
+  __ Ptrue(p4.VnB());
+
+  __ Index(z0.VnB(), 0x10, 1);
+  __ Dup(z1.VnB(), 0xff);
+  __ Dup(z2.VnB(), 0xff);
+  __ Clasta(z1.VnB(), p1, z1.VnB(), z0.VnB());
+  __ Clastb(z2.VnB(), p1, z2.VnB(), z0.VnB());
+  __ Clasta(z3.VnB(), p2, z3.VnB(), z0.VnB());
+  __ Clastb(z4.VnB(), p2, z4.VnB(), z0.VnB());
+  __ Clasta(z5.VnB(), p3, z5.VnB(), z0.VnB());
+  __ Clastb(z6.VnB(), p3, z6.VnB(), z0.VnB());
+  __ Clasta(z7.VnB(), p4, z7.VnB(), z0.VnB());
+
+  __ Punpklo(p3.VnH(), p3.VnB());
+  __ Index(z0.VnH(), 0x1110, 1);
+  __ Dup(z9.VnB(), 0xff);
+  __ Clasta(z9.VnH(), p1, z9.VnH(), z0.VnH());
+  __ Clastb(z10.VnH(), p3, z10.VnH(), z0.VnH());
+  __ Clasta(z12.VnH(), p4, z12.VnH(), z0.VnH());
+
+  __ Index(z0.VnS(), 0x11111110, 1);
+  __ Dup(z13.VnB(), 0xff);
+  __ Clasta(z13.VnS(), p1, z13.VnS(), z0.VnS());
+  __ Clastb(z14.VnS(), p2, z14.VnS(), z0.VnS());
+  __ Clasta(z16.VnS(), p4, z16.VnS(), z0.VnS());
+
+  __ Index(z0.VnD(), 0x1111111111111110, 1);
+  __ Dup(z17.VnB(), 0xff);
+  __ Clasta(z17.VnD(), p1, z17.VnD(), z0.VnD());
+  __ Clastb(z18.VnD(), p2, z18.VnD(), z0.VnD());
+  __ Clasta(z20.VnD(), p4, z20.VnD(), z0.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t z1_expected[] = {0xffffffffffffffff, 0xffffffffffffffff};
+    uint64_t z2_expected[] = {0xffffffffffffffff, 0xffffffffffffffff};
+    uint64_t z3_expected[] = {0x1111111111111111, 0x1111111111111111};
+    uint64_t z4_expected[] = {0x1010101010101010, 0x1010101010101010};
+    uint64_t z5_expected[] = {0x1919191919191919, 0x1919191919191919};
+    uint64_t z6_expected[] = {0x1818181818181818, 0x1818181818181818};
+    uint64_t z7_expected[] = {0x1010101010101010, 0x1010101010101010};
+    uint64_t z9_expected[] = {0xffffffffffffffff, 0xffffffffffffffff};
+    uint64_t z12_expected[] = {0x1110111011101110, 0x1110111011101110};
+    uint64_t z13_expected[] = {0xffffffffffffffff, 0xffffffffffffffff};
+    uint64_t z14_expected[] = {0x1111111011111110, 0x1111111011111110};
+    uint64_t z16_expected[] = {0x1111111011111110, 0x1111111011111110};
+    uint64_t z17_expected[] = {0xffffffffffffffff, 0xffffffffffffffff};
+    uint64_t z18_expected[] = {0x1111111111111110, 0x1111111111111110};
+    uint64_t z20_expected[] = {0x1111111111111110, 0x1111111111111110};
+
+    uint64_t z10_expected_vl128[] = {0x1116111611161116, 0x1116111611161116};
+    uint64_t z10_expected_vl_long[] = {0x1118111811181118, 0x1118111811181118};
+
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
+    ASSERT_EQUAL_SVE(z7_expected, z7.VnD());
+    ASSERT_EQUAL_SVE(z9_expected, z9.VnD());
+    ASSERT_EQUAL_SVE(z12_expected, z12.VnD());
+    ASSERT_EQUAL_SVE(z13_expected, z13.VnD());
+    ASSERT_EQUAL_SVE(z14_expected, z14.VnD());
+    ASSERT_EQUAL_SVE(z16_expected, z16.VnD());
+    ASSERT_EQUAL_SVE(z17_expected, z17.VnD());
+    ASSERT_EQUAL_SVE(z18_expected, z18.VnD());
+    ASSERT_EQUAL_SVE(z20_expected, z20.VnD());
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    switch (vl) {
+      case 128:
+        ASSERT_EQUAL_SVE(z10_expected_vl128, z10.VnD());
+        break;
+      case 384:
+      case 2048:
+        ASSERT_EQUAL_SVE(z10_expected_vl_long, z10.VnD());
+        break;
+      default:
+        printf("WARNING: Some tests skipped due to unexpected VL.\n");
+        break;
+    }
+  }
+}
+
+TEST_SVE(sve_compact) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
+  START();
+
+  __ Ptrue(p0.VnB());
+  __ Pfalse(p1.VnB());
+  __ Zip1(p2.VnS(), p0.VnS(), p1.VnS());
+  __ Zip1(p3.VnS(), p1.VnS(), p0.VnS());
+  __ Zip1(p4.VnD(), p0.VnD(), p1.VnD());
+
+  __ Index(z0.VnS(), 0x11111111, 0x11111111);
+  __ Mov(q0, q0);
+  __ Compact(z1.VnS(), p0, z0.VnS());
+  __ Compact(z2.VnS(), p2, z0.VnS());
+  __ Compact(z0.VnS(), p3, z0.VnS());
+
+  __ Index(z3.VnD(), 0x1111111111111111, 0x1111111111111111);
+  __ Mov(q3, q3);
+  __ Compact(z4.VnD(), p0, z3.VnD());
+  __ Compact(z5.VnD(), p1, z3.VnD());
+  __ Compact(z6.VnD(), p4, z3.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t z1_expected[] = {0x4444444433333333, 0x2222222211111111};
+    uint64_t z2_expected[] = {0x0000000000000000, 0x3333333311111111};
+    uint64_t z0_expected[] = {0x0000000000000000, 0x4444444422222222};
+    uint64_t z4_expected[] = {0x2222222222222222, 0x1111111111111111};
+    uint64_t z5_expected[] = {0x0000000000000000, 0x0000000000000000};
+    uint64_t z6_expected[] = {0x0000000000000000, 0x1111111111111111};
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
+  }
+}
+
+TEST_SVE(sve_splice) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Ptrue(p0.VnB());
+  __ Pfalse(p1.VnB());
+  int p2b_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+  int p3b_inputs[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0};
+  int p4b_inputs[] = {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  int p5b_inputs[] = {0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0};
+  int p6b_inputs[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0};
+  Initialise(&masm, p2.VnB(), p2b_inputs);
+  Initialise(&masm, p3.VnB(), p3b_inputs);
+  Initialise(&masm, p4.VnB(), p4b_inputs);
+  Initialise(&masm, p5.VnB(), p5b_inputs);
+  Initialise(&masm, p6.VnB(), p6b_inputs);
+
+  __ Index(z30.VnB(), 1, 1);
+
+  __ Index(z0.VnB(), -1, -1);
+  __ Splice(z0.VnB(), p0, z0.VnB(), z30.VnB());
+  __ Index(z1.VnB(), -1, -1);
+  __ Splice(z1.VnB(), p1, z1.VnB(), z30.VnB());
+  __ Index(z2.VnB(), -1, -1);
+  __ Splice(z2.VnB(), p2, z2.VnB(), z30.VnB());
+  __ Index(z3.VnB(), -1, -1);
+  __ Splice(z3.VnB(), p3, z3.VnB(), z30.VnB());
+  __ Index(z4.VnB(), -1, -1);
+  __ Splice(z4.VnB(), p4, z4.VnB(), z30.VnB());
+  __ Index(z5.VnB(), -1, -1);
+  __ Splice(z5.VnB(), p5, z5.VnB(), z30.VnB());
+  __ Index(z6.VnB(), -1, -1);
+  __ Splice(z6.VnB(), p6, z6.VnB(), z30.VnB());
+
+  int p2h_inputs[] = {0, 0, 0, 0, 0, 0, 1, 0};
+  int p3h_inputs[] = {0, 0, 1, 0, 0, 0, 1, 0};
+  Initialise(&masm, p2.VnH(), p2h_inputs);
+  Initialise(&masm, p3.VnH(), p3h_inputs);
+
+  __ Index(z30.VnH(), 1, 1);
+  __ Index(z29.VnH(), -1, -1);
+  __ Splice(z7.VnH(), p2, z29.VnH(), z30.VnH());
+  __ Splice(z8.VnH(), p3, z29.VnH(), z30.VnH());
+
+  int p2s_inputs[] = {0, 0, 1, 0};
+  int p3s_inputs[] = {1, 0, 1, 0};
+  Initialise(&masm, p2.VnS(), p2s_inputs);
+  Initialise(&masm, p3.VnS(), p3s_inputs);
+
+  __ Index(z30.VnS(), 1, 1);
+  __ Index(z29.VnS(), -1, -1);
+  __ Splice(z9.VnS(), p2, z29.VnS(), z30.VnS());
+  __ Splice(z10.VnS(), p3, z29.VnS(), z30.VnS());
+
+  int p2d_inputs[] = {0, 1};
+  int p3d_inputs[] = {1, 0};
+  Initialise(&masm, p2.VnD(), p2d_inputs);
+  Initialise(&masm, p3.VnD(), p3d_inputs);
+
+  __ Index(z30.VnD(), 1, 1);
+  __ Index(z29.VnD(), -1, -1);
+  __ Splice(z11.VnD(), p2, z29.VnD(), z30.VnD());
+  __ Splice(z30.VnD(), p3, z29.VnD(), z30.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t z0_expected[] = {0xf0f1f2f3f4f5f6f7, 0xf8f9fafbfcfdfeff};
+    uint64_t z1_expected[] = {0x100f0e0d0c0b0a09, 0x0807060504030201};
+    uint64_t z2_expected[] = {0x0f0e0d0c0b0a0908, 0x07060504030201ff};
+    uint64_t z3_expected[] = {0x0f0e0d0c0b0a0908, 0x07060504030201fe};
+    uint64_t z4_expected[] = {0x0f0e0d0c0b0a0908, 0x07060504030201f0};
+    uint64_t z5_expected[] = {0x0c0b0a0908070605, 0x04030201f6f7f8f9};
+    uint64_t z6_expected[] = {0x01f0f1f2f3f4f5f6, 0xf7f8f9fafbfcfdfe};
+    uint64_t z7_expected[] = {0x0007000600050004, 0x000300020001fffe};
+    uint64_t z8_expected[] = {0x000300020001fffa, 0xfffbfffcfffdfffe};
+    uint64_t z9_expected[] = {0x0000000300000002, 0x00000001fffffffe};
+    uint64_t z10_expected[] = {0x00000001fffffffc, 0xfffffffdfffffffe};
+    uint64_t z11_expected[] = {0x0000000000000001, 0xffffffffffffffff};
+    uint64_t z30_expected[] = {0x0000000000000001, 0xfffffffffffffffe};
+
+    ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
+    ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+    ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+    ASSERT_EQUAL_SVE(z3_expected, z3.VnD());
+    ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+    ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
+    ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
+    ASSERT_EQUAL_SVE(z7_expected, z7.VnD());
+    ASSERT_EQUAL_SVE(z8_expected, z8.VnD());
+    ASSERT_EQUAL_SVE(z9_expected, z9.VnD());
+    ASSERT_EQUAL_SVE(z10_expected, z10.VnD());
+    ASSERT_EQUAL_SVE(z11_expected, z11.VnD());
+    ASSERT_EQUAL_SVE(z30_expected, z30.VnD());
+  }
+}
+
 TEST_SVE(sve_predicate_logical) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

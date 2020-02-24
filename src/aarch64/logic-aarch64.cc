@@ -1731,6 +1731,65 @@ LogicVRegister Simulator::ushll2(VectorFormat vform,
   return ushl(vform, dst, extendedreg, shiftreg);
 }
 
+std::pair<bool, uint64_t> Simulator::clast(VectorFormat vform,
+                                           const LogicPRegister& pg,
+                                           const LogicVRegister& src,
+                                           int offset_from_last_active) {
+  // Untested for any other values.
+  VIXL_ASSERT((offset_from_last_active == 0) || (offset_from_last_active == 1));
+
+  int last_active = GetLastActive(vform, pg);
+  int lane_count = LaneCountFromFormat(vform);
+  int index =
+      ((last_active + offset_from_last_active) + lane_count) % lane_count;
+  return std::make_pair(last_active >= 0, src.Uint(vform, index));
+}
+
+LogicVRegister Simulator::compact(VectorFormat vform,
+                                  LogicVRegister dst,
+                                  const LogicPRegister& pg,
+                                  const LogicVRegister& src) {
+  int j = 0;
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (pg.IsActive(vform, i)) {
+      dst.SetUint(vform, j++, src.Uint(vform, i));
+    }
+  }
+  for (; j < LaneCountFromFormat(vform); j++) {
+    dst.SetUint(vform, j, 0);
+  }
+  return dst;
+}
+
+LogicVRegister Simulator::splice(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicPRegister& pg,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
+  int lane_count = LaneCountFromFormat(vform);
+  int first_active = GetFirstActive(vform, pg);
+  int last_active = GetLastActive(vform, pg);
+  int dst_idx = 0;
+  uint64_t result[kZRegMaxSizeInBytes];
+
+  if (first_active >= 0) {
+    VIXL_ASSERT(last_active >= first_active);
+    VIXL_ASSERT(last_active < lane_count);
+    for (int i = first_active; i <= last_active; i++) {
+      result[dst_idx++] = src1.Uint(vform, i);
+    }
+  }
+
+  VIXL_ASSERT(dst_idx <= lane_count);
+  for (int i = dst_idx; i < lane_count; i++) {
+    result[i] = src2.Uint(vform, i - dst_idx);
+  }
+
+  for (int i = 0; i < lane_count; i++) {
+    dst.SetUint(vform, i, result[i]);
+  }
+  return dst;
+}
 
 LogicVRegister Simulator::sel(VectorFormat vform,
                               LogicVRegister dst,

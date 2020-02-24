@@ -10888,89 +10888,154 @@ void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
 
 void Simulator::VisitSVEConditionallyBroadcastElementToVector(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
   switch (instr->Mask(SVEConditionallyBroadcastElementToVectorMask)) {
     case CLASTA_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 1;
       break;
     case CLASTB_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 0;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (active_offset >= 0) {
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    if (value.first) {
+      dup_immediate(vform, zdn, value.second);
+    } else {
+      // Trigger a line of trace for the operation, even though it doesn't
+      // change the register value.
+      mov(vform, zdn, zdn);
+    }
   }
 }
 
 void Simulator::VisitSVEConditionallyExtractElementToSIMDFPScalar(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
   switch (instr->Mask(SVEConditionallyExtractElementToSIMDFPScalarMask)) {
     case CLASTA_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 1;
       break;
     case CLASTB_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 0;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (active_offset >= 0) {
+    LogicVRegister dst(vdn);
+    uint64_t src1_value = dst.Uint(vform, 0);
+    std::pair<bool, uint64_t> src2_value = clast(vform, pg, zm, active_offset);
+    dup_immediate(vform, vdn, 0);
+    dst.SetUint(vform, 0, src2_value.first ? src2_value.second : src1_value);
   }
 }
 
 void Simulator::VisitSVEConditionallyExtractElementToGeneralRegister(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
   switch (instr->Mask(SVEConditionallyExtractElementToGeneralRegisterMask)) {
     case CLASTA_r_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 1;
       break;
     case CLASTB_r_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 0;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (active_offset >= 0) {
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    uint64_t masked_src = ReadXRegister(instr->GetRd()) &
+                          GetUintMask(LaneSizeInBitsFromFormat(vform));
+    WriteXRegister(instr->GetRd(), value.first ? value.second : masked_src);
   }
 }
 
 void Simulator::VisitSVEExtractElementToSIMDFPScalarRegister(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
   switch (instr->Mask(SVEExtractElementToSIMDFPScalarRegisterMask)) {
     case LASTA_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 1;
       break;
     case LASTB_v_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 0;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (active_offset >= 0) {
+    LogicVRegister dst(vdn);
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    dup_immediate(vform, vdn, 0);
+    dst.SetUint(vform, 0, value.second);
   }
 }
 
 void Simulator::VisitSVEExtractElementToGeneralRegister(
     const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
   switch (instr->Mask(SVEExtractElementToGeneralRegisterMask)) {
     case LASTA_r_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 1;
       break;
     case LASTB_r_p_z:
-      VIXL_UNIMPLEMENTED();
+      active_offset = 0;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  if (active_offset >= 0) {
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    WriteXRegister(instr->GetRd(), value.second);
+  }
 }
 
 void Simulator::VisitSVECompressActiveElements(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
   switch (instr->Mask(SVECompressActiveElementsMask)) {
     case COMPACT_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      compact(vform, zd, pg, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -11078,10 +11143,14 @@ void Simulator::VisitSVEReverseWithinElements(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEVectorSplice_Destructive(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
   switch (instr->Mask(SVEVectorSplice_DestructiveMask)) {
     case SPLICE_z_p_zz_des:
-      VIXL_UNIMPLEMENTED();
+      splice(vform, zdn, pg, zdn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

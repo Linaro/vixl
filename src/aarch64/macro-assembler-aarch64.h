@@ -3684,11 +3684,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Clasta(const ZRegister& zd,
               const PRegister& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    clasta(zd, pg, zn, zm);
-  }
+              const ZRegister& zm);
   void Clastb(const Register& rd,
               const PRegister& pg,
               const Register& rn,
@@ -3708,11 +3704,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Clastb(const ZRegister& zd,
               const PRegister& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    clastb(zd, pg, zn, zm);
-  }
+              const ZRegister& zm);
   void Cls(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -5642,11 +5634,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Splice(const ZRegister& zd,
               const PRegister& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    splice(zd, pg, zn, zm);
-  }
+              const ZRegister& zm);
   void Sqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

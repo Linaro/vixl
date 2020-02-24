@@ -4967,53 +4967,90 @@ TEST(sve_cpy_reg) {
 TEST(sve_permute_vector_predicated) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(clasta(r6, p0, r6, z13.VnB()), "clasta <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(r6, p0, r6, z13.VnH()), "clasta <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(r6, p0, r6, z13.VnS()), "clasta <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(r6, p0, r6, z13.VnD()), "clasta <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(b8, p6, b8, z7.VnB()), "clasta <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(h8, p6, h8, z7.VnH()), "clasta <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(s8, p6, s8, z7.VnS()), "clasta <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(d8, p6, d8, z7.VnD()), "clasta <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(z4.VnB(), p2, z4.VnB(), z12.VnB()), "clasta <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(z4.VnH(), p2, z4.VnH(), z12.VnH()), "clasta <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(z4.VnS(), p2, z4.VnS(), z12.VnS()), "clasta <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clasta(z4.VnD(), p2, z4.VnD(), z12.VnD()), "clasta <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(r21, p2, r21, z27.VnB()), "clastb <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(r21, p2, r21, z27.VnH()), "clastb <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(r21, p2, r21, z27.VnS()), "clastb <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(r21, p2, r21, z27.VnD()), "clastb <R><dn>, <Pg>, <R><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(b17, p0, b17, z19.VnB()), "clastb <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(h17, p0, h17, z19.VnH()), "clastb <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(s17, p0, s17, z19.VnS()), "clastb <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(d17, p0, d17, z19.VnD()), "clastb <V><dn>, <Pg>, <V><dn>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(z29.VnB(), p7, z29.VnB(), z26.VnB()), "clastb <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(z29.VnH(), p7, z29.VnH(), z26.VnH()), "clastb <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(z29.VnS(), p7, z29.VnS(), z26.VnS()), "clastb <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(clastb(z29.VnD(), p7, z29.VnD(), z26.VnD()), "clastb <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(compact(z13.Vn?(), p7, z1.Vn?()), "compact <Zd>.<T>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(r15, p3, z3.VnB()), "lasta <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(r15, p3, z3.VnH()), "lasta <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(r15, p3, z3.VnS()), "lasta <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(r15, p3, z3.VnD()), "lasta <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(b30, p4, z24.VnB()), "lasta <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(h30, p4, z24.VnH()), "lasta <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(s30, p4, z24.VnS()), "lasta <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lasta(d30, p4, z24.VnD()), "lasta <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(r9, p2, z16.VnB()), "lastb <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(r9, p2, z16.VnH()), "lastb <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(r9, p2, z16.VnS()), "lastb <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(r9, p2, z16.VnD()), "lastb <R><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(b14, p5, z2.VnB()), "lastb <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(h14, p5, z2.VnH()), "lastb <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(s14, p5, z2.VnS()), "lastb <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(lastb(d14, p5, z2.VnD()), "lastb <V><d>, <Pg>, <Zn>.<T>");
-  COMPARE_PREFIX(splice(z7.VnB(), p6, z7.VnB(), z2.VnB()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(splice(z7.VnH(), p6, z7.VnH(), z2.VnH()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(splice(z7.VnS(), p6, z7.VnS(), z2.VnS()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-  COMPARE_PREFIX(splice(z7.VnD(), p6, z7.VnD(), z2.VnD()), "splice <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>");
-#endif
+  COMPARE_PREFIX(compact(z13.VnS(), p7, z1.VnS()), "compact z13.s, p7, z1.s");
+  COMPARE_PREFIX(compact(z13.VnD(), p7, z1.VnD()), "compact z13.d, p7, z1.d");
+  COMPARE_PREFIX(splice(z7.VnB(), p6, z7.VnB(), z2.VnB()),
+                 "splice z7.b, p6, z7.b, z2.b");
+  COMPARE_PREFIX(splice(z7.VnH(), p6, z7.VnH(), z2.VnH()),
+                 "splice z7.h, p6, z7.h, z2.h");
+  COMPARE_PREFIX(splice(z7.VnS(), p6, z7.VnS(), z2.VnS()),
+                 "splice z7.s, p6, z7.s, z2.s");
+  COMPARE_PREFIX(splice(z7.VnD(), p6, z7.VnD(), z2.VnD()),
+                 "splice z7.d, p6, z7.d, z2.d");
+
+  COMPARE_MACRO(Splice(z0.VnB(), p1, z2.VnB(), z3.VnB()),
+                "movprfx z0, z2\n"
+                "splice z0.b, p1, z0.b, z3.b");
+  COMPARE_MACRO(Splice(z0.VnH(), p1, z2.VnH(), z0.VnH()),
+                "movprfx z31, z2\n"
+                "splice z31.h, p1, z31.h, z0.h\n"
+                "orr z0.d, z31.d, z31.d");
+
+  COMPARE_PREFIX(clasta(z4.VnB(), p2, z4.VnB(), z12.VnB()),
+                 "clasta z4.b, p2, z4.b, z12.b");
+  COMPARE_PREFIX(clasta(z4.VnH(), p2, z4.VnH(), z12.VnH()),
+                 "clasta z4.h, p2, z4.h, z12.h");
+  COMPARE_PREFIX(clasta(z4.VnS(), p2, z4.VnS(), z12.VnS()),
+                 "clasta z4.s, p2, z4.s, z12.s");
+  COMPARE_PREFIX(clasta(z4.VnD(), p2, z4.VnD(), z12.VnD()),
+                 "clasta z4.d, p2, z4.d, z12.d");
+  COMPARE_PREFIX(clastb(z29.VnB(), p7, z29.VnB(), z26.VnB()),
+                 "clastb z29.b, p7, z29.b, z26.b");
+  COMPARE_PREFIX(clastb(z29.VnH(), p7, z29.VnH(), z26.VnH()),
+                 "clastb z29.h, p7, z29.h, z26.h");
+  COMPARE_PREFIX(clastb(z29.VnS(), p7, z29.VnS(), z26.VnS()),
+                 "clastb z29.s, p7, z29.s, z26.s");
+  COMPARE_PREFIX(clastb(z29.VnD(), p7, z29.VnD(), z26.VnD()),
+                 "clastb z29.d, p7, z29.d, z26.d");
+
+  COMPARE_MACRO(Clasta(z5.VnD(), p2, z4.VnD(), z12.VnD()),
+                "movprfx z5, z4\n"
+                "clasta z5.d, p2, z5.d, z12.d");
+  COMPARE_MACRO(Clastb(z30.VnD(), p7, z29.VnD(), z26.VnD()),
+                "movprfx z30, z29\n"
+                "clastb z30.d, p7, z30.d, z26.d");
+  COMPARE_MACRO(Clasta(z9.VnH(), p3, z8.VnH(), z9.VnH()),
+                "movprfx z31, z8\n"
+                "clasta z31.h, p3, z31.h, z9.h\n"
+                "orr z9.d, z31.d, z31.d");
+  COMPARE_MACRO(Clastb(z1.VnS(), p1, z1.VnS(), z1.VnS()),
+                "clastb z1.s, p1, z1.s, z1.s");
+
+  COMPARE_PREFIX(clasta(w6, p0, w6, z13.VnB()), "clasta w6, p0, w6, z13.b");
+  COMPARE_PREFIX(clasta(w6, p0, w6, z13.VnH()), "clasta w6, p0, w6, z13.h");
+  COMPARE_PREFIX(clasta(w6, p0, w6, z13.VnS()), "clasta w6, p0, w6, z13.s");
+  COMPARE_PREFIX(clasta(x6, p0, x6, z13.VnD()), "clasta x6, p0, x6, z13.d");
+  COMPARE_PREFIX(clastb(w21, p2, w21, z27.VnB()), "clastb w21, p2, w21, z27.b");
+  COMPARE_PREFIX(clastb(w21, p2, w21, z27.VnH()), "clastb w21, p2, w21, z27.h");
+  COMPARE_PREFIX(clastb(w21, p2, w21, z27.VnS()), "clastb w21, p2, w21, z27.s");
+  COMPARE_PREFIX(clastb(x21, p2, x21, z27.VnD()), "clastb x21, p2, x21, z27.d");
+
+  COMPARE_PREFIX(clasta(b8, p6, b8, z7.VnB()), "clasta b8, p6, b8, z7.b");
+  COMPARE_PREFIX(clasta(h8, p6, h8, z7.VnH()), "clasta h8, p6, h8, z7.h");
+  COMPARE_PREFIX(clasta(s8, p6, s8, z7.VnS()), "clasta s8, p6, s8, z7.s");
+  COMPARE_PREFIX(clasta(d8, p6, d8, z7.VnD()), "clasta d8, p6, d8, z7.d");
+  COMPARE_PREFIX(clastb(b17, p0, b17, z19.VnB()), "clastb b17, p0, b17, z19.b");
+  COMPARE_PREFIX(clastb(h17, p0, h17, z19.VnH()), "clastb h17, p0, h17, z19.h");
+  COMPARE_PREFIX(clastb(s17, p0, s17, z19.VnS()), "clastb s17, p0, s17, z19.s");
+  COMPARE_PREFIX(clastb(d17, p0, d17, z19.VnD()), "clastb d17, p0, d17, z19.d");
+
+  COMPARE_PREFIX(lasta(w15, p3, z3.VnB()), "lasta w15, p3, z3.b");
+  COMPARE_PREFIX(lasta(w15, p3, z3.VnH()), "lasta w15, p3, z3.h");
+  COMPARE_PREFIX(lasta(w15, p3, z3.VnS()), "lasta w15, p3, z3.s");
+  COMPARE_PREFIX(lasta(x15, p3, z3.VnD()), "lasta x15, p3, z3.d");
+  COMPARE_PREFIX(lasta(b30, p4, z24.VnB()), "lasta b30, p4, z24.b");
+  COMPARE_PREFIX(lasta(h30, p4, z24.VnH()), "lasta h30, p4, z24.h");
+  COMPARE_PREFIX(lasta(s30, p4, z24.VnS()), "lasta s30, p4, z24.s");
+  COMPARE_PREFIX(lasta(d30, p4, z24.VnD()), "lasta d30, p4, z24.d");
+
+  COMPARE_PREFIX(lastb(w9, p2, z16.VnB()), "lastb w9, p2, z16.b");
+  COMPARE_PREFIX(lastb(w9, p2, z16.VnH()), "lastb w9, p2, z16.h");
+  COMPARE_PREFIX(lastb(w9, p2, z16.VnS()), "lastb w9, p2, z16.s");
+  COMPARE_PREFIX(lastb(x9, p2, z16.VnD()), "lastb x9, p2, z16.d");
+  COMPARE_PREFIX(lastb(b14, p5, z2.VnB()), "lastb b14, p5, z2.b");
+  COMPARE_PREFIX(lastb(h14, p5, z2.VnH()), "lastb h14, p5, z2.h");
+  COMPARE_PREFIX(lastb(s14, p5, z2.VnS()), "lastb s14, p5, z2.s");
+  COMPARE_PREFIX(lastb(d14, p5, z2.VnD()), "lastb d14, p5, z2.d");
 
   CLEANUP();
 }

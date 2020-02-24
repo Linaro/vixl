@@ -3306,6 +3306,23 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  // Perform a "conditional last" operation. The first part of the pair is true
+  // if any predicate lane is active, false otherwise. The second part takes the
+  // value of the last active (plus offset) lane, or last (plus offset) lane if
+  // none active.
+  std::pair<bool, uint64_t> clast(VectorFormat vform,
+                                  const LogicPRegister& pg,
+                                  const LogicVRegister& src2,
+                                  int offset_from_last_active);
+  LogicVRegister compact(VectorFormat vform,
+                         LogicVRegister dst,
+                         const LogicPRegister& pg,
+                         const LogicVRegister& src);
+  LogicVRegister splice(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicPRegister& pg,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
   LogicVRegister sel(VectorFormat vform,
                      LogicVRegister dst,
                      const SimPRegister& pg,

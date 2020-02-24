@@ -6028,10 +6028,12 @@ void Disassembler::VisitSVECompressActiveElements(const Instruction *instr) {
   const char *form = "(SVECompressActiveElements)";
 
   switch (instr->Mask(SVECompressActiveElementsMask)) {
-    // COMPACT <Zd>.<T>, <Pg>, <Zn>.<T>
     case COMPACT_z_p_z:
+      // The top bit of size is always set for compact, so 't can only be
+      // substituted with types S and D.
+      VIXL_ASSERT(instr->ExtractBit(23) == 1);
       mnemonic = "compact";
-      form = "'Zd.<T>, 'Pgl, 'Zn.<T>";
+      form = "'Zd.'t, 'Pgl, 'Zn.'t";
       break;
     default:
       break;
@@ -6042,15 +6044,12 @@ void Disassembler::VisitSVECompressActiveElements(const Instruction *instr) {
 void Disassembler::VisitSVEConditionallyBroadcastElementToVector(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>
   const char *form = "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t";
 
   switch (instr->Mask(SVEConditionallyBroadcastElementToVectorMask)) {
-    // CLASTA <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>
     case CLASTA_z_p_zz:
       mnemonic = "clasta";
       break;
-    // CLASTB <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>
     case CLASTB_z_p_zz:
       mnemonic = "clastb";
       break;
@@ -6063,15 +6062,16 @@ void Disassembler::VisitSVEConditionallyBroadcastElementToVector(
 void Disassembler::VisitSVEConditionallyExtractElementToGeneralRegister(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <R><dn>, <Pg>, <R><dn>, <Zm>.<T>
-  const char *form = "'Rd, 'Pgl, 'Rd, 'Zn.'t";
+  const char *form = "'Wd, 'Pgl, 'Wd, 'Zn.'t";
+
+  if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
+    form = "'Xd, p'u1210, 'Xd, 'Zn.'t";
+  }
 
   switch (instr->Mask(SVEConditionallyExtractElementToGeneralRegisterMask)) {
-    // CLASTA <R><dn>, <Pg>, <R><dn>, <Zm>.<T>
     case CLASTA_r_p_z:
       mnemonic = "clasta";
       break;
-    // CLASTB <R><dn>, <Pg>, <R><dn>, <Zm>.<T>
     case CLASTB_r_p_z:
       mnemonic = "clastb";
       break;
@@ -6084,15 +6084,12 @@ void Disassembler::VisitSVEConditionallyExtractElementToGeneralRegister(
 void Disassembler::VisitSVEConditionallyExtractElementToSIMDFPScalar(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <V><dn>, <Pg>, <V><dn>, <Zm>.<T>
-  const char *form = "'Vd, 'Pgl, 'Vd, 'Zn.'t";
+  const char *form = "'t'u0400, 'Pgl, 't'u0400, 'Zn.'t";
 
   switch (instr->Mask(SVEConditionallyExtractElementToSIMDFPScalarMask)) {
-    // CLASTA <V><dn>, <Pg>, <V><dn>, <Zm>.<T>
     case CLASTA_v_p_z:
       mnemonic = "clasta";
       break;
-    // CLASTB <V><dn>, <Pg>, <V><dn>, <Zm>.<T>
     case CLASTB_v_p_z:
       mnemonic = "clastb";
       break;
@@ -6614,15 +6611,16 @@ void Disassembler::VisitSVECopySIMDFPScalarRegisterToVector_Predicated(
 void Disassembler::VisitSVEExtractElementToGeneralRegister(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <R><d>, <Pg>, <Zn>.<T>
-  const char *form = "'Rd, 'Pgl, 'Zn.'t";
+  const char *form = "'Wd, 'Pgl, 'Zn.'t";
+
+  if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
+    form = "'Xd, p'u1210, 'Zn.'t";
+  }
 
   switch (instr->Mask(SVEExtractElementToGeneralRegisterMask)) {
-    // LASTA <R><d>, <Pg>, <Zn>.<T>
     case LASTA_r_p_z:
       mnemonic = "lasta";
       break;
-    // LASTB <R><d>, <Pg>, <Zn>.<T>
     case LASTB_r_p_z:
       mnemonic = "lastb";
       break;
@@ -6635,15 +6633,12 @@ void Disassembler::VisitSVEExtractElementToGeneralRegister(
 void Disassembler::VisitSVEExtractElementToSIMDFPScalarRegister(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <V><d>, <Pg>, <Zn>.<T>
-  const char *form = "'Vd, 'Pgl, 'Zn.'t";
+  const char *form = "'t'u0400, 'Pgl, 'Zn.'t";
 
   switch (instr->Mask(SVEExtractElementToSIMDFPScalarRegisterMask)) {
-    // LASTA <V><d>, <Pg>, <Zn>.<T>
     case LASTA_v_p_z:
       mnemonic = "lasta";
       break;
-    // LASTB <V><d>, <Pg>, <Zn>.<T>
     case LASTB_v_p_z:
       mnemonic = "lastb";
       break;
@@ -8396,7 +8391,6 @@ void Disassembler::VisitSVEVectorSplice_Destructive(const Instruction *instr) {
   const char *form = "(SVEVectorSplice_Destructive)";
 
   switch (instr->Mask(SVEVectorSplice_DestructiveMask)) {
-    // SPLICE <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>
     case SPLICE_z_p_zz_des:
       mnemonic = "splice";
       form = "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t";

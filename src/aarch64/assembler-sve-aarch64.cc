@@ -5856,7 +5856,7 @@ void Assembler::clasta(const Register& rd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(rd.Is(rn));
 
-  Emit(CLASTA_r_p_z | SVESize(zm) | Rd(rd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(CLASTA_r_p_z | SVESize(zm) | Rd(rd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::clasta(const VRegister& vd,
@@ -5871,9 +5871,9 @@ void Assembler::clasta(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.Is(vn));
   VIXL_ASSERT(vd.IsScalar());
-  VIXL_ASSERT(vn.IsScalar());
+  VIXL_ASSERT(AreSameLaneSize(vd, zm));
 
-  Emit(CLASTA_v_p_z | SVESize(zm) | Rd(vd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(CLASTA_v_p_z | SVESize(zm) | Rd(vd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::clasta(const ZRegister& zd,
@@ -5889,7 +5889,7 @@ void Assembler::clasta(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(CLASTA_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(CLASTA_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::clastb(const Register& rd,
@@ -5904,7 +5904,7 @@ void Assembler::clastb(const Register& rd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(rd.Is(rn));
 
-  Emit(CLASTB_r_p_z | SVESize(zm) | Rd(rd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(CLASTB_r_p_z | SVESize(zm) | Rd(rd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::clastb(const VRegister& vd,
@@ -5919,9 +5919,9 @@ void Assembler::clastb(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.Is(vn));
   VIXL_ASSERT(vd.IsScalar());
-  VIXL_ASSERT(vn.IsScalar());
+  VIXL_ASSERT(AreSameLaneSize(vd, zm));
 
-  Emit(CLASTB_v_p_z | SVESize(zm) | Rd(vd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(CLASTB_v_p_z | SVESize(zm) | Rd(vd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::clastb(const ZRegister& zd,
@@ -5937,7 +5937,7 @@ void Assembler::clastb(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(CLASTB_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(CLASTB_z_p_zz | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 void Assembler::compact(const ZRegister& zd,
@@ -5948,8 +5948,12 @@ void Assembler::compact(const ZRegister& zd,
   //  sz<22> | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  VIXL_ASSERT((zd.GetLaneSizeInBits() == kSRegSize) ||
+              (zd.GetLaneSizeInBits() == kDRegSize));
 
-  Emit(COMPACT_z_p_z | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Instr sz = (zd.GetLaneSizeInBits() == kDRegSize) ? (1 << 22) : 0;
+  Emit(COMPACT_z_p_z | sz | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::cpy(const ZRegister& zd,
@@ -5990,7 +5994,7 @@ void Assembler::lasta(const Register& rd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LASTA_r_p_z | SVESize(zn) | Rd(rd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(LASTA_r_p_z | SVESize(zn) | Rd(rd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::lasta(const VRegister& vd,
@@ -6003,7 +6007,7 @@ void Assembler::lasta(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(LASTA_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(LASTA_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::lastb(const Register& rd,
@@ -6015,7 +6019,7 @@ void Assembler::lastb(const Register& rd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LASTB_r_p_z | SVESize(zn) | Rd(rd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(LASTB_r_p_z | SVESize(zn) | Rd(rd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::lastb(const VRegister& vd,
@@ -6028,7 +6032,7 @@ void Assembler::lastb(const VRegister& vd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(vd.IsScalar());
 
-  Emit(LASTB_v_p_z | SVESize(zn) | Rd(vd) | Rx<12, 10>(pg) | Rn(zn));
+  Emit(LASTB_v_p_z | SVESize(zn) | Rd(vd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::rbit(const ZRegister& zd,
@@ -6099,7 +6103,7 @@ void Assembler::splice(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(SPLICE_z_p_zz_des | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Emit(SPLICE_z_p_zz_des | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 // SVEPermuteVectorUnpredicated.

@@ -1693,5 +1693,62 @@ void MacroAssembler::Ext(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::Splice(const ZRegister& zd,
+                            const PRegister& pg,
+                            const ZRegister& zn,
+                            const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, zn);
+      splice(scratch, pg, scratch, zm);
+    }
+    Mov(zd, scratch);
+  } else {
+    MovprfxHelperScope guard(this, zd, zn);
+    splice(zd, pg, zd, zm);
+  }
+}
+
+void MacroAssembler::Clasta(const ZRegister& zd,
+                            const PRegister& pg,
+                            const ZRegister& zn,
+                            const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, zn);
+      clasta(scratch, pg, scratch, zm);
+    }
+    Mov(zd, scratch);
+  } else {
+    MovprfxHelperScope guard(this, zd, zn);
+    clasta(zd, pg, zd, zm);
+  }
+}
+
+void MacroAssembler::Clastb(const ZRegister& zd,
+                            const PRegister& pg,
+                            const ZRegister& zn,
+                            const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, zn);
+      clastb(scratch, pg, scratch, zm);
+    }
+    Mov(zd, scratch);
+  } else {
+    MovprfxHelperScope guard(this, zd, zn);
+    clastb(zd, pg, zd, zm);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
