@@ -16067,5 +16067,111 @@ TEST_SVE(sve_frecpx_d) {
   TestFrecpxHelper(config, kDRegSize, zn_inputs, zd_expected);
 }
 
+template <size_t N, typename T>
+static void TestFsqrtHelper(Test* config,
+                            int lane_size_in_bits,
+                            T (&zn_inputs)[N],
+                            const T (&zd_expected)[N]) {
+  TestFPUnaryPredicatedHelper(config,
+                              lane_size_in_bits,
+                              lane_size_in_bits,
+                              zn_inputs,
+                              zd_expected,
+                              &MacroAssembler::Fsqrt,   // Merging form.
+                              &MacroAssembler::Fsqrt);  // Zerging form.
+}
+
+TEST_SVE(sve_fsqrt_h) {
+  uint64_t zn_inputs[] =
+      {Float16ToRawbits(Float16(0.0)),
+       Float16ToRawbits(Float16(-0.0)),
+       Float16ToRawbits(Float16(1.0)),
+       Float16ToRawbits(Float16(65025.0)),
+       Float16ToRawbits(kFP16PositiveInfinity),
+       Float16ToRawbits(kFP16NegativeInfinity),
+       Float16ToRawbits(Float16(6.10352e-5)),  // Min normal positive.
+       Float16ToRawbits(Float16(65504.0)),     // Max normal positive float.
+       Float16ToRawbits(Float16(6.09756e-5)),  // Max subnormal.
+       Float16ToRawbits(Float16(5.96046e-8)),  // Min subnormal positive.
+       0x7c22,                                 // Signaling NaN
+       0x7e55};                                // Quiet NaN
+
+  uint64_t zd_expected[] = {Float16ToRawbits(Float16(0.0)),
+                            Float16ToRawbits(Float16(-0.0)),
+                            Float16ToRawbits(Float16(1.0)),
+                            Float16ToRawbits(Float16(255.0)),
+                            Float16ToRawbits(kFP16PositiveInfinity),
+                            Float16ToRawbits(kFP16DefaultNaN),
+                            0x2000,
+                            0x5bff,
+                            0x1fff,
+                            0x0c00,
+                            0x7e22,  // To quiet NaN.
+                            0x7e55};
+
+  TestFsqrtHelper(config, kHRegSize, zn_inputs, zd_expected);
+}
+
+TEST_SVE(sve_fsqrt_s) {
+  uint64_t zn_inputs[] = {FloatToRawbits(0.0f),
+                          FloatToRawbits(-0.0f),
+                          FloatToRawbits(1.0f),
+                          FloatToRawbits(65536.0f),
+                          FloatToRawbits(kFP32PositiveInfinity),
+                          FloatToRawbits(kFP32NegativeInfinity),
+                          0x00800000,   // Min normal positive, ~1.17e−38
+                          0x7f7fffff,   // Max normal positive, ~3.40e+38
+                          0x00000001,   // Min subnormal positive, ~1.40e−45
+                          0x007fffff,   // Max subnormal, ~1.17e−38
+                          0x7f951111,   // Signaling NaN
+                          0x7fea1111};  // Quiet NaN
+
+  uint64_t zd_expected[] = {FloatToRawbits(0.0f),
+                            FloatToRawbits(-0.0f),
+                            FloatToRawbits(1.0f),
+                            FloatToRawbits(256.0f),
+                            FloatToRawbits(kFP32PositiveInfinity),
+                            FloatToRawbits(kFP32DefaultNaN),
+                            0x20000000,  // ~1.08e-19
+                            0x5f7fffff,  // ~1.84e+19
+                            0x1a3504f3,  // ~3.74e-23
+                            0x1fffffff,  // ~1.08e-19
+                            0x7fd51111,  // To quiet NaN.
+                            0x7fea1111};
+
+  TestFsqrtHelper(config, kSRegSize, zn_inputs, zd_expected);
+}
+
+TEST_SVE(sve_fsqrt_d) {
+  uint64_t zn_inputs[] =
+      {DoubleToRawbits(0.0),
+       DoubleToRawbits(-0.0),
+       DoubleToRawbits(1.0),
+       DoubleToRawbits(65536.0),
+       DoubleToRawbits(kFP64PositiveInfinity),
+       DoubleToRawbits(kFP64NegativeInfinity),
+       0x0010000000000000,  // Min normal positive, ~2.22e-308
+       0x7fefffffffffffff,  // Max normal positive, ~1.79e+308
+       0x0000000000000001,  // Min subnormal positive, 5e-324
+       0x000fffffffffffff,  // Max subnormal, ~2.22e-308
+       0x7ff5555511111111,
+       0x7ffaaaaa11111111};
+
+  uint64_t zd_expected[] = {DoubleToRawbits(0.0),
+                            DoubleToRawbits(-0.0),
+                            DoubleToRawbits(1.0),
+                            DoubleToRawbits(256.0),
+                            DoubleToRawbits(kFP64PositiveInfinity),
+                            DoubleToRawbits(kFP64DefaultNaN),
+                            0x2000000000000000,  // ~1.49e-154
+                            0x5fefffffffffffff,  // ~1.34e+154
+                            0x1e60000000000000,  // ~2.22e-162
+                            0x1fffffffffffffff,  // ~1.49e-154
+                            0x7ffd555511111111,  // To quiet NaN.
+                            0x7ffaaaaa11111111};
+
+  TestFsqrtHelper(config, kDRegSize, zn_inputs, zd_expected);
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -8438,7 +8438,7 @@ void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {
       frecpx(vform, result, zn);
       break;
     case FSQRT_z_p_z:
-      VIXL_UNIMPLEMENTED();
+      fsqrt(vform, result, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();

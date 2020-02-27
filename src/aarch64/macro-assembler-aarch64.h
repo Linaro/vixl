@@ -4588,6 +4588,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fsqrt(zd, pg, zn);
   }
+  void Fsqrt(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fsqrt(zd, pg.Merging(), zn);
+  }
   void Fsub(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,

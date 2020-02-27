@@ -1805,6 +1805,15 @@ TEST(sve_fp_unary_op_predicated_macro) {
   COMPARE_MACRO(Frintz(z12.VnD(), p3.Zeroing(), z6.VnD()),
                 "movprfx z12.d, p3/z, z6.d\n"
                 "frintz z12.d, p3/m, z6.d");
+  COMPARE_MACRO(Fsqrt(z30.VnH(), p3.Zeroing(), z13.VnH()),
+                "movprfx z30.h, p3/z, z13.h\n"
+                "fsqrt z30.h, p3/m, z13.h");
+  COMPARE_MACRO(Fsqrt(z29.VnS(), p3.Zeroing(), z14.VnS()),
+                "movprfx z29.s, p3/z, z14.s\n"
+                "fsqrt z29.s, p3/m, z14.s");
+  COMPARE_MACRO(Fsqrt(z28.VnD(), p3.Zeroing(), z15.VnD()),
+                "movprfx z28.d, p3/z, z15.d\n"
+                "fsqrt z28.d, p3/m, z15.d");
 
   CLEANUP();
 }
