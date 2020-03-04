@@ -1285,12 +1285,26 @@ TEST(sve_fp_compare_with_zero) {
 TEST(sve_fp_complex_addition) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fcadd(z12.VnH(), p5.Merging(), z12.VnH(), z13.VnH()), "fcadd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>, <const>");
-  COMPARE_PREFIX(fcadd(z12.VnS(), p5.Merging(), z12.VnS(), z13.VnS()), "fcadd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>, <const>");
-  COMPARE_PREFIX(fcadd(z12.VnD(), p5.Merging(), z12.VnD(), z13.VnD()), "fcadd <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>, <const>");
-#endif
+  COMPARE_PREFIX(fcadd(z12.VnH(), p5.Merging(), z12.VnH(), z13.VnH(), 90),
+                 "fcadd z12.h, p5/m, z12.h, z13.h, #90");
+  COMPARE_PREFIX(fcadd(z12.VnS(), p5.Merging(), z12.VnS(), z13.VnS(), 90),
+                 "fcadd z12.s, p5/m, z12.s, z13.s, #90");
+  COMPARE_PREFIX(fcadd(z12.VnD(), p5.Merging(), z12.VnD(), z13.VnD(), 90),
+                 "fcadd z12.d, p5/m, z12.d, z13.d, #90");
+  COMPARE_PREFIX(fcadd(z22.VnH(), p0.Merging(), z22.VnH(), z23.VnH(), 270),
+                 "fcadd z22.h, p0/m, z22.h, z23.h, #270");
+  COMPARE_PREFIX(fcadd(z22.VnS(), p0.Merging(), z22.VnS(), z23.VnS(), 270),
+                 "fcadd z22.s, p0/m, z22.s, z23.s, #270");
+  COMPARE_PREFIX(fcadd(z22.VnD(), p0.Merging(), z22.VnD(), z23.VnD(), 270),
+                 "fcadd z22.d, p0/m, z22.d, z23.d, #270");
 
+  COMPARE_MACRO(Fcadd(z12.VnH(), p5.Merging(), z1.VnH(), z13.VnH(), 90),
+                "movprfx z12.h, p5/m, z1.h\n"
+                "fcadd z12.h, p5/m, z12.h, z13.h, #90");
+  COMPARE_MACRO(Fcadd(z12.VnH(), p5.Merging(), z1.VnH(), z12.VnH(), 90),
+                "movprfx z31.h, p5/m, z1.h\n"
+                "fcadd z31.h, p5/m, z31.h, z12.h, #90\n"
+                "orr z12.d, z31.d, z31.d");
   CLEANUP();
 }
 

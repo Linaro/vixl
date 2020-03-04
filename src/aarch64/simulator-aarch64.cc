@@ -8080,15 +8080,28 @@ void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPComplexAddition(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int rot = instr->ExtractBit(16);
+
+  SimVRegister result;
+
   switch (instr->Mask(SVEFPComplexAdditionMask)) {
     case FCADD_z_p_zz:
-      VIXL_UNIMPLEMENTED();
+      fcadd(vform, result, zdn, zm, rot);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::VisitSVEFPComplexMulAdd(const Instruction* instr) {

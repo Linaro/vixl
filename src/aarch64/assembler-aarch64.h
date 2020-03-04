@@ -4113,7 +4113,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   void fcadd(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm);
+             const ZRegister& zm,
+             int rot);
 
   // Floating-point compare vector with zero.
   void fcmeq(const PRegisterWithLaneSize& pd,

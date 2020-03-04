@@ -8659,10 +8659,13 @@ void Disassembler::VisitSVEFPComplexAddition(const Instruction *instr) {
   const char *form = "(SVEFPComplexAddition)";
 
   switch (instr->Mask(SVEFPComplexAdditionMask)) {
-    // FCADD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>, <const>
     case FCADD_z_p_zz:
       mnemonic = "fcadd";
-      form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, <const>";
+      if (instr->ExtractBit(16) == 0) {
+        form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, #90";
+      } else {
+        form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, #270";
+      }
       break;
     default:
       break;

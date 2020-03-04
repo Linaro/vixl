@@ -4159,11 +4159,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fcadd(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fcadd(zd, pg, zn, zm);
-  }
+             const ZRegister& zm,
+             int rot);
   void Fcmeq(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn) {

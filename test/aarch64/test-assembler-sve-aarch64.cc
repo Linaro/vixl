@@ -12457,6 +12457,113 @@ TEST_SVE(sve_zip_uzp) {
   }
 }
 
+TEST_SVE(sve_fcadd) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Dup(z30.VnS(), 0);
+
+  __ Ptrue(p0.VnB());
+  __ Pfalse(p1.VnB());
+  __ Zip1(p2.VnH(), p0.VnH(), p1.VnH());  // Real elements.
+  __ Zip1(p3.VnH(), p1.VnH(), p0.VnH());  // Imaginary elements.
+
+  __ Fdup(z0.VnH(), 10.0);  // 10i + 10
+  __ Fdup(z1.VnH(), 5.0);   // 5i + 5
+  __ Index(z7.VnH(), 1, 1);
+  __ Scvtf(z7.VnH(), p0.Merging(), z7.VnH());  // Ai + B
+
+  __ Sel(z2.VnH(), p3, z1.VnH(), z30.VnH());  // 5i + 0
+  __ Sel(z3.VnH(), p2, z1.VnH(), z30.VnH());  // 0i + 5
+  __ Sel(z7.VnH(), p3, z7.VnH(), z0.VnH());   // Ai + 10
+  __ Ext(z8.VnB(), z7.VnB(), z7.VnB(), 2);
+  __ Sel(z8.VnH(), p2, z8.VnH(), z30.VnH());  // 0i + A
+
+  // (10i + 10) + rotate(5i + 0, 90)
+  //   = (10i + 10) + (0i - 5)
+  //   = 10i + 5
+  __ Fcadd(z4.VnH(), p0.Merging(), z0.VnH(), z2.VnH(), 90);
+
+  // (10i + 5) + rotate(0i + 5, 270)
+  //   = (10i + 5) + (-5i + 0)
+  //   = 5i + 5
+  __ Fcadd(z4.VnH(), p0.Merging(), z4.VnH(), z3.VnH(), 270);
+
+  // The same calculation, but selecting real/imaginary using predication.
+  __ Mov(z5, z0);
+  __ Fcadd(z5.VnH(), p2.Merging(), z5.VnH(), z1.VnH(), 90);
+  __ Fcadd(z5.VnH(), p3.Merging(), z5.VnH(), z1.VnH(), 270);
+
+  // Reference calculation: (10i + 10) - (5i + 5)
+  __ Fsub(z6.VnH(), z0.VnH(), z1.VnH());
+
+  // Calculation using varying imaginary values.
+  // (Ai + 10) + rotate(5i + 0, 90)
+  //   = (Ai + 10) + (0i - 5)
+  //   = Ai + 5
+  __ Fcadd(z7.VnH(), p0.Merging(), z7.VnH(), z2.VnH(), 90);
+
+  // (Ai + 5) + rotate(0i + A, 270)
+  //   = (Ai + 5) + (-Ai + 0)
+  //   = 5
+  __ Fcadd(z7.VnH(), p0.Merging(), z7.VnH(), z8.VnH(), 270);
+
+  // Repeated, but for wider elements.
+  __ Zip1(p2.VnS(), p0.VnS(), p1.VnS());
+  __ Zip1(p3.VnS(), p1.VnS(), p0.VnS());
+  __ Fdup(z0.VnS(), 42.0);
+  __ Fdup(z1.VnS(), 21.0);
+  __ Index(z11.VnS(), 1, 1);
+  __ Scvtf(z11.VnS(), p0.Merging(), z11.VnS());
+  __ Sel(z2.VnS(), p3, z1.VnS(), z30.VnS());
+  __ Sel(z29.VnS(), p2, z1.VnS(), z30.VnS());
+  __ Sel(z11.VnS(), p3, z11.VnS(), z0.VnS());
+  __ Ext(z12.VnB(), z11.VnB(), z11.VnB(), 4);
+  __ Sel(z12.VnS(), p2, z12.VnS(), z30.VnS());
+  __ Fcadd(z8.VnS(), p0.Merging(), z0.VnS(), z2.VnS(), 90);
+  __ Fcadd(z8.VnS(), p0.Merging(), z8.VnS(), z29.VnS(), 270);
+  __ Mov(z9, z0);
+  __ Fcadd(z9.VnS(), p2.Merging(), z9.VnS(), z1.VnS(), 90);
+  __ Fcadd(z9.VnS(), p3.Merging(), z9.VnS(), z1.VnS(), 270);
+  __ Fsub(z10.VnS(), z0.VnS(), z1.VnS());
+  __ Fcadd(z11.VnS(), p0.Merging(), z11.VnS(), z2.VnS(), 90);
+  __ Fcadd(z11.VnS(), p0.Merging(), z11.VnS(), z12.VnS(), 270);
+
+  __ Zip1(p2.VnD(), p0.VnD(), p1.VnD());
+  __ Zip1(p3.VnD(), p1.VnD(), p0.VnD());
+  __ Fdup(z0.VnD(), -42.0);
+  __ Fdup(z1.VnD(), -21.0);
+  __ Index(z15.VnD(), 1, 1);
+  __ Scvtf(z15.VnD(), p0.Merging(), z15.VnD());
+  __ Sel(z2.VnD(), p3, z1.VnD(), z30.VnD());
+  __ Sel(z28.VnD(), p2, z1.VnD(), z30.VnD());
+  __ Sel(z15.VnD(), p3, z15.VnD(), z0.VnD());
+  __ Ext(z16.VnB(), z15.VnB(), z15.VnB(), 8);
+  __ Sel(z16.VnD(), p2, z16.VnD(), z30.VnD());
+  __ Fcadd(z12.VnD(), p0.Merging(), z0.VnD(), z2.VnD(), 90);
+  __ Fcadd(z12.VnD(), p0.Merging(), z12.VnD(), z28.VnD(), 270);
+  __ Mov(z13, z0);
+  __ Fcadd(z13.VnD(), p2.Merging(), z13.VnD(), z1.VnD(), 90);
+  __ Fcadd(z13.VnD(), p3.Merging(), z13.VnD(), z1.VnD(), 270);
+  __ Fsub(z14.VnD(), z0.VnD(), z1.VnD());
+  __ Fcadd(z15.VnD(), p0.Merging(), z15.VnD(), z2.VnD(), 90);
+  __ Fcadd(z15.VnD(), p0.Merging(), z15.VnD(), z16.VnD(), 270);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z6.VnH(), z4.VnH());
+    ASSERT_EQUAL_SVE(z6.VnH(), z5.VnH());
+    ASSERT_EQUAL_SVE(z3.VnH(), z7.VnH());
+    ASSERT_EQUAL_SVE(z10.VnS(), z8.VnS());
+    ASSERT_EQUAL_SVE(z10.VnS(), z9.VnS());
+    ASSERT_EQUAL_SVE(z29.VnS(), z11.VnS());
+    ASSERT_EQUAL_SVE(z14.VnD(), z12.VnD());
+    ASSERT_EQUAL_SVE(z14.VnD(), z13.VnD());
+    ASSERT_EQUAL_SVE(z28.VnS(), z15.VnS());
+  }
+}
+
 TEST_SVE(sve_fpmul_index) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

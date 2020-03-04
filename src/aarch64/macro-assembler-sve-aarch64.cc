@@ -1671,6 +1671,26 @@ void MacroAssembler::Ftmad(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::Fcadd(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           int rot) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, pg, zn);
+      fcadd(scratch, pg, scratch, zm, rot);
+    }
+    Mov(zd, scratch);
+  } else {
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    fcadd(zd, pg, zd, zm, rot);
+  }
+}
+
 void MacroAssembler::Ext(const ZRegister& zd,
                          const ZRegister& zn,
                          const ZRegister& zm,

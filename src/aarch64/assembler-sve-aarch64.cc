@@ -1219,7 +1219,8 @@ void Assembler::fcmne(const PRegisterWithLaneSize& pd,
 void Assembler::fcadd(const ZRegister& zd,
                       const PRegisterM& pg,
                       const ZRegister& zn,
-                      const ZRegister& zm) {
+                      const ZRegister& zm,
+                      int rot) {
   // FCADD <Zdn>.<T>, <Pg>/M, <Zdn>.<T>, <Zm>.<T>, <const>
   //  0110 0100 ..00 000. 100. .... .... ....
   //  size<23:22> | rot<16> | Pg<12:10> | Zm<9:5> | Zdn<4:0>
@@ -1229,8 +1230,10 @@ void Assembler::fcadd(const ZRegister& zd,
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT((rot == 90) || (rot == 270));
 
-  Emit(FCADD_z_p_zz | SVESize(zd) | Rd(zd) | Rx<12, 10>(pg) | Rn(zm));
+  Instr rotate_bit = (rot == 90) ? 0 : (1 << 16);
+  Emit(FCADD_z_p_zz | rotate_bit | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
 // SVEFPComplexMulAdd.

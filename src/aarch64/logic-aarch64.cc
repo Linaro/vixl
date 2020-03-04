@@ -2738,7 +2738,7 @@ LogicVRegister Simulator::fcadd(VectorFormat vform,
                                 const LogicVRegister& src2,  // m
                                 int rot) {
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    VIXL_UNIMPLEMENTED();
+    fcadd<SimFloat16>(vform, dst, src1, src2, rot);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     fcadd<float>(vform, dst, src1, src2, rot);
   } else {
@@ -4805,7 +4805,7 @@ uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
       } else {                                                   \
         result = OP(op1, op2);                                   \
       }                                                          \
-      dst.SetFloat(i, result);                                   \
+      dst.SetFloat(vform, i, result);                            \
     }                                                            \
     return dst;                                                  \
   }                                                              \
