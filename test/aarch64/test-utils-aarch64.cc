@@ -731,5 +731,19 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   completed_ = true;
 }
 
+uint64_t GetSignallingNan(int size_in_bits) {
+  switch (size_in_bits) {
+    case kHRegSize:
+      return Float16ToRawbits(kFP16SignallingNaN);
+    case kSRegSize:
+      return FloatToRawbits(kFP32SignallingNaN);
+    case kDRegSize:
+      return DoubleToRawbits(kFP64SignallingNaN);
+    default:
+      VIXL_UNIMPLEMENTED();
+      return 0;
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

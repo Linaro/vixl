@@ -67,7 +67,7 @@ namespace vixl {
 #endif
 
 template <typename T, size_t n>
-size_t ArrayLength(const T (&)[n]) {
+constexpr size_t ArrayLength(const T (&)[n]) {
   return n;
 }
 

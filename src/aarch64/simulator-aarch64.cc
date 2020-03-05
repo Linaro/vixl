@@ -8374,7 +8374,6 @@ void Simulator::VisitSVEFPConvertToInt(const Instruction* instr) {
 
   VectorFormat vform =
       SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
-  USE(vform);
 
   if (instr->ExtractBit(16) == 0) {
     fcvts(vform, dst_data_size, src_data_size, zd, pg, zn, FPZero);
@@ -8384,30 +8383,47 @@ void Simulator::VisitSVEFPConvertToInt(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPConvertPrecision(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int dst_data_size;
+  int src_data_size;
+
   switch (instr->Mask(SVEFPConvertPrecisionMask)) {
     case FCVT_z_p_z_d2h:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kHRegSize;
+      src_data_size = kDRegSize;
       break;
     case FCVT_z_p_z_d2s:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kSRegSize;
+      src_data_size = kDRegSize;
       break;
     case FCVT_z_p_z_h2d:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kDRegSize;
+      src_data_size = kHRegSize;
       break;
     case FCVT_z_p_z_h2s:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kSRegSize;
+      src_data_size = kHRegSize;
       break;
     case FCVT_z_p_z_s2d:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kDRegSize;
+      src_data_size = kSRegSize;
       break;
     case FCVT_z_p_z_s2h:
-      VIXL_UNIMPLEMENTED();
+      dst_data_size = kHRegSize;
+      src_data_size = kSRegSize;
       break;
     default:
       VIXL_UNIMPLEMENTED();
+      dst_data_size = 0;
+      src_data_size = 0;
       break;
   }
+  VectorFormat vform =
+      SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
+
+  fcvt(vform, dst_data_size, src_data_size, zd, pg, zn);
 }
 
 void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {

@@ -523,6 +523,8 @@ void ClobberFP(MacroAssembler* masm,
 // Clobber or ClobberFP functions.
 void Clobber(MacroAssembler* masm, CPURegList reg_list);
 
+uint64_t GetSignallingNan(int size_in_bits);
+
 // This class acts as a drop-in replacement for VIXL's MacroAssembler, giving
 // CalculateSVEAddress public visibility.
 //

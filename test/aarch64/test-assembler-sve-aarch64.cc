@@ -14441,25 +14441,10 @@ static void FPMulAccHelper(
   InsrHelper(&masm, zn, zn_rawbits);
   InsrHelper(&masm, zm, zm_rawbits);
 
-  uint64_t zd_rawbits[N];
-  for (size_t i = 0; i < N; i++) {
-    // Initialize `zd` with a signalling NaN.
-    switch (lane_size_in_bits) {
-      case kHRegSize:
-        zd_rawbits[i] = 0x7c99;
-        break;
-      case kSRegSize:
-        zd_rawbits[i] = 0x7f959999;
-        break;
-      case kDRegSize:
-        zd_rawbits[i] = 0x7ff5555599999999;
-        break;
-      default:
-        VIXL_UNIMPLEMENTED();
-        break;
-    }
-  }
-  InsrHelper(&masm, zd, zd_rawbits);
+  // Initialize `zd` with a signalling NaN.
+  uint64_t sn = GetSignallingNan(lane_size_in_bits);
+  __ Mov(x29, sn);
+  __ Dup(zd, x29);
 
   Initialise(&masm, p0.WithLaneSize(lane_size_in_bits), pg_inputs);
 
@@ -14502,7 +14487,7 @@ static void FPMulAccHelper(
       da_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : za_rawbits[i];
       dn_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : zn_rawbits[i];
       dm_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : zm_rawbits[i];
-      d_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : zd_rawbits[i];
+      d_expected[i] = ((pg_inputs[i] & 1) != 0) ? result[i] : sn;
     }
 
     ASSERT_EQUAL_SVE(da_expected, da_result);
@@ -15754,6 +15739,231 @@ TEST_SVE(sve_fp_compare_vector_zero) {
   TestFpCompareZeroHelper(config, kHRegSize, eq, zn_inputs_h, pd_expected_eq);
   TestFpCompareZeroHelper(config, kHRegSize, ne, zn_inputs_h, pd_expected_ne);
 }
+
+typedef void (MacroAssembler::*FPUnaryMFn)(const ZRegister& zd,
+                                           const PRegisterM& pg,
+                                           const ZRegister& zn);
+
+typedef void (MacroAssembler::*FPUnaryZFn)(const ZRegister& zd,
+                                           const PRegisterZ& pg,
+                                           const ZRegister& zn);
+
+template <size_t N, size_t M>
+static void TestFPUnaryPredicatedHelper(Test* config,
+                                        int src_size_in_bits,
+                                        int dst_size_in_bits,
+                                        uint64_t (&zn_inputs)[N],
+                                        const uint64_t (&pg_inputs)[M],
+                                        const uint64_t (&zd_expected)[N],
+                                        FPUnaryMFn macro_m,
+                                        FPUnaryZFn macro_z) {
+  // Provide the full predicate input.
+  VIXL_ASSERT(M == (kPRegMaxSize / kDRegSize));
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int ds = dst_size_in_bits;
+  int ss = src_size_in_bits;
+  int ls = std::max(ss, ds);
+
+  // When destination type is larger than source type, fill the high parts with
+  // noise values, which should be ignored.
+  if (ds > ss) {
+    VIXL_ASSERT(ss < 64);
+    uint64_t zn_inputs_mod[N];
+    uint64_t sn = GetSignallingNan(ss);
+    for (unsigned i = 0; i < N; i++) {
+      zn_inputs_mod[i] = zn_inputs[i] | ((sn + i) << ss);
+    }
+    InsrHelper(&masm, z29.WithLaneSize(ls), zn_inputs_mod);
+  } else {
+    InsrHelper(&masm, z29.WithLaneSize(ls), zn_inputs);
+  }
+
+  // Make a copy so we can check that constructive operations preserve zn.
+  __ Mov(z28, z29);
+
+  // Run the operation on all lanes.
+  __ Ptrue(p0.WithLaneSize(ls));
+  (masm.*macro_m)(z27.WithLaneSize(ds), p0.Merging(), z28.WithLaneSize(ss));
+
+  Initialise(&masm,
+             p1.VnB(),
+             pg_inputs[3],
+             pg_inputs[2],
+             pg_inputs[1],
+             pg_inputs[0]);
+
+  // Clear the irrelevant lanes.
+  __ Index(z31.WithLaneSize(ls), 0, 1);
+  __ Cmplt(p1.WithLaneSize(ls), p1.Zeroing(), z31.WithLaneSize(ls), N);
+
+  // Check merging predication.
+  __ Index(z11.WithLaneSize(ls), 42, 1);
+  // Preserve the base value so we can derive the expected result.
+  __ Mov(z21, z11);
+  __ Mov(z9, z11);
+  (masm.*macro_m)(z11.WithLaneSize(ds), p1.Merging(), z28.WithLaneSize(ss));
+
+  // Generate expected values using explicit merging operations.
+  InsrHelper(&masm, z25.WithLaneSize(ls), zd_expected);
+  __ Mov(z21.WithLaneSize(ls), p1.Merging(), z25.WithLaneSize(ls));
+
+  // Check zeroing predication.
+  __ Index(z12.WithLaneSize(ds), 42, -1);
+  (masm.*macro_z)(z12.WithLaneSize(ds), p1.Zeroing(), z28.WithLaneSize(ss));
+
+  // Generate expected values using explicit zeroing operations.
+  InsrHelper(&masm, z30.WithLaneSize(ls), zd_expected);
+  // Emulate zeroing predication.
+  __ Dup(z22.WithLaneSize(ls), 0);
+  __ Mov(z22.WithLaneSize(ls), p1.Merging(), z30.WithLaneSize(ls));
+
+  // Check an in-place update.
+  __ Mov(z9.WithLaneSize(ls), p1.Merging(), z28.WithLaneSize(ls));
+  (masm.*macro_m)(z9.WithLaneSize(ds), p1.Merging(), z9.WithLaneSize(ss));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Check all lanes.
+    ASSERT_EQUAL_SVE(zd_expected, z27.WithLaneSize(ls));
+
+    // Check that constructive operations preserve their inputs.
+    ASSERT_EQUAL_SVE(z28, z29);
+
+    // Check merging predication.
+    ASSERT_EQUAL_SVE(z21.WithLaneSize(ls), z21.WithLaneSize(ls));
+
+    // Check zeroing predication.
+    ASSERT_EQUAL_SVE(z22.WithLaneSize(ls), z12.WithLaneSize(ls));
+
+    // Check in-place operation where zd == zn.
+    ASSERT_EQUAL_SVE(z21.WithLaneSize(ls), z9.WithLaneSize(ls));
+  }
+}
+
+template <size_t N, typename T>
+static void TestFPUnaryPredicatedHelper(Test* config,
+                                        int src_size_in_bits,
+                                        int dst_size_in_bits,
+                                        T (&zn_inputs)[N],
+                                        const T (&zd_expected)[N],
+                                        FPUnaryMFn macro_m,
+                                        FPUnaryZFn macro_z) {
+  uint64_t pg_inputs[] = {0xa55aa55aa55aa55a,
+                          0xa55aa55aa55aa55a,
+                          0xa55aa55aa55aa55a,
+                          0xa55aa55aa55aa55a};
+
+  TestFPUnaryPredicatedHelper(config,
+                              src_size_in_bits,
+                              dst_size_in_bits,
+                              zn_inputs,
+                              pg_inputs,
+                              zd_expected,
+                              macro_m,
+                              macro_z);
+
+  // The complementary of above precicate to get full input coverage.
+  uint64_t pg_c_inputs[] = {0x5aa55aa55aa55aa5,
+                            0x5aa55aa55aa55aa5,
+                            0x5aa55aa55aa55aa5,
+                            0x5aa55aa55aa55aa5};
+
+  TestFPUnaryPredicatedHelper(config,
+                              src_size_in_bits,
+                              dst_size_in_bits,
+                              zn_inputs,
+                              pg_c_inputs,
+                              zd_expected,
+                              macro_m,
+                              macro_z);
+}
+
+template <size_t N, typename T>
+static void TestFcvtHelper(Test* config,
+                           int src_size_in_bits,
+                           int dst_size_in_bits,
+                           T (&zn_inputs)[N],
+                           const T (&zd_expected)[N]) {
+  TestFPUnaryPredicatedHelper(config,
+                              src_size_in_bits,
+                              dst_size_in_bits,
+                              zn_inputs,
+                              zd_expected,
+                              &MacroAssembler::Fcvt,   // Merging form.
+                              &MacroAssembler::Fcvt);  // Zerging form.
+}
+
+TEST_SVE(sve_fcvt) {
+  uint64_t h_vals[] = {0x7c00,
+                       0xfc00,
+                       0,
+                       0x8000,
+                       0x7bff,   // Max half precision.
+                       0x0400,   // Min positive normal.
+                       0x03ff,   // Max subnormal.
+                       0x0001};  // Min positive subnormal.
+
+  uint64_t s_vals[] = {0x7f800000,
+                       0xff800000,
+                       0,
+                       0x80000000,
+                       0x477fe000,
+                       0x38800000,
+                       0x387fc000,
+                       0x33800000};
+
+  uint64_t d_vals[] = {0x7ff0000000000000,
+                       0xfff0000000000000,
+                       0,
+                       0x8000000000000000,
+                       0x40effc0000000000,
+                       0x3f10000000000000,
+                       0x3f0ff80000000000,
+                       0x3e70000000000000};
+
+  TestFcvtHelper(config, kHRegSize, kSRegSize, h_vals, s_vals);
+  TestFcvtHelper(config, kSRegSize, kHRegSize, s_vals, h_vals);
+  TestFcvtHelper(config, kSRegSize, kDRegSize, s_vals, d_vals);
+  TestFcvtHelper(config, kDRegSize, kSRegSize, d_vals, s_vals);
+  TestFcvtHelper(config, kHRegSize, kDRegSize, h_vals, d_vals);
+  TestFcvtHelper(config, kDRegSize, kHRegSize, d_vals, h_vals);
+}
+
+TEST_SVE(sve_fcvt_nan) {
+  uint64_t h_inputs[] = {0x7e55,   // Quiet NaN.
+                         0x7c22};  // Signalling NaN.
+
+  uint64_t h2s_expected[] = {0x7fcaa000, 0x7fc44000};
+
+  uint64_t h2d_expected[] = {0x7ff9540000000000, 0x7ff8880000000000};
+
+  uint64_t s_inputs[] = {0x7fc12345,   // Quiet NaN.
+                         0x7f812345};  // Signalling NaN.
+
+  uint64_t s2h_expected[] = {0x7e09, 0x7e09};
+
+  uint64_t s2d_expected[] = {0x7ff82468a0000000, 0x7ff82468a0000000};
+
+  uint64_t d_inputs[] = {0x7ffaaaaa22222222,   // Quiet NaN.
+                         0x7ff5555511111111};  // Signalling NaN.
+
+  uint64_t d2h_expected[] = {0x7eaa, 0x7f55};
+
+  uint64_t d2s_expected[] = {0x7fd55551, 0x7feaaaa8};
+
+  TestFcvtHelper(config, kHRegSize, kSRegSize, h_inputs, h2s_expected);
+  TestFcvtHelper(config, kSRegSize, kHRegSize, s_inputs, s2h_expected);
+  TestFcvtHelper(config, kHRegSize, kDRegSize, h_inputs, h2d_expected);
+  TestFcvtHelper(config, kDRegSize, kHRegSize, d_inputs, d2h_expected);
+  TestFcvtHelper(config, kSRegSize, kDRegSize, s_inputs, s2d_expected);
+  TestFcvtHelper(config, kDRegSize, kSRegSize, d_inputs, d2s_expected);
+}
+
 
 }  // namespace aarch64
 }  // namespace vixl

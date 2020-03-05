@@ -1727,6 +1727,51 @@ TEST(sve_fp_unary_op_predicated) {
   COMPARE_PREFIX(frintz(z26.VnD(), p7.Merging(), z25.VnD()),
                  "frintz z26.d, p7/m, z25.d");
 
+  COMPARE_PREFIX(fcvt(z5.VnH(), p2.Merging(), z11.VnD()),
+                 "fcvt z5.h, p2/m, z11.d");
+  COMPARE_PREFIX(fcvt(z30.VnS(), p7.Merging(), z0.VnD()),
+                 "fcvt z30.s, p7/m, z0.d");
+  COMPARE_PREFIX(fcvt(z10.VnD(), p0.Merging(), z17.VnH()),
+                 "fcvt z10.d, p0/m, z17.h");
+  COMPARE_PREFIX(fcvt(z28.VnS(), p3.Merging(), z27.VnH()),
+                 "fcvt z28.s, p3/m, z27.h");
+  COMPARE_PREFIX(fcvt(z9.VnD(), p7.Merging(), z0.VnS()),
+                 "fcvt z9.d, p7/m, z0.s");
+  COMPARE_PREFIX(fcvt(z27.VnH(), p7.Merging(), z9.VnS()),
+                 "fcvt z27.h, p7/m, z9.s");
+#if 0
+  COMPARE_PREFIX(frecpx(z16.VnH(), p1.Merging(), z29.VnH()), "frecpx <Zd>.<T>, <Pg>/M, <Zn>.<T>");
+  COMPARE_PREFIX(frecpx(z16.VnS(), p1.Merging(), z29.VnS()), "frecpx <Zd>.<T>, <Pg>/M, <Zn>.<T>");
+  COMPARE_PREFIX(frecpx(z16.VnD(), p1.Merging(), z29.VnD()), "frecpx <Zd>.<T>, <Pg>/M, <Zn>.<T>");
+  COMPARE_PREFIX(fsqrt(z30.VnH(), p3.Merging(), z13.VnH()), "fsqrt <Zd>.<T>, <Pg>/M, <Zn>.<T>");
+  COMPARE_PREFIX(fsqrt(z30.VnS(), p3.Merging(), z13.VnS()), "fsqrt <Zd>.<T>, <Pg>/M, <Zn>.<T>");
+  COMPARE_PREFIX(fsqrt(z30.VnD(), p3.Merging(), z13.VnD()), "fsqrt <Zd>.<T>, <Pg>/M, <Zn>.<T>");
+#endif
+
+  CLEANUP();
+}
+
+TEST(sve_fp_unary_op_predicated_macro) {
+  SETUP();
+
+  COMPARE_MACRO(Fcvt(z5.VnH(), p2.Zeroing(), z11.VnD()),
+                "movprfx z5.d, p2/z, z11.d\n"
+                "fcvt z5.h, p2/m, z11.d");
+  COMPARE_MACRO(Fcvt(z30.VnS(), p7.Zeroing(), z0.VnD()),
+                "movprfx z30.d, p7/z, z0.d\n"
+                "fcvt z30.s, p7/m, z0.d");
+  COMPARE_MACRO(Fcvt(z10.VnD(), p0.Zeroing(), z17.VnH()),
+                "movprfx z10.d, p0/z, z17.d\n"
+                "fcvt z10.d, p0/m, z17.h");
+  COMPARE_MACRO(Fcvt(z28.VnS(), p3.Zeroing(), z27.VnH()),
+                "movprfx z28.s, p3/z, z27.s\n"
+                "fcvt z28.s, p3/m, z27.h");
+  COMPARE_MACRO(Fcvt(z9.VnD(), p7.Zeroing(), z0.VnS()),
+                "movprfx z9.d, p7/z, z0.d\n"
+                "fcvt z9.d, p7/m, z0.s");
+  COMPARE_MACRO(Fcvt(z27.VnH(), p7.Zeroing(), z9.VnS()),
+                "movprfx z27.s, p7/z, z9.s\n"
+                "fcvt z27.h, p7/m, z9.s");
   COMPARE_MACRO(Frinta(z6.VnD(), p3.Zeroing(), z12.VnD()),
                 "movprfx z6.d, p3/z, z12.d\n"
                 "frinta z6.d, p3/m, z12.d");
@@ -1736,9 +1781,9 @@ TEST(sve_fp_unary_op_predicated) {
   COMPARE_MACRO(Frintm(z8.VnH(), p3.Zeroing(), z10.VnH()),
                 "movprfx z8.h, p3/z, z10.h\n"
                 "frintm z8.h, p3/m, z10.h");
-  // COMPARE_MACRO(Frintn(z9.VnD(), p3.Zeroing(), z9.VnD()),
-  //               "movprfx z9.d, p3/z, z9.d\n"
-  //               "frintn z9.d, p3/m, z9.d");
+  COMPARE_MACRO(Frintn(z9.VnD(), p3.Zeroing(), z9.VnD()),
+                "movprfx z9.d, p3/z, z9.d\n"
+                "frintn z9.d, p3/m, z9.d");
   COMPARE_MACRO(Frintp(z10.VnS(), p3.Zeroing(), z8.VnS()),
                 "movprfx z10.s, p3/z, z8.s\n"
                 "frintp z10.s, p3/m, z8.s");
@@ -1748,20 +1793,6 @@ TEST(sve_fp_unary_op_predicated) {
   COMPARE_MACRO(Frintz(z12.VnD(), p3.Zeroing(), z6.VnD()),
                 "movprfx z12.d, p3/z, z6.d\n"
                 "frintz z12.d, p3/m, z6.d");
-#if 0
-  COMPARE_PREFIX(fcvt(z5.VnH(), p2.Merging(), z11.VnD()), "fcvt <Zd>.H, <Pg>/M, <Zn>.D");
-  COMPARE_PREFIX(fcvt(z30.VnS(), p7.Merging(), z0.VnD()), "fcvt <Zd>.S, <Pg>/M, <Zn>.D");
-  COMPARE_PREFIX(fcvt(z10.VnD(), p0.Merging(), z17.VnH()), "fcvt <Zd>.D, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvt(z28.VnS(), p3.Merging(), z27.VnH()), "fcvt <Zd>.S, <Pg>/M, <Zn>.H");
-  COMPARE_PREFIX(fcvt(z9.VnD(), p7.Merging(), z0.VnS()), "fcvt <Zd>.D, <Pg>/M, <Zn>.S");
-  COMPARE_PREFIX(fcvt(z27.VnH(), p7.Merging(), z9.VnS()), "fcvt <Zd>.H, <Pg>/M, <Zn>.S");
-  COMPARE_PREFIX(frecpx(z16.VnH(), p1.Merging(), z29.VnH()), "frecpx <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(frecpx(z16.VnS(), p1.Merging(), z29.VnS()), "frecpx <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(frecpx(z16.VnD(), p1.Merging(), z29.VnD()), "frecpx <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(fsqrt(z30.VnH(), p3.Merging(), z13.VnH()), "fsqrt <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(fsqrt(z30.VnS(), p3.Merging(), z13.VnS()), "fsqrt <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-  COMPARE_PREFIX(fsqrt(z30.VnD(), p3.Merging(), z13.VnD()), "fsqrt <Zd>.<T>, <Pg>/M, <Zn>.<T>");
-#endif
 
   CLEANUP();
 }

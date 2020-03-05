@@ -4280,6 +4280,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcvt(zd, pg, zn);
   }
+  void Fcvt(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    // The element type in this predicated movprfx is determined by the larger
+    // type between the source and destination.
+    int lane_size = std::max(zd.GetLaneSizeInBits(), zn.GetLaneSizeInBits());
+    MovprfxHelperScope guard(this,
+                             zd.WithLaneSize(lane_size),
+                             pg,
+                             zn.WithLaneSize(lane_size));
+    fcvt(zd, pg.Merging(), zn);
+  }
   void Fcvtzs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

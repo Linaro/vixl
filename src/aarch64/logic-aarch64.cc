@@ -5617,6 +5617,33 @@ LogicVRegister Simulator::frint(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::fcvt(VectorFormat vform,
+                               unsigned dst_data_size_in_bits,
+                               unsigned src_data_size_in_bits,
+                               LogicVRegister dst,
+                               const LogicPRegister& pg,
+                               const LogicVRegister& src) {
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    if (!pg.IsActive(vform, i)) continue;
+
+    uint64_t src_raw_bits = ExtractUnsignedBitfield64(src_data_size_in_bits - 1,
+                                                      0,
+                                                      src.Uint(vform, i));
+    double dst_value =
+        RawbitsWithSizeToFP<double>(src_data_size_in_bits, src_raw_bits);
+
+    uint64_t dst_raw_bits =
+        FPToRawbitsWithSize(dst_data_size_in_bits, dst_value);
+
+    dst.SetUint(vform, i, dst_raw_bits);
+  }
+
+  return dst;
+}
+
 LogicVRegister Simulator::fcvts(VectorFormat vform,
                                 unsigned dst_data_size_in_bits,
                                 unsigned src_data_size_in_bits,

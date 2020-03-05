@@ -1579,23 +1579,47 @@ void Assembler::fmul(const ZRegister& zd,
 
 // SVEFPUnaryOpPredicated.
 
-// This prototype maps to 6 instruction encodings:
-//  FCVT_z_p_z_d2h
-//  FCVT_z_p_z_d2s
-//  FCVT_z_p_z_h2d
-//  FCVT_z_p_z_h2s
-//  FCVT_z_p_z_s2d
-//  FCVT_z_p_z_s2h
 void Assembler::fcvt(const ZRegister& zd,
                      const PRegisterM& pg,
                      const ZRegister& zn) {
-  // FCVT <Zd>.H, <Pg>/M, <Zn>.D
-  //  0110 0101 1100 1000 101. .... .... ....
-  //  opc<23:22> = 11 | opc2<17:16> = 00 | Pg<12:10> | Zn<9:5> | Zd<4:0>
-
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(FCVT_z_p_z_d2h | Rd(zd) | Rx<12, 10>(pg) | Rn(zn));
+  Instr op = 0xffffffff;
+  switch (zn.GetLaneSizeInBytes()) {
+    case kHRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kSRegSizeInBytes:
+          op = FCVT_z_p_z_h2s;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVT_z_p_z_h2d;
+          break;
+      }
+      break;
+    case kSRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = FCVT_z_p_z_s2h;
+          break;
+        case kDRegSizeInBytes:
+          op = FCVT_z_p_z_s2d;
+          break;
+      }
+      break;
+    case kDRegSizeInBytes:
+      switch (zd.GetLaneSizeInBytes()) {
+        case kHRegSizeInBytes:
+          op = FCVT_z_p_z_d2h;
+          break;
+        case kSRegSizeInBytes:
+          op = FCVT_z_p_z_d2s;
+          break;
+      }
+      break;
+  }
+  VIXL_ASSERT(op != 0xffffffff);
+
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcvtzs(const ZRegister& zd,
