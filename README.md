@@ -125,6 +125,38 @@ Instructions affected by these limitations:
   `stlxrh`, `stlxr`, `ldaxrb`, `ldaxrh`, `ldaxr`, `stlxp`, `ldaxp`, `stlrb`,
   `stlrh`, `stlr`, `ldarb`, `ldarh`, `ldar`, `clrex`.
 
+Security Considerations
+-----------------------
+
+VIXL allows callers to generate any code they want. The generated code is
+arbitrary, and can therefore call back into any other component in the process.
+As with any self-modifying code, vulnerabilities in the client or in VIXL itself
+could lead to arbitrary code generation.
+
+For performance reasons, VIXL's Assembler only performs debug-mode checking of
+instruction operands (such as immediate field encodability). This can minimise
+code-generation overheads for advanced compilers that already model instructions
+accurately, and might consider the Assembler's checks to be redundant. The
+Assembler should only be used directly where encodability is independently
+checked, and where fine control over all generated code is required.
+
+The MacroAssembler synthesises multiple-instruction sequences to support _some_
+unencodable operand combinations. The MacroAssembler can provide a useful safety
+check in cases where the Assembler's precision is not required; an unexpected
+unencodable operand should result in a macro with the correct behaviour, rather
+than an invalid instruction.
+
+In general, the MacroAssembler handles operands which are likely to vary with
+user-supplied data, but does not usually handle inputs which are likely to be
+easily covered by tests. For example, move-immediate arguments are likely to be
+data-dependent, but register types (e.g. `x` vs `w`) are not.
+
+We recommend that _all_ users use the MacroAssembler, using `ExactAssemblyScope`
+to invoke the Assembler when specific instruction sequences are required. This
+approach is recommended even in cases where a compiler can model the
+instructions precisely, because, subject to the limitations described above, it
+offers an additional layer of protection against logic bugs in instruction
+selection.
 
 Usage
 =====
