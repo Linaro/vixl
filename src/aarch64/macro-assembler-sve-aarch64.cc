@@ -1607,6 +1607,37 @@ void MacroAssembler::Stnt1w(const ZRegister& zt,
                               0,
                               SVE_MUL_VL);
 }
+
+void MacroAssembler::SVESdotUdotIndexHelper(IntArithIndexFn fn,
+                                            const ZRegister& zd,
+                                            const ZRegister& za,
+                                            const ZRegister& zn,
+                                            const ZRegister& zm,
+                                            int index) {
+  if (zd.Aliases(za)) {
+    // zda = zda + (zn . zm)
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zd, zn, zm, index);
+
+  } else if (zd.Aliases(zn) || zd.Aliases(zm)) {
+    // zdn = za + (zdn . zm[index])
+    // zdm = za + (zn . zdm[index])
+    // zdnm = za + (zdnm . zdnm[index])
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, za);
+      (this->*fn)(scratch, zn, zm, index);
+    }
+
+    Mov(zd, scratch);
+  } else {
+    // zd = za + (zn . zm)
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, zm, index);
+  }
+}
+
 void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
                                        const ZRegister& zd,
                                        const ZRegister& za,
@@ -1661,12 +1692,30 @@ void MacroAssembler::Sdot(const ZRegister& zd,
   SVESdotUdotHelper(&Assembler::sdot, zd, za, zn, zm);
 }
 
+void MacroAssembler::Sdot(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int index) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVESdotUdotIndexHelper(&Assembler::sdot, zd, za, zn, zm, index);
+}
+
 void MacroAssembler::Udot(const ZRegister& zd,
                           const ZRegister& za,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
   SVESdotUdotHelper(&Assembler::udot, zd, za, zn, zm);
+}
+
+void MacroAssembler::Udot(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int index) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVESdotUdotIndexHelper(&Assembler::udot, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::FPMulAddHelper(const ZRegister& zd,

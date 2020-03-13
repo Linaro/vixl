@@ -5265,7 +5265,10 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Signed dot product by indexed quadtuplet.
-  void sdot(const ZRegister& zda, const ZRegister& zn);
+  void sdot(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
 
   // Signed dot product.
   void sdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
@@ -5731,7 +5734,10 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Unsigned dot product by indexed quadtuplet.
-  void udot(const ZRegister& zda, const ZRegister& zn);
+  void udot(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
 
   // Unsigned dot product.
   void udot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);

@@ -10116,23 +10116,41 @@ TEST_SVE(sve_smaxv_umaxv) {
   }
 }
 
-typedef void (MacroAssembler::*SdotUdotFn)(const ZRegister& zd,
-                                           const ZRegister& za,
-                                           const ZRegister& zn,
-                                           const ZRegister& zm);
-
-template <typename Td, typename Ts, typename Te>
+template <typename T, size_t M, size_t N>
 static void SdotUdotHelper(Test* config,
-                           SdotUdotFn macro,
                            unsigned lane_size_in_bits,
-                           const Td& zd_inputs,
-                           const Td& za_inputs,
-                           const Ts& zn_inputs,
-                           const Ts& zm_inputs,
-                           const Te& zd_expected,
-                           const Te& zdnm_expected) {
+                           const T (&zd_inputs)[M],
+                           const T (&za_inputs)[M],
+                           const T (&zn_inputs)[N],
+                           const T (&zm_inputs)[N],
+                           const T (&zd_expected)[M],
+                           const T (&zdnm_expected)[M],
+                           bool is_signed,
+                           int index = -1) {
+  VIXL_STATIC_ASSERT(N == (M * 4));
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
+
+  auto dot_fn = [&](const ZRegister& zd,
+                    const ZRegister& za,
+                    const ZRegister& zn,
+                    const ZRegister& zm,
+                    bool is_signed,
+                    int index) {
+    if (is_signed) {
+      if (index < 0) {
+        __ Sdot(zd, za, zn, zm);
+      } else {
+        __ Sdot(zd, za, zn, zm, index);
+      }
+    } else {
+      if (index < 0) {
+        __ Udot(zd, za, zn, zm);
+      } else {
+        __ Udot(zd, za, zn, zm, index);
+      }
+    }
+  };
 
   ZRegister zd = z0.WithLaneSize(lane_size_in_bits);
   ZRegister za = z1.WithLaneSize(lane_size_in_bits);
@@ -10145,34 +10163,36 @@ static void SdotUdotHelper(Test* config,
   InsrHelper(&masm, zm, zm_inputs);
 
   // The Dot macro handles arbitrarily-aliased registers in the argument list.
-  ZRegister da_result = z10.WithLaneSize(lane_size_in_bits);
-  ZRegister dn_result = z11.WithLaneSize(lane_size_in_bits);
-  ZRegister dm_result = z12.WithLaneSize(lane_size_in_bits);
-  ZRegister dnm_result = z13.WithLaneSize(lane_size_in_bits);
-  ZRegister d_result = z14.WithLaneSize(lane_size_in_bits);
+  ZRegister dm_result = z4.WithLaneSize(lane_size_in_bits);
+  ZRegister dnm_result = z5.WithLaneSize(lane_size_in_bits);
+  ZRegister da_result = z6.WithLaneSize(lane_size_in_bits);
+  ZRegister dn_result = z7.WithLaneSize(lane_size_in_bits);
+  ZRegister d_result = z8.WithLaneSize(lane_size_in_bits);
 
   __ Mov(da_result, za);
   // zda = zda + (zn . zm)
-  (masm.*macro)(da_result, da_result, zn, zm);
+  dot_fn(da_result, da_result, zn, zm, is_signed, index);
 
   __ Mov(dn_result, zn);
   // zdn = za + (zdn . zm)
-  (masm.*macro)(dn_result, za, dn_result.WithSameLaneSizeAs(zn), zm);
+  dot_fn(dn_result, za, dn_result.WithSameLaneSizeAs(zn), zm, is_signed, index);
 
   __ Mov(dm_result, zm);
   // zdm = za + (zn . zdm)
-  (masm.*macro)(dm_result, za, zn, dm_result.WithSameLaneSizeAs(zm));
+  dot_fn(dm_result, za, zn, dm_result.WithSameLaneSizeAs(zm), is_signed, index);
 
   __ Mov(d_result, zd);
   // zd = za + (zn . zm)
-  (masm.*macro)(d_result, za, zn, zm);
+  dot_fn(d_result, za, zn, zm, is_signed, index);
 
   __ Mov(dnm_result, zn);
   // zdnm = za + (zdmn . zdnm)
-  (masm.*macro)(dnm_result,
-                za,
-                dnm_result.WithSameLaneSizeAs(zn),
-                dnm_result.WithSameLaneSizeAs(zm));
+  dot_fn(dnm_result,
+         za,
+         dnm_result.WithSameLaneSizeAs(zn),
+         dnm_result.WithSameLaneSizeAs(zm),
+         is_signed,
+         index);
 
   END();
 
@@ -10193,75 +10213,388 @@ static void SdotUdotHelper(Test* config,
 }
 
 TEST_SVE(sve_sdot) {
-  int zd_inputs[] = {0x33, 0xee, 0xff};
-  int za_inputs[] = {INT32_MAX, -3, 2};
-  int zn_inputs[] = {-128, -128, -128, -128, 9, -1, 1, 30, -5, -20, 9, 8};
-  int zm_inputs[] = {-128, -128, -128, -128, -19, 15, 6, 0, 9, -5, 4, 5};
+  int64_t zd_inputs[] = {0x33, 0xee, 0xff};
+  int64_t za_inputs[] = {INT32_MAX, -3, 2};
+  int64_t zn_inputs[] = {-128, -128, -128, -128, 9, -1, 1, 30, -5, -20, 9, 8};
+  int64_t zm_inputs[] = {-128, -128, -128, -128, -19, 15, 6, 0, 9, -5, 4, 5};
 
   // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
-  int32_t zd_expected_s[] = {-2147418113, -183, 133};  // 0x8000ffff
+  int64_t zd_expected_s[] = {-2147418113, -183, 133};  // 0x8000ffff
   int64_t zd_expected_d[] = {2147549183, -183, 133};   // 0x8000ffff
 
   // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
-  int32_t zdnm_expected_s[] = {-2147418113, 980, 572};
+  int64_t zdnm_expected_s[] = {-2147418113, 980, 572};
   int64_t zdnm_expected_d[] = {2147549183, 980, 572};
 
   SdotUdotHelper(config,
-                 &MacroAssembler::Sdot,
                  kSRegSize,
                  zd_inputs,
                  za_inputs,
                  zn_inputs,
                  zm_inputs,
                  zd_expected_s,
-                 zdnm_expected_s);
+                 zdnm_expected_s,
+                 true);
+
   SdotUdotHelper(config,
-                 &MacroAssembler::Sdot,
                  kDRegSize,
                  zd_inputs,
                  za_inputs,
                  zn_inputs,
                  zm_inputs,
                  zd_expected_d,
-                 zdnm_expected_d);
+                 zdnm_expected_d,
+                 true);
 }
 
 TEST_SVE(sve_udot) {
-  int zd_inputs[] = {0x33, 0xee, 0xff};
-  int za_inputs[] = {INT32_MAX, -3, 2};
-  int zn_inputs[] = {-128, -128, -128, -128, 9, -1, 1, 30, -5, -20, 9, 8};
-  int zm_inputs[] = {-128, -128, -128, -128, -19, 15, 6, 0, 9, -5, 4, 5};
+  int64_t zd_inputs[] = {0x33, 0xee, 0xff};
+  int64_t za_inputs[] = {INT32_MAX, -3, 2};
+  int64_t zn_inputs[] = {-128, -128, -128, -128, 9, -1, 1, 30, -5, -20, 9, 8};
+  int64_t zm_inputs[] = {-128, -128, -128, -128, -19, 15, 6, 0, 9, -5, 4, 5};
 
   // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
-  uint32_t zd_expected_s[] = {0x8000ffff, 0x00001749, 0x0000f085};
-  uint64_t zd_expected_d[] = {0x000000047c00ffff,
-                              0x000000000017ff49,
-                              0x00000000fff00085};
+  int64_t zd_expected_s[] = {0x8000ffff, 0x00001749, 0x0000f085};
+  int64_t zd_expected_d[] = {0x000000047c00ffff,
+                             0x000000000017ff49,
+                             0x00000000fff00085};
 
   // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
-  uint32_t zdnm_expected_s[] = {0x8000ffff, 0x000101d4, 0x0001d03c};
-  uint64_t zdnm_expected_d[] = {0x000000047c00ffff,
-                                0x00000000fffe03d4,
-                                0x00000001ffce023c};
+  int64_t zdnm_expected_s[] = {0x8000ffff, 0x000101d4, 0x0001d03c};
+  int64_t zdnm_expected_d[] = {0x000000047c00ffff,
+                               0x00000000fffe03d4,
+                               0x00000001ffce023c};
 
   SdotUdotHelper(config,
-                 &MacroAssembler::Udot,
                  kSRegSize,
                  zd_inputs,
                  za_inputs,
                  zn_inputs,
                  zm_inputs,
                  zd_expected_s,
-                 zdnm_expected_s);
+                 zdnm_expected_s,
+                 false);
+
   SdotUdotHelper(config,
-                 &MacroAssembler::Udot,
                  kDRegSize,
                  zd_inputs,
                  za_inputs,
                  zn_inputs,
                  zm_inputs,
                  zd_expected_d,
-                 zdnm_expected_d);
+                 zdnm_expected_d,
+                 false);
+}
+
+TEST_SVE(sve_sdot_indexed_s) {
+  int64_t zd_inputs[] = {0xff, 0xff, 0xff, 0xff};
+  int64_t za_inputs[] = {0, 1, 2, 3};
+  int64_t zn_inputs[] =
+      {-1, -1, -1, -1, -2, -2, -2, -2, -3, -3, -3, -3, -4, -4, -4, -4};
+  int64_t zm_inputs[] =
+      {127, 127, 127, 127, -128, -128, -128, -128, -1, -1, -1, -1, 0, 0, 0, 0};
+
+  constexpr int s = kQRegSize / kSRegSize;
+
+  // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
+  int64_t zd_expected_s[][s] = {{0, 1, 2, 3},  // Generated from zm[0]
+                                {4, 9, 14, 19},
+                                {512, 1025, 1538, 2051},
+                                {-508, -1015, -1522, -2029}};
+
+  // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
+  int64_t zdnm_expected_s[][s] = {{16, 33, 50, 67},
+                                  {12, 25, 38, 51},
+                                  {8, 17, 26, 35},
+                                  {4, 9, 14, 19}};
+
+  for (unsigned i = 0; i < s; i++) {
+    SdotUdotHelper(config,
+                   kSRegSize,
+                   zd_inputs,
+                   za_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_s[i],
+                   zdnm_expected_s[i],
+                   true,
+                   i);
+  }
+}
+
+TEST_SVE(sve_sdot_indexed_d) {
+  int64_t zd_inputs[] = {0xff, 0xff};
+  int64_t za_inputs[] = {0, 1};
+  int64_t zn_inputs[] = {-1, -1, -1, -1, -1, -1, -1, -1};
+  int64_t zm_inputs[] = {-128, -128, -128, -128, 127, 127, 127, 127};
+
+  constexpr int d = kQRegSize / kDRegSize;
+
+  // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
+  int64_t zd_expected_d[][d] = {{-508, -507},  // Generated from zm[0]
+                                {512, 513}};
+
+  // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
+  int64_t zdnm_expected_d[][d] = {{4, 5}, {4, 5}};
+
+  for (unsigned i = 0; i < d; i++) {
+    SdotUdotHelper(config,
+                   kDRegSize,
+                   zd_inputs,
+                   za_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_d[i],
+                   zdnm_expected_d[i],
+                   true,
+                   i);
+  }
+}
+
+TEST_SVE(sve_udot_indexed_s) {
+  int64_t zd_inputs[] = {0xff, 0xff, 0xff, 0xff};
+  int64_t za_inputs[] = {0, 1, 2, 3};
+  int64_t zn_inputs[] = {1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4};
+  int64_t zm_inputs[] =
+      {127, 127, 127, 127, 255, 255, 255, 255, 1, 1, 1, 1, 0, 0, 0, 0};
+
+  constexpr int s = kQRegSize / kSRegSize;
+
+  // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
+  int64_t zd_expected_s[][s] = {{0, 1, 2, 3},
+                                {4, 9, 14, 19},
+                                {1020, 2041, 3062, 4083},
+                                {508, 1017, 1526, 2035}};
+
+  // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
+  int64_t zdnm_expected_s[][s] = {{16, 33, 50, 67},
+                                  {12, 25, 38, 51},
+                                  {8, 17, 26, 35},
+                                  {4, 9, 14, 19}};
+
+  for (unsigned i = 0; i < s; i++) {
+    SdotUdotHelper(config,
+                   kSRegSize,
+                   zd_inputs,
+                   za_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_s[i],
+                   zdnm_expected_s[i],
+                   false,
+                   i);
+  }
+}
+
+TEST_SVE(sve_udot_indexed_d) {
+  int64_t zd_inputs[] = {0xff, 0xff};
+  int64_t za_inputs[] = {0, 1};
+  int64_t zn_inputs[] = {1, 1, 1, 1, 1, 1, 1, 1};
+  int64_t zm_inputs[] = {255, 255, 255, 255, 127, 127, 127, 127};
+
+  constexpr int d = kQRegSize / kDRegSize;
+
+  // zd_expected[] = za_inputs[] + (zn_inputs[] . zm_inputs[])
+  int64_t zd_expected_d[][d] = {{508, 509}, {1020, 1021}};
+
+  // zdnm_expected[] = za_inputs[] + (zn_inputs[] . zn_inputs[])
+  int64_t zdnm_expected_d[][d] = {{4, 5}, {4, 5}};
+
+  for (unsigned i = 0; i < d; i++) {
+    SdotUdotHelper(config,
+                   kDRegSize,
+                   zd_inputs,
+                   za_inputs,
+                   zn_inputs,
+                   zm_inputs,
+                   zd_expected_d[i],
+                   zdnm_expected_d[i],
+                   false,
+                   i);
+  }
+}
+
+static void IntSegmentPatternHelper(MacroAssembler* masm,
+                                    const ZRegister& dst,
+                                    const ZRegister& src) {
+  VIXL_ASSERT(AreSameLaneSize(dst, src));
+  UseScratchRegisterScope temps(masm);
+  ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(dst);
+  masm->Index(ztmp, 0, 1);
+  masm->Asr(ztmp, ztmp, kQRegSizeInBytesLog2 - dst.GetLaneSizeInBytesLog2());
+  masm->Add(dst, src, ztmp);
+}
+
+TEST_SVE(sve_sdot_udot_indexed_s) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  const int multiplier = 2;
+  __ Dup(z9.VnS(), multiplier);
+
+  __ Ptrue(p0.VnB());
+  __ Index(z29.VnS(), 4, 1);
+
+  // z29 = [... 3, 2, 1, 0, 3, 2, 1, 0, 3, 2, 1, 0]
+  __ And(z29.VnS(), z29.VnS(), 3);
+
+  // p7 = [... 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1]
+  __ Cmple(p7.VnS(), p0.Zeroing(), z29.VnS(), 0);
+
+  // p6 = [... 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1]
+  __ Cmple(p6.VnS(), p0.Zeroing(), z29.VnS(), 1);
+
+  // p5 = [... 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1]
+  __ Cmple(p5.VnS(), p0.Zeroing(), z29.VnS(), 2);
+
+  __ Index(z28.VnB(), 1, 1);
+  __ Dup(z27.VnS(), z28.VnS(), 0);
+
+  // z27 = [... 3, 2, 4, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 1]
+  IntSegmentPatternHelper(&masm, z27.VnB(), z27.VnB());
+
+  // z27 = [... 6, 4, 4, 3, 2, 1, 4, 3, 2, 1, 4, 3, 2, 1, 8, 6, 4, 2]
+  __ Mul(z27.VnS(), p7.Merging(), z27.VnS(), z9.VnS());
+
+  // z27 = [... 12, 8, 4, 3, 2, 1, 4, 3, 2, 1, 8, 6, 4, 2, 16, 12, 8, 4]
+  __ Mul(z27.VnS(), p6.Merging(), z27.VnS(), z9.VnS());
+
+  //     2nd segment |                                        1st segment |
+  //                 v                                                    v
+  // z27 = [... 24, 16, 4, 3, 2, 1, 8, 6, 4, 2, 16, 12, 8, 4, 32, 24, 16, 8]
+  __ Mul(z27.VnS(), p5.Merging(), z27.VnS(), z9.VnS());
+
+  __ Dup(z0.VnS(), 0);
+  __ Dup(z1.VnS(), 0);
+  __ Dup(z2.VnS(), 0);
+  __ Dup(z3.VnS(), 0);
+  __ Dup(z4.VnS(), 0);
+  __ Dup(z5.VnS(), 0);
+
+  // Skip the lanes starting from the 129th lane since the value of these lanes
+  // are overflow after the number sequence creation by `index`.
+  __ Cmpls(p3.VnB(), p0.Zeroing(), z28.VnB(), 128);
+  __ Mov(z0.VnB(), p3.Merging(), z27.VnB());
+  __ Mov(z1.VnB(), p3.Merging(), z28.VnB());
+
+  __ Dup(z2.VnS(), 0);
+  __ Dup(z3.VnS(), 0);
+  __ Dup(z4.VnS(), 0);
+  __ Dup(z5.VnS(), 0);
+
+  __ Udot(z2.VnS(), z2.VnS(), z1.VnB(), z0.VnB(), 0);
+
+  __ Udot(z3.VnS(), z3.VnS(), z1.VnB(), z0.VnB(), 1);
+  __ Mul(z3.VnS(), z3.VnS(), 2);
+
+  __ Udot(z4.VnS(), z4.VnS(), z1.VnB(), z0.VnB(), 2);
+  __ Mul(z4.VnS(), z4.VnS(), 4);
+
+  __ Udot(z5.VnS(), z5.VnS(), z1.VnB(), z0.VnB(), 3);
+  __ Mul(z5.VnS(), z5.VnS(), 8);
+
+  __ Dup(z7.VnS(), 0);
+  __ Dup(z8.VnS(), 0);
+  __ Dup(z9.VnS(), 0);
+  __ Dup(z10.VnS(), 0);
+
+  // Negate the all positive vector for testing signed dot.
+  __ Neg(z6.VnB(), p0.Merging(), z0.VnB());
+  __ Sdot(z7.VnS(), z7.VnS(), z1.VnB(), z6.VnB(), 0);
+
+  __ Sdot(z8.VnS(), z8.VnS(), z1.VnB(), z6.VnB(), 1);
+  __ Mul(z8.VnS(), z8.VnS(), 2);
+
+  __ Sdot(z9.VnS(), z9.VnS(), z1.VnB(), z6.VnB(), 2);
+  __ Mul(z9.VnS(), z9.VnS(), 4);
+
+  __ Sdot(z10.VnS(), z10.VnS(), z1.VnB(), z6.VnB(), 3);
+  __ Mul(z10.VnS(), z10.VnS(), 8);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Only compare the first 128-bit segment of destination register, use
+    // another result from generated instructions to check the remaining part.
+    // s_lane[0] = (1 * 8) + (2 * 16) + (3 * 24) + (4 * 32) = 240
+    // ...
+    // s_lane[3] = (13 * 8) + (14 * 16) + (15 * 24) + (16 * 32) = 1200
+    int udot_expected[] = {1200, 880, 560, 240};
+    ASSERT_EQUAL_SVE(udot_expected, z2.VnS());
+    ASSERT_EQUAL_SVE(z2.VnS(), z3.VnS());
+    ASSERT_EQUAL_SVE(z2.VnS(), z4.VnS());
+    ASSERT_EQUAL_SVE(z2.VnS(), z5.VnS());
+
+    int sdot_expected[] = {-1200, -880, -560, -240};
+    ASSERT_EQUAL_SVE(sdot_expected, z7.VnS());
+    ASSERT_EQUAL_SVE(z7.VnS(), z8.VnS());
+    ASSERT_EQUAL_SVE(z7.VnS(), z9.VnS());
+    ASSERT_EQUAL_SVE(z7.VnS(), z10.VnS());
+  }
+}
+
+TEST_SVE(sve_sdot_udot_indexed_d) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  const int multiplier = 2;
+  __ Dup(z9.VnD(), multiplier);
+
+  __ Ptrue(p0.VnD());
+  __ Pfalse(p1.VnD());
+
+  // p2 = [..., 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1]
+  __ Zip1(p2.VnD(), p0.VnD(), p1.VnD());
+
+  __ Index(z1.VnH(), 1, 1);
+  __ Dup(z0.VnD(), z1.VnD(), 0);
+
+  // z0 = [... 5, 4, 3, 2, 5, 4, 3, 2, 4, 3, 2, 1, 4, 3, 2, 1]
+  IntSegmentPatternHelper(&masm, z0.VnH(), z0.VnH());
+
+  //                     2nd segment |           1st segment |
+  //                                 v                       v
+  // z0 = [... 5, 4, 3, 2, 10, 8, 6, 4, 4, 3, 2, 1, 8, 6, 4, 2]
+  __ Mul(z0.VnD(), p2.Merging(), z0.VnD(), z9.VnD());
+
+  __ Dup(z3.VnD(), 0);
+  __ Dup(z4.VnD(), 0);
+
+  __ Udot(z3.VnD(), z3.VnD(), z1.VnH(), z0.VnH(), 0);
+
+  __ Udot(z4.VnD(), z4.VnD(), z1.VnH(), z0.VnH(), 1);
+  __ Mul(z4.VnD(), z4.VnD(), multiplier);
+
+  __ Dup(z12.VnD(), 0);
+  __ Dup(z13.VnD(), 0);
+
+  __ Ptrue(p4.VnH());
+  __ Neg(z10.VnH(), p4.Merging(), z0.VnH());
+
+  __ Sdot(z12.VnD(), z12.VnD(), z1.VnH(), z10.VnH(), 0);
+
+  __ Sdot(z13.VnD(), z13.VnD(), z1.VnH(), z10.VnH(), 1);
+  __ Mul(z13.VnD(), z13.VnD(), multiplier);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Only compare the first 128-bit segment of destination register, use
+    // another result from generated instructions to check the remaining part.
+    // d_lane[0] = (1 * 2) + (2 * 4) + (3 * 6) + (4 * 8) = 60
+    // d_lane[1] = (5 * 2) + (6 * 4) + (7 * 6) + (8 * 8) = 140
+    uint64_t udot_expected[] = {416, 304, 140, 60};
+    ASSERT_EQUAL_SVE(udot_expected, z3.VnD());
+    ASSERT_EQUAL_SVE(z3.VnD(), z4.VnD());
+
+    int64_t sdot_expected[] = {-416, -304, -140, -60};
+    ASSERT_EQUAL_SVE(sdot_expected, z12.VnD());
+    ASSERT_EQUAL_SVE(z12.VnD(), z13.VnD());
+  }
 }
 
 template <typename T, size_t N>
@@ -15089,14 +15422,13 @@ TEST_SVE(sve_fnmls_fnmsb) {
 // Create a pattern in dst where the value of each element in src is incremented
 // by the segment number. This allows varying a short input by a predictable
 // pattern for each segment.
-static void SegmentPatternHelper(MacroAssembler* masm,
-                                 const ZRegister& dst,
-                                 const PRegisterM& ptrue,
-                                 const ZRegister& src) {
+static void FPSegmentPatternHelper(MacroAssembler* masm,
+                                   const ZRegister& dst,
+                                   const PRegisterM& ptrue,
+                                   const ZRegister& src) {
   VIXL_ASSERT(AreSameLaneSize(dst, src));
   UseScratchRegisterScope temps(masm);
   ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(dst);
-
   masm->Index(ztmp, 0, 1);
   masm->Asr(ztmp, ztmp, kQRegSizeInBytesLog2 - dst.GetLaneSizeInBytesLog2());
   masm->Scvtf(ztmp, ptrue, ztmp);
@@ -15126,7 +15458,7 @@ static void FPMulAccIdxHelper(Test* config,
     InsrHelper(&masm, z30.VnD(), zm_inputs);
   }
 
-  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z30.VnH());
+  FPSegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z30.VnH());
 
   InsrHelper(&masm, z1.VnD(), zn_inputs);
   InsrHelper(&masm, z2.VnD(), za_inputs);
@@ -15139,7 +15471,7 @@ static void FPMulAccIdxHelper(Test* config,
   (masm.*macro_idx)(z5.VnH(), z5.VnH(), z1.VnH(), z0.VnH(), 4);  // zd == za
   (masm.*macro_idx)(z6.VnH(), z2.VnH(), z1.VnH(), z0.VnH(), 7);
 
-  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z30.VnS());
+  FPSegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z30.VnS());
 
   __ Mov(z7, z0);
   (masm.*macro_idx)(z7.VnS(), z2.VnS(), z1.VnS(), z7.VnS(), 0);  // zd == zm
@@ -15149,7 +15481,7 @@ static void FPMulAccIdxHelper(Test* config,
   (masm.*macro_idx)(z9.VnS(), z9.VnS(), z1.VnS(), z0.VnS(), 2);  // zd == za
   (masm.*macro_idx)(z10.VnS(), z2.VnS(), z1.VnS(), z0.VnS(), 3);
 
-  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z30.VnD());
+  FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z30.VnD());
 
   __ Mov(z11, z0);
   (masm.*macro_idx)(z11.VnD(), z2.VnD(), z1.VnD(), z11.VnD(), 0);  // zd == zm
@@ -15167,39 +15499,39 @@ static void FPMulAccIdxHelper(Test* config,
   FPMacroNaNPropagationOption option = StrictNaNPropagation;
   // Compute the results using other instructions.
   __ Dup(z0.VnH(), z30.VnH(), 0);
-  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  FPSegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
   (masm.*macro)(z15.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
   __ Dup(z0.VnH(), z30.VnH(), 1);
-  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  FPSegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
   (masm.*macro)(z16.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
   __ Dup(z0.VnH(), z30.VnH(), 4);
-  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  FPSegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
   (masm.*macro)(z17.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
   __ Dup(z0.VnH(), z30.VnH(), 7);
-  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  FPSegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
   (masm.*macro)(z18.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
 
   __ Dup(z0.VnS(), z30.VnS(), 0);
-  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  FPSegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
   (masm.*macro)(z19.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
   __ Dup(z0.VnS(), z30.VnS(), 1);
-  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  FPSegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
   (masm.*macro)(z20.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
   __ Dup(z0.VnS(), z30.VnS(), 2);
-  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  FPSegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
   (masm.*macro)(z21.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
   __ Dup(z0.VnS(), z30.VnS(), 3);
-  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  FPSegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
   (masm.*macro)(z22.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
 
   __ Dup(z0.VnD(), z30.VnD(), 0);
-  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
+  FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
   (masm.*macro)(z23.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z0.VnD(), option);
   __ Dup(z0.VnD(), z30.VnD(), 1);
-  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
+  FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
   (masm.*macro)(z24.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z0.VnD(), option);
   __ Dup(z0.VnD(), z30.VnD(), 1);
-  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
+  FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
   (masm.*macro)(z25.VnD(), p0.Merging(), z2.VnD(), z30.VnD(), z0.VnD(), option);
 
   END();

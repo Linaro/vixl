@@ -9313,25 +9313,21 @@ void Disassembler::VisitSVEMulIndex(const Instruction *instr) {
   const char *form = "(SVEMulIndex)";
 
   switch (instr->Mask(SVEMulIndexMask)) {
-    // SDOT <Zda>.D, <Zn>.H, <Zm>.H[<imm>]
     case SDOT_z_zzzi_d:
       mnemonic = "sdot";
-      form = "'Zd.d, 'Zn.h, <Zm>.h[<imm>]";
+      form = "'Zd.d, 'Zn.h, z'u1916.h['u2020]";
       break;
-    // SDOT <Zda>.S, <Zn>.B, <Zm>.B[<imm>]
     case SDOT_z_zzzi_s:
       mnemonic = "sdot";
-      form = "'Zd.s, 'Zn.b, <Zm>.b[<imm>]";
+      form = "'Zd.s, 'Zn.b, z'u1816.b['u2019]";
       break;
-    // UDOT <Zda>.D, <Zn>.H, <Zm>.H[<imm>]
     case UDOT_z_zzzi_d:
       mnemonic = "udot";
-      form = "'Zd.d, 'Zn.h, <Zm>.h[<imm>]";
+      form = "'Zd.d, 'Zn.h, z'u1916.h['u2020]";
       break;
-    // UDOT <Zda>.S, <Zn>.B, <Zm>.B[<imm>]
     case UDOT_z_zzzi_s:
       mnemonic = "udot";
-      form = "'Zd.s, 'Zn.b, <Zm>.b[<imm>]";
+      form = "'Zd.s, 'Zn.b, z'u1816.b['u2019]";
       break;
     default:
       break;

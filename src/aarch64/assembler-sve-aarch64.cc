@@ -5442,30 +5442,56 @@ void Assembler::str(const CPURegister& rt, const SVEMemOperand& addr) {
 
 // SVEMulIndex.
 
-// This prototype maps to 2 instruction encodings:
-//  SDOT_z_zzzi_d
-//  SDOT_z_zzzi_s
-void Assembler::sdot(const ZRegister& zda, const ZRegister& zn) {
-  // SDOT <Zda>.D, <Zn>.H, <Zm>.H[<imm>]
-  //  0100 0100 111. .... 0000 00.. .... ....
-  //  size<23:22> = 11 | opc<20:16> | U<10> = 0 | Zn<9:5> | Zda<4:0>
-
+void Assembler::sdot(const ZRegister& zda,
+                     const ZRegister& zn,
+                     const ZRegister& zm,
+                     int index) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
 
-  Emit(SDOT_z_zzzi_d | Rd(zda) | Rn(zn));
+  Instr op = 0xffffffff;
+  switch (zda.GetLaneSizeInBits()) {
+    case kSRegSize:
+      VIXL_ASSERT(IsUint2(index));
+      op = SDOT_z_zzzi_s | Rx<18, 16>(zm) | (index << 19) | Rd(zda) | Rn(zn);
+      break;
+    case kDRegSize:
+      VIXL_ASSERT(IsUint1(index));
+      op = SDOT_z_zzzi_d | Rx<19, 16>(zm) | (index << 20) | Rd(zda) | Rn(zn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  Emit(op);
 }
 
-// This prototype maps to 2 instruction encodings:
-//  UDOT_z_zzzi_d
-//  UDOT_z_zzzi_s
-void Assembler::udot(const ZRegister& zda, const ZRegister& zn) {
-  // UDOT <Zda>.D, <Zn>.H, <Zm>.H[<imm>]
-  //  0100 0100 111. .... 0000 01.. .... ....
-  //  size<23:22> = 11 | opc<20:16> | U<10> = 1 | Zn<9:5> | Zda<4:0>
-
+void Assembler::udot(const ZRegister& zda,
+                     const ZRegister& zn,
+                     const ZRegister& zm,
+                     int index) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
 
-  Emit(UDOT_z_zzzi_d | Rd(zda) | Rn(zn));
+  Instr op = 0xffffffff;
+  switch (zda.GetLaneSizeInBits()) {
+    case kSRegSize:
+      VIXL_ASSERT(IsUint2(index));
+      op = UDOT_z_zzzi_s | Rx<18, 16>(zm) | (index << 19) | Rd(zda) | Rn(zn);
+      break;
+    case kDRegSize:
+      VIXL_ASSERT(IsUint1(index));
+      op = UDOT_z_zzzi_d | Rx<19, 16>(zm) | (index << 20) | Rd(zda) | Rn(zn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  Emit(op);
 }
 
 // SVEPartitionBreak.

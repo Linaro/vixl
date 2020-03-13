@@ -1034,8 +1034,14 @@ LogicVRegister Simulator::sdot(VectorFormat vform,
                                const LogicVRegister& src2,
                                int index) {
   SimVRegister temp;
-  VectorFormat indexform = VectorFormatFillQ(vform);
-  return sdot(vform, dst, src1, dup_element(indexform, temp, src2, index));
+  // NEON indexed `dot` allows the index value exceed the register size.
+  // Promote the format to Q-sized vector format before the duplication.
+  dup_elements_to_segments(IsSVEFormat(vform) ? vform
+                                              : VectorFormatFillQ(vform),
+                           temp,
+                           src2,
+                           index);
+  return sdot(vform, dst, src1, temp);
 }
 
 
@@ -1056,8 +1062,14 @@ LogicVRegister Simulator::udot(VectorFormat vform,
                                const LogicVRegister& src2,
                                int index) {
   SimVRegister temp;
-  VectorFormat indexform = VectorFormatFillQ(vform);
-  return udot(vform, dst, src1, dup_element(indexform, temp, src2, index));
+  // NEON indexed `dot` allows the index value exceed the register size.
+  // Promote the format to Q-sized vector format before the duplication.
+  dup_elements_to_segments(IsSVEFormat(vform) ? vform
+                                              : VectorFormatFillQ(vform),
+                           temp,
+                           src2,
+                           index);
+  return udot(vform, dst, src1, temp);
 }
 
 
@@ -2874,16 +2886,17 @@ LogicVRegister Simulator::dup_elements_to_segments(VectorFormat vform,
                                                    LogicVRegister dst,
                                                    const LogicVRegister& src,
                                                    int src_index) {
-  // The only tested formats.
-  VIXL_ASSERT((vform == kFormatVnH) || (vform == kFormatVnS) ||
-              (vform == kFormatVnD));
-
-  // A segment is a 128-bit portion of a vector, like a Q register.
-  int lanes_per_segment = kQRegSize / LaneSizeInBitsFromFormat(vform);
+  // In SVE, a segment is a 128-bit portion of a vector, like a Q register,
+  // whereas in NEON, the size of segment is equal to the size of register
+  // itself.
+  int segment_size = std::min(kQRegSize, RegisterSizeInBitsFromFormat(vform));
+  VIXL_ASSERT(IsMultiple(segment_size, LaneSizeInBitsFromFormat(vform)));
+  int lanes_per_segment = segment_size / LaneSizeInBitsFromFormat(vform);
 
   VIXL_ASSERT(src_index >= 0);
   VIXL_ASSERT(src_index < lanes_per_segment);
 
+  dst.ClearForWrite(vform);
   for (int j = 0; j < LaneCountFromFormat(vform); j += lanes_per_segment) {
     uint64_t value = src.Uint(vform, j + src_index);
     for (int i = 0; i < lanes_per_segment; i++) {

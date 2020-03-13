@@ -5507,15 +5507,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const PRegisterM& pg,
             const ZRegister& zn,
             const ZRegister& zm);
-  void Sdot(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sdot(zda, zn);
-  }
   void Sdot(const ZRegister& zd,
             const ZRegister& za,
             const ZRegister& zn,
             const ZRegister& zm);
+  void Sdot(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
   void Sel(const PRegisterWithLaneSize& pd,
            const PRegister& pg,
            const PRegisterWithLaneSize& pn,
@@ -5973,15 +5973,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const PRegisterM& pg,
             const ZRegister& zn,
             const ZRegister& zm);
-  void Udot(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    udot(zda, zn);
-  }
   void Udot(const ZRegister& zd,
             const ZRegister& za,
             const ZRegister& zn,
             const ZRegister& zm);
+  void Udot(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
   void Umax(const ZRegister& zd, const ZRegister& zn, IntegerOperand imm);
   void Umaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6710,6 +6710,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                           const ZRegister& zn,
                                           int imm);
 
+  typedef void (Assembler::*IntArithIndexFn)(const ZRegister& zd,
+                                             const ZRegister& zn,
+                                             const ZRegister& zm,
+                                             int index);
+
   typedef void (MacroAssembler::*SVEArithPredicatedFn)(const ZRegister& zd,
                                                        const PRegisterM& pg,
                                                        const ZRegister& zn,
@@ -6746,6 +6751,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                          const ZRegister& za,
                          const ZRegister& zn,
                          const ZRegister& zm);
+
+  void SVESdotUdotIndexHelper(IntArithIndexFn fn,
+                              const ZRegister& zd,
+                              const ZRegister& za,
+                              const ZRegister& zn,
+                              const ZRegister& zm,
+                              int index);
 
   // For noncommutative arithmetic operations.
   void NoncommutativeArithmeticHelper(const ZRegister& zd,

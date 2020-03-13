@@ -10826,19 +10826,38 @@ void Simulator::VisitSVEStoreVectorRegister(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEMulIndex(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
   switch (instr->Mask(SVEMulIndexMask)) {
     case SDOT_z_zzzi_d:
-      VIXL_UNIMPLEMENTED();
+      sdot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(19, 16)),
+           instr->ExtractBit(20));
       break;
     case SDOT_z_zzzi_s:
-      VIXL_UNIMPLEMENTED();
+      sdot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(18, 16)),
+           instr->ExtractBits(20, 19));
       break;
     case UDOT_z_zzzi_d:
-      VIXL_UNIMPLEMENTED();
+      udot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(19, 16)),
+           instr->ExtractBit(20));
       break;
     case UDOT_z_zzzi_s:
-      VIXL_UNIMPLEMENTED();
+      udot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(18, 16)),
+           instr->ExtractBits(20, 19));
       break;
     default:
       VIXL_UNIMPLEMENTED();
