@@ -3642,7 +3642,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void addvl(const Register& xd, const Register& xn, int imm6);
 
   // Compute vector address.
-  void adr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+  void adr(const ZRegister& zd, const SVEMemOperand& addr);
 
   // Bitwise AND predicates.
   void and_(const PRegister& pd,

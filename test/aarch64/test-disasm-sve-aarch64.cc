@@ -74,6 +74,39 @@ TEST(sve_address_generation) {
   COMPARE_PREFIX(adr(z30.VnD(), z14.VnD(), z24.VnD()), "adr <Zd>.D, [<Zn>.D, <Zm>.D, UXTW{ <amount>}]");
   COMPARE_PREFIX(adr(z8.Vn?(), z16.Vn?(), z16.Vn?()), "adr <Zd>.<T>, [<Zn>.<T>, <Zm>.<T>{, <mod> <amount>}]");
 #endif
+  COMPARE_PREFIX(adr(z19.VnD(), SVEMemOperand(z22.VnD(), z11.VnD(), SXTW)),
+                 "adr z19.d, [z22.d, z11.d, sxtw]");
+  COMPARE_PREFIX(adr(z19.VnD(), SVEMemOperand(z22.VnD(), z11.VnD(), SXTW, 1)),
+                 "adr z19.d, [z22.d, z11.d, sxtw #1]");
+  COMPARE_PREFIX(adr(z19.VnD(), SVEMemOperand(z22.VnD(), z11.VnD(), SXTW, 2)),
+                 "adr z19.d, [z22.d, z11.d, sxtw #2]");
+  COMPARE_PREFIX(adr(z19.VnD(), SVEMemOperand(z22.VnD(), z11.VnD(), SXTW, 3)),
+                 "adr z19.d, [z22.d, z11.d, sxtw #3]");
+  COMPARE_PREFIX(adr(z30.VnD(), SVEMemOperand(z14.VnD(), z16.VnD(), UXTW)),
+                 "adr z30.d, [z14.d, z16.d, uxtw]");
+  COMPARE_PREFIX(adr(z30.VnD(), SVEMemOperand(z14.VnD(), z16.VnD(), UXTW, 1)),
+                 "adr z30.d, [z14.d, z16.d, uxtw #1]");
+  COMPARE_PREFIX(adr(z30.VnD(), SVEMemOperand(z14.VnD(), z16.VnD(), UXTW, 2)),
+                 "adr z30.d, [z14.d, z16.d, uxtw #2]");
+  COMPARE_PREFIX(adr(z30.VnD(), SVEMemOperand(z14.VnD(), z16.VnD(), UXTW, 3)),
+                 "adr z30.d, [z14.d, z16.d, uxtw #3]");
+  COMPARE_PREFIX(adr(z8.VnS(), SVEMemOperand(z16.VnS(), z16.VnS())),
+                 "adr z8.s, [z16.s, z16.s]");
+  COMPARE_PREFIX(adr(z8.VnS(), SVEMemOperand(z16.VnS(), z16.VnS(), LSL, 1)),
+                 "adr z8.s, [z16.s, z16.s, lsl #1]");
+  COMPARE_PREFIX(adr(z8.VnS(), SVEMemOperand(z16.VnS(), z16.VnS(), LSL, 2)),
+                 "adr z8.s, [z16.s, z16.s, lsl #2]");
+  COMPARE_PREFIX(adr(z8.VnS(), SVEMemOperand(z16.VnS(), z16.VnS(), LSL, 3)),
+                 "adr z8.s, [z16.s, z16.s, lsl #3]");
+  COMPARE_PREFIX(adr(z9.VnD(), SVEMemOperand(z1.VnD(), z16.VnD())),
+                 "adr z9.d, [z1.d, z16.d]");
+  COMPARE_PREFIX(adr(z9.VnD(), SVEMemOperand(z1.VnD(), z16.VnD(), LSL, 1)),
+                 "adr z9.d, [z1.d, z16.d, lsl #1]");
+  COMPARE_PREFIX(adr(z9.VnD(), SVEMemOperand(z1.VnD(), z16.VnD(), LSL, 2)),
+                 "adr z9.d, [z1.d, z16.d, lsl #2]");
+  COMPARE_PREFIX(adr(z9.VnD(), SVEMemOperand(z1.VnD(), z16.VnD(), LSL, 3)),
+                 "adr z9.d, [z1.d, z16.d, lsl #3]");
+
 
   CLEANUP();
 }

@@ -3038,10 +3038,11 @@ enum SVE64BitScatterStore_VectorPlusImmOp {
 enum SVEAddressGenerationOp {
   SVEAddressGenerationFixed = 0x0420A000,
   SVEAddressGenerationFMask = 0xFF20F000,
-  SVEAddressGenerationMask = 0xFFA0F000,
+  SVEAddressGenerationMask = 0xFFE0F000,
   ADR_z_az_d_s32_scaled = SVEAddressGenerationFixed,
   ADR_z_az_d_u32_scaled = SVEAddressGenerationFixed | 0x00400000,
-  ADR_z_az_sd_same_scaled = SVEAddressGenerationFixed | 0x00800000
+  ADR_z_az_s_same_scaled = SVEAddressGenerationFixed | 0x00800000,
+  ADR_z_az_d_same_scaled = SVEAddressGenerationFixed | 0x00C00000
 };
 
 enum SVEBitwiseLogicalUnpredicatedOp {

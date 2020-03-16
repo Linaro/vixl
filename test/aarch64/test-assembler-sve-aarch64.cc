@@ -16355,5 +16355,69 @@ TEST_SVE(sve_fsqrt_d) {
   TestFsqrtHelper(config, kDRegSize, zn_inputs, zd_expected);
 }
 
+TEST_SVE(sve_adr) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Index(z0.VnD(), 0x10000000f0000000, 0x1000);
+  __ Index(z1.VnD(), 1, 3);
+  __ Index(z2.VnS(), -1, -1);
+  __ Adr(z3.VnD(), SVEMemOperand(z0.VnD(), z1.VnD()));
+  __ Adr(z4.VnD(), SVEMemOperand(z0.VnD(), z1.VnD(), LSL, 1));
+  __ Adr(z5.VnD(), SVEMemOperand(z0.VnD(), z1.VnD(), LSL, 2));
+  __ Adr(z6.VnD(), SVEMemOperand(z0.VnD(), z1.VnD(), LSL, 3));
+  __ Adr(z7.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), UXTW));
+  __ Adr(z8.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), UXTW, 1));
+  __ Adr(z9.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), UXTW, 2));
+  __ Adr(z10.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), UXTW, 3));
+  __ Adr(z11.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), SXTW));
+  __ Adr(z12.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), SXTW, 1));
+  __ Adr(z13.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), SXTW, 2));
+  __ Adr(z14.VnD(), SVEMemOperand(z0.VnD(), z2.VnD(), SXTW, 3));
+  __ Adr(z15.VnS(), SVEMemOperand(z0.VnS(), z2.VnS()));
+  __ Adr(z16.VnS(), SVEMemOperand(z0.VnS(), z2.VnS(), LSL, 1));
+  __ Adr(z17.VnS(), SVEMemOperand(z0.VnS(), z2.VnS(), LSL, 2));
+  __ Adr(z18.VnS(), SVEMemOperand(z0.VnS(), z2.VnS(), LSL, 3));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z3[] = {0x10000000f0001004, 0x10000000f0000001};
+    uint64_t expected_z4[] = {0x10000000f0001008, 0x10000000f0000002};
+    uint64_t expected_z5[] = {0x10000000f0001010, 0x10000000f0000004};
+    uint64_t expected_z6[] = {0x10000000f0001020, 0x10000000f0000008};
+    uint64_t expected_z7[] = {0x10000001f0000ffd, 0x10000001efffffff};
+    uint64_t expected_z8[] = {0x10000002f0000ffa, 0x10000002effffffe};
+    uint64_t expected_z9[] = {0x10000004f0000ff4, 0x10000004effffffc};
+    uint64_t expected_z10[] = {0x10000008f0000fe8, 0x10000008effffff8};
+    uint64_t expected_z11[] = {0x10000000f0000ffd, 0x10000000efffffff};
+    uint64_t expected_z12[] = {0x10000000f0000ffa, 0x10000000effffffe};
+    uint64_t expected_z13[] = {0x10000000f0000ff4, 0x10000000effffffc};
+    uint64_t expected_z14[] = {0x10000000f0000fe8, 0x10000000effffff8};
+    uint64_t expected_z15[] = {0x0ffffffcf0000ffd, 0x0ffffffeefffffff};
+    uint64_t expected_z16[] = {0x0ffffff8f0000ffa, 0x0ffffffceffffffe};
+    uint64_t expected_z17[] = {0x0ffffff0f0000ff4, 0x0ffffff8effffffc};
+    uint64_t expected_z18[] = {0x0fffffe0f0000fe8, 0x0ffffff0effffff8};
+
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnD());
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnD());
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnD());
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnD());
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
+    ASSERT_EQUAL_SVE(expected_z12, z12.VnD());
+    ASSERT_EQUAL_SVE(expected_z13, z13.VnD());
+    ASSERT_EQUAL_SVE(expected_z14, z14.VnD());
+    ASSERT_EQUAL_SVE(expected_z15, z15.VnD());
+    ASSERT_EQUAL_SVE(expected_z16, z16.VnD());
+    ASSERT_EQUAL_SVE(expected_z17, z17.VnD());
+    ASSERT_EQUAL_SVE(expected_z18, z18.VnD());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -47,20 +47,40 @@ void Assembler::ResolveSVEImm8Shift(int* imm8, int* shift) {
 
 // SVEAddressGeneration.
 
-// This prototype maps to 3 instruction encodings:
-//  ADR_z_az_d_s32_scaled
-//  ADR_z_az_d_u32_scaled
-//  ADR_z_az_sd_same_scaled
-void Assembler::adr(const ZRegister& zd,
-                    const ZRegister& zn,
-                    const ZRegister& zm) {
-  // ADR <Zd>.D, [<Zn>.D, <Zm>.D, SXTW{ <amount>}]
-  //  0000 0100 001. .... 1010 .... .... ....
-  //  opc<23:22> = 00 | Zm<20:16> | msz<11:10> | Zn<9:5> | Zd<4:0>
-
+void Assembler::adr(const ZRegister& zd, const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsVectorPlusVector());
+  VIXL_ASSERT(
+      AreSameLaneSize(zd, addr.GetVectorBase(), addr.GetVectorOffset()));
 
-  Emit(ADR_z_az_d_s32_scaled | Rd(zd) | Rn(zn) | Rm(zm));
+  int lane_size = zd.GetLaneSizeInBits();
+  VIXL_ASSERT((lane_size == kSRegSize) || (lane_size == kDRegSize));
+
+  int shift_amount = addr.GetShiftAmount();
+  VIXL_ASSERT((shift_amount >= 0) && (shift_amount <= 3));
+
+  Instr op = 0xffffffff;
+  Instr msz = shift_amount << 10;
+  SVEOffsetModifier mod = addr.GetOffsetModifier();
+  switch (mod) {
+    case SVE_UXTW:
+      VIXL_ASSERT(lane_size == kDRegSize);
+      op = ADR_z_az_d_u32_scaled;
+      break;
+    case SVE_SXTW:
+      VIXL_ASSERT(lane_size == kDRegSize);
+      op = ADR_z_az_d_s32_scaled;
+      break;
+    case SVE_LSL:
+    case NO_SVE_OFFSET_MODIFIER:
+      op = (lane_size == kSRegSize) ? ADR_z_az_s_same_scaled
+                                    : ADR_z_az_d_same_scaled;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+  Emit(op | msz | Rd(zd) | Rn(addr.GetVectorBase()) |
+       Rm(addr.GetVectorOffset()));
 }
 
 void Assembler::SVELogicalImmediate(const ZRegister& zdn,

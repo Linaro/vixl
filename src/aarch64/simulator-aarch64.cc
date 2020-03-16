@@ -7341,21 +7341,35 @@ void Simulator::VisitNEONPerm(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEAddressGeneration(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimVRegister temp;
+
+  VectorFormat vform = kFormatVnD;
+  mov(vform, temp, zm);
+
   switch (instr->Mask(SVEAddressGenerationMask)) {
     case ADR_z_az_d_s32_scaled:
-      VIXL_UNIMPLEMENTED();
+      sxt(vform, temp, temp, kSRegSize);
       break;
     case ADR_z_az_d_u32_scaled:
-      VIXL_UNIMPLEMENTED();
+      uxt(vform, temp, temp, kSRegSize);
       break;
-    case ADR_z_az_sd_same_scaled:
-      VIXL_UNIMPLEMENTED();
+    case ADR_z_az_s_same_scaled:
+      vform = kFormatVnS;
+      break;
+    case ADR_z_az_d_same_scaled:
+      // Nothing to do.
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  int shift_amount = instr->ExtractBits(11, 10);
+  shl(vform, temp, temp, shift_amount);
+  add(vform, zd, zn, temp);
 }
 
 void Simulator::VisitSVEBitwiseLogicalWithImm_Unpredicated(

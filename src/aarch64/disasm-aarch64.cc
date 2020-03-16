@@ -8404,29 +8404,30 @@ void Disassembler::VisitSVEVectorSplice_Destructive(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEAddressGeneration(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEAddressGeneration)";
+  const char *mnemonic = "adr";
+  const char *form = "'Zd.d, ['Zn.d, 'Zm.d";
+  const char *suffix = NULL;
+
+  bool msz_is_zero = (instr->ExtractBits(11, 10) == 0);
 
   switch (instr->Mask(SVEAddressGenerationMask)) {
-    // ADR <Zd>.D, [<Zn>.D, <Zm>.D, SXTW{ <amount>}]
     case ADR_z_az_d_s32_scaled:
-      mnemonic = "adr";
-      form = "'Zd.d, ['Zn.d, 'Zm.d, SXTW{ <amount>}]";
+      suffix = msz_is_zero ? ", sxtw]" : ", sxtw #'u1110]";
       break;
-    // ADR <Zd>.D, [<Zn>.D, <Zm>.D, UXTW{ <amount>}]
     case ADR_z_az_d_u32_scaled:
-      mnemonic = "adr";
-      form = "'Zd.d, ['Zn.d, 'Zm.d, UXTW{ <amount>}]";
+      suffix = msz_is_zero ? ", uxtw]" : ", uxtw #'u1110]";
       break;
-    // ADR <Zd>.<T>, [<Zn>.<T>, <Zm>.<T>{, <mod> <amount>}]
-    case ADR_z_az_sd_same_scaled:
-      mnemonic = "adr";
-      form = "'Zd.<T>, ['Zn.<T>, 'Zm.<T>{, <mod> <amount>}]";
+    case ADR_z_az_s_same_scaled:
+    case ADR_z_az_d_same_scaled:
+      form = "'Zd.'t, ['Zn.'t, 'Zm.'t";
+      suffix = msz_is_zero ? "]" : ", lsl #'u1110]";
       break;
     default:
+      mnemonic = "unimplemented";
+      form = "(SVEAddressGeneration)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEBitwiseLogicalUnpredicated(

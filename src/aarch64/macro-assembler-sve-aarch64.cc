@@ -361,14 +361,6 @@ void MacroAssembler::CalculateSVEAddress(const Register& xd,
   }
 }
 
-void MacroAssembler::Adr(const ZRegister& zd, const SVEMemOperand& addr) {
-  USE(zd);
-  USE(addr);
-  // TODO: Handle all scatter-gather addressing modes, including the
-  // vector-plus-vector mode used by `adr` itself.
-  VIXL_UNIMPLEMENTED();
-}
-
 void MacroAssembler::Cpy(const ZRegister& zd,
                          const PRegister& pg,
                          IntegerOperand imm) {
