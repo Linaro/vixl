@@ -14883,6 +14883,23 @@ TEST_SVE(sve_fnmls_fnmsb) {
                  fnmls_result_d);
 }
 
+// Create a pattern in dst where the value of each element in src is incremented
+// by the segment number. This allows varying a short input by a predictable
+// pattern for each segment.
+static void SegmentPatternHelper(MacroAssembler* masm,
+                                 const ZRegister& dst,
+                                 const PRegisterM& ptrue,
+                                 const ZRegister& src) {
+  VIXL_ASSERT(AreSameLaneSize(dst, src));
+  UseScratchRegisterScope temps(masm);
+  ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(dst);
+
+  masm->Index(ztmp, 0, 1);
+  masm->Asr(ztmp, ztmp, kQRegSizeInBytesLog2 - dst.GetLaneSizeInBytesLog2());
+  masm->Scvtf(ztmp, ptrue, ztmp);
+  masm->Fadd(dst, src, ztmp);
+}
+
 typedef void (MacroAssembler::*FPMulAccIdxFn)(const ZRegister& zd,
                                               const ZRegister& za,
                                               const ZRegister& zn,
@@ -14899,7 +14916,15 @@ static void FPMulAccIdxHelper(Test* config,
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
-  InsrHelper(&masm, z0.VnD(), zm_inputs);
+  __ Ptrue(p0.VnB());
+
+  // Repeat indexed vector across up to 2048-bit VL.
+  for (size_t i = 0; i < (kZRegMaxSize / kDRegSize); i += N) {
+    InsrHelper(&masm, z30.VnD(), zm_inputs);
+  }
+
+  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z30.VnH());
+
   InsrHelper(&masm, z1.VnD(), zn_inputs);
   InsrHelper(&masm, z2.VnD(), za_inputs);
 
@@ -14911,6 +14936,8 @@ static void FPMulAccIdxHelper(Test* config,
   (masm.*macro_idx)(z5.VnH(), z5.VnH(), z1.VnH(), z0.VnH(), 4);  // zd == za
   (masm.*macro_idx)(z6.VnH(), z2.VnH(), z1.VnH(), z0.VnH(), 7);
 
+  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z30.VnS());
+
   __ Mov(z7, z0);
   (masm.*macro_idx)(z7.VnS(), z2.VnS(), z1.VnS(), z7.VnS(), 0);  // zd == zm
   __ Mov(z8, z1);
@@ -14918,6 +14945,8 @@ static void FPMulAccIdxHelper(Test* config,
   __ Mov(z9, z2);
   (masm.*macro_idx)(z9.VnS(), z9.VnS(), z1.VnS(), z0.VnS(), 2);  // zd == za
   (masm.*macro_idx)(z10.VnS(), z2.VnS(), z1.VnS(), z0.VnS(), 3);
+
+  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z30.VnD());
 
   __ Mov(z11, z0);
   (masm.*macro_idx)(z11.VnD(), z2.VnD(), z1.VnD(), z11.VnD(), 0);  // zd == zm
@@ -14929,37 +14958,46 @@ static void FPMulAccIdxHelper(Test* config,
   // zd == zn == zm
   (masm.*macro_idx)(z14.VnD(), z2.VnD(), z14.VnD(), z14.VnD(), 1);
 
-  __ Ptrue(p0.VnB());
-
   // Indexed form of Fmla and Fmls won't swap argument, passing strict NaN
   // propagation mode to ensure the following macros don't swap argument in
   // any cases.
   FPMacroNaNPropagationOption option = StrictNaNPropagation;
   // Compute the results using other instructions.
-  __ Dup(z31.VnH(), z0.VnH(), 0);
-  (masm.*macro)(z15.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
-  __ Dup(z31.VnH(), z0.VnH(), 1);
-  (masm.*macro)(z16.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
-  __ Dup(z31.VnH(), z0.VnH(), 4);
-  (masm.*macro)(z17.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
-  __ Dup(z31.VnH(), z0.VnH(), 7);
-  (masm.*macro)(z18.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z31.VnH(), option);
+  __ Dup(z0.VnH(), z30.VnH(), 0);
+  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  (masm.*macro)(z15.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
+  __ Dup(z0.VnH(), z30.VnH(), 1);
+  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  (masm.*macro)(z16.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
+  __ Dup(z0.VnH(), z30.VnH(), 4);
+  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  (masm.*macro)(z17.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
+  __ Dup(z0.VnH(), z30.VnH(), 7);
+  SegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z0.VnH());
+  (masm.*macro)(z18.VnH(), p0.Merging(), z2.VnH(), z1.VnH(), z0.VnH(), option);
 
-  __ Dup(z31.VnS(), z0.VnS(), 0);
-  (masm.*macro)(z19.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
-  __ Dup(z31.VnS(), z0.VnS(), 1);
-  (masm.*macro)(z20.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
-  __ Dup(z31.VnS(), z0.VnS(), 2);
-  (masm.*macro)(z21.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
-  __ Dup(z31.VnS(), z0.VnS(), 3);
-  (masm.*macro)(z22.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z31.VnS(), option);
+  __ Dup(z0.VnS(), z30.VnS(), 0);
+  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  (masm.*macro)(z19.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
+  __ Dup(z0.VnS(), z30.VnS(), 1);
+  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  (masm.*macro)(z20.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
+  __ Dup(z0.VnS(), z30.VnS(), 2);
+  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  (masm.*macro)(z21.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
+  __ Dup(z0.VnS(), z30.VnS(), 3);
+  SegmentPatternHelper(&masm, z0.VnS(), p0.Merging(), z0.VnS());
+  (masm.*macro)(z22.VnS(), p0.Merging(), z2.VnS(), z1.VnS(), z0.VnS(), option);
 
-  __ Dup(z31.VnD(), z0.VnD(), 0);
-  (masm.*macro)(z23.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z31.VnD(), option);
-  __ Dup(z31.VnD(), z0.VnD(), 1);
-  (masm.*macro)(z24.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z31.VnD(), option);
-  __ Dup(z31.VnD(), z0.VnD(), 1);
-  (masm.*macro)(z25.VnD(), p0.Merging(), z2.VnD(), z0.VnD(), z31.VnD(), option);
+  __ Dup(z0.VnD(), z30.VnD(), 0);
+  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
+  (masm.*macro)(z23.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z0.VnD(), option);
+  __ Dup(z0.VnD(), z30.VnD(), 1);
+  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
+  (masm.*macro)(z24.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z0.VnD(), option);
+  __ Dup(z0.VnD(), z30.VnD(), 1);
+  SegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
+  (masm.*macro)(z25.VnD(), p0.Merging(), z2.VnD(), z30.VnD(), z0.VnD(), option);
 
   END();
 

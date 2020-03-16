@@ -2875,13 +2875,15 @@ LogicVRegister Simulator::dup_elements_to_segments(VectorFormat vform,
                                                    const LogicVRegister& src,
                                                    int src_index) {
   // The only tested formats.
-  VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
-  VIXL_ASSERT(((vform == kFormatVnS) && (src_index <= 3)) ||
-              ((vform == kFormatVnD) && (src_index <= 1)));
-  VIXL_ASSERT(src_index >= 0);
+  VIXL_ASSERT((vform == kFormatVnH) || (vform == kFormatVnS) ||
+              (vform == kFormatVnD));
 
-  // A segment is a 128-bit portion of a vector.
-  int lanes_per_segment = (vform == kFormatVnD) ? 2 : 4;
+  // A segment is a 128-bit portion of a vector, like a Q register.
+  int lanes_per_segment = kQRegSize / LaneSizeInBitsFromFormat(vform);
+
+  VIXL_ASSERT(src_index >= 0);
+  VIXL_ASSERT(src_index < lanes_per_segment);
+
   for (int j = 0; j < LaneCountFromFormat(vform); j += lanes_per_segment) {
     uint64_t value = src.Uint(vform, j + src_index);
     for (int i = 0; i < lanes_per_segment; i++) {
@@ -5001,7 +5003,7 @@ LogicVRegister Simulator::fmla(VectorFormat vform,
     T op2 = src2.Float<T>(i);
     T acc = srca.Float<T>(i);
     T result = FPMulAdd(acc, op1, op2);
-    dst.SetFloat(i, result);
+    dst.SetFloat(vform, i, result);
   }
   return dst;
 }
