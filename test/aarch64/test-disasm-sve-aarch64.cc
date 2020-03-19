@@ -4078,15 +4078,38 @@ TEST(sve_ff_contiguous) {
 TEST(sve_mem_contiguous_load) {
   SETUP();
 
+  COMPARE_PREFIX(ld1rqb(z3.VnB(), p2.Zeroing(), SVEMemOperand(x22, x18)),
+                 "ld1rqb { z3.b }, p2/z, [x22, x18]");
+  COMPARE_PREFIX(ld1rqd(z6.VnD(), p0.Zeroing(), SVEMemOperand(x18, x9, LSL, 3)),
+                 "ld1rqd { z6.d }, p0/z, [x18, x9, lsl #3]");
+  COMPARE_PREFIX(ld1rqh(z1.VnH(), p7.Zeroing(), SVEMemOperand(x9, x6, LSL, 1)),
+                 "ld1rqh { z1.h }, p7/z, [x9, x6, lsl #1]");
+  COMPARE_PREFIX(ld1rqw(z12.VnS(),
+                        p4.Zeroing(),
+                        SVEMemOperand(sp, xzr, LSL, 2)),
+                 "ld1rqw { z12.s }, p4/z, [sp, xzr, lsl #2]");
+  COMPARE_PREFIX(ld1rqb(z18.VnB(), p2.Zeroing(), SVEMemOperand(x18, 0)),
+                 "ld1rqb { z18.b }, p2/z, [x18]");
+  COMPARE_PREFIX(ld1rqb(z18.VnB(), p2.Zeroing(), SVEMemOperand(x18, 16)),
+                 "ld1rqb { z18.b }, p2/z, [x18, #16]");
+  COMPARE_PREFIX(ld1rqd(z11.VnD(), p1.Zeroing(), SVEMemOperand(x23, -16)),
+                 "ld1rqd { z11.d }, p1/z, [x23, #-16]");
+  COMPARE_PREFIX(ld1rqh(z11.VnH(), p1.Zeroing(), SVEMemOperand(x0, 112)),
+                 "ld1rqh { z11.h }, p1/z, [x0, #112]");
+  COMPARE_PREFIX(ld1rqw(z22.VnS(), p3.Zeroing(), SVEMemOperand(sp, -128)),
+                 "ld1rqw { z22.s }, p3/z, [sp, #-128]");
+
+  COMPARE_MACRO(Ld1rqb(z0.VnB(), p0.Zeroing(), SVEMemOperand(x0, 2222)),
+                "add x16, x0, #0x8ae (2222)\n"
+                "ld1rqb { z0.b }, p0/z, [x16]");
+  COMPARE_MACRO(Ld1rqw(z0.VnS(), p0.Zeroing(), SVEMemOperand(x0, x1)),
+                "add x16, x0, x1\n"
+                "ld1rqw { z0.s }, p0/z, [x16]");
+  COMPARE_MACRO(Ld1rqd(z0.VnD(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 1)),
+                "add x16, x0, x1, lsl #1\n"
+                "ld1rqd { z0.d }, p0/z, [x16]");
+
 #if 0
-  COMPARE_PREFIX(ld1rqb(z18.VnB(), p2.Zeroing(), x18, int imm4), "ld1rqb { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rqb(z3.VnB(), p2.Zeroing(), x22, x22), "ld1rqb { <Zt>.B }, <Pg>/Z, [<Xn|SP>, <Xm>]");
-  COMPARE_PREFIX(ld1rqd(z11.VnD(), p1.Zeroing(), x23, int imm4), "ld1rqd { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rqd(z6.VnD(), p0.Zeroing(), x18, x18), "ld1rqd { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #3]");
-  COMPARE_PREFIX(ld1rqh(z11.VnH(), p1.Zeroing(), x0, int imm4), "ld1rqh { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rqh(z1.VnH(), p7.Zeroing(), x9, x9), "ld1rqh { <Zt>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]");
-  COMPARE_PREFIX(ld1rqw(z22.VnS(), p3.Zeroing(), x31, int imm4), "ld1rqw { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rqw(z12.VnS(), p4.Zeroing(), x6, x6), "ld1rqw { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]");
   COMPARE_PREFIX(ldnf1b(z1.VnH(), p0.Zeroing(), x25, int imm4), "ldnf1b { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(ldnf1b(z0.VnS(), p0.Zeroing(), x2, int imm4), "ldnf1b { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]");
   COMPARE_PREFIX(ldnf1b(z31.VnD(), p6.Zeroing(), x0, int imm4), "ldnf1b { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]");

@@ -309,11 +309,10 @@ void MacroAssembler::CalculateSVEAddress(const Register& xd,
   VIXL_ASSERT(xd.IsX());
 
   // The lower bound is where a whole Z register is accessed.
-  VIXL_ASSERT(vl_divisor_log2 >= 0);
+  VIXL_ASSERT(!addr.IsMulVl() || (vl_divisor_log2 >= 0));
   // The upper bound is for P register accesses, and for instructions like
   // "st1b { z0.d } [...]", where one byte is accessed for every D-sized lane.
-  VIXL_ASSERT(static_cast<unsigned>(vl_divisor_log2) <=
-              kZRegBitsPerPRegBitLog2);
+  VIXL_ASSERT(vl_divisor_log2 <= static_cast<int>(kZRegBitsPerPRegBitLog2));
 
   SVEOffsetModifier mod = addr.GetOffsetModifier();
   Register base = addr.GetScalarBase();
@@ -1114,6 +1113,48 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
   CalculateSVEAddress(scratch, addr, rt);
   SingleEmissionCheckScope guard(this);
   (this->*fn)(rt, SVEMemOperand(scratch));
+}
+
+void MacroAssembler::SVELoadStoreScalarImmHelper(
+    const ZRegister& zt,
+    const PRegisterZ& pg,
+    const SVEMemOperand& addr,
+    SVELoadStorePredFn fn,
+    int imm_bits,
+    int shift_amount,
+    SVEOffsetModifier supported_modifier,
+    int vl_divisor_log2) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  int imm_divisor = 1 << shift_amount;
+
+  if (addr.IsScalar() ||
+      (addr.IsScalarPlusImmediate() &&
+       IsIntN(imm_bits, addr.GetImmediateOffset() / imm_divisor) &&
+       ((addr.GetImmediateOffset() % imm_divisor) == 0) &&
+       (addr.GetOffsetModifier() == supported_modifier))) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, addr);
+    return;
+  }
+
+  if (addr.IsEquivalentToScalar()) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, SVEMemOperand(addr.GetScalarBase()));
+    return;
+  }
+
+  if (addr.IsMulVl() && (supported_modifier != SVE_MUL_VL) &&
+      (vl_divisor_log2 == -1)) {
+    // We don't handle [x0, #imm, MUL VL] if the in-memory access size is not VL
+    // dependent.
+    VIXL_UNIMPLEMENTED();
+  }
+
+  UseScratchRegisterScope temps(this);
+  Register scratch = temps.AcquireX();
+  CalculateSVEAddress(scratch, addr, vl_divisor_log2);
+  SingleEmissionCheckScope guard(this);
+  (this->*fn)(zt, pg, SVEMemOperand(scratch));
 }
 
 // E.g. ld1b/st1b

@@ -4754,67 +4754,55 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ld1rqb(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqb(zt, pg, xn, rm);
-  }
-  void Ld1rqb(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqb(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ld1rqb,
+                                4,
+                                4,
+                                NO_SVE_OFFSET_MODIFIER,
+                                -1);
   }
   void Ld1rqd(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqd(zt, pg, xn, rm);
-  }
-  void Ld1rqd(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqd(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ld1rqd,
+                                4,
+                                4,
+                                NO_SVE_OFFSET_MODIFIER,
+                                -1);
   }
   void Ld1rqh(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqh(zt, pg, xn, rm);
-  }
-  void Ld1rqh(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqh(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ld1rqh,
+                                4,
+                                4,
+                                NO_SVE_OFFSET_MODIFIER,
+                                -1);
   }
   void Ld1rqw(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqw(zt, pg, xn, rm);
-  }
-  void Ld1rqw(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rqw(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ld1rqw,
+                                4,
+                                4,
+                                NO_SVE_OFFSET_MODIFIER,
+                                -1);
   }
   void Ld1rsb(const ZRegister& zt,
               const PRegisterZ& pg,
@@ -6811,6 +6799,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void SVELoadStoreScalarImmHelper(const CPURegister& rt,
                                    const SVEMemOperand& addr,
                                    SVELoadStoreFn fn);
+
+  typedef void (Assembler::*SVELoadStorePredFn)(const ZRegister& zt,
+                                                const PRegisterZ& pg,
+                                                const SVEMemOperand& addr);
+
+  // Helper for predicated Z register loads with addressing modes not directly
+  // encodable in the instruction. The supported_modifier parameter indicates
+  // which offset modifier the calling instruction encoder supports (eg.
+  // SVE_MUL_VL). The ratio log2 of VL to memory access size is passed as
+  // vl_divisor_log2; pass -1 to indicate no dependency.
+  void SVELoadStoreScalarImmHelper(
+      const ZRegister& zt,
+      const PRegisterZ& pg,
+      const SVEMemOperand& addr,
+      SVELoadStorePredFn fn,
+      int imm_bits,
+      int shift_amount,
+      SVEOffsetModifier supported_modifier = NO_SVE_OFFSET_MODIFIER,
+      int vl_divisor_log2 = 0);
 
   template <typename Tg, typename Tf>
   void SVELoadStore1Helper(int msize_in_bytes_log2,

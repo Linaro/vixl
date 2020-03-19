@@ -7074,7 +7074,7 @@ TEST_SVE(sve_ld1_st1_contiguous) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // Encodable scalar-plus-immediate cases.
@@ -9078,6 +9078,92 @@ TEST_SVE(sve_ld1sb_32bit_vector_plus_immediate) {
 
 TEST_SVE(sve_ld1sh_32bit_vector_plus_immediate) {
   GatherLoadHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1sh, true);
+}
+
+TEST_SVE(sve_ld1rq) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int data_size = (kQRegSizeInBytes + 128) * 2;
+  uint8_t* data = new uint8_t[data_size];
+  for (int i = 0; i < data_size; i++) {
+    data[i] = i & 0xff;
+  }
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+
+  __ Index(z0.VnB(), 0, 1);
+  __ Ptrue(p0.VnB());
+  __ Cmplo(p0.VnB(), p0.Zeroing(), z0.VnB(), 4);
+  __ Pfalse(p1.VnB());
+  __ Zip1(p1.VnB(), p0.VnB(), p1.VnB());
+
+  // Load and broadcast using scalar offsets.
+  __ Mov(x1, -42);
+  __ Ld1rqb(z0.VnB(), p1.Zeroing(), SVEMemOperand(x0, x1));
+
+  __ Add(x2, x0, 1);
+  __ Mov(x1, -21);
+  __ Punpklo(p2.VnH(), p1.VnB());
+  __ Ld1rqh(z1.VnH(), p2.Zeroing(), SVEMemOperand(x2, x1, LSL, 1));
+
+  __ Add(x2, x2, 1);
+  __ Mov(x1, -10);
+  __ Punpklo(p3.VnH(), p2.VnB());
+  __ Ld1rqw(z2.VnS(), p3.Zeroing(), SVEMemOperand(x2, x1, LSL, 2));
+
+  __ Add(x2, x2, 1);
+  __ Mov(x1, 5);
+  __ Punpklo(p4.VnH(), p3.VnB());
+  __ Ld1rqd(z3.VnD(), p4.Zeroing(), SVEMemOperand(x2, x1, LSL, 3));
+
+  // Check that all segments match by rotating the vector by one segment,
+  // eoring, and orring across the vector.
+  __ Ext(z4.VnB(), z0.VnB(), z0.VnB(), 16);
+  __ Eor(z4.VnB(), z4.VnB(), z0.VnB());
+  __ Orv(b4, p0, z4.VnB());
+  __ Ext(z5.VnB(), z1.VnB(), z1.VnB(), 16);
+  __ Eor(z5.VnB(), z5.VnB(), z1.VnB());
+  __ Orv(b5, p0, z5.VnB());
+  __ Orr(z4, z4, z5);
+  __ Ext(z5.VnB(), z2.VnB(), z2.VnB(), 16);
+  __ Eor(z5.VnB(), z5.VnB(), z2.VnB());
+  __ Orv(b5, p0, z5.VnB());
+  __ Orr(z4, z4, z5);
+  __ Ext(z5.VnB(), z3.VnB(), z3.VnB(), 16);
+  __ Eor(z5.VnB(), z5.VnB(), z3.VnB());
+  __ Orv(b5, p0, z5.VnB());
+  __ Orr(z4, z4, z5);
+
+  // Load and broadcast the same values, using immediate offsets.
+  __ Add(x1, x0, 6);
+  __ Ld1rqb(z5.VnB(), p1.Zeroing(), SVEMemOperand(x1, -48));
+  __ Add(x1, x0, -9);
+  __ Ld1rqh(z6.VnH(), p2.Zeroing(), SVEMemOperand(x1, -32));
+  __ Add(x1, x0, -70);
+  __ Ld1rqw(z7.VnS(), p3.Zeroing(), SVEMemOperand(x1, 32));
+  __ Add(x1, x0, 27);
+  __ Ld1rqd(z8.VnD(), p4.Zeroing(), SVEMemOperand(x1, 16));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z0[] = {0x0000000000000000, 0x006c006a00680066};
+    uint64_t expected_z1[] = {0x000074730000706f, 0x00006c6b00006867};
+    uint64_t expected_z2[] = {0x0000000075747372, 0x000000006d6c6b6a};
+    uint64_t expected_z3[] = {0x0000000000000000, 0xc2c1c0bfbebdbcbb};
+    uint64_t expected_z4[] = {0, 0};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnD());
+    ASSERT_EQUAL_SVE(z0, z5);
+    ASSERT_EQUAL_SVE(z1, z6);
+    ASSERT_EQUAL_SVE(z2, z7);
+    ASSERT_EQUAL_SVE(z3, z8);
+  }
 }
 
 typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,

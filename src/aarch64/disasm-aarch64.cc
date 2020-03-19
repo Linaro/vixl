@@ -7545,31 +7545,31 @@ void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVELoadAndBroadcastQuadword_ScalarPlusImm)";
 
+  const char *suffix =
+      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916*16]";
+
   switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
-    // LD1RQB { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RQB_z_p_bi_u8:
       mnemonic = "ld1rqb";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns{, #'u1916}]";
+      form = "{ 'Zt.b }, 'Pgl/z, ['Xns";
       break;
-    // LD1RQD { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RQD_z_p_bi_u64:
       mnemonic = "ld1rqd";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns{, #'u1916}]";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
       break;
-    // LD1RQH { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RQH_z_p_bi_u16:
       mnemonic = "ld1rqh";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u1916}]";
+      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
       break;
-    // LD1RQW { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RQW_z_p_bi_u32:
       mnemonic = "ld1rqw";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u1916}]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
       break;
     default:
+      suffix = NULL;
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
@@ -7578,25 +7578,21 @@ void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
   const char *form = "(SVELoadAndBroadcastQuadword_ScalarPlusScalar)";
 
   switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
-    // LD1RQB { <Zt>.B }, <Pg>/Z, [<Xn|SP>, <Xm>]
     case LD1RQB_z_p_br_contiguous:
       mnemonic = "ld1rqb";
       form = "{ 'Zt.b }, 'Pgl/z, ['Xns, 'Rm]";
       break;
-    // LD1RQD { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #3]
     case LD1RQD_z_p_br_contiguous:
       mnemonic = "ld1rqd";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Rm, LSL #3]";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Rm, lsl #3]";
       break;
-    // LD1RQH { <Zt>.H }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #1]
     case LD1RQH_z_p_br_contiguous:
       mnemonic = "ld1rqh";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns, 'Rm, LSL #1]";
+      form = "{ 'Zt.h }, 'Pgl/z, ['Xns, 'Rm, lsl #1]";
       break;
-    // LD1RQW { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Xm>, LSL #2]
     case LD1RQW_z_p_br_contiguous:
       mnemonic = "ld1rqw";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Rm, LSL #2]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Rm, lsl #2]";
       break;
     default:
       break;
@@ -11000,18 +10996,20 @@ int Disassembler::SubstituteIntField(const Instruction *instr,
     // A "+n" trailing the format specifier indicates the extracted value should
     // be incremented by n. This is for cases where the encoding is zero-based,
     // but range of values is not, eg. values [1, 16] encoded as [0, 15]
-    int value = c[1] - '0';
-    VIXL_ASSERT(value > 0);
+    char *new_c;
+    uint64_t value = strtoul(c + 1, &new_c, 10);
+    c = new_c;
+    VIXL_ASSERT(IsInt32(value));
     bits += value;
-    c += 2;
   } else if (*c == '*') {
     // Similarly, a "*n" trailing the format specifier indicates the extracted
     // value should be multiplied by n. This is for cases where the encoded
     // immediate is scaled, for example by access size.
-    int value = c[1] - '0';
-    VIXL_ASSERT(value > 0);
+    char *new_c;
+    uint64_t value = strtoul(c + 1, &new_c, 10);
+    c = new_c;
+    VIXL_ASSERT(IsInt32(value));
     bits *= value;
-    c += 2;
   }
 
   AppendToOutput("%d", bits);

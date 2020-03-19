@@ -4600,53 +4600,25 @@ class Assembler : public vixl::internal::AssemblerBase {
              const Register& xn,
              int imm6);
 
-  // Contiguous load and replicate sixteen bytes (scalar index).
+  // Contiguous load and replicate sixteen bytes.
   void ld1rqb(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous load and replicate sixteen bytes (immediate index).
-  void ld1rqb(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous load and replicate two doublewords (scalar index).
-  void ld1rqd(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
-
-  // Contiguous load and replicate two doublewords (immediate index).
-  void ld1rqd(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous load and replicate eight halfwords (scalar index).
+  // Contiguous load and replicate eight halfwords.
   void ld1rqh(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous load and replicate eight halfwords (immediate index).
-  void ld1rqh(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous load and replicate four words (scalar index).
+  // Contiguous load and replicate four words.
   void ld1rqw(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous load and replicate four words (immediate index).
-  void ld1rqw(const ZRegister& zt,
+  // Contiguous load and replicate two doublewords.
+  void ld1rqd(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Load and broadcast signed byte to vector.
   void ld1rsb(const ZRegister& zt,
@@ -6825,6 +6797,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                         const PRegister& pg,
                         const SVEMemOperand& addr,
                         Instr op);
+
+  // E.g. ld1qb, ld1qh, ...
+  void SVELd1rqHelper(const ZRegister& zt,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr,
+                      Instr regoffset_op,
+                      Instr immoffset_op);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,

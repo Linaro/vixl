@@ -10262,46 +10262,67 @@ void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
 
 void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
     const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  uint64_t offset = instr->ExtractSignedBits(19, 16) * 16;
+
+  VectorFormat vform = kFormatUndefined;
   switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
     case LD1RQB_z_p_bi_u8:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnB;
       break;
     case LD1RQD_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnD;
       break;
     case LD1RQH_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnH;
       break;
     case LD1RQW_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
       break;
     default:
-      VIXL_UNIMPLEMENTED();
+      addr = offset = 0;
       break;
   }
+  ld1(kFormat16B, zt, addr + offset);
+  mov_zeroing(vform, zt, pg, zt);
+  dup_element(kFormatVnQ, zt, zt, 0);
 }
 
 void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
     const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  uint64_t offset = ReadXRegister(instr->GetRm());
+
+  VectorFormat vform = kFormatUndefined;
   switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
     case LD1RQB_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnB;
       break;
     case LD1RQD_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnD;
+      offset <<= 3;
       break;
     case LD1RQH_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnH;
+      offset <<= 1;
       break;
     case LD1RQW_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
+      offset <<= 2;
       break;
     default:
-      VIXL_UNIMPLEMENTED();
+      addr = offset = 0;
       break;
   }
+  ld1(kFormat16B, zt, addr + offset);
+  mov_zeroing(vform, zt, pg, zt);
+  dup_element(kFormatVnQ, zt, zt, 0);
 }
 
 void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(
