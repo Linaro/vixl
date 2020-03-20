@@ -842,9 +842,7 @@ InvalSetIterator<S>::InvalSetIterator(const InvalSetIterator<S>& other)
 #if __cplusplus >= 201103L
 template <class S>
 InvalSetIterator<S>::InvalSetIterator(InvalSetIterator<S>&& other) noexcept
-    : using_vector_(false),
-      index_(0),
-      inval_set_(NULL) {
+    : using_vector_(false), index_(0), inval_set_(NULL) {
   swap(*this, other);
 }
 #endif

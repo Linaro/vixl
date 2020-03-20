@@ -43,7 +43,7 @@ To build VIXL the following software is required:
 
  1. Python 2.7
  2. SCons 2.0
- 3. GCC 4.8+ or Clang 3.4+
+ 3. GCC 4.8+ or Clang 4.0+
 
 A 64-bit host machine is required, implementing an LP64 data model. VIXL has
 been tested using GCC on AArch64 Debian, GCC and Clang on amd64 Ubuntu
@@ -54,9 +54,13 @@ software is also required:
 
  1. Git
  2. [Google's `cpplint.py`][cpplint]
- 3. clang-format-3.8
+ 3. clang-format-4.0
+ 4. clang-tidy-4.0
 
 Refer to the 'Usage' section for details.
+
+Note that in Ubuntu 18.04, clang-tidy-4.0 will only work if the clang-4.0
+package is also installed.
 
 
 Known Limitations for AArch64 code generation
@@ -183,9 +187,10 @@ It is possible to tell `tools/test.py` to skip the linter stage by passing
 `--nolint`. This removes the dependency on `cpplint.py` and Git. The `--nolint`
 option is implied if the VIXL project is a snapshot (with no `.git` directory).
 
-Additionally, `tools/test.py` tests code formatting using `clang-format-3.8`.
-If you don't have `clang-format-3.8`, disable the test using the
-`--noclang-format` option.
+Additionally, `tools/test.py` tests code formatting using `clang-format-4.0`,
+and performs static analysis using `clang-tidy-4.0`. If you don't have these
+tools, disable the test using `--noclang-format` or `--noclang-tidy`,
+respectively.
 
 Also note that the tests for the tracing features depend upon external `diff`
 and `sed` tools. If these tools are not available in `PATH`, these tests will

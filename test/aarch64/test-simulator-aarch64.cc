@@ -3980,7 +3980,7 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                  2S,                                  \
                                  2S,                                  \
                                  kInputFloat##Basic,                  \
-                                 kInputDoubleImm##input_imm)          \
+                                 kInputDoubleImm##input_imm);         \
   }                                                                   \
   TEST(mnemonic##_4S_2OPIMM) {                                        \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
@@ -4003,35 +4003,35 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                  4H,                           \
                                  4H,                           \
                                  kInputFloat16##input,         \
-                                 kInput16bitsImm##input_imm)   \
+                                 kInput16bitsImm##input_imm);  \
   }                                                            \
   TEST(mnemonic##_8H_2OPIMM) {                                 \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
                                  8H,                           \
                                  8H,                           \
                                  kInputFloat16##input,         \
-                                 kInput16bitsImm##input_imm)   \
+                                 kInput16bitsImm##input_imm);  \
   }                                                            \
   TEST(mnemonic##_2S_2OPIMM) {                                 \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
                                  2S,                           \
                                  2S,                           \
                                  kInputFloat##Basic,           \
-                                 kInput32bitsImm##input_imm)   \
+                                 kInput32bitsImm##input_imm);  \
   }                                                            \
   TEST(mnemonic##_4S_2OPIMM) {                                 \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
                                  4S,                           \
                                  4S,                           \
                                  kInputFloat##input,           \
-                                 kInput32bitsImm##input_imm)   \
+                                 kInput32bitsImm##input_imm);  \
   }                                                            \
   TEST(mnemonic##_2D_2OPIMM) {                                 \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                     \
                                  2D,                           \
                                  2D,                           \
                                  kInputDouble##input,          \
-                                 kInput64bitsImm##input_imm)   \
+                                 kInput64bitsImm##input_imm);  \
   }
 
 #define DEFINE_TEST_NEON_2OPIMM_FP_SCALAR(mnemonic, input, input_imm) \
@@ -4040,21 +4040,21 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                  H,                                   \
                                  H,                                   \
                                  kInputFloat16##Basic,                \
-                                 kInput16bitsImm##input_imm)          \
+                                 kInput16bitsImm##input_imm);         \
   }                                                                   \
   TEST(mnemonic##_S_2OPIMM) {                                         \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
                                  S,                                   \
                                  S,                                   \
                                  kInputFloat##Basic,                  \
-                                 kInput32bitsImm##input_imm)          \
+                                 kInput32bitsImm##input_imm);         \
   }                                                                   \
   TEST(mnemonic##_D_2OPIMM) {                                         \
     CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,                            \
                                  D,                                   \
                                  D,                                   \
                                  kInputDouble##input,                 \
-                                 kInput64bitsImm##input_imm)          \
+                                 kInput64bitsImm##input_imm);         \
   }
 
 #define DEFINE_TEST_NEON_2OPIMM_HSD(mnemonic, input, input_imm) \

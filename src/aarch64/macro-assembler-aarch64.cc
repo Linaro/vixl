@@ -65,7 +65,7 @@ LiteralPool::~LiteralPool() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION {
 
 
 void LiteralPool::Reset() {
-  std::vector<RawLiteral *>::iterator it, end;
+  std::vector<RawLiteral*>::iterator it, end;
   for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
     RawLiteral* literal = *it;
     if (literal->deletion_policy_ == RawLiteral::kDeletedOnPlacementByPool) {
@@ -145,7 +145,7 @@ void LiteralPool::Emit(EmitOption option) {
     }
 
     // Now populate the literal pool.
-    std::vector<RawLiteral *>::iterator it, end;
+    std::vector<RawLiteral*>::iterator it, end;
     for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
       VIXL_ASSERT((*it)->IsUsed());
       masm_->place(*it);

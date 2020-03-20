@@ -2936,9 +2936,10 @@ void Simulator::VisitExtract(const Instruction* instr) {
   unsigned reg_size = (instr->GetSixtyFourBits() == 1) ? kXRegSize : kWRegSize;
   uint64_t low_res =
       static_cast<uint64_t>(ReadRegister(reg_size, instr->GetRm())) >> lsb;
-  uint64_t high_res =
-      (lsb == 0) ? 0 : ReadRegister<uint64_t>(reg_size, instr->GetRn())
-                           << (reg_size - lsb);
+  uint64_t high_res = (lsb == 0)
+                          ? 0
+                          : ReadRegister<uint64_t>(reg_size, instr->GetRn())
+                                << (reg_size - lsb);
   WriteRegister(reg_size, instr->GetRd(), low_res | high_res);
 }
 
