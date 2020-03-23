@@ -35,7 +35,6 @@
 #include "../macro-assembler-interface.h"
 
 #include "assembler-aarch64.h"
-#include "instrument-aarch64.h"
 // Required for runtime call support.
 // TODO: Break this dependency. We should be able to separate out the necessary
 // parts so that we don't need to include the whole simulator header.
@@ -3547,16 +3546,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // __ Log(LOG_FLAGS)
   // Will output the flags.
   void Log(TraceParameters parameters);
-
-  // Enable or disable instrumentation when an Instrument visitor is attached to
-  // the simulator.
-  void EnableInstrumentation();
-  void DisableInstrumentation();
-
-  // Add a marker to the instrumentation data produced by an Instrument visitor.
-  // The name is a two character string that will be attached to the marker in
-  // the output data.
-  void AnnotateInstrumentation(const char* marker_name);
 
   // Enable or disable CPU features dynamically. This mechanism allows users to
   // strictly check the use of CPU features in different regions of code.

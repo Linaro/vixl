@@ -110,7 +110,6 @@ static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
   Decoder simulator_decoder;                                             \
   Simulator simulator(&simulator_decoder);                               \
   simulator.SetColouredTrace(Test::coloured_trace());                    \
-  simulator.SetInstructionStats(Test::instruction_stats());              \
   simulator.SetCPUFeatures(CPUFeatures::None());                         \
   RegisterDump core;                                                     \
   ptrdiff_t offset_after_infrastructure_start;                           \
@@ -133,9 +132,6 @@ static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
       __ Trace(static_cast<TraceParameters>(trace_parameters), TRACE_ENABLE); \
     }                                                                         \
   }                                                                           \
-  if (Test::instruction_stats()) {                                            \
-    __ EnableInstrumentation();                                               \
-  }                                                                           \
   offset_after_infrastructure_start = masm.GetCursorOffset();                 \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */      \
   USE(offset_after_infrastructure_start)
@@ -144,9 +140,6 @@ static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
   offset_before_infrastructure_end = masm.GetCursorOffset();             \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(offset_before_infrastructure_end);                                 \
-  if (Test::instruction_stats()) {                                       \
-    __ DisableInstrumentation();                                         \
-  }                                                                      \
   __ Trace(LOG_ALL, TRACE_DISABLE);                                      \
   {                                                                      \
     SimulationCPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);   \

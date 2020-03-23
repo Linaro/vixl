@@ -62,13 +62,12 @@ namespace aarch64 {
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#define SETUP_WITH_FEATURES(...)                      \
-  MacroAssembler masm;                                \
-  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__));      \
-  Decoder decoder;                                    \
-  Simulator simulator(&decoder);                      \
-  simulator.SetColouredTrace(Test::coloured_trace()); \
-  simulator.SetInstructionStats(Test::instruction_stats());
+#define SETUP_WITH_FEATURES(...)                 \
+  MacroAssembler masm;                           \
+  masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__)); \
+  Decoder decoder;                               \
+  Simulator simulator(&decoder);                 \
+  simulator.SetColouredTrace(Test::coloured_trace());
 
 #define START()                         \
   masm.Reset();                         \
@@ -82,15 +81,9 @@ namespace aarch64 {
   }                                     \
   if (Test::trace_sim()) {              \
     __ Trace(LOG_DISASM, TRACE_ENABLE); \
-  }                                     \
-  if (Test::instruction_stats()) {      \
-    __ EnableInstrumentation();         \
   }
 
 #define END()                       \
-  if (Test::instruction_stats()) {  \
-    __ DisableInstrumentation();    \
-  }                                 \
   __ Trace(LOG_ALL, TRACE_DISABLE); \
   __ PopCalleeSavedRegisters();     \
   __ Ret();                         \

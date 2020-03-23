@@ -64,8 +64,6 @@ class Test {
   }
   static bool coloured_trace() { return coloured_trace_; }
   static void set_coloured_trace(bool value) { coloured_trace_ = value; }
-  static bool instruction_stats() { return instruction_stats_; }
-  static void set_instruction_stats(bool value) { instruction_stats_ = value; }
   static bool generate_test_trace() { return generate_test_trace_; }
   static void set_generate_test_trace(bool value) {
     generate_test_trace_ = value;
@@ -86,7 +84,6 @@ class Test {
   static bool disassemble_;
   static bool disassemble_infrastructure_;
   static bool coloured_trace_;
-  static bool instruction_stats_;
   static bool generate_test_trace_;
 };
 

@@ -177,13 +177,7 @@ uint32_t SumArrayC(uint8_t* array, uint32_t size) {
                  TRACE_ENABLE);                                          \
     }                                                                    \
   }                                                                      \
-  if (Test::instruction_stats()) {                                       \
-    masm.EnableInstrumentation();                                        \
-  }                                                                      \
   masm.Blr(test_function_reg);                                           \
-  if (Test::instruction_stats()) {                                       \
-    masm.DisableInstrumentation();                                       \
-  }                                                                      \
   masm.Trace(LOG_ALL, TRACE_DISABLE);                                    \
   regs.Dump(&masm);                                                      \
   masm.Mov(lr, reinterpret_cast<uint64_t>(Simulator::kEndOfSimAddress)); \

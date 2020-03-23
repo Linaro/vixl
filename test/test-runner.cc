@@ -49,9 +49,6 @@ bool vixl::Test::disassemble_infrastructure_ = false;
 // No colour highlight by default.
 bool vixl::Test::coloured_trace_ = false;
 
-// No instruction statistics by default.
-bool vixl::Test::instruction_stats_ = false;
-
 // Don't generate traces by default.
 bool vixl::Test::generate_test_trace_ = false;
 
@@ -118,7 +115,6 @@ static void PrintHelpMessage() {
       "--disassemble-test-code  "
       "As above, but don't disassemble infrastructure code.\n"
       "--coloured_trace         Generate coloured trace.\n"
-      "--instruction_stats      Log instruction statistics to vixl_stats.csv.\n"
       "--generate_test_trace    "
       "Print result traces for SIM_* and TRACE_* tests.\n");
 }
@@ -177,10 +173,6 @@ int main(int argc, char* argv[]) {
   } else if (IsInArgs("--disassemble-test-code", argc, argv)) {
     vixl::Test::set_disassemble(true);
     vixl::Test::set_disassemble_infrastructure(false);
-  }
-
-  if (IsInArgs("--instruction-stats", argc, argv)) {
-    vixl::Test::set_instruction_stats(true);
   }
 
   if (IsInArgs("--generate-test-trace", argc, argv)) {
