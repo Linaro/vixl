@@ -9080,6 +9080,66 @@ TEST_SVE(sve_ld1sh_32bit_vector_plus_immediate) {
   GatherLoadHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1sh, true);
 }
 
+TEST_SVE(sve_ldnt1) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int data_size = kZRegMaxSizeInBytes * 16;
+  uint8_t* data = new uint8_t[data_size];
+  for (int i = 0; i < data_size; i++) {
+    data[i] = i & 0xff;
+  }
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+  __ Ptrue(p0.VnB());
+  __ Punpklo(p1.VnH(), p0.VnB());
+  __ Punpklo(p2.VnH(), p1.VnB());
+  __ Punpklo(p3.VnH(), p2.VnB());
+  __ Punpklo(p4.VnH(), p3.VnB());
+
+  __ Mov(x1, 42);
+  __ Ld1b(z0.VnB(), p1.Zeroing(), SVEMemOperand(x0, x1));
+  __ Ldnt1b(z1.VnB(), p1.Zeroing(), SVEMemOperand(x0, x1));
+
+  __ Mov(x1, -21);
+  __ Ld1h(z2.VnH(), p2.Zeroing(), SVEMemOperand(x0, x1, LSL, 1));
+  __ Ldnt1h(z3.VnH(), p2.Zeroing(), SVEMemOperand(x0, x1, LSL, 1));
+
+  __ Mov(x1, 10);
+  __ Ld1w(z4.VnS(), p3.Zeroing(), SVEMemOperand(x0, x1, LSL, 2));
+  __ Ldnt1w(z5.VnS(), p3.Zeroing(), SVEMemOperand(x0, x1, LSL, 2));
+
+  __ Mov(x1, -5);
+  __ Ld1d(z6.VnD(), p4.Zeroing(), SVEMemOperand(x0, x1, LSL, 3));
+  __ Ldnt1d(z7.VnD(), p4.Zeroing(), SVEMemOperand(x0, x1, LSL, 3));
+
+  __ Ld1b(z8.VnB(), p1.Zeroing(), SVEMemOperand(x0, 1, SVE_MUL_VL));
+  __ Ldnt1b(z9.VnB(), p1.Zeroing(), SVEMemOperand(x0, 1, SVE_MUL_VL));
+
+  __ Ld1h(z10.VnH(), p2.Zeroing(), SVEMemOperand(x0, -1, SVE_MUL_VL));
+  __ Ldnt1h(z11.VnH(), p2.Zeroing(), SVEMemOperand(x0, -1, SVE_MUL_VL));
+
+  __ Ld1w(z12.VnS(), p3.Zeroing(), SVEMemOperand(x0, 7, SVE_MUL_VL));
+  __ Ldnt1w(z13.VnS(), p3.Zeroing(), SVEMemOperand(x0, 7, SVE_MUL_VL));
+
+  __ Ld1d(z14.VnD(), p4.Zeroing(), SVEMemOperand(x0, -8, SVE_MUL_VL));
+  __ Ldnt1d(z15.VnD(), p4.Zeroing(), SVEMemOperand(x0, -8, SVE_MUL_VL));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z0, z1);
+    ASSERT_EQUAL_SVE(z2, z3);
+    ASSERT_EQUAL_SVE(z4, z5);
+    ASSERT_EQUAL_SVE(z6, z7);
+    ASSERT_EQUAL_SVE(z8, z9);
+    ASSERT_EQUAL_SVE(z10, z11);
+    ASSERT_EQUAL_SVE(z12, z13);
+    ASSERT_EQUAL_SVE(z14, z15);
+  }
+}
+
 TEST_SVE(sve_ld1rq) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

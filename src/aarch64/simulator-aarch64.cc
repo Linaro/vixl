@@ -10218,46 +10218,69 @@ void Simulator::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
 
 void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(
     const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = kFormatUndefined;
+
   switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusImmMask)) {
     case LDNT1B_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnB;
       break;
     case LDNT1D_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnD;
       break;
     case LDNT1H_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnH;
       break;
     case LDNT1W_z_p_bi_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  int vl = GetVectorLengthInBytes();
+  uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredLoadHelper(vform,
+                          pg,
+                          instr->GetRt(),
+                          addr,
+                          /* is_signed = */ false);
 }
 
 void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
     const Instruction* instr) {
-  USE(instr);
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = kFormatUndefined;
+
   switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusScalarMask)) {
     case LDNT1B_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnB;
       break;
     case LDNT1D_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnD;
       break;
     case LDNT1H_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnH;
       break;
     case LDNT1W_z_p_br_contiguous:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  uint64_t offset = ReadXRegister(instr->GetRm()) << msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredLoadHelper(vform,
+                          pg,
+                          instr->GetRt(),
+                          addr,
+                          /* is_signed = */ false);
 }
 
 void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(

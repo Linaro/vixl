@@ -5144,67 +5144,51 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldnt1b(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1b(zt, pg, xn, rm);
-  }
-  void Ldnt1b(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1b(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ldnt1b,
+                                4,
+                                0,
+                                SVE_MUL_VL);
   }
   void Ldnt1d(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1d(zt, pg, xn, rm);
-  }
-  void Ldnt1d(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1d(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ldnt1d,
+                                4,
+                                0,
+                                SVE_MUL_VL);
   }
   void Ldnt1h(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1h(zt, pg, xn, rm);
-  }
-  void Ldnt1h(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1h(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ldnt1h,
+                                4,
+                                0,
+                                SVE_MUL_VL);
   }
   void Ldnt1w(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1w(zt, pg, xn, rm);
-  }
-  void Ldnt1w(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1w(zt, pg, xn, imm4);
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::ldnt1w,
+                                4,
+                                0,
+                                SVE_MUL_VL);
   }
   void Ldr(const CPURegister& rt, const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);

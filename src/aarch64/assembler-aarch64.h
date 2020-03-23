@@ -4925,53 +4925,25 @@ class Assembler : public vixl::internal::AssemblerBase {
               const Register& xn,
               int imm4);
 
-  // Contiguous load non-temporal bytes to vector (scalar index).
+  // Contiguous load non-temporal bytes to vector.
   void ldnt1b(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous load non-temporal bytes to vector (immediate index).
-  void ldnt1b(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous load non-temporal doublewords to vector (scalar index).
-  void ldnt1d(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
-
-  // Contiguous load non-temporal doublewords to vector (immediate index).
-  void ldnt1d(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous load non-temporal halfwords to vector (scalar index).
+  // Contiguous load non-temporal halfwords to vector.
   void ldnt1h(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous load non-temporal halfwords to vector (immediate index).
-  void ldnt1h(const ZRegister& zt,
-              const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous load non-temporal words to vector (scalar index).
+  // Contiguous load non-temporal words to vector.
   void ldnt1w(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous load non-temporal words to vector (immediate index).
-  void ldnt1w(const ZRegister& zt,
+  // Contiguous load non-temporal doublewords to vector.
+  void ldnt1d(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Load SVE predicate/vector register.
   void ldr(const CPURegister& rt, const SVEMemOperand& addr);
@@ -6798,12 +6770,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                         const SVEMemOperand& addr,
                         Instr op);
 
-  // E.g. ld1qb, ld1qh, ...
-  void SVELd1rqHelper(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const SVEMemOperand& addr,
-                      Instr regoffset_op,
-                      Instr immoffset_op);
+  // E.g. ld1qb, ld1qh, ldnt1b, ...
+  void SVELd1ScaImmHelper(const ZRegister& zt,
+                          const PRegisterZ& pg,
+                          const SVEMemOperand& addr,
+                          Instr regoffset_op,
+                          Instr immoffset_op,
+                          int imm_divisor = 1);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,
