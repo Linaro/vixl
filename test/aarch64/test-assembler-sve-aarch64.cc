@@ -9140,6 +9140,63 @@ TEST_SVE(sve_ldnt1) {
   }
 }
 
+TEST_SVE(sve_stnt1) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  int data_size = kZRegMaxSizeInBytes * 16;
+  uint8_t* data = new uint8_t[data_size];
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+  __ Ptrue(p0.VnB());
+  __ Punpklo(p1.VnH(), p0.VnB());
+  __ Punpklo(p2.VnH(), p1.VnB());
+  __ Punpklo(p3.VnH(), p2.VnB());
+  __ Punpklo(p4.VnH(), p3.VnB());
+  __ Dup(z0.VnB(), 0x55);
+  __ Index(z1.VnB(), 0, 1);
+
+  // Store with all-true and patterned predication, load back, and create a
+  // reference value for later comparison.
+  __ Rdvl(x1, 1);
+  __ Stnt1b(z0.VnB(), p0, SVEMemOperand(x0, x1));
+  __ Stnt1b(z1.VnB(), p1, SVEMemOperand(x0, 1, SVE_MUL_VL));
+  __ Ld1b(z2.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1));
+  __ Sel(z3.VnB(), p1, z1.VnB(), z0.VnB());
+
+  // Repeated, with wider elements and different offsets.
+  __ Rdvl(x1, -1);
+  __ Lsr(x1, x1, 1);
+  __ Stnt1h(z0.VnH(), p0, SVEMemOperand(x0, x1, LSL, 1));
+  __ Stnt1h(z1.VnH(), p2, SVEMemOperand(x0, -1, SVE_MUL_VL));
+  __ Ld1b(z4.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 1));
+  __ Sel(z5.VnH(), p2, z1.VnH(), z0.VnH());
+
+  __ Rdvl(x1, 7);
+  __ Lsr(x1, x1, 2);
+  __ Stnt1w(z0.VnS(), p0, SVEMemOperand(x0, x1, LSL, 2));
+  __ Stnt1w(z1.VnS(), p3, SVEMemOperand(x0, 7, SVE_MUL_VL));
+  __ Ld1b(z6.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 2));
+  __ Sel(z7.VnS(), p3, z1.VnS(), z0.VnS());
+
+  __ Rdvl(x1, -8);
+  __ Lsr(x1, x1, 3);
+  __ Stnt1d(z0.VnD(), p0, SVEMemOperand(x0, x1, LSL, 3));
+  __ Stnt1d(z1.VnD(), p4, SVEMemOperand(x0, -8, SVE_MUL_VL));
+  __ Ld1b(z8.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 3));
+  __ Sel(z9.VnD(), p4, z1.VnD(), z0.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z2, z3);
+    ASSERT_EQUAL_SVE(z4, z5);
+    ASSERT_EQUAL_SVE(z6, z7);
+    ASSERT_EQUAL_SVE(z8, z9);
+  }
+}
+
 TEST_SVE(sve_ld1rq) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

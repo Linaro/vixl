@@ -4809,12 +4809,12 @@ void Assembler::prfw(int prfop,
        ImmField<20, 16>(imm5));
 }
 
-void Assembler::SVELd1ScaImmHelper(const ZRegister& zt,
-                                   const PRegisterZ& pg,
-                                   const SVEMemOperand& addr,
-                                   Instr regoffset_op,
-                                   Instr immoffset_op,
-                                   int imm_divisor) {
+void Assembler::SVELd1St1ScaImmHelper(const ZRegister& zt,
+                                      const PRegister& pg,
+                                      const SVEMemOperand& addr,
+                                      Instr regoffset_op,
+                                      Instr immoffset_op,
+                                      int imm_divisor) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(addr.IsScalarPlusScalar() || addr.IsScalarPlusImmediate());
 
@@ -4834,12 +4834,12 @@ void Assembler::ld1rqb(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(0));
   VIXL_ASSERT(zt.IsLaneSizeB());
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LD1RQB_z_p_br_contiguous,
-                     LD1RQB_z_p_bi_u8,
-                     16);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LD1RQB_z_p_br_contiguous,
+                        LD1RQB_z_p_bi_u8,
+                        16);
 }
 
 void Assembler::ld1rqd(const ZRegister& zt,
@@ -4847,12 +4847,12 @@ void Assembler::ld1rqd(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(3));
   VIXL_ASSERT(zt.IsLaneSizeD());
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LD1RQD_z_p_br_contiguous,
-                     LD1RQD_z_p_bi_u64,
-                     16);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LD1RQD_z_p_br_contiguous,
+                        LD1RQD_z_p_bi_u64,
+                        16);
 }
 
 void Assembler::ld1rqh(const ZRegister& zt,
@@ -4860,12 +4860,12 @@ void Assembler::ld1rqh(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(1));
   VIXL_ASSERT(zt.IsLaneSizeH());
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LD1RQH_z_p_br_contiguous,
-                     LD1RQH_z_p_bi_u16,
-                     16);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LD1RQH_z_p_br_contiguous,
+                        LD1RQH_z_p_bi_u16,
+                        16);
 }
 
 void Assembler::ld1rqw(const ZRegister& zt,
@@ -4873,12 +4873,12 @@ void Assembler::ld1rqw(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(2));
   VIXL_ASSERT(zt.IsLaneSizeS());
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LD1RQW_z_p_br_contiguous,
-                     LD1RQW_z_p_bi_u32,
-                     16);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LD1RQW_z_p_br_contiguous,
+                        LD1RQW_z_p_bi_u32,
+                        16);
 }
 
 #define VIXL_DEFINE_LDFF1(MSZ, LANE_SIZE)                                  \
@@ -5022,11 +5022,11 @@ void Assembler::ldnt1b(const ZRegister& zt,
   VIXL_ASSERT(addr.IsScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)));
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LDNT1B_z_p_br_contiguous,
-                     LDNT1B_z_p_bi_contiguous);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LDNT1B_z_p_br_contiguous,
+                        LDNT1B_z_p_bi_contiguous);
 }
 
 void Assembler::ldnt1d(const ZRegister& zt,
@@ -5035,11 +5035,11 @@ void Assembler::ldnt1d(const ZRegister& zt,
   VIXL_ASSERT(addr.IsScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)));
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LDNT1D_z_p_br_contiguous,
-                     LDNT1D_z_p_bi_contiguous);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LDNT1D_z_p_br_contiguous,
+                        LDNT1D_z_p_bi_contiguous);
 }
 
 void Assembler::ldnt1h(const ZRegister& zt,
@@ -5048,11 +5048,11 @@ void Assembler::ldnt1h(const ZRegister& zt,
   VIXL_ASSERT(addr.IsScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)));
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LDNT1H_z_p_br_contiguous,
-                     LDNT1H_z_p_bi_contiguous);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LDNT1H_z_p_br_contiguous,
+                        LDNT1H_z_p_bi_contiguous);
 }
 
 void Assembler::ldnt1w(const ZRegister& zt,
@@ -5061,11 +5061,11 @@ void Assembler::ldnt1w(const ZRegister& zt,
   VIXL_ASSERT(addr.IsScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)));
-  SVELd1ScaImmHelper(zt,
-                     pg,
-                     addr,
-                     LDNT1W_z_p_br_contiguous,
-                     LDNT1W_z_p_bi_contiguous);
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        LDNT1W_z_p_br_contiguous,
+                        LDNT1W_z_p_bi_contiguous);
 }
 
 Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
@@ -5371,110 +5371,54 @@ void Assembler::st1w(const ZRegister& zt,
 
 void Assembler::stnt1b(const ZRegister& zt,
                        const PRegister& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>, <Xm>]
-  //  1110 0100 000. .... 011. .... .... ....
-  //  msz<24:23> = 00 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1B_z_p_br_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::stnt1b(const ZRegister& zt,
-                       const PRegister& pg,
-                       const Register& xn,
-                       int imm4) {
-  // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0100 0001 .... 111. .... .... ....
-  //  msz<24:23> = 00 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1B_z_p_bi_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+                       const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsScalar() ||
+              (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)));
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        STNT1B_z_p_br_contiguous,
+                        STNT1B_z_p_bi_contiguous);
 }
 
 void Assembler::stnt1d(const ZRegister& zt,
                        const PRegister& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-  //  1110 0101 100. .... 011. .... .... ....
-  //  msz<24:23> = 11 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1D_z_p_br_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::stnt1d(const ZRegister& zt,
-                       const PRegister& pg,
-                       const Register& xn,
-                       int imm4) {
-  // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0101 1001 .... 111. .... .... ....
-  //  msz<24:23> = 11 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1D_z_p_bi_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+                       const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsScalar() ||
+              (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)));
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        STNT1D_z_p_br_contiguous,
+                        STNT1D_z_p_bi_contiguous);
 }
 
 void Assembler::stnt1h(const ZRegister& zt,
                        const PRegister& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-  //  1110 0100 100. .... 011. .... .... ....
-  //  msz<24:23> = 01 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1H_z_p_br_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::stnt1h(const ZRegister& zt,
-                       const PRegister& pg,
-                       const Register& xn,
-                       int imm4) {
-  // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0100 1001 .... 111. .... .... ....
-  //  msz<24:23> = 01 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1H_z_p_bi_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+                       const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsScalar() ||
+              (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)));
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        STNT1H_z_p_br_contiguous,
+                        STNT1H_z_p_bi_contiguous);
 }
 
 void Assembler::stnt1w(const ZRegister& zt,
                        const PRegister& pg,
-                       const Register& xn,
-                       const Register& rm) {
-  // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-  //  1110 0101 000. .... 011. .... .... ....
-  //  msz<24:23> = 10 | Rm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1W_z_p_br_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(rm));
-}
-
-void Assembler::stnt1w(const ZRegister& zt,
-                       const PRegister& pg,
-                       const Register& xn,
-                       int imm4) {
-  // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1110 0101 0001 .... 111. .... .... ....
-  //  msz<24:23> = 10 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(STNT1W_z_p_bi_contiguous | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+                       const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsScalar() ||
+              (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)));
+  SVELd1St1ScaImmHelper(zt,
+                        pg,
+                        addr,
+                        STNT1W_z_p_br_contiguous,
+                        STNT1W_z_p_bi_contiguous);
 }
 
 void Assembler::str(const CPURegister& rt, const SVEMemOperand& addr) {

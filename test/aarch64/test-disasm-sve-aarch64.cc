@@ -4192,6 +4192,70 @@ TEST(sve_mem_contiguous_load) {
   CLEANUP();
 }
 
+TEST(sve_mem_contiguous_store) {
+  SETUP();
+
+  COMPARE_PREFIX(stnt1b(z21.VnB(), p5.Zeroing(), SVEMemOperand(x1, x23)),
+                 "stnt1b { z21.b }, p5, [x1, x23]");
+  COMPARE_PREFIX(stnt1d(z10.VnD(),
+                        p0.Zeroing(),
+                        SVEMemOperand(x23, x6, LSL, 3)),
+                 "stnt1d { z10.d }, p0, [x23, x6, lsl #3]");
+  COMPARE_PREFIX(stnt1h(z30.VnH(),
+                        p4.Zeroing(),
+                        SVEMemOperand(x6, x11, LSL, 1)),
+                 "stnt1h { z30.h }, p4, [x6, x11, lsl #1]");
+  COMPARE_PREFIX(stnt1w(z0.VnS(), p4.Zeroing(), SVEMemOperand(x11, x1, LSL, 2)),
+                 "stnt1w { z0.s }, p4, [x11, x1, lsl #2]");
+  COMPARE_PREFIX(stnt1w(z0.VnS(), p4.Zeroing(), SVEMemOperand(sp, xzr, LSL, 2)),
+                 "stnt1w { z0.s }, p4, [sp, xzr, lsl #2]");
+
+  COMPARE_PREFIX(stnt1b(z1.VnB(), p3.Zeroing(), SVEMemOperand(x11)),
+                 "stnt1b { z1.b }, p3, [x11]");
+  COMPARE_PREFIX(stnt1b(z2.VnB(),
+                        p2.Zeroing(),
+                        SVEMemOperand(x12, -8, SVE_MUL_VL)),
+                 "stnt1b { z2.b }, p2, [x12, #-8, MUL VL]");
+  COMPARE_PREFIX(stnt1d(z2.VnD(),
+                        p7.Zeroing(),
+                        SVEMemOperand(x13, -2, SVE_MUL_VL)),
+                 "stnt1d { z2.d }, p7, [x13, #-2, MUL VL]");
+  COMPARE_PREFIX(stnt1h(z26.VnH(),
+                        p4.Zeroing(),
+                        SVEMemOperand(x16, 3, SVE_MUL_VL)),
+                 "stnt1h { z26.h }, p4, [x16, #3, MUL VL]");
+  COMPARE_PREFIX(stnt1w(z17.VnS(),
+                        p4.Zeroing(),
+                        SVEMemOperand(x15, 7, SVE_MUL_VL)),
+                 "stnt1w { z17.s }, p4, [x15, #7, MUL VL]");
+  COMPARE_PREFIX(stnt1w(z17.VnS(),
+                        p4.Zeroing(),
+                        SVEMemOperand(sp, 7, SVE_MUL_VL)),
+                 "stnt1w { z17.s }, p4, [sp, #7, MUL VL]");
+
+  COMPARE_MACRO(Stnt1b(z2.VnB(),
+                       p0.Zeroing(),
+                       SVEMemOperand(x10, 42, SVE_MUL_VL)),
+                "mov x16, #0x2a\n"
+                "rdvl x17, #1\n"
+                "madd x16, x16, x17, x10\n"
+                "stnt1b { z2.b }, p0, [x16]");
+  COMPARE_MACRO(Stnt1h(z3.VnH(),
+                       p1.Zeroing(),
+                       SVEMemOperand(x11, 31, SVE_MUL_VL)),
+                "addvl x16, x11, #31\n"
+                "stnt1h { z3.h }, p1, [x16]");
+  COMPARE_MACRO(Stnt1w(z4.VnS(),
+                       p2.Zeroing(),
+                       SVEMemOperand(x12, -35, SVE_MUL_VL)),
+                "mov x16, #0xffffffffffffffdd\n"
+                "rdvl x17, #1\n"
+                "madd x16, x16, x17, x12\n"
+                "stnt1w { z4.s }, p2, [x16]");
+
+  CLEANUP();
+}
+
 TEST(sve_ldr_str_simple) {
   SETUP();
 

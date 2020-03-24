@@ -1115,11 +1115,12 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
   (this->*fn)(rt, SVEMemOperand(scratch));
 }
 
+template <typename Tg, typename Tf>
 void MacroAssembler::SVELoadStoreScalarImmHelper(
     const ZRegister& zt,
-    const PRegisterZ& pg,
+    const Tg& pg,
     const SVEMemOperand& addr,
-    SVELoadStorePredFn fn,
+    Tf fn,
     int imm_bits,
     int shift_amount,
     SVEOffsetModifier supported_modifier,
@@ -1156,14 +1157,6 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(
   SingleEmissionCheckScope guard(this);
   (this->*fn)(zt, pg, SVEMemOperand(scratch));
 }
-
-// E.g. ld1b/st1b
-typedef void (Assembler::*SVELoad1Fn)(const ZRegister& zt,
-                                      const PRegisterZ& pg,
-                                      const SVEMemOperand& addr);
-typedef void (Assembler::*SVEStore1Fn)(const ZRegister& zt,
-                                       const PRegister& pg,
-                                       const SVEMemOperand& addr);
 
 template <typename Tg, typename Tf>
 void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
@@ -1458,6 +1451,162 @@ void MacroAssembler::Ldff1sw(const ZRegister& zt,
                   static_cast<SVELoad1Fn>(&Assembler::ldff1sw));
 }
 
+void MacroAssembler::Ld1rqb(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rqb,
+                              4,
+                              4,
+                              NO_SVE_OFFSET_MODIFIER,
+                              -1);
+}
+
+void MacroAssembler::Ld1rqd(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rqd,
+                              4,
+                              4,
+                              NO_SVE_OFFSET_MODIFIER,
+                              -1);
+}
+
+void MacroAssembler::Ld1rqh(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rqh,
+                              4,
+                              4,
+                              NO_SVE_OFFSET_MODIFIER,
+                              -1);
+}
+
+void MacroAssembler::Ld1rqw(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rqw,
+                              4,
+                              4,
+                              NO_SVE_OFFSET_MODIFIER,
+                              -1);
+}
+
+void MacroAssembler::Ldnt1b(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ldnt1b,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+
+void MacroAssembler::Ldnt1d(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ldnt1d,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+
+void MacroAssembler::Ldnt1h(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ldnt1h,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+
+void MacroAssembler::Ldnt1w(const ZRegister& zt,
+                            const PRegisterZ& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ldnt1w,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+
+void MacroAssembler::Stnt1b(const ZRegister& zt,
+                            const PRegister& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::stnt1b,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+void MacroAssembler::Stnt1d(const ZRegister& zt,
+                            const PRegister& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::stnt1d,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+void MacroAssembler::Stnt1h(const ZRegister& zt,
+                            const PRegister& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::stnt1h,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
+void MacroAssembler::Stnt1w(const ZRegister& zt,
+                            const PRegister& pg,
+                            const SVEMemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVELoadStoreScalarImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::stnt1w,
+                              4,
+                              0,
+                              SVE_MUL_VL);
+}
 void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
                                        const ZRegister& zd,
                                        const ZRegister& za,

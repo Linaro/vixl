@@ -5627,54 +5627,25 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // Contiguous store non-temporal bytes from vector (scalar index).
+  // Contiguous store non-temporal bytes from vector.
   void stnt1b(const ZRegister& zt,
               const PRegister& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous store non-temporal bytes from vector (immediate index).
-  void stnt1b(const ZRegister& zt,
-              const PRegister& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous store non-temporal doublewords from vector (scalar index).
-  void stnt1d(const ZRegister& zt,
-              const PRegister& pg,
-              const Register& xn,
-              const Register& rm);
-
-  // Contiguous store non-temporal doublewords from vector (immediate
-  // index).
-  void stnt1d(const ZRegister& zt,
-              const PRegister& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous store non-temporal halfwords from vector (scalar index).
+  // Contiguous store non-temporal halfwords from vector.
   void stnt1h(const ZRegister& zt,
               const PRegister& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous store non-temporal halfwords from vector (immediate index).
-  void stnt1h(const ZRegister& zt,
-              const PRegister& pg,
-              const Register& xn,
-              int imm4);
-
-  // Contiguous store non-temporal words from vector (scalar index).
+  // Contiguous store non-temporal words from vector.
   void stnt1w(const ZRegister& zt,
               const PRegister& pg,
-              const Register& xn,
-              const Register& rm);
+              const SVEMemOperand& addr);
 
-  // Contiguous store non-temporal words from vector (immediate index).
-  void stnt1w(const ZRegister& zt,
+  // Contiguous store non-temporal doublewords from vector.
+  void stnt1d(const ZRegister& zt,
               const PRegister& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Store SVE predicate/vector register.
   void str(const CPURegister& rt, const SVEMemOperand& addr);
@@ -6771,12 +6742,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                         Instr op);
 
   // E.g. ld1qb, ld1qh, ldnt1b, ...
-  void SVELd1ScaImmHelper(const ZRegister& zt,
-                          const PRegisterZ& pg,
-                          const SVEMemOperand& addr,
-                          Instr regoffset_op,
-                          Instr immoffset_op,
-                          int imm_divisor = 1);
+  void SVELd1St1ScaImmHelper(const ZRegister& zt,
+                             const PRegister& pg,
+                             const SVEMemOperand& addr,
+                             Instr regoffset_op,
+                             Instr immoffset_op,
+                             int imm_divisor = 1);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,

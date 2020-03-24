@@ -6344,31 +6344,30 @@ void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEContiguousNonTemporalStore_ScalarPlusImm)";
 
+  const char *suffix =
+      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, MUL VL]";
   switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusImmMask)) {
-    // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case STNT1B_z_p_bi_contiguous:
       mnemonic = "stnt1b";
-      form = "{ 'Zt.b }, 'Pgl, ['Xns{, #'u1916, MUL VL}]";
+      form = "{ 'Zt.b }, 'Pgl, ['Xns";
       break;
-    // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case STNT1D_z_p_bi_contiguous:
       mnemonic = "stnt1d";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns{, #'u1916, MUL VL}]";
+      form = "{ 'Zt.d }, 'Pgl, ['Xns";
       break;
-    // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case STNT1H_z_p_bi_contiguous:
       mnemonic = "stnt1h";
-      form = "{ 'Zt.h }, 'Pgl, ['Xns{, #'u1916, MUL VL}]";
+      form = "{ 'Zt.h }, 'Pgl, ['Xns";
       break;
-    // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case STNT1W_z_p_bi_contiguous:
       mnemonic = "stnt1w";
-      form = "{ 'Zt.s }, 'Pgl, ['Xns{, #'u1916, MUL VL}]";
+      form = "{ 'Zt.s }, 'Pgl, ['Xns";
       break;
     default:
+      suffix = NULL;
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
@@ -6377,25 +6376,21 @@ void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
   const char *form = "(SVEContiguousNonTemporalStore_ScalarPlusScalar)";
 
   switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusScalarMask)) {
-    // STNT1B { <Zt>.B }, <Pg>, [<Xn|SP>, <Xm>]
     case STNT1B_z_p_br_contiguous:
       mnemonic = "stnt1b";
       form = "{ 'Zt.b }, 'Pgl, ['Xns, 'Rm]";
       break;
-    // STNT1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
     case STNT1D_z_p_br_contiguous:
       mnemonic = "stnt1d";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Rm, LSL #3]";
+      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Rm, lsl #3]";
       break;
-    // STNT1H { <Zt>.H }, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
     case STNT1H_z_p_br_contiguous:
       mnemonic = "stnt1h";
-      form = "{ 'Zt.h }, 'Pgl, ['Xns, 'Rm, LSL #1]";
+      form = "{ 'Zt.h }, 'Pgl, ['Xns, 'Rm, lsl #1]";
       break;
-    // STNT1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
     case STNT1W_z_p_br_contiguous:
       mnemonic = "stnt1w";
-      form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Rm, LSL #2]";
+      form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Rm, lsl #2]";
       break;
     default:
       break;
