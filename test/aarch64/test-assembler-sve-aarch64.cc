@@ -8868,7 +8868,7 @@ static void Ldff1Helper(Test* config,
 
   size_t offset_modifier = 0;
 
-  // The highest adddress at which a load stopped. Every FF load should fault at
+  // The highest address at which a load stopped. Every FF load should fault at
   // `data + page_size`, so this value should not exceed that value. However,
   // the architecture allows fault-tolerant loads to fault arbitrarily, so the
   // real value may be lower.
@@ -9367,6 +9367,113 @@ TEST_SVE(sve_ldff1_scalar_plus_vector) {
   sve_ldff1_scalar_plus_vector_32_unpacked_unscaled_offset(config, data);
   sve_ldff1_scalar_plus_vector_64_scaled_offset(config, data);
   sve_ldff1_scalar_plus_vector_64_unscaled_offset(config, data);
+
+  munmap(reinterpret_cast<void*>(data), page_size * 2);
+}
+
+TEST_SVE(sve_ldnf1) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                          CPUFeatures::kNEON,
+                          CPUFeatures::kFP);
+  START();
+
+  size_t page_size = sysconf(_SC_PAGE_SIZE);
+  VIXL_ASSERT(page_size > static_cast<size_t>(config->sve_vl_in_bytes()));
+
+  // Allocate two pages, fill them with data, then mprotect the second one to
+  // make it inaccessible.
+  uintptr_t data = reinterpret_cast<uintptr_t>(mmap(NULL,
+                                                    page_size * 2,
+                                                    PROT_READ | PROT_WRITE,
+                                                    MAP_PRIVATE | MAP_ANONYMOUS,
+                                                    -1,
+                                                    0));
+
+  // Fill the pages with arbitrary data.
+  for (size_t i = 0; i < page_size; i++) {
+    // Reverse bits so we get a mixture of positive and negative values.
+    uint8_t byte = ReverseBits(static_cast<uint8_t>(i));
+    memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
+  }
+
+  mprotect(reinterpret_cast<void*>(data + page_size), page_size, PROT_NONE);
+
+  __ Setffr();
+  __ Ptrue(p0.VnB());
+  __ Dup(z10.VnB(), 0);
+
+  // Move an address that points to the last unprotected eight bytes.
+  __ Mov(x0, data + page_size - (kQRegSizeInBytes / kBRegSizeInBytes) / 2);
+
+  // Load, non-faulting, a vector of bytes from x0. At most, eight bytes will be
+  // loaded, the rest being in a protected page.
+  __ Ldnf1b(z0.VnB(), p0.Zeroing(), SVEMemOperand(x0));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+
+  // Create references using the FFR value in p1 to zero the undefined lanes.
+  __ Sel(z0.VnB(), p1, z0.VnB(), z10.VnB());
+  __ Ld1b(z20.VnB(), p1.Zeroing(), SVEMemOperand(x0));
+
+  // Repeat for larger elements and different addresses, giving different FFR
+  // results.
+  __ Add(x1, x0, 1);
+  __ Ldnf1h(z1.VnH(), p0.Zeroing(), SVEMemOperand(x1));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+  __ Sel(z1.VnH(), p1, z1.VnH(), z10.VnH());
+  __ Ld1h(z21.VnH(), p1.Zeroing(), SVEMemOperand(x1));
+
+  __ Add(x1, x0, 2);
+  __ Ldnf1w(z2.VnS(), p0.Zeroing(), SVEMemOperand(x1));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+  __ Sel(z2.VnS(), p1, z2.VnS(), z10.VnS());
+  __ Ld1w(z22.VnS(), p1.Zeroing(), SVEMemOperand(x1));
+
+  __ Sub(x1, x0, 1);
+  __ Ldnf1d(z3.VnD(), p0.Zeroing(), SVEMemOperand(x1));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+  __ Sel(z3.VnD(), p1, z3.VnD(), z10.VnD());
+  __ Ld1d(z23.VnD(), p1.Zeroing(), SVEMemOperand(x1));
+
+  // Load from previous VL-sized area of memory. All of this should be in the
+  // accessible page.
+  __ Ldnf1b(z4.VnB(), p0.Zeroing(), SVEMemOperand(x0, -1, SVE_MUL_VL));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+  __ Sel(z4.VnB(), p1, z4.VnB(), z10.VnB());
+  __ Ld1b(z24.VnB(), p1.Zeroing(), SVEMemOperand(x0, -1, SVE_MUL_VL));
+
+  // Repeat partial load for larger element size.
+  __ Mov(x0, data + page_size - (kQRegSizeInBytes / kSRegSizeInBytes) / 2);
+  __ Ldnf1b(z5.VnS(), p0.Zeroing(), SVEMemOperand(x0));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+  __ Sel(z5.VnS(), p1, z5.VnS(), z10.VnS());
+  __ Ld1b(z25.VnS(), p1.Zeroing(), SVEMemOperand(x0));
+
+  // Repeat for sign extension.
+  __ Mov(x0, data + page_size - (kQRegSizeInBytes / kHRegSizeInBytes) / 2);
+  __ Ldnf1sb(z6.VnH(), p0.Zeroing(), SVEMemOperand(x0));
+  __ Rdffr(p1.VnB());
+  __ Setffr();
+  __ Sel(z6.VnH(), p1, z6.VnH(), z10.VnH());
+  __ Ld1sb(z26.VnH(), p1.Zeroing(), SVEMemOperand(x0));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z20, z0);
+    ASSERT_EQUAL_SVE(z21, z1);
+    ASSERT_EQUAL_SVE(z22, z2);
+    ASSERT_EQUAL_SVE(z23, z3);
+    ASSERT_EQUAL_SVE(z24, z4);
+    ASSERT_EQUAL_SVE(z25, z5);
+    ASSERT_EQUAL_SVE(z26, z6);
+  }
 
   munmap(reinterpret_cast<void*>(data), page_size * 2);
 }

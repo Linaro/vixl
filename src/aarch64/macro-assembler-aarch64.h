@@ -5105,59 +5105,52 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Ldnf1b(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1b(zt, pg, xn, imm4);
+    ldnf1b(zt, pg, addr);
   }
   void Ldnf1d(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1d(zt, pg, xn, imm4);
+    ldnf1d(zt, pg, addr);
   }
   void Ldnf1h(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1h(zt, pg, xn, imm4);
+    ldnf1h(zt, pg, addr);
   }
   void Ldnf1sb(const ZRegister& zt,
                const PRegisterZ& pg,
-               const Register& xn,
-               int imm4) {
+               const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1sb(zt, pg, xn, imm4);
+    ldnf1sb(zt, pg, addr);
   }
   void Ldnf1sh(const ZRegister& zt,
                const PRegisterZ& pg,
-               const Register& xn,
-               int imm4) {
+               const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1sh(zt, pg, xn, imm4);
+    ldnf1sh(zt, pg, addr);
   }
   void Ldnf1sw(const ZRegister& zt,
                const PRegisterZ& pg,
-               const Register& xn,
-               int imm4) {
+               const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1sw(zt, pg, xn, imm4);
+    ldnf1sw(zt, pg, addr);
   }
   void Ldnf1w(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnf1w(zt, pg, xn, imm4);
+    ldnf1w(zt, pg, addr);
   }
   void Ldnt1b(const ZRegister& zt,
               const PRegisterZ& pg,

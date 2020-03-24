@@ -4889,121 +4889,116 @@ VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_LDFF1)
   }
 VIXL_SVE_LOAD_STORE_SIGNED_VARIANT_LIST(VIXL_DEFINE_LDFF1S)
 
-// This prototype maps to 4 instruction encodings:
-//  LDNF1B_z_p_bi_u16
-//  LDNF1B_z_p_bi_u32
-//  LDNF1B_z_p_bi_u64
-//  LDNF1B_z_p_bi_u8
 void Assembler::ldnf1b(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm4) {
-  // LDNF1B { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0100 0011 .... 101. .... .... ....
-  //  dtype<24:21> = 0001 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1B_z_p_bi_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(0,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ false,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
 void Assembler::ldnf1d(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm4) {
-  // LDNF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 1111 .... 101. .... .... ....
-  //  dtype<24:21> = 1111 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1D_z_p_bi_u64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(3,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ false,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
-// This prototype maps to 3 instruction encodings:
-//  LDNF1H_z_p_bi_u16
-//  LDNF1H_z_p_bi_u32
-//  LDNF1H_z_p_bi_u64
 void Assembler::ldnf1h(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm4) {
-  // LDNF1H { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0100 1011 .... 101. .... .... ....
-  //  dtype<24:21> = 0101 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1H_z_p_bi_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(1,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ false,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
-// This prototype maps to 3 instruction encodings:
-//  LDNF1SB_z_p_bi_s16
-//  LDNF1SB_z_p_bi_s32
-//  LDNF1SB_z_p_bi_s64
 void Assembler::ldnf1sb(const ZRegister& zt,
                         const PRegisterZ& pg,
-                        const Register& xn,
-                        int imm4) {
-  // LDNF1SB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 1101 .... 101. .... .... ....
-  //  dtype<24:21> = 1110 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                        const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1SB_z_p_bi_s16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(0,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ true,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
-// This prototype maps to 2 instruction encodings:
-//  LDNF1SH_z_p_bi_s32
-//  LDNF1SH_z_p_bi_s64
 void Assembler::ldnf1sh(const ZRegister& zt,
                         const PRegisterZ& pg,
-                        const Register& xn,
-                        int imm4) {
-  // LDNF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 0011 .... 101. .... .... ....
-  //  dtype<24:21> = 1001 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                        const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1SH_z_p_bi_s32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(1,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ true,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
 void Assembler::ldnf1sw(const ZRegister& zt,
                         const PRegisterZ& pg,
-                        const Register& xn,
-                        int imm4) {
-  // LDNF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0100 1001 .... 101. .... .... ....
-  //  dtype<24:21> = 0100 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                        const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1SW_z_p_bi_s64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(2,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ true,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
-// This prototype maps to 2 instruction encodings:
-//  LDNF1W_z_p_bi_u32
-//  LDNF1W_z_p_bi_u64
 void Assembler::ldnf1w(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm4) {
-  // LDNF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1010 0101 0101 .... 101. .... .... ....
-  //  dtype<24:21> = 1010 | imm4<19:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(addr.IsPlainRegister() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
 
-  Emit(LDNF1W_z_p_bi_u32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<19, 16>(imm4));
+  SVELdSt1Helper(2,
+                 zt,
+                 pg,
+                 addr,
+                 /* is_signed = */ false,
+                 SVEContiguousNonFaultLoad_ScalarPlusImmFixed);
 }
 
 void Assembler::ldnt1b(const ZRegister& zt,

@@ -4906,45 +4906,38 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Contiguous load non-fault unsigned bytes to vector (immediate index).
   void ldnf1b(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Contiguous load non-fault doublewords to vector (immediate index).
   void ldnf1d(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Contiguous load non-fault unsigned halfwords to vector (immediate
   // index).
   void ldnf1h(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Contiguous load non-fault signed bytes to vector (immediate index).
   void ldnf1sb(const ZRegister& zt,
                const PRegisterZ& pg,
-               const Register& xn,
-               int imm4);
+               const SVEMemOperand& addr);
 
   // Contiguous load non-fault signed halfwords to vector (immediate index).
   void ldnf1sh(const ZRegister& zt,
                const PRegisterZ& pg,
-               const Register& xn,
-               int imm4);
+               const SVEMemOperand& addr);
 
   // Contiguous load non-fault signed words to vector (immediate index).
   void ldnf1sw(const ZRegister& zt,
                const PRegisterZ& pg,
-               const Register& xn,
-               int imm4);
+               const SVEMemOperand& addr);
 
   // Contiguous load non-fault unsigned words to vector (immediate index).
   void ldnf1w(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm4);
+              const SVEMemOperand& addr);
 
   // Contiguous load non-temporal bytes to vector.
   void ldnt1b(const ZRegister& zt,

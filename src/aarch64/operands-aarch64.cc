@@ -422,6 +422,12 @@ bool SVEMemOperand::IsEquivalentToScalar() const {
   return false;
 }
 
+bool SVEMemOperand::IsPlainRegister() const {
+  if (IsScalarPlusImmediate()) {
+    return GetImmediateOffset() == 0;
+  }
+  return false;
+}
 
 GenericOperand::GenericOperand(const CPURegister& reg)
     : cpu_register_(reg), mem_op_size_(0) {

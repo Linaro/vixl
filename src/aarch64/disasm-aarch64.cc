@@ -6240,87 +6240,50 @@ void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
 void Disassembler::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
+  const char *form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns";
+  const char *suffix =
+      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, mul vl]";
 
   switch (instr->Mask(SVEContiguousNonFaultLoad_ScalarPlusImmMask)) {
-    // LDNF1B { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1B_z_p_bi_u16:
-      mnemonic = "ldnf1b";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1B { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1B_z_p_bi_u32:
-      mnemonic = "ldnf1b";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1B_z_p_bi_u64:
-      mnemonic = "ldnf1b";
-      break;
-    // LDNF1B { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1B_z_p_bi_u8:
       mnemonic = "ldnf1b";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
       break;
-    // LDNF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1D_z_p_bi_u64:
       mnemonic = "ldnf1d";
       break;
-    // LDNF1H { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1H_z_p_bi_u16:
-      mnemonic = "ldnf1h";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1H_z_p_bi_u32:
-      mnemonic = "ldnf1h";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1H_z_p_bi_u64:
       mnemonic = "ldnf1h";
       break;
-    // LDNF1SB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1SB_z_p_bi_s16:
-      mnemonic = "ldnf1sb";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1SB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1SB_z_p_bi_s32:
-      mnemonic = "ldnf1sb";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1SB_z_p_bi_s64:
+      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sb";
       break;
-    // LDNF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1SH_z_p_bi_s32:
-      mnemonic = "ldnf1sh";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1SH_z_p_bi_s64:
+      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sh";
       break;
-    // LDNF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1SW_z_p_bi_s64:
+      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sw";
       break;
-    // LDNF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1W_z_p_bi_u32:
-      mnemonic = "ldnf1w";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u1916, MUL VL}]";
-      break;
-    // LDNF1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>, MUL VL}]
     case LDNF1W_z_p_bi_u64:
       mnemonic = "ldnf1w";
       break;
     default:
+      form = "(SVEContiguousNonFaultLoad_ScalarPlusImm)";
+      suffix = NULL;
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(

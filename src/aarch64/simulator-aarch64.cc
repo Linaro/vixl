@@ -10004,7 +10004,6 @@ void Simulator::VisitSVE64BitGatherPrefetch_VectorPlusImm(
 void Simulator::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
     const Instruction* instr) {
   bool is_signed;
-  USE(instr);
   switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
     case LDFF1B_z_p_br_u8:
     case LDFF1B_z_p_br_u16:
@@ -10051,60 +10050,47 @@ void Simulator::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
 
 void Simulator::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
     const Instruction* instr) {
-  USE(instr);
+  bool is_signed = false;
   switch (instr->Mask(SVEContiguousNonFaultLoad_ScalarPlusImmMask)) {
     case LDNF1B_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1B_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1B_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1B_z_p_bi_u8:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1D_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1H_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1H_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1H_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
+    case LDNF1W_z_p_bi_u32:
+    case LDNF1W_z_p_bi_u64:
       break;
     case LDNF1SB_z_p_bi_s16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1SB_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1SB_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1SH_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1SH_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDNF1SW_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDNF1W_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDNF1W_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
+      is_signed = true;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  int vl = GetVectorLengthInBytes();
+  int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+  uint64_t offset =
+      (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEFaultTolerantLoadHelper(vform,
+                             ReadPRegister(instr->GetPgLow8()),
+                             instr->GetRt(),
+                             addr,
+                             kSVENonFaultLoad,
+                             is_signed);
 }
 
 void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(

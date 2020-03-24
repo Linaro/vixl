@@ -572,6 +572,10 @@ class SVEMemOperand {
   // [x0, #0], [x0, xzr] or [x0, wzr, UXTW #3].
   bool IsEquivalentToScalar() const;
 
+  // True for SVEMemOperands like [x0], [x0, #0], false for [x0, xzr] and
+  // similar.
+  bool IsPlainRegister() const;
+
   bool IsScalarPlusImmediate() const {
     return base_.IsX() && regoffset_.IsNone() &&
            ((mod_ == NO_SVE_OFFSET_MODIFIER) || IsMulVl());
