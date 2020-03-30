@@ -24,6 +24,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <bitset>
 #include <cstdlib>
 #include <sstream>
 
@@ -5082,56 +5083,53 @@ void Disassembler::VisitSVE32BitGatherLoad_VectorPlusImm(
 void Disassembler::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets)";
+  const char *form = (instr->ExtractBit(22) == 0)
+                         ? "'prefSVEOp, 'Pgl, ['Xns, 'Zm.s, uxtw"
+                         : "'prefSVEOp, 'Pgl, ['Xns, 'Zm.s, sxtw";
+  const char *suffix = NULL;
 
   switch (
       instr->Mask(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsMask)) {
-    // PRFB <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
     case PRFB_i_p_bz_s_x32_scaled:
       mnemonic = "prfb";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.s, <mod>]";
+      suffix = "]";
       break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #3]
     case PRFD_i_p_bz_s_x32_scaled:
       mnemonic = "prfd";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.s, <mod> #3]";
+      suffix = " #3]";
       break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]
     case PRFH_i_p_bz_s_x32_scaled:
       mnemonic = "prfh";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.s, <mod> #1]";
+      suffix = " #1]";
       break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]
     case PRFW_i_p_bz_s_x32_scaled:
       mnemonic = "prfw";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.s, <mod> #2]";
+      suffix = " #2]";
       break;
     default:
+      form = "(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE32BitGatherPrefetch_VectorPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
-  const char *form = "#'u0300, 'Pgl, ['Zn.s{, #'u2016}]";
+  const char *form = (instr->ExtractBits(20, 16) != 0)
+                         ? "'prefSVEOp, 'Pgl, ['Zn.s, #'u2016]"
+                         : "'prefSVEOp, 'Pgl, ['Zn.s]";
 
   switch (instr->Mask(SVE32BitGatherPrefetch_VectorPlusImmMask)) {
-    // PRFB <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
     case PRFB_i_p_ai_s:
       mnemonic = "prfb";
       break;
-    // PRFD <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
     case PRFD_i_p_ai_s:
       mnemonic = "prfd";
       break;
-    // PRFH <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
     case PRFH_i_p_ai_s:
       mnemonic = "prfh";
       break;
-    // PRFW <prfop>, <Pg>, [<Zn>.S{, #<imm>}]
     case PRFW_i_p_ai_s:
       mnemonic = "prfw";
       break;
@@ -5549,25 +5547,21 @@ void Disassembler::VisitSVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets(
 
   switch (
       instr->Mask(SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsMask)) {
-    // PRFB <prfop>, <Pg>, [<Xn|SP>, <Zm>.D]
     case PRFB_i_p_bz_d_64_scaled:
       mnemonic = "prfb";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Zm.d]";
       break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]
     case PRFD_i_p_bz_d_64_scaled:
       mnemonic = "prfd";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, LSL #3]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Zm.d, lsl #3]";
       break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]
     case PRFH_i_p_bz_d_64_scaled:
       mnemonic = "prfh";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, LSL #1]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Zm.d, lsl #1]";
       break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]
     case PRFW_i_p_bz_d_64_scaled:
       mnemonic = "prfw";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, LSL #2]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Zm.d, lsl #2]";
       break;
     default:
       break;
@@ -5579,57 +5573,53 @@ void Disassembler::
     VisitSVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form =
-      "(SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets)";
+  const char *form = (instr->ExtractBit(22) == 0)
+                         ? "'prefSVEOp, 'Pgl, ['Xns, 'Zm.d, uxtw"
+                         : "'prefSVEOp, 'Pgl, ['Xns, 'Zm.d, sxtw";
+  const char *suffix = NULL;
 
   switch (instr->Mask(
       SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
-    // PRFB <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
     case PRFB_i_p_bz_d_x32_scaled:
       mnemonic = "prfb";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, <mod>]";
+      suffix = " ]";
       break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #3]
     case PRFD_i_p_bz_d_x32_scaled:
       mnemonic = "prfd";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, <mod> #3]";
+      suffix = " #3]";
       break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #1]
     case PRFH_i_p_bz_d_x32_scaled:
       mnemonic = "prfh";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, <mod> #1]";
+      suffix = " #1]";
       break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #2]
     case PRFW_i_p_bz_d_x32_scaled:
       mnemonic = "prfw";
-      form = "#'u0300, 'Pgl, ['Xns, 'Zm.d, <mod> #2]";
+      suffix = " #2]";
       break;
     default:
+      form = "(SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE64BitGatherPrefetch_VectorPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
-  const char *form = "#'u0300, 'Pgl, ['Zn.d{, #'u2016}]";
+  const char *form = (instr->ExtractBits(20, 16) != 0)
+                         ? "'prefSVEOp, 'Pgl, ['Zn.d, #'u2016]"
+                         : "'prefSVEOp, 'Pgl, ['Zn.d]";
 
   switch (instr->Mask(SVE64BitGatherPrefetch_VectorPlusImmMask)) {
-    // PRFB <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
     case PRFB_i_p_ai_d:
       mnemonic = "prfb";
       break;
-    // PRFD <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
     case PRFD_i_p_ai_d:
       mnemonic = "prfd";
       break;
-    // PRFH <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
     case PRFH_i_p_ai_d:
       mnemonic = "prfh";
       break;
-    // PRFW <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
     case PRFW_i_p_ai_d:
       mnemonic = "prfw";
       break;
@@ -6399,23 +6389,20 @@ void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
 void Disassembler::VisitSVEContiguousPrefetch_ScalarPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  const char *form = "#'u0300, 'Pgl, ['Xns{, #'u2116, MUL VL}]";
+  const char *form = (instr->ExtractBits(21, 16) != 0)
+                         ? "'prefSVEOp, 'Pgl, ['Xns, #'s2116, mul vl]"
+                         : "'prefSVEOp, 'Pgl, ['Xns]";
 
   switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusImmMask)) {
-    // PRFB <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case PRFB_i_p_bi_s:
       mnemonic = "prfb";
       break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case PRFD_i_p_bi_s:
       mnemonic = "prfd";
       break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case PRFH_i_p_bi_s:
       mnemonic = "prfh";
       break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
     case PRFW_i_p_bi_s:
       mnemonic = "prfw";
       break;
@@ -6431,25 +6418,21 @@ void Disassembler::VisitSVEContiguousPrefetch_ScalarPlusScalar(
   const char *form = "(SVEContiguousPrefetch_ScalarPlusScalar)";
 
   switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
-    // PRFB <prfop>, <Pg>, [<Xn|SP>, <Xm>]
     case PRFB_i_p_br_s:
       mnemonic = "prfb";
-      form = "#'u0300, 'Pgl, ['Xns, 'Rm]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm]";
       break;
-    // PRFD <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
     case PRFD_i_p_br_s:
       mnemonic = "prfd";
-      form = "#'u0300, 'Pgl, ['Xns, 'Rm, LSL #3]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #3]";
       break;
-    // PRFH <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
     case PRFH_i_p_br_s:
       mnemonic = "prfh";
-      form = "#'u0300, 'Pgl, ['Xns, 'Rm, LSL #1]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #1]";
       break;
-    // PRFW <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
     case PRFW_i_p_br_s:
       mnemonic = "prfw";
-      form = "#'u0300, 'Pgl, ['Xns, 'Rm, LSL #2]";
+      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #2]";
       break;
     default:
       break;
@@ -10885,27 +10868,40 @@ int Disassembler::SubstitutePrefetchField(const Instruction *instr,
   VIXL_ASSERT(format[0] == 'p');
   USE(format);
 
-  static const char *hints[] = {"ld", "li", "st"};
+  bool is_sve =
+      (strncmp(format, "prefSVEOp", strlen("prefSVEOp")) == 0) ? true : false;
+  int placeholder_length = is_sve ? 9 : 6;
   static const char *stream_options[] = {"keep", "strm"};
 
-  unsigned hint = instr->GetPrefetchHint();
+  auto get_hints = [](bool is_sve) -> std::vector<std::string> {
+    static const std::vector<std::string> sve_hints = {"ld", "st"};
+    static const std::vector<std::string> core_hints = {"ld", "li", "st"};
+    return (is_sve) ? sve_hints : core_hints;
+  };
+
+  std::vector<std::string> hints = get_hints(is_sve);
+  unsigned hint =
+      is_sve ? instr->GetSVEPrefetchHint() : instr->GetPrefetchHint();
   unsigned target = instr->GetPrefetchTarget() + 1;
   unsigned stream = instr->GetPrefetchStream();
 
-  if ((hint >= ArrayLength(hints)) || (target > 3)) {
+  if ((hint >= hints.size()) || (target > 3)) {
     // Unallocated prefetch operations.
-    int prefetch_mode = instr->GetImmPrefetchOperation();
-    AppendToOutput("#0b%c%c%c%c%c",
-                   (prefetch_mode & (1 << 4)) ? '1' : '0',
-                   (prefetch_mode & (1 << 3)) ? '1' : '0',
-                   (prefetch_mode & (1 << 2)) ? '1' : '0',
-                   (prefetch_mode & (1 << 1)) ? '1' : '0',
-                   (prefetch_mode & (1 << 0)) ? '1' : '0');
+    if (is_sve) {
+      std::bitset<4> prefetch_mode(instr->GetSVEImmPrefetchOperation());
+      AppendToOutput("#0b%s", prefetch_mode.to_string().c_str());
+    } else {
+      std::bitset<5> prefetch_mode(instr->GetImmPrefetchOperation());
+      AppendToOutput("#0b%s", prefetch_mode.to_string().c_str());
+    }
   } else {
     VIXL_ASSERT(stream < ArrayLength(stream_options));
-    AppendToOutput("p%sl%d%s", hints[hint], target, stream_options[stream]);
+    AppendToOutput("p%sl%d%s",
+                   hints[hint].c_str(),
+                   target,
+                   stream_options[stream]);
   }
-  return 6;
+  return placeholder_length;
 }
 
 int Disassembler::SubstituteBarrierField(const Instruction *instr,

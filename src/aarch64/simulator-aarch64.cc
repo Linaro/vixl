@@ -9633,17 +9633,11 @@ void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
   USE(instr);
   switch (
       instr->Mask(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -9655,17 +9649,11 @@ void Simulator::VisitSVE32BitGatherPrefetch_VectorPlusImm(
     const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVE32BitGatherPrefetch_VectorPlusImmMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_ai_s:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -9677,17 +9665,11 @@ void Simulator::VisitSVEContiguousPrefetch_ScalarPlusImm(
     const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusImmMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_bi_s:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -9699,17 +9681,11 @@ void Simulator::VisitSVEContiguousPrefetch_ScalarPlusScalar(
     const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_br_s:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -10012,17 +9988,11 @@ void Simulator::VisitSVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets(
   USE(instr);
   switch (
       instr->Mask(SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -10036,17 +10006,11 @@ void Simulator::
   USE(instr);
   switch (instr->Mask(
       SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -10058,17 +10022,11 @@ void Simulator::VisitSVE64BitGatherPrefetch_VectorPlusImm(
     const Instruction* instr) {
   USE(instr);
   switch (instr->Mask(SVE64BitGatherPrefetch_VectorPlusImmMask)) {
+    // Ignore prefetch hint instructions.
     case PRFB_i_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFD_i_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFH_i_p_ai_d:
-      VIXL_UNIMPLEMENTED();
-      break;
     case PRFW_i_p_ai_d:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();

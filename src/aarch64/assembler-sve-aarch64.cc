@@ -4155,118 +4155,6 @@ void Assembler::ldr(const CPURegister& rt, const SVEMemOperand& addr) {
   Emit(op | Rt(rt) | RnSP(addr.GetScalarBase()) | imm9h | imm9l);
 }
 
-void Assembler::prfb(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // PRFB <prfop>, <Pg>, [<Xn|SP>, <Xm>]
-  //  1000 0100 000. .... 110. .... ...0 ....
-  //  msz<24:23> = 00 | Rm<20:16> | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFB_i_p_br_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       Rm(rm));
-}
-
-void Assembler::prfb(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm6) {
-  // PRFB <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1000 0101 11.. .... 000. .... ...0 ....
-  //  imm6<21:16> | msz<14:13> = 00 | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFB_i_p_bi_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
-}
-
-void Assembler::prfd(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // PRFD <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #3]
-  //  1000 0101 100. .... 110. .... ...0 ....
-  //  msz<24:23> = 11 | Rm<20:16> | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFD_i_p_br_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       Rm(rm));
-}
-
-void Assembler::prfd(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm6) {
-  // PRFD <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1000 0101 11.. .... 011. .... ...0 ....
-  //  imm6<21:16> | msz<14:13> = 11 | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFD_i_p_bi_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
-}
-
-void Assembler::prfh(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // PRFH <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #1]
-  //  1000 0100 100. .... 110. .... ...0 ....
-  //  msz<24:23> = 01 | Rm<20:16> | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFH_i_p_br_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       Rm(rm));
-}
-
-void Assembler::prfh(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm6) {
-  // PRFH <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1000 0101 11.. .... 001. .... ...0 ....
-  //  imm6<21:16> | msz<14:13> = 01 | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFH_i_p_bi_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
-}
-
-void Assembler::prfw(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const Register& rm) {
-  // PRFW <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #2]
-  //  1000 0101 000. .... 110. .... ...0 ....
-  //  msz<24:23> = 10 | Rm<20:16> | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFW_i_p_br_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       Rm(rm));
-}
-
-void Assembler::prfw(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     int imm6) {
-  // PRFW <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]
-  //  1000 0101 11.. .... 010. .... ...0 ....
-  //  imm6<21:16> | msz<14:13> = 10 | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFW_i_p_bi_s | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
-}
-
 // SVEMem64BitGather.
 
 // This prototype maps to 3 instruction encodings:
@@ -4660,144 +4548,224 @@ void Assembler::ldff1w(const ZRegister& zt,
        ImmField<20, 16>(imm5));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  PRFB_i_p_bz_d_64_scaled
-//  PRFB_i_p_bz_d_x32_scaled
-//  PRFB_i_p_bz_s_x32_scaled
-void Assembler::prfb(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // PRFB <prfop>, <Pg>, [<Xn|SP>, <Zm>.D]
-  //  1100 0100 011. .... 100. .... ...0 ....
-  //  Zm<20:16> | msz<14:13> = 00 | Pg<12:10> | Rn<9:5> | prfop<3:0>
+void Assembler::SVEGatherPrefetchVectorPlusImmediateHelper(
+    PrefetchOperation prfop,
+    const PRegister& pg,
+    const SVEMemOperand& addr,
+    int prefetch_size) {
+  VIXL_ASSERT(addr.IsVectorPlusImmediate());
+  ZRegister zn = addr.GetVectorBase();
+  VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr op = 0xffffffff;
+  switch (prefetch_size) {
+    case kBRegSize:
+      op = zn.IsLaneSizeS() ? static_cast<Instr>(PRFB_i_p_ai_s)
+                            : static_cast<Instr>(PRFB_i_p_ai_d);
+      break;
+    case kHRegSize:
+      op = zn.IsLaneSizeS() ? static_cast<Instr>(PRFH_i_p_ai_s)
+                            : static_cast<Instr>(PRFH_i_p_ai_d);
+      break;
+    case kSRegSize:
+      op = zn.IsLaneSizeS() ? static_cast<Instr>(PRFW_i_p_ai_s)
+                            : static_cast<Instr>(PRFW_i_p_ai_d);
+      break;
+    case kDRegSize:
+      op = zn.IsLaneSizeS() ? static_cast<Instr>(PRFD_i_p_ai_s)
+                            : static_cast<Instr>(PRFD_i_p_ai_d);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 
-  Emit(PRFB_i_p_bz_d_64_scaled | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) |
-       RnSP(xn) | Rm(zm));
+  int64_t imm5 = addr.GetImmediateOffset();
+  Emit(op | SVEImmPrefetchOperation(prfop) | PgLow8(pg) | Rn(zn) |
+       ImmUnsignedField<20, 16>(imm5));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  PRFB_i_p_ai_d
-//  PRFB_i_p_ai_s
-void Assembler::prfb(int prfop,
-                     const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // PRFB <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1100 0100 000. .... 111. .... ...0 ....
-  //  msz<24:23> = 00 | imm5<20:16> | Pg<12:10> | Zn<9:5> | prfop<3:0>
+void Assembler::SVEGatherPrefetchScalarPlusImmediateHelper(
+    PrefetchOperation prfop,
+    const PRegister& pg,
+    const SVEMemOperand& addr,
+    int prefetch_size) {
+  VIXL_ASSERT(addr.IsScalarPlusImmediate());
+  int64_t imm6 = addr.GetImmediateOffset();
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr op = 0xffffffff;
+  switch (prefetch_size) {
+    case kBRegSize:
+      op = PRFB_i_p_bi_s;
+      break;
+    case kHRegSize:
+      op = PRFH_i_p_bi_s;
+      break;
+    case kSRegSize:
+      op = PRFW_i_p_bi_s;
+      break;
+    case kDRegSize:
+      op = PRFD_i_p_bi_s;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 
-  Emit(PRFB_i_p_ai_d | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  Emit(op | SVEImmPrefetchOperation(prfop) | PgLow8(pg) |
+       RnSP(addr.GetScalarBase()) | ImmField<21, 16>(imm6));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  PRFD_i_p_bz_d_64_scaled
-//  PRFD_i_p_bz_d_x32_scaled
-//  PRFD_i_p_bz_s_x32_scaled
-void Assembler::prfd(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // PRFD <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]
-  //  1100 0100 011. .... 111. .... ...0 ....
-  //  Zm<20:16> | msz<14:13> = 11 | Pg<12:10> | Rn<9:5> | prfop<3:0>
+void Assembler::SVEContiguousPrefetchScalarPlusScalarHelper(
+    PrefetchOperation prfop,
+    const PRegister& pg,
+    const SVEMemOperand& addr,
+    int prefetch_size) {
+  VIXL_ASSERT(addr.IsScalarPlusScalar());
+  Instr op = 0xffffffff;
+  switch (prefetch_size) {
+    case kBRegSize:
+      op = PRFB_i_p_br_s;
+      break;
+    case kHRegSize:
+      op = PRFH_i_p_br_s;
+      break;
+    case kSRegSize:
+      op = PRFW_i_p_br_s;
+      break;
+    case kDRegSize:
+      op = PRFD_i_p_br_s;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFD_i_p_bz_d_64_scaled | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) |
-       RnSP(xn) | Rm(zm));
+  Emit(op | SVEImmPrefetchOperation(prfop) | PgLow8(pg) |
+       RnSP(addr.GetScalarBase()) | Rm(addr.GetScalarOffset()));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  PRFD_i_p_ai_d
-//  PRFD_i_p_ai_s
-void Assembler::prfd(int prfop,
-                     const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // PRFD <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1100 0101 100. .... 111. .... ...0 ....
-  //  msz<24:23> = 11 | imm5<20:16> | Pg<12:10> | Zn<9:5> | prfop<3:0>
+void Assembler::SVEContiguousPrefetchScalarPlusVectorHelper(
+    PrefetchOperation prfop,
+    const PRegister& pg,
+    const SVEMemOperand& addr,
+    int prefetch_size) {
+  VIXL_ASSERT(addr.IsScalarPlusVector());
+  ZRegister zm = addr.GetVectorOffset();
+  SVEOffsetModifier mod = addr.GetOffsetModifier();
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  Instr sx = 0;
+  Instr op = 0xffffffff;
+  if (mod == NO_SVE_OFFSET_MODIFIER) {
+    VIXL_ASSERT(zm.IsLaneSizeD());
 
-  Emit(PRFD_i_p_ai_d | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+    switch (prefetch_size) {
+      case kBRegSize:
+        op = PRFB_i_p_bz_d_64_scaled;
+        break;
+      case kHRegSize:
+        op = PRFH_i_p_bz_d_64_scaled;
+        break;
+      case kSRegSize:
+        op = PRFW_i_p_bz_d_64_scaled;
+        break;
+      case kDRegSize:
+        op = PRFD_i_p_bz_d_64_scaled;
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    VIXL_ASSERT((mod == SVE_SXTW) || (mod == SVE_UXTW));
+    VIXL_ASSERT(zm.IsLaneSizeS() || zm.IsLaneSizeD());
+
+    switch (prefetch_size) {
+      case kBRegSize:
+        op = zm.IsLaneSizeS() ? static_cast<Instr>(PRFB_i_p_bz_s_x32_scaled)
+                              : static_cast<Instr>(PRFB_i_p_bz_d_x32_scaled);
+        break;
+      case kHRegSize:
+        op = zm.IsLaneSizeS() ? static_cast<Instr>(PRFH_i_p_bz_s_x32_scaled)
+                              : static_cast<Instr>(PRFH_i_p_bz_d_x32_scaled);
+        break;
+      case kSRegSize:
+        op = zm.IsLaneSizeS() ? static_cast<Instr>(PRFW_i_p_bz_s_x32_scaled)
+                              : static_cast<Instr>(PRFW_i_p_bz_d_x32_scaled);
+        break;
+      case kDRegSize:
+        op = zm.IsLaneSizeS() ? static_cast<Instr>(PRFD_i_p_bz_s_x32_scaled)
+                              : static_cast<Instr>(PRFD_i_p_bz_d_x32_scaled);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+
+    if (mod == SVE_SXTW) {
+      sx = 1 << 22;
+    }
+  }
+
+  Emit(op | SVEImmPrefetchOperation(prfop) | PgLow8(pg) | sx |
+       RnSP(addr.GetScalarBase()) | Rm(zm));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  PRFH_i_p_bz_d_64_scaled
-//  PRFH_i_p_bz_d_x32_scaled
-//  PRFH_i_p_bz_s_x32_scaled
-void Assembler::prfh(int prfop,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // PRFH <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]
-  //  1100 0100 011. .... 101. .... ...0 ....
-  //  Zm<20:16> | msz<14:13> = 01 | Pg<12:10> | Rn<9:5> | prfop<3:0>
+void Assembler::SVEPrefetchHelper(PrefetchOperation prfop,
+                                  const PRegister& pg,
+                                  const SVEMemOperand& addr,
+                                  int prefetch_size) {
+  if (addr.IsVectorPlusImmediate()) {
+    // For example:
+    //   [z0.s, #0]
+    SVEGatherPrefetchVectorPlusImmediateHelper(prfop, pg, addr, prefetch_size);
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  } else if (addr.IsScalarPlusImmediate()) {
+    // For example:
+    //   [x0, #42, MUL VL]
+    SVEGatherPrefetchScalarPlusImmediateHelper(prfop, pg, addr, prefetch_size);
 
-  Emit(PRFH_i_p_bz_d_64_scaled | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) |
-       RnSP(xn) | Rm(zm));
+  } else if (addr.IsScalarPlusVector()) {
+    // For example:
+    //   [x0, z0.s, sxtw]
+    SVEContiguousPrefetchScalarPlusVectorHelper(prfop, pg, addr, prefetch_size);
+
+  } else if (addr.IsScalarPlusScalar()) {
+    // For example:
+    //   [x0, x1]
+    SVEContiguousPrefetchScalarPlusScalarHelper(prfop, pg, addr, prefetch_size);
+
+  } else {
+    VIXL_UNIMPLEMENTED();
+  }
 }
 
-// This prototype maps to 2 instruction encodings:
-//  PRFH_i_p_ai_d
-//  PRFH_i_p_ai_s
-void Assembler::prfh(int prfop,
+void Assembler::prfb(PrefetchOperation prfop,
                      const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // PRFH <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1100 0100 100. .... 111. .... ...0 ....
-  //  msz<24:23> = 01 | imm5<20:16> | Pg<12:10> | Zn<9:5> | prfop<3:0>
-
+                     const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFH_i_p_ai_d | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  SVEPrefetchHelper(prfop, pg, addr, kBRegSize);
 }
 
-// This prototype maps to 3 instruction encodings:
-//  PRFW_i_p_bz_d_64_scaled
-//  PRFW_i_p_bz_d_x32_scaled
-//  PRFW_i_p_bz_s_x32_scaled
-void Assembler::prfw(int prfop,
+void Assembler::prfd(PrefetchOperation prfop,
                      const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // PRFW <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]
-  //  1100 0100 011. .... 110. .... ...0 ....
-  //  Zm<20:16> | msz<14:13> = 10 | Pg<12:10> | Rn<9:5> | prfop<3:0>
-
+                     const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(PRFW_i_p_bz_d_64_scaled | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) |
-       RnSP(xn) | Rm(zm));
+  SVEPrefetchHelper(prfop, pg, addr, kDRegSize);
 }
 
-// This prototype maps to 2 instruction encodings:
-//  PRFW_i_p_ai_d
-//  PRFW_i_p_ai_s
-void Assembler::prfw(int prfop,
+void Assembler::prfh(PrefetchOperation prfop,
                      const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // PRFW <prfop>, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1100 0101 000. .... 111. .... ...0 ....
-  //  msz<24:23> = 10 | imm5<20:16> | Pg<12:10> | Zn<9:5> | prfop<3:0>
-
+                     const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVEPrefetchHelper(prfop, pg, addr, kHRegSize);
+}
 
-  Emit(PRFW_i_p_ai_d | ImmField<3, 0>(prfop) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+void Assembler::prfw(PrefetchOperation prfop,
+                     const PRegister& pg,
+                     const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  SVEPrefetchHelper(prfop, pg, addr, kSRegSize);
 }
 
 void Assembler::SVELd1St1ScaImmHelper(const ZRegister& zt,
@@ -5064,38 +5032,35 @@ Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
                                      const SVEMemOperand& addr) {
   VIXL_ASSERT((num_regs >= 1) && (num_regs <= 4));
 
+  Instr op = 0xfffffff;
   if (addr.IsScalarPlusImmediate()) {
     VIXL_ASSERT((addr.GetImmediateOffset() == 0) || addr.IsMulVl());
     int64_t imm = addr.GetImmediateOffset();
     VIXL_ASSERT((imm % num_regs) == 0);
-    return RnSP(addr.GetScalarBase()) | ImmField<19, 16>(imm / num_regs);
-  }
+    op = RnSP(addr.GetScalarBase()) | ImmField<19, 16>(imm / num_regs);
 
-  if (addr.IsScalarPlusScalar()) {
+  } else if (addr.IsScalarPlusScalar()) {
     VIXL_ASSERT(addr.GetScalarOffset().IsZero() ||
                 addr.IsEquivalentToLSL(msize_in_bytes_log2));
-    return RnSP(addr.GetScalarBase()) | Rm(addr.GetScalarOffset());
-  }
+    op = RnSP(addr.GetScalarBase()) | Rm(addr.GetScalarOffset());
 
-  if (addr.IsVectorPlusImmediate()) {
+  } else if (addr.IsVectorPlusImmediate()) {
     ZRegister zn = addr.GetVectorBase();
     uint64_t imm = addr.GetImmediateOffset();
-
     VIXL_ASSERT(num_regs == 1);
     VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
     VIXL_ASSERT(IsMultiple(imm, (1 << msize_in_bytes_log2)));
-    return Rn(zn) | ImmUnsignedField<20, 16>(imm >> msize_in_bytes_log2);
-  }
+    op = Rn(zn) | ImmUnsignedField<20, 16>(imm >> msize_in_bytes_log2);
 
-  if (addr.IsScalarPlusVector()) {
+  } else if (addr.IsScalarPlusVector()) {
     // We have to support several different addressing modes. Some instructions
     // support a subset of these, but the SVEMemOperand encoding is consistent.
     Register xn = addr.GetScalarBase();
     ZRegister zm = addr.GetVectorOffset();
     SVEOffsetModifier mod = addr.GetOffsetModifier();
     Instr xs = (mod == SVE_SXTW) ? (1 << 22) : 0;
-
     VIXL_ASSERT(num_regs == 1);
+
     if (mod == SVE_LSL) {
       // 64-bit scaled offset:            [<Xn|SP>, <Zm>.D, LSL #<shift>]
       VIXL_ASSERT(zm.IsLaneSizeD());
@@ -5116,13 +5081,12 @@ Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
     }
 
     // The form itself is encoded in the instruction opcode.
-    return RnSP(xn) | Rm(zm) | xs;
+    op = RnSP(xn) | Rm(zm) | xs;
   } else {
     VIXL_UNIMPLEMENTED();
   }
 
-  VIXL_UNIMPLEMENTED();
-  return 0xffffffff;
+  return op;
 }
 
 // SVEMemStore.

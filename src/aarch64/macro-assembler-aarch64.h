@@ -5316,109 +5316,33 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Pnext(const PRegisterWithLaneSize& pd,
              const PRegister& pg,
              const PRegisterWithLaneSize& pn);
-  void Prfb(int prfop,
+  void Prfb(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    prfb(prfop, pg, xn, rm);
+    prfb(prfop, pg, addr);
   }
-  void Prfb(int prfop,
+  void Prfh(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
+            const SVEMemOperand addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    prfb(prfop, pg, xn, zm);
+    prfh(prfop, pg, addr);
   }
-  void Prfb(int prfop, const PRegister& pg, const Register& xn, int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfb(prfop, pg, xn, imm6);
-  }
-  void Prfb(int prfop, const PRegister& pg, const ZRegister& zn, int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfb(prfop, pg, zn, imm5);
-  }
-  void Prfd(int prfop,
+  void Prfw(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
+            const SVEMemOperand addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    prfd(prfop, pg, xn, rm);
+    prfw(prfop, pg, addr);
   }
-  void Prfd(int prfop,
+  void Prfd(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
+            const SVEMemOperand addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    prfd(prfop, pg, xn, zm);
-  }
-  void Prfd(int prfop, const PRegister& pg, const Register& xn, int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfd(prfop, pg, xn, imm6);
-  }
-  void Prfd(int prfop, const PRegister& pg, const ZRegister& zn, int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfd(prfop, pg, zn, imm5);
-  }
-  void Prfh(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfh(prfop, pg, xn, rm);
-  }
-  void Prfh(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfh(prfop, pg, xn, zm);
-  }
-  void Prfh(int prfop, const PRegister& pg, const Register& xn, int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfh(prfop, pg, xn, imm6);
-  }
-  void Prfh(int prfop, const PRegister& pg, const ZRegister& zn, int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfh(prfop, pg, zn, imm5);
-  }
-  void Prfw(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfw(prfop, pg, xn, rm);
-  }
-  void Prfw(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfw(prfop, pg, xn, zm);
-  }
-  void Prfw(int prfop, const PRegister& pg, const Register& xn, int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfw(prfop, pg, xn, imm6);
-  }
-  void Prfw(int prfop, const PRegister& pg, const ZRegister& zn, int imm5) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    prfw(prfop, pg, zn, imm5);
+    prfd(prfop, pg, addr);
   }
   void Ptest(const PRegister& pg, const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);

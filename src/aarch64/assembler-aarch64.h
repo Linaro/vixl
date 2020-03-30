@@ -5130,77 +5130,25 @@ class Assembler : public vixl::internal::AssemblerBase {
              const PRegister& pg,
              const PRegisterWithLaneSize& pn);
 
-  // Contiguous prefetch bytes (scalar index).
-  void prfb(int prfop,
+  // Prefetch bytes.
+  void prfb(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
-  // Gather prefetch bytes (scalar plus vector).
-  void prfb(int prfop,
+  // Prefetch halfwords.
+  void prfh(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
+            const SVEMemOperand& addr);
 
-  // Contiguous prefetch bytes (immediate index).
-  void prfb(int prfop, const PRegister& pg, const Register& xn, int imm6);
-
-  // Gather prefetch bytes (vector plus immediate).
-  void prfb(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
-
-  // Contiguous prefetch doublewords (scalar index).
-  void prfd(int prfop,
+  // Prefetch words.
+  void prfw(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
+            const SVEMemOperand& addr);
 
-  // Gather prefetch doublewords (scalar plus vector).
-  void prfd(int prfop,
+  // Prefetch doublewords.
+  void prfd(PrefetchOperation prfop,
             const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Contiguous prefetch doublewords (immediate index).
-  void prfd(int prfop, const PRegister& pg, const Register& xn, int imm6);
-
-  // Gather prefetch doublewords (vector plus immediate).
-  void prfd(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
-
-  // Contiguous prefetch halfwords (scalar index).
-  void prfh(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
-
-  // Gather prefetch halfwords (scalar plus vector).
-  void prfh(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Contiguous prefetch halfwords (immediate index).
-  void prfh(int prfop, const PRegister& pg, const Register& xn, int imm6);
-
-  // Gather prefetch halfwords (vector plus immediate).
-  void prfh(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
-
-  // Contiguous prefetch words (scalar index).
-  void prfw(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const Register& rm);
-
-  // Gather prefetch words (scalar plus vector).
-  void prfw(int prfop,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Contiguous prefetch words (immediate index).
-  void prfw(int prfop, const PRegister& pg, const Register& xn, int imm6);
-
-  // Gather prefetch words (vector plus immediate).
-  void prfw(int prfop, const PRegister& pg, const ZRegister& zn, int imm5);
+            const SVEMemOperand& addr);
 
   // Set condition flags for predicate.
   void ptest(const PRegister& pg, const PRegisterWithLaneSize& pn);
@@ -6866,6 +6814,43 @@ class Assembler : public vixl::internal::AssemblerBase {
                             Instr op_h,
                             Instr op_s,
                             Instr op_d);
+
+
+  void SVEContiguousPrefetchScalarPlusScalarHelper(PrefetchOperation prfop,
+                                                   const PRegister& pg,
+                                                   const SVEMemOperand& addr,
+                                                   int prefetch_size);
+
+  void SVEContiguousPrefetchScalarPlusVectorHelper(PrefetchOperation prfop,
+                                                   const PRegister& pg,
+                                                   const SVEMemOperand& addr,
+                                                   int prefetch_size);
+
+  void SVEGatherPrefetchVectorPlusImmediateHelper(PrefetchOperation prfop,
+                                                  const PRegister& pg,
+                                                  const SVEMemOperand& addr,
+                                                  int prefetch_size);
+
+  void SVEGatherPrefetchScalarPlusImmediateHelper(PrefetchOperation prfop,
+                                                  const PRegister& pg,
+                                                  const SVEMemOperand& addr,
+                                                  int prefetch_size);
+
+  void SVEPrefetchHelper(PrefetchOperation prfop,
+                         const PRegister& pg,
+                         const SVEMemOperand& addr,
+                         int prefetch_size);
+
+  static Instr SVEImmPrefetchOperation(PrefetchOperation prfop) {
+    // SVE only supports PLD and PST, not PLI.
+    VIXL_ASSERT(((prfop >= PLDL1KEEP) && (prfop <= PLDL3STRM)) ||
+                ((prfop >= PSTL1KEEP) && (prfop <= PSTL3STRM)));
+    // Check that we can simply map bits.
+    VIXL_STATIC_ASSERT(PLDL1KEEP == 0b00000);
+    VIXL_STATIC_ASSERT(PSTL1KEEP == 0b10000);
+    // Remaining operations map directly.
+    return ((prfop & 0b10000) >> 1) | (prfop & 0b00111);
+  }
 
   // Functions for emulating operands not directly supported by the instruction
   // set.

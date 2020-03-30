@@ -17411,5 +17411,33 @@ TEST_SVE(sve_ld1rsw) {
   LoadBcastHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1rsw, true);
 }
 
+TEST_SVE(sve_prefetch_offset) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+
+  START();
+
+  __ Prfb(PLDL1KEEP, p5, SVEMemOperand(z30.VnS(), 0));
+  __ Prfb(PLDL1STRM, p5, SVEMemOperand(x28, -11, SVE_MUL_VL));
+  __ Prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x31));
+  __ Prfb(PLDL2STRM, p6, SVEMemOperand(x7, z12.VnS(), UXTW));
+  __ Prfh(PSTL2KEEP, p6, SVEMemOperand(z0.VnS(), 28));
+  __ Prfh(PSTL2STRM, p4, SVEMemOperand(x17, -3, SVE_MUL_VL));
+  __ Prfh(PSTL3KEEP, p3, SVEMemOperand(x0, x0));
+  __ Prfh(PSTL3STRM, p4, SVEMemOperand(x20, z0.VnD()));
+  __ Prfw(PLDL1KEEP, p3, SVEMemOperand(z23.VnD(), 5));
+  __ Prfw(PLDL1STRM, p1, SVEMemOperand(x4, 10, SVE_MUL_VL));
+  __ Prfw(PLDL2KEEP, p2, SVEMemOperand(x22, x22));
+  __ Prfw(PLDL2STRM, p1, SVEMemOperand(x2, z6.VnS(), SXTW));
+  __ Prfd(PLDL3KEEP, p5, SVEMemOperand(z11.VnD(), 9));
+  __ Prfd(PLDL3STRM, p3, SVEMemOperand(x0, -24, SVE_MUL_VL));
+  __ Prfd(PSTL1KEEP, p7, SVEMemOperand(x5, x5));
+  __ Prfd(PSTL1STRM, p1, SVEMemOperand(x19, z18.VnS(), SXTW));
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

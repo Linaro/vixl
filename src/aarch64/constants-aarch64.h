@@ -216,7 +216,10 @@ V_(ImmSVEPredicateConstraint, 9, 5, ExtractBits)                             \
 /* SVE Bitwise Immediate bitfield */                                         \
 V_(SVEBitN, 17, 17, ExtractBits)                                             \
 V_(SVEImmRotate, 16, 11, ExtractBits)                                        \
-V_(SVEImmSetBits, 10, 5, ExtractBits)
+V_(SVEImmSetBits, 10, 5, ExtractBits)                                        \
+                                                                             \
+V_(SVEImmPrefetchOperation, 3, 0, ExtractBits)                               \
+V_(SVEPrefetchHint, 3, 3, ExtractBits)
 
 // clang-format on
 

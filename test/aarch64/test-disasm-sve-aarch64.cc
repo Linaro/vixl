@@ -3310,22 +3310,6 @@ TEST(sve_mem_32bit_gather_and_unsized_contiguous) {
   COMPARE_PREFIX(ldff1sh(z18.VnS(), p4.Zeroing(), x25, z25.VnS()), "ldff1sh { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
   COMPARE_PREFIX(ldff1w(z5.VnS(), p4.Zeroing(), x23, z31.VnS()), "ldff1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]");
   COMPARE_PREFIX(ldff1w(z12.VnS(), p3.Zeroing(), x25, z27.VnS()), "ldff1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(prfb(int prfop, p5, z30.VnS(), int imm5), "prfb <prfop>, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(prfb(int prfop, p5, x28, int imm6), "prfb <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(prfb(int prfop, p6, x31, x31), "prfb <prfop>, <Pg>, [<Xn|SP>, <Xm>]");
-  COMPARE_PREFIX(prfb(int prfop, p6, x7, z12.VnS()), "prfb <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(prfd(int prfop, p5, z11.VnS(), int imm5), "prfd <prfop>, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(prfd(int prfop, p3, x0, int imm6), "prfd <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(prfd(int prfop, p7, x5, x5), "prfd <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #3]");
-  COMPARE_PREFIX(prfd(int prfop, p1, x19, z18.VnS()), "prfd <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #3]");
-  COMPARE_PREFIX(prfh(int prfop, p6, z0.VnS(), int imm5), "prfh <prfop>, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(prfh(int prfop, p4, x17, int imm6), "prfh <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(prfh(int prfop, p3, x0, x0), "prfh <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #1]");
-  COMPARE_PREFIX(prfh(int prfop, p4, x20, z0.VnS()), "prfh <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]");
-  COMPARE_PREFIX(prfw(int prfop, p3, z23.VnS(), int imm5), "prfw <prfop>, <Pg>, [<Zn>.S{, #<imm>}]");
-  COMPARE_PREFIX(prfw(int prfop, p1, x4, int imm6), "prfw <prfop>, <Pg>, [<Xn|SP>{, #<imm>, MUL VL}]");
-  COMPARE_PREFIX(prfw(int prfop, p2, x22, x22), "prfw <prfop>, <Pg>, [<Xn|SP>, <Xm>, LSL #2]");
-  COMPARE_PREFIX(prfw(int prfop, p1, x2, z6.VnS()), "prfw <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]");
 #endif
 
   // 32-bit gather load in scalar-plus-vector vform with unscaled offset.
@@ -3602,19 +3586,108 @@ TEST(sve_mem_64bit_gather) {
   COMPARE_PREFIX(ldff1w(z20.VnD(), p4.Zeroing(), x30, z7.VnD()), "ldff1w { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]");
   COMPARE_PREFIX(ldff1w(z10.VnD(), p2.Zeroing(), x23, z25.VnD()), "ldff1w { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #2]");
   COMPARE_PREFIX(ldff1w(z4.VnD(), p1.Zeroing(), x8, z1.VnD()), "ldff1w { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]");
-  COMPARE_PREFIX(prfb(int prfop, p7, z1.VnD(), int imm5), "prfb <prfop>, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(prfb(int prfop, p1, x15, z11.VnD()), "prfb <prfop>, <Pg>, [<Xn|SP>, <Zm>.D]");
-  COMPARE_PREFIX(prfb(int prfop, p5, x12, z18.VnD()), "prfb <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]");
-  COMPARE_PREFIX(prfd(int prfop, p1, z3.VnD(), int imm5), "prfd <prfop>, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(prfd(int prfop, p6, x4, z12.VnD()), "prfd <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]");
-  COMPARE_PREFIX(prfd(int prfop, p6, x27, z29.VnD()), "prfd <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #3]");
-  COMPARE_PREFIX(prfh(int prfop, p6, z8.VnD(), int imm5), "prfh <prfop>, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(prfh(int prfop, p5, x11, z26.VnD()), "prfh <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]");
-  COMPARE_PREFIX(prfh(int prfop, p2, x30, z7.VnD()), "prfh <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #1]");
-  COMPARE_PREFIX(prfw(int prfop, p7, z14.VnD(), int imm5), "prfw <prfop>, <Pg>, [<Zn>.D{, #<imm>}]");
-  COMPARE_PREFIX(prfw(int prfop, p6, x24, z4.VnD()), "prfw <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]");
-  COMPARE_PREFIX(prfw(int prfop, p1, x23, z0.VnD()), "prfw <prfop>, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #2]");
 #endif
+
+  CLEANUP();
+}
+
+TEST(sve_mem_prefetch) {
+  SETUP();
+
+  // Test every encodable prefetch operation.
+  const char* expected[] = {" pldl1keep",
+                            " pldl1strm",
+                            " pldl2keep",
+                            " pldl2strm",
+                            " pldl3keep",
+                            " pldl3strm",
+                            " pstl1keep",
+                            " pstl1strm",
+                            " pstl2keep",
+                            " pstl2strm",
+                            " pstl3keep",
+                            " pstl3strm"};
+
+  const PrefetchOperation kSVEPrfOperations[] = {PLDL1KEEP,
+                                                 PLDL1STRM,
+                                                 PLDL2KEEP,
+                                                 PLDL2STRM,
+                                                 PLDL3KEEP,
+                                                 PLDL3STRM,
+                                                 PSTL1KEEP,
+                                                 PSTL1STRM,
+                                                 PSTL2KEEP,
+                                                 PSTL2STRM,
+                                                 PSTL3KEEP,
+                                                 PSTL3STRM};
+
+  VIXL_STATIC_ASSERT(ArrayLength(expected) == ArrayLength(kSVEPrfOperations));
+
+
+#define VIXL_DISAM_PREFETCH_TEST(INSN, NAME)                                   \
+  do {                                                                         \
+    for (size_t i = 0; i < ArrayLength(kSVEPrfOperations); i++) {              \
+      PrefetchOperation op = kSVEPrfOperations[i];                             \
+      std::string str(NAME);                                                   \
+      str.append(expected[i]);                                                 \
+      /* Vector plus immediate */                                              \
+      COMPARE_PREFIX(INSN(op, p6, SVEMemOperand(z30.VnS(), 31)), str.c_str()); \
+      COMPARE_PREFIX(INSN(op, p5, SVEMemOperand(z29.VnD(), 17)), str.c_str()); \
+      /* Scalar plus immediate */                                              \
+      COMPARE_PREFIX(INSN(op, p4, SVEMemOperand(x11, -32, SVE_MUL_VL)),        \
+                     str.c_str());                                             \
+      COMPARE_PREFIX(INSN(op, p4, SVEMemOperand(sp, 31, SVE_MUL_VL)),          \
+                     str.c_str());                                             \
+      /* Scalar plus vector */                                                 \
+      COMPARE_PREFIX(INSN(op, p3, SVEMemOperand(x24, z22.VnS(), UXTW)),        \
+                     str.c_str());                                             \
+      COMPARE_PREFIX(INSN(op, p2, SVEMemOperand(x24, z22.VnD(), SXTW)),        \
+                     str.c_str());                                             \
+      COMPARE_PREFIX(INSN(op, p1, SVEMemOperand(x4, z2.VnD())), str.c_str());  \
+      /* Scalar plus scalar */                                                 \
+      COMPARE_PREFIX(INSN(op, p1, SVEMemOperand(x8, x29)), str.c_str());       \
+      COMPARE_PREFIX(INSN(op, p0, SVEMemOperand(sp, x6)), str.c_str());        \
+    }                                                                          \
+  } while (0)
+
+  VIXL_DISAM_PREFETCH_TEST(prfb, "prfb");
+  VIXL_DISAM_PREFETCH_TEST(prfh, "prfh");
+  VIXL_DISAM_PREFETCH_TEST(prfw, "prfw");
+  VIXL_DISAM_PREFETCH_TEST(prfd, "prfd");
+#undef VIXL_DISAM_PREFETCH_TEST
+
+  COMPARE_PREFIX(prfb(PLDL1KEEP, p5, SVEMemOperand(z30.VnS(), 0)),
+                 "prfb pldl1keep, p5, [z30.s]");
+  COMPARE_PREFIX(prfb(PLDL1STRM, p5, SVEMemOperand(x28, -11, SVE_MUL_VL)),
+                 "prfb pldl1strm, p5, [x28, #-11, mul vl]");
+  COMPARE_PREFIX(prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x31)),
+                 "prfb pldl2keep, p6, [x30, xzr]");
+  COMPARE_PREFIX(prfb(PLDL2STRM, p6, SVEMemOperand(x7, z12.VnS(), UXTW)),
+                 "prfb pldl2strm, p6, [x7, z12.s, uxtw]");
+  COMPARE_PREFIX(prfd(PLDL3KEEP, p5, SVEMemOperand(z11.VnD(), 9)),
+                 "prfd pldl3keep, p5, [z11.d, #9]");
+  COMPARE_PREFIX(prfd(PLDL3STRM, p3, SVEMemOperand(x0, 0, SVE_MUL_VL)),
+                 "prfd pldl3strm, p3, [x0]");
+  COMPARE_PREFIX(prfd(PSTL1KEEP, p7, SVEMemOperand(x5, x5)),
+                 "prfd pstl1keep, p7, [x5, x5, lsl #3]");
+  COMPARE_PREFIX(prfd(PSTL1STRM, p1, SVEMemOperand(x19, z18.VnS(), SXTW)),
+                 "prfd pstl1strm, p1, [x19, z18.s, sxtw #3]");
+  COMPARE_PREFIX(prfh(PSTL2KEEP, p6, SVEMemOperand(z0.VnS(), 31)),
+                 "prfh pstl2keep, p6, [z0.s, #31]");
+  COMPARE_PREFIX(prfh(PSTL2STRM, p4, SVEMemOperand(x17, -3, SVE_MUL_VL)),
+                 "prfh pstl2strm, p4, [x17, #-3, mul vl]");
+  COMPARE_PREFIX(prfh(PSTL3KEEP, p3, SVEMemOperand(x0, x0)),
+                 "prfh pstl3keep, p3, [x0, x0, lsl #1]");
+  COMPARE_PREFIX(prfh(PSTL3STRM, p4, SVEMemOperand(x20, z0.VnD())),
+                 "prfh pstl3strm, p4, [x20, z0.d, lsl #1]");
+  COMPARE_PREFIX(prfw(PLDL1KEEP, p3, SVEMemOperand(z23.VnD(), 5)),
+                 "prfw pldl1keep, p3, [z23.d, #5]");
+  COMPARE_PREFIX(prfw(PLDL1STRM, p1, SVEMemOperand(x4, 31, SVE_MUL_VL)),
+                 "prfw pldl1strm, p1, [x4, #31, mul vl]");
+  COMPARE_PREFIX(prfw(PLDL2KEEP, p2, SVEMemOperand(x22, x22)),
+                 "prfw pldl2keep, p2, [x22, x22, lsl #2]");
+  COMPARE_PREFIX(prfw(PLDL2STRM, p1, SVEMemOperand(x2, z6.VnS(), SXTW)),
+                 "prfw pldl2strm, p1, [x2, z6.s, sxtw #2]");
 
   CLEANUP();
 }

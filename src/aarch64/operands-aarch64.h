@@ -662,9 +662,10 @@ class SVEMemOperand {
     return NO_SVE_OFFSET_MODIFIER;
   }
 
-  SVEOffsetModifier GetSVEOffsetModifierFor(Extend extend) {
+  SVEOffsetModifier GetSVEOffsetModifierFor(Extend extend = NO_EXTEND) {
     if (extend == UXTW) return SVE_UXTW;
     if (extend == SXTW) return SVE_SXTW;
+    if (extend == NO_EXTEND) return NO_SVE_OFFSET_MODIFIER;
     // SVE does not accept any other extend mode.
     VIXL_UNIMPLEMENTED();
     return NO_SVE_OFFSET_MODIFIER;
