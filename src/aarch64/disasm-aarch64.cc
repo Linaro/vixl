@@ -8698,21 +8698,23 @@ void Disassembler::VisitSVEFPComplexMulAddIndex(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPComplexMulAddIndex)";
 
+  const char *fcmla_constants[] = {"0", "90", "180", "270"};
+  const char *suffix = fcmla_constants[instr->ExtractBits(11, 10)];
+
   switch (instr->Mask(SVEFPComplexMulAddIndexMask)) {
-    // FCMLA <Zda>.H, <Zn>.H, <Zm>.H[<imm>], <const>
     case FCMLA_z_zzzi_h:
       mnemonic = "fcmla";
-      form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>], <const>";
+      form = "'Zd.h, 'Zn.h, z'u1816.h['u2019], #";
       break;
-    // FCMLA <Zda>.S, <Zn>.S, <Zm>.S[<imm>], <const>
     case FCMLA_z_zzzi_s:
       mnemonic = "fcmla";
-      form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>], <const>";
+      form = "'Zd.s, 'Zn.s, z'u1916.s['u2020], #";
       break;
     default:
+      suffix = NULL;
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEFPFastReduction(const Instruction *instr) {

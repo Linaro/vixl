@@ -3267,6 +3267,10 @@ class Simulator : public DecoderVisitor {
                              LogicVRegister dst,
                              const LogicVRegister& src,
                              int src_index);
+  LogicVRegister dup_elements_to_segments(VectorFormat vform,
+                                          LogicVRegister dst,
+                                          const LogicVRegister& src,
+                                          int src_index);
   LogicVRegister dup_immediate(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm);

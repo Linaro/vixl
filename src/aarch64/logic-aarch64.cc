@@ -2800,8 +2800,11 @@ LogicVRegister Simulator::fcmla(VectorFormat vform,
         return dst;  // prevents "element(n) may be unintialized" errors
     }
     dst.ClearForWrite(vform);
-    dst.SetFloat<T>(e * 2, FPMulAdd(acc.Float<T>(e * 2), element2, element1));
-    dst.SetFloat<T>(e * 2 + 1,
+    dst.SetFloat<T>(vform,
+                    e * 2,
+                    FPMulAdd(acc.Float<T>(e * 2), element2, element1));
+    dst.SetFloat<T>(vform,
+                    e * 2 + 1,
                     FPMulAdd(acc.Float<T>(e * 2 + 1), element4, element3));
   }
   return dst;
@@ -2867,6 +2870,26 @@ LogicVRegister Simulator::dup_element(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::dup_elements_to_segments(VectorFormat vform,
+                                                   LogicVRegister dst,
+                                                   const LogicVRegister& src,
+                                                   int src_index) {
+  // The only tested formats.
+  VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
+  VIXL_ASSERT(((vform == kFormatVnS) && (src_index <= 3)) ||
+              ((vform == kFormatVnD) && (src_index <= 1)));
+  VIXL_ASSERT(src_index >= 0);
+
+  // A segment is a 128-bit portion of a vector.
+  int lanes_per_segment = (vform == kFormatVnD) ? 2 : 4;
+  for (int j = 0; j < LaneCountFromFormat(vform); j += lanes_per_segment) {
+    uint64_t value = src.Uint(vform, j + src_index);
+    for (int i = 0; i < lanes_per_segment; i++) {
+      dst.SetUint(vform, j + i, value);
+    }
+  }
+  return dst;
+}
 
 LogicVRegister Simulator::dup_immediate(VectorFormat vform,
                                         LogicVRegister dst,

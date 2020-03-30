@@ -1259,17 +1259,34 @@ void Assembler::fcmla(const ZRegister& zda,
 
 // SVEFPComplexMulAddIndex.
 
-// This prototype maps to 2 instruction encodings:
-//  FCMLA_z_zzzi_h
-//  FCMLA_z_zzzi_s
-void Assembler::fcmla(const ZRegister& zda, const ZRegister& zn) {
-  // FCMLA <Zda>.H, <Zn>.H, <Zm>.H[<imm>], <const>
-  //  0110 0100 101. .... 0001 .... .... ....
-  //  size<23:22> = 10 | opc<20:16> | rot<11:10> | Zn<9:5> | Zda<4:0>
-
+void Assembler::fcmla(const ZRegister& zda,
+                      const ZRegister& zn,
+                      const ZRegister& zm,
+                      int index,
+                      int rot) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
+  VIXL_ASSERT(index >= 0);
 
-  Emit(FCMLA_z_zzzi_h | Rd(zda) | Rn(zn));
+  int lane_size = zda.GetLaneSizeInBytes();
+
+  Instr zm_and_idx = 0;
+  Instr op = FCMLA_z_zzzi_h;
+  if (lane_size == kHRegSizeInBytes) {
+    // Zm<18:16> | i2<20:19>
+    VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 3));
+    zm_and_idx = (index << 19) | Rx<18, 16>(zm);
+  } else {
+    // Zm<19:16> | i1<20>
+    VIXL_ASSERT(lane_size == kSRegSizeInBytes);
+    VIXL_ASSERT((zm.GetCode() <= 15) && (index <= 1));
+    zm_and_idx = (index << 20) | Rx<19, 16>(zm);
+    op = FCMLA_z_zzzi_s;
+  }
+
+  Instr rotate_bit = (rot / 90) << 10;
+  Emit(op | zm_and_idx | rotate_bit | Rd(zda) | Rn(zn));
 }
 
 // SVEFPFastReduction.

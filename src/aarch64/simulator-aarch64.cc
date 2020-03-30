@@ -8131,17 +8131,35 @@ void Simulator::VisitSVEFPComplexMulAdd(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
-  USE(instr);
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  int rot = instr->ExtractBits(11, 10);
+  unsigned zm_code = instr->GetRm();
+  int index = -1;
+  VectorFormat vform, vform_dup;
+
   switch (instr->Mask(SVEFPComplexMulAddIndexMask)) {
     case FCMLA_z_zzzi_h:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnH;
+      vform_dup = kFormatVnS;
+      index = zm_code >> 3;
+      zm_code &= 0x7;
       break;
     case FCMLA_z_zzzi_s:
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnS;
+      vform_dup = kFormatVnD;
+      index = zm_code >> 4;
+      zm_code &= 0xf;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
+  }
+
+  if (index >= 0) {
+    SimVRegister temp;
+    dup_elements_to_segments(vform_dup, temp, ReadVRegister(zm_code), index);
+    fcmla(vform, zda, zn, temp, zda, rot);
   }
 }
 

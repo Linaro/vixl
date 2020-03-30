@@ -12564,6 +12564,84 @@ TEST_SVE(sve_fcadd) {
   }
 }
 
+TEST_SVE(sve_fcmla_index) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Ptrue(p0.VnB());
+
+  __ Fdup(z0.VnH(), 10.0);
+  __ Fdup(z2.VnH(), 2.0);
+  __ Zip1(z0.VnH(), z0.VnH(), z2.VnH());
+
+  // Duplicate complex numbers across z2 segments. First segment has 1i+0,
+  // second has 3i+2, etc.
+  __ Index(z1.VnH(), 0, 1);
+  __ Scvtf(z1.VnH(), p0.Merging(), z1.VnH());
+  __ Zip1(z2.VnS(), z1.VnS(), z1.VnS());
+  __ Zip1(z2.VnS(), z2.VnS(), z2.VnS());
+
+  // Derive a vector from z2 where only the third element in each segment
+  // contains a complex number, with other elements zero.
+  __ Index(z3.VnS(), 0, 1);
+  __ And(z3.VnS(), z3.VnS(), 3);
+  __ Cmpeq(p2.VnS(), p0.Zeroing(), z3.VnS(), 2);
+  __ Dup(z3.VnB(), 0);
+  __ Sel(z3.VnS(), p2, z2.VnS(), z3.VnS());
+
+  // Use indexed complex multiply on this vector, indexing the third element.
+  __ Dup(z4.VnH(), 0);
+  __ Fcmla(z4.VnH(), z0.VnH(), z3.VnH(), 2, 0);
+  __ Fcmla(z4.VnH(), z0.VnH(), z3.VnH(), 2, 90);
+
+  // Rotate the indexed complex number and repeat, negated, and with a different
+  // index.
+  __ Ext(z3.VnH(), z3.VnH(), z3.VnH(), 4);
+  __ Dup(z5.VnH(), 0);
+  __ Fcmla(z5.VnH(), z0.VnH(), z3.VnH(), 1, 180);
+  __ Fcmla(z5.VnH(), z0.VnH(), z3.VnH(), 1, 270);
+  __ Fneg(z5.VnH(), p0.Merging(), z5.VnH());
+
+  // Create a reference result from a vector complex multiply.
+  __ Dup(z6.VnH(), 0);
+  __ Fcmla(z6.VnH(), p0.Merging(), z0.VnH(), z2.VnH(), 0);
+  __ Fcmla(z6.VnH(), p0.Merging(), z0.VnH(), z2.VnH(), 90);
+
+  // Repeated, but for wider elements.
+  __ Fdup(z0.VnS(), 42.0);
+  __ Fdup(z2.VnS(), 24.0);
+  __ Zip1(z0.VnS(), z0.VnS(), z2.VnS());
+  __ Index(z1.VnS(), -42, 13);
+  __ Scvtf(z1.VnS(), p0.Merging(), z1.VnS());
+  __ Zip1(z2.VnD(), z1.VnD(), z1.VnD());
+  __ Zip1(z2.VnD(), z2.VnD(), z2.VnD());
+  __ Index(z3.VnD(), 0, 1);
+  __ And(z3.VnD(), z3.VnD(), 1);
+  __ Cmpeq(p2.VnD(), p0.Zeroing(), z3.VnD(), 1);
+  __ Dup(z3.VnB(), 0);
+  __ Sel(z3.VnD(), p2, z2.VnD(), z3.VnD());
+  __ Dup(z7.VnS(), 0);
+  __ Fcmla(z7.VnS(), z0.VnS(), z3.VnS(), 1, 0);
+  __ Fcmla(z7.VnS(), z0.VnS(), z3.VnS(), 1, 90);
+  __ Ext(z3.VnB(), z3.VnB(), z3.VnB(), 8);
+  __ Dup(z8.VnS(), 0);
+  __ Fcmla(z8.VnS(), z0.VnS(), z3.VnS(), 0, 180);
+  __ Fcmla(z8.VnS(), z0.VnS(), z3.VnS(), 0, 270);
+  __ Fneg(z8.VnS(), p0.Merging(), z8.VnS());
+  __ Dup(z9.VnS(), 0);
+  __ Fcmla(z9.VnS(), p0.Merging(), z0.VnS(), z2.VnS(), 0);
+  __ Fcmla(z9.VnS(), p0.Merging(), z0.VnS(), z2.VnS(), 90);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z6.VnH(), z4.VnH());
+    ASSERT_EQUAL_SVE(z6.VnH(), z5.VnH());
+    ASSERT_EQUAL_SVE(z9.VnS(), z7.VnS());
+    ASSERT_EQUAL_SVE(z9.VnS(), z8.VnS());
+  }
+}
+
 TEST_SVE(sve_fcmla) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

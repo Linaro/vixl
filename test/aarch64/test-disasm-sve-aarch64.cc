@@ -1331,10 +1331,22 @@ TEST(sve_fp_complex_mul_add) {
 TEST(sve_fp_complex_mul_add_index) {
   SETUP();
 
-#if 0
-  COMPARE_PREFIX(fcmla(z30.VnH(), z20.VnH()), "fcmla <Zda>.H, <Zn>.H, <Zm>.H[<imm>], <const>");
-  COMPARE_PREFIX(fcmla(z19.VnS(), z20.VnS()), "fcmla <Zda>.S, <Zn>.S, <Zm>.S[<imm>], <const>");
-#endif
+  COMPARE_PREFIX(fcmla(z30.VnH(), z20.VnH(), z3.VnH(), 0, 0),
+                 "fcmla z30.h, z20.h, z3.h[0], #0");
+  COMPARE_PREFIX(fcmla(z30.VnH(), z20.VnH(), z3.VnH(), 1, 0),
+                 "fcmla z30.h, z20.h, z3.h[1], #0");
+  COMPARE_PREFIX(fcmla(z30.VnH(), z20.VnH(), z3.VnH(), 2, 90),
+                 "fcmla z30.h, z20.h, z3.h[2], #90");
+  COMPARE_PREFIX(fcmla(z30.VnH(), z20.VnH(), z3.VnH(), 0, 270),
+                 "fcmla z30.h, z20.h, z3.h[0], #270");
+  COMPARE_PREFIX(fcmla(z10.VnS(), z20.VnS(), z1.VnS(), 0, 0),
+                 "fcmla z10.s, z20.s, z1.s[0], #0");
+  COMPARE_PREFIX(fcmla(z10.VnS(), z20.VnS(), z1.VnS(), 1, 0),
+                 "fcmla z10.s, z20.s, z1.s[1], #0");
+  COMPARE_PREFIX(fcmla(z10.VnS(), z20.VnS(), z1.VnS(), 1, 90),
+                 "fcmla z10.s, z20.s, z1.s[1], #90");
+  COMPARE_PREFIX(fcmla(z10.VnS(), z20.VnS(), z1.VnS(), 0, 270),
+                 "fcmla z10.s, z20.s, z1.s[0], #270");
 
   CLEANUP();
 }
