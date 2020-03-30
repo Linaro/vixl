@@ -4209,10 +4209,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fcmla(const ZRegister& zda,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
+             const ZRegister& zm,
+             int rot) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fcmla(zda, pg, zn, zm);
+    MovprfxHelperScope guard(this, zda, pg, zda);
+    fcmla(zda, pg, zn, zm, rot);
   }
   void Fcmla(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);

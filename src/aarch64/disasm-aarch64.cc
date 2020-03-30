@@ -8678,17 +8678,20 @@ void Disassembler::VisitSVEFPComplexAddition(const Instruction *instr) {
 void Disassembler::VisitSVEFPComplexMulAdd(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPComplexMulAdd)";
+  const char *suffix = NULL;
+
+  const char *fcmla_constants[] = {"0", "90", "180", "270"};
 
   switch (instr->Mask(SVEFPComplexMulAddMask)) {
-    // FCMLA <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>, <const>
     case FCMLA_z_p_zzz:
       mnemonic = "fcmla";
-      form = "'Zd.'t, 'Pgl/m, 'Zn.'t, 'Zm.'t, <const>";
+      form = "'Zd.'t, 'Pgl/m, 'Zn.'t, 'Zm.'t, #";
+      suffix = fcmla_constants[instr->ExtractBits(14, 13)];
       break;
     default:
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEFPComplexMulAddIndex(const Instruction *instr) {
@@ -9861,14 +9864,18 @@ int64_t Disassembler::CodeRelativeAddress(const void *addr) {
 
 void Disassembler::Format(const Instruction *instr,
                           const char *mnemonic,
-                          const char *format) {
+                          const char *format0,
+                          const char *format1) {
   VIXL_ASSERT(mnemonic != NULL);
   ResetOutput();
   Substitute(instr, mnemonic);
-  if (format != NULL) {
+  if (format0 != NULL) {
     VIXL_ASSERT(buffer_pos_ < buffer_size_);
     buffer_[buffer_pos_++] = ' ';
-    Substitute(instr, format);
+    Substitute(instr, format0);
+    if (format1 != NULL) {
+      Substitute(instr, format1);
+    }
   }
   VIXL_ASSERT(buffer_pos_ < buffer_size_);
   buffer_[buffer_pos_] = 0;

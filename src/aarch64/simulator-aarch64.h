@@ -3225,6 +3225,7 @@ class Simulator : public DecoderVisitor {
                        LogicVRegister dst,
                        const LogicVRegister& src1,
                        const LogicVRegister& src2,
+                       const LogicVRegister& acc,
                        int index,
                        int rot);
   LogicVRegister fcmla(VectorFormat vform,
@@ -3233,16 +3234,11 @@ class Simulator : public DecoderVisitor {
                        const LogicVRegister& src2,
                        int index,
                        int rot);
-  template <typename T>
   LogicVRegister fcmla(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src1,
                        const LogicVRegister& src2,
-                       int rot);
-  LogicVRegister fcmla(VectorFormat vform,
-                       LogicVRegister dst,
-                       const LogicVRegister& src1,
-                       const LogicVRegister& src2,
+                       const LogicVRegister& acc,
                        int rot);
   template <typename T>
   LogicVRegister fadda(VectorFormat vform,

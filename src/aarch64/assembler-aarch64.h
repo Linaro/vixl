@@ -4153,7 +4153,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   void fcmla(const ZRegister& zda,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm);
+             const ZRegister& zm,
+             int rot);
 
   // Floating-point complex multiply-add by indexed values with rotate.
   void fcmla(const ZRegister& zda, const ZRegister& zn);

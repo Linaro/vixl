@@ -1241,7 +1241,8 @@ void Assembler::fcadd(const ZRegister& zd,
 void Assembler::fcmla(const ZRegister& zda,
                       const PRegisterM& pg,
                       const ZRegister& zn,
-                      const ZRegister& zm) {
+                      const ZRegister& zm,
+                      int rot) {
   // FCMLA <Zda>.<T>, <Pg>/M, <Zn>.<T>, <Zm>.<T>, <const>
   //  0110 0100 ..0. .... 0... .... .... ....
   //  size<23:22> | Zm<20:16> | rot<14:13> | Pg<12:10> | Zn<9:5> | Zda<4:0>
@@ -1249,9 +1250,11 @@ void Assembler::fcmla(const ZRegister& zda,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
 
-  Emit(FCMLA_z_p_zzz | SVESize(zda) | Rd(zda) | Rx<12, 10>(pg) | Rn(zn) |
-       Rm(zm));
+  Instr rotate_bit = (rot / 90) << 13;
+  Emit(FCMLA_z_p_zzz | rotate_bit | SVESize(zda) | Rd(zda) | PgLow8(pg) |
+       Rn(zn) | Rm(zm));
 }
 
 // SVEFPComplexMulAddIndex.

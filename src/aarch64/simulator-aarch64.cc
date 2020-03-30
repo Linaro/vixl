@@ -5400,7 +5400,7 @@ void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
   VectorFormat vf = nfd.GetVectorFormat();
   if (instr->Mask(NEON3SameExtraFCMLAMask) == NEON_FCMLA) {
     rot = instr->GetImmRotFcmlaVec();
-    fcmla(vf, rd, rn, rm, rot);
+    fcmla(vf, rd, rn, rm, rd, rot);
   } else if (instr->Mask(NEON3SameExtraFCADDMask) == NEON_FCADD) {
     rot = instr->GetImmRotFcadd();
     fcadd(vf, rd, rn, rm, rot);
@@ -8105,15 +8105,29 @@ void Simulator::VisitSVEFPComplexAddition(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPComplexMulAdd(const Instruction* instr) {
-  USE(instr);
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int rot = instr->ExtractBits(14, 13);
+
+  SimVRegister result;
+
   switch (instr->Mask(SVEFPComplexMulAddMask)) {
     case FCMLA_z_p_zzz:
-      VIXL_UNIMPLEMENTED();
+      fcmla(vform, result, zn, zm, zda, rot);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  mov_merging(vform, zda, pg, result);
 }
 
 void Simulator::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {

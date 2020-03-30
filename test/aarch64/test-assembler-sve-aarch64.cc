@@ -12564,6 +12564,110 @@ TEST_SVE(sve_fcadd) {
   }
 }
 
+TEST_SVE(sve_fcmla) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Ptrue(p0.VnB());
+  __ Pfalse(p1.VnB());
+  __ Zip1(p2.VnH(), p0.VnH(), p1.VnH());  // Real elements.
+  __ Zip1(p3.VnH(), p1.VnH(), p0.VnH());  // Imaginary elements.
+
+  __ Fdup(z0.VnH(), 10.0);
+  __ Fdup(z2.VnH(), 2.0);
+
+  // Create pairs of complex numbers, Ai + A. A is chosen to be non-zero, as
+  // the later fneg will result in a failed comparison otherwise.
+  __ Index(z1.VnH(), -4, 3);
+  __ Zip1(z1.VnH(), z1.VnH(), z1.VnH());
+  __ Zip1(z1.VnH(), z1.VnH(), z1.VnH());
+  __ Scvtf(z1.VnH(), p0.Merging(), z1.VnH());
+
+  __ Sel(z3.VnH(), p2, z0.VnH(), z1.VnH());  // Ai + 10
+  __ Sel(z4.VnH(), p2, z1.VnH(), z2.VnH());  // 2i + A
+
+  __ Zip1(p2.VnS(), p0.VnS(), p1.VnS());  // Even complex numbers.
+  __ Zip1(p3.VnS(), p1.VnS(), p0.VnS());  // Odd complex numbers.
+
+  // Calculate (Ai + 10) * (2i + A) = (20 + A^2)i + 8A, using predication to
+  // select only the complex numbers in odd-numbered element pairs. This leaves
+  // results in elements 2/3, 6/7, etc. with zero in elements 0/1, 4/5, etc.
+  //   ...      7      6   5   4      3      2   1   0     <-- element
+  //   ... | 20+A^2 | 8A | 0 | 0 | 20+A^2 | 8A | 0 | 0 |   <-- value
+  __ Dup(z5.VnH(), 0);
+  __ Fcmla(z5.VnH(), p3.Merging(), z4.VnH(), z3.VnH(), 0);
+  __ Fcmla(z5.VnH(), p3.Merging(), z4.VnH(), z3.VnH(), 90);
+
+  // Move the odd results to the even result positions.
+  //   ...   7   6      5      4   3   2      1      0     <-- element
+  //   ... | 0 | 0 | 20+A^2 | 8A | 0 | 0 | 20+A^2 | 8A |   <-- value
+  __ Ext(z5.VnB(), z5.VnB(), z5.VnB(), 4);
+
+  // Calculate -(Ai + 10) * (2i + A) = -(20 + A^2)i - 8A for the even complex
+  // numbers.
+  //   ...   7   6       5       4   3   2       1       0     <-- element
+  //   ... | 0 | 0 | -20-A^2 | -8A | 0 | 0 | -20-A^2 | -8A |   <-- value
+  __ Dup(z6.VnH(), 0);
+  __ Fcmla(z6.VnH(), p2.Merging(), z4.VnH(), z3.VnH(), 180);
+  __ Fcmla(z6.VnH(), p2.Merging(), z4.VnH(), z3.VnH(), 270);
+
+  // Negate the even results. The results in z6 should now match the results
+  // computed earlier in z5.
+  //   ...   7   6      5      4   3   2      1      0     <-- element
+  //   ... | 0 | 0 | 20+A^2 | 8A | 0 | 0 | 20+A^2 | 8A |   <-- value
+  __ Fneg(z6.VnH(), p2.Merging(), z6.VnH());
+
+
+  // Similarly, but for wider elements.
+  __ Zip1(p2.VnS(), p0.VnS(), p1.VnS());
+  __ Zip1(p3.VnS(), p1.VnS(), p0.VnS());
+  __ Index(z1.VnS(), -4, 3);
+  __ Zip1(z1.VnS(), z1.VnS(), z1.VnS());
+  __ Zip1(z1.VnS(), z1.VnS(), z1.VnS());
+  __ Scvtf(z1.VnS(), p0.Merging(), z1.VnS());
+  __ Fdup(z0.VnS(), 20.0);
+  __ Fdup(z2.VnS(), 21.0);
+  __ Sel(z3.VnS(), p2, z0.VnS(), z1.VnS());
+  __ Sel(z4.VnS(), p2, z1.VnS(), z2.VnS());
+  __ Punpklo(p2.VnH(), p2.VnB());
+  __ Punpklo(p3.VnH(), p3.VnB());
+  __ Dup(z7.VnS(), 0);
+  __ Fcmla(z7.VnS(), p3.Merging(), z4.VnS(), z3.VnS(), 0);
+  __ Fcmla(z7.VnS(), p3.Merging(), z4.VnS(), z3.VnS(), 90);
+  __ Ext(z7.VnB(), z7.VnB(), z7.VnB(), 8);
+  __ Dup(z8.VnS(), 0);
+  __ Fcmla(z8.VnS(), p2.Merging(), z4.VnS(), z3.VnS(), 180);
+  __ Fcmla(z8.VnS(), p2.Merging(), z4.VnS(), z3.VnS(), 270);
+  __ Fneg(z8.VnS(), p2.Merging(), z8.VnS());
+
+  // Double precision computed for even lanes only.
+  __ Zip1(p2.VnD(), p0.VnD(), p1.VnD());
+  __ Index(z1.VnD(), -4, 3);
+  __ Zip1(z1.VnD(), z1.VnD(), z1.VnD());
+  __ Zip1(z1.VnD(), z1.VnD(), z1.VnD());
+  __ Scvtf(z1.VnD(), p0.Merging(), z1.VnD());
+  __ Fdup(z0.VnD(), 20.0);
+  __ Fdup(z2.VnD(), 21.0);
+  __ Sel(z3.VnD(), p2, z0.VnD(), z1.VnD());
+  __ Sel(z4.VnD(), p2, z1.VnD(), z2.VnD());
+  __ Punpklo(p2.VnH(), p2.VnB());
+  __ Dup(z9.VnD(), 0);
+  __ Fcmla(z9.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 0);
+  __ Fcmla(z9.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 90);
+  __ Dup(z10.VnD(), 0);
+  __ Fcmla(z10.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 180);
+  __ Fcmla(z10.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 270);
+  __ Fneg(z10.VnD(), p2.Merging(), z10.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z5.VnH(), z6.VnH());
+    ASSERT_EQUAL_SVE(z7.VnS(), z8.VnS());
+    ASSERT_EQUAL_SVE(z9.VnD(), z10.VnD());
+  }
+}
+
 TEST_SVE(sve_fpmul_index) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

@@ -2748,12 +2748,12 @@ LogicVRegister Simulator::fcadd(VectorFormat vform,
   return dst;
 }
 
-
 template <typename T>
 LogicVRegister Simulator::fcmla(VectorFormat vform,
-                                LogicVRegister dst,          // d
-                                const LogicVRegister& src1,  // n
-                                const LogicVRegister& src2,  // m
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2,
+                                const LogicVRegister& acc,
                                 int index,
                                 int rot) {
   int elements = LaneCountFromFormat(vform);
@@ -2766,29 +2766,33 @@ LogicVRegister Simulator::fcmla(VectorFormat vform,
   // 4S --> (4/2 = 2) - 1 = 1) --> 2 x Complex Number (2x2 components: r+i)
 
   for (int e = 0; e <= (elements / 2) - 1; e++) {
+    // Index == -1 indicates a vector/vector rather than vector/indexed-element
+    // operation.
+    int f = (index < 0) ? e : index;
+
     switch (rot) {
       case 0:
-        element1 = src2.Float<T>(index * 2);
+        element1 = src2.Float<T>(f * 2);
         element2 = src1.Float<T>(e * 2);
-        element3 = src2.Float<T>(index * 2 + 1);
+        element3 = src2.Float<T>(f * 2 + 1);
         element4 = src1.Float<T>(e * 2);
         break;
       case 90:
-        element1 = FPNeg(src2.Float<T>(index * 2 + 1));
+        element1 = FPNeg(src2.Float<T>(f * 2 + 1));
         element2 = src1.Float<T>(e * 2 + 1);
-        element3 = src2.Float<T>(index * 2);
+        element3 = src2.Float<T>(f * 2);
         element4 = src1.Float<T>(e * 2 + 1);
         break;
       case 180:
-        element1 = FPNeg(src2.Float<T>(index * 2));
+        element1 = FPNeg(src2.Float<T>(f * 2));
         element2 = src1.Float<T>(e * 2);
-        element3 = FPNeg(src2.Float<T>(index * 2 + 1));
+        element3 = FPNeg(src2.Float<T>(f * 2 + 1));
         element4 = src1.Float<T>(e * 2);
         break;
       case 270:
-        element1 = src2.Float<T>(index * 2 + 1);
+        element1 = src2.Float<T>(f * 2 + 1);
         element2 = src1.Float<T>(e * 2 + 1);
-        element3 = FPNeg(src2.Float<T>(index * 2));
+        element3 = FPNeg(src2.Float<T>(f * 2));
         element4 = src1.Float<T>(e * 2 + 1);
         break;
       default:
@@ -2796,79 +2800,25 @@ LogicVRegister Simulator::fcmla(VectorFormat vform,
         return dst;  // prevents "element(n) may be unintialized" errors
     }
     dst.ClearForWrite(vform);
-    dst.SetFloat<T>(e * 2, FPMulAdd(dst.Float<T>(e * 2), element2, element1));
+    dst.SetFloat<T>(e * 2, FPMulAdd(acc.Float<T>(e * 2), element2, element1));
     dst.SetFloat<T>(e * 2 + 1,
-                    FPMulAdd(dst.Float<T>(e * 2 + 1), element4, element3));
+                    FPMulAdd(acc.Float<T>(e * 2 + 1), element4, element3));
   }
   return dst;
 }
 
-
-template <typename T>
 LogicVRegister Simulator::fcmla(VectorFormat vform,
-                                LogicVRegister dst,          // d
-                                const LogicVRegister& src1,  // n
-                                const LogicVRegister& src2,  // m
-                                int rot) {
-  int elements = LaneCountFromFormat(vform);
-
-  T element1, element2, element3, element4;
-  rot *= 90;
-
-  // Loop example:
-  // 2S --> (2/2 = 1 - 1 = 0) --> 1 x Complex Number (2x components: r+i)
-  // 4S --> (4/2 = 2) - 1 = 1) --> 2 x Complex Number (2x2 components: r+i)
-
-  for (int e = 0; e <= (elements / 2) - 1; e++) {
-    switch (rot) {
-      case 0:
-        element1 = src2.Float<T>(e * 2);
-        element2 = src1.Float<T>(e * 2);
-        element3 = src2.Float<T>(e * 2 + 1);
-        element4 = src1.Float<T>(e * 2);
-        break;
-      case 90:
-        element1 = FPNeg(src2.Float<T>(e * 2 + 1));
-        element2 = src1.Float<T>(e * 2 + 1);
-        element3 = src2.Float<T>(e * 2);
-        element4 = src1.Float<T>(e * 2 + 1);
-        break;
-      case 180:
-        element1 = FPNeg(src2.Float<T>(e * 2));
-        element2 = src1.Float<T>(e * 2);
-        element3 = FPNeg(src2.Float<T>(e * 2 + 1));
-        element4 = src1.Float<T>(e * 2);
-        break;
-      case 270:
-        element1 = src2.Float<T>(e * 2 + 1);
-        element2 = src1.Float<T>(e * 2 + 1);
-        element3 = FPNeg(src2.Float<T>(e * 2));
-        element4 = src1.Float<T>(e * 2 + 1);
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return dst;  // prevents "element(n) may be unintialized" errors
-    }
-    dst.ClearForWrite(vform);
-    dst.SetFloat<T>(e * 2, FPMulAdd(dst.Float<T>(e * 2), element2, element1));
-    dst.SetFloat<T>(e * 2 + 1,
-                    FPMulAdd(dst.Float<T>(e * 2 + 1), element4, element3));
-  }
-  return dst;
-}
-
-
-LogicVRegister Simulator::fcmla(VectorFormat vform,
-                                LogicVRegister dst,          // d
-                                const LogicVRegister& src1,  // n
-                                const LogicVRegister& src2,  // m
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2,
+                                const LogicVRegister& acc,
                                 int rot) {
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    VIXL_UNIMPLEMENTED();
+    fcmla<SimFloat16>(vform, dst, src1, src2, acc, -1, rot);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-    fcmla<float>(vform, dst, src1, src2, rot);
+    fcmla<float>(vform, dst, src1, src2, acc, -1, rot);
   } else {
-    fcmla<double>(vform, dst, src1, src2, rot);
+    fcmla<double>(vform, dst, src1, src2, acc, -1, rot);
   }
   return dst;
 }
@@ -2883,9 +2833,9 @@ LogicVRegister Simulator::fcmla(VectorFormat vform,
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     VIXL_UNIMPLEMENTED();
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
-    fcmla<float>(vform, dst, src1, src2, index, rot);
+    fcmla<float>(vform, dst, src1, src2, dst, index, rot);
   } else {
-    fcmla<double>(vform, dst, src1, src2, index, rot);
+    fcmla<double>(vform, dst, src1, src2, dst, index, rot);
   }
   return dst;
 }
