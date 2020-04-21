@@ -30,109 +30,17 @@
 #include "aarch64/decoder-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
-class SwitchAddSubRegisterSources : public vixl::aarch64::DecoderVisitor {
+class SwitchAddSubRegisterSources
+    : public vixl::aarch64::DecoderVisitorWithDefaults {
  public:
   SwitchAddSubRegisterSources()
-      : vixl::aarch64::DecoderVisitor(kNonConstVisitor) {}
+      : vixl::aarch64::DecoderVisitorWithDefaults(kNonConstVisitor) {}
 
   // Our visitor switches the register sources for some add and sub instructions
-  // (not all add and sub instructions). Visitors are listed by the macro
-  // `VISITOR_LIST` in aarch64/decoder-aarch64.h.
+  // (not all add and sub instructions).
 
   virtual void VisitAddSubShifted(const vixl::aarch64::Instruction* instr)
       VIXL_OVERRIDE;
-
-// Define the remaining visitors to do nothing.
-#define UNUSED_VISITOR_LIST(V)          \
-  V(PCRelAddressing)                    \
-  V(AddSubImmediate)                    \
-  V(LogicalImmediate)                   \
-  V(MoveWideImmediate)                  \
-  V(Bitfield)                           \
-  V(Extract)                            \
-  V(UnconditionalBranch)                \
-  V(UnconditionalBranchToRegister)      \
-  V(CompareBranch)                      \
-  V(TestBranch)                         \
-  V(ConditionalBranch)                  \
-  V(System)                             \
-  V(Exception)                          \
-  V(RotateRightIntoFlags)               \
-  V(EvaluateIntoFlags)                  \
-  V(LoadStorePAC)                       \
-  V(LoadStorePairPostIndex)             \
-  V(LoadStorePairOffset)                \
-  V(LoadStorePairPreIndex)              \
-  V(LoadStorePairNonTemporal)           \
-  V(LoadStoreRCpcUnscaledOffset)        \
-  V(LoadLiteral)                        \
-  V(LoadStoreUnscaledOffset)            \
-  V(LoadStorePostIndex)                 \
-  V(LoadStorePreIndex)                  \
-  V(LoadStoreRegisterOffset)            \
-  V(LoadStoreUnsignedOffset)            \
-  V(LoadStoreExclusive)                 \
-  V(AtomicMemory)                       \
-  V(LogicalShifted)                     \
-  V(AddSubExtended)                     \
-  V(AddSubWithCarry)                    \
-  V(ConditionalCompareRegister)         \
-  V(ConditionalCompareImmediate)        \
-  V(ConditionalSelect)                  \
-  V(DataProcessing1Source)              \
-  V(DataProcessing2Source)              \
-  V(DataProcessing3Source)              \
-  V(FPCompare)                          \
-  V(FPConditionalCompare)               \
-  V(FPConditionalSelect)                \
-  V(FPImmediate)                        \
-  V(FPDataProcessing1Source)            \
-  V(FPDataProcessing2Source)            \
-  V(FPDataProcessing3Source)            \
-  V(FPIntegerConvert)                   \
-  V(FPFixedPointConvert)                \
-  V(Crypto2RegSHA)                      \
-  V(Crypto3RegSHA)                      \
-  V(CryptoAES)                          \
-  V(NEON2RegMisc)                       \
-  V(NEON2RegMiscFP16)                   \
-  V(NEON3Different)                     \
-  V(NEON3Same)                          \
-  V(NEON3SameFP16)                      \
-  V(NEONAcrossLanes)                    \
-  V(NEONByIndexedElement)               \
-  V(NEONCopy)                           \
-  V(NEONExtract)                        \
-  V(NEONLoadStoreMultiStruct)           \
-  V(NEONLoadStoreMultiStructPostIndex)  \
-  V(NEONLoadStoreSingleStruct)          \
-  V(NEONLoadStoreSingleStructPostIndex) \
-  V(NEONModifiedImmediate)              \
-  V(NEONScalar2RegMisc)                 \
-  V(NEONScalar2RegMiscFP16)             \
-  V(NEONScalar3Diff)                    \
-  V(NEONScalar3Same)                    \
-  V(NEONScalar3SameFP16)                \
-  V(NEONScalar3SameExtra)               \
-  V(NEON3SameExtra)                     \
-  V(NEONScalarByIndexedElement)         \
-  V(NEONScalarCopy)                     \
-  V(NEONScalarPairwise)                 \
-  V(NEONScalarShiftImmediate)           \
-  V(NEONShiftImmediate)                 \
-  V(NEONTable)                          \
-  V(NEONPerm)                           \
-  V(Reserved)                           \
-  V(Unallocated)                        \
-  V(Unimplemented)
-#define DEFINE_UNUSED_VISITOR(Name)                                  \
-  virtual void Visit##Name(const vixl::aarch64::Instruction* i)      \
-      VIXL_OVERRIDE {                                                \
-    USE(i); /* Prevents compiler warnings about unused variables. */ \
-  }
-  UNUSED_VISITOR_LIST(DEFINE_UNUSED_VISITOR)
-#undef DEFINE_UNUSED_VISITOR
-#undef UNUSED_VISITOR_LIST
 };
 
 

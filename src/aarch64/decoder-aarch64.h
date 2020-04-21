@@ -138,6 +138,12 @@ namespace aarch64 {
 
 // The Visitor interface. Disassembler and simulator (and other tools)
 // must provide implementations for all of these functions.
+//
+// Note that this class must change in breaking ways with even minor additions
+// to VIXL, and so its API should be considered unstable. User classes that
+// inherit from this one should be expected to break even on minor version
+// updates. If this is a problem, consider using DecoderVisitorWithDefaults
+// instead.
 class DecoderVisitor {
  public:
   enum VisitorConstness { kConstVisitor, kNonConstVisitor };
@@ -158,6 +164,25 @@ class DecoderVisitor {
 
  private:
   const VisitorConstness constness_;
+};
+
+// As above, but a default (no-op) implementation for each visitor is provided.
+// This is useful for derived class that only care about specific visitors.
+//
+// A minor version update may add a visitor, but will never remove one, so it is
+// safe (and recommended) to use `override` in derived classes.
+class DecoderVisitorWithDefaults : public DecoderVisitor {
+ public:
+  explicit DecoderVisitorWithDefaults(
+      VisitorConstness constness = kConstVisitor)
+      : DecoderVisitor(constness) {}
+
+  virtual ~DecoderVisitorWithDefaults() {}
+
+#define DECLARE(A) \
+  virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE { USE(instr); }
+  VISITOR_LIST(DECLARE)
+#undef DECLARE
 };
 
 class DecodeNode;
