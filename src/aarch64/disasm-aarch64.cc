@@ -9518,6 +9518,78 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 }
 
 
+// TODO: Implement these.
+#define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
+  V(Morello1Src1Dst)                          \
+  V(Morello2SrcCap)                           \
+  V(MorelloADD)                               \
+  V(MorelloAddSubCap)                         \
+  V(MorelloAlignment)                         \
+  V(MorelloBitwise)                           \
+  V(MorelloBranch)                            \
+  V(MorelloBranchBx)                          \
+  V(MorelloBranchRestricted)                  \
+  V(MorelloBranchSealedDirect)                \
+  V(MorelloBranchSealedIndirect)              \
+  V(MorelloBranchToSealed)                    \
+  V(MorelloChecks)                            \
+  V(MorelloCLRPERMImm)                        \
+  V(MorelloCompareAndSwap)                    \
+  V(MorelloConvertToCap)                      \
+  V(MorelloConvertToCapWithImplicitOperand)   \
+  V(MorelloConvertToPointer)                  \
+  V(MorelloCSEL)                              \
+  V(MorelloCVT)                               \
+  V(MorelloGetField1)                         \
+  V(MorelloGetField2)                         \
+  V(MorelloGetSetSystemRegister)              \
+  V(MorelloImmBounds)                         \
+  V(MorelloLDAPR)                             \
+  V(MorelloLDR)                               \
+  V(MorelloLoadPairAndBranch)                 \
+  V(MorelloLoadStoreAcquireRelease)           \
+  V(MorelloLoadExclusive)                     \
+  V(MorelloLoadPairExclusive)                 \
+  V(MorelloLoadStoreAcquireReleaseAltBase)    \
+  V(MorelloLoadStoreAcquireReleaseCapAltBase) \
+  V(MorelloLoadStoreCapAltBase)               \
+  V(MorelloLoadStoreImmediatePostIndex)       \
+  V(MorelloLoadStoreImmediatePreIndex)        \
+  V(MorelloLoadStorePair)                     \
+  V(MorelloLoadStorePairNonTemporal)          \
+  V(MorelloLoadStorePairPostIndex)            \
+  V(MorelloLoadStorePairPreIndex)             \
+  V(MorelloLoadStoreRegister)                 \
+  V(MorelloLoadStoreRegisterAltBase)          \
+  V(MorelloLoadStoreTags)                     \
+  V(MorelloLoadStoreUnscaledImmediate)        \
+  V(MorelloLoadStoreUnscaledImmediateAltBase) \
+  V(MorelloLoadStoreUnsignedOffset)           \
+  V(MorelloLoadStoreUnsignedOffsetAltBase)    \
+  V(MorelloLogicalImm)                        \
+  V(MorelloMiscCap0)                          \
+  V(MorelloMiscCap1)                          \
+  V(MorelloMiscCap2)                          \
+  V(MorelloSCFLGS)                            \
+  V(MorelloSEAL)                              \
+  V(MorelloSUBS)                              \
+  V(MorelloSetField1)                         \
+  V(MorelloSetField2)                         \
+  V(MorelloStoreExclusive)                    \
+  V(MorelloStorePairExclusive)                \
+  V(MorelloSwap)
+
+#define VIXL_DEFINE_UNIMPLEMENTED_VISITOR(NAME)              \
+  void Disassembler::Visit##NAME(const Instruction *instr) { \
+    Format(instr, "unimplemented", "(" #NAME ")");           \
+  }
+
+VIXL_UNIMPLEMENTED_VISITOR_LIST(VIXL_DEFINE_UNIMPLEMENTED_VISITOR)
+
+#undef VIXL_DEFINE_UNIMPLEMENTED_VISITOR
+#undef VIXL_UNIMPLEMENTED_VISITOR_LIST
+
+
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {
   // The base disasm does nothing more than disassembling into a buffer.
 }

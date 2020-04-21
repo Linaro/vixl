@@ -627,6 +627,79 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
   USE(instr);
 }
 
+// Most Morello visitors require only Morello.
+// TODO: Some of the following can access V registers, and also require FP|NEON
+// support.
+#define VIXL_SIMPLE_MORELLO_VISITOR_LIST(V)   \
+  V(Morello1Src1Dst)                          \
+  V(Morello2SrcCap)                           \
+  V(MorelloADD)                               \
+  V(MorelloAddSubCap)                         \
+  V(MorelloAlignment)                         \
+  V(MorelloBitwise)                           \
+  V(MorelloBranch)                            \
+  V(MorelloBranchBx)                          \
+  V(MorelloBranchRestricted)                  \
+  V(MorelloBranchSealedDirect)                \
+  V(MorelloBranchSealedIndirect)              \
+  V(MorelloBranchToSealed)                    \
+  V(MorelloChecks)                            \
+  V(MorelloCLRPERMImm)                        \
+  V(MorelloCompareAndSwap)                    \
+  V(MorelloConvertToCap)                      \
+  V(MorelloConvertToCapWithImplicitOperand)   \
+  V(MorelloConvertToPointer)                  \
+  V(MorelloCSEL)                              \
+  V(MorelloCVT)                               \
+  V(MorelloGetField1)                         \
+  V(MorelloGetField2)                         \
+  V(MorelloGetSetSystemRegister)              \
+  V(MorelloImmBounds)                         \
+  V(MorelloLDAPR)                             \
+  V(MorelloLDR)                               \
+  V(MorelloLoadPairAndBranch)                 \
+  V(MorelloLoadStoreAcquireRelease)           \
+  V(MorelloLoadExclusive)                     \
+  V(MorelloLoadPairExclusive)                 \
+  V(MorelloLoadStoreAcquireReleaseAltBase)    \
+  V(MorelloLoadStoreAcquireReleaseCapAltBase) \
+  V(MorelloLoadStoreCapAltBase)               \
+  V(MorelloLoadStoreImmediatePostIndex)       \
+  V(MorelloLoadStoreImmediatePreIndex)        \
+  V(MorelloLoadStorePair)                     \
+  V(MorelloLoadStorePairNonTemporal)          \
+  V(MorelloLoadStorePairPostIndex)            \
+  V(MorelloLoadStorePairPreIndex)             \
+  V(MorelloLoadStoreRegister)                 \
+  V(MorelloLoadStoreRegisterAltBase)          \
+  V(MorelloLoadStoreTags)                     \
+  V(MorelloLoadStoreUnscaledImmediate)        \
+  V(MorelloLoadStoreUnscaledImmediateAltBase) \
+  V(MorelloLoadStoreUnsignedOffset)           \
+  V(MorelloLoadStoreUnsignedOffsetAltBase)    \
+  V(MorelloLogicalImm)                        \
+  V(MorelloMiscCap0)                          \
+  V(MorelloMiscCap1)                          \
+  V(MorelloMiscCap2)                          \
+  V(MorelloSCFLGS)                            \
+  V(MorelloSEAL)                              \
+  V(MorelloSUBS)                              \
+  V(MorelloSetField1)                         \
+  V(MorelloSetField2)                         \
+  V(MorelloStoreExclusive)                    \
+  V(MorelloStorePairExclusive)                \
+  V(MorelloSwap)
+
+#define VIXL_DEFINE_SIMPLE_MORELLO_VISITOR(NAME)                   \
+  void CPUFeaturesAuditor::Visit##NAME(const Instruction* instr) { \
+    RecordInstructionFeaturesScope scope(this);                    \
+    scope.Record(CPUFeatures::kMorello);                           \
+    USE(instr);                                                    \
+  }
+VIXL_SIMPLE_MORELLO_VISITOR_LIST(VIXL_DEFINE_SIMPLE_MORELLO_VISITOR)
+#undef VIXL_DEFINE_SIMPLE_MORELLO_VISITOR
+#undef VIXL_SIMPLE_MORELLO_VISITOR_LIST
+
 void CPUFeaturesAuditor::VisitMoveWideImmediate(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   USE(instr);

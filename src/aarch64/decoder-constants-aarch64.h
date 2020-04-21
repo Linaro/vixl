@@ -37,14 +37,15 @@ namespace aarch64 {
 // clang-format off
 static const DecodeMapping kDecodeMapping[] = {
   { "Root",
-    {28, 27, 26, 25},
-    { {"0000", "DecodeReserved"},
-      {"0010", "DecodeSVE"},
-      {"100x", "DecodeDataProcessingImmediate"},
-      {"101x", "DecodeBranchesExceptionAndSystem"},
-      {"x1x0", "DecodeLoadsAndStores"},
-      {"x101", "DecodeDataProcessingRegister"},
-      {"x111", "DecodeDataProcessingFPAndNEON"},
+    {28, 27, 26, 25, 24},
+    { {"0000x", "DecodeReserved"},
+      {"00010", "DecodeMorello"},
+      {"0010x", "DecodeSVE"},
+      {"100xx", "DecodeDataProcessingImmediate"},
+      {"101xx", "DecodeBranchesExceptionAndSystem"},
+      {"x1x0x", "DecodeLoadsAndStores"},
+      {"x101x", "DecodeDataProcessingRegister"},
+      {"x111x", "DecodeDataProcessingFPAndNEON"},
     },
   },
 
@@ -2123,6 +2124,351 @@ static const DecodeMapping kDecodeMapping[] = {
     {20, 19},
     { {"10", "VisitSVEMovprfx"},
       {"otherwise", "VisitSVEIntReduction"},
+    },
+  },
+
+  { "DecodeMorello",
+    {31, 30, 29},
+    { {"000", "VisitMorelloAddSubCap"},
+      {"001", "DecodeMorello001"},
+      {"010", "DecodeMorello010"},
+      {"011", "DecodeMorello011"},
+      {"100", "DecodeMorello100"},
+      {"101", "DecodeMorello101"},
+      {"110", "DecodeMorello110"},
+      {"111", "UnallocMorelloLoadStoreUnscaledImmediateAltBase"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreUnscaledImmediateAltBase",
+    {23, 22, 21, 11, 10},
+    { {"x111x", "VisitUnallocated"},
+      {"1011x", "VisitUnallocated"},
+      {"11010", "VisitUnallocated"},
+      {"otherwise", "VisitMorelloLoadStoreUnscaledImmediateAltBase"},
+    },
+  },
+
+  { "DecodeMorello001",
+    {23, 22, 21},
+    { {"000", "UnallocMorelloStoreExclusive"},
+      {"001", "VisitMorelloStorePairExclusive"},
+      {"010", "UnallocMorelloLoadExclusive"},
+      {"011", "UnallocMorelloLoadPairExclusive"},
+      {"1xx", "VisitMorelloLoadStorePairPostIndex"},
+    },
+  },
+
+  { "UnallocMorelloStoreExclusive",
+    {14, 13, 12, 11, 10},
+    // Ct2 must be 0b11111.
+    { {"11111", "VisitMorelloStoreExclusive"},
+    },
+  },
+
+  { "UnallocMorelloLoadExclusive",
+    // Rs and Ct2 must be 0b11111.
+    {20, 19, 18, 17, 16, 14, 13, 12, 11, 10},
+    { {"1111111111", "VisitMorelloLoadExclusive"},
+    },
+  },
+
+  { "UnallocMorelloLoadPairExclusive",
+    // Rs must be 0b11111.
+    {20, 19, 18, 17, 16},
+    { {"11111", "VisitMorelloLoadPairExclusive"},
+    },
+  },
+
+  { "DecodeMorello010",
+    {23, 21, 15},
+    { {"000", "UnallocMorelloLoadStoreAcquireReleaseCapAltBase"},
+      {"001", "UnallocMorelloLoadStoreAcquireRelease"},
+      {"01x", "UnallocMorelloLoadStoreAcquireReleaseAltBase"},
+      {"1xx", "VisitMorelloLoadStorePair"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreAcquireReleaseCapAltBase",
+    {20, 19, 18, 17, 16, 14, 13, 12, 11, 10},
+    // Rs and Ct2 must be 0b11111.
+    { {"1111111111", "VisitMorelloLoadStoreAcquireReleaseCapAltBase"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreAcquireRelease",
+    {20, 19, 18, 17, 16, 14, 13, 12, 11, 10},
+    // Rs and Ct2 must be 0b11111.
+    { {"1111111111", "VisitMorelloLoadStoreAcquireRelease"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreAcquireReleaseAltBase",
+    {20, 19, 18, 17, 16, 14, 13, 12, 11, 10},
+    // Rs and Ct2 must be 0b11111.
+    { {"1111111111", "VisitMorelloLoadStoreAcquireReleaseAltBase"},
+    },
+  },
+
+  { "DecodeMorello011",
+    {23},
+    { {"0", "VisitMorelloLoadStorePairNonTemporal"},
+      {"1", "VisitMorelloLoadStorePairPreIndex"},
+    },
+  },
+
+  { "DecodeMorello100",
+    {23, 22},
+    { {"00", "VisitMorelloLDR"},  // Load literal.
+      {"01", "VisitMorelloLoadStoreUnsignedOffsetAltBase"},
+      {"1x", "VisitMorelloLoadStoreRegisterAltBase"},
+    },
+  },
+
+  { "DecodeMorello101",
+    {21, 15, 14, 13, 12, 11, 10},
+    { {"0xxxx00", "UnallocMorelloLoadStoreUnscaledImmediate"},
+      {"0xxxx01", "UnallocMorelloLoadStoreImmediatePostIndex"},
+      {"0xxxx10", "UnallocMorelloLoadStoreImmediateTranslated"},
+      {"0xxxx11", "UnallocMorelloLoadStoreImmediatePreIndex"},
+      {"1100000", "VisitMorelloSwap"},
+      {"1110000", "VisitMorelloLDAPR"},  // Load-Acquire RCpc capability.
+      {"1x11111", "VisitMorelloCompareAndSwap"},
+      {"1xxxx10", "UnallocMorelloLoadStoreRegister"},
+    },
+  },
+
+  { "UnallocMorelloCompareAndSwap",
+    {23},
+    // opc must be 0b1x
+    { {"1", "VisitMorelloCompareAndSwap"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreRegister",
+    {23},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloLoadStoreRegister"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreUnscaledImmediate",
+    {23},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloLoadStoreUnscaledImmediate"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreImmediatePostIndex",
+    {23},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloLoadStoreImmediatePostIndex"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreImmediateTranslated",
+    {23},
+    // opc must be 0b0x.
+    { {"0", "VisitUnimplemented"}, // MorelloLoadStoreImmediateTranslated
+    },
+  },
+
+  { "UnallocMorelloLoadStoreImmediatePreIndex",
+    {23},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloLoadStoreImmediatePreIndex"},
+    },
+  },
+
+  { "DecodeMorello110",
+    {23, 22, 21, 12, 11, 10},
+    { {"0xxxxx", "VisitMorelloLoadStoreUnsignedOffset"},
+      {"100xxx", "VisitMorelloGetSetSystemRegister"},
+      {"101xxx", "VisitMorelloADD"},   // Add (extended register).
+      {"110100", "DecodeMorello110_110_10_0"},
+      {"110000", "DecodeMorello110_110_00_0"},
+      {"110001", "DecodeMorello110_110_00_1"},
+      {"110010", "DecodeMorello110_110_01_0"},
+      {"110110", "DecodeMorello110_110_11_0"},
+      {"110x11", "VisitMorelloCSEL"},   // Conditional select.
+      {"111xxx", "DecodeMorello110_111"},
+    },
+  },
+
+  { "DecodeMorello110_110_10_0",
+    {20, 19, 18, 17, 16, 15},
+    { {"00000x", "VisitMorelloGetField1"},
+      {"000010", "UnallocMorelloGetField2"},
+      {"000011", "UnallocMorelloMiscCap0"},
+      {"000100", "DecodeMorello110_110000100_10_0"},
+      {"000110", "VisitMorelloSEAL"},   // Seal capability (immediate).
+      {"001000", "UnallocMorelloLoadPairAndBranch"},
+      {"001001", "UnallocMorelloLoadStoreTags"},
+      {"001010", "UnallocMorelloConvertToPointer"},
+      {"001011", "VisitMorelloConvertToCapWithImplicitOperand"},
+      {"00110x", "VisitMorelloCLRPERMImm"},   // Clear cap permissions (imm).
+      {"001110", "UnallocMorello1Src1Dst"},
+      {"1xxxxx", "DecodeMorello110_1101xxxxx_10_0"},
+    },
+  },
+
+  { "UnallocMorelloGetField2",
+    {14, 13},
+    // opc must not be 0b11.
+    { {"11", "VisitUnallocated"},
+      {"otherwise", "VisitMorelloGetField2"},
+    },
+  },
+
+  { "UnallocMorelloMiscCap0",
+    {13},
+    // opc must be 0bx0.
+    { {"0", "VisitMorelloMiscCap0"},
+    },
+  },
+
+  { "UnallocMorelloLoadPairAndBranch",
+    {14},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloLoadPairAndBranch"},
+    },
+  },
+
+  { "UnallocMorelloLoadStoreTags",
+    {14},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloLoadStoreTags"},
+    },
+  },
+
+  { "UnallocMorelloConvertToPointer",
+    {14},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloConvertToPointer"},
+    },
+  },
+
+  { "UnallocMorello1Src1Dst",
+    {14},
+    // opc must be 0b0x.
+    { {"0", "VisitMorello1Src1Dst"},
+    },
+  },
+
+  { "DecodeMorello110_110000100_10_0",
+    {4, 3, 2, 1, 0},
+    { {"00000", "DecodeMorelloBranch"},
+      {"00001", "UnallocMorelloChecks"},
+      {"00010", "UnallocMorelloBranchSealedDirect"},
+      {"00011", "UnallocMorelloBranchRestricted"},
+    },
+  },
+
+  { "UnallocMorelloChecks",
+    {14},
+    // opc must be 0b0x.
+    { {"0", "VisitMorelloChecks"},
+    },
+  },
+
+  { "UnallocMorelloBranchSealedDirect",
+    {14, 13},
+    // opc must not be 0b11.
+    { {"11", "VisitUnallocated"},
+      {"otherwise", "VisitMorelloBranchSealedDirect"},
+    },
+  },
+
+  { "UnallocMorelloBranchRestricted",
+    {14, 13},
+    // opc must not be 0b11.
+    { {"11", "VisitUnallocated"},
+      {"otherwise", "VisitMorelloBranchRestricted"},
+    },
+  },
+
+  { "DecodeMorelloBranch",
+    {14, 13},
+    { {"11", "UnallocMorelloBranchBx"},
+      {"otherwise", "VisitMorelloBranch"},
+    },
+  },
+
+  { "UnallocMorelloBranchBx",
+    {9, 8, 7, 6, 5},
+    // Cn must be 0b11111.
+    { {"11111", "VisitMorelloBranchBx"},
+    },
+  },
+
+  { "DecodeMorello110_1101xxxxx_10_0",
+    {4, 3, 2, 1, 0},
+    { {"0000x", "VisitMorelloBranchSealedIndirect"},
+    },
+  },
+
+  { "DecodeMorello110_110_00_0",
+    {15, 14, 13},
+    { {"0xx", "VisitMorelloSetField1"},
+      {"10x", "VisitMorelloSetField2"},
+      {"110", "VisitMorelloCVT"},     // Convert cap to pointer, setting flags.
+      {"111", "VisitMorelloSCFLGS"},  // Set the flags field.
+    },
+  },
+
+  { "DecodeMorello110_110_00_1",
+    {15, 4, 3, 2, 1, 0},
+    { {"0xxxxx", "VisitMorelloMiscCap1"},
+      {"100000", "UnallocMorelloBranchToSealed"},
+      {"100001", "UnallocMorello2SrcCap"},
+    },
+  },
+
+  { "UnallocMorelloBranchToSealed",
+    {14, 13},
+    // opc must not be 0b11.
+    { {"11", "VisitUnallocated"},
+      {"otherwise", "VisitMorelloBranchToSealed"},
+    },
+  },
+
+  { "UnallocMorello2SrcCap",
+    {14},
+    // opc must be 0b0x.
+    { {"0", "VisitMorello2SrcCap"},
+    },
+  },
+
+  { "DecodeMorello110_110_01_0",
+    {13},
+    { {"0", "UnallocMorelloMiscCap2"},
+      {"1", "VisitMorelloBitwise"},
+    },
+  },
+
+  { "UnallocMorelloMiscCap2",
+    {15, 14},
+    // opc must not be 0b11.
+    { {"11", "VisitUnallocated"},
+      {"otherwise", "VisitMorelloMiscCap2"},
+    },
+  },
+
+  { "DecodeMorello110_110_11_0",
+    {15, 14, 13},
+    { {"xx0", "VisitMorelloAlignment"},
+      {"xx1", "VisitMorelloImmBounds"},
+    },
+  },
+
+  { "DecodeMorello110_111",
+    {15, 14, 13, 12, 11, 10},
+    { {"0x0110", "VisitMorelloConvertToCap"},
+      {"100110", "VisitMorelloSUBS"},   // Subtract, setting flags.
+      {"xxx000", "VisitMorelloLogicalImm"},
+      {"xxx010", "VisitMorelloLogicalImm"},
+      {"xxx100", "VisitMorelloLogicalImm"},
+      {"xxxxx1", "VisitMorelloLoadStoreCapAltBase"},
     },
   },
 };
