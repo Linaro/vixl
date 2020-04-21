@@ -48,6 +48,7 @@ const IDRegister::Field AA64PFR0::kCSV3(60);
 const IDRegister::Field AA64PFR1::kBT(0);
 const IDRegister::Field AA64PFR1::kSSBS(4);
 const IDRegister::Field AA64PFR1::kMTE(8);
+const IDRegister::Field AA64PFR1::kCE(20);
 
 const IDRegister::Field AA64ISAR0::kAES(4);
 const IDRegister::Field AA64ISAR0::kSHA1(8);
@@ -109,6 +110,7 @@ CPUFeatures AA64PFR1::GetCPUFeatures() const {
   if (Get(kSSBS) >= 2) f.Combine(CPUFeatures::kSSBSControl);
   if (Get(kMTE) >= 1) f.Combine(CPUFeatures::kMTEInstructions);
   if (Get(kMTE) >= 2) f.Combine(CPUFeatures::kMTE);
+  if (Get(kCE) >= 1) f.Combine(CPUFeatures::kMorello);
   return f;
 }
 

@@ -170,7 +170,9 @@ namespace vixl {
   V(kPAuthEnhancedPAC,    "PAuth EnhancedPAC",      NULL)                      \
   V(kPAuthEnhancedPAC2,   "PAuth EnhancedPAC2",     NULL)                      \
   V(kPAuthFPAC,           "PAuth FPAC",             NULL)                      \
-  V(kPAuthFPACCombined,   "PAuth FPACCombined",     NULL)
+  V(kPAuthFPACCombined,   "PAuth FPACCombined",     NULL)                      \
+  /* Morello research ISA.                                                  */ \
+  V(kMorello,             "Morello",                NULL)
 // clang-format on
 
 
