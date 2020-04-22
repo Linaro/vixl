@@ -562,6 +562,10 @@ class StrictNaNPropagationMacroAssembler : public MacroAssembler {
   }
 };
 
+// Infer available CPU features from the host. This works in both native and
+// simulated environments.
+inline CPUFeatures InferCPUFeaturesForTestExecution();
+
 // If the required features are available, return true.
 // Otherwise:
 //  - Print a warning message, unless *queried_can_run indicates that we've

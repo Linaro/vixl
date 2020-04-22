@@ -745,6 +745,19 @@ uint64_t GetSignallingNan(int size_in_bits) {
   }
 }
 
+inline CPUFeatures InferCPUFeaturesForTestExecution() {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  // The Simulator implements everything that VIXL can assemble, except for
+  // Morello instructions.
+  return CPUFeatures::All().Without(CPUFeatures::kMorello);
+#else
+  CPUFeatures cpu = CPUFeatures::InferFromOS();
+  // If InferFromOS fails, assume that basic features are present.
+  if (cpu.HasNoFeatures()) cpu = CPUFeatures::AArch64LegacyBaseline();
+  return cpu;
+#endif
+}
+
 bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   bool log_if_missing = true;
   if (queried_can_run != NULL) {
@@ -752,15 +765,7 @@ bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
     *queried_can_run = true;
   }
 
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-  // The Simulator can run any test that VIXL can assemble.
-  USE(required);
-  USE(log_if_missing);
-  return true;
-#else
-  CPUFeatures cpu = CPUFeatures::InferFromOS();
-  // If InferFromOS fails, assume that basic features are present.
-  if (cpu.HasNoFeatures()) cpu = CPUFeatures::AArch64LegacyBaseline();
+  CPUFeatures cpu = InferCPUFeaturesForTestExecution();
   VIXL_ASSERT(cpu.Has(kInfrastructureCPUFeatures));
 
   if (cpu.Has(required)) return true;
@@ -775,7 +780,6 @@ bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
               << required << "\n";
   }
   return false;
-#endif
 }
 
 }  // namespace aarch64
