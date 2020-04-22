@@ -42,6 +42,7 @@ static const int kRegListSizeInBits = sizeof(RegList) * 8;
 class Register;
 class WRegister;
 class XRegister;
+class CRegister;
 
 class VRegister;
 class BRegister;
@@ -80,10 +81,11 @@ class CPURegister {
   };
   enum RegisterType {
     kNoRegister,
-    kRegister,
-    kVRegister,
-    kZRegister,
-    kPRegister
+    kRegister,   // w, x
+    kCRegister,  // c
+    kVRegister,  // b, h, s, d, q, v
+    kZRegister,  // z
+    kPRegister   // p
   };
 
   static const unsigned kUnknownSize = 0;
@@ -134,6 +136,7 @@ class CPURegister {
   unsigned GetMaxCode() const { return GetMaxCodeFor(GetBank()); }
 
   // Registers without a known size report kUnknownSize.
+  // C registers are treated as having 128 bits, not 129.
   int GetSizeInBits() const { return DecodeSizeInBits(size_); }
   int GetSizeInBytes() const { return DecodeSizeInBytes(size_); }
   // TODO: Make these return 'int'.
@@ -183,6 +186,7 @@ class CPURegister {
   //      r.IsPRegister() && IsMerging()       -> PRegisterM(r)
   //      r.IsPRegister() && IsZeroing()       -> PRegisterZ(r)
   bool IsRegister() const { return GetType() == kRegister; }
+  bool IsCRegister() const { return GetType() == kCRegister; }
   bool IsVRegister() const { return GetType() == kVRegister; }
   bool IsZRegister() const { return GetType() == kZRegister; }
   bool IsPRegister() const { return GetType() == kPRegister; }
@@ -196,7 +200,7 @@ class CPURegister {
       case kNoRegisterBank:
         return kNoRegister;
       case kRRegisterBank:
-        return kRegister;
+        return Is128Bits() ? kCRegister : kRegister;
       case kVRegisterBank:
         return HasSize() ? kVRegister : kZRegister;
       case kPRegisterBank:
@@ -213,6 +217,7 @@ class CPURegister {
   // TODO: These are stricter forms of the helpers above. We should make the
   // basic helpers strict, and remove these.
   bool IsValidRegister() const;
+  bool IsValidCRegister() const;
   bool IsValidVRegister() const;
   bool IsValidFPRegister() const;
   bool IsValidZRegister() const;
@@ -255,8 +260,8 @@ class CPURegister {
       // TODO: We should probably check every field for all registers.
       return Aliases(other) && (size_ == other.size_);
     } else {
-      // For Z and P registers, we require all fields to match exactly.
-      VIXL_ASSERT(IsNone() || IsZRegister() || IsPRegister());
+      // For Z, P and C registers, we require all fields to match exactly.
+      VIXL_ASSERT(IsNone() || IsZRegister() || IsPRegister() || IsCRegister());
       return (code_ == other.code_) && (bank_ == other.bank_) &&
              (size_ == other.size_) && (qualifiers_ == other.qualifiers_) &&
              (lane_size_ == other.lane_size_);
@@ -282,6 +287,8 @@ class CPURegister {
   // Core registers, like "w0".
   Register W() const;
   Register X() const;
+  // Morello registers, like "c0".
+  CRegister C() const;
   // FP/NEON registers, like "b0".
   VRegister B() const;
   VRegister H() const;
@@ -293,12 +300,17 @@ class CPURegister {
   ZRegister Z() const;
   PRegister P() const;
 
-  // Utilities for kRegister types.
+  // Utilities for kRegister and kCRegister types.
 
-  bool IsZero() const { return IsRegister() && (code_ == kZeroRegCode); }
-  bool IsSP() const { return IsRegister() && (code_ == kSPRegInternalCode); }
+  bool IsZero() const {
+    return (IsCRegister() || IsRegister()) && (code_ == kZeroRegCode);
+  }
+  bool IsSP() const {
+    return (IsCRegister() || IsRegister()) && (code_ == kSPRegInternalCode);
+  }
   bool IsW() const { return IsRegister() && Is32Bits(); }
   bool IsX() const { return IsRegister() && Is64Bits(); }
+  bool IsC() const { return IsCRegister(); }
 
   // Utilities for FP/NEON kVRegister types.
 
@@ -379,6 +391,7 @@ class CPURegister {
       case kNoRegister:
         return kNoRegisterBank;
       case kRegister:
+      case kCRegister:
         return kRRegisterBank;
       case kVRegister:
       case kZRegister:
@@ -408,10 +421,12 @@ class CPURegister {
     kEncodedQRegSize,
 
     kEncodedWRegSize = kEncodedSRegSize,
-    kEncodedXRegSize = kEncodedDRegSize
+    kEncodedXRegSize = kEncodedDRegSize,
+    kEncodedCRegSize = kEncodedQRegSize
   };
   VIXL_STATIC_ASSERT(kSRegSize == kWRegSize);
   VIXL_STATIC_ASSERT(kDRegSize == kXRegSize);
+  VIXL_STATIC_ASSERT(kQRegSize == kCRegSize);
 
   char GetLaneSizeSymbol() const {
     switch (lane_size_) {
@@ -539,6 +554,18 @@ class Register : public CPURegister {
   }
 
   bool IsValid() const { return IsValidRegister(); }
+};
+
+// Any C register, including the zero register and the stack pointer.
+class CRegister : public CPURegister {
+ public:
+  VIXL_DECLARE_REGISTER_COMMON(CRegister, CRegister, CPURegister)
+
+  explicit CRegister(int code) : CPURegister(code, kCRegSize, kCRegister) {
+    VIXL_ASSERT(IsValidCRegister());
+  }
+
+  bool IsValid() const { return IsValidCRegister(); }
 };
 
 // Any FP or NEON V register, including vector (V.<T>) and scalar forms
@@ -807,6 +834,7 @@ const ZRegister NoZReg;
 #define VIXL_DEFINE_REGISTERS(N)       \
   const Register w##N = WRegister(N);  \
   const Register x##N = XRegister(N);  \
+  const CRegister c##N = CRegister(N); \
   const VRegister b##N = BRegister(N); \
   const VRegister h##N = HRegister(N); \
   const VRegister s##N = SRegister(N); \
@@ -824,6 +852,7 @@ AARCH64_P_REGISTER_CODE_LIST(VIXL_DEFINE_P_REGISTERS)
 // VIXL represents 'sp' with a unique code, to tell it apart from 'xzr'.
 const Register wsp = WRegister(kSPRegInternalCode);
 const Register sp = XRegister(kSPRegInternalCode);
+const CRegister csp = CRegister(kSPRegInternalCode);
 
 // Standard aliases.
 const Register ip0 = x16;
@@ -831,6 +860,11 @@ const Register ip1 = x17;
 const Register lr = x30;
 const Register xzr = x31;
 const Register wzr = w31;
+
+const CRegister cip0 = c16;
+const CRegister cip1 = c17;
+const CRegister clr = c30;
+const CRegister czr = c31;
 
 // AreAliased returns true if any of the named registers overlap. Arguments
 // set to NoReg are ignored. The system stack pointer may be specified.

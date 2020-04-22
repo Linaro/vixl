@@ -33,6 +33,7 @@ namespace vixl {
 namespace aarch64 {
 
 const unsigned kNumberOfRegisters = 32;
+const unsigned kNumberOfCRegisters = kNumberOfRegisters;
 const unsigned kNumberOfVRegisters = 32;
 const unsigned kNumberOfZRegisters = kNumberOfVRegisters;
 const unsigned kNumberOfPRegisters = 16;

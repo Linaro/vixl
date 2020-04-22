@@ -382,39 +382,65 @@ TEST(isvalid) {
   VIXL_CHECK(!NoVReg.IsValid());
   VIXL_CHECK(!NoCPUReg.IsValid());
 
+  VIXL_CHECK(c0.IsValid());
   VIXL_CHECK(x0.IsValid());
   VIXL_CHECK(w0.IsValid());
+  VIXL_CHECK(c30.IsValid());
   VIXL_CHECK(x30.IsValid());
   VIXL_CHECK(w30.IsValid());
+  VIXL_CHECK(czr.IsValid());
   VIXL_CHECK(xzr.IsValid());
   VIXL_CHECK(wzr.IsValid());
 
-  VIXL_CHECK(sp.IsValid());
+  VIXL_CHECK(csp.IsValid());
   VIXL_CHECK(wsp.IsValid());
+  VIXL_CHECK(sp.IsValid());
 
   VIXL_CHECK(d0.IsValid());
   VIXL_CHECK(s0.IsValid());
   VIXL_CHECK(d31.IsValid());
   VIXL_CHECK(s31.IsValid());
 
+  // IsValidRegister()
+  VIXL_CHECK(!c0.IsValidRegister());
   VIXL_CHECK(x0.IsValidRegister());
   VIXL_CHECK(w0.IsValidRegister());
+  VIXL_CHECK(!czr.IsValidRegister());
   VIXL_CHECK(xzr.IsValidRegister());
   VIXL_CHECK(wzr.IsValidRegister());
+  VIXL_CHECK(!csp.IsValidRegister());
   VIXL_CHECK(sp.IsValidRegister());
   VIXL_CHECK(wsp.IsValidRegister());
+  // IsValidVRegister()
+  VIXL_CHECK(!c0.IsValidVRegister());
   VIXL_CHECK(!x0.IsValidVRegister());
   VIXL_CHECK(!w0.IsValidVRegister());
+  VIXL_CHECK(!czr.IsValidVRegister());
   VIXL_CHECK(!xzr.IsValidVRegister());
   VIXL_CHECK(!wzr.IsValidVRegister());
+  VIXL_CHECK(!csp.IsValidVRegister());
   VIXL_CHECK(!sp.IsValidVRegister());
   VIXL_CHECK(!wsp.IsValidVRegister());
+  // IsValidFPRegister()
+  VIXL_CHECK(!c0.IsValidFPRegister());
   VIXL_CHECK(!x0.IsValidFPRegister());
   VIXL_CHECK(!w0.IsValidFPRegister());
+  VIXL_CHECK(!czr.IsValidFPRegister());
   VIXL_CHECK(!xzr.IsValidFPRegister());
   VIXL_CHECK(!wzr.IsValidFPRegister());
+  VIXL_CHECK(!csp.IsValidFPRegister());
   VIXL_CHECK(!sp.IsValidFPRegister());
   VIXL_CHECK(!wsp.IsValidFPRegister());
+  // IsValidCRegister()
+  VIXL_CHECK(c0.IsValidCRegister());
+  VIXL_CHECK(!x0.IsValidCRegister());
+  VIXL_CHECK(!w0.IsValidCRegister());
+  VIXL_CHECK(czr.IsValidCRegister());
+  VIXL_CHECK(!xzr.IsValidCRegister());
+  VIXL_CHECK(!wzr.IsValidCRegister());
+  VIXL_CHECK(csp.IsValidCRegister());
+  VIXL_CHECK(!sp.IsValidCRegister());
+  VIXL_CHECK(!wsp.IsValidCRegister());
 
   VIXL_CHECK(q0.IsValidVRegister());
   VIXL_CHECK(!q0.IsValidFPRegister());
@@ -453,13 +479,17 @@ TEST(isvalid_cpu) {
   VIXL_CHECK(!static_cast<CPURegister>(NoVReg).IsValid());
   VIXL_CHECK(!static_cast<CPURegister>(NoCPUReg).IsValid());
 
+  VIXL_CHECK(static_cast<CPURegister>(c0).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(x0).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(w0).IsValid());
+  VIXL_CHECK(static_cast<CPURegister>(c30).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(x30).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(w30).IsValid());
+  VIXL_CHECK(static_cast<CPURegister>(czr).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(xzr).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(wzr).IsValid());
 
+  VIXL_CHECK(static_cast<CPURegister>(csp).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(sp).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(wsp).IsValid());
 
@@ -468,24 +498,46 @@ TEST(isvalid_cpu) {
   VIXL_CHECK(static_cast<CPURegister>(d31).IsValid());
   VIXL_CHECK(static_cast<CPURegister>(s31).IsValid());
 
+  // IsValidRegister()
+  VIXL_CHECK(!static_cast<CPURegister>(c0).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(x0).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(w0).IsValidRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(czr).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(xzr).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(wzr).IsValidRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(csp).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(sp).IsValidRegister());
   VIXL_CHECK(static_cast<CPURegister>(wsp).IsValidRegister());
+  // IsValidVRegister()
+  VIXL_CHECK(!static_cast<CPURegister>(c0).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(x0).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(w0).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(czr).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(xzr).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(wzr).IsValidVRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(csp).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(sp).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(wsp).IsValidVRegister());
+  // IsValidFPRegister()
+  VIXL_CHECK(!static_cast<CPURegister>(c0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(x0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(w0).IsValidFPRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(czr).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(xzr).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(wzr).IsValidFPRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(csp).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(sp).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(wsp).IsValidFPRegister());
+  // IsValidCRegister()
+  VIXL_CHECK(static_cast<CPURegister>(c0).IsValidCRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(x0).IsValidCRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(w0).IsValidCRegister());
+  VIXL_CHECK(static_cast<CPURegister>(czr).IsValidCRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(xzr).IsValidCRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(wzr).IsValidCRegister());
+  VIXL_CHECK(static_cast<CPURegister>(csp).IsValidCRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(sp).IsValidCRegister());
+  VIXL_CHECK(!static_cast<CPURegister>(wsp).IsValidCRegister());
 
   VIXL_CHECK(static_cast<CPURegister>(q0).IsValidVRegister());
   VIXL_CHECK(!static_cast<CPURegister>(q0).IsValidFPRegister());
@@ -507,7 +559,6 @@ TEST(isvalid_cpu) {
   VIXL_CHECK(!static_cast<CPURegister>(b0).IsValidFPRegister());
   VIXL_CHECK(!static_cast<CPURegister>(b0).IsValidRegister());
 }
-
 
 TEST(areconsecutive) {
   VIXL_CHECK(AreConsecutive(b0, NoVReg));
@@ -559,7 +610,6 @@ TEST(areconsecutive) {
   VIXL_CHECK(AreConsecutive(d3, NoVReg, d6, d7));
 }
 
-
 TEST(sve_p_registers) {
   enum Qualification { kNone, kZeroing, kMerging, kWithLaneSize };
   class Helper {
@@ -592,7 +642,6 @@ TEST(sve_p_registers) {
   VIXL_CHECK(Helper::GetQualification(p7.VnD()) == kWithLaneSize);
 }
 
-
 TEST(sve_z_registers) {
   VIXL_CHECK(z0.GetCode() == 0);
   VIXL_CHECK(z31.GetCode() == 31);
@@ -613,7 +662,6 @@ TEST(sve_z_registers) {
   VIXL_CHECK(!AreAliased(b6, z7));
   VIXL_CHECK(!AreAliased(x7, z7));
 }
-
 
 TEST(sve_z_registers_vs_neon) {
   // There are three related register variants to consider in VIXL's API:
@@ -687,14 +735,12 @@ TEST(sve_z_registers_vs_neon) {
   VIXL_CHECK(Helper::GetVariant(d13) == kNEON);
 }
 
-
 TEST(move_immediate_helpers) {
   // Using these helpers to query information (without generating code) should
   // not crash.
   MacroAssembler::MoveImmediateHelper(NULL, x0, 0x12345678);
   MacroAssembler::OneInstrMoveImmediateHelper(NULL, x1, 0xabcdef);
 }
-
 
 TEST(generic_operand_helpers) {
   GenericOperand invalid_1;
@@ -975,8 +1021,19 @@ TEST(static_register_types) {
   VIXL_CHECK(x_x2.Is(cpu_x2));
   VIXL_CHECK(cpu_w2.Is(w_w2));
   VIXL_CHECK(w_w2.Is(cpu_w2));
-}
 
+  // CRegister implicitly casts to CPURegister.
+  CRegister c_c0(0);
+  CPURegister cpu_c0 = c_c0;
+  VIXL_CHECK(cpu_c0.Is(c_c0));
+  VIXL_CHECK(c_c0.Is(cpu_c0));
+
+  // CPURegister explicitly casts to CRegister.
+  CPURegister cpu_c1(1, kCRegSize, CPURegister::kCRegister);
+  CRegister c_c1(cpu_c1);
+  VIXL_CHECK(cpu_c1.Is(c_c1));
+  VIXL_CHECK(c_c1.Is(cpu_c1));
+}
 
 TEST(operand_is_plain_register) {
   VIXL_CHECK(Operand(x0).IsPlainRegister());
@@ -1011,7 +1068,6 @@ TEST(operand_is_plain_register) {
   VIXL_CHECK(!Operand(w15, UXTW).IsPlainRegister());
   VIXL_CHECK(!Operand(w16, SXTW).IsPlainRegister());
 }
-
 
 TEST(memoperand_is_plain_register) {
   VIXL_CHECK(MemOperand(x0).IsPlainRegister());
@@ -1329,6 +1385,7 @@ class ScratchScopeHelper {
         VIXL_UNREACHABLE();
         return NULL;
       case CPURegister::kRegister:
+      case CPURegister::kCRegister:
         return &expected_;
       case CPURegister::kVRegister:
       case CPURegister::kZRegister:

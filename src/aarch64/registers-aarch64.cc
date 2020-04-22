@@ -87,6 +87,12 @@ bool CPURegister::IsValidRegister() const {
          (qualifiers_ == kNoQualifiers) && (lane_size_ == size_);
 }
 
+bool CPURegister::IsValidCRegister() const {
+  return ((code_ < kNumberOfRegisters) || (code_ == kSPRegInternalCode)) &&
+         (bank_ == kRRegisterBank) && (size_ == kEncodedCRegSize) &&
+         (qualifiers_ == kNoQualifiers) && (lane_size_ == size_);
+}
+
 bool CPURegister::IsValidVRegister() const {
   VIXL_STATIC_ASSERT(kEncodedBRegSize < kEncodedQRegSize);
   return (code_ < kNumberOfVRegisters) && (bank_ == kVRegisterBank) &&
@@ -119,13 +125,14 @@ bool CPURegister::IsValidPRegister() const {
 
 bool CPURegister::IsValid() const {
   return IsValidRegister() || IsValidVRegister() || IsValidZRegister() ||
-         IsValidPRegister();
+         IsValidPRegister() || IsValidCRegister();
 }
 
 // Most coersions simply invoke the necessary constructor.
 #define VIXL_CPUREG_COERCION_LIST(U) \
   U(Register, W, R)                  \
   U(Register, X, R)                  \
+  U(CRegister, C, R)                 \
   U(VRegister, B, V)                 \
   U(VRegister, H, V)                 \
   U(VRegister, S, V)                 \
