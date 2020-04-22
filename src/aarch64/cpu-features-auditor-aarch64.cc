@@ -628,8 +628,6 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
 }
 
 // Most Morello visitors require only Morello.
-// TODO: Some of the following can access V registers, and also require FP|NEON
-// support.
 #define VIXL_SIMPLE_MORELLO_VISITOR_LIST(V)   \
   V(Morello1Src1Dst)                          \
   V(Morello2SrcCap)                           \
@@ -671,10 +669,8 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
   V(MorelloLoadStorePairPostIndex)            \
   V(MorelloLoadStorePairPreIndex)             \
   V(MorelloLoadStoreRegister)                 \
-  V(MorelloLoadStoreRegisterAltBase)          \
   V(MorelloLoadStoreTags)                     \
   V(MorelloLoadStoreUnscaledImmediate)        \
-  V(MorelloLoadStoreUnscaledImmediateAltBase) \
   V(MorelloLoadStoreUnsignedOffset)           \
   V(MorelloLoadStoreUnsignedOffsetAltBase)    \
   V(MorelloLogicalImm)                        \
@@ -699,6 +695,48 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
 VIXL_SIMPLE_MORELLO_VISITOR_LIST(VIXL_DEFINE_SIMPLE_MORELLO_VISITOR)
 #undef VIXL_DEFINE_SIMPLE_MORELLO_VISITOR
 #undef VIXL_SIMPLE_MORELLO_VISITOR_LIST
+
+void CPUFeaturesAuditor::VisitMorelloLoadStoreRegisterAltBase(
+    const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kMorello);
+  switch (instr->Mask(MorelloLoadStoreRegisterAltBaseMask)) {
+    case ASTR_v_rrb_d:
+    case ASTR_v_rrb_s:
+    case ALDR_v_rrb_d:
+    case ALDR_v_rrb_s:
+      scope.RecordOneOrBothOf(CPUFeatures::kFP, CPUFeatures::kNEON);
+      return;
+    default:
+      // No additional features.
+      return;
+  }
+}
+
+void CPUFeaturesAuditor::VisitMorelloLoadStoreUnscaledImmediateAltBase(
+    const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kMorello);
+  switch (instr->Mask(MorelloLoadStoreUnscaledImmediateAltBaseMask)) {
+    case ASTUR_v_ri_b:
+    case ASTUR_v_ri_q:
+    case ALDUR_v_ri_b:
+    case ALDUR_v_ri_q:
+      scope.Record(CPUFeatures::kNEON);
+      return;
+    case ASTUR_v_ri_h:
+    case ASTUR_v_ri_s:
+    case ASTUR_v_ri_d:
+    case ALDUR_v_ri_h:
+    case ALDUR_v_ri_s:
+    case ALDUR_v_ri_d:
+      scope.RecordOneOrBothOf(CPUFeatures::kFP, CPUFeatures::kNEON);
+      return;
+    default:
+      // No additional features.
+      return;
+  }
+}
 
 void CPUFeaturesAuditor::VisitMoveWideImmediate(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
