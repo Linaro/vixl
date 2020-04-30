@@ -2112,6 +2112,22 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Prefetch from pc + imm19 << 2.
   void prfm(PrefetchOperation op, int64_t imm19);
 
+  // Prefetch memory (allowing unallocated hints).
+  void prfm(int op,
+            const MemOperand& addr,
+            LoadStoreScalingOption option = PreferScaledOffset);
+
+  // Prefetch memory (with unscaled offset, allowing unallocated hints).
+  void prfum(int op,
+             const MemOperand& addr,
+             LoadStoreScalingOption option = PreferUnscaledOffset);
+
+  // Prefetch memory in the literal pool (allowing unallocated hints).
+  void prfm(int op, RawLiteral* literal);
+
+  // Prefetch from pc + imm19 << 2 (allowing unallocated hints).
+  void prfm(int op, int64_t imm19);
+
   // Move instructions. The default shift of -1 indicates that the move
   // instruction will calculate an appropriate 16-bit immediate and left shift
   // that is equal to the 64-bit immediate argument. If an explicit left shift
@@ -6756,6 +6772,9 @@ class Assembler : public vixl::internal::AssemblerBase {
                              int imm_divisor = 1);
 
   void Prefetch(PrefetchOperation op,
+                const MemOperand& addr,
+                LoadStoreScalingOption option = PreferScaledOffset);
+  void Prefetch(int op,
                 const MemOperand& addr,
                 LoadStoreScalingOption option = PreferScaledOffset);
 

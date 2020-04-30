@@ -1955,11 +1955,10 @@ TEST(prfm_operations) {
   const int expected_count = sizeof(expected) / sizeof(expected[0]);
   VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
-    COMPARE_PREFIX(prfm(op, INT64_C(0)), expected[i]);
-    COMPARE_PREFIX(prfm(op, MemOperand(x0, 0)), expected[i]);
-    COMPARE_PREFIX(prfm(op, MemOperand(x0, x1)), expected[i]);
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
+    COMPARE_PREFIX(prfm(op, INT64_C(0)), expected[op]);
+    COMPARE_PREFIX(prfm(op, MemOperand(x0, 0)), expected[op]);
+    COMPARE_PREFIX(prfm(op, MemOperand(x0, x1)), expected[op]);
   }
 
   CLEANUP();
@@ -1986,9 +1985,8 @@ TEST(prfum_operations) {
   const int expected_count = sizeof(expected) / sizeof(expected[0]);
   VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
-    COMPARE_PREFIX(prfum(op, MemOperand(x0, 0)), expected[i]);
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
+    COMPARE_PREFIX(prfum(op, MemOperand(x0, 0)), expected[op]);
   }
 
   CLEANUP();

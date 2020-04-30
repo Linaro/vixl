@@ -439,6 +439,12 @@ enum PrefetchOperation {
   PSTL3STRM = 0x15
 };
 
+constexpr bool IsNamedPrefetchOperation(int op) {
+  return ((op >= PLDL1KEEP) && (op <= PLDL3STRM)) ||
+      ((op >= PLIL1KEEP) && (op <= PLIL3STRM)) ||
+      ((op >= PSTL1KEEP) && (op <= PSTL3STRM));
+}
+
 enum BType {
   // Set when executing any instruction on a guarded page, except those cases
   // listed below.

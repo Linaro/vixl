@@ -1381,8 +1381,14 @@ void Assembler::ldr(const CPURegister& rt, int64_t imm19) {
 }
 
 
-void Assembler::prfm(PrefetchOperation op, int64_t imm19) {
+void Assembler::prfm(int op, int64_t imm19) {
   Emit(PRFM_lit | ImmPrefetchOperation(op) | ImmLLiteral(imm19));
+}
+
+void Assembler::prfm(PrefetchOperation op, int64_t imm19) {
+  // Passing unnamed values in 'op' is undefined behaviour in C++.
+  VIXL_ASSERT(IsNamedPrefetchOperation(op));
+  prfm(static_cast<int>(op), imm19);
 }
 
 
@@ -1846,7 +1852,7 @@ void Assembler::ldapursw(const Register& rt, const MemOperand& src) {
   Emit(LDAPURSW | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
 }
 
-void Assembler::prfm(PrefetchOperation op,
+void Assembler::prfm(int op,
                      const MemOperand& address,
                      LoadStoreScalingOption option) {
   VIXL_ASSERT(option != RequireUnscaledOffset);
@@ -1854,8 +1860,16 @@ void Assembler::prfm(PrefetchOperation op,
   Prefetch(op, address, option);
 }
 
+void Assembler::prfm(PrefetchOperation op,
+                     const MemOperand& address,
+                     LoadStoreScalingOption option) {
+  // Passing unnamed values in 'op' is undefined behaviour in C++.
+  VIXL_ASSERT(IsNamedPrefetchOperation(op));
+  prfm(static_cast<int>(op), address, option);
+}
 
-void Assembler::prfum(PrefetchOperation op,
+
+void Assembler::prfum(int op,
                       const MemOperand& address,
                       LoadStoreScalingOption option) {
   VIXL_ASSERT(option != RequireScaledOffset);
@@ -1863,9 +1877,23 @@ void Assembler::prfum(PrefetchOperation op,
   Prefetch(op, address, option);
 }
 
+void Assembler::prfum(PrefetchOperation op,
+                      const MemOperand& address,
+                      LoadStoreScalingOption option) {
+  // Passing unnamed values in 'op' is undefined behaviour in C++.
+  VIXL_ASSERT(IsNamedPrefetchOperation(op));
+  prfum(static_cast<int>(op), address, option);
+}
+
+
+void Assembler::prfm(int op, RawLiteral* literal) {
+  prfm(op, static_cast<int>(LinkAndGetWordOffsetTo(literal)));
+}
 
 void Assembler::prfm(PrefetchOperation op, RawLiteral* literal) {
-  prfm(op, static_cast<int>(LinkAndGetWordOffsetTo(literal)));
+  // Passing unnamed values in 'op' is undefined behaviour in C++.
+  VIXL_ASSERT(IsNamedPrefetchOperation(op));
+  prfm(static_cast<int>(op), literal);
 }
 
 
@@ -5697,13 +5725,21 @@ void Assembler::LoadStorePAC(const Register& xt,
 }
 
 
-void Assembler::Prefetch(PrefetchOperation op,
+void Assembler::Prefetch(int op,
                          const MemOperand& addr,
                          LoadStoreScalingOption option) {
   VIXL_ASSERT(addr.IsRegisterOffset() || addr.IsImmediateOffset());
 
   Instr prfop = ImmPrefetchOperation(op);
   Emit(PRFM | prfop | LoadStoreMemOperand(addr, kXRegSizeInBytesLog2, option));
+}
+
+void Assembler::Prefetch(PrefetchOperation op,
+                         const MemOperand& addr,
+                         LoadStoreScalingOption option) {
+  // Passing unnamed values in 'op' is undefined behaviour in C++.
+  VIXL_ASSERT(IsNamedPrefetchOperation(op));
+  Prefetch(static_cast<int>(op), addr, option);
 }
 
 

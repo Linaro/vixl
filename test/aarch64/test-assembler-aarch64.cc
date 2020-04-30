@@ -4113,6 +4113,28 @@ TEST(ldr_literal_custom_shared) {
   }
 }
 
+static const PrefetchOperation kPrfmOperations[] = {
+  PLDL1KEEP,
+  PLDL1STRM,
+  PLDL2KEEP,
+  PLDL2STRM,
+  PLDL3KEEP,
+  PLDL3STRM,
+
+  PLIL1KEEP,
+  PLIL1STRM,
+  PLIL2KEEP,
+  PLIL2STRM,
+  PLIL3KEEP,
+  PLIL3STRM,
+
+  PSTL1KEEP,
+  PSTL1STRM,
+  PSTL2KEEP,
+  PSTL2STRM,
+  PSTL3KEEP,
+  PSTL3STRM
+};
 
 TEST(prfm_offset) {
   SETUP();
@@ -4121,15 +4143,18 @@ TEST(prfm_offset) {
   // The address used in prfm doesn't have to be valid.
   __ Mov(x0, 0x0123456789abcdef);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
     // Unallocated prefetch operations are ignored, so test all of them.
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    // We have to use the Assembler directly for this.
+    ExactAssemblyScope guard(&masm, 3 * kInstructionSize);
+    __ prfm(op, MemOperand(x0));
+    __ prfm(op, MemOperand(x0, 8));
+    __ prfm(op, MemOperand(x0, 32760));
+  }
 
-    __ Prfm(op, MemOperand(x0));
-    __ Prfm(op, MemOperand(x0, 8));
-    __ Prfm(op, MemOperand(x0, 32760));
+  for (PrefetchOperation op: kPrfmOperations) {
+    // Also test named operations.
     __ Prfm(op, MemOperand(x0, 32768));
-
     __ Prfm(op, MemOperand(x0, 1));
     __ Prfm(op, MemOperand(x0, 9));
     __ Prfm(op, MemOperand(x0, 255));
@@ -4167,14 +4192,21 @@ TEST(prfm_regoffset) {
   __ Mov(x17, -255);
   __ Mov(x18, 0xfedcba9876543210);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
     // Unallocated prefetch operations are ignored, so test all of them.
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    // We have to use the Assembler directly for this.
+    ExactAssemblyScope guard(&masm, inputs.GetCount() * kInstructionSize);
+    CPURegList loop = inputs;
+    while (!loop.IsEmpty()) {
+      __ prfm(op, MemOperand(x0, Register(loop.PopLowestIndex())));
+    }
+  }
 
+  for (PrefetchOperation op: kPrfmOperations) {
+    // Also test named operations.
     CPURegList loop = inputs;
     while (!loop.IsEmpty()) {
       Register input(loop.PopLowestIndex());
-      __ Prfm(op, MemOperand(x0, input));
       __ Prfm(op, MemOperand(x0, input, UXTW));
       __ Prfm(op, MemOperand(x0, input, UXTW, 3));
       __ Prfm(op, MemOperand(x0, input, LSL));
@@ -4197,15 +4229,19 @@ TEST(prfm_literal_imm19) {
   SETUP();
   START();
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
     // Unallocated prefetch operations are ignored, so test all of them.
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
-
-    ExactAssemblyScope scope(&masm, 7 * kInstructionSize);
-    // The address used in prfm doesn't have to be valid.
+    // We have to use the Assembler directly for this.
+    ExactAssemblyScope guard(&masm, 3 * kInstructionSize);
     __ prfm(op, INT64_C(0));
     __ prfm(op, 1);
     __ prfm(op, -1);
+  }
+
+  for (PrefetchOperation op: kPrfmOperations) {
+    // Also test named operations.
+    ExactAssemblyScope guard(&masm, 4 * kInstructionSize);
+    // The address used in prfm doesn't have to be valid.
     __ prfm(op, 1000);
     __ prfm(op, -1000);
     __ prfm(op, 0x3ffff);
@@ -4237,10 +4273,16 @@ TEST(prfm_literal) {
   }
   __ Bind(&end_of_pool_before);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
     // Unallocated prefetch operations are ignored, so test all of them.
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    // We have to use the Assembler directly for this.
+    ExactAssemblyScope guard(&masm, 2 * kInstructionSize);
+    __ prfm(op, &before);
+    __ prfm(op, &after);
+  }
 
+  for (PrefetchOperation op: kPrfmOperations) {
+    // Also test named operations.
     ExactAssemblyScope guard(&masm, 2 * kInstructionSize);
     __ prfm(op, &before);
     __ prfm(op, &after);
@@ -4268,10 +4310,7 @@ TEST(prfm_wide) {
   // The address used in prfm doesn't have to be valid.
   __ Mov(x0, 0x0123456789abcdef);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
-    // Unallocated prefetch operations are ignored, so test all of them.
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
-
+  for (PrefetchOperation op: kPrfmOperations) {
     __ Prfm(op, MemOperand(x0, 0x40000));
     __ Prfm(op, MemOperand(x0, -0x40001));
     __ Prfm(op, MemOperand(x0, UINT64_C(0x5555555555555555)));
@@ -4319,9 +4358,25 @@ TEST(load_prfm_literal) {
   }
   __ Bind(&end_of_pool_before);
 
-  for (int i = 0; i < (1 << ImmPrefetchOperation_width); i++) {
+  for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
     // Unallocated prefetch operations are ignored, so test all of them.
-    PrefetchOperation op = static_cast<PrefetchOperation>(i);
+    ExactAssemblyScope scope(&masm, 10 * kInstructionSize);
+
+    __ prfm(op, &before_x);
+    __ prfm(op, &before_w);
+    __ prfm(op, &before_sx);
+    __ prfm(op, &before_d);
+    __ prfm(op, &before_s);
+
+    __ prfm(op, &after_x);
+    __ prfm(op, &after_w);
+    __ prfm(op, &after_sx);
+    __ prfm(op, &after_d);
+    __ prfm(op, &after_s);
+  }
+
+  for (PrefetchOperation op: kPrfmOperations) {
+    // Also test named operations.
     ExactAssemblyScope scope(&masm, 10 * kInstructionSize);
 
     __ prfm(op, &before_x);
