@@ -4290,7 +4290,6 @@ void Assembler::ld1w(const ZRegister& zt,
 // This prototype maps to 3 instruction encodings:
 //  LDFF1B_z_p_bz_d_64_unscaled
 //  LDFF1B_z_p_bz_d_x32_unscaled
-//  LDFF1B_z_p_bz_s_x32_unscaled
 void Assembler::ldff1b(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const Register& xn,
@@ -4363,8 +4362,6 @@ void Assembler::ldff1d(const ZRegister& zt,
 //  LDFF1H_z_p_bz_d_64_unscaled
 //  LDFF1H_z_p_bz_d_x32_scaled
 //  LDFF1H_z_p_bz_d_x32_unscaled
-//  LDFF1H_z_p_bz_s_x32_scaled
-//  LDFF1H_z_p_bz_s_x32_unscaled
 void Assembler::ldff1h(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const Register& xn,
@@ -4400,7 +4397,6 @@ void Assembler::ldff1h(const ZRegister& zt,
 // This prototype maps to 3 instruction encodings:
 //  LDFF1SB_z_p_bz_d_64_unscaled
 //  LDFF1SB_z_p_bz_d_x32_unscaled
-//  LDFF1SB_z_p_bz_s_x32_unscaled
 void Assembler::ldff1sb(const ZRegister& zt,
                         const PRegisterZ& pg,
                         const Register& xn,
@@ -4439,8 +4435,6 @@ void Assembler::ldff1sb(const ZRegister& zt,
 //  LDFF1SH_z_p_bz_d_64_unscaled
 //  LDFF1SH_z_p_bz_d_x32_scaled
 //  LDFF1SH_z_p_bz_d_x32_unscaled
-//  LDFF1SH_z_p_bz_s_x32_scaled
-//  LDFF1SH_z_p_bz_s_x32_unscaled
 void Assembler::ldff1sh(const ZRegister& zt,
                         const PRegisterZ& pg,
                         const Register& xn,
@@ -4514,8 +4508,6 @@ void Assembler::ldff1sw(const ZRegister& zt,
 //  LDFF1W_z_p_bz_d_64_unscaled
 //  LDFF1W_z_p_bz_d_x32_scaled
 //  LDFF1W_z_p_bz_d_x32_unscaled
-//  LDFF1W_z_p_bz_s_x32_scaled
-//  LDFF1W_z_p_bz_s_x32_unscaled
 void Assembler::ldff1w(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const Register& xn,

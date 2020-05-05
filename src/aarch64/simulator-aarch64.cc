@@ -9506,12 +9506,8 @@ void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
       SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
     case LD1H_z_p_bz_s_x32_scaled:
     case LD1SH_z_p_bz_s_x32_scaled:
-      break;
     case LDFF1H_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1SH_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -9530,13 +9526,11 @@ void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
     case LD1SB_z_p_bz_s_x32_unscaled:
     case LD1SH_z_p_bz_s_x32_unscaled:
     case LD1W_z_p_bz_s_x32_unscaled:
-      break;
     case LDFF1B_z_p_bz_s_x32_unscaled:
     case LDFF1H_z_p_bz_s_x32_unscaled:
     case LDFF1SB_z_p_bz_s_x32_unscaled:
     case LDFF1SH_z_p_bz_s_x32_unscaled:
     case LDFF1W_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -9592,9 +9586,7 @@ void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
   switch (
       instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
     case LD1W_z_p_bz_s_x32_scaled:
-      break;
     case LDFF1W_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
