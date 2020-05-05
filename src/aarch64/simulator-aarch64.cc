@@ -9729,60 +9729,49 @@ void Simulator::VisitSVEContiguousPrefetch_ScalarPlusScalar(
 }
 
 void Simulator::VisitSVELoadAndBroadcastElement(const Instruction* instr) {
-  USE(instr);
+  bool is_signed;
   switch (instr->Mask(SVELoadAndBroadcastElementMask)) {
-    case LD1RB_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RB_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RB_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RB_z_p_bi_u8:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RD_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
-      break;
+    case LD1RB_z_p_bi_u16:
+    case LD1RB_z_p_bi_u32:
+    case LD1RB_z_p_bi_u64:
     case LD1RH_z_p_bi_u16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RH_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RH_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
+    case LD1RW_z_p_bi_u32:
+    case LD1RW_z_p_bi_u64:
+    case LD1RD_z_p_bi_u64:
+      is_signed = false;
       break;
     case LD1RSB_z_p_bi_s16:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RSB_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RSB_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RSH_z_p_bi_s32:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RSH_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1RSW_z_p_bi_s64:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RW_z_p_bi_u32:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LD1RW_z_p_bi_u64:
-      VIXL_UNIMPLEMENTED();
+      is_signed = true;
       break;
     default:
-      VIXL_UNIMPLEMENTED();
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
       break;
   }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed, 13);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t offset = instr->ExtractBits(21, 16) << msize_in_bytes_log2;
+  uint64_t base = ReadXRegister(instr->GetRn()) + offset;
+  VectorFormat unpack_vform =
+      SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
+  SimVRegister temp;
+  ld1r(vform, unpack_vform, temp, base, is_signed);
+  mov_zeroing(vform,
+              ReadVRegister(instr->GetRt()),
+              ReadPRegister(instr->GetPgLow8()),
+              temp);
 }
 
 void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {

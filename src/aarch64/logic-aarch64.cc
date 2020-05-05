@@ -184,11 +184,25 @@ void Simulator::ld1(VectorFormat vform,
 }
 
 
-void Simulator::ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
+void Simulator::ld1r(VectorFormat vform,
+                     VectorFormat unpack_vform,
+                     LogicVRegister dst,
+                     uint64_t addr,
+                     bool is_signed) {
+  unsigned unpack_size = LaneSizeInBitsFromFormat(unpack_vform);
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.ReadUintFromMem(vform, i, addr);
+    if (is_signed) {
+      dst.ReadIntFromMem(vform, unpack_size, i, addr);
+    } else {
+      dst.ReadUintFromMem(vform, unpack_size, i, addr);
+    }
   }
+}
+
+
+void Simulator::ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
+  ld1r(vform, vform, dst, addr);
 }
 
 

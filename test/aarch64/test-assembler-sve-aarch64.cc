@@ -8725,6 +8725,41 @@ TEST_SVE(sve_ld234_st234_scalar_plus_imm_sp) {
   }
 }
 
+// Fill the input buffer with arbitrary data. Meanwhile, assign random offsets
+// from the base address of the buffer and corresponding addresses to the
+// arguments if provided.
+static void BufferFillingHelper(uint64_t data_ptr,
+                                size_t buffer_size,
+                                unsigned lane_size_in_bytes,
+                                int lane_count,
+                                uint64_t* offsets,
+                                uint64_t* addresses = nullptr,
+                                uint64_t* max_address = nullptr) {
+  // Use a fixed seed for nrand48() so that test runs are reproducible.
+  unsigned short seed[3] = {1, 2, 3};  // NOLINT(runtime/int)
+
+  // Fill a buffer with arbitrary data.
+  for (size_t i = 0; i < buffer_size; i++) {
+    uint8_t byte = nrand48(seed) & 0xff;
+    memcpy(reinterpret_cast<void*>(data_ptr + i), &byte, 1);
+  }
+
+  if (max_address != nullptr) {
+    *max_address = 0;
+  }
+
+  // Vectors of random addresses and offsets into the buffer.
+  for (int i = 0; i < lane_count; i++) {
+    uint64_t rnd = nrand48(seed);
+    // Limit the range to the set of completely-accessible elements in memory.
+    offsets[i] = rnd % (buffer_size - lane_size_in_bytes);
+    if ((addresses != nullptr) && (max_address != nullptr)) {
+      addresses[i] = data_ptr + offsets[i];
+      *max_address = std::max(*max_address, addresses[i]);
+    }
+  }
+}
+
 TEST_SVE(sve_ldff1_scalar_plus_scalar) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
@@ -8892,6 +8927,74 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
   munmap(reinterpret_cast<void*>(data), page_size * 2);
 }
 
+static void ScalarLoadHelper(MacroAssembler* masm,
+                             Register dst,
+                             Register addr,
+                             int msize_in_bits,
+                             bool is_signed) {
+  if (is_signed) {
+    switch (msize_in_bits) {
+      case kBRegSize:
+        masm->Ldrsb(dst, MemOperand(addr));
+        break;
+      case kHRegSize:
+        masm->Ldrsh(dst, MemOperand(addr));
+        break;
+      case kWRegSize:
+        masm->Ldrsw(dst, MemOperand(addr));
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    switch (msize_in_bits) {
+      case kBRegSize:
+        masm->Ldrb(dst, MemOperand(addr));
+        break;
+      case kHRegSize:
+        masm->Ldrh(dst, MemOperand(addr));
+        break;
+      case kWRegSize:
+        masm->Ldr(dst.W(), MemOperand(addr));
+        break;
+      case kXRegSize:
+        masm->Ldr(dst, MemOperand(addr));
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+}
+
+// Generate a reference result using scalar loads.
+// For now this helper doesn't save and restore the caller registers.
+// Clobber register z30, x28, x29 and p7.
+template <size_t N>
+static void ScalarLoadHelper(MacroAssembler* masm,
+                             int vl,
+                             const uint64_t (&addresses)[N],
+                             const ZRegister& zt_ref,
+                             const PRegisterZ& pg,
+                             unsigned esize_in_bits,
+                             unsigned msize_in_bits,
+                             bool is_signed) {
+  unsigned esize_in_bytes = esize_in_bits / kBitsPerByte;
+  ZRegister lane_numbers = z30.WithLaneSize(esize_in_bits);
+  masm->Index(lane_numbers, 0, 1);
+  masm->Dup(zt_ref, 0);
+  for (unsigned i = 0; i < (vl / esize_in_bytes); i++) {
+    masm->Mov(x29, addresses[N - i - 1]);
+    Register rt(28, std::min(std::max(esize_in_bits, kSRegSize), kDRegSize));
+    ScalarLoadHelper(masm, rt, x29, msize_in_bits, is_signed);
+
+    // Emulate predication.
+    masm->Cmpeq(p7.WithLaneSize(esize_in_bits), pg, lane_numbers, i);
+    masm->Cpy(zt_ref, p7.Merging(), rt);
+  }
+}
+
 // Test gather loads by comparing them with the result of a set of equivalent
 // scalar loads.
 template <typename F>
@@ -8908,31 +9011,20 @@ static void GatherLoadHelper(Test* config,
   START();
 
   unsigned msize_in_bytes = msize_in_bits / kBitsPerByte;
-  unsigned esize_in_bytes = esize_in_bits / kBitsPerByte;
   int vl = config->sve_vl_in_bytes();
 
-  // Use a fixed seed for nrand48() so that test runs are reproducible.
-  unsigned short seed[3] = {1, 2, 3};  // NOLINT(runtime/int)
-
-  // Fill a buffer with arbitrary data.
-  size_t buffer_size = vl * 64;
-  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
-  for (size_t i = 0; i < buffer_size; i++) {
-    uint8_t byte = nrand48(seed) & 0xff;
-    memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
-  }
-
-  // Vectors of random addresses and offsets into the buffer.
   uint64_t addresses[kMaxLaneCount];
   uint64_t offsets[kMaxLaneCount];
   uint64_t max_address = 0;
-  for (unsigned i = 0; i < kMaxLaneCount; i++) {
-    uint64_t rnd = nrand48(seed);
-    // Limit the range to the set of completely-accessible elements in memory.
-    offsets[i] = rnd % (buffer_size - msize_in_bytes);
-    addresses[i] = data + offsets[i];
-    max_address = std::max(max_address, addresses[i]);
-  }
+  uint64_t buffer_size = vl * 64;
+  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
+  BufferFillingHelper(data,
+                      buffer_size,
+                      msize_in_bytes,
+                      kMaxLaneCount,
+                      offsets,
+                      addresses,
+                      &max_address);
 
   // Maximised offsets, to ensure that the address calculation is modulo-2^64,
   // and that the vector addresses are not sign-extended.
@@ -8976,46 +9068,14 @@ static void GatherLoadHelper(Test* config,
   // TODO: Also test first-fault loads.
 
   // Generate a reference result using scalar loads.
-
-  ZRegister lane_numbers = z10.WithLaneSize(esize_in_bits);
-  __ Index(lane_numbers, 0, 1);
-  __ Dup(zt_ref, 0);
-  for (unsigned i = 0; i < (vl / esize_in_bytes); i++) {
-    __ Mov(x0, addresses[ArrayLength(addresses) - i - 1]);
-    Register rt(0, esize_in_bits);
-    if (is_signed) {
-      switch (msize_in_bits) {
-        case kBRegSize:
-          __ Ldrsb(rt, MemOperand(x0));
-          break;
-        case kHRegSize:
-          __ Ldrsh(rt, MemOperand(x0));
-          break;
-        case kWRegSize:
-          __ Ldrsw(rt, MemOperand(x0));
-          break;
-      }
-    } else {
-      switch (msize_in_bits) {
-        case kBRegSize:
-          __ Ldrb(rt, MemOperand(x0));
-          break;
-        case kHRegSize:
-          __ Ldrh(rt, MemOperand(x0));
-          break;
-        case kWRegSize:
-          __ Ldr(rt.W(), MemOperand(x0));
-          break;
-        case kXRegSize:
-          __ Ldr(rt, MemOperand(x0));
-          break;
-      }
-    }
-
-    // Emulate predication.
-    __ Cmpeq(p7.WithLaneSize(esize_in_bits), pg, lane_numbers, i);
-    __ Cpy(zt_ref, p7.Merging(), rt);
-  }
+  ScalarLoadHelper(&masm,
+                   vl,
+                   addresses,
+                   zt_ref,
+                   pg,
+                   esize_in_bits,
+                   msize_in_bits,
+                   is_signed);
 
   END();
 
@@ -16990,6 +17050,140 @@ TEST_SVE(sve_adr) {
     ASSERT_EQUAL_SVE(expected_z17, z17.VnD());
     ASSERT_EQUAL_SVE(expected_z18, z18.VnD());
   }
+}
+
+// Test loads and broadcast by comparing them with the result of a set of
+// equivalent scalar loads.
+template <typename F>
+static void LoadBcastHelper(Test* config,
+                            unsigned msize_in_bits,
+                            unsigned esize_in_bits,
+                            F sve_ld1,
+                            bool is_signed) {
+  VIXL_ASSERT((esize_in_bits == kBRegSize) || (esize_in_bits == kHRegSize) ||
+              (esize_in_bits == kSRegSize) || (esize_in_bits == kDRegSize));
+  static const unsigned kMaxLaneCount = kZRegMaxSize / kBRegSize;
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  unsigned msize_in_bytes = msize_in_bits / kBitsPerByte;
+  unsigned esize_in_bytes = esize_in_bits / kBitsPerByte;
+  int vl = config->sve_vl_in_bytes();
+
+  uint64_t offsets[kMaxLaneCount];
+  uint64_t buffer_size = vl * 64;
+  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
+  BufferFillingHelper(data,
+                      buffer_size,
+                      msize_in_bytes,
+                      kMaxLaneCount,
+                      offsets);
+
+  for (unsigned i = 0; i < (kMaxLaneCount / 2); i++) {
+    // Assign encodable offsets into the first part of the offset array so
+    // that both encodable and unencodable offset can be tested.
+    // Note that the encoding bit range of immediate offset is 6 bits.
+    offsets[i] = (offsets[i] % (UINT64_C(1) << 6)) * msize_in_bytes;
+  }
+
+  ZRegister zn = z0.WithLaneSize(esize_in_bits);
+  ZRegister zn_ref = z4.WithLaneSize(esize_in_bits);
+
+  PRegisterZ pg = p0.Zeroing();
+  Initialise(&masm,
+             pg,
+             0x9abcdef012345678,
+             0xabcdef0123456789,
+             0xf4f3f1f0fefdfcfa,
+             0xf9f8f6f5f3f2f0ff);
+
+  __ Mov(x2, data);
+  uint64_t enablable_offset = offsets[0];
+  // Simple check if the operation correct in a single offset.
+  (masm.*sve_ld1)(zn, pg, SVEMemOperand(x2, enablable_offset));
+
+  // Generate a reference result using scalar loads.
+  uint64_t address = data + enablable_offset;
+  uint64_t duplicated_addresses[kMaxLaneCount];
+  for (unsigned i = 0; i < kMaxLaneCount; i++) {
+    duplicated_addresses[i] = address;
+  }
+
+  ScalarLoadHelper(&masm,
+                   vl,
+                   duplicated_addresses,
+                   zn_ref,
+                   pg,
+                   esize_in_bits,
+                   msize_in_bits,
+                   is_signed);
+
+  ZRegister zn_agg = z10.WithLaneSize(esize_in_bits);
+  ZRegister zn_agg_ref = z11.WithLaneSize(esize_in_bits);
+  ZRegister zn_temp = z12.WithLaneSize(esize_in_bits);
+
+  __ Dup(zn_agg, 0);
+  __ Dup(zn_agg_ref, 0);
+
+  // Check if the operation correct in different offsets.
+  for (unsigned i = 0; i < (vl / esize_in_bytes); i++) {
+    (masm.*sve_ld1)(zn_temp, pg, SVEMemOperand(x2, offsets[i]));
+    __ Lastb(x1, pg, zn_temp);
+    __ Insr(zn_agg, x1);
+
+    __ Mov(x3, data + offsets[i]);
+    ScalarLoadHelper(&masm, x1, x3, msize_in_bits, is_signed);
+    __ Insr(zn_agg_ref, x1);
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zn_ref, zn);
+    ASSERT_EQUAL_SVE(zn_agg_ref, zn_agg);
+  }
+
+  free(reinterpret_cast<void*>(data));
+}
+
+TEST_SVE(sve_ld1rb) {
+  LoadBcastHelper(config, kBRegSize, kBRegSize, &MacroAssembler::Ld1rb, false);
+  LoadBcastHelper(config, kBRegSize, kHRegSize, &MacroAssembler::Ld1rb, false);
+  LoadBcastHelper(config, kBRegSize, kSRegSize, &MacroAssembler::Ld1rb, false);
+  LoadBcastHelper(config, kBRegSize, kDRegSize, &MacroAssembler::Ld1rb, false);
+}
+
+TEST_SVE(sve_ld1rh) {
+  LoadBcastHelper(config, kHRegSize, kHRegSize, &MacroAssembler::Ld1rh, false);
+  LoadBcastHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1rh, false);
+  LoadBcastHelper(config, kHRegSize, kDRegSize, &MacroAssembler::Ld1rh, false);
+}
+
+TEST_SVE(sve_ld1rw) {
+  LoadBcastHelper(config, kSRegSize, kSRegSize, &MacroAssembler::Ld1rw, false);
+  LoadBcastHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1rw, false);
+}
+
+TEST_SVE(sve_ld1rd) {
+  LoadBcastHelper(config, kDRegSize, kDRegSize, &MacroAssembler::Ld1rd, false);
+}
+
+TEST_SVE(sve_ld1rsb) {
+  LoadBcastHelper(config, kBRegSize, kHRegSize, &MacroAssembler::Ld1rsb, true);
+  LoadBcastHelper(config, kBRegSize, kSRegSize, &MacroAssembler::Ld1rsb, true);
+  LoadBcastHelper(config, kBRegSize, kDRegSize, &MacroAssembler::Ld1rsb, true);
+}
+
+TEST_SVE(sve_ld1rsh) {
+  LoadBcastHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1rsh, true);
+  LoadBcastHelper(config, kHRegSize, kDRegSize, &MacroAssembler::Ld1rsh, true);
+}
+
+TEST_SVE(sve_ld1rsw) {
+  LoadBcastHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1rsw, true);
 }
 
 }  // namespace aarch64

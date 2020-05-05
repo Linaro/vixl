@@ -1088,6 +1088,25 @@ void MacroAssembler::Udiv(const ZRegister& zd,
                                      &Assembler::udivr));
 }
 
+void MacroAssembler::SVELoadBroadcastImmHelper(const ZRegister& zt,
+                                               const PRegisterZ& pg,
+                                               const SVEMemOperand& addr,
+                                               SVELoadBroadcastFn fn,
+                                               int divisor) {
+  VIXL_ASSERT(addr.IsScalarPlusImmediate());
+  int64_t imm = addr.GetImmediateOffset();
+  if ((imm % divisor == 0) && IsUint6(imm / divisor)) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, addr);
+  } else {
+    UseScratchRegisterScope temps(this);
+    Register scratch = temps.AcquireX();
+    CalculateSVEAddress(scratch, addr, zt);
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, SVEMemOperand(scratch));
+  }
+}
+
 void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
                                                  const SVEMemOperand& addr,
                                                  SVELoadStoreFn fn) {

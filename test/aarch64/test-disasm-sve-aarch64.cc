@@ -3305,22 +3305,6 @@ TEST(sve_mem_32bit_gather_and_unsized_contiguous) {
   COMPARE_PREFIX(ld1b(z9.VnS(), p5.Zeroing(), x2, z1.VnS()), "ld1b { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
   COMPARE_PREFIX(ld1h(z17.VnS(), p2.Zeroing(), x11, z24.VnS()), "ld1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]");
   COMPARE_PREFIX(ld1h(z9.VnS(), p3.Zeroing(), x18, z4.VnS()), "ld1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(ld1rb(z2.VnH(), p0.Zeroing(), x30, int imm6), "ld1rb { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rb(z14.VnS(), p2.Zeroing(), x11, int imm6), "ld1rb { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rb(z27.VnD(), p1.Zeroing(), x29, int imm6), "ld1rb { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rb(z0.VnB(), p3.Zeroing(), x20, int imm6), "ld1rb { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rd(z19.VnD(), p7.Zeroing(), x14, int imm6), "ld1rd { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rh(z19.VnH(), p5.Zeroing(), x1, int imm6), "ld1rh { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rh(z4.VnS(), p7.Zeroing(), x29, int imm6), "ld1rh { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rh(z24.VnD(), p0.Zeroing(), x29, int imm6), "ld1rh { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rsb(z16.VnH(), p1.Zeroing(), x29, int imm6), "ld1rsb { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rsb(z8.VnS(), p6.Zeroing(), x5, int imm6), "ld1rsb { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rsb(z25.VnD(), p2.Zeroing(), x18, int imm6), "ld1rsb { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rsh(z11.VnS(), p5.Zeroing(), x14, int imm6), "ld1rsh { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rsh(z28.VnD(), p1.Zeroing(), x19, int imm6), "ld1rsh { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rsw(z23.VnD(), p4.Zeroing(), x10, int imm6), "ld1rsw { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rw(z19.VnS(), p5.Zeroing(), x4, int imm6), "ld1rw { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(ld1rw(z13.VnD(), p3.Zeroing(), x2, int imm6), "ld1rw { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]");
   COMPARE_PREFIX(ld1sb(z12.VnS(), p7.Zeroing(), x17, z23.VnS()), "ld1sb { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
   COMPARE_PREFIX(ld1sh(z11.VnS(), p2.Zeroing(), x18, z10.VnS()), "ld1sh { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]");
   COMPARE_PREFIX(ld1sh(z11.VnS(), p4.Zeroing(), x19, z0.VnS()), "ld1sh { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
@@ -3352,7 +3336,66 @@ TEST(sve_mem_32bit_gather_and_unsized_contiguous) {
   COMPARE_PREFIX(prfw(int prfop, p1, x2, z6.VnS()), "prfw <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]");
 #endif
 
+  COMPARE_PREFIX(ld1rb(z2.VnH(), p0.Zeroing(), SVEMemOperand(x30, 0)),
+                 "ld1rb { z2.h }, p0/z, [x30]");
+  COMPARE_PREFIX(ld1rb(z14.VnS(), p2.Zeroing(), SVEMemOperand(x11, 63)),
+                 "ld1rb { z14.s }, p2/z, [x11, #63]");
+  COMPARE_PREFIX(ld1rb(z27.VnD(), p1.Zeroing(), SVEMemOperand(x29, 2)),
+                 "ld1rb { z27.d }, p1/z, [x29, #2]");
+  COMPARE_PREFIX(ld1rb(z0.VnB(), p3.Zeroing(), SVEMemOperand(sp, 59)),
+                 "ld1rb { z0.b }, p3/z, [sp, #59]");
+  COMPARE_PREFIX(ld1rh(z19.VnH(), p5.Zeroing(), SVEMemOperand(x1, 0)),
+                 "ld1rh { z19.h }, p5/z, [x1]");
+  COMPARE_PREFIX(ld1rh(z4.VnS(), p7.Zeroing(), SVEMemOperand(x29, 126)),
+                 "ld1rh { z4.s }, p7/z, [x29, #126]");
+  COMPARE_PREFIX(ld1rh(z24.VnD(), p0.Zeroing(), SVEMemOperand(sp, 78)),
+                 "ld1rh { z24.d }, p0/z, [sp, #78]");
+  COMPARE_PREFIX(ld1rw(z19.VnS(), p5.Zeroing(), SVEMemOperand(x4, 252)),
+                 "ld1rw { z19.s }, p5/z, [x4, #252]");
+  COMPARE_PREFIX(ld1rw(z13.VnD(), p3.Zeroing(), SVEMemOperand(x2, 100)),
+                 "ld1rw { z13.d }, p3/z, [x2, #100]");
+  COMPARE_PREFIX(ld1rd(z19.VnD(), p7.Zeroing(), SVEMemOperand(x14, 504)),
+                 "ld1rd { z19.d }, p7/z, [x14, #504]");
+  COMPARE_PREFIX(ld1rsb(z16.VnH(), p1.Zeroing(), SVEMemOperand(x29, 0)),
+                 "ld1rsb { z16.h }, p1/z, [x29]");
+  COMPARE_PREFIX(ld1rsb(z8.VnS(), p6.Zeroing(), SVEMemOperand(sp, 33)),
+                 "ld1rsb { z8.s }, p6/z, [sp, #33]");
+  COMPARE_PREFIX(ld1rsb(z25.VnD(), p2.Zeroing(), SVEMemOperand(x18, 63)),
+                 "ld1rsb { z25.d }, p2/z, [x18, #63]");
+  COMPARE_PREFIX(ld1rsh(z11.VnS(), p5.Zeroing(), SVEMemOperand(x14, 2)),
+                 "ld1rsh { z11.s }, p5/z, [x14, #2]");
+  COMPARE_PREFIX(ld1rsh(z28.VnD(), p1.Zeroing(), SVEMemOperand(x19, 124)),
+                 "ld1rsh { z28.d }, p1/z, [x19, #124]");
+  COMPARE_PREFIX(ld1rsw(z23.VnD(), p4.Zeroing(), SVEMemOperand(x10, 8)),
+                 "ld1rsw { z23.d }, p4/z, [x10, #8]");
+
   CLEANUP();
+}
+
+TEST(sve_mem_32bit_gather_and_unsized_contiguous_macro) {
+  SETUP();
+
+  COMPARE_MACRO(Ld1rb(z2.VnB(), p0.Zeroing(), SVEMemOperand(x30, 100)),
+                "add x16, x30, #0x64 (100)\n"
+                "ld1rb { z2.b }, p0/z, [x16]");
+  COMPARE_MACRO(Ld1rh(z4.VnH(), p1.Zeroing(), SVEMemOperand(x21, 201)),
+                "add x16, x21, #0xc9 (201)\n"
+                "ld1rh { z4.h }, p1/z, [x16]");
+  COMPARE_MACRO(Ld1rw(z6.VnS(), p2.Zeroing(), SVEMemOperand(x14, 512)),
+                "add x16, x14, #0x200 (512)\n"
+                "ld1rw { z6.s }, p2/z, [x16]");
+  COMPARE_MACRO(Ld1rd(z8.VnD(), p3.Zeroing(), SVEMemOperand(x3, 1024)),
+                "add x16, x3, #0x400 (1024)\n"
+                "ld1rd { z8.d }, p3/z, [x16]");
+  COMPARE_MACRO(Ld1rsb(z10.VnH(), p4.Zeroing(), SVEMemOperand(sp, -100)),
+                "sub x16, sp, #0x64 (100)\n"
+                "ld1rsb { z10.h }, p4/z, [x16]");
+  COMPARE_MACRO(Ld1rsh(z12.VnS(), p5.Zeroing(), SVEMemOperand(x30, -255)),
+                "sub x16, x30, #0xff (255)\n"
+                "ld1rsh { z12.s }, p5/z, [x16]");
+  COMPARE_MACRO(Ld1rsw(z14.VnD(), p6.Zeroing(), SVEMemOperand(x1, -1024)),
+                "sub x16, x1, #0x400 (1024)\n"
+                "ld1rsw { z14.d }, p6/z, [x16]");
 }
 
 TEST(sve_mem_64bit_gather_vector_plus_immediate) {

@@ -4025,6 +4025,30 @@ VIXL_SVE_LOAD_STORE_SIGNED_VARIANT_LIST(VIXL_DEFINE_LD1S)
 
 // SVEMem32BitGatherAndUnsizedContiguous.
 
+void Assembler::SVELd1BroadcastHelper(unsigned msize_in_bytes_log2,
+                                      const ZRegister& zt,
+                                      const PRegisterZ& pg,
+                                      const SVEMemOperand& addr,
+                                      bool is_signed) {
+  VIXL_ASSERT(addr.IsScalarPlusImmediate());
+  VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() >= msize_in_bytes_log2);
+  if (is_signed) {
+    // Sign-extension is only possible when the vector elements are larger than
+    // the elements in memory.
+    VIXL_ASSERT(zt.GetLaneSizeInBytesLog2() != msize_in_bytes_log2);
+  }
+
+  int64_t imm = addr.GetImmediateOffset();
+  int divisor = 1 << msize_in_bytes_log2;
+  VIXL_ASSERT(imm % divisor == 0);
+  Instr dtype = SVEDtypeSplit(msize_in_bytes_log2,
+                              zt.GetLaneSizeInBytesLog2(),
+                              is_signed);
+
+  Emit(SVELoadAndBroadcastElementFixed | dtype | RnSP(addr.GetScalarBase()) |
+       ImmUnsignedField<21, 16>(imm / divisor) | Rt(zt) | PgLow8(pg));
+}
+
 // This prototype maps to 4 instruction encodings:
 //  LD1RB_z_p_bi_u16
 //  LD1RB_z_p_bi_u32
@@ -4032,32 +4056,10 @@ VIXL_SVE_LOAD_STORE_SIGNED_VARIANT_LIST(VIXL_DEFINE_LD1S)
 //  LD1RB_z_p_bi_u8
 void Assembler::ld1rb(const ZRegister& zt,
                       const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm6) {
-  // LD1RB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0100 01.. .... 101. .... .... ....
-  //  dtypeh<24:23> = 00 | imm6<21:16> | dtypel<14:13> = 01 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
+                      const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LD1RB_z_p_bi_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
-}
-
-void Assembler::ld1rd(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm6) {
-  // LD1RD { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0101 11.. .... 111. .... .... ....
-  //  dtypeh<24:23> = 11 | imm6<21:16> | dtypel<14:13> = 11 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1RD_z_p_bi_u64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
+  SVELd1BroadcastHelper(kBRegSizeInBytesLog2, zt, pg, addr, false);
 }
 
 // This prototype maps to 3 instruction encodings:
@@ -4066,17 +4068,29 @@ void Assembler::ld1rd(const ZRegister& zt,
 //  LD1RH_z_p_bi_u64
 void Assembler::ld1rh(const ZRegister& zt,
                       const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm6) {
-  // LD1RH { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0100 11.. .... 101. .... .... ....
-  //  dtypeh<24:23> = 01 | imm6<21:16> | dtypel<14:13> = 01 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
+                      const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LD1RH_z_p_bi_u16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
+  SVELd1BroadcastHelper(kHRegSizeInBytesLog2, zt, pg, addr, false);
+}
+
+// This prototype maps to 2 instruction encodings:
+//  LD1RW_z_p_bi_u32
+//  LD1RW_z_p_bi_u64
+void Assembler::ld1rw(const ZRegister& zt,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+
+  SVELd1BroadcastHelper(kSRegSizeInBytesLog2, zt, pg, addr, false);
+}
+
+void Assembler::ld1rd(const ZRegister& zt,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+
+  SVELd1BroadcastHelper(kDRegSizeInBytesLog2, zt, pg, addr, false);
 }
 
 // This prototype maps to 3 instruction encodings:
@@ -4085,17 +4099,10 @@ void Assembler::ld1rh(const ZRegister& zt,
 //  LD1RSB_z_p_bi_s64
 void Assembler::ld1rsb(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm6) {
-  // LD1RSB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0101 11.. .... 110. .... .... ....
-  //  dtypeh<24:23> = 11 | imm6<21:16> | dtypel<14:13> = 10 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LD1RSB_z_p_bi_s16 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
+  SVELd1BroadcastHelper(kBRegSizeInBytesLog2, zt, pg, addr, true);
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -4103,50 +4110,18 @@ void Assembler::ld1rsb(const ZRegister& zt,
 //  LD1RSH_z_p_bi_s64
 void Assembler::ld1rsh(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm6) {
-  // LD1RSH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0101 01.. .... 101. .... .... ....
-  //  dtypeh<24:23> = 10 | imm6<21:16> | dtypel<14:13> = 01 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LD1RSH_z_p_bi_s32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
+  SVELd1BroadcastHelper(kHRegSizeInBytesLog2, zt, pg, addr, true);
 }
 
 void Assembler::ld1rsw(const ZRegister& zt,
                        const PRegisterZ& pg,
-                       const Register& xn,
-                       int imm6) {
-  // LD1RSW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0100 11.. .... 100. .... .... ....
-  //  dtypeh<24:23> = 01 | imm6<21:16> | dtypel<14:13> = 00 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
+                       const SVEMemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LD1RSW_z_p_bi_s64 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  LD1RW_z_p_bi_u32
-//  LD1RW_z_p_bi_u64
-void Assembler::ld1rw(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      int imm6) {
-  // LD1RW { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  //  1000 0101 01.. .... 110. .... .... ....
-  //  dtypeh<24:23> = 10 | imm6<21:16> | dtypel<14:13> = 10 | Pg<12:10> |
-  //  Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1RW_z_p_bi_u32 | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       ImmField<21, 16>(imm6));
+  SVELd1BroadcastHelper(kWRegSizeInBytesLog2, zt, pg, addr, true);
 }
 
 void Assembler::ldr(const CPURegister& rt, const SVEMemOperand& addr) {

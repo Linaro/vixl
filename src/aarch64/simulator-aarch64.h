@@ -2762,6 +2762,11 @@ class Simulator : public DecoderVisitor {
   void ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
   void ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);
   void ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr);
+  void ld1r(VectorFormat vform,
+            VectorFormat unpack_vform,
+            LogicVRegister dst,
+            uint64_t addr,
+            bool is_signed = false);
   void ld2(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,

@@ -7447,87 +7447,104 @@ void Disassembler::VisitSVEIntMulVectors_Predicated(const Instruction *instr) {
 
 void Disassembler::VisitSVELoadAndBroadcastElement(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns{, #'u2116}]";
+  const char *form = "(SVELoadAndBroadcastElement)";
+  const char *suffix_b = ", #'u2116]";
+  const char *suffix_h = ", #'u2116*2]";
+  const char *suffix_w = ", #'u2116*4]";
+  const char *suffix_d = ", #'u2116*8]";
+  const char *suffix = NULL;
 
   switch (instr->Mask(SVELoadAndBroadcastElementMask)) {
-    // LD1RB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RB_z_p_bi_u16:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RB_z_p_bi_u32:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RB_z_p_bi_u64:
       mnemonic = "ld1rb";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RB { <Zt>.B }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RB_z_p_bi_u8:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.b }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RD { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RD_z_p_bi_u64:
       mnemonic = "ld1rd";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_d;
       break;
-    // LD1RH { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RH_z_p_bi_u16:
       mnemonic = "ld1rh";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      suffix = suffix_h;
       break;
-    // LD1RH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RH_z_p_bi_u32:
       mnemonic = "ld1rh";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      suffix = suffix_h;
       break;
-    // LD1RH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RH_z_p_bi_u64:
       mnemonic = "ld1rh";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_h;
       break;
-    // LD1RSB { <Zt>.H }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RSB_z_p_bi_s16:
       mnemonic = "ld1rsb";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RSB { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RSB_z_p_bi_s32:
       mnemonic = "ld1rsb";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RSB { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RSB_z_p_bi_s64:
       mnemonic = "ld1rsb";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_b;
       break;
-    // LD1RSH { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RSH_z_p_bi_s32:
       mnemonic = "ld1rsh";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      suffix = suffix_h;
       break;
-    // LD1RSH { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RSH_z_p_bi_s64:
       mnemonic = "ld1rsh";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_h;
       break;
-    // LD1RSW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RSW_z_p_bi_s64:
       mnemonic = "ld1rsw";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_w;
       break;
-    // LD1RW { <Zt>.S }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RW_z_p_bi_u32:
       mnemonic = "ld1rw";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns{, #'u2116}]";
+      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      suffix = suffix_w;
       break;
-    // LD1RW { <Zt>.D }, <Pg>/Z, [<Xn|SP>{, #<imm>}]
     case LD1RW_z_p_bi_u64:
       mnemonic = "ld1rw";
+      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      suffix = suffix_w;
       break;
     default:
       break;
   }
-  Format(instr, mnemonic, form);
+
+  // Hide curly brackets if immediate is zero.
+  if (instr->ExtractBits(21, 16) == 0) {
+    suffix = "]";
+  }
+
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(

@@ -4730,27 +4730,43 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const SVEMemOperand& addr);
   void Ld1rb(const ZRegister& zt,
              const PRegisterZ& pg,
-             const Register& xn,
-             int imm6) {
+             const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rb(zt, pg, xn, imm6);
-  }
-  void Ld1rd(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rd(zt, pg, xn, imm6);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rb,
+                              kBRegSizeInBytes);
   }
   void Ld1rh(const ZRegister& zt,
              const PRegisterZ& pg,
-             const Register& xn,
-             int imm6) {
+             const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rh(zt, pg, xn, imm6);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rh,
+                              kHRegSizeInBytes);
+  }
+  void Ld1rw(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rw,
+                              kSRegSizeInBytes);
+  }
+  void Ld1rd(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rd,
+                              kDRegSizeInBytes);
   }
   void Ld1rqb(const ZRegister& zt,
               const PRegisterZ& pg,
@@ -4766,35 +4782,33 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
               const SVEMemOperand& addr);
   void Ld1rsb(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm6) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rsb(zt, pg, xn, imm6);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rsb,
+                              kBRegSizeInBytes);
   }
   void Ld1rsh(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm6) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rsh(zt, pg, xn, imm6);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rsh,
+                              kHRegSizeInBytes);
   }
   void Ld1rsw(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm6) {
+              const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rsw(zt, pg, xn, imm6);
-  }
-  void Ld1rw(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm6) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ld1rw(zt, pg, xn, imm6);
+    SVELoadBroadcastImmHelper(zt,
+                              pg,
+                              addr,
+                              &MacroAssembler::ld1rsw,
+                              kSRegSizeInBytes);
   }
   void Ld1sb(const ZRegister& zt,
              const PRegisterZ& pg,
@@ -6647,6 +6661,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                      const PRegisterZ& pg,
                      const ZRegister& zn,
                      IntegerOperand imm);
+
+  // E.g. Ld1rb.
+  typedef void (Assembler::*SVELoadBroadcastFn)(const ZRegister& zt,
+                                                const PRegisterZ& pg,
+                                                const SVEMemOperand& addr);
+
+  void SVELoadBroadcastImmHelper(const ZRegister& zt,
+                                 const PRegisterZ& pg,
+                                 const SVEMemOperand& addr,
+                                 SVELoadBroadcastFn fn,
+                                 int divisor);
 
   // E.g. ldr/str
   typedef void (Assembler::*SVELoadStoreFn)(const CPURegister& rt,

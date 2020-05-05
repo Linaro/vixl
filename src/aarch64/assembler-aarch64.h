@@ -4585,20 +4585,22 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Load and broadcast unsigned byte to vector.
   void ld1rb(const ZRegister& zt,
              const PRegisterZ& pg,
-             const Register& xn,
-             int imm6);
-
-  // Load and broadcast doubleword to vector.
-  void ld1rd(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm6);
+             const SVEMemOperand& addr);
 
   // Load and broadcast unsigned halfword to vector.
   void ld1rh(const ZRegister& zt,
              const PRegisterZ& pg,
-             const Register& xn,
-             int imm6);
+             const SVEMemOperand& addr);
+
+  // Load and broadcast unsigned word to vector.
+  void ld1rw(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Load and broadcast doubleword to vector.
+  void ld1rd(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
 
   // Contiguous load and replicate sixteen bytes.
   void ld1rqb(const ZRegister& zt,
@@ -4623,26 +4625,17 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Load and broadcast signed byte to vector.
   void ld1rsb(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm6);
+              const SVEMemOperand& addr);
 
   // Load and broadcast signed halfword to vector.
   void ld1rsh(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm6);
+              const SVEMemOperand& addr);
 
   // Load and broadcast signed word to vector.
   void ld1rsw(const ZRegister& zt,
               const PRegisterZ& pg,
-              const Register& xn,
-              int imm6);
-
-  // Load and broadcast unsigned word to vector.
-  void ld1rw(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             int imm6);
+              const SVEMemOperand& addr);
 
   // Contiguous/gather load signed bytes to vector.
   void ld1sb(const ZRegister& zt,
@@ -6703,6 +6696,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                     const PRegisterZ& pg,
                     const SVEMemOperand& addr,
                     bool is_signed);
+
+  // E.g. ld1rb, ld1rh, ...
+  void SVELd1BroadcastHelper(unsigned msize_in_bytes_log2,
+                             const ZRegister& zt,
+                             const PRegisterZ& pg,
+                             const SVEMemOperand& addr,
+                             bool is_signed);
 
   // E.g. ldff1b, ldff1h, ...
   // This supports both contiguous and gather loads.
