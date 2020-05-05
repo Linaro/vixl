@@ -10323,21 +10323,28 @@ void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
 
 void Simulator::VisitSVE32BitScatterStore_VectorPlusImm(
     const Instruction* instr) {
-  USE(instr);
+  int msz = 0;
   switch (instr->Mask(SVE32BitScatterStore_VectorPlusImmMask)) {
     case ST1B_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
+      msz = 0;
       break;
     case ST1H_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
+      msz = 1;
       break;
     case ST1W_z_p_ai_s:
-      VIXL_UNIMPLEMENTED();
+      msz = 2;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  uint64_t imm = instr->ExtractBits(20, 16) << msz;
+  LogicSVEAddressVector addr(imm, &ReadVRegister(instr->GetRn()), kFormatVnS);
+  addr.SetMsizeInBytesLog2(msz);
+  SVEStructuredStoreHelper(kFormatVnS,
+                           ReadPRegister(instr->GetPgLow8()),
+                           instr->GetRt(),
+                           addr);
 }
 
 void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
@@ -10428,24 +10435,31 @@ void Simulator::
 
 void Simulator::VisitSVE64BitScatterStore_VectorPlusImm(
     const Instruction* instr) {
-  USE(instr);
+  int msz = 0;
   switch (instr->Mask(SVE64BitScatterStore_VectorPlusImmMask)) {
     case ST1B_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
+      msz = 0;
       break;
     case ST1D_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
+      msz = 3;
       break;
     case ST1H_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
+      msz = 1;
       break;
     case ST1W_z_p_ai_d:
-      VIXL_UNIMPLEMENTED();
+      msz = 2;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+  uint64_t imm = instr->ExtractBits(20, 16) << msz;
+  LogicSVEAddressVector addr(imm, &ReadVRegister(instr->GetRn()), kFormatVnD);
+  addr.SetMsizeInBytesLog2(msz);
+  SVEStructuredStoreHelper(kFormatVnD,
+                           ReadPRegister(instr->GetPgLow8()),
+                           instr->GetRt(),
+                           addr);
 }
 
 void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(

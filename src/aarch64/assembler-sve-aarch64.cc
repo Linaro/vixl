@@ -3824,8 +3824,15 @@ void Assembler::SVELd1Helper(unsigned msize_in_bytes_log2,
   }
 
   if (addr.IsScatterGather()) {
-    bool ff = false;
-    SVELd1GatherHelper(msize_in_bytes_log2, zt, pg, addr, is_signed, ff);
+    bool is_load = true;
+    bool is_ff = false;
+    SVEScatterGatherHelper(msize_in_bytes_log2,
+                           zt,
+                           pg,
+                           addr,
+                           is_load,
+                           is_signed,
+                           is_ff);
     return;
   }
 
@@ -3855,8 +3862,15 @@ void Assembler::SVELdff1Helper(unsigned msize_in_bytes_log2,
   }
 
   if (addr.IsScatterGather()) {
-    bool ff = true;
-    SVELd1GatherHelper(msize_in_bytes_log2, zt, pg, addr, is_signed, ff);
+    bool is_load = true;
+    bool is_ff = true;
+    SVEScatterGatherHelper(msize_in_bytes_log2,
+                           zt,
+                           pg,
+                           addr,
+                           is_load,
+                           is_signed,
+                           is_ff);
     return;
   }
 
@@ -3883,22 +3897,33 @@ void Assembler::SVELdff1Helper(unsigned msize_in_bytes_log2,
   SVELdSt1Helper(msize_in_bytes_log2, zt, pg, addr, is_signed, op);
 }
 
-void Assembler::SVELd1GatherHelper(unsigned msize_in_bytes_log2,
-                                   const ZRegister& zt,
-                                   const PRegister& pg,
-                                   const SVEMemOperand& addr,
-                                   bool is_signed,
-                                   bool is_first_fault) {
+void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
+                                       const ZRegister& zt,
+                                       const PRegister& pg,
+                                       const SVEMemOperand& addr,
+                                       bool is_load,
+                                       bool is_signed,
+                                       bool is_first_fault) {
   VIXL_ASSERT(addr.IsScatterGather());
   VIXL_ASSERT(zt.IsLaneSizeS() || zt.IsLaneSizeD());
+  VIXL_ASSERT(is_load || !is_first_fault);
+  VIXL_ASSERT(is_load || !is_signed);
 
   Instr op = 0xffffffff;
   if (addr.IsVectorPlusImmediate()) {
     VIXL_ASSERT(AreSameLaneSize(zt, addr.GetVectorBase()));
-    if (zt.IsLaneSizeS()) {
-      op = SVE32BitGatherLoad_VectorPlusImmFixed;
-    } else if (zt.IsLaneSizeD()) {
-      op = SVE64BitGatherLoad_VectorPlusImmFixed;
+    if (is_load) {
+      if (zt.IsLaneSizeS()) {
+        op = SVE32BitGatherLoad_VectorPlusImmFixed;
+      } else {
+        op = SVE64BitGatherLoad_VectorPlusImmFixed;
+      }
+    } else {
+      if (zt.IsLaneSizeS()) {
+        op = SVE32BitScatterStore_VectorPlusImmFixed;
+      } else {
+        op = SVE64BitScatterStore_VectorPlusImmFixed;
+      }
     }
   } else if (addr.IsScalarPlusVector()) {
     VIXL_ASSERT(AreSameLaneSize(zt, addr.GetVectorOffset()));
@@ -3944,6 +3969,8 @@ void Assembler::SVELd1GatherHelper(unsigned msize_in_bytes_log2,
 
   if ((op == SVE32BitGatherLoad_VectorPlusImmFixed) ||
       (op == SVE64BitGatherLoad_VectorPlusImmFixed) ||
+      (op == SVE32BitScatterStore_VectorPlusImmFixed) ||
+      (op == SVE64BitScatterStore_VectorPlusImmFixed) ||
       (op == SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed) ||
       (op == SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed) ||
       (op == SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed) ||
@@ -3953,7 +3980,7 @@ void Assembler::SVELd1GatherHelper(unsigned msize_in_bytes_log2,
       (op == SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed)) {
     Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr);
     Instr msz = ImmUnsignedField<24, 23>(msize_in_bytes_log2);
-    Instr u = is_signed ? 0 : (1 << 14);
+    Instr u = (!is_load || is_signed) ? 0 : (1 << 14);
     Instr ff = is_first_fault ? (1 << 13) : 0;
     Emit(op | mem_op | msz | u | ff | Rt(zt) | PgLow8(pg));
   } else {
@@ -5103,13 +5130,26 @@ void Assembler::SVESt1Helper(unsigned msize_in_bytes_log2,
     VIXL_ASSERT(!addr.GetScalarOffset().IsZero());
   }
 
+  if (addr.IsScatterGather()) {
+    bool is_load = false;
+    bool is_signed = false;
+    bool is_ff = false;
+    SVEScatterGatherHelper(msize_in_bytes_log2,
+                           zt,
+                           pg,
+                           addr,
+                           is_load,
+                           is_signed,
+                           is_ff);
+    return;
+  }
+
   Instr op;
   if (addr.IsScalarPlusImmediate()) {
     op = SVEContiguousStore_ScalarPlusImmFixed;
   } else if (addr.IsScalarPlusScalar()) {
     op = SVEContiguousStore_ScalarPlusScalarFixed;
   } else {
-    // TODO: Handle scatter forms.
     VIXL_UNIMPLEMENTED();
     op = 0xffffffff;
   }
@@ -5206,23 +5246,6 @@ void Assembler::st1b(const ZRegister& zt,
   Emit(ST1B_z_p_bz_d_64_unscaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  ST1B_z_p_ai_d
-//  ST1B_z_p_ai_s
-void Assembler::st1b(const ZRegister& zt,
-                     const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // ST1B { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1110 0100 010. .... 101. .... .... ....
-  //  msz<24:23> = 00 | imm5<20:16> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1B_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
-}
-
 // This prototype maps to 4 instruction encodings:
 //  ST1D_z_p_bz_d_64_scaled
 //  ST1D_z_p_bz_d_64_unscaled
@@ -5239,20 +5262,6 @@ void Assembler::st1d(const ZRegister& zt,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(ST1D_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-void Assembler::st1d(const ZRegister& zt,
-                     const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // ST1D { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1110 0101 110. .... 101. .... .... ....
-  //  msz<24:23> = 11 | imm5<20:16> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1D_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
 }
 
 // This prototype maps to 6 instruction encodings:
@@ -5275,23 +5284,6 @@ void Assembler::st1h(const ZRegister& zt,
   Emit(ST1H_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  ST1H_z_p_ai_d
-//  ST1H_z_p_ai_s
-void Assembler::st1h(const ZRegister& zt,
-                     const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // ST1H { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1110 0100 110. .... 101. .... .... ....
-  //  msz<24:23> = 01 | imm5<20:16> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1H_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
-}
-
 // This prototype maps to 6 instruction encodings:
 //  ST1W_z_p_bz_d_64_scaled
 //  ST1W_z_p_bz_d_64_unscaled
@@ -5310,23 +5302,6 @@ void Assembler::st1w(const ZRegister& zt,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(ST1W_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  ST1W_z_p_ai_d
-//  ST1W_z_p_ai_s
-void Assembler::st1w(const ZRegister& zt,
-                     const PRegister& pg,
-                     const ZRegister& zn,
-                     int imm5) {
-  // ST1W { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-  //  1110 0101 010. .... 101. .... .... ....
-  //  msz<24:23> = 10 | imm5<20:16> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1W_z_p_ai_d | Rt(zt) | Rx<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
 }
 
 void Assembler::stnt1b(const ZRegister& zt,

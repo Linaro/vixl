@@ -9969,6 +9969,102 @@ TEST_SVE(sve_ld1rq) {
   }
 }
 
+TEST_SVE(sve_st1_vec_imm) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kSVE);
+  START();
+
+  // TODO: Use mmap() to request a buffer in the low 4GB, which allows testing
+  // 32-bit address vectors.
+  int data_size = kZRegMaxSizeInBytes * 16;
+  uint8_t* data = new uint8_t[data_size];
+
+  // Set the base to 16 bytes from the end of the buffer so we can use negative
+  // indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size - 16]));
+  __ Ptrue(p0.VnB());
+
+  // Store a vector of index values in reverse order, using
+  // vector-plus-immediate addressing to begin at byte 15, then storing to
+  // bytes 14, 13, etc.
+  __ Index(z1.VnD(), x0, -1);
+  __ Index(z2.VnD(), 0, 1);
+
+  // Iterate in order to store at least 16 bytes. The number of iterations
+  // depends on VL, eg. VL128 iterates eight times, storing bytes 15 and 14
+  // on the first iteration, 13 and 12 on the next, etc.
+  uint64_t dlanes = config->sve_vl_in_bytes() / kDRegSizeInBytes;
+  for (int i = 15; i >= 0; i -= dlanes * kBRegSizeInBytes) {
+    __ St1b(z2.VnD(), p0, SVEMemOperand(z1.VnD(), i));
+    __ Incd(z2.VnD());
+  }
+
+  // Reload the stored data, and build a reference for comparison. The reference
+  // is truncated to a Q register, as only the least-significant 128 bits are
+  // checked.
+  __ Ldr(q4, MemOperand(x0));
+  __ Index(z5.VnB(), 15, -1);
+  __ Mov(q5, q5);
+
+  // Repeat for wider elements.
+  __ Index(z1.VnD(), x0, -2);  // Stepping by -2 for H-sized elements.
+  __ Index(z2.VnD(), 0, 1);
+  for (int i = 14; i >= 0; i -= dlanes * kHRegSizeInBytes) {
+    __ St1h(z2.VnD(), p0, SVEMemOperand(z1.VnD(), i));
+    __ Incd(z2.VnD());
+  }
+  __ Ldr(q6, MemOperand(x0));
+  __ Index(z7.VnH(), 7, -1);
+  __ Mov(q7, q7);
+
+  __ Index(z1.VnD(), x0, -4);  // Stepping by -4 for S-sized elements.
+  __ Index(z2.VnD(), 0, 1);
+  for (int i = 12; i >= 0; i -= dlanes * kSRegSizeInBytes) {
+    __ St1w(z2.VnD(), p0, SVEMemOperand(z1.VnD(), i));
+    __ Incd(z2.VnD());
+  }
+  __ Ldr(q8, MemOperand(x0));
+  __ Index(z9.VnS(), 3, -1);
+  __ Mov(q9, q9);
+
+  __ Index(z1.VnD(), x0, -8);  // Stepping by -8 for D-sized elements.
+  __ Index(z2.VnD(), 0, 1);
+  for (int i = 8; i >= 0; i -= dlanes * kDRegSizeInBytes) {
+    __ St1d(z2.VnD(), p0, SVEMemOperand(z1.VnD(), i));
+    __ Incd(z2.VnD());
+  }
+  __ Ldr(q10, MemOperand(x0));
+  __ Index(z11.VnD(), 1, -1);
+  __ Mov(q11, q11);
+
+  // Test predication by storing even halfwords to memory (using predication)
+  // at byte-separated addresses. The result should be the same as storing
+  // even halfwords contiguously to memory.
+  __ Pfalse(p1.VnB());
+  __ Zip1(p1.VnD(), p0.VnD(), p1.VnD());
+  __ Mov(x0, reinterpret_cast<uintptr_t>(data));
+  __ Index(z1.VnD(), x0, 1);
+  __ Index(z2.VnD(), 0x1000, 1);
+  for (int i = 0; i < 16; i += dlanes) {
+    __ St1h(z2.VnD(), p1, SVEMemOperand(z1.VnD(), i));
+    __ Incd(z2.VnD());
+  }
+  __ Ldr(q2, MemOperand(x0));
+  __ Index(z3.VnH(), 0x1000, 2);
+  __ Mov(q3, q3);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(z3, z2);
+    ASSERT_EQUAL_SVE(z5, z4);
+    ASSERT_EQUAL_SVE(z7, z6);
+    ASSERT_EQUAL_SVE(z9, z8);
+    ASSERT_EQUAL_SVE(z11, z10);
+  }
+}
+
 typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,
                                              const ZRegister& zn,
                                              const IntegerOperand imm);

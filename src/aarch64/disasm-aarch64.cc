@@ -5190,26 +5190,29 @@ void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
 void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
-  const char *form = "{ 'Zt.s }, 'Pgl, ['Zn.s{, #'u2016}]";
+  const char *form = "{ 'Zt.s }, 'Pgl, ['Zn.s";
+  const char *suffix = NULL;
+
+  bool is_zero = instr->ExtractBits(20, 16) == 0;
 
   switch (instr->Mask(SVE32BitScatterStore_VectorPlusImmMask)) {
-    // ST1B { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
     case ST1B_z_p_ai_s:
       mnemonic = "st1b";
+      suffix = is_zero ? "]" : ", #'u2016]";
       break;
-    // ST1H { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
     case ST1H_z_p_ai_s:
       mnemonic = "st1h";
+      suffix = is_zero ? "]" : ", #'u2016*2]";
       break;
-    // ST1W { <Zt>.S }, <Pg>, [<Zn>.S{, #<imm>}]
     case ST1W_z_p_ai_s:
       mnemonic = "st1w";
+      suffix = is_zero ? "]" : ", #'u2016*4]";
       break;
     default:
+      form = "(SVE32BitScatterStore_VectorPlusImm)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
@@ -5705,30 +5708,33 @@ void Disassembler::
 void Disassembler::VisitSVE64BitScatterStore_VectorPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Zn.d{, #'u2016}]";
+  const char *form = "{ 'Zt.d }, 'Pgl, ['Zn.d";
+  const char *suffix = NULL;
+
+  bool is_zero = instr->ExtractBits(20, 16) == 0;
 
   switch (instr->Mask(SVE64BitScatterStore_VectorPlusImmMask)) {
-    // ST1B { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
     case ST1B_z_p_ai_d:
       mnemonic = "st1b";
+      suffix = is_zero ? "]" : ", #'u2016]";
       break;
-    // ST1D { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
     case ST1D_z_p_ai_d:
       mnemonic = "st1d";
+      suffix = is_zero ? "]" : ", #'u2016*8]";
       break;
-    // ST1H { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
     case ST1H_z_p_ai_d:
       mnemonic = "st1h";
+      suffix = is_zero ? "]" : ", #'u2016*2]";
       break;
-    // ST1W { <Zt>.D }, <Pg>, [<Zn>.D{, #<imm>}]
     case ST1W_z_p_ai_d:
       mnemonic = "st1w";
+      suffix = is_zero ? "]" : ", #'u2016*4]";
       break;
     default:
+      form = "(SVE64BitScatterStore_VectorPlusImm)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEBitwiseLogicalWithImm_Unpredicated(

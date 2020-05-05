@@ -5461,23 +5461,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Scatter store bytes from a vector (immediate index).
-  void st1b(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5);
-
   // Scatter store doublewords from a vector (vector index).
   void st1d(const ZRegister& zt,
             const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
-
-  // Scatter store doublewords from a vector (immediate index).
-  void st1d(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5);
 
   // Scatter store halfwords from a vector (vector index).
   void st1h(const ZRegister& zt,
@@ -5485,23 +5473,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             const Register& xn,
             const ZRegister& zm);
 
-  // Scatter store halfwords from a vector (immediate index).
-  void st1h(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5);
-
   // Scatter store words from a vector (vector index).
   void st1w(const ZRegister& zt,
             const PRegister& pg,
             const Register& xn,
             const ZRegister& zm);
-
-  // Scatter store words from a vector (immediate index).
-  void st1w(const ZRegister& zt,
-            const PRegister& pg,
-            const ZRegister& zn,
-            int imm5);
 
   // Contiguous store two-byte structures from two vectors.
   void st2b(const ZRegister& zt1,
@@ -6685,12 +6661,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                       Instr op);
 
   // Common code for the helpers above.
-  void SVELd1GatherHelper(unsigned msize_in_bytes_log2,
-                          const ZRegister& zt,
-                          const PRegister& pg,
-                          const SVEMemOperand& addr,
-                          bool is_signed,
-                          bool is_first_fault);
+  void SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
+                              const ZRegister& zt,
+                              const PRegister& pg,
+                              const SVEMemOperand& addr,
+                              bool is_load,
+                              bool is_signed,
+                              bool is_first_fault);
 
   // E.g. st2b, st3h, ...
   void SVESt234Helper(int num_regs,
