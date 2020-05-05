@@ -378,24 +378,24 @@ TEST(sve_bitwise_shift_unpredicated) {
 TEST(sve_element_count) {
   SETUP();
 
-  COMPARE_MACRO(Cntb(w7), "cntb x7");
-  COMPARE_MACRO(Cntb(w7, SVE_POW2), "cntb x7, pow2");
-  COMPARE_MACRO(Cntb(w7, SVE_VL1), "cntb x7, vl1");
-  COMPARE_MACRO(Cntb(w7, SVE_VL2), "cntb x7, vl2");
-  COMPARE_MACRO(Cntb(w7, SVE_VL16), "cntb x7, vl16");
-  COMPARE_MACRO(Cntb(w7, SVE_VL256), "cntb x7, vl256");
-  COMPARE_MACRO(Cntb(w7, SVE_MUL4), "cntb x7, mul4");
-  COMPARE_MACRO(Cntb(w7, SVE_MUL3), "cntb x7, mul3");
-  COMPARE_MACRO(Cntb(w7, SVE_ALL), "cntb x7");
+  COMPARE_MACRO(Cntb(x7), "cntb x7");
+  COMPARE_MACRO(Cntb(x7, SVE_POW2), "cntb x7, pow2");
+  COMPARE_MACRO(Cntb(x7, SVE_VL1), "cntb x7, vl1");
+  COMPARE_MACRO(Cntb(x7, SVE_VL2), "cntb x7, vl2");
+  COMPARE_MACRO(Cntb(x7, SVE_VL16), "cntb x7, vl16");
+  COMPARE_MACRO(Cntb(x7, SVE_VL256), "cntb x7, vl256");
+  COMPARE_MACRO(Cntb(x7, SVE_MUL4), "cntb x7, mul4");
+  COMPARE_MACRO(Cntb(x7, SVE_MUL3), "cntb x7, mul3");
+  COMPARE_MACRO(Cntb(x7, SVE_ALL), "cntb x7");
 
-  COMPARE_MACRO(Cntb(w7, SVE_POW2, 1), "cntb x7, pow2");
-  COMPARE_MACRO(Cntb(w7, SVE_VL1, 16), "cntb x7, vl1, mul #16");
-  COMPARE_MACRO(Cntb(w7, SVE_VL2, 15), "cntb x7, vl2, mul #15");
-  COMPARE_MACRO(Cntb(w7, SVE_VL16, 14), "cntb x7, vl16, mul #14");
-  COMPARE_MACRO(Cntb(w7, SVE_VL256, 8), "cntb x7, vl256, mul #8");
-  COMPARE_MACRO(Cntb(w7, SVE_MUL4, 4), "cntb x7, mul4, mul #4");
-  COMPARE_MACRO(Cntb(w7, SVE_MUL3, 3), "cntb x7, mul3, mul #3");
-  COMPARE_MACRO(Cntb(w7, SVE_ALL, 2), "cntb x7, all, mul #2");
+  COMPARE_MACRO(Cntb(x7, SVE_POW2, 1), "cntb x7, pow2");
+  COMPARE_MACRO(Cntb(x7, SVE_VL1, 16), "cntb x7, vl1, mul #16");
+  COMPARE_MACRO(Cntb(x7, SVE_VL2, 15), "cntb x7, vl2, mul #15");
+  COMPARE_MACRO(Cntb(x7, SVE_VL16, 14), "cntb x7, vl16, mul #14");
+  COMPARE_MACRO(Cntb(x7, SVE_VL256, 8), "cntb x7, vl256, mul #8");
+  COMPARE_MACRO(Cntb(x7, SVE_MUL4, 4), "cntb x7, mul4, mul #4");
+  COMPARE_MACRO(Cntb(x7, SVE_MUL3, 3), "cntb x7, mul3, mul #3");
+  COMPARE_MACRO(Cntb(x7, SVE_ALL, 2), "cntb x7, all, mul #2");
 
   COMPARE_MACRO(Cntb(x30), "cntb x30");
   COMPARE_MACRO(Cntd(xzr, SVE_POW2), "cntd xzr, pow2");

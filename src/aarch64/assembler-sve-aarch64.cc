@@ -462,7 +462,19 @@ void Assembler::lsr(const ZRegister& zd,
   V(sqincb, SQINCB_r_rs_x)                                \
   V(sqinch, SQINCH_r_rs_x)                                \
   V(sqincw, SQINCW_r_rs_x)                                \
-  V(sqincd, SQINCD_r_rs_x)                                \
+  V(sqincd, SQINCD_r_rs_x)
+
+#define VIXL_DEFINE_ASM_FUNC(FN, OP)                                     \
+  void Assembler::FN(const Register& rdn, int pattern, int multiplier) { \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));                              \
+    VIXL_ASSERT(rdn.IsX());                                              \
+    Emit(OP | Rd(rdn) | ImmSVEPredicateConstraint(pattern) |             \
+         ImmUnsignedField<19, 16>(multiplier - 1));                      \
+  }
+VIXL_SVE_INC_DEC_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
+
+#define VIXL_SVE_UQINC_UQDEC_LIST(V)                      \
   V(uqdecb, (rdn.IsX() ? UQDECB_r_rs_x : UQDECB_r_rs_uw)) \
   V(uqdech, (rdn.IsX() ? UQDECH_r_rs_x : UQDECH_r_rs_uw)) \
   V(uqdecw, (rdn.IsX() ? UQDECW_r_rs_x : UQDECW_r_rs_uw)) \
@@ -478,7 +490,7 @@ void Assembler::lsr(const ZRegister& zd,
     Emit(OP | Rd(rdn) | ImmSVEPredicateConstraint(pattern) |             \
          ImmUnsignedField<19, 16>(multiplier - 1));                      \
   }
-VIXL_SVE_INC_DEC_LIST(VIXL_DEFINE_ASM_FUNC)
+VIXL_SVE_UQINC_UQDEC_LIST(VIXL_DEFINE_ASM_FUNC)
 #undef VIXL_DEFINE_ASM_FUNC
 
 #define VIXL_SVE_SQX_INC_DEC_LIST(V) \
