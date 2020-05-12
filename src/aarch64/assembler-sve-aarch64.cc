@@ -3950,10 +3950,18 @@ void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
     } else if (zt.IsLaneSizeD()) {
       switch (mod) {
         case NO_SVE_OFFSET_MODIFIER:
-          op = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed;
+          if (is_load) {
+            op = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed;
+          } else {
+            op = SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed;
+          }
           break;
         case SVE_LSL:
-          op = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed;
+          if (is_load) {
+            op = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed;
+          } else {
+            op = SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed;
+          }
           break;
         case SVE_UXTW:
         case SVE_SXTW: {
@@ -3985,7 +3993,9 @@ void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
       (op == SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed) ||
       (op == SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed) ||
       (op == SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed) ||
-      (op == SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed)) {
+      (op == SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed) ||
+      (op == SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed) ||
+      (op == SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed)) {
     Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr);
     Instr msz = ImmUnsignedField<24, 23>(msize_in_bytes_log2);
     Instr u = (!is_load || is_signed) ? 0 : (1 << 14);

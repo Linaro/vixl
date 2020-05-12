@@ -10333,14 +10333,24 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
   USE(instr);
   switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
     case ST1D_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1H_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
+    case ST1W_z_p_bz_d_64_scaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 SVE_LSL,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
       break;
-    case ST1W_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
@@ -10353,17 +10363,25 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
   switch (
       instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
     case ST1B_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1D_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1H_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
+    case ST1W_z_p_bz_d_64_unscaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 SVE_LSL,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
       break;
-    case ST1W_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

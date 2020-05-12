@@ -4757,6 +4757,8 @@ TEST(sve_ld1_st1) {
                  "st1b { z3.s }, p0, [z14.s, #30]");
   COMPARE_PREFIX(st1b(z14.VnD(), p4, SVEMemOperand(z3.VnD(), 31)),
                  "st1b { z14.d }, p4, [z3.d, #31]");
+  COMPARE_PREFIX(st1b(z15.VnD(), p5, SVEMemOperand(x0, z5.VnD())),
+                 "st1b { z15.d }, p5, [x0, z5.d]");
 
   COMPARE_PREFIX(st1h(z15.VnH(), p1, SVEMemOperand(x15, 7, SVE_MUL_VL)),
                  "st1h { z15.h }, p1, [x15, #7, MUL VL]");
@@ -4772,6 +4774,10 @@ TEST(sve_ld1_st1) {
                  "st1h { z3.s }, p0, [z14.s, #30]");
   COMPARE_PREFIX(st1h(z14.VnD(), p4, SVEMemOperand(z3.VnD(), 62)),
                  "st1h { z14.d }, p4, [z3.d, #62]");
+  COMPARE_PREFIX(st1h(z15.VnD(), p6, SVEMemOperand(sp, z6.VnD())),
+                 "st1h { z15.d }, p6, [sp, z6.d]");
+  COMPARE_PREFIX(st1h(z15.VnD(), p6, SVEMemOperand(sp, z6.VnD(), LSL, 1)),
+                 "st1h { z15.d }, p6, [sp, z6.d, lsl #1]");
 
   COMPARE_PREFIX(st1w(z19.VnS(), p2, SVEMemOperand(sp, -8, SVE_MUL_VL)),
                  "st1w { z19.s }, p2, [sp, #-8, MUL VL]");
@@ -4785,6 +4791,10 @@ TEST(sve_ld1_st1) {
                  "st1w { z3.s }, p0, [z14.s, #32]");
   COMPARE_PREFIX(st1w(z14.VnD(), p4, SVEMemOperand(z3.VnD(), 124)),
                  "st1w { z14.d }, p4, [z3.d, #124]");
+  COMPARE_PREFIX(st1w(z17.VnD(), p2, SVEMemOperand(x30, z5.VnD())),
+                 "st1w { z17.d }, p2, [x30, z5.d]");
+  COMPARE_PREFIX(st1w(z17.VnD(), p2, SVEMemOperand(x30, z5.VnD(), LSL, 2)),
+                 "st1w { z17.d }, p2, [x30, z5.d, lsl #2]");
 
   COMPARE_PREFIX(st1d(z23.VnD(), p3, SVEMemOperand(x1, 0, SVE_MUL_VL)),
                  "st1d { z23.d }, p3, [x1]");
@@ -4794,6 +4804,10 @@ TEST(sve_ld1_st1) {
                  "st1d { z14.d }, p4, [z3.d, #32]");
   COMPARE_PREFIX(st1d(z14.VnD(), p4, SVEMemOperand(z3.VnD(), 248)),
                  "st1d { z14.d }, p4, [z3.d, #248]");
+  COMPARE_PREFIX(st1d(z19.VnD(), p2, SVEMemOperand(x29, z22.VnD())),
+                 "st1d { z19.d }, p2, [x29, z22.d]");
+  COMPARE_PREFIX(st1d(z19.VnD(), p2, SVEMemOperand(x29, z22.VnD(), LSL, 3)),
+                 "st1d { z19.d }, p2, [x29, z22.d, lsl #3]");
 
   COMPARE_PREFIX(ld1b(z11.VnB(), p0.Zeroing(), SVEMemOperand(x22)),
                  "ld1b { z11.b }, p0/z, [x22]");

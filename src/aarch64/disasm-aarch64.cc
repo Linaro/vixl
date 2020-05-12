@@ -5594,25 +5594,20 @@ void Disassembler::VisitSVE64BitGatherPrefetch_VectorPlusImm(
 void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVE64BitScatterStore_ScalarPlus64BitScaledOffsets)";
+  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, lsl #'u2423]";
 
   switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]
     case ST1D_z_p_bz_d_64_scaled:
       mnemonic = "st1d";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, LSL #3]";
       break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]
     case ST1H_z_p_bz_d_64_scaled:
       mnemonic = "st1h";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, LSL #1]";
       break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]
     case ST1W_z_p_bz_d_64_scaled:
       mnemonic = "st1w";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, LSL #2]";
       break;
     default:
+      form = "(SVE64BitScatterStore_ScalarPlus64BitScaledOffsets)";
       break;
   }
   Format(instr, mnemonic, form);
@@ -5621,28 +5616,24 @@ void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
 void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
   const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d]";
 
   switch (
       instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
-    // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
     case ST1B_z_p_bz_d_64_unscaled:
       mnemonic = "st1b";
       break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
     case ST1D_z_p_bz_d_64_unscaled:
       mnemonic = "st1d";
       break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
     case ST1H_z_p_bz_d_64_unscaled:
       mnemonic = "st1h";
       break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
     case ST1W_z_p_bz_d_64_unscaled:
       mnemonic = "st1w";
       break;
     default:
+      form = "(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffset)";
       break;
   }
   Format(instr, mnemonic, form);
