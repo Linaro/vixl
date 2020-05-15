@@ -60,8 +60,10 @@ int main() {
   uint32_t code_size = masm.GetSizeOfCodeGenerated();
   ExecutableMemory memory(code, code_size);
   // Run the example function.
-  uint32_t (*demo_function)(uint32_t) = memory.GetEntryPoint<uint32_t (*)(
-      uint32_t)>(demo, masm.GetInstructionSetInUse());
+  uint32_t (*demo_function)(uint32_t) =
+      memory
+          .GetEntryPoint<uint32_t (*)(uint32_t)>(demo,
+                                                 masm.GetInstructionSetInUse());
   uint32_t input_value = 0x89abcdef;
   uint32_t output_value = (*demo_function)(input_value);
   printf("native: demo(0x%08x) = 0x%08x\n", input_value, output_value);

@@ -3192,6 +3192,7 @@ TEST_NOASM(set_isa_empty) {
 }
 
 
+// clang-format off
 TEST_NOASM(set_isa_noop) {
 // It is possible to call a no-op UseA32/T32 or UseInstructionSet even if
 // one or more instructions have been generated.
@@ -3251,6 +3252,7 @@ TEST_NOASM(set_isa_noop) {
   }
 #endif
 }
+// clang-format on
 
 
 TEST(logical_arithmetic_identities) {

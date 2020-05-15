@@ -594,7 +594,7 @@ T AlignUp(T pointer,
   // reinterpret_cast behaviour for other types.
 
   typename Unsigned<sizeof(T)* kBitsPerByte>::type pointer_raw =
-      (typename Unsigned<sizeof(T) * kBitsPerByte>::type)pointer;
+      (typename Unsigned<sizeof(T) * kBitsPerByte>::type) pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
   size_t mask = alignment - 1;
@@ -614,7 +614,7 @@ T AlignDown(T pointer,
   // reinterpret_cast behaviour for other types.
 
   typename Unsigned<sizeof(T)* kBitsPerByte>::type pointer_raw =
-      (typename Unsigned<sizeof(T) * kBitsPerByte>::type)pointer;
+      (typename Unsigned<sizeof(T) * kBitsPerByte>::type) pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
   size_t mask = alignment - 1;
@@ -1298,9 +1298,8 @@ inline Float16 FPRoundToFloat16(int64_t sign,
                                 uint64_t mantissa,
                                 FPRounding round_mode) {
   return RawbitsToFloat16(
-      FPRound<uint16_t,
-              kFloat16ExponentBits,
-              kFloat16MantissaBits>(sign, exponent, mantissa, round_mode));
+      FPRound<uint16_t, kFloat16ExponentBits, kFloat16MantissaBits>(
+          sign, exponent, mantissa, round_mode));
 }
 
 
