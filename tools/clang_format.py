@@ -38,8 +38,8 @@ from threaded_tests import Test, TestQueue
 import printer
 import util
 
-CLANG_FORMAT_VERSION_MAJOR = 3
-CLANG_FORMAT_VERSION_MINOR = 8
+CLANG_FORMAT_VERSION_MAJOR = 4
+CLANG_FORMAT_VERSION_MINOR = 0
 
 DEFAULT_CLANG_FORMAT = \
     'clang-format-{}.{}'.format(CLANG_FORMAT_VERSION_MAJOR,

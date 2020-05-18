@@ -2291,6 +2291,7 @@ void Assembler::LoadStoreStructSingle(const VRegister& vt,
   // We support vt arguments of the form vt.VxT() or vt.T(), where x is the
   // number of lanes, and T is b, h, s or d.
   unsigned lane_size = vt.GetLaneSizeInBytes();
+  VIXL_ASSERT(lane_size > 0);
   VIXL_ASSERT(lane < (kQRegSizeInBytes / lane_size));
 
   // Lane size is encoded in the opcode field. Lane index is encoded in the Q,
