@@ -3302,14 +3302,6 @@ TEST(sve_mem_32bit_gather_and_unsized_contiguous) {
   SETUP();
 
 #if 0
-  COMPARE_PREFIX(ld1b(z9.VnS(), p5.Zeroing(), x2, z1.VnS()), "ld1b { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(ld1h(z17.VnS(), p2.Zeroing(), x11, z24.VnS()), "ld1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]");
-  COMPARE_PREFIX(ld1h(z9.VnS(), p3.Zeroing(), x18, z4.VnS()), "ld1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(ld1sb(z12.VnS(), p7.Zeroing(), x17, z23.VnS()), "ld1sb { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(ld1sh(z11.VnS(), p2.Zeroing(), x18, z10.VnS()), "ld1sh { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]");
-  COMPARE_PREFIX(ld1sh(z11.VnS(), p4.Zeroing(), x19, z0.VnS()), "ld1sh { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
-  COMPARE_PREFIX(ld1w(z22.VnS(), p6.Zeroing(), x17, z5.VnS()), "ld1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]");
-  COMPARE_PREFIX(ld1w(z0.VnS(), p6.Zeroing(), x28, z21.VnS()), "ld1w { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
   COMPARE_PREFIX(ldff1b(z18.VnS(), p6.Zeroing(), x27, z24.VnS()), "ldff1b { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
   COMPARE_PREFIX(ldff1h(z25.VnS(), p3.Zeroing(), x17, z15.VnS()), "ldff1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]");
   COMPARE_PREFIX(ldff1h(z28.VnS(), p6.Zeroing(), x1, z30.VnS()), "ldff1h { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod>]");
@@ -3336,6 +3328,51 @@ TEST(sve_mem_32bit_gather_and_unsized_contiguous) {
   COMPARE_PREFIX(prfw(int prfop, p1, x2, z6.VnS()), "prfw <prfop>, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]");
 #endif
 
+  // 32-bit gather load in scalar-plus-vector vform with unscaled offset.
+  COMPARE_PREFIX(ld1b(z9.VnS(),
+                      p5.Zeroing(),
+                      SVEMemOperand(x2, z1.VnS(), SXTW)),
+                 "ld1b { z9.s }, p5/z, [x2, z1.s, sxtw]");
+  COMPARE_PREFIX(ld1b(z9.VnS(),
+                      p5.Zeroing(),
+                      SVEMemOperand(sp, z1.VnS(), UXTW)),
+                 "ld1b { z9.s }, p5/z, [sp, z1.s, uxtw]");
+  COMPARE_PREFIX(ld1h(z17.VnS(),
+                      p2.Zeroing(),
+                      SVEMemOperand(x11, z24.VnS(), SXTW)),
+                 "ld1h { z17.s }, p2/z, [x11, z24.s, sxtw]");
+  COMPARE_PREFIX(ld1w(z22.VnS(),
+                      p6.Zeroing(),
+                      SVEMemOperand(sp, z5.VnS(), UXTW)),
+                 "ld1w { z22.s }, p6/z, [sp, z5.s, uxtw]");
+  COMPARE_PREFIX(ld1sb(z12.VnS(),
+                       p7.Zeroing(),
+                       SVEMemOperand(x17, z23.VnS(), UXTW)),
+                 "ld1sb { z12.s }, p7/z, [x17, z23.s, uxtw]");
+  COMPARE_PREFIX(ld1sb(z22.VnS(),
+                       p3.Zeroing(),
+                       SVEMemOperand(x23, z23.VnS(), SXTW)),
+                 "ld1sb { z22.s }, p3/z, [x23, z23.s, sxtw]");
+  COMPARE_PREFIX(ld1sh(z11.VnS(),
+                       p2.Zeroing(),
+                       SVEMemOperand(x18, z10.VnS(), UXTW)),
+                 "ld1sh { z11.s }, p2/z, [x18, z10.s, uxtw]");
+
+  // 32-bit gather load in scalar-plus-vector vform with scaled offset.
+  COMPARE_PREFIX(ld1h(z9.VnS(),
+                      p3.Zeroing(),
+                      SVEMemOperand(sp, z4.VnS(), UXTW, 1)),
+                 "ld1h { z9.s }, p3/z, [sp, z4.s, uxtw #1]");
+  COMPARE_PREFIX(ld1w(z0.VnS(),
+                      p6.Zeroing(),
+                      SVEMemOperand(x28, z21.VnS(), SXTW, 2)),
+                 "ld1w { z0.s }, p6/z, [x28, z21.s, sxtw #2]");
+  COMPARE_PREFIX(ld1sh(z11.VnS(),
+                       p4.Zeroing(),
+                       SVEMemOperand(sp, z0.VnS(), SXTW, 1)),
+                 "ld1sh { z11.s }, p4/z, [sp, z0.s, sxtw #1]");
+
+  // Load and broadcast data to vector.
   COMPARE_PREFIX(ld1rb(z2.VnH(), p0.Zeroing(), SVEMemOperand(x30, 0)),
                  "ld1rb { z2.h }, p0/z, [x30]");
   COMPARE_PREFIX(ld1rb(z14.VnS(), p2.Zeroing(), SVEMemOperand(x11, 63)),

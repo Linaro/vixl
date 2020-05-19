@@ -4359,6 +4359,9 @@ class Simulator : public DecoderVisitor {
                                             bool is_wide_elements = false,
                                             FlagsUpdate flags = SetFlags);
 
+  void SVEGatherLoadScalarPlusVectorHelper(const Instruction* instr,
+                                           VectorFormat vform);
+
   // Store each active zt<i>[lane] to `addr.GetElementAddress(lane, ...)`.
   //
   // `zt_code` specifies the code of the first register (zt). Each additional

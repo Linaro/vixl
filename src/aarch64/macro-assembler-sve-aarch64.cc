@@ -1210,7 +1210,9 @@ void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
   }
 
   if (addr.IsScalarPlusVector()) {
-    VIXL_UNIMPLEMENTED();
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, addr);
+    return;
   }
 
   UseScratchRegisterScope temps(this);

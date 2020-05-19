@@ -9529,10 +9529,7 @@ void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
   switch (instr->Mask(
       SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
     case LD1H_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     case LDFF1H_z_p_bz_s_x32_scaled:
       VIXL_UNIMPLEMENTED();
@@ -9544,6 +9541,8 @@ void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS);
 }
 
 void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
@@ -9555,32 +9554,20 @@ void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
     case LD1SB_z_p_bz_s_x32_unscaled:
     case LD1SH_z_p_bz_s_x32_unscaled:
     case LD1W_z_p_bz_s_x32_unscaled:
+      break;
     case LDFF1B_z_p_bz_s_x32_unscaled:
     case LDFF1H_z_p_bz_s_x32_unscaled:
     case LDFF1SB_z_p_bz_s_x32_unscaled:
     case LDFF1SH_z_p_bz_s_x32_unscaled:
     case LDFF1W_z_p_bz_s_x32_unscaled:
+      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
-  bool is_signed = instr->ExtractBit(14) == 0;
-  bool is_ff = instr->ExtractBit(13) == 1;
-  // Note that these instructions don't use the Dtype encoding.
-  int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
-  uint64_t base = ReadXRegister(instr->GetRn());
-  LogicSVEAddressVector addr(base, &ReadVRegister(instr->GetRm()), kFormatVnS);
-  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
-  if (is_ff) {
-    VIXL_UNIMPLEMENTED();
-  } else {
-    SVEStructuredLoadHelper(kFormatVnS,
-                            ReadPRegister(instr->GetPgLow8()),
-                            instr->GetRt(),
-                            addr,
-                            is_signed);
-  }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS);
 }
 
 void Simulator::VisitSVE32BitGatherLoad_VectorPlusImm(
@@ -9629,7 +9616,6 @@ void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
   switch (
       instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
     case LD1W_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
       break;
     case LDFF1W_z_p_bz_s_x32_scaled:
       VIXL_UNIMPLEMENTED();
@@ -9638,6 +9624,8 @@ void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS);
 }
 
 void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
@@ -9908,6 +9896,7 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     case LD1SH_z_p_bz_d_64_unscaled:
     case LD1SW_z_p_bz_d_64_unscaled:
     case LD1W_z_p_bz_d_64_unscaled:
+      break;
     case LDFF1B_z_p_bz_d_64_unscaled:
     case LDFF1D_z_p_bz_d_64_unscaled:
     case LDFF1H_z_p_bz_d_64_unscaled:
@@ -9915,27 +9904,14 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     case LDFF1SH_z_p_bz_d_64_unscaled:
     case LDFF1SW_z_p_bz_d_64_unscaled:
     case LDFF1W_z_p_bz_d_64_unscaled:
+      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
-  bool is_signed = instr->ExtractBit(14) == 0;
-  bool is_ff = instr->ExtractBit(13) == 1;
-  // Note that these instructions don't use the Dtype encoding.
-  int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
-  uint64_t base = ReadXRegister(instr->GetRn());
-  LogicSVEAddressVector addr(base, &ReadVRegister(instr->GetRm()), kFormatVnD);
-  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
-  if (is_ff) {
-    VIXL_UNIMPLEMENTED();
-  } else {
-    SVEStructuredLoadHelper(kFormatVnD,
-                            ReadPRegister(instr->GetPgLow8()),
-                            instr->GetRt(),
-                            addr,
-                            is_signed);
-  }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(

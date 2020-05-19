@@ -8995,14 +8995,113 @@ static void ScalarLoadHelper(MacroAssembler* masm,
   }
 }
 
+typedef void (MacroAssembler::*Ld1Macro)(const ZRegister& zt,
+                                         const PRegisterZ& pg,
+                                         const SVEMemOperand& addr);
+
+// Test gather loads by comparing them with the result of a set of equivalent
+// scalar loads.
+static void GatherLoadScalarPlusVectorHelper(Test* config,
+                                             unsigned msize_in_bits,
+                                             unsigned esize_in_bits,
+                                             Ld1Macro ld1,
+                                             bool is_signed,
+                                             bool is_scaled) {
+  // SVE supports 32- and 64-bit addressing for gather loads.
+  VIXL_ASSERT((esize_in_bits == kSRegSize) || (esize_in_bits == kDRegSize));
+  static const unsigned kMaxLaneCount = kZRegMaxSize / kSRegSize;
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  unsigned msize_in_bytes = msize_in_bits / kBitsPerByte;
+  int vl = config->sve_vl_in_bytes();
+
+  uint64_t addresses[kMaxLaneCount];
+  uint64_t offsets[kMaxLaneCount];
+  uint64_t max_address = 0;
+  uint64_t buffer_size = vl * 64;
+  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
+  // Fill the buffer with arbitrary data. Meanwhile, create the random addresses
+  // and offsets into the buffer placed in the argument list.
+  BufferFillingHelper(data,
+                      buffer_size,
+                      msize_in_bytes,
+                      kMaxLaneCount,
+                      offsets,
+                      addresses,
+                      &max_address);
+
+  ZRegister zn = z0.WithLaneSize(esize_in_bits);
+  ZRegister zt_ref = z1.WithLaneSize(esize_in_bits);
+  ZRegister zt_ux = z2.WithLaneSize(esize_in_bits);
+  ZRegister zt_sx = z3.WithLaneSize(esize_in_bits);
+
+  int shift = 0;
+  if (is_scaled) {
+    shift = std::log2(msize_in_bytes);
+    for (unsigned i = 0; i < kMaxLaneCount; i++) {
+      // Ensure the offsets are the multiple of the scale factor of the
+      // operation.
+      offsets[i] = (offsets[i] >> shift) << shift;
+      addresses[i] = data + offsets[i];
+    }
+  }
+
+  PRegister all = p6;
+  __ Ptrue(all.WithLaneSize(esize_in_bits));
+
+  PRegisterZ pg = p0.Zeroing();
+  Initialise(&masm,
+             pg,
+             0x9abcdef012345678,
+             0xabcdef0123456789,
+             0xf4f3f1f0fefdfcfa,
+             0xf9f8f6f5f3f2f1ff);
+
+  __ Mov(x0, data);
+
+  // Generate a reference result for scalar-plus-scalar form using scalar loads.
+  ScalarLoadHelper(&masm,
+                   vl,
+                   addresses,
+                   zt_ref,
+                   pg,
+                   esize_in_bits,
+                   msize_in_bits,
+                   is_signed);
+
+  InsrHelper(&masm, zn, offsets);
+  if (is_scaled) {
+    // Scale down the offsets if testing scaled-offset operation.
+    __ Lsr(zn, zn, shift);
+  }
+
+  // TODO: Also test 64 bit scalar-plus-vector SVEMemOperands.
+  VIXL_ASSERT(esize_in_bits == kSRegSize);
+  (masm.*ld1)(zt_ux, pg, SVEMemOperand(x0, zn, UXTW, shift));
+  (masm.*ld1)(zt_sx, pg, SVEMemOperand(x0, zn, SXTW, shift));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zt_ref, zt_ux);
+    ASSERT_EQUAL_SVE(zt_ref, zt_sx);
+  }
+
+  free(reinterpret_cast<void*>(data));
+}
+
 // Test gather loads by comparing them with the result of a set of equivalent
 // scalar loads.
 template <typename F>
-static void GatherLoadHelper(Test* config,
-                             unsigned msize_in_bits,
-                             unsigned esize_in_bits,
-                             F sve_ld1,
-                             bool is_signed) {
+static void GatherLoadScalarPlusScalarOrImmHelper(Test* config,
+                                                  unsigned msize_in_bits,
+                                                  unsigned esize_in_bits,
+                                                  F sve_ld1,
+                                                  bool is_signed) {
   // SVE supports 32- and 64-bit addressing for gather loads.
   VIXL_ASSERT((esize_in_bits == kSRegSize) || (esize_in_bits == kDRegSize));
   static const unsigned kMaxLaneCount = kZRegMaxSize / kSRegSize;
@@ -9064,7 +9163,6 @@ static void GatherLoadHelper(Test* config,
   InsrHelper(&masm, zn, maxed_offsets);
   (masm.*sve_ld1)(zt_maxed, pg, SVEMemOperand(zn, maxed_offsets_imm));
 
-  // TODO: Also test scalar-plus-vector SVEMemOperands.
   // TODO: Also test first-fault loads.
 
   // Generate a reference result using scalar loads.
@@ -9093,51 +9191,178 @@ static void GatherLoadHelper(Test* config,
 }
 
 TEST_SVE(sve_ld1b_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kBRegSize, kDRegSize, &MacroAssembler::Ld1b, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kBRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1b,
+                                        false);
 }
 
 TEST_SVE(sve_ld1h_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kHRegSize, kDRegSize, &MacroAssembler::Ld1h, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kHRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1h,
+                                        false);
 }
 
 TEST_SVE(sve_ld1w_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1w, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kSRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1w,
+                                        false);
 }
 
 TEST_SVE(sve_ld1d_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kDRegSize, kDRegSize, &MacroAssembler::Ld1d, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kDRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1d,
+                                        false);
 }
 
 TEST_SVE(sve_ld1sb_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kBRegSize, kDRegSize, &MacroAssembler::Ld1sb, true);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kBRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1sb,
+                                        true);
 }
 
 TEST_SVE(sve_ld1sh_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kHRegSize, kDRegSize, &MacroAssembler::Ld1sh, true);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kHRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1sh,
+                                        true);
 }
 
 TEST_SVE(sve_ld1sw_64bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kSRegSize, kDRegSize, &MacroAssembler::Ld1sw, true);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kSRegSize,
+                                        kDRegSize,
+                                        &MacroAssembler::Ld1sw,
+                                        true);
 }
 
 TEST_SVE(sve_ld1b_32bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kBRegSize, kSRegSize, &MacroAssembler::Ld1b, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kBRegSize,
+                                        kSRegSize,
+                                        &MacroAssembler::Ld1b,
+                                        false);
 }
 
 TEST_SVE(sve_ld1h_32bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1h, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kHRegSize,
+                                        kSRegSize,
+                                        &MacroAssembler::Ld1h,
+                                        false);
 }
 
 TEST_SVE(sve_ld1w_32bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kSRegSize, kSRegSize, &MacroAssembler::Ld1w, false);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kSRegSize,
+                                        kSRegSize,
+                                        &MacroAssembler::Ld1w,
+                                        false);
 }
 
 TEST_SVE(sve_ld1sb_32bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kBRegSize, kSRegSize, &MacroAssembler::Ld1sb, true);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kBRegSize,
+                                        kSRegSize,
+                                        &MacroAssembler::Ld1sb,
+                                        true);
 }
 
 TEST_SVE(sve_ld1sh_32bit_vector_plus_immediate) {
-  GatherLoadHelper(config, kHRegSize, kSRegSize, &MacroAssembler::Ld1sh, true);
+  GatherLoadScalarPlusScalarOrImmHelper(config,
+                                        kHRegSize,
+                                        kSRegSize,
+                                        &MacroAssembler::Ld1sh,
+                                        true);
+}
+
+TEST_SVE(sve_ld1b_32bit_scalar_plus_vector) {
+  bool is_signed = false;
+  bool is_scaled = false;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kBRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1b,
+                                   is_signed,
+                                   is_scaled);
+}
+
+TEST_SVE(sve_ld1h_32bit_scalar_plus_vector) {
+  bool is_signed = false;
+  bool is_scaled = false;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kHRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1h,
+                                   is_signed,
+                                   is_scaled);
+
+  is_scaled = true;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kHRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1h,
+                                   is_signed,
+                                   is_scaled);
+}
+
+TEST_SVE(sve_ld1w_32bit_scalar_plus_vector) {
+  bool is_signed = false;
+  bool is_scaled = false;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kSRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1w,
+                                   is_signed,
+                                   is_scaled);
+
+  is_scaled = true;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kSRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1w,
+                                   is_signed,
+                                   is_scaled);
+}
+
+TEST_SVE(sve_ld1sb_32bit_scalar_plus_vector) {
+  bool is_signed = true;
+  bool is_scaled = false;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kBRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1sb,
+                                   is_signed,
+                                   is_scaled);
+}
+
+TEST_SVE(sve_ld1sh_32bit_scalar_plus_vector) {
+  bool is_signed = true;
+  bool is_scaled = false;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kHRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1sh,
+                                   is_signed,
+                                   is_scaled);
+
+  is_scaled = true;
+  GatherLoadScalarPlusVectorHelper(config,
+                                   kHRegSize,
+                                   kSRegSize,
+                                   &MacroAssembler::Ld1sh,
+                                   is_signed,
+                                   is_scaled);
 }
 
 TEST_SVE(sve_ldnt1) {

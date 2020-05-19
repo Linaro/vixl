@@ -4927,28 +4927,26 @@ void Disassembler::
     VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
-  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, <mod> #1]";
+  const char *form = (instr->ExtractBit(22) == 0)
+                         ? "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, uxtw #1]"
+                         : "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, sxtw #1]";
 
   switch (instr->Mask(
       SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
-    // LD1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
     case LD1H_z_p_bz_s_x32_scaled:
       mnemonic = "ld1h";
       break;
-    // LD1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
     case LD1SH_z_p_bz_s_x32_scaled:
       mnemonic = "ld1sh";
       break;
-    // LDFF1H { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
     case LDFF1H_z_p_bz_s_x32_scaled:
       mnemonic = "ldff1h";
       break;
-    // LDFF1SH { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #1]
     case LDFF1SH_z_p_bz_s_x32_scaled:
       mnemonic = "ldff1sh";
       break;
     default:
+      form = "(SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets)";
       break;
   }
   Format(instr, mnemonic, form);
@@ -4957,20 +4955,20 @@ void Disassembler::
 void Disassembler::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
-  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, <mod> #2]";
+  const char *form = (instr->ExtractBit(22) == 0)
+                         ? "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, uxtw #2]"
+                         : "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, sxtw #2]";
 
   switch (
       instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
-    // LD1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
     case LD1W_z_p_bz_s_x32_scaled:
       mnemonic = "ld1w";
       break;
-    // LDFF1W { <Zt>.S }, <Pg>/Z, [<Xn|SP>, <Zm>.S, <mod> #2]
     case LDFF1W_z_p_bz_s_x32_scaled:
       mnemonic = "ldff1w";
       break;
     default:
+      form = "(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets)";
       break;
   }
   Format(instr, mnemonic, form);
