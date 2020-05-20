@@ -6124,7 +6124,8 @@ void Assembler::Logical(const PRegister& pd,
                         const PRegister& pn,
                         const PRegister& pm,
                         SVEPredicateLogicalOp op) {
-  AreSameFormat(pd, pn, pm);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
   Emit(op | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
@@ -6480,6 +6481,55 @@ void Assembler::wrffr(const PRegisterWithLaneSize& pn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   Emit(WRFFR_f_p | Rx<8, 5>(pn));
+}
+
+// Aliases.
+
+void Assembler::mov(const PRegister& pd, const PRegister& pn) {
+  // If the inputs carry a lane size, they must match.
+  VIXL_ASSERT((!pd.HasLaneSize() && !pn.HasLaneSize()) ||
+              AreSameLaneSize(pd, pn));
+  orr(pd.VnB(), pn.Zeroing(), pn.VnB(), pn.VnB());
+}
+
+void Assembler::mov(const PRegister& pd,
+                    const PRegisterM& pg,
+                    const PRegister& pn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  sel(pd, pg, pn, pd);
+}
+
+void Assembler::mov(const PRegister& pd,
+                    const PRegisterZ& pg,
+                    const PRegister& pn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  and_(pd, pg, pn, pn);
+}
+
+void Assembler::movs(const PRegister& pd, const PRegister& pn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  orrs(pd, pn.Zeroing(), pn, pn);
+}
+
+void Assembler::movs(const PRegister& pd,
+                     const PRegisterZ& pg,
+                     const PRegister& pn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  ands(pd, pg, pn, pn);
+}
+
+void Assembler::not_(const PRegister& pd,
+                     const PRegisterZ& pg,
+                     const PRegister& pn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  eor(pd, pg, pn, pg.VnB());
+}
+
+void Assembler::nots(const PRegister& pd,
+                     const PRegisterZ& pg,
+                     const PRegister& pn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+  eors(pd, pg, pn, pg.VnB());
 }
 
 }  // namespace aarch64

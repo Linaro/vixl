@@ -5005,6 +5005,12 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zn,
             const ZRegister& zm);
 
+  // Bitwise invert predicate.
+  void not_(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn);
+
+  // Bitwise invert predicate, setting the condition flags.
+  void nots(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn);
+
   // Multiply-add vectors (predicated), writing multiplicand
   // [Zdn = Za + Zdn * Zm].
   void mad(const ZRegister& zdn,
@@ -5025,6 +5031,21 @@ class Assembler : public vixl::internal::AssemblerBase {
            const PRegisterM& pg,
            const ZRegister& zn,
            const ZRegister& zm);
+
+  // Move predicates (unpredicated)
+  void mov(const PRegister& pd, const PRegister& pn);
+
+  // Move predicates (merging)
+  void mov(const PRegister& pd, const PRegisterM& pg, const PRegister& pn);
+
+  // Move predicates (zeroing)
+  void mov(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn);
+
+  // Move predicate (unpredicated), setting the condition flags
+  void movs(const PRegister& pd, const PRegister& pn);
+
+  // Move predicates (zeroing), setting the condition flags
+  void movs(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn);
 
   // Move prefix (predicated).
   void movprfx(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);

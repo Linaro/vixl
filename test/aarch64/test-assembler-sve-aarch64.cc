@@ -8991,10 +8991,8 @@ static void Ldff1Helper(Test* config,
 
   // Clear lanes inactive in FFR. These have an undefined result.
   // TODO: Use the 'Not' and 'Mov' aliases once they are implemented.
-  __ Eor(p0.WithLaneSize(esize_in_bits),
-         all.Zeroing(),
-         p0.WithLaneSize(esize_in_bits),
-         all.WithLaneSize(esize_in_bits));
+  __ Not(p0.VnB(), all.Zeroing(), p0.VnB());
+  // TODO: Use the 'Mov' alias once it's implemented.
   __ Cpy(z0.WithLaneSize(esize_in_bits), p0.Merging(), 0);
 
   END();
@@ -9463,7 +9461,7 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
 
     masm.Rdffrs(pg_ff.VnB(), all.Zeroing());
     masm.Cmpeq(pg_diff, all.Zeroing(), zt_ref, zt);
-    masm.Eor(pg_diff, all.Zeroing(), pg_diff, pg_ff);
+    masm.Eor(pg_diff.VnB(), all.Zeroing(), pg_diff.VnB(), pg_ff.VnB());
     masm.Cntp(x12, all, pg_diff);
     masm.Add(ffr_check_count, ffr_check_count, x12);
   };

@@ -5739,8 +5739,8 @@ TEST(sve_predicate_logical_op) {
                  "bics p8.b, p5/z, p3.b, p1.b");
   COMPARE_PREFIX(bic(p5.VnB(), p5.Zeroing(), p9.VnB(), p9.VnB()),
                  "bic p5.b, p5/z, p9.b, p9.b");
-  COMPARE_PREFIX(eors(p11.VnB(), p1.Zeroing(), p1.VnB(), p1.VnB()),
-                 "eors p11.b, p1/z, p1.b, p1.b");
+  COMPARE_PREFIX(eors(p11.VnB(), p1.Zeroing(), p1.VnB(), p2.VnB()),
+                 "eors p11.b, p1/z, p1.b, p2.b");
   COMPARE_PREFIX(eor(p8.VnB(), p6.Zeroing(), p1.VnB(), p11.VnB()),
                  "eor p8.b, p6/z, p1.b, p11.b");
   COMPARE_PREFIX(nands(p13.VnB(), p0.Zeroing(), p9.VnB(), p4.VnB()),
@@ -5761,6 +5761,41 @@ TEST(sve_predicate_logical_op) {
                  "orr p13.b, p7/z, p10.b, p4.b");
   COMPARE_PREFIX(sel(p9.VnB(), p15, p15.VnB(), p7.VnB()),
                  "sel p9.b, p15, p15.b, p7.b");
+
+  // Aliases.
+  COMPARE_PREFIX(eor(p7.VnB(), p6.Zeroing(), p1.VnB(), p6.VnB()),
+                 "not p7.b, p6/z, p1.b");
+  COMPARE_PREFIX(not_(p7.VnB(), p6.Zeroing(), p1.VnB()),
+                 "not p7.b, p6/z, p1.b");
+  COMPARE_PREFIX(eors(p6.VnB(), p5.Zeroing(), p2.VnB(), p5.VnB()),
+                 "nots p6.b, p5/z, p2.b");
+  COMPARE_PREFIX(nots(p6.VnB(), p5.Zeroing(), p2.VnB()),
+                 "nots p6.b, p5/z, p2.b");
+  COMPARE_PREFIX(ands(p5.VnB(), p4.Zeroing(), p3.VnB(), p3.VnB()),
+                 "movs p5.b, p4/z, p3.b");
+  COMPARE_PREFIX(movs(p5.VnB(), p4.Zeroing(), p3.VnB()),
+                 "movs p5.b, p4/z, p3.b");
+  COMPARE_PREFIX(and_(p5.VnB(), p4.Zeroing(), p3.VnB(), p3.VnB()),
+                 "mov p5.b, p4/z, p3.b");
+  COMPARE_PREFIX(mov(p5.VnB(), p4.Zeroing(), p3.VnB()), "mov p5.b, p4/z, p3.b");
+  COMPARE_PREFIX(orrs(p4.VnB(), p3.Zeroing(), p3.VnB(), p3.VnB()),
+                 "movs p4.b, p3.b");
+  COMPARE_PREFIX(movs(p4.VnB(), p3.VnB()), "movs p4.b, p3.b");
+  COMPARE_PREFIX(orr(p4.VnB(), p3.Zeroing(), p3.VnB(), p3.VnB()),
+                 "mov p4.b, p3.b");
+  COMPARE_PREFIX(mov(p4.VnB(), p3.VnB()), "mov p4.b, p3.b");
+  COMPARE_PREFIX(sel(p3.VnB(), p2, p4.VnB(), p3.VnB()), "mov p3.b, p2/m, p4.b");
+  COMPARE_PREFIX(mov(p3.VnB(), p2.Merging(), p4.VnB()), "mov p3.b, p2/m, p4.b");
+
+  COMPARE_MACRO(Not(p7.VnB(), p6.Zeroing(), p1.VnB()), "not p7.b, p6/z, p1.b");
+  COMPARE_MACRO(Nots(p6.VnB(), p5.Zeroing(), p2.VnB()),
+                "nots p6.b, p5/z, p2.b");
+  COMPARE_MACRO(Movs(p5.VnB(), p4.Zeroing(), p3.VnB()),
+                "movs p5.b, p4/z, p3.b");
+  COMPARE_MACRO(Mov(p5.VnB(), p4.Zeroing(), p3.VnB()), "mov p5.b, p4/z, p3.b");
+  COMPARE_MACRO(Movs(p4.VnB(), p3.VnB()), "movs p4.b, p3.b");
+  COMPARE_MACRO(Mov(p4, p3), "mov p4.b, p3.b");
+  COMPARE_MACRO(Mov(p3.VnB(), p2.Merging(), p4.VnB()), "mov p3.b, p2/m, p4.b");
 
   CLEANUP();
 }

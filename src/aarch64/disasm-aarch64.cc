@@ -9363,84 +9363,88 @@ void Disassembler::VisitSVEPredicateCount(const Instruction *instr) {
 
 void Disassembler::VisitSVEPredicateLogical(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
   const char *form = "'Pd.b, p'u1310/z, 'Pn.b, 'Pm.b";
 
+  int pd = instr->GetPd();
   int pn = instr->GetPn();
   int pm = instr->GetPm();
   int pg = instr->ExtractBits(13, 10);
 
   switch (instr->Mask(SVEPredicateLogicalMask)) {
-    // ANDS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ANDS_p_p_pp_z:
-      // TODO: Implement the `movs` alias.
       mnemonic = "ands";
+      if (pn == pm) {
+        mnemonic = "movs";
+        form = "'Pd.b, p'u1310/z, 'Pn.b";
+      }
       break;
-    // AND <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case AND_p_p_pp_z:
-      // TODO: Implement the `mov` alias.
       mnemonic = "and";
+      if (pn == pm) {
+        mnemonic = "mov";
+        form = "'Pd.b, p'u1310/z, 'Pn.b";
+      }
       break;
-    // BICS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case BICS_p_p_pp_z:
       mnemonic = "bics";
       break;
-    // BIC <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case BIC_p_p_pp_z:
       mnemonic = "bic";
       break;
-    // EORS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case EORS_p_p_pp_z:
-      // TODO: Implement the `nots` alias.
       mnemonic = "eors";
+      if (pm == pg) {
+        mnemonic = "nots";
+        form = "'Pd.b, 'Pm/z, 'Pn.b";
+      }
       break;
-    // EOR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case EOR_p_p_pp_z:
-      // TODO: Implement the `not` alias.
       mnemonic = "eor";
+      if (pm == pg) {
+        mnemonic = "not";
+        form = "'Pd.b, 'Pm/z, 'Pn.b";
+      }
       break;
-    // NANDS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case NANDS_p_p_pp_z:
       mnemonic = "nands";
       break;
-    // NAND <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case NAND_p_p_pp_z:
       mnemonic = "nand";
       break;
-    // NORS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case NORS_p_p_pp_z:
       mnemonic = "nors";
       break;
-    // NOR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case NOR_p_p_pp_z:
       mnemonic = "nor";
       break;
-    // ORNS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ORNS_p_p_pp_z:
       mnemonic = "orns";
       break;
-    // ORN <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ORN_p_p_pp_z:
       mnemonic = "orn";
       break;
-    // ORRS <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ORRS_p_p_pp_z:
-      // TODO: Implement the `movs` alias.
       mnemonic = "orrs";
+      if ((pn == pm) && (pn == pg)) {
+        mnemonic = "movs";
+        form = "'Pd.b, 'Pn.b";
+      }
       break;
-    // ORR <Pd>.B, <Pg>/Z, <Pn>.B, <Pm>.B
     case ORR_p_p_pp_z:
+      mnemonic = "orr";
       if ((pn == pm) && (pn == pg)) {
         mnemonic = "mov";
         form = "'Pd.b, 'Pn.b";
-      } else {
-        mnemonic = "orr";
       }
       break;
-    // SEL <Pd>.B, <Pg>, <Pn>.B, <Pm>.B
     case SEL_p_p_pp:
-      mnemonic = "sel";
-      form = "'Pd.b, p'u1310, 'Pn.b, 'Pm.b";
+      if (pd == pm) {
+        mnemonic = "mov";
+        form = "'Pd.b, p'u1310/m, 'Pn.b";
+      } else {
+        mnemonic = "sel";
+        form = "'Pd.b, p'u1310, 'Pn.b, 'Pm.b";
+      }
       break;
     default:
       form = "(SVEPredicateLogical)";
