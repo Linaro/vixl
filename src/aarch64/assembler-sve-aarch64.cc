@@ -442,26 +442,26 @@ void Assembler::lsr(const ZRegister& zd,
 
 // SVEElementCount.
 
-#define VIXL_SVE_INC_DEC_LIST(V)                          \
-  V(cntb, CNTB_r_s)                                       \
-  V(cnth, CNTH_r_s)                                       \
-  V(cntw, CNTW_r_s)                                       \
-  V(cntd, CNTD_r_s)                                       \
-  V(decb, DECB_r_rs)                                      \
-  V(dech, DECH_r_rs)                                      \
-  V(decw, DECW_r_rs)                                      \
-  V(decd, DECD_r_rs)                                      \
-  V(incb, INCB_r_rs)                                      \
-  V(inch, INCH_r_rs)                                      \
-  V(incw, INCW_r_rs)                                      \
-  V(incd, INCD_r_rs)                                      \
-  V(sqdecb, SQDECB_r_rs_x)                                \
-  V(sqdech, SQDECH_r_rs_x)                                \
-  V(sqdecw, SQDECW_r_rs_x)                                \
-  V(sqdecd, SQDECD_r_rs_x)                                \
-  V(sqincb, SQINCB_r_rs_x)                                \
-  V(sqinch, SQINCH_r_rs_x)                                \
-  V(sqincw, SQINCW_r_rs_x)                                \
+#define VIXL_SVE_INC_DEC_LIST(V) \
+  V(cntb, CNTB_r_s)              \
+  V(cnth, CNTH_r_s)              \
+  V(cntw, CNTW_r_s)              \
+  V(cntd, CNTD_r_s)              \
+  V(decb, DECB_r_rs)             \
+  V(dech, DECH_r_rs)             \
+  V(decw, DECW_r_rs)             \
+  V(decd, DECD_r_rs)             \
+  V(incb, INCB_r_rs)             \
+  V(inch, INCH_r_rs)             \
+  V(incw, INCW_r_rs)             \
+  V(incd, INCD_r_rs)             \
+  V(sqdecb, SQDECB_r_rs_x)       \
+  V(sqdech, SQDECH_r_rs_x)       \
+  V(sqdecw, SQDECW_r_rs_x)       \
+  V(sqdecd, SQDECD_r_rs_x)       \
+  V(sqincb, SQINCB_r_rs_x)       \
+  V(sqinch, SQINCH_r_rs_x)       \
+  V(sqincw, SQINCW_r_rs_x)       \
   V(sqincd, SQINCD_r_rs_x)
 
 #define VIXL_DEFINE_ASM_FUNC(FN, OP)                                     \

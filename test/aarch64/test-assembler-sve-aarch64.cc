@@ -11528,8 +11528,8 @@ static void BitwiseShiftImmHelper(Test* config,
     for (int i = 0; i < static_cast<int>(N); i++) {
       int lane = N - i - 1;
       if (!core.HasSVELane(zd_lsl, lane)) break;
-      uint64_t result = (shift > lane_size_in_bits) ? 0 : zn_inputs[i]
-                                                              << (shift - 1);
+      uint64_t result =
+          (shift > lane_size_in_bits) ? 0 : zn_inputs[i] << (shift - 1);
       ASSERT_EQUAL_SVE_LANE(result & mask, zd_lsl, lane);
     }
   }

@@ -715,8 +715,7 @@ class IntegerOperand {
       : raw_bits_(immediate),        /* Allow implicit sign-extension. */ \
         is_negative_(immediate < 0) {}                                    \
   IntegerOperand(unsigned T immediate) /* NOLINT(runtime/explicit) */     \
-      : raw_bits_(immediate),                                             \
-        is_negative_(false) {}
+      : raw_bits_(immediate), is_negative_(false) {}
   VIXL_INT_TYPES(VIXL_DECL_INT_OVERLOADS)
 #undef VIXL_DECL_INT_OVERLOADS
 #undef VIXL_INT_TYPES
