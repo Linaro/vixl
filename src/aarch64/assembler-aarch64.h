@@ -5041,6 +5041,27 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Move predicates (zeroing)
   void mov(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn);
 
+  // Move general-purpose register to vector elements (unpredicated)
+  void mov(const ZRegister& zd, const Register& xn);
+
+  // Move SIMD&FP scalar register to vector elements (unpredicated)
+  void mov(const ZRegister& zd, const VRegister& vn);
+
+  // Move vector register (unpredicated)
+  void mov(const ZRegister& zd, const ZRegister& zn);
+
+  // Move indexed element to vector elements (unpredicated)
+  void mov(const ZRegister& zd, const ZRegister& zn, unsigned index);
+
+  // Move general-purpose register to vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegisterM& pg, const Register& rn);
+
+  // Move SIMD&FP scalar register to vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn);
+
+  // Move vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
   // Move predicate (unpredicated), setting the condition flags
   void movs(const PRegister& pd, const PRegister& pn);
 

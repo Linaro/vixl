@@ -6506,6 +6506,44 @@ void Assembler::mov(const PRegister& pd,
   and_(pd, pg, pn, pn);
 }
 
+void Assembler::mov(const ZRegister& zd, const Register& xn) { dup(zd, xn); }
+
+void Assembler::mov(const ZRegister& zd, const VRegister& vn) {
+  VIXL_ASSERT(vn.IsScalar());
+  VIXL_ASSERT(AreSameLaneSize(zd, vn));
+  dup(zd, vn.Z().WithSameLaneSizeAs(vn), 0);
+}
+
+void Assembler::mov(const ZRegister& zd, const ZRegister& zn) {
+  orr(zd, zn, zn);
+}
+
+void Assembler::mov(const ZRegister& zd, const ZRegister& zn, unsigned index) {
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  dup(zd, zn, index);
+}
+
+void Assembler::mov(const ZRegister& zd,
+                    const PRegisterM& pg,
+                    const Register& rn) {
+  cpy(zd, pg, rn);
+}
+
+void Assembler::mov(const ZRegister& zd,
+                    const PRegisterM& pg,
+                    const VRegister& vn) {
+  VIXL_ASSERT(vn.IsScalar());
+  VIXL_ASSERT(AreSameLaneSize(zd, vn));
+  cpy(zd, pg, vn);
+}
+
+void Assembler::mov(const ZRegister& zd,
+                    const PRegisterM& pg,
+                    const ZRegister& zn) {
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  sel(zd, pg, zn, zd);
+}
+
 void Assembler::movs(const PRegister& pd, const PRegister& pn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   orrs(pd, pn.Zeroing(), pn, pn);

@@ -5190,15 +5190,43 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     mov(pd, pg, pn);
   }
+  void Mov(const ZRegister& zd, const Register& xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(zd, xn);
+  }
+
+  void Mov(const ZRegister& zd, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(zd, vn);
+  }
+
   void Mov(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    orr(zd, zn, zn);
+    mov(zd, zn);
+  }
+  void Mov(const ZRegister& zd, const ZRegister& zn, unsigned index) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(zd, zn, index);
+  }
+  // TODO: support zeroing predicated moves using movprfx.
+  void Mov(const ZRegister& zd, const PRegisterM& pg, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(zd, pg, rn);
+  }
+  void Mov(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mov(zd, pg, vn);
   }
   void Mov(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sel(zd, pg, zn, zd);
+    mov(zd, pg, zn);
   }
   void Movs(const PRegister& pd, const PRegister& pn) {
     VIXL_ASSERT(allow_macro_instructions_);

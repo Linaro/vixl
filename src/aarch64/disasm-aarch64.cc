@@ -5920,9 +5920,9 @@ void Disassembler::VisitSVEBroadcastGeneralRegister(const Instruction *instr) {
   const char *form = "(SVEBroadcastGeneralRegister)";
 
   switch (instr->Mask(SVEBroadcastGeneralRegisterMask)) {
-    // DUP <Zd>.<T>, <R><n|SP>
     case DUP_z_r:
-      mnemonic = "dup";
+      // The preferred disassembly for dup is "mov".
+      mnemonic = "mov";
       if (instr->GetSVESize() == kDRegSizeInBytesLog2) {
         form = "'Zd.'t, 'Xns";
       } else {
@@ -5940,14 +5940,23 @@ void Disassembler::VisitSVEBroadcastIndexElement(const Instruction *instr) {
   const char *form = "(SVEBroadcastIndexElement)";
 
   switch (instr->Mask(SVEBroadcastIndexElementMask)) {
-    // DUP <Zd>.<T>, <Zn>.<T>[<imm>]
-    case DUP_z_zi:
-      if (instr->ExtractBits(20, 16) != 0) {
-        // The tsz field must not be zero.
-        mnemonic = "dup";
-        form = "'Zd.'tszx, 'Zn.'tszx['IVInsSVEIndex]";
+    case DUP_z_zi: {
+      // The tsz field must not be zero.
+      int tsz = instr->ExtractBits(20, 16);
+      if (tsz != 0) {
+        // The preferred disassembly for dup is "mov".
+        mnemonic = "mov";
+        int imm2 = instr->ExtractBits(23, 22);
+        if ((CountSetBits(imm2) + CountSetBits(tsz)) == 1) {
+          // If imm2:tsz has one set bit, the index is zero. This is
+          // disassembled as a mov from a b/h/s/d/q scalar register.
+          form = "'Zd.'tszx, 'tszx'u0905";
+        } else {
+          form = "'Zd.'tszx, 'Zn.'tszx['IVInsSVEIndex]";
+        }
       }
       break;
+    }
     default:
       break;
   }
@@ -6478,9 +6487,9 @@ void Disassembler::VisitSVECopyGeneralRegisterToVector_Predicated(
   const char *form = "(SVECopyGeneralRegisterToVector_Predicated)";
 
   switch (instr->Mask(SVECopyGeneralRegisterToVector_PredicatedMask)) {
-    // CPY <Zd>.<T>, <Pg>/M, <R><n|SP>
     case CPY_z_p_r:
-      mnemonic = "cpy";
+      // The preferred disassembly for cpy is "mov".
+      mnemonic = "mov";
       form = "'Zd.'t, 'Pgl/m, 'Wns";
       if (instr->GetSVESize() == kXRegSizeInBytesLog2) {
         form = "'Zd.'t, 'Pgl/m, 'Xns";
@@ -6529,9 +6538,9 @@ void Disassembler::VisitSVECopySIMDFPScalarRegisterToVector_Predicated(
   const char *form = "(SVECopySIMDFPScalarRegisterToVector_Predicated)";
 
   switch (instr->Mask(SVECopySIMDFPScalarRegisterToVector_PredicatedMask)) {
-    // CPY <Zd>.<T>, <Pg>/M, <V><n>
     case CPY_z_p_v:
-      mnemonic = "cpy";
+      // The preferred disassembly for cpy is "mov".
+      mnemonic = "mov";
       form = "'Zd.'t, 'Pgl/m, 'Vnv";
       break;
     default:
@@ -8378,25 +8387,24 @@ void Disassembler::VisitSVEAddressGeneration(const Instruction *instr) {
 void Disassembler::VisitSVEBitwiseLogicalUnpredicated(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // <Zd>.D, <Zn>.D, <Zm>.D
   const char *form = "'Zd.d, 'Zn.d, 'Zm.d";
 
   switch (instr->Mask(SVEBitwiseLogicalUnpredicatedMask)) {
-    // AND <Zd>.D, <Zn>.D, <Zm>.D
     case AND_z_zz:
       mnemonic = "and";
       break;
-    // BIC <Zd>.D, <Zn>.D, <Zm>.D
     case BIC_z_zz:
       mnemonic = "bic";
       break;
-    // EOR <Zd>.D, <Zn>.D, <Zm>.D
     case EOR_z_zz:
       mnemonic = "eor";
       break;
-    // ORR <Zd>.D, <Zn>.D, <Zm>.D
     case ORR_z_zz:
       mnemonic = "orr";
+      if (instr->GetRn() == instr->GetRm()) {
+        mnemonic = "mov";
+        form = "'Zd.d, 'Zn.d";
+      }
       break;
     default:
       break;
