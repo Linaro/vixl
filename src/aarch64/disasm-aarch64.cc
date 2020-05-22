@@ -5882,17 +5882,101 @@ void Disassembler::VisitSVEBitwiseShiftByWideElements_Predicated(
   Format(instr, mnemonic, form);
 }
 
+static bool SVEMoveMaskPreferred(uint64_t value, int lane_bytes_log2) {
+  VIXL_ASSERT(IsUintN(8 << lane_bytes_log2, value));
+
+  // Duplicate lane-sized value across double word.
+  switch (lane_bytes_log2) {
+    case 0:
+      value *= 0x0101010101010101;
+      break;
+    case 1:
+      value *= 0x0001000100010001;
+      break;
+    case 2:
+      value *= 0x0000000100000001;
+      break;
+    case 3:  // Nothing to do
+      break;
+    default:
+      VIXL_UNREACHABLE();
+  }
+
+  if ((value & 0xff) == 0) {
+    // Check for 16-bit patterns. Set least-significant 16 bits, to make tests
+    // easier; we already checked least-significant byte is zero above.
+    uint64_t generic_value = value | 0xffff;
+
+    // Check 0x00000000_0000pq00 or 0xffffffff_ffffpq00.
+    if ((generic_value == 0xffff) || (generic_value == UINT64_MAX)) {
+      return false;
+    }
+
+    // Check 0x0000pq00_0000pq00 or 0xffffpq00_ffffpq00.
+    uint64_t rotvalue = RotateRight(value, 32, 64);
+    if (value == rotvalue) {
+      generic_value &= 0xffffffff;
+      if ((generic_value == 0xffff) || (generic_value == UINT32_MAX)) {
+        return false;
+      }
+    }
+
+    // Check 0xpq00pq00_pq00pq00.
+    rotvalue = RotateRight(value, 16, 64);
+    if (value == rotvalue) {
+      return false;
+    }
+  } else {
+    // Check for 8-bit patterns. Set least-significant byte, to make tests
+    // easier.
+    uint64_t generic_value = value | 0xff;
+
+    // Check 0x00000000_000000pq or 0xffffffff_ffffffpq.
+    if ((generic_value == 0xff) || (generic_value == UINT64_MAX)) {
+      return false;
+    }
+
+    // Check 0x000000pq_000000pq or 0xffffffpq_ffffffpq.
+    uint64_t rotvalue = RotateRight(value, 32, 64);
+    if (value == rotvalue) {
+      generic_value &= 0xffffffff;
+      if ((generic_value == 0xff) || (generic_value == UINT32_MAX)) {
+        return false;
+      }
+    }
+
+    // Check 0x00pq00pq_00pq00pq or 0xffpqffpq_ffpqffpq.
+    rotvalue = RotateRight(value, 16, 64);
+    if (value == rotvalue) {
+      generic_value &= 0xffff;
+      if ((generic_value == 0xff) || (generic_value == UINT16_MAX)) {
+        return false;
+      }
+    }
+
+    // Check 0xpqpqpqpq_pqpqpqpq.
+    rotvalue = RotateRight(value, 8, 64);
+    if (value == rotvalue) {
+      return false;
+    }
+  }
+  return true;
+}
+
 void Disassembler::VisitSVEBroadcastBitmaskImm(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEBroadcastBitmaskImm)";
 
   switch (instr->Mask(SVEBroadcastBitmaskImmMask)) {
-    case DUPM_z_i:
-      if (instr->GetSVEImmLogical() != 0) {
-        mnemonic = "dupm";
+    case DUPM_z_i: {
+      uint64_t imm = instr->GetSVEImmLogical();
+      if (imm != 0) {
+        int lane_size = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+        mnemonic = SVEMoveMaskPreferred(imm, lane_size) ? "mov" : "dupm";
         form = "'Zd.'tl, 'ITriSvel";
       }
       break;
+    }
     default:
       break;
   }
@@ -5969,9 +6053,9 @@ void Disassembler::VisitSVEBroadcastIntImm_Unpredicated(
   const char *form = "(SVEBroadcastIntImm_Unpredicated)";
 
   switch (instr->Mask(SVEBroadcastIntImm_UnpredicatedMask)) {
-    // DUP <Zd>.<T>, #<imm>{, <shift>}
     case DUP_z_i:
-      mnemonic = "dup";
+      // The preferred disassembly for dup is "mov".
+      mnemonic = "mov";
       form = (instr->ExtractBit(13) == 0) ? "'Zd.'t, #'s1205"
                                           : "'Zd.'t, #'s1205, lsl #8";
       break;
@@ -6504,32 +6588,25 @@ void Disassembler::VisitSVECopyGeneralRegisterToVector_Predicated(
 void Disassembler::VisitSVECopyIntImm_Predicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVECopyIntImm_Predicated)";
+  const char *suffix = NULL;
 
   switch (instr->Mask(SVECopyIntImm_PredicatedMask)) {
-    // CPY <Zd>.<T>, <Pg>/<ZM>, #<imm>{, <shift>}
     case CPY_z_p_i: {
-      mnemonic = "cpy";
-      bool sh = instr->ExtractBit(13) != 0;
+      // The preferred disassembly for cpy is "mov".
+      mnemonic = "mov";
+      suffix = (instr->ExtractBit(13) == 0) ? "" : ", lsl #8";
       bool m = instr->ExtractBit(14) != 0;
-      if (sh) {
-        if (m) {
-          form = "'Zd.'t, 'Pm/m, #'s1205, lsl #8";
-        } else {
-          form = "'Zd.'t, 'Pm/z, #'s1205, lsl #8";
-        }
+      if (m) {
+        form = "'Zd.'t, 'Pm/m, #'s1205";
       } else {
-        if (m) {
-          form = "'Zd.'t, 'Pm/m, #'s1205";
-        } else {
-          form = "'Zd.'t, 'Pm/z, #'s1205";
-        }
+        form = "'Zd.'t, 'Pm/z, #'s1205";
       }
       break;
     }
     default:
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVECopySIMDFPScalarRegisterToVector_Predicated(

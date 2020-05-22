@@ -5212,6 +5212,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     mov(zd, zn, index);
   }
+  void Mov(const ZRegister& zd, const PRegister& pg, IntegerOperand imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Cpy(zd, pg, imm);
+  }
   // TODO: support zeroing predicated moves using movprfx.
   void Mov(const ZRegister& zd, const PRegisterM& pg, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -5227,6 +5231,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     mov(zd, pg, zn);
+  }
+  void Mov(const ZRegister& zd, IntegerOperand imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Dup(zd, imm);
   }
   void Movs(const PRegister& pd, const PRegister& pn) {
     VIXL_ASSERT(allow_macro_instructions_);

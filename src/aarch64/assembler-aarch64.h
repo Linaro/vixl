@@ -5062,6 +5062,15 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Move vector elements (predicated)
   void mov(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
+  // Move signed integer immediate to vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegister& pg, int imm8, int shift = -1);
+
+  // Move signed immediate to vector elements (unpredicated).
+  void mov(const ZRegister& zd, int imm8, int shift);
+
+  // Move logical bitmask immediate to vector (unpredicated).
+  void mov(const ZRegister& zd, uint64_t imm);
+
   // Move predicate (unpredicated), setting the condition flags
   void movs(const PRegister& pd, const PRegister& pn);
 

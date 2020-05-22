@@ -8990,10 +8990,8 @@ static void Ldff1Helper(Test* config,
   __ Csel(limit, limit, x0, hs);
 
   // Clear lanes inactive in FFR. These have an undefined result.
-  // TODO: Use the 'Not' and 'Mov' aliases once they are implemented.
   __ Not(p0.VnB(), all.Zeroing(), p0.VnB());
-  // TODO: Use the 'Mov' alias once it's implemented.
-  __ Cpy(z0.WithLaneSize(esize_in_bits), p0.Merging(), 0);
+  __ Mov(z0.WithLaneSize(esize_in_bits), p0.Merging(), 0);
 
   END();
 

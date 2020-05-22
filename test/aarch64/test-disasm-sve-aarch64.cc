@@ -164,10 +164,34 @@ TEST(sve_bitwise_imm) {
   // The assembler will necessarily encode an immediate in the simplest bitset.
   COMPARE_PREFIX(and_(z2.VnD(), z2.VnD(), 0x0000ffff0000ffff),
                  "and z2.s, z2.s, #0xffff");
-  COMPARE_PREFIX(dupm(z15.VnS(), 0x7ffc7ffc), "dupm z15.h, #0x7ffc");
+  COMPARE_PREFIX(dupm(z15.VnS(), 0x7f007f00), "dupm z15.h, #0x7f00");
   COMPARE_PREFIX(eor(z26.VnH(), z26.VnH(), 0x7ff8),
                  "eor z26.h, z26.h, #0x7ff8");
   COMPARE_PREFIX(orr(z13.VnB(), z13.VnB(), 0x78), "orr z13.b, z13.b, #0x78");
+
+  // Mov alias for dupm.
+  COMPARE_PREFIX(mov(z0.VnH(), 0xf00f), "mov z0.h, #0xf00f");
+  COMPARE_MACRO(Mov(z11.VnS(), 0xe0000003), "mov z11.s, #0xe0000003");
+  COMPARE_MACRO(Mov(z22.VnD(), 0x8000), "dupm z22.d, #0x8000");
+
+  // Test dupm versus mov disassembly.
+  COMPARE_PREFIX(dupm(z0.VnH(), 0xfe), "dupm z0.h, #0xfe");
+  COMPARE_PREFIX(dupm(z0.VnH(), 0xff), "dupm z0.h, #0xff");
+  COMPARE_PREFIX(dupm(z0.VnH(), 0x1fe), "mov z0.h, #0x1fe");
+  COMPARE_PREFIX(dupm(z0.VnH(), 0xfe00), "dupm z0.h, #0xfe00");
+  COMPARE_PREFIX(dupm(z0.VnH(), 0xfe01), "mov z0.h, #0xfe01");
+  COMPARE_PREFIX(dupm(z0.VnS(), 0xfe00), "dupm z0.s, #0xfe00");
+  COMPARE_PREFIX(dupm(z0.VnS(), 0xfe000001), "mov z0.s, #0xfe000001");
+  COMPARE_PREFIX(dupm(z0.VnS(), 0xffffff00), "dupm z0.s, #0xffffff00");
+  COMPARE_PREFIX(dupm(z0.VnS(), 0xffffff01), "dupm z0.s, #0xffffff01");
+  COMPARE_PREFIX(dupm(z0.VnS(), 0xfffffe01), "mov z0.s, #0xfffffe01");
+  COMPARE_PREFIX(dupm(z0.VnS(), 0xfff), "mov z0.s, #0xfff");
+  COMPARE_PREFIX(dupm(z0.VnD(), 0xffffffffffffff00),
+                 "dupm z0.d, #0xffffffffffffff00");
+  COMPARE_PREFIX(dupm(z0.VnD(), 0x7fffffffffffff80),
+                 "mov z0.d, #0x7fffffffffffff80");
+  COMPARE_PREFIX(dupm(z0.VnD(), 0x8000), "dupm z0.d, #0x8000");
+  COMPARE_PREFIX(dupm(z0.VnD(), 0x10000), "mov z0.d, #0x10000");
 
   CLEANUP();
 }
@@ -2979,13 +3003,16 @@ TEST(sve_neg_macro) {
 TEST(sve_cpy_fcpy_imm) {
   SETUP();
 
-  COMPARE_PREFIX(cpy(z25.VnB(), p13.Zeroing(), -1), "cpy z25.b, p13/z, #-1");
-  COMPARE_PREFIX(cpy(z25.VnB(), p13.Merging(), -1), "cpy z25.b, p13/m, #-1");
-  COMPARE_PREFIX(cpy(z25.VnH(), p13.Merging(), 127), "cpy z25.h, p13/m, #127");
+  COMPARE_PREFIX(cpy(z25.VnB(), p13.Zeroing(), -1), "mov z25.b, p13/z, #-1");
+  COMPARE_PREFIX(cpy(z25.VnB(), p13.Merging(), -1), "mov z25.b, p13/m, #-1");
+  COMPARE_PREFIX(cpy(z25.VnH(), p13.Merging(), 127), "mov z25.h, p13/m, #127");
   COMPARE_PREFIX(cpy(z25.VnS(), p13.Merging(), 10752),
-                 "cpy z25.s, p13/m, #42, lsl #8");
+                 "mov z25.s, p13/m, #42, lsl #8");
   COMPARE_PREFIX(cpy(z25.VnD(), p13.Merging(), -10752),
-                 "cpy z25.d, p13/m, #-42, lsl #8");
+                 "mov z25.d, p13/m, #-42, lsl #8");
+  COMPARE_PREFIX(mov(z25.VnD(), p13.Merging(), -10752),
+                 "mov z25.d, p13/m, #-42, lsl #8");
+
   COMPARE_PREFIX(fcpy(z20.VnH(), p11.Merging(), 29.0),
                  "fcpy z20.h, p11/m, #0x3d (29.0000)");
   COMPARE_PREFIX(fcpy(z20.VnS(), p11.Merging(), -31.0),
@@ -3006,10 +3033,12 @@ TEST(sve_int_wide_imm_unpredicated) {
   COMPARE_PREFIX(add(z15.VnD(), z15.VnD(), 255 * 256),
                  "add z15.d, z15.d, #255, lsl #8");
 
-  COMPARE_PREFIX(dup(z6.VnB(), -128), "dup z6.b, #-128");
-  COMPARE_PREFIX(dup(z7.VnH(), 127), "dup z7.h, #127");
-  COMPARE_PREFIX(dup(z8.VnS(), -128 * 256), "dup z8.s, #-128, lsl #8");
-  COMPARE_PREFIX(dup(z9.VnD(), 127 * 256), "dup z9.d, #127, lsl #8");
+  COMPARE_PREFIX(dup(z6.VnB(), -128), "mov z6.b, #-128");
+  COMPARE_PREFIX(dup(z7.VnH(), 127), "mov z7.h, #127");
+  COMPARE_PREFIX(dup(z8.VnS(), -128 * 256), "mov z8.s, #-128, lsl #8");
+  COMPARE_PREFIX(dup(z9.VnD(), 127 * 256), "mov z9.d, #127, lsl #8");
+  COMPARE_PREFIX(mov(z8.VnS(), -128 * 256, -1), "mov z8.s, #-128, lsl #8");
+  COMPARE_PREFIX(mov(z9.VnD(), 127 * 256, -1), "mov z9.d, #127, lsl #8");
 
   COMPARE_PREFIX(sqadd(z7.VnB(), z7.VnB(), 124), "sqadd z7.b, z7.b, #124");
   COMPARE_PREFIX(sqadd(z8.VnH(), z8.VnH(), 131), "sqadd z8.h, z8.h, #131");
@@ -3117,7 +3146,7 @@ TEST(sve_add_sub_imm_macro) {
                 "mov z31.d, x16\n"
                 "add z15.d, z20.d, z31.d");
   COMPARE_MACRO(Sub(z22.VnS(), 256 * 256, z2.VnS()),
-                "dupm z31.s, #0x10000\n"
+                "mov z31.s, #0x10000\n"
                 "sub z22.s, z31.s, z2.s");
   COMPARE_MACRO(Sub(z21.VnD(), z11.VnD(), 111111111111),
                 "mov x16, #0x1c7\n"
@@ -3197,8 +3226,9 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
 
   // The MacroAssembler automatically generates dup if an immediate isn't
   // encodable, when it is out-of-range for example.
-  COMPARE_MACRO(Dup(z9.VnD(), 0x80000000), "dupm z9.d, #0x80000000");
-  COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "dup z26.h, #0");
+  COMPARE_MACRO(Dup(z9.VnD(), 0x80000000), "mov z9.d, #0x80000000");
+  COMPARE_MACRO(Mov(z9.VnD(), 0x80000000), "mov z9.d, #0x80000000");
+  COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "mov z26.h, #0");
   COMPARE_MACRO(Fdup(z27.VnS(), 255.0f),
                 "mov w16, #0x437f0000\n"
                 "mov z27.s, w16");
@@ -3222,7 +3252,7 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
                   "mul z18.d, p7/m, z18.d, z31.d");
     COMPARE_MACRO(Smax(z9.VnS(), z11.VnS(), -0x70000001),
                   "ptrue p7.s\n"
-                  "dupm z9.s, #0x8fffffff\n"
+                  "mov z9.s, #0x8fffffff\n"
                   "smax z9.s, p7/m, z9.s, z11.s");
     COMPARE_MACRO(Smin(z6.VnH(), z6.VnH(), -0x7eef),
                   "ptrue p7.h\n"

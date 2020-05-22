@@ -6506,6 +6506,14 @@ void Assembler::mov(const PRegister& pd,
   and_(pd, pg, pn, pn);
 }
 
+void Assembler::mov(const ZRegister& zd,
+                    const PRegister& pg,
+                    int imm8,
+                    int shift) {
+  VIXL_ASSERT(pg.IsMerging() || pg.IsZeroing());
+  cpy(zd, pg, imm8, shift);
+}
+
 void Assembler::mov(const ZRegister& zd, const Register& xn) { dup(zd, xn); }
 
 void Assembler::mov(const ZRegister& zd, const VRegister& vn) {
@@ -6542,6 +6550,17 @@ void Assembler::mov(const ZRegister& zd,
                     const ZRegister& zn) {
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   sel(zd, pg, zn, zd);
+}
+
+void Assembler::mov(const ZRegister& zd, uint64_t imm) {
+  // Mov is an alias of dupm for certain values of imm. Whilst this matters in
+  // the disassembler, for the assembler, we don't distinguish between the
+  // two mnemonics, and simply call dupm.
+  dupm(zd, imm);
+}
+
+void Assembler::mov(const ZRegister& zd, int imm8, int shift) {
+  dup(zd, imm8, shift);
 }
 
 void Assembler::movs(const PRegister& pd, const PRegister& pn) {
