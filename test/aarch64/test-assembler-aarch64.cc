@@ -4113,28 +4113,26 @@ TEST(ldr_literal_custom_shared) {
   }
 }
 
-static const PrefetchOperation kPrfmOperations[] = {
-  PLDL1KEEP,
-  PLDL1STRM,
-  PLDL2KEEP,
-  PLDL2STRM,
-  PLDL3KEEP,
-  PLDL3STRM,
+static const PrefetchOperation kPrfmOperations[] = {PLDL1KEEP,
+                                                    PLDL1STRM,
+                                                    PLDL2KEEP,
+                                                    PLDL2STRM,
+                                                    PLDL3KEEP,
+                                                    PLDL3STRM,
 
-  PLIL1KEEP,
-  PLIL1STRM,
-  PLIL2KEEP,
-  PLIL2STRM,
-  PLIL3KEEP,
-  PLIL3STRM,
+                                                    PLIL1KEEP,
+                                                    PLIL1STRM,
+                                                    PLIL2KEEP,
+                                                    PLIL2STRM,
+                                                    PLIL3KEEP,
+                                                    PLIL3STRM,
 
-  PSTL1KEEP,
-  PSTL1STRM,
-  PSTL2KEEP,
-  PSTL2STRM,
-  PSTL3KEEP,
-  PSTL3STRM
-};
+                                                    PSTL1KEEP,
+                                                    PSTL1STRM,
+                                                    PSTL2KEEP,
+                                                    PSTL2STRM,
+                                                    PSTL3KEEP,
+                                                    PSTL3STRM};
 
 TEST(prfm_offset) {
   SETUP();
@@ -4152,7 +4150,7 @@ TEST(prfm_offset) {
     __ prfm(op, MemOperand(x0, 32760));
   }
 
-  for (PrefetchOperation op: kPrfmOperations) {
+  for (PrefetchOperation op : kPrfmOperations) {
     // Also test named operations.
     __ Prfm(op, MemOperand(x0, 32768));
     __ Prfm(op, MemOperand(x0, 1));
@@ -4202,7 +4200,7 @@ TEST(prfm_regoffset) {
     }
   }
 
-  for (PrefetchOperation op: kPrfmOperations) {
+  for (PrefetchOperation op : kPrfmOperations) {
     // Also test named operations.
     CPURegList loop = inputs;
     while (!loop.IsEmpty()) {
@@ -4238,7 +4236,7 @@ TEST(prfm_literal_imm19) {
     __ prfm(op, -1);
   }
 
-  for (PrefetchOperation op: kPrfmOperations) {
+  for (PrefetchOperation op : kPrfmOperations) {
     // Also test named operations.
     ExactAssemblyScope guard(&masm, 4 * kInstructionSize);
     // The address used in prfm doesn't have to be valid.
@@ -4281,7 +4279,7 @@ TEST(prfm_literal) {
     __ prfm(op, &after);
   }
 
-  for (PrefetchOperation op: kPrfmOperations) {
+  for (PrefetchOperation op : kPrfmOperations) {
     // Also test named operations.
     ExactAssemblyScope guard(&masm, 2 * kInstructionSize);
     __ prfm(op, &before);
@@ -4310,7 +4308,7 @@ TEST(prfm_wide) {
   // The address used in prfm doesn't have to be valid.
   __ Mov(x0, 0x0123456789abcdef);
 
-  for (PrefetchOperation op: kPrfmOperations) {
+  for (PrefetchOperation op : kPrfmOperations) {
     __ Prfm(op, MemOperand(x0, 0x40000));
     __ Prfm(op, MemOperand(x0, -0x40001));
     __ Prfm(op, MemOperand(x0, UINT64_C(0x5555555555555555)));
@@ -4375,7 +4373,7 @@ TEST(load_prfm_literal) {
     __ prfm(op, &after_s);
   }
 
-  for (PrefetchOperation op: kPrfmOperations) {
+  for (PrefetchOperation op : kPrfmOperations) {
     // Also test named operations.
     ExactAssemblyScope scope(&masm, 10 * kInstructionSize);
 

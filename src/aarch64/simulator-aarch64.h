@@ -37,7 +37,6 @@
 #include "cpu-features-auditor-aarch64.h"
 #include "disasm-aarch64.h"
 #include "instructions-aarch64.h"
-#include "instrument-aarch64.h"
 #include "simulator-constants-aarch64.h"
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
@@ -2363,12 +2362,6 @@ class Simulator : public DecoderVisitor {
     SetTraceParameters(parameters);
   }
 
-  void SetInstructionStats(bool value);
-  VIXL_DEPRECATED("SetInstructionStats",
-                  void set_instruction_stats(bool value)) {
-    SetInstructionStats(value);
-  }
-
   // Clear the simulated local monitor to force the next store-exclusive
   // instruction to fail.
   void ClearLocalMonitor() { local_monitor_.Clear(); }
@@ -4450,9 +4443,6 @@ class Simulator : public DecoderVisitor {
   FILE* stream_;
   PrintDisassembler* print_disasm_;
 
-  // Instruction statistics instrumentation.
-  Instrument* instrumentation_;
-
   // General purpose registers. Register 31 is the stack pointer.
   SimRegister registers_[kNumberOfRegisters];
 
@@ -4623,9 +4613,6 @@ class Simulator : public DecoderVisitor {
 
   // A set of TraceParameters flags.
   int trace_parameters_;
-
-  // Indicates whether the instruction instrumentation is active.
-  bool instruction_stats_;
 
   // Indicates whether the exclusive-access warning has been printed.
   bool print_exclusive_access_warning_;

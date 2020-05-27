@@ -76,8 +76,6 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   // Set up a dummy pipe for CanReadMemory.
   VIXL_CHECK(pipe(dummy_pipe_fd_) == 0);
 
-  instruction_stats_ = false;
-
   // Set up the decoder.
   decoder_ = decoder;
   decoder_->AppendVisitor(this);
@@ -114,8 +112,6 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
   //  - The stack pointer must be 16-byte aligned.
   tos = AlignDown(tos, 16);
   WriteSp(tos);
-
-  instrumentation_ = NULL;
 
   // Print a warning about exclusive-access instructions, but only the first
   // time they are encountered. This warning can be silenced using
@@ -229,10 +225,6 @@ Simulator::~Simulator() {
   // The decoder may outlive the simulator.
   decoder_->RemoveVisitor(print_disasm_);
   delete print_disasm_;
-
-  decoder_->RemoveVisitor(instrumentation_);
-  delete instrumentation_;
-
   close(dummy_pipe_fd_[0]);
   close(dummy_pipe_fd_[1]);
 }
@@ -457,22 +449,6 @@ void Simulator::SetTraceParameters(int parameters) {
   }
 }
 
-
-void Simulator::SetInstructionStats(bool value) {
-  if (value != instruction_stats_) {
-    if (value) {
-      if (instrumentation_ == NULL) {
-        // Set the sample period to 10, as the VIXL examples and tests are
-        // short.
-        instrumentation_ = new Instrument("vixl_stats.csv", 10);
-      }
-      decoder_->AppendVisitor(instrumentation_);
-    } else if (instrumentation_ != NULL) {
-      decoder_->RemoveVisitor(instrumentation_);
-    }
-    instruction_stats_ = value;
-  }
-}
 
 // Helpers ---------------------------------------------------------------------
 uint64_t Simulator::AddWithCarry(unsigned reg_size,

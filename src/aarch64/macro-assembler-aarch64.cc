@@ -2771,32 +2771,6 @@ void MacroAssembler::Log(TraceParameters parameters) {
 }
 
 
-void MacroAssembler::EnableInstrumentation() {
-  VIXL_ASSERT(!isprint(InstrumentStateEnable));
-  ExactAssemblyScope scope(this, kInstructionSize);
-  movn(xzr, InstrumentStateEnable);
-}
-
-
-void MacroAssembler::DisableInstrumentation() {
-  VIXL_ASSERT(!isprint(InstrumentStateDisable));
-  ExactAssemblyScope scope(this, kInstructionSize);
-  movn(xzr, InstrumentStateDisable);
-}
-
-
-void MacroAssembler::AnnotateInstrumentation(const char* marker_name) {
-  VIXL_ASSERT(strlen(marker_name) == 2);
-
-  // We allow only printable characters in the marker names. Unprintable
-  // characters are reserved for controlling features of the instrumentation.
-  VIXL_ASSERT(isprint(marker_name[0]) && isprint(marker_name[1]));
-
-  ExactAssemblyScope scope(this, kInstructionSize);
-  movn(xzr, (marker_name[1] << 8) | marker_name[0]);
-}
-
-
 void MacroAssembler::SetSimulatorCPUFeatures(const CPUFeatures& features) {
   ConfigureSimulatorCPUFeaturesHelper(features, kSetCPUFeaturesOpcode);
 }
