@@ -31,138 +31,15 @@
 #include "test-runner.h"
 #include "test-utils.h"
 #include "aarch64/test-utils-aarch64.h"
+#include "test-cpu-features-aarch64.h"
 
 #include "aarch64/macro-assembler-aarch64.h"
-
-#define __ masm->
-#define TEST(name) TEST_(AARCH64_CPUFeatures_##name)
-
 
 namespace vixl {
 namespace aarch64 {
 
-class CPUFeaturesTest {
- public:
-  CPUFeaturesTest(const CPUFeatures& features, const char* description)
-      : description_(description),
-        features_(features),
-        auditor_(&decoder_, features) {}
-
-  void Run() {
-    auditor_.ResetSeenFeatures();
-
-    // Positive test: the instruction must assemble with the specified features.
-    RunWithFeatures(features_);
-    // Positive test: extra features are ignored.
-    RunWithFeatures(CPUFeatures::All());
-#ifdef VIXL_DEBUG
-#ifdef VIXL_NEGATIVE_TESTING
-    // Negative tests: any one missing feature causes the Assembler to fail in
-    // debug mode.
-    std::vector<CPUFeatures> errors;
-    for (CPUFeatures::const_iterator it = features_.begin();
-         it != features_.end();
-         ++it) {
-      try {
-        CPUFeatures reduced = features_.Without(*it);
-        RunWithFeatures(reduced);
-        errors.push_back(reduced);
-      } catch (const std::runtime_error&) {
-      }
-    }
-    if (!errors.empty()) {
-      std::cerr << "Negative CPUFeatures test failed for:\n";
-      std::cerr << "  " << description_ << ";";
-      std::cerr << "  // Requires: {" << features_ << "}\n";
-      std::cerr << "with feature sets:\n";
-      for (std::vector<CPUFeatures>::iterator it = errors.begin();
-           it != errors.end();
-           ++it) {
-        std::cerr << "  {" << *it << "}\n";
-      }
-      abort();
-    }
-#endif  // VIXL_NEGATIVE_TESTING
-#else   // VIXL_DEBUG
-    // In release mode, the {Macro}Assembler doesn't check CPUFeatures.
-    RunWithFeatures(CPUFeatures::None());
-#endif  // VIXL_DEBUG
-
-    // Check that the CPUFeaturesAuditor detected the correct features.
-    VIXL_CHECK(auditor_.GetSeenFeatures() == features_);
-  }
-
-  virtual void GenerateTestInstruction(MacroAssembler* masm) const = 0;
-
- protected:
-  const char* description_;
-
- private:
-  CPUFeatures features_;
-
-  Decoder decoder_;
-  CPUFeaturesAuditor auditor_;
-
-  // Use a separate context (and MacroAssembler) for each test, because the
-  // MacroAssembler does not guarantee any particular exception safety in
-  // negative testing mode.
-  void RunWithFeatures(const CPUFeatures& features) {
-    // Use PositionDependentCode to allow the likes of adrp.
-    MacroAssembler masm(PositionDependentCode);
-    masm.SetCPUFeatures(features);
-    {
-      SingleEmissionCheckScope guard(&masm);
-      GenerateTestInstruction(&masm);
-    }
-    masm.FinalizeCode();
-
-    // Pass the generated code through the CPUFeaturesAuditor.
-    VIXL_ASSERT(masm.GetBuffer()->GetSizeInBytes() == kInstructionSize);
-    decoder_.Decode(masm.GetInstructionAt(0));
-
-    // Check that the CPUFeaturesAuditor detected the correct features for this
-    // instruction. A simple assertion would do, but printing the missing or
-    // superfluous features is useful for debugging.
-    if (auditor_.GetInstructionFeatures() != features_) {
-      CPUFeatures missing =
-          features_.Without(auditor_.GetInstructionFeatures());
-      if (missing.Count() > 0) {
-        std::cout << "Error: the auditor should have detected CPUFeatures { "
-                  << missing << " }\n";
-      }
-      CPUFeatures extra = auditor_.GetInstructionFeatures().Without(features_);
-      if (extra.Count() > 0) {
-        std::cout << "Error: the auditor detected superfluous CPUFeatures { "
-                  << extra << " }\n";
-      }
-      VIXL_ABORT();
-    }
-  }
-};
-
-#define STRINGIFY(x) #x
-
-#define TEST_TEMPLATE(FEATURES, NAME, ASM)                                     \
-  TEST(NAME) {                                                                 \
-    class TestCase : public CPUFeaturesTest {                                  \
-     public:                                                                   \
-      explicit TestCase(const CPUFeatures& features)                           \
-          : CPUFeaturesTest(features, STRINGIFY(ASM)) {}                       \
-                                                                               \
-      void GenerateTestInstruction(MacroAssembler* masm) const VIXL_OVERRIDE { \
-        /* Some tests need a label. */                                         \
-        Label label;                                                           \
-        __ bind(&label);                                                       \
-        __ ASM;                                                                \
-      }                                                                        \
-    };                                                                         \
-    TestCase test((FEATURES));                                                 \
-    test.Run();                                                                \
-  }
-
-
 #define TEST_NONE(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures::None(), NONE_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures::None(), NONE_##NAME, ASM)
 TEST_NONE(adc_0, adc(w0, w1, w2))
 TEST_NONE(adc_1, adc(x0, x1, x2))
 TEST_NONE(adcs_0, adcs(w0, w1, w2))
@@ -527,7 +404,7 @@ TEST_NONE(uxtb_0, uxtb(w0, w1))
 TEST_NONE(uxth_0, uxth(w0, w1))
 
 #define TEST_FP(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP), FP_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP), FP_##NAME, ASM)
 TEST_FP(fabs_0, fabs(d0, d1))
 TEST_FP(fabs_1, fabs(s0, s1))
 TEST_FP(fadd_0, fadd(d0, d1, d2))
@@ -721,11 +598,11 @@ TEST_FP(ucvtf_5, ucvtf(d0, x1))
 TEST_FP(ucvtf_6, ucvtf(s0, w1))
 TEST_FP(ucvtf_7, ucvtf(s0, x1))
 
-#define TEST_FP_FRINT(NAME, ASM)                                 \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,                    \
-                            CPUFeatures::kFrintToFixedSizedInt), \
-                FP_##NAME,                                       \
-                ASM)
+#define TEST_FP_FRINT(NAME, ASM)                                     \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP,                    \
+                                CPUFeatures::kFrintToFixedSizedInt), \
+                    FP_##NAME,                                       \
+                    ASM)
 TEST_FP_FRINT(frint32x_0, frint32x(d0, d1))
 TEST_FP_FRINT(frint32x_1, frint32x(s0, s1))
 TEST_FP_FRINT(frint32z_0, frint32z(d0, d1))
@@ -736,23 +613,23 @@ TEST_FP_FRINT(frint64z_0, frint64z(d0, d1))
 TEST_FP_FRINT(frint64z_1, frint64z(s0, s1))
 
 #define TEST_BTI(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kBTI), BTI_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kBTI), BTI_##NAME, ASM)
 TEST_BTI(bti_0, bti(EmitBTI))
 TEST_BTI(bti_1, bti(EmitBTI_c))
 TEST_BTI(bti_2, bti(EmitBTI_j))
 TEST_BTI(bti_3, bti(EmitBTI_jc))
 
 #define TEST_RAS(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRAS), RAS_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kRAS), RAS_##NAME, ASM)
 TEST_RAS(esb_0, esb())
 
 #define TEST_RNG(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRNG), RNG_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kRNG), RNG_##NAME, ASM)
 TEST_RNG(mrs_0, mrs(x0, RNDR))
 TEST_RNG(mrs_1, mrs(x0, RNDRRS))
 
 #define TEST_NEON(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON), NEON_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kNEON), NEON_##NAME, ASM)
 TEST_NEON(abs_0, abs(v0.V8B(), v1.V8B()))
 TEST_NEON(abs_1, abs(v0.V16B(), v1.V16B()))
 TEST_NEON(abs_2, abs(v0.V4H(), v1.V4H()))
@@ -2783,14 +2660,14 @@ TEST_NEON(zip2_5, zip2(v0.V4S(), v1.V4S(), v2.V4S()))
 TEST_NEON(zip2_6, zip2(v0.V2D(), v1.V2D(), v2.V2D()))
 
 #define TEST_RCPC(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRCpc), RCpc_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kRCpc), RCpc_##NAME, ASM)
 TEST_RCPC(ldapr_0, ldapr(w0, MemOperand(x1, 0)))
 TEST_RCPC(ldapr_1, ldapr(x0, MemOperand(x1, 0)))
 TEST_RCPC(ldaprb_0, ldaprb(w0, MemOperand(x1, 0)))
 TEST_RCPC(ldaprh_0, ldaprh(w0, MemOperand(x1, 0)))
 
 #define TEST_CRC32(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kCRC32), CRC32_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kCRC32), CRC32_##NAME, ASM)
 TEST_CRC32(crc32b_0, crc32b(w0, w1, w2))
 TEST_CRC32(crc32h_0, crc32h(w0, w1, w2))
 TEST_CRC32(crc32w_0, crc32w(w0, w1, w2))
@@ -2801,18 +2678,18 @@ TEST_CRC32(crc32cw_0, crc32cw(w0, w1, w2))
 TEST_CRC32(crc32cx_0, crc32cx(w0, w1, x2))
 
 #define TEST_DCPOP(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kDCPoP), DCPoP_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kDCPoP), DCPoP_##NAME, ASM)
 TEST_DCPOP(dc_0, dc(CVAP, x0))
 
 #define TEST_FLAGM(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFlagM), FlagM_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFlagM), FlagM_##NAME, ASM)
 TEST_FLAGM(cfinv_0, cfinv())
 TEST_FLAGM(rmif_0, rmif(x0, 52, NVFlag))
 TEST_FLAGM(setf16_0, setf16(w0))
 TEST_FLAGM(setf8_0, setf8(w0))
 
 #define TEST_PAUTH(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kPAuth), PAuth_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kPAuth), PAuth_##NAME, ASM)
 TEST_PAUTH(autda_0, autda(x0, x1))
 TEST_PAUTH(autdza_0, autdza(x0))
 TEST_PAUTH(autdb_0, autdb(x0, x1))
@@ -2860,12 +2737,12 @@ TEST_PAUTH(xpaci_0, xpaci(x0))
 TEST_PAUTH(xpaclri_0, xpaclri())
 
 #define TEST_AXFLAG(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kAXFlag), AXFlag_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kAXFlag), AXFlag_##NAME, ASM)
 TEST_AXFLAG(axflag_0, axflag())
 TEST_AXFLAG(xaflag_0, xaflag())
 
 #define TEST_ATOMICS(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kAtomics), Atomics_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kAtomics), Atomics_##NAME, ASM)
 TEST_ATOMICS(casal_0, casal(w0, w1, MemOperand(x2, 0)))
 TEST_ATOMICS(casal_1, casal(x0, x1, MemOperand(x2, 0)))
 TEST_ATOMICS(casa_0, casa(w0, w1, MemOperand(x2, 0)))
@@ -3099,10 +2976,10 @@ TEST_ATOMICS(swpalh_0, swpalh(w0, w1, MemOperand(x2)))
 TEST_ATOMICS(swph_0, swph(w0, w1, MemOperand(x2)))
 TEST_ATOMICS(swplh_0, swplh(w0, w1, MemOperand(x2)))
 
-#define TEST_FP_NEON(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kNEON), \
-                FP_NEON_##NAME,                                    \
-                ASM)
+#define TEST_FP_NEON(NAME, ASM)                                        \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kNEON), \
+                    FP_NEON_##NAME,                                    \
+                    ASM)
 TEST_FP_NEON(fabd_0, fabd(v0.V2S(), v1.V2S(), v2.V2S()))
 TEST_FP_NEON(fabd_1, fabd(v0.V4S(), v1.V4S(), v2.V4S()))
 TEST_FP_NEON(fabd_2, fabd(v0.V2D(), v1.V2D(), v2.V2D()))
@@ -3387,12 +3264,12 @@ TEST_FP_NEON(ucvtf_7, ucvtf(v0.V2D(), v1.V2D()))
 TEST_FP_NEON(ucvtf_8, ucvtf(s0, s1))
 TEST_FP_NEON(ucvtf_9, ucvtf(d0, d1))
 
-#define TEST_FP_NEON_FRINT(NAME, ASM)                            \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,                    \
-                            CPUFeatures::kNEON,                  \
-                            CPUFeatures::kFrintToFixedSizedInt), \
-                FP_NEON_##NAME,                                  \
-                ASM)
+#define TEST_FP_NEON_FRINT(NAME, ASM)                                \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP,                    \
+                                CPUFeatures::kNEON,                  \
+                                CPUFeatures::kFrintToFixedSizedInt), \
+                    FP_NEON_##NAME,                                  \
+                    ASM)
 TEST_FP_NEON_FRINT(frint32x_0, frint32x(v0.V2S(), v1.V2S()))
 TEST_FP_NEON_FRINT(frint32x_1, frint32x(v0.V4S(), v1.V4S()))
 TEST_FP_NEON_FRINT(frint32x_2, frint32x(v0.V2D(), v1.V2D()))
@@ -3406,16 +3283,16 @@ TEST_FP_NEON_FRINT(frint64z_0, frint64z(v0.V2S(), v1.V2S()))
 TEST_FP_NEON_FRINT(frint64z_1, frint64z(v0.V4S(), v1.V4S()))
 TEST_FP_NEON_FRINT(frint64z_2, frint64z(v0.V2D(), v1.V2D()))
 
-#define TEST_FP_JSCVT(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kJSCVT), \
-                FP_JSCVT_##NAME,                                    \
-                ASM)
+#define TEST_FP_JSCVT(NAME, ASM)                                        \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kJSCVT), \
+                    FP_JSCVT_##NAME,                                    \
+                    ASM)
 TEST_FP_JSCVT(fjcvtzs_0, fjcvtzs(w0, d1))
 
-#define TEST_RDM_NEON(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRDM, CPUFeatures::kNEON), \
-                RDM_NEON_##NAME,                                    \
-                ASM)
+#define TEST_RDM_NEON(NAME, ASM)                                        \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kRDM, CPUFeatures::kNEON), \
+                    RDM_NEON_##NAME,                                    \
+                    ASM)
 TEST_RDM_NEON(sqrdmlah_0, sqrdmlah(v0.V4H(), v1.V4H(), v2.H(), 5))
 TEST_RDM_NEON(sqrdmlah_1, sqrdmlah(v0.V8H(), v1.V8H(), v2.H(), 4))
 TEST_RDM_NEON(sqrdmlah_2, sqrdmlah(v0.V2S(), v1.V2S(), v2.S(), 3))
@@ -3441,10 +3318,10 @@ TEST_RDM_NEON(sqrdmlsh_9, sqrdmlsh(v0.V4S(), v1.V4S(), v2.V4S()))
 TEST_RDM_NEON(sqrdmlsh_10, sqrdmlsh(h0, h1, h2))
 TEST_RDM_NEON(sqrdmlsh_11, sqrdmlsh(s0, s1, s2))
 
-#define TEST_FP_FPHALF(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kFPHalf), \
-                FP_FPHalf_##NAME,                                    \
-                ASM)
+#define TEST_FP_FPHALF(NAME, ASM)                                        \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kFPHalf), \
+                    FP_FPHalf_##NAME,                                    \
+                    ASM)
 TEST_FP_FPHALF(fabs_0, fabs(h0, h1))
 TEST_FP_FPHALF(fadd_0, fadd(h0, h1, h2))
 TEST_FP_FPHALF(fccmpe_0, fccmpe(h0, h1, CFlag, cc))
@@ -3515,7 +3392,7 @@ TEST_FP_FPHALF(ucvtf_2, ucvtf(h0, w1))
 TEST_FP_FPHALF(ucvtf_3, ucvtf(h0, x1))
 
 #define TEST_LOREGIONS(NAME, ASM) \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kLORegions), LORegions_##NAME, ASM)
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kLORegions), LORegions_##NAME, ASM)
 TEST_LOREGIONS(ldlar_0, ldlar(w0, MemOperand(x1, 0)))
 TEST_LOREGIONS(ldlar_1, ldlar(x0, MemOperand(x1, 0)))
 TEST_LOREGIONS(ldlarb_0, ldlarb(w0, MemOperand(x1, 0)))
@@ -3525,12 +3402,12 @@ TEST_LOREGIONS(stllr_1, stllr(x0, MemOperand(x1, 0)))
 TEST_LOREGIONS(stllrb_0, stllrb(w0, MemOperand(x1, 0)))
 TEST_LOREGIONS(stllrh_0, stllrh(w0, MemOperand(x1, 0)))
 
-#define TEST_FP_FCMA_NEON(NAME, ASM)             \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,    \
-                            CPUFeatures::kFcma,  \
-                            CPUFeatures::kNEON), \
-                FP_Fcma_NEON_##NAME,             \
-                ASM)
+#define TEST_FP_FCMA_NEON(NAME, ASM)                 \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP,    \
+                                CPUFeatures::kFcma,  \
+                                CPUFeatures::kNEON), \
+                    FP_Fcma_NEON_##NAME,             \
+                    ASM)
 TEST_FP_FCMA_NEON(fcadd_0, fcadd(v0.V2S(), v1.V2S(), v2.V2S(), 270))
 TEST_FP_FCMA_NEON(fcadd_1, fcadd(v0.V4S(), v1.V4S(), v2.V4S(), 90))
 TEST_FP_FCMA_NEON(fcadd_2, fcadd(v0.V2D(), v1.V2D(), v2.V2D(), 270))
@@ -3539,10 +3416,10 @@ TEST_FP_FCMA_NEON(fcmla_1, fcmla(v0.V2S(), v1.V2S(), v2.V2S(), 90))
 TEST_FP_FCMA_NEON(fcmla_2, fcmla(v0.V4S(), v1.V4S(), v2.V4S(), 90))
 TEST_FP_FCMA_NEON(fcmla_3, fcmla(v0.V2D(), v1.V2D(), v2.V2D(), 90))
 
-#define TEST_RCPC_RCPCIMM(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm), \
-                RCpc_RCpcImm_##NAME,                                    \
-                ASM)
+#define TEST_RCPC_RCPCIMM(NAME, ASM)                                        \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm), \
+                    RCpc_RCpcImm_##NAME,                                    \
+                    ASM)
 TEST_RCPC_RCPCIMM(ldapurb_0, ldapurb(w0, MemOperand(x1, 20)))
 TEST_RCPC_RCPCIMM(ldapurh_0, ldapurh(w0, MemOperand(x1, 194)))
 TEST_RCPC_RCPCIMM(ldapursb_0, ldapursb(w0, MemOperand(x1, -27)))
@@ -3557,10 +3434,10 @@ TEST_RCPC_RCPCIMM(stlurh_0, stlurh(w0, MemOperand(x1, -147)))
 TEST_RCPC_RCPCIMM(stlur_0, stlur(w0, MemOperand(x1, 40)))
 TEST_RCPC_RCPCIMM(stlur_1, stlur(x0, MemOperand(x1, 209)))
 
-#define TEST_NEON_DOTPRODUCT(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kDotProduct), \
-                NEON_DotProduct_##NAME,                                    \
-                ASM)
+#define TEST_NEON_DOTPRODUCT(NAME, ASM)                                        \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kDotProduct), \
+                    NEON_DotProduct_##NAME,                                    \
+                    ASM)
 TEST_NEON_DOTPRODUCT(sdot_0, sdot(v0.V2S(), v1.V8B(), v2.S4B(), 1))
 TEST_NEON_DOTPRODUCT(sdot_1, sdot(v0.V4S(), v1.V16B(), v2.S4B(), 1))
 TEST_NEON_DOTPRODUCT(sdot_2, sdot(v0.V2S(), v1.V8B(), v2.V8B()))
@@ -3570,12 +3447,12 @@ TEST_NEON_DOTPRODUCT(udot_1, udot(v0.V4S(), v1.V16B(), v2.S4B(), 1))
 TEST_NEON_DOTPRODUCT(udot_2, udot(v0.V2S(), v1.V8B(), v2.V8B()))
 TEST_NEON_DOTPRODUCT(udot_3, udot(v0.V4S(), v1.V16B(), v2.V16B()))
 
-#define TEST_FP_NEON_NEONHALF(NAME, ASM)             \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,        \
-                            CPUFeatures::kNEON,      \
-                            CPUFeatures::kNEONHalf), \
-                FP_NEON_NEONHalf_##NAME,             \
-                ASM)
+#define TEST_FP_NEON_NEONHALF(NAME, ASM)                 \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP,        \
+                                CPUFeatures::kNEON,      \
+                                CPUFeatures::kNEONHalf), \
+                    FP_NEON_NEONHalf_##NAME,             \
+                    ASM)
 TEST_FP_NEON_NEONHALF(fabd_0, fabd(v0.V4H(), v1.V4H(), v2.V4H()))
 TEST_FP_NEON_NEONHALF(fabd_1, fabd(v0.V8H(), v1.V8H(), v2.V8H()))
 TEST_FP_NEON_NEONHALF(fabd_2, fabd(h0, h1, h2))
@@ -3742,19 +3619,20 @@ TEST_FP_NEON_NEONHALF(ucvtf_3, ucvtf(v0.V4H(), v1.V4H()))
 TEST_FP_NEON_NEONHALF(ucvtf_4, ucvtf(v0.V8H(), v1.V8H()))
 TEST_FP_NEON_NEONHALF(ucvtf_5, ucvtf(h0, h1))
 
-#define TEST_PAUTH_PAUTHGENERIC(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kPAuth, CPUFeatures::kPAuthGeneric), \
-                PAuth_PAuthGeneric_##NAME,                                    \
-                ASM)
+#define TEST_PAUTH_PAUTHGENERIC(NAME, ASM)                   \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kPAuth,         \
+                                CPUFeatures::kPAuthGeneric), \
+                    PAuth_PAuthGeneric_##NAME,               \
+                    ASM)
 TEST_PAUTH_PAUTHGENERIC(pacga_0, pacga(x0, x1, x2))
 
-#define TEST_FP_FHM_NEON_NEONHALF(NAME, ASM)         \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,        \
-                            CPUFeatures::kFHM,       \
-                            CPUFeatures::kNEON,      \
-                            CPUFeatures::kNEONHalf), \
-                FP_FHM_NEON_NEONHalf_##NAME,         \
-                ASM)
+#define TEST_FP_FHM_NEON_NEONHALF(NAME, ASM)             \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP,        \
+                                CPUFeatures::kFHM,       \
+                                CPUFeatures::kNEON,      \
+                                CPUFeatures::kNEONHalf), \
+                    FP_FHM_NEON_NEONHalf_##NAME,         \
+                    ASM)
 TEST_FP_FHM_NEON_NEONHALF(fmlal2_0, fmlal2(v0.V4S(), v1.V4H(), v2.H(), 6))
 TEST_FP_FHM_NEON_NEONHALF(fmlal_0, fmlal(v0.V4S(), v1.V4H(), v2.H(), 0))
 TEST_FP_FHM_NEON_NEONHALF(fmlal2_1, fmlal2(v0.V4S(), v1.V4H(), v2.V4H()))
@@ -3764,13 +3642,13 @@ TEST_FP_FHM_NEON_NEONHALF(fmlsl_0, fmlsl(v0.V4S(), v1.V4H(), v2.H(), 2))
 TEST_FP_FHM_NEON_NEONHALF(fmlsl2_1, fmlsl2(v0.V4S(), v1.V4H(), v2.V4H()))
 TEST_FP_FHM_NEON_NEONHALF(fmlsl_1, fmlsl(v0.V4S(), v1.V4H(), v2.V4H()))
 
-#define TEST_FP_FCMA_NEON_NEONHALF(NAME, ASM)        \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kFP,        \
-                            CPUFeatures::kFcma,      \
-                            CPUFeatures::kNEON,      \
-                            CPUFeatures::kNEONHalf), \
-                FP_Fcma_NEON_NEONHalf_##NAME,        \
-                ASM)
+#define TEST_FP_FCMA_NEON_NEONHALF(NAME, ASM)            \
+  TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kFP,        \
+                                CPUFeatures::kFcma,      \
+                                CPUFeatures::kNEON,      \
+                                CPUFeatures::kNEONHalf), \
+                    FP_Fcma_NEON_NEONHalf_##NAME,        \
+                    ASM)
 TEST_FP_FCMA_NEON_NEONHALF(fcadd_0, fcadd(v0.V4H(), v1.V4H(), v2.V4H(), 90))
 TEST_FP_FCMA_NEON_NEONHALF(fcadd_1, fcadd(v0.V8H(), v1.V8H(), v2.V8H(), 90))
 TEST_FP_FCMA_NEON_NEONHALF(fcmla_0, fcmla(v0.V4H(), v1.V4H(), v2.H(), 0, 0))
