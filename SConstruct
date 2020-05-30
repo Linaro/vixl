@@ -459,11 +459,11 @@ env = Environment(variables = vars,
 # Abort the build if any command line option is unknown or invalid.
 unknown_build_options = vars.UnknownVariables()
 if unknown_build_options:
-  print 'Unknown build options:',  unknown_build_options.keys()
+  print('Unknown build options: ' + str(unknown_build_options.keys()))
   Exit(1)
 
 if env['negative_testing'] == 'on' and env['mode'] != 'debug':
-  print 'negative_testing only works in debug mode'
+  print('negative_testing only works in debug mode')
   Exit(1)
 
 ConfigureEnvironment(env)
