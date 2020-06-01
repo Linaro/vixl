@@ -27,6 +27,8 @@
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
 
+#include "executable-memory.h"
+
 using namespace vixl;
 using namespace vixl::aarch64;
 
@@ -43,25 +45,34 @@ void GenerateDemoFunction(MacroAssembler *masm) {
 
 
 #ifndef TEST_EXAMPLES
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 int main() {
   MacroAssembler masm;
-  Decoder decoder;
-  Simulator simulator(&decoder);
 
-  Label demo_function;
-  masm.Bind(&demo_function);
+  Label demo;
+  masm.Bind(&demo);
   GenerateDemoFunction(&masm);
   masm.FinalizeCode();
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  Decoder decoder;
+  Simulator simulator(&decoder);
+
   simulator.WriteXRegister(0, 0x8899aabbccddeeff);
-  simulator.RunFrom(masm.GetLabelAddress<Instruction *>(&demo_function));
+  simulator.RunFrom(masm.GetLabelAddress<Instruction *>(&demo));
   printf("x0 = %" PRIx64 "\n", simulator.ReadXRegister(0));
+
+#else
+  byte* code = masm.GetBuffer()->GetStartAddress<byte*>();
+  size_t code_size = masm.GetSizeOfCodeGenerated();
+  ExecutableMemory memory(code, code_size);
+  // Run the example function.
+  uint64_t (*demo_function)(uint64_t) =
+      memory.GetEntryPoint<uint64_t (*)(uint64_t)>(demo);
+  uint64_t input_value = 0x8899aabbccddeeff;
+  uint64_t output_value = (*demo_function)(input_value);
+  printf("native: demo(0x%016lx) = 0x%016lx\n", input_value, output_value);
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   return 0;
 }
-#else
-// Without the simulator there is nothing to test.
-int main(void) { return 0; }
-#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 #endif  // TEST_EXAMPLES
