@@ -443,6 +443,24 @@ enum PrefetchOperation {
   PSTL3STRM = 0x15
 };
 
+enum class ClrpermImm {
+  None = 0b000,
+  X = 0b001,
+  W = 0b010,
+  R = 0b100,
+  WX = W | X,
+  RX = R | X,
+  RW = R | W,
+  RWX = R | W | X,
+};
+
+enum class SealForm {
+  // Encoding 0b00 is RESERVED.
+  RB = 0b01,
+  LPB = 0b10,
+  LB = 0b11,
+};
+
 constexpr bool IsNamedPrefetchOperation(int op) {
   return ((op >= PLDL1KEEP) && (op <= PLDL3STRM)) ||
       ((op >= PLIL1KEEP) && (op <= PLIL3STRM)) ||

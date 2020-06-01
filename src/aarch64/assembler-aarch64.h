@@ -5820,6 +5820,542 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Interleave elements from two half vectors.
   void zip2(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
+  // Morello instructions.
+
+  // ADD <Cd|CSP>, <Cn|CSP>, <Xm>, <extend>{ #<amount>}
+  void add(CRegister cd, CRegister cn, const Operand& operand);
+
+  // ADD <Cd|CSP>, <Cn|CSP>, #<imm>{, LSL <amount>}
+  void add(CRegister cd, CRegister cn, int imm);
+
+  // ADRDP <Cd>, <label>
+  void adrdp(CRegister cd, Label label);
+
+  // ADRP <Cd>, <label>
+  void adrp(CRegister cd, Label label);
+
+  // ALIGND <Cd|CSP>, <Cn|CSP>, #<imm>
+  void alignd(CRegister cd, CRegister cn, int imm);
+
+  // ALIGNU <Cd|CSP>, <Cn|CSP>, #<imm>
+  void alignu(CRegister cd, CRegister cn, int imm);
+
+  // BICFLGS <Cd|CSP>, <Cn|CSP>, <Xm>
+  void bicflgs(CRegister cd, CRegister cn, Register xm);
+
+  // BICFLGS <Cd|CSP>, <Cn|CSP>, #<imm>
+  void bicflgs(CRegister cd, CRegister cn, int imm);
+
+  // BLR <Cn>
+  void blr(CRegister cn);
+
+  // BLR [<Cn|CSP>, #<imm>]
+  void blr(const MemOperand& addr);
+
+  // BLRR <Cn>
+  void blrr(CRegister cn);
+
+  // BLRS C29, <Cn>, <Cm>
+  void blrs(CRegister cd, CRegister cn, CRegister cm);
+
+  // BLRS <Cn>
+  void blrs(CRegister cn);
+
+  // BR <Cn>
+  void br(CRegister cn);
+
+  // BR [<Cn|CSP>, #<imm>]
+  void br(const MemOperand& addr);
+
+  // BRR <Cn>
+  void brr(CRegister cn);
+
+  // BRS C29, <Cn>, <Cm>
+  void brs(CRegister cd, CRegister cn, CRegister cm);
+
+  // BRS <Cn>
+  void brs(CRegister cn);
+
+  // BUILD <Cd|CSP>, <Cn|CSP>, <Cm|CSP>
+  void build(CRegister cd, CRegister cn, CRegister cm);
+
+  // BX #4
+  void bx(int offset = kInstructionSize);
+
+  // CAS <Cs>, <Ct>, [...]
+  void cas(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // CASA <Cs>, <Ct>, [...]
+  void casa(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // CASAL <Cs>, <Ct>, [...]
+  void casal(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // CASL <Cs>, <Ct>, [...]
+  void casl(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // CFHI <Xd>, <Cn|CSP>
+  void cfhi(Register xd, CRegister cn);
+
+  // CHKEQ <Cn|CSP>, <Cm>
+  void chkeq(CRegister cn, CRegister cm);
+
+  // CHKSLD <Cn|CSP>
+  void chksld(CRegister cn);
+
+  // CHKSS <Cn|CSP>, <Cm|CSP>
+  void chkss(CRegister cn, CRegister cm);
+
+  // CHKSSU <Cd>, <Cn|CSP>, <Cm|CSP>
+  void chkssu(CRegister cd, CRegister cn, CRegister cm);
+
+  // CHKTGD <Cn|CSP>
+  void chktgd(CRegister cn);
+
+  // CLRPERM <Cd|CSP>, <Cn|CSP>, <perm>
+  void clrperm(CRegister cd, CRegister cn, ClrpermImm perm);
+
+  // CLRPERM <Cd|CSP>, <Cn|CSP>, <Xm>
+  void clrperm(CRegister cd, CRegister cn, Register xm);
+
+  // CLRTAG <Cd|CSP>, <Cn|CSP>
+  void clrtag(CRegister cd, CRegister cn);
+
+  // CMP <Cn>, <Cm>
+  void cmp(CRegister cn, CRegister cm);
+
+  // CPY <Cd|CSP>, <Cn|CSP>
+  void cpy(CRegister cd, CRegister cn);
+
+  // CPYTYPE <Cd>, <Cn>, <Cm>
+  void cpytype(CRegister cd, CRegister cn, CRegister cm);
+
+  // CPYVALUE <Cd>, <Cn>, <Cm>
+  void cpyvalue(CRegister cd, CRegister cn, CRegister cm);
+
+  // CSEAL <Cd|CSP>, <Cn|CSP>, <Cm|CSP>
+  void cseal(CRegister cd, CRegister cn, CRegister cm);
+
+  // CSEL <Cd>, <Cn>, <Cm>, <cond>
+  void csel(CRegister cd, CRegister cn, CRegister cm, Condition cond);
+
+  // CTHI <Cd|CSP>, <Cn>, <Xm>
+  void cthi(CRegister cd, CRegister cn, Register xm);
+
+  // CVT <Cd>, <Cn|CSP>, <Xm>
+  void cvt(CRegister cd, CRegister cn, Register xm);
+
+  // CVT <Xd>, <Cn|CSP>, <Cm>
+  void cvt(Register xd, CRegister cn, CRegister cm);
+
+  // CVTD <Cd>, <Xn>
+  void cvtd(CRegister cd, Register xn);
+
+  // CVTD <Xd>, <Cn|CSP>
+  void cvtd(Register xd, CRegister cn);
+
+  // CVTDZ <Cd>, <Xn>
+  void cvtdz(CRegister cd, Register xn);
+
+  // CVTP <Cd>, <Xn>
+  void cvtp(CRegister cd, Register xn);
+
+  // CVTP <Xd>, <Cn|CSP>
+  void cvtp(Register xd, CRegister cn);
+
+  // CVTPZ <Cd>, <Xn>
+  void cvtpz(CRegister cd, Register xn);
+
+  // CVTZ <Cd>, <Cn|CSP>, <Xm>
+  void cvtz(CRegister cd, CRegister cn, Register xm);
+
+  // EORFLGS <Cd|CSP>, <Cn|CSP>, <Xm>
+  void eorflgs(CRegister cd, CRegister cn, Register xm);
+
+  // EORFLGS <Cd|CSP>, <Cn|CSP>, #<imm>
+  void eorflgs(CRegister cd, CRegister cn, int imm);
+
+  // GCBASE <Xd>, <Cn|CSP>
+  void gcbase(Register xd, CRegister cn);
+
+  // GCFLGS <Xd>, <Cn|CSP>
+  void gcflgs(Register xd, CRegister cn);
+
+  // GCLEN <Xd>, <Cn|CSP>
+  void gclen(Register xd, CRegister cn);
+
+  // GCLIM <Xd>, <Cn|CSP>
+  void gclim(Register xd, CRegister cn);
+
+  // GCOFF <Xd>, <Cn|CSP>
+  void gcoff(Register xd, CRegister cn);
+
+  // GCPERM <Xd>, <Cn|CSP>
+  void gcperm(Register xd, CRegister cn);
+
+  // GCSEAL <Xd>, <Cn|CSP>
+  void gcseal(Register xd, CRegister cn);
+
+  // GCTAG <Xd>, <Cn|CSP>
+  void gctag(Register xd, CRegister cn);
+
+  // GCTYPE <Xd>, <Cn|CSP>
+  void gctype(Register xd, CRegister cn);
+
+  // GCVALUE <Xd>, <Cn|CSP>
+  void gcvalue(Register xd, CRegister cn);
+
+  // LDAPR <Ct>, [...]
+  void ldapr(CRegister ct, const MemOperand& addr);
+
+  // LDAR <Ct>, [...]
+  void ldar(CRegister ct, const MemOperand& addr);
+
+  // LDAR <Wt>, [...]
+  // TODO: Merge into the existing function.
+  // void ldar(Register wt, const MemOperand& addr);
+
+  // LDARB <Wt>, [...]
+  // TODO: Merge into the existing function.
+  // void ldarb(Register wt, const MemOperand& addr);
+
+  // LDAXP <Ct>, <Ct2>, [...]
+  void ldaxp(CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // LDAXR <Ct>, [...]
+  void ldaxr(CRegister ct, const MemOperand& addr);
+
+  // LDCT <Xt>, [...]
+  void ldct(Register xt, const MemOperand& addr);
+
+  // LDNP <Ct>, <Ct2>, [..., #<imm>]
+  void ldnp(CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // LDP <Ct>, <Ct2>, [..., #<imm>]!
+  // LDP <Ct>, <Ct2>, [...{, #<imm>}]
+  void ldp(CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // LDP <Ct>, <Ct2>, [...], #<imm>
+  void ldp(CRegister ct, CRegister ct2, const MemOperand& addr, int imm);
+
+  // LDPBLR <Ct>, [<Cn|CSP>]
+  void ldpblr(CRegister ct, const MemOperand& addr);
+
+  // LDPBR <Ct>, [<Cn|CSP>]
+  void ldpbr(CRegister ct, const MemOperand& addr);
+
+  // LDR <Ct>, [..., #<imm>]!
+  // LDR <Ct>, [..., <R><m>, <extend>{ <amount>}]
+  // LDR <Ct>, [..., <R><m>, <extend>{ <amount>}]
+  // LDR <Ct>, [...{, #<imm>}]
+  // LDR <Ct>, [...{, #<imm>}]
+  void ldr(CRegister ct, const MemOperand& addr);
+
+  // LDR <Ct>, [...], #<imm>
+  void ldr(CRegister ct, const MemOperand& addr, int imm);
+
+  // LDR <Ct>, #<imm>
+  void ldr(CRegister ct, int imm);
+
+  // LDR <Wt>, [..., <R><m>, <extend>{ <amount>}]
+  // LDR <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldr(Register wt, const MemOperand& addr);
+
+  // LDR <Xt>, [..., <R><m>, <extend>{ <amount>}]
+  // LDR <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldr(Register xt, const MemOperand& addr);
+
+  // LDR <Dt>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void ldr(VRegister dt, const MemOperand& addr);
+
+  // LDR <St>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void ldr(VRegister st, const MemOperand& addr);
+
+  // LDRB <Wt>, [..., <R><m>, <extend>]
+  // LDRB <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldrb(Register wt, const MemOperand& addr);
+
+  // LDRH <Wt>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void ldrh(Register wt, const MemOperand& addr);
+
+  // LDRSB <Wt>, [..., <R><m>, <extend>]
+  // TODO: Merge into the existing function.
+  // void ldrsb(Register wt, const MemOperand& addr);
+
+  // LDRSB <Xt>, [..., <R><m>, <extend>]
+  // TODO: Merge into the existing function.
+  // void ldrsb(Register xt, const MemOperand& addr);
+
+  // LDRSH <Wt>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void ldrsh(Register wt, const MemOperand& addr);
+
+  // LDRSH <Xt>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void ldrsh(Register xt, const MemOperand& addr);
+
+  // LDUR <Ct>, [...{, #<imm>}]
+  // LDUR <Ct>, [...{, #<imm>}]
+  void ldur(CRegister ct, const MemOperand& addr);
+
+  // LDUR <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(Register wt, const MemOperand& addr);
+
+  // LDUR <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(Register xt, const MemOperand& addr);
+
+  // LDUR <Bt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(VRegister bt, const MemOperand& addr);
+
+  // LDUR <Dt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(VRegister dt, const MemOperand& addr);
+
+  // LDUR <Ht>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(VRegister ht, const MemOperand& addr);
+
+  // LDUR <Qt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(VRegister qt, const MemOperand& addr);
+
+  // LDUR <St>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldur(VRegister st, const MemOperand& addr);
+
+  // LDURB <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldurb(Register wt, const MemOperand& addr);
+
+  // LDURH <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldurh(Register wt, const MemOperand& addr);
+
+  // LDURSB <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldursb(Register wt, const MemOperand& addr);
+
+  // LDURSB <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldursb(Register xt, const MemOperand& addr);
+
+  // LDURSH <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldursh(Register wt, const MemOperand& addr);
+
+  // LDURSH <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldursh(Register xt, const MemOperand& addr);
+
+  // LDURSW <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void ldursw(Register xt, const MemOperand& addr);
+
+  // LDXP <Ct>, <Ct2>, [...]
+  void ldxp(CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // LDXR <Ct>, [...]
+  void ldxr(CRegister ct, const MemOperand& addr);
+
+  // MOV <Cd|CSP>, <Cn|CSP>
+  void mov(CRegister cd, CRegister cn);
+
+  // MRS <Ct>, (<systemreg>|S<op0>_<op1>_<Cn>_<Cm>_<op2>)
+  void mrs(CRegister ct, SystemRegister sysreg);
+
+  // MSR (<systemreg>|S<op0>_<op1>_<Cn>_<Cm>_<op2>), <Ct>
+  void msr(SystemRegister sysreg, CRegister ct);
+
+  // ORRFLGS <Cd|CSP>, <Cn|CSP>, <Xm>
+  void orrflgs(CRegister cd, CRegister cn, Register xm);
+
+  // ORRFLGS <Cd|CSP>, <Cn|CSP>, #<imm>
+  void orrflgs(CRegister cd, CRegister cn, int imm);
+
+  // RET { <Cn>}
+  void ret(CRegister cn);
+
+  // RETR { <Cn>}
+  void retr(CRegister cn);
+
+  // RETS C29, <Cn>, <Cm>
+  void rets(CRegister cd, CRegister cn, CRegister cm);
+
+  // RETS { <Cn>}
+  void rets(CRegister cn);
+
+  // RRLEN <Xd>, <Xn>
+  void rrlen(Register xd, Register xn);
+
+  // RRMASK <Xd>, <Xn>
+  void rrmask(Register xd, Register xn);
+
+  // SCBNDS <Cd|CSP>, <Cn|CSP>, <Xm>
+  void scbnds(CRegister cd, CRegister cn, Register xm);
+
+  // SCBNDS <Cd|CSP>, <Cn|CSP>, #<imm>
+  // SCBNDS <Cd|CSP>, <Cn|CSP>, #<imm>, LSL #4
+  void scbnds(CRegister cd, CRegister cn, int imm);
+
+  // SCBNDSE <Cd|CSP>, <Cn|CSP>, <Xm>
+  void scbndse(CRegister cd, CRegister cn, Register xm);
+
+  // SCFLGS <Cd|CSP>, <Cn|CSP>, <Xm>
+  void scflgs(CRegister cd, CRegister cn, Register xm);
+
+  // SCOFF <Cd|CSP>, <Cn|CSP>, <Xm>
+  void scoff(CRegister cd, CRegister cn, Register xm);
+
+  // SCVALUE <Cd|CSP>, <Cn|CSP>, <Xm>
+  void scvalue(CRegister cd, CRegister cn, Register xm);
+
+  // SEAL <Cd>, <Cn>, <Cm>
+  void seal(CRegister cd, CRegister cn, CRegister cm);
+
+  // SEAL <Cd>, <Cn>, <form>
+  void seal(CRegister cd, CRegister cn, SealForm form);
+
+  // STLR <Ct>, [...]
+  // STLR <Ct>, [...]
+  void stlr(CRegister ct, const MemOperand& addr);
+
+  // STLR <Wt>, [...]
+  // TODO: Merge into the existing function.
+  // void stlr(Register wt, const MemOperand& addr);
+
+  // STLRB <Wt>, [...]
+  // TODO: Merge into the existing function.
+  // void stlrb(Register wt, const MemOperand& addr);
+
+  // STLXP <Ws>, <Ct>, <Ct2>, [...]
+  void stlxp(Register ws, CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // STLXR <Ws>, <Ct>, [...]
+  void stlxr(Register ws, CRegister ct, const MemOperand& addr);
+
+  // STNP <Ct>, <Ct2>, [..., #<imm>]
+  void stnp(CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // STP <Ct>, <Ct2>, [..., #<imm>]!
+  // STP <Ct>, <Ct2>, [...{, #<imm>}]
+  void stp(CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // STP <Ct>, <Ct2>, [...], #<imm>
+  void stp(CRegister ct, CRegister ct2, const MemOperand& addr, int imm);
+
+  // STR <Ct>, [..., #<imm>]!
+  // STR <Ct>, [..., <R><m>, <extend>{ <amount>}]
+  // STR <Ct>, [..., <R><m>, <extend>{ <amount>}]
+  // STR <Ct>, [...{, #<imm>}]
+  // STR <Ct>, [...{, #<imm>}]
+  void str(CRegister ct, const MemOperand& addr);
+
+  // STR <Ct>, [...], #<imm>
+  void str(CRegister ct, const MemOperand& addr, int imm);
+
+  // STR <Wt>, [..., <R><m>, <extend>{ <amount>}]
+  // STR <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void str(Register wt, const MemOperand& addr);
+
+  // STR <Xt>, [..., <R><m>, <extend>{ <amount>}]
+  // STR <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void str(Register xt, const MemOperand& addr);
+
+  // STR <Dt>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void str(VRegister dt, const MemOperand& addr);
+
+  // STR <St>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void str(VRegister st, const MemOperand& addr);
+
+  // STRB <Wt>, [..., <R><m>, <extend>]
+  // STRB <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void strb(Register wt, const MemOperand& addr);
+
+  // STRH <Wt>, [..., <R><m>, <extend>{ <amount>}]
+  // TODO: Merge into the existing function.
+  // void strh(Register wt, const MemOperand& addr);
+
+  // STUR <Ct>, [...{, #<imm>}]
+  // STUR <Ct>, [...{, #<imm>}]
+  void stur(CRegister ct, const MemOperand& addr);
+
+  // STUR <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(Register wt, const MemOperand& addr);
+
+  // STUR <Xt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(Register xt, const MemOperand& addr);
+
+  // STUR <Bt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(VRegister bt, const MemOperand& addr);
+
+  // STUR <Dt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(VRegister dt, const MemOperand& addr);
+
+  // STUR <Ht>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(VRegister ht, const MemOperand& addr);
+
+  // STUR <Qt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(VRegister qt, const MemOperand& addr);
+
+  // STUR <St>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void stur(VRegister st, const MemOperand& addr);
+
+  // STURB <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void sturb(Register wt, const MemOperand& addr);
+
+  // STURH <Wt>, [...{, #<imm>}]
+  // TODO: Merge into the existing function.
+  // void sturh(Register wt, const MemOperand& addr);
+
+  // STXP <Ws>, <Ct>, <Ct2>, [...]
+  void stxp(Register ws, CRegister ct, CRegister ct2, const MemOperand& addr);
+
+  // STXR <Ws>, <Ct>, [...]
+  void stxr(Register ws, CRegister ct, const MemOperand& addr);
+
+  // SUB <Cd|CSP>, <Cn|CSP>, #<imm>{, LSL <amount>}
+  void sub(CRegister cd, CRegister cn, int imm);
+
+  // SUBS <Xd>, <Cn>, <Cm>
+  void subs(Register xd, CRegister cn, CRegister cm);
+
+  // SWP <Cs>, <Ct>, [...]
+  void swp(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // SWPA <Cs>, <Ct>, [...]
+  void swpa(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // SWPAL <Cs>, <Ct>, [...]
+  void swpal(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // SWPL <Cs>, <Ct>, [...]
+  void swpl(CRegister cs, CRegister ct, const MemOperand& addr);
+
+  // UNSEAL <Cd>, <Cn>, <Cm>
+  void unseal(CRegister cd, CRegister cn, CRegister cm);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.
