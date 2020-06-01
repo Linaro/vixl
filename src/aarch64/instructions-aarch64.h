@@ -173,7 +173,8 @@ enum ImmBranchType {
   CondBranchType = 1,
   UncondBranchType = 2,
   CompareBranchType = 3,
-  TestBranchType = 4
+  TestBranchType = 4,
+  MorelloBXType = 5,
 };
 
 enum AddrMode { Offset, PreIndex, PostIndex };
@@ -434,6 +435,10 @@ class Instruction {
 
   bool IsTestBranch() const { return Mask(TestBranchFMask) == TestBranchFixed; }
 
+  bool IsMorelloBX() const {
+    return Mask(MorelloBranchBxFMask) == MorelloBranchBxFixed;
+  }
+
   bool IsImmBranch() const { return GetBranchType() != UnknownBranchType; }
 
   bool IsPCRelAddressing() const {
@@ -560,6 +565,8 @@ class Instruction {
       return CompareBranchType;
     } else if (IsTestBranch()) {
       return TestBranchType;
+    } else if (IsMorelloBX()) {
+      return MorelloBXType;
     } else {
       return UnknownBranchType;
     }

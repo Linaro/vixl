@@ -42,6 +42,9 @@ class CPUFeaturesAuditor::RecordInstructionFeaturesScope {
   explicit RecordInstructionFeaturesScope(CPUFeaturesAuditor* auditor)
       : auditor_(auditor) {
     auditor_->last_instruction_ = CPUFeatures::None();
+    if (auditor->GetISA() == ISA::C64) {
+      Record(CPUFeatures::kMorello);
+    }
   }
   ~RecordInstructionFeaturesScope() {
     auditor_->seen_.Combine(auditor_->last_instruction_);

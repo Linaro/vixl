@@ -964,32 +964,35 @@ void Instruction::SetPCRelImmTarget(const Instruction* target) {
 
 void Instruction::SetBranchImmTarget(const Instruction* target) {
   VIXL_ASSERT(((target - this) & 3) == 0);
-  Instr branch_imm = 0;
-  uint32_t imm_mask = 0;
+  Instr branch_imm = 0xffffffff;
+  uint32_t imm_mask = 0xffffffff;
   int offset = static_cast<int>((target - this) >> kInstructionSizeLog2);
   switch (GetBranchType()) {
-    case CondBranchType: {
+    case CondBranchType:
       branch_imm = Assembler::ImmCondBranch(offset);
       imm_mask = ImmCondBranch_mask;
       break;
-    }
-    case UncondBranchType: {
+    case UncondBranchType:
       branch_imm = Assembler::ImmUncondBranch(offset);
       imm_mask = ImmUncondBranch_mask;
       break;
-    }
-    case CompareBranchType: {
+    case CompareBranchType:
       branch_imm = Assembler::ImmCmpBranch(offset);
       imm_mask = ImmCmpBranch_mask;
       break;
-    }
-    case TestBranchType: {
+    case TestBranchType:
       branch_imm = Assembler::ImmTestBranch(offset);
       imm_mask = ImmTestBranch_mask;
       break;
-    }
-    default:
+    case MorelloBXType:
+      // `bx` can only branch to the next instruction.
+      VIXL_ASSERT(offset == 1);
+      branch_imm = 0;
+      imm_mask = 0;
+      break;
+    case UnknownBranchType:
       VIXL_UNREACHABLE();
+      break;
   }
   SetInstructionBits(Mask(~imm_mask) | branch_imm);
 }

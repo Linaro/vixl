@@ -1158,6 +1158,11 @@ class Simulator : public DecoderVisitor {
   VISITOR_LIST_THAT_DONT_RETURN(DECLARE)
 #undef DECLARE
 
+  virtual void VisitData(const Instruction* instr) VIXL_OVERRIDE {
+    USE(instr);
+    VIXL_ASSERT(GetISA() == ISA::Data);
+    VIXL_ABORT_WITH_MSG("Attempt to simulate execution of data region.");
+  }
 
   // Integer register accessors.
 

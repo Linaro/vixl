@@ -33,6 +33,7 @@
 #include "../globals-vixl.h"
 #include "../invalset-vixl.h"
 #include "../utils-vixl.h"
+#include "isa-aarch64.h"
 #include "operands-aarch64.h"
 
 namespace vixl {
@@ -43,7 +44,7 @@ class LabelTestHelper;  // Forward declaration.
 
 class Label {
  public:
-  Label() : location_(kLocationUnbound) {}
+  Label() : location_(kUnknownLocation), target_isa_(kUnknown) {}
   ~Label() {
     // All links to a label must have been resolved before it is destructed.
     VIXL_ASSERT(!IsLinked());
@@ -55,6 +56,49 @@ class Label {
   ptrdiff_t GetLocation() const { return location_; }
   VIXL_DEPRECATED("GetLocation", ptrdiff_t location() const) {
     return GetLocation();
+  }
+
+  bool HasKnownISA() const {
+    switch (target_isa_) {
+      case kA64:
+      case kC64:
+      case kData:
+        return true;
+      case kUnknown:
+        return false;
+    }
+    VIXL_UNREACHABLE();
+    return false;
+  }
+
+  ISA GetISA() const {
+    switch (target_isa_) {
+      default:
+        VIXL_ABORT_WITH_MSG("The target ISA is unknown.");
+        // Return a default to avoid undefined behaviour.
+        return ISA::A64;
+      case kA64:
+      case kC64:
+      case kData:
+        // Other values have the same encoding.
+        return static_cast<ISA>(target_isa_);
+    }
+  }
+
+  // If the ISA is known, check that `isa` matches.
+  // If the ISA is unknown, set it.
+  void EnsureISA(ISA isa) {
+    if (HasKnownISA()) {
+      // TODO: Consider relaxing the distinction between A64 and Data. Before
+      // Morello, these were treated the same, so some code might assume that it
+      // can refer to a label as both an (A64) instruction and as data.
+      VIXL_ASSERT(GetISA() == isa);
+    } else {
+      // Bound labels should always have a known ISA.
+      VIXL_ASSERT(!IsBound());
+      // Every value in AArch64 has an equivalent value in MaybeISA.
+      target_isa_ = static_cast<MaybeISA>(isa);
+    }
   }
 
   static const int kNPreallocatedLinks = 4;
@@ -77,6 +121,17 @@ class Label {
     LinksSet() : LinksSetBase() {}
   };
 
+  enum MaybeISA {
+    // Known values correspond directly to ISA values, for easy
+    // conversion.
+    kA64 = static_cast<int>(ISA::A64),
+    kC64 = static_cast<int>(ISA::C64),
+    kData = static_cast<int>(ISA::Data),
+    // Instructions like `adr` can refer to either instructions or data, so we
+    // might not know the target until the label is bound.
+    kUnknown = -1,
+  };
+
   // Allows iterating over the links of a label. The behaviour is undefined if
   // the list of links is modified in any way while iterating.
   class LabelLinksIterator : public LabelLinksIteratorBase {
@@ -89,10 +144,12 @@ class Label {
     using LabelLinksIteratorBase::Current;
   };
 
-  void Bind(ptrdiff_t location) {
+  void Bind(ptrdiff_t location, ISA isa) {
+    EnsureISA(isa);
     // Labels can only be bound once.
     VIXL_ASSERT(!IsBound());
     location_ = location;
+    VIXL_ASSERT(IsBound());
   }
 
   void AddLink(ptrdiff_t instruction) {
@@ -100,6 +157,7 @@ class Label {
     // to write the instruction, so there is no need to add it to links_.
     VIXL_ASSERT(!IsBound());
     links_.insert(instruction);
+    VIXL_ASSERT(IsLinked());
   }
 
   void DeleteLink(ptrdiff_t instruction) { links_.erase(instruction); }
@@ -135,18 +193,14 @@ class Label {
   LinksSet links_;
   // The label location.
   ptrdiff_t location_;
+  // The target ISA (if known).
+  MaybeISA target_isa_;
 
-  static const ptrdiff_t kLocationUnbound = -1;
+  static const ptrdiff_t kUnknownLocation = -1;
 
-// It is not safe to copy labels, so disable the copy constructor and operator
-// by declaring them private (without an implementation).
-#if __cplusplus >= 201103L
+  // It is not safe to copy labels.
   Label(const Label&) = delete;
   void operator=(const Label&) = delete;
-#else
-  Label(const Label&);
-  void operator=(const Label&);
-#endif
 
   // The Assembler class is responsible for binding and linking labels, since
   // the stored offsets need to be consistent with the Assembler's buffer.
@@ -405,19 +459,23 @@ class Assembler : public vixl::internal::AssemblerBase {
  public:
   explicit Assembler(
       PositionIndependentCodeOption pic = PositionIndependentCode)
-      : pic_(pic), cpu_features_(CPUFeatures::AArch64LegacyBaseline()) {}
+      : pic_(pic),
+        cpu_features_(CPUFeatures::AArch64LegacyBaseline()),
+        isa_map_(ISA::A64) {}
   explicit Assembler(
       size_t capacity,
       PositionIndependentCodeOption pic = PositionIndependentCode)
       : AssemblerBase(capacity),
         pic_(pic),
-        cpu_features_(CPUFeatures::AArch64LegacyBaseline()) {}
+        cpu_features_(CPUFeatures::AArch64LegacyBaseline()),
+        isa_map_(ISA::A64) {}
   Assembler(byte* buffer,
             size_t capacity,
             PositionIndependentCodeOption pic = PositionIndependentCode)
       : AssemblerBase(buffer, capacity),
         pic_(pic),
-        cpu_features_(CPUFeatures::AArch64LegacyBaseline()) {}
+        cpu_features_(CPUFeatures::AArch64LegacyBaseline()),
+        isa_map_(ISA::A64) {}
 
   // Upon destruction, the code will assert that one of the following is true:
   //  * The Assembler object has not been used.
@@ -439,6 +497,18 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Place a literal at the current PC.
   void place(RawLiteral* literal);
+
+  // Get or set the ISA for assembly.
+  void SetISA(ISA isa) {
+    VIXL_ASSERT(CPUHas(isa));
+    isa_map_.SetISAAt(GetCursorOffset(), isa);
+  }
+  ISA GetISA() const { return isa_map_.GetISAAt(GetCursorOffset()); }
+
+  const ISAMap* GetISAMap() const { return &isa_map_; }
+
+  // Conveniently swap between A64 and C64.
+  void ExchangeISA() { SetISA(vixl::aarch64::ExchangeISA(GetISA())); }
 
   VIXL_DEPRECATED("GetCursorOffset", ptrdiff_t CursorOffset() const) {
     return GetCursorOffset();
@@ -5880,7 +5950,13 @@ class Assembler : public vixl::internal::AssemblerBase {
   void build(CRegister cd, CRegister cn, CRegister cm);
 
   // BX #4
-  void bx(int offset = kInstructionSize);
+  void bx(ptrdiff_t offset_in_bytes);
+
+  // BX <label>
+  // The label must be bound at the next instruction, since `bx` only supports
+  // an offset of 4, and the ISA must be switched before it is bound, because
+  // `bx` unconditionally switches between A64 and C64.
+  void bx(Label* label);
 
   // CAS <Cs>, <Ct>, [...]
   void cas(CRegister cs, CRegister ct, const MemOperand& addr);
@@ -6370,6 +6446,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Emit data in the instruction stream.
   template <typename T>
   void dc(T data) {
+    VIXL_ASSERT(GetISA() == ISA::Data);
     VIXL_ASSERT(AllowAssembler());
     GetBuffer()->Emit<T>(data);
   }
@@ -6378,6 +6455,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // character. The instruction pointer is then aligned correctly for
   // subsequent instructions.
   void EmitString(const char* string) {
+    VIXL_ASSERT(GetISA() == ISA::Data);
     VIXL_ASSERT(string != NULL);
     VIXL_ASSERT(AllowAssembler());
 
@@ -7375,6 +7453,8 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   bool CPUHas(SystemRegister sysreg) const;
 
+  bool CPUHas(ISA isa) const;
+
  private:
   static uint32_t FP16ToImm8(Float16 imm);
   static uint32_t FP32ToImm8(float imm);
@@ -7534,7 +7614,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // return an offset to be encoded in the instruction. If the label is not yet
   // bound, an offset of 0 is returned.
   ptrdiff_t LinkAndGetByteOffsetTo(Label* label);
-  ptrdiff_t LinkAndGetInstructionOffsetTo(Label* label);
+  ptrdiff_t LinkAndGetBranchOffsetTo(Label* label);
   ptrdiff_t LinkAndGetPageOffsetTo(Label* label);
 
   // A common implementation for the LinkAndGet<Type>OffsetTo helpers.
@@ -7546,6 +7626,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Emit the instruction in buffer_.
   void Emit(Instr instruction) {
+    // `Emit` should only be used for instructions, not data.
+    VIXL_ASSERT((GetISA() == ISA::A64) || (GetISA() == ISA::C64));
+    // We can only emit C64 instructions when Morello is enabled.
+    VIXL_ASSERT(CPUHas(GetISA()));
     VIXL_STATIC_ASSERT(sizeof(instruction) == kInstructionSize);
     VIXL_ASSERT(AllowAssembler());
     GetBuffer()->Emit32(instruction);
@@ -7554,6 +7638,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   PositionIndependentCodeOption pic_;
 
   CPUFeatures cpu_features_;
+
+  ISAMap isa_map_;
 };
 
 

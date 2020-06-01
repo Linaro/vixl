@@ -106,6 +106,11 @@ class CPUFeaturesAuditor : public DecoderVisitor {
   VISITOR_LIST(DECLARE)
 #undef DECLARE
 
+  virtual void VisitData(const Instruction* instr) VIXL_OVERRIDE {
+    USE(instr);
+    // Nothing to do.
+  }
+
  private:
   class RecordInstructionFeaturesScope;
 

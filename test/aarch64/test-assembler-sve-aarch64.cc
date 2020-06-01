@@ -138,6 +138,7 @@ void Initialise(MacroAssembler* masm,
   masm->B(&done);
   {
     ExactAssemblyScope total(masm, kPRegMaxSizeInBytes);
+    ISAScope isa(masm, ISA::Data);
     masm->bind(&data);
     masm->dc64(value0);
     masm->dc64(value1);

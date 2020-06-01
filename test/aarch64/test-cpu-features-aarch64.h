@@ -108,7 +108,7 @@ class CPUFeaturesTest {
 
     // Pass the generated code through the CPUFeaturesAuditor.
     VIXL_ASSERT(masm.GetBuffer()->GetSizeInBytes() == kInstructionSize);
-    decoder_.Decode(masm.GetInstructionAt(0));
+    decoder_.Decode(masm.GetInstructionAt(0), masm.GetISAMap()->GetISAAt(0));
 
     // Check that the CPUFeaturesAuditor detected the correct features for this
     // instruction. A simple assertion would do, but printing the missing or
@@ -133,7 +133,6 @@ class CPUFeaturesTest {
 #define STRINGIFY(x) #x
 
 #define TEST_TEMPLATE_COMMON(FEATURES, ISA, NAME, ASM)                         \
-  /* TODO: Do something with 'ISA'. */                                         \
   TEST(NAME) {                                                                 \
     class TestCase : public CPUFeaturesTest {                                  \
      public:                                                                   \
@@ -141,6 +140,7 @@ class CPUFeaturesTest {
           : CPUFeaturesTest(features, STRINGIFY(ASM)) {}                       \
                                                                                \
       void GenerateTestInstruction(MacroAssembler* masm) const VIXL_OVERRIDE { \
+        ISAScope isa(masm, ISA);                                               \
         /* Some tests need a label. */                                         \
         Label label;                                                           \
         __ bind(&label);                                                       \
@@ -152,9 +152,9 @@ class CPUFeaturesTest {
   }
 
 #define TEST_TEMPLATE_A64(FEATURES, NAME, ASM) \
-  TEST_TEMPLATE_COMMON(FEATURES, A64, A64_##NAME, ASM)
+  TEST_TEMPLATE_COMMON(FEATURES, ISA::A64, A64_##NAME, ASM)
 #define TEST_TEMPLATE_C64(FEATURES, NAME, ASM) \
-  TEST_TEMPLATE_COMMON(FEATURES, C64, C64_##NAME, ASM)
+  TEST_TEMPLATE_COMMON(FEATURES, ISA::C64, C64_##NAME, ASM)
 
 #define TEST_TEMPLATE(FEATURES, NAME, ASM) \
   TEST_TEMPLATE_A64(FEATURES, NAME, ASM)   \

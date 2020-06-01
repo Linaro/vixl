@@ -49,7 +49,10 @@ RawLiteral::RawLiteral(size_t size,
 }
 
 
-void Assembler::Reset() { GetBuffer()->Reset(); }
+void Assembler::Reset() {
+  GetBuffer()->Reset();
+  isa_map_.Clear();
+}
 
 
 void Assembler::bind(Label* label) {
@@ -61,7 +64,7 @@ void Assembler::BindToOffset(Label* label, ptrdiff_t offset) {
   VIXL_ASSERT((offset >= 0) && (offset <= GetBuffer()->GetCursorOffset()));
   VIXL_ASSERT(offset % kInstructionSize == 0);
 
-  label->Bind(offset);
+  label->Bind(offset, GetISA());
 
   for (Label::LabelLinksIterator it(label); !it.Done(); it.Advance()) {
     Instruction* link =
@@ -93,16 +96,20 @@ ptrdiff_t Assembler::LinkAndGetOffsetTo(Label* label) {
 
 
 ptrdiff_t Assembler::LinkAndGetByteOffsetTo(Label* label) {
+  // The target can be either code or data, so don't call EnsureISA.
   return LinkAndGetOffsetTo<0>(label);
 }
 
 
-ptrdiff_t Assembler::LinkAndGetInstructionOffsetTo(Label* label) {
+ptrdiff_t Assembler::LinkAndGetBranchOffsetTo(Label* label) {
+  // The target ISA should be the same as the current ISA.
+  label->EnsureISA(GetISA());
   return LinkAndGetOffsetTo<kInstructionSizeLog2>(label);
 }
 
 
 ptrdiff_t Assembler::LinkAndGetPageOffsetTo(Label* label) {
+  // The target can be either code or data, so don't call EnsureISA.
   return LinkAndGetOffsetTo<kPageSizeLog2>(label);
 }
 
@@ -130,6 +137,7 @@ void Assembler::place(RawLiteral* literal) {
 
   // "bind" the literal.
   literal->SetOffset(GetCursorOffset());
+  ISAScope isa(this, ISA::Data);
   // Copy the data into the pool.
   switch (literal->GetSize()) {
     case kSRegSizeInBytes:
@@ -264,14 +272,14 @@ void Assembler::b(int64_t imm19, Condition cond) {
 
 
 void Assembler::b(Label* label) {
-  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  int64_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(UncondBranchType, offset));
   b(static_cast<int>(offset));
 }
 
 
 void Assembler::b(Label* label, Condition cond) {
-  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  int64_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(CondBranchType, offset));
   b(static_cast<int>(offset), cond);
 }
@@ -281,7 +289,7 @@ void Assembler::bl(int64_t imm26) { Emit(BL | ImmUncondBranch(imm26)); }
 
 
 void Assembler::bl(Label* label) {
-  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  int64_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(UncondBranchType, offset));
   bl(static_cast<int>(offset));
 }
@@ -293,7 +301,7 @@ void Assembler::cbz(const Register& rt, int64_t imm19) {
 
 
 void Assembler::cbz(const Register& rt, Label* label) {
-  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  int64_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(CompareBranchType, offset));
   cbz(rt, static_cast<int>(offset));
 }
@@ -305,7 +313,7 @@ void Assembler::cbnz(const Register& rt, int64_t imm19) {
 
 
 void Assembler::cbnz(const Register& rt, Label* label) {
-  int64_t offset = LinkAndGetInstructionOffsetTo(label);
+  int64_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(CompareBranchType, offset));
   cbnz(rt, static_cast<int>(offset));
 }
@@ -424,7 +432,7 @@ void Assembler::tbz(const Register& rt, unsigned bit_pos, int64_t imm14) {
 
 
 void Assembler::tbz(const Register& rt, unsigned bit_pos, Label* label) {
-  ptrdiff_t offset = LinkAndGetInstructionOffsetTo(label);
+  ptrdiff_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(TestBranchType, offset));
   tbz(rt, bit_pos, static_cast<int>(offset));
 }
@@ -437,7 +445,7 @@ void Assembler::tbnz(const Register& rt, unsigned bit_pos, int64_t imm14) {
 
 
 void Assembler::tbnz(const Register& rt, unsigned bit_pos, Label* label) {
-  ptrdiff_t offset = LinkAndGetInstructionOffsetTo(label);
+  ptrdiff_t offset = LinkAndGetBranchOffsetTo(label);
   VIXL_ASSERT(Instruction::IsValidImmPCOffset(TestBranchType, offset));
   tbnz(rt, bit_pos, static_cast<int>(offset));
 }
@@ -6217,7 +6225,6 @@ bool Assembler::CPUHas(const CPURegister& rt) const {
   return CPUHas(CPUFeatures::kNEON);
 }
 
-
 bool Assembler::CPUHas(const CPURegister& rt, const CPURegister& rt2) const {
   // This is currently only used for loads and stores, where rt and rt2 must
   // have the same size and type. We could extend this to cover other cases if
@@ -6226,7 +6233,6 @@ bool Assembler::CPUHas(const CPURegister& rt, const CPURegister& rt2) const {
   USE(rt2);
   return CPUHas(rt);
 }
-
 
 bool Assembler::CPUHas(SystemRegister sysreg) const {
   switch (sysreg) {
@@ -6238,6 +6244,18 @@ bool Assembler::CPUHas(SystemRegister sysreg) const {
       break;
   }
   return true;
+}
+
+bool Assembler::CPUHas(ISA isa) const {
+  switch (isa) {
+    case ISA::A64:
+    case ISA::Data:
+      return true;
+    case ISA::C64:
+      return CPUHas(CPUFeatures::kMorello);
+  }
+  VIXL_UNREACHABLE();
+  return false;
 }
 
 

@@ -34,6 +34,7 @@
 #include "../globals-vixl.h"
 
 #include "instructions-aarch64.h"
+#include "isa-aarch64.h"
 
 
 // List macro containing all visitors needed by the decoder class.
@@ -346,9 +347,14 @@ class DecoderVisitor {
  public:
   enum VisitorConstness { kConstVisitor, kNonConstVisitor };
   explicit DecoderVisitor(VisitorConstness constness = kConstVisitor)
-      : constness_(constness) {}
+      : constness_(constness), isa_(ISA::A64) {}
 
   virtual ~DecoderVisitor() {}
+
+  virtual void SetISA(ISA isa) { isa_ = isa; }
+  virtual ISA GetISA() const { return isa_; }
+
+  virtual void VisitData(const Instruction* instr) = 0;
 
 #define DECLARE(A) virtual void Visit##A(const Instruction* instr) = 0;
   VISITOR_LIST(DECLARE)
@@ -362,6 +368,7 @@ class DecoderVisitor {
 
  private:
   const VisitorConstness constness_;
+  ISA isa_;
 };
 
 // As above, but a default (no-op) implementation for each visitor is provided.
@@ -381,6 +388,8 @@ class DecoderVisitorWithDefaults : public DecoderVisitor {
   virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE { USE(instr); }
   VISITOR_LIST(DECLARE)
 #undef DECLARE
+
+  virtual void VisitData(const Instruction* instr) VIXL_OVERRIDE { USE(instr); }
 };
 
 class DecodeNode;
@@ -394,18 +403,43 @@ class CompiledDecodeNode;
 // handles the instruction.
 class Decoder {
  public:
-  Decoder() { ConstructDecodeGraph(); }
+  Decoder() : isa_(ISA::A64) { ConstructDecodeGraph(); }
 
-  // Top-level wrappers around the actual decoding function.
+  // Decode a single instruction, invoking registered visitors accordingly.
   void Decode(const Instruction* instr);
   void Decode(Instruction* instr);
 
+  // As above, but explicitly set the ISA. The ISA setting is sticky, and will
+  // affect subsequent calls to `Decode` unless they also specify the ISA.
+  void Decode(const Instruction* instr, ISA isa);
+  void Decode(Instruction* instr, ISA isa);
+
   // Decode all instructions from start (inclusive) to end (exclusive).
+  // An ISAMap may be provided (with offsets from `start`) to describe the ISAs
+  // used in the buffer. If no map is provided, the Decoder's current ISA is
+  // used.
   template <typename T>
-  void Decode(T start, T end) {
+  void Decode(T start, T end, const ISAMap* map = nullptr) {
+    ISA isa = GetISA();
     for (T instr = start; instr < end; instr = instr->GetNextInstruction()) {
-      Decode(instr);
+      if (map != nullptr) isa = map->GetISAAt(instr - start);
+      Decode(instr, isa);
     }
+  }
+
+  void SetISA(ISA isa) {
+    isa_ = isa;
+    for (DecoderVisitor* visitor : visitors_) {
+      visitor->SetISA(isa);
+    }
+  }
+  ISA GetISA() const {
+#ifdef VIXL_DEBUG
+    for (DecoderVisitor* visitor : visitors_) {
+      VIXL_ASSERT(visitor->GetISA() == isa_);
+    }
+#endif
+    return isa_;
   }
 
   // Register a new visitor class with the decoder.
@@ -450,6 +484,7 @@ class Decoder {
 #define DECLARE(A) void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
 #undef DECLARE
+  void VisitData(const Instruction* instr);
 
   std::list<DecoderVisitor*>* visitors() { return &visitors_; }
 
@@ -477,6 +512,9 @@ class Decoder {
 
   // Map of node names to DecodeNodes.
   std::map<std::string, DecodeNode> decode_nodes_;
+
+  // The ISA currently being decoded.
+  ISA isa_;
 };
 
 const int kMaxDecodeSampledBits = 16;

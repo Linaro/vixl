@@ -6366,6 +6366,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     zip2(zd, zn, zm);
   }
 
+  // Morello.
+
+  // Switch between A64 and C64. This does _not_ change the MacroAssembler's
+  // target ISA.
+  // TODO: Should it?
+  void Bx() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    bx(kInstructionSize);
+  }
+
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
     return new Literal<T>(value,
@@ -7291,6 +7302,7 @@ void MacroAssembler::CallRuntimeHelper(R (*function)(P...),
       ExactAssemblyScope scope(this, kInstructionSize);
       hlt(kRuntimeCallOpcode);
     }
+    ISAScope isa(this, ISA::Data);
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) ==
                 kRuntimeCallWrapperOffset);
     dc(runtime_call_wrapper_address);

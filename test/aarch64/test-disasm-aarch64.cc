@@ -3066,13 +3066,13 @@ TEST(udf) {
 
   // UDF gives the useful property that zero-initialised memory is guaranteed to
   // generate undefined instruction exceptions.
-  COMPARE(dc(0), "udf #0x0");
+  COMPARE(dci(0), "udf #0x0");
 
   // Check related unallocated bit patterns from the reserved block.
-  COMPARE(dc(0x00010000), "unallocated (Unallocated)");
-  COMPARE(dc(0x01000000), "unallocated (Unallocated)");
-  COMPARE(dc(0x20000000), "unallocated (Unallocated)");
-  COMPARE(dc(0x80000000), "unallocated (Unallocated)");
+  COMPARE(dci(0x00010000), "unallocated (Unallocated)");
+  COMPARE(dci(0x01000000), "unallocated (Unallocated)");
+  COMPARE(dci(0x20000000), "unallocated (Unallocated)");
+  COMPARE(dci(0x80000000), "unallocated (Unallocated)");
 
   CLEANUP();
 }

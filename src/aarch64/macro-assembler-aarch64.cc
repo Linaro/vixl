@@ -117,6 +117,11 @@ void LiteralPool::Emit(EmitOption option) {
   VIXL_ASSERT(!IsBlocked());
   VIXL_ASSERT(!IsEmpty());
 
+  // We cannot emit a pool in Data mode because we might need to jump over it.
+  // This should never be an issue because the MacroAssembler doesn't allow
+  // direct data emission, and the Assembler does not understand literal pools.
+  VIXL_ASSERT(masm_->GetISA() != ISA::Data);
+
   size_t pool_size = GetSize();
   size_t emit_size = pool_size;
   if (option == kBranchRequired) emit_size += kInstructionSize;
@@ -144,11 +149,14 @@ void LiteralPool::Emit(EmitOption option) {
       masm_->ldr(xzr, static_cast<int>(pool_size / kWRegSizeInBytes));
     }
 
-    // Now populate the literal pool.
-    std::vector<RawLiteral*>::iterator it, end;
-    for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
-      VIXL_ASSERT((*it)->IsUsed());
-      masm_->place(*it);
+    {
+      // Now populate the literal pool.
+      ISAScope isa(masm_, ISA::Data);
+      std::vector<RawLiteral*>::iterator it, end;
+      for (it = entries_.begin(), end = entries_.end(); it != end; ++it) {
+        VIXL_ASSERT((*it)->IsUsed());
+        masm_->place(*it);
+      }
     }
 
     if (option == kBranchRequired) masm_->bind(&end_of_pool);
@@ -2627,7 +2635,10 @@ void MacroAssembler::PrintfNoPreserve(const char* format,
     Label after_data;
     B(&after_data);
     Bind(&format_address);
-    EmitString(format);
+    {
+      ISAScope isa(this, ISA::Data);
+      EmitString(format);
+    }
     Unreachable();
     Bind(&after_data);
   }
@@ -2644,6 +2655,7 @@ void MacroAssembler::PrintfNoPreserve(const char* format,
   if (generate_simulator_code_) {
     ExactAssemblyScope scope(this, kPrintfLength);
     hlt(kPrintfOpcode);
+    ISAScope isa(this, ISA::Data);
     dc32(arg_count);  // kPrintfArgCountOffset
 
     // Determine the argument pattern.
@@ -2753,6 +2765,7 @@ void MacroAssembler::Trace(TraceParameters parameters, TraceCommand command) {
     // Refer to simulator-aarch64.h for a description of the marker and its
     // arguments.
     hlt(kTraceOpcode);
+    ISAScope isa(this, ISA::Data);
 
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) == kTraceParamsOffset);
     dc32(parameters);
@@ -2780,6 +2793,7 @@ void MacroAssembler::Log(TraceParameters parameters) {
     // Refer to simulator-aarch64.h for a description of the marker and its
     // arguments.
     hlt(kLogOpcode);
+    ISAScope isa(this, ISA::Data);
 
     VIXL_ASSERT(GetSizeOfCodeGeneratedSince(&start) == kLogParamsOffset);
     dc32(parameters);
@@ -2829,6 +2843,8 @@ void MacroAssembler::ConfigureSimulatorCPUFeaturesHelper(
     ExactAssemblyScope guard_preamble(this, preamble_length);
     hlt(action);
   }
+  ISAScope isa(this, ISA::Data);
+
   {  // A kNone-terminated list of features.
     ExactAssemblyScope guard_list(this, list_length);
     for (CPUFeatures::const_iterator it = features.begin();

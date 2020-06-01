@@ -56,64 +56,69 @@
     PrintDisassembler print_disasm(stdout);                                 \
     Instruction* start = masm.GetBuffer()->GetStartAddress<Instruction*>(); \
     Instruction* end = masm.GetBuffer()->GetEndAddress<Instruction*>();     \
-    print_disasm.DisassembleBuffer(start, end);                             \
+    print_disasm.DisassembleBuffer(start, end, masm.GetISAMap());           \
   } while (0)
 
-#define COMPARE(ASM, EXP)                                                \
-  do {                                                                   \
-    masm.Reset();                                                        \
-    {                                                                    \
-      ExactAssemblyScope guard(&masm,                                    \
-                               MAX_SIZE_GENERATED,                       \
-                               ExactAssemblyScope::kMaximumSize);        \
-      masm.ASM;                                                          \
-    }                                                                    \
-    masm.FinalizeCode();                                                 \
-    decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());   \
-    uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>(); \
-    if (strcmp(disasm.GetOutput(), EXP) != 0) {                          \
-      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",  \
-             encoding,                                                   \
-             EXP,                                                        \
-             disasm.GetOutput());                                        \
-      abort();                                                           \
-    }                                                                    \
-    if (Test::disassemble()) DISASSEMBLE();                              \
+#define COMPARE_ISA(ASM, ISA, EXP)                                          \
+  do {                                                                      \
+    masm.Reset();                                                           \
+    {                                                                       \
+      ISAScope isa(&masm, ISA);                                             \
+      ExactAssemblyScope guard(&masm,                                       \
+                               MAX_SIZE_GENERATED,                          \
+                               ExactAssemblyScope::kMaximumSize);           \
+      masm.ASM;                                                             \
+    }                                                                       \
+    masm.FinalizeCode();                                                    \
+    decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>(), ISA); \
+    uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();    \
+    if (strcmp(disasm.GetOutput(), EXP) != 0) {                             \
+      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",     \
+             encoding,                                                      \
+             EXP,                                                           \
+             disasm.GetOutput());                                           \
+      abort();                                                              \
+    }                                                                       \
+    if (Test::disassemble()) DISASSEMBLE();                                 \
   } while (0)
 
-#define COMPARE_PREFIX(ASM, EXP)                                         \
-  do {                                                                   \
-    masm.Reset();                                                        \
-    {                                                                    \
-      ExactAssemblyScope guard(&masm,                                    \
-                               MAX_SIZE_GENERATED,                       \
-                               ExactAssemblyScope::kMaximumSize);        \
-      masm.ASM;                                                          \
-    }                                                                    \
-    masm.FinalizeCode();                                                 \
-    decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>());   \
-    uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>(); \
-    if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {            \
-      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",  \
-             encoding,                                                   \
-             EXP,                                                        \
-             disasm.GetOutput());                                        \
-      abort();                                                           \
-    }                                                                    \
-    if (Test::disassemble()) DISASSEMBLE();                              \
+#define COMPARE_PREFIX_ISA(ASM, ISA, EXP)                                   \
+  do {                                                                      \
+    masm.Reset();                                                           \
+    {                                                                       \
+      ISAScope isa(&masm, ISA);                                             \
+      ExactAssemblyScope guard(&masm,                                       \
+                               MAX_SIZE_GENERATED,                          \
+                               ExactAssemblyScope::kMaximumSize);           \
+      masm.ASM;                                                             \
+    }                                                                       \
+    masm.FinalizeCode();                                                    \
+    decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>(), ISA); \
+    uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();    \
+    if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {               \
+      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",     \
+             encoding,                                                      \
+             EXP,                                                           \
+             disasm.GetOutput());                                           \
+      abort();                                                              \
+    }                                                                       \
+    if (Test::disassemble()) DISASSEMBLE();                                 \
   } while (0)
 
-#define COMPARE_MACRO_BASE(ASM, EXP)                        \
+#define COMPARE_MACRO_BASE(ASM, ISA, EXP)                   \
   masm.Reset();                                             \
-  masm.ASM;                                                 \
-  masm.FinalizeCode();                                      \
+  {                                                         \
+    ISAScope isa(&masm, ISA);                               \
+    masm.ASM;                                               \
+    masm.FinalizeCode();                                    \
+  }                                                         \
   std::string res;                                          \
                                                             \
   Instruction* instruction =                                \
       masm.GetBuffer()->GetStartAddress<Instruction*>();    \
   Instruction* end = masm.GetCursorAddress<Instruction*>(); \
   while (instruction != end) {                              \
-    decoder.Decode(instruction);                            \
+    decoder.Decode(instruction, ISA);                       \
     res.append(disasm.GetOutput());                         \
     instruction = instruction->GetNextInstruction();        \
     if (instruction != end) {                               \
@@ -121,9 +126,9 @@
     }                                                       \
   }
 
-#define COMPARE_MACRO(ASM, EXP)                                 \
+#define COMPARE_MACRO_ISA(ASM, ISA, EXP)                        \
   do {                                                          \
-    COMPARE_MACRO_BASE(ASM, EXP)                                \
+    COMPARE_MACRO_BASE(ASM, ISA, EXP)                           \
     if (strcmp(res.c_str(), EXP) != 0) {                        \
       printf("Expected: %s\nFound:    %s\n", EXP, res.c_str()); \
       abort();                                                  \
@@ -131,14 +136,51 @@
     if (Test::disassemble()) DISASSEMBLE();                     \
   } while (0)
 
-#define COMPARE_MACRO_PREFIX(ASM, EXP)                                   \
+#define COMPARE_MACRO_PREFIX_ISA(ASM, ISA, EXP)                          \
   do {                                                                   \
-    COMPARE_MACRO_BASE(ASM, EXP)                                         \
+    COMPARE_MACRO_BASE(ASM, ISA, EXP)                                    \
     if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                   \
       printf("Expected (prefix): %s\nFound:    %s\n", EXP, res.c_str()); \
       abort();                                                           \
     }                                                                    \
     if (Test::disassemble()) DISASSEMBLE();                              \
   } while (0)
+
+
+// Convenience wrappers to avoid verbose ISA specification.
+
+// A64
+#define COMPARE_A64(ASM, EXP) COMPARE_ISA(ASM, ISA::A64, EXP)
+#define COMPARE_PREFIX_A64(ASM, EXP) COMPARE_PREFIX_ISA(ASM, ISA::A64, EXP)
+#define COMPARE_MACRO_A64(ASM, EXP) COMPARE_MACRO_ISA(ASM, ISA::A64, EXP)
+#define COMPARE_MACRO_PREFIX_A64(ASM, EXP) \
+  COMPARE_MACRO_PREFIX_ISA(ASM, ISA::A64, EXP)
+
+// C64
+#define COMPARE_C64(ASM, EXP) COMPARE_ISA(ASM, ISA::C64, EXP)
+#define COMPARE_PREFIX_C64(ASM, EXP) COMPARE_PREFIX_ISA(ASM, ISA::C64, EXP)
+#define COMPARE_MACRO_C64(ASM, EXP) COMPARE_MACRO_ISA(ASM, ISA::C64, EXP)
+#define COMPARE_MACRO_PREFIX_C64(ASM, EXP) \
+  COMPARE_MACRO_PREFIX_ISA(ASM, ISA::C64, EXP)
+
+// Instructions common to both A64 and C64.
+#define COMPARE_MORELLO(ASM, EXP) \
+  COMPARE_A64(ASM, EXP);          \
+  COMPARE_C64(ASM, EXP)
+#define COMPARE_PREFIX_MORELLO(ASM, EXP) \
+  COMPARE_PREFIX_A64(ASM, EXP);          \
+  COMPARE_PREFIX_C64(ASM, EXP)
+#define COMPARE_MACRO_MORELLO(ASM, EXP) \
+  COMPARE_MACRO_A64(ASM, EXP);          \
+  COMPARE_MACRO_C64(ASM, EXP)
+#define COMPARE_MACRO_PREFIX_MORELLO(ASM, EXP) \
+  COMPARE_MACRO_PREFIX_A64(ASM, EXP);          \
+  COMPARE_MACRO_PREFIX_C64(ASM, EXP)
+
+// To avoid changing many existing tests, operate on A64 by default.
+#define COMPARE(ASM, EXP) COMPARE_A64(ASM, EXP)
+#define COMPARE_PREFIX(ASM, EXP) COMPARE_PREFIX_A64(ASM, EXP)
+#define COMPARE_MACRO(ASM, EXP) COMPARE_MACRO_A64(ASM, EXP)
+#define COMPARE_MACRO_PREFIX(ASM, EXP) COMPARE_MACRO_PREFIX_A64(ASM, EXP)
 
 #define CLEANUP()

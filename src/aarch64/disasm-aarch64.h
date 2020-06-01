@@ -35,6 +35,7 @@
 #include "cpu-features-auditor-aarch64.h"
 #include "decoder-aarch64.h"
 #include "instructions-aarch64.h"
+#include "isa-aarch64.h"
 #include "operands-aarch64.h"
 
 namespace vixl {
@@ -52,6 +53,8 @@ class Disassembler : public DecoderVisitor {
   virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST(DECLARE)
 #undef DECLARE
+
+  virtual void VisitData(const Instruction* instr) VIXL_OVERRIDE;
 
  protected:
   virtual void ProcessOutput(const Instruction* instr);
@@ -114,7 +117,7 @@ class Disassembler : public DecoderVisitor {
  private:
   void Format(const Instruction* instr,
               const char* mnemonic,
-              const char* format0,
+              const char* format0 = NULL,
               const char* format1 = NULL);
   void Substitute(const Instruction* instr, const char* string);
   int SubstituteField(const Instruction* instr, const char* format);
@@ -186,13 +189,19 @@ class PrintDisassembler : public Disassembler {
       : cpu_features_auditor_(NULL),
         cpu_features_prefix_("// Needs: "),
         cpu_features_suffix_(""),
-        stream_(stream) {}
+        stream_(stream),
+        last_printed_isa_(ISA::Data) {}
 
   // Convenience helpers for quick disassembly, without having to manually
-  // create a decoder.
-  void DisassembleBuffer(const Instruction* start, uint64_t size);
-  void DisassembleBuffer(const Instruction* start, const Instruction* end);
-  void Disassemble(const Instruction* instr);
+  // create a decoder. If a map is provided, offset 0 must correspond with
+  // `start`.
+  void DisassembleBuffer(const Instruction* start,
+                         uint64_t size,
+                         const ISAMap* map = nullptr);
+  void DisassembleBuffer(const Instruction* start,
+                         const Instruction* end,
+                         const ISAMap* map = nullptr);
+  void Disassemble(const Instruction* instr, ISA isa = ISA::A64);
 
   // If a CPUFeaturesAuditor is specified, it will be used to annotate
   // disassembly. The CPUFeaturesAuditor is expected to visit the instructions
@@ -214,6 +223,9 @@ class PrintDisassembler : public Disassembler {
     cpu_features_suffix_ = suffix;
   }
 
+  // Print a banner when the ISA is changed.
+  virtual void SetISA(ISA isa) VIXL_OVERRIDE;
+
  protected:
   virtual void ProcessOutput(const Instruction* instr) VIXL_OVERRIDE;
 
@@ -223,6 +235,11 @@ class PrintDisassembler : public Disassembler {
 
  private:
   FILE* stream_;
+
+  // Sometimes we SetISA(...) with different ISAs before actually decoding
+  // something. Rather than print the ISA on SetISA, we do it lazily, when
+  // last_printed_isa_ doesn't match the current ISA.
+  ISA last_printed_isa_;
 };
 }  // namespace aarch64
 }  // namespace vixl

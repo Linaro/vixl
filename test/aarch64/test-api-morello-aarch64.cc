@@ -66,5 +66,45 @@ TEST(morello_c_registers) {
   VIXL_CHECK(!AreAliased(v7, c7));
 }
 
+TEST(morello_isa) {
+  class ObjectWithISA {
+   public:
+    explicit ObjectWithISA(ISA isa) : isa_(isa) {}
+    void SetISA(ISA isa) { isa_ = isa; }
+    ISA GetISA() const { return isa_; }
+
+   private:
+    ISA isa_;
+  };
+
+  ObjectWithISA obj(ISA::A64);
+  VIXL_CHECK(obj.GetISA() == ISA::A64);
+  {
+    ISAScope outer(&obj, ISA::C64);
+    VIXL_CHECK(obj.GetISA() == ISA::C64);
+
+    {
+      ISAScope inner(&obj, ISA::A64);
+      VIXL_CHECK(obj.GetISA() == ISA::A64);
+    }
+    VIXL_CHECK(obj.GetISA() == ISA::C64);
+
+    // The ISA can be manually changed within a scope.
+    obj.SetISA(ISA::Data);
+
+    {
+      ISAScope inner(&obj, ISA::Data);
+      // If the inner scope has the same ISA, it has no effect.
+      VIXL_CHECK(obj.GetISA() == ISA::Data);
+      // If the ISA is manually changed within the scope, the changes are
+      // reverted on exit.
+      obj.SetISA(ISA::A64);
+      VIXL_CHECK(obj.GetISA() == ISA::A64);
+    }
+    VIXL_CHECK(obj.GetISA() == ISA::Data);
+  }
+  VIXL_CHECK(obj.GetISA() == ISA::A64);
+}
+
 }  // namespace aarch64
 }  // namespace vixl

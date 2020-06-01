@@ -62,6 +62,11 @@ Disassembler::~Disassembler() {
 char *Disassembler::GetOutput() { return buffer_; }
 
 
+void Disassembler::VisitData(const Instruction *instr) {
+  Format(instr, "(data)");
+}
+
+
 void Disassembler::VisitAddSubImmediate(const Instruction *instr) {
   bool rd_is_zr = RdIsZROrSP(instr);
   bool stack_op =
@@ -9527,7 +9532,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloAlignment)                         \
   V(MorelloBitwise)                           \
   V(MorelloBranch)                            \
-  V(MorelloBranchBx)                          \
   V(MorelloBranchRestricted)                  \
   V(MorelloBranchSealedDirect)                \
   V(MorelloBranchSealedIndirect)              \
@@ -9588,6 +9592,21 @@ VIXL_UNIMPLEMENTED_VISITOR_LIST(VIXL_DEFINE_UNIMPLEMENTED_VISITOR)
 
 #undef VIXL_DEFINE_UNIMPLEMENTED_VISITOR
 #undef VIXL_UNIMPLEMENTED_VISITOR_LIST
+
+
+void Disassembler::VisitMorelloBranchBx(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(MorelloBranchBx)";
+
+  switch (instr->Mask(MorelloBranchBxMask)) {
+    case BX:
+      mnemonic = "bx";
+      form = "#4";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
 
 
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {
@@ -10985,32 +11004,43 @@ void Disassembler::AppendToOutput(const char *format, ...) {
 }
 
 
-void PrintDisassembler::Disassemble(const Instruction *instr) {
+void PrintDisassembler::Disassemble(const Instruction *instr, ISA isa) {
   Decoder decoder;
   if (cpu_features_auditor_ != NULL) {
     decoder.AppendVisitor(cpu_features_auditor_);
   }
   decoder.AppendVisitor(this);
+  decoder.SetISA(isa);
   decoder.Decode(instr);
 }
 
 void PrintDisassembler::DisassembleBuffer(const Instruction *start,
-                                          const Instruction *end) {
+                                          const Instruction *end,
+                                          const ISAMap *map) {
   Decoder decoder;
   if (cpu_features_auditor_ != NULL) {
     decoder.AppendVisitor(cpu_features_auditor_);
   }
   decoder.AppendVisitor(this);
-  decoder.Decode(start, end);
+  decoder.Decode(start, end, map);
 }
 
 void PrintDisassembler::DisassembleBuffer(const Instruction *start,
-                                          uint64_t size) {
-  DisassembleBuffer(start, start + size);
+                                          uint64_t size,
+                                          const ISAMap *map) {
+  DisassembleBuffer(start, start + size, map);
 }
 
 
+void PrintDisassembler::SetISA(ISA isa) { Disassembler::SetISA(isa); }
+
+
 void PrintDisassembler::ProcessOutput(const Instruction *instr) {
+  ISA isa = GetISA();
+  if (last_printed_isa_ != isa) {
+    fprintf(stream_, "# ISA: %s\n", GetISAName(isa));
+    last_printed_isa_ = isa;
+  }
   int bytes_printed = fprintf(stream_,
                               "0x%016" PRIx64 "  %08" PRIx32 "\t\t%s",
                               reinterpret_cast<uint64_t>(instr),

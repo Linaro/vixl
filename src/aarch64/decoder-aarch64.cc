@@ -40,12 +40,35 @@ void Decoder::Decode(const Instruction* instr) {
   for (it = visitors_.begin(); it != visitors_.end(); it++) {
     VIXL_ASSERT((*it)->IsConstVisitor());
   }
+
+  // Don't attempt to decode data.
+  if (GetISA() == ISA::Data) {
+    VisitData(instr);
+    return;
+  }
+
   VIXL_ASSERT(compiled_decoder_root_ != NULL);
   compiled_decoder_root_->Decode(instr);
 }
 
 void Decoder::Decode(Instruction* instr) {
+  // Don't attempt to decode data.
+  if (GetISA() == ISA::Data) {
+    VisitData(instr);
+    return;
+  }
+
   compiled_decoder_root_->Decode(const_cast<const Instruction*>(instr));
+}
+
+void Decoder::Decode(const Instruction* instr, ISA isa) {
+  if (isa != GetISA()) SetISA(isa);
+  Decode(instr);
+}
+
+void Decoder::Decode(Instruction* instr, ISA isa) {
+  if (isa != GetISA()) SetISA(isa);
+  Decode(instr);
 }
 
 void Decoder::AddDecodeNode(const DecodeNode& node) {
@@ -76,17 +99,20 @@ void Decoder::ConstructDecodeGraph() {
 }
 
 void Decoder::AppendVisitor(DecoderVisitor* new_visitor) {
+  new_visitor->SetISA(GetISA());
   visitors_.push_back(new_visitor);
 }
 
 
 void Decoder::PrependVisitor(DecoderVisitor* new_visitor) {
+  new_visitor->SetISA(GetISA());
   visitors_.push_front(new_visitor);
 }
 
 
 void Decoder::InsertVisitorBefore(DecoderVisitor* new_visitor,
                                   DecoderVisitor* registered_visitor) {
+  new_visitor->SetISA(GetISA());
   std::list<DecoderVisitor*>::iterator it;
   for (it = visitors_.begin(); it != visitors_.end(); it++) {
     if (*it == registered_visitor) {
@@ -103,6 +129,7 @@ void Decoder::InsertVisitorBefore(DecoderVisitor* new_visitor,
 
 void Decoder::InsertVisitorAfter(DecoderVisitor* new_visitor,
                                  DecoderVisitor* registered_visitor) {
+  new_visitor->SetISA(GetISA());
   std::list<DecoderVisitor*>::iterator it;
   for (it = visitors_.begin(); it != visitors_.end(); it++) {
     if (*it == registered_visitor) {
@@ -122,17 +149,24 @@ void Decoder::RemoveVisitor(DecoderVisitor* visitor) {
   visitors_.remove(visitor);
 }
 
-#define DEFINE_VISITOR_CALLERS(A)                               \
-  void Decoder::Visit##A(const Instruction* instr) {            \
-    VIXL_ASSERT(((A##FMask == 0) && (A##Fixed == 0)) ||         \
-                (instr->Mask(A##FMask) == A##Fixed));           \
-    std::list<DecoderVisitor*>::iterator it;                    \
-    for (it = visitors_.begin(); it != visitors_.end(); it++) { \
-      (*it)->Visit##A(instr);                                   \
-    }                                                           \
+#define DEFINE_VISITOR_CALLERS(A)                                 \
+  void Decoder::Visit##A(const Instruction* instr) {              \
+    VIXL_ASSERT(((A##FMask == 0) && (A##Fixed == 0)) ||           \
+                (instr->Mask(A##FMask) == A##Fixed));             \
+    std::list<DecoderVisitor*>::iterator it;                      \
+    for (it = visitors_.begin(); it != visitors_.end(); it++) {   \
+      if ((*it)->GetISA() != GetISA()) ((*it)->SetISA(GetISA())); \
+      (*it)->Visit##A(instr);                                     \
+    }                                                             \
   }
 VISITOR_LIST(DEFINE_VISITOR_CALLERS)
 #undef DEFINE_VISITOR_CALLERS
+
+void Decoder::VisitData(const Instruction* instr) {
+  for (DecoderVisitor* visitor : visitors_) {
+    visitor->VisitData(instr);
+  }
+}
 
 void DecodeNode::SetSampledBits(const uint8_t* bits, int bit_count) {
   VIXL_ASSERT(!IsCompiled());

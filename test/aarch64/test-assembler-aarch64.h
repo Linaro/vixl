@@ -249,33 +249,39 @@ namespace aarch64 {
 #define CAN_RUN() CanRun(*masm.GetCPUFeatures(), &queried_can_run)
 #define QUERIED_CAN_RUN() (queried_can_run)
 
-#define DISASSEMBLE()                                                     \
-  if (Test::disassemble()) {                                              \
-    PrintDisassembler disasm(stdout);                                     \
-    CodeBuffer* buffer = masm.GetBuffer();                                \
-    Instruction* start = buffer->GetOffsetAddress<Instruction*>(          \
-        offset_after_infrastructure_start);                               \
-    Instruction* end = buffer->GetOffsetAddress<Instruction*>(            \
-        offset_before_infrastructure_end);                                \
-                                                                          \
-    if (Test::disassemble_infrastructure()) {                             \
-      Instruction* infra_start = buffer->GetStartAddress<Instruction*>(); \
-      printf("# Infrastructure code (prologue)\n");                       \
-      disasm.DisassembleBuffer(infra_start, start);                       \
-      printf("# Test code\n");                                            \
-    } else {                                                              \
-      printf(                                                             \
-          "# Warning: Omitting infrastructure code. "                     \
-          "Use --disassemble to see it.\n");                              \
-    }                                                                     \
-                                                                          \
-    disasm.DisassembleBuffer(start, end);                                 \
-                                                                          \
-    if (Test::disassemble_infrastructure()) {                             \
-      printf("# Infrastructure code (epilogue)\n");                       \
-      Instruction* infra_end = buffer->GetEndAddress<Instruction*>();     \
-      disasm.DisassembleBuffer(end, infra_end);                           \
-    }                                                                     \
+#define DISASSEMBLE()                                                      \
+  if (Test::disassemble()) {                                               \
+    PrintDisassembler disasm(stdout);                                      \
+    CodeBuffer* buffer = masm.GetBuffer();                                 \
+    Instruction* start = buffer->GetStartAddress<Instruction*>();          \
+    Instruction* test_code_start = buffer->GetOffsetAddress<Instruction*>( \
+        offset_after_infrastructure_start);                                \
+    Instruction* test_code_end = buffer->GetOffsetAddress<Instruction*>(   \
+        offset_before_infrastructure_end);                                 \
+    Instruction* end = buffer->GetEndAddress<Instruction*>();              \
+                                                                           \
+    if (Test::disassemble_infrastructure()) {                              \
+      printf("# Infrastructure code (prologue)\n");                        \
+      ISAMap prologue_isa_map =                                            \
+          masm.GetISAMap()->GetPart(0, test_code_start - start);           \
+      disasm.DisassembleBuffer(start, test_code_start, &prologue_isa_map); \
+      printf("# Test code\n");                                             \
+    } else {                                                               \
+      printf(                                                              \
+          "# Warning: Omitting infrastructure code. "                      \
+          "Use --disassemble to see it.\n");                               \
+    }                                                                      \
+                                                                           \
+    ISAMap isa_map = masm.GetISAMap()->GetPart(test_code_start - start,    \
+                                               test_code_end - start);     \
+    disasm.DisassembleBuffer(test_code_start, test_code_end, &isa_map);    \
+                                                                           \
+    if (Test::disassemble_infrastructure()) {                              \
+      printf("# Infrastructure code (epilogue)\n");                        \
+      ISAMap epilogue_isa_map =                                            \
+          masm.GetISAMap()->GetPart(test_code_end - start, end - start);   \
+      disasm.DisassembleBuffer(test_code_end, end, &epilogue_isa_map);     \
+    }                                                                      \
   }
 
 #define ASSERT_EQUAL_NZCV(expected) \

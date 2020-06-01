@@ -61,7 +61,7 @@ namespace aarch64 {
 // TEST_MORELLO(brs_0, brs(c0))
 // TEST_MORELLO(brs_1, brs(C29, c0, c1))
 // TEST_MORELLO(build_0, build(c0, c1, c2))
-// TEST_MORELLO(bx_0, bx(4))
+TEST_MORELLO(bx_0, bx(4))
 // TEST_MORELLO(cfhi_0, cfhi(x0, c1))
 // TEST_MORELLO(chkeq_0, chkeq(c0, c1))
 // TEST_MORELLO(chksld_0, chksld(c0))
