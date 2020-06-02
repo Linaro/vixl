@@ -32,6 +32,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 
 #include "test-runner.h"
 #include "test-utils.h"
@@ -8832,14 +8833,14 @@ typedef void (MacroAssembler::*Ld1Macro)(const ZRegister& zt,
                                          const PRegisterZ& pg,
                                          const SVEMemOperand& addr);
 
-template <typename T>
 static void Ldff1Helper(Test* config,
                         uintptr_t data,
                         unsigned msize_in_bits,
                         unsigned esize_in_bits,
+                        CPURegister::RegisterType base_type,
                         Ld1Macro ldff1,
                         Ld1Macro ld1,
-                        T mod,
+                        SVEOffsetModifier mod,
                         bool scale = false) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
@@ -8889,16 +8890,36 @@ static void Ldff1Helper(Test* config,
   __ Mov(x20, data);
   __ Mov(x21, offset);
 
-  if (std::is_same<T, vixl::aarch64::Shift>::value) {
-    VIXL_ASSERT(scale == false);
-    // Scalar plus scalar mode.
-    (masm.*ldff1)(z0.WithLaneSize(esize_in_bits),
-                  all.Zeroing(),
-                  SVEMemOperand(x20, x21, mod, msize_in_bytes_log2));
+  if (base_type == CPURegister::kRegister) {
+    // Scalar-plus-scalar mode.
+    if ((mod == SVE_LSL) || (mod == NO_SVE_OFFSET_MODIFIER)) {
+      (masm.*ldff1)(z0.WithLaneSize(esize_in_bits),
+                    all.Zeroing(),
+                    SVEMemOperand(x20, x21, mod, msize_in_bytes_log2));
+    } else {
+      VIXL_UNIMPLEMENTED();
+    }
 
-  } else if (std::is_same<T, vixl::aarch64::Extend>::value) {
-    VIXL_ASSERT((static_cast<int>(mod) == UXTW) ||
-                (static_cast<int>(mod) == SXTW));
+  } else if (base_type == CPURegister::kZRegister) {
+    int offs_size;
+    bool offs_is_unsigned;
+    if ((mod == SVE_SXTW) || (mod == SVE_UXTW)) {
+      // Scalar-plus-vector mode with 32-bit optional unpacked or upacked, and
+      // unscaled or scaled offset.
+      if (scale == true) {
+        // Gather first-fault bytes load doesn't support scaled offset.
+        VIXL_ASSERT(msize_in_bits != kBRegSize);
+      }
+      offs_is_unsigned = (mod == SVE_UXTW) ? true : false;
+      offs_size = kSRegSize;
+
+    } else {
+      // Scalar-plus-vector mode with 64-bit unscaled or scaled offset.
+      VIXL_ASSERT((mod == SVE_LSL) || (mod == NO_SVE_OFFSET_MODIFIER));
+      offs_is_unsigned = false;
+      offs_size = kDRegSize;
+    }
+
     // For generating the pattern of "base address + index << shift".
     // In case of unscaled-offset operation, use `msize_in_bytes` be an offset
     // of each decreasing memory accesses. otherwise, decreases the indexes by 1
@@ -8906,12 +8927,10 @@ static void Ldff1Helper(Test* config,
     int shift = (scale == true) ? msize_in_bytes_log2 : 0;
     int index_offset = msize_in_bytes >> shift;
     VIXL_ASSERT(index_offset > 0);
-    // TODO `offs_size` can be different once 64-bit offset is supported.
-    int offs_size = kSRegSize;
     uint64_t index = 0;
     uint64_t base_address = 0;
 
-    if (static_cast<int>(mod) == UXTW) {
+    if (offs_is_unsigned == true) {
       // Base address.
       base_address = data;
       // Maximum unsigned positive index.
@@ -8942,6 +8961,8 @@ static void Ldff1Helper(Test* config,
      ldff1)(z0.WithLaneSize(esize_in_bits),
             all.Zeroing(),
             SVEMemOperand(x19, z17.WithLaneSize(esize_in_bits), mod, shift));
+  } else {
+    VIXL_UNIMPLEMENTED();
   }
 
   __ Rdffrs(p0.VnB(), all.Zeroing());
@@ -9020,44 +9041,299 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
     memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
   }
 
+  auto ldff1_unscaled_offset_helper = std::bind(&Ldff1Helper,
+                                                config,
+                                                data,
+                                                std::placeholders::_1,
+                                                std::placeholders::_2,
+                                                CPURegister::kRegister,
+                                                std::placeholders::_3,
+                                                std::placeholders::_4,
+                                                NO_SVE_OFFSET_MODIFIER,
+                                                false);
+
   Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
   Ld1Macro ld1b = &MacroAssembler::Ld1b;
-  Ldff1Helper(config, data, kBRegSize, kBRegSize, ldff1b, ld1b, LSL);
-  Ldff1Helper(config, data, kBRegSize, kHRegSize, ldff1b, ld1b, LSL);
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1b, ld1b, LSL);
-  Ldff1Helper(config, data, kBRegSize, kDRegSize, ldff1b, ld1b, LSL);
-
-  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
-  Ld1Macro ld1h = &MacroAssembler::Ld1h;
-  Ldff1Helper(config, data, kHRegSize, kHRegSize, ldff1h, ld1h, LSL);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1h, ld1h, LSL);
-  Ldff1Helper(config, data, kHRegSize, kDRegSize, ldff1h, ld1h, LSL);
-
-  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
-  Ld1Macro ld1w = &MacroAssembler::Ld1w;
-  Ldff1Helper(config, data, kSRegSize, kSRegSize, ldff1w, ld1w, LSL);
-  Ldff1Helper(config, data, kSRegSize, kDRegSize, ldff1w, ld1w, LSL);
-
-  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
-  Ld1Macro ld1d = &MacroAssembler::Ld1d;
-  Ldff1Helper(config, data, kDRegSize, kDRegSize, ldff1d, ld1d, LSL);
+  ldff1_unscaled_offset_helper(kBRegSize, kBRegSize, ldff1b, ld1b);
+  ldff1_unscaled_offset_helper(kBRegSize, kHRegSize, ldff1b, ld1b);
+  ldff1_unscaled_offset_helper(kBRegSize, kSRegSize, ldff1b, ld1b);
+  ldff1_unscaled_offset_helper(kBRegSize, kDRegSize, ldff1b, ld1b);
 
   Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
   Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
-  Ldff1Helper(config, data, kBRegSize, kHRegSize, ldff1sb, ld1sb, LSL);
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1sb, ld1sb, LSL);
-  Ldff1Helper(config, data, kBRegSize, kDRegSize, ldff1sb, ld1sb, LSL);
+  ldff1_unscaled_offset_helper(kBRegSize, kHRegSize, ldff1sb, ld1sb);
+  ldff1_unscaled_offset_helper(kBRegSize, kSRegSize, ldff1sb, ld1sb);
+  ldff1_unscaled_offset_helper(kBRegSize, kDRegSize, ldff1sb, ld1sb);
+
+  auto ldff1_scaled_offset_helper = std::bind(&Ldff1Helper,
+                                              config,
+                                              data,
+                                              std::placeholders::_1,
+                                              std::placeholders::_2,
+                                              CPURegister::kRegister,
+                                              std::placeholders::_3,
+                                              std::placeholders::_4,
+                                              SVE_LSL,
+                                              true);
+
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_scaled_offset_helper(kHRegSize, kHRegSize, ldff1h, ld1h);
+  ldff1_scaled_offset_helper(kHRegSize, kSRegSize, ldff1h, ld1h);
+  ldff1_scaled_offset_helper(kHRegSize, kDRegSize, ldff1h, ld1h);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_scaled_offset_helper(kSRegSize, kSRegSize, ldff1w, ld1w);
+  ldff1_scaled_offset_helper(kSRegSize, kDRegSize, ldff1w, ld1w);
+
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  ldff1_scaled_offset_helper(kDRegSize, kDRegSize, ldff1d, ld1d);
 
   Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
   Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1sh, ld1sh, LSL);
-  Ldff1Helper(config, data, kHRegSize, kDRegSize, ldff1sh, ld1sh, LSL);
+  ldff1_scaled_offset_helper(kHRegSize, kSRegSize, ldff1sh, ld1sh);
+  ldff1_scaled_offset_helper(kHRegSize, kDRegSize, ldff1sh, ld1sh);
 
   Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
   Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
-  Ldff1Helper(config, data, kSRegSize, kDRegSize, ldff1sw, ld1sw, LSL);
+  ldff1_scaled_offset_helper(kSRegSize, kDRegSize, ldff1sw, ld1sw);
 
   munmap(reinterpret_cast<void*>(data), page_size * 2);
+}
+
+static void sve_ldff1_scalar_plus_vector_32_scaled_offset(Test* config,
+                                                          uintptr_t data) {
+  auto ldff1_32_scaled_offset_helper = std::bind(&Ldff1Helper,
+                                                 config,
+                                                 data,
+                                                 std::placeholders::_1,
+                                                 kSRegSize,
+                                                 CPURegister::kZRegister,
+                                                 std::placeholders::_2,
+                                                 std::placeholders::_3,
+                                                 std::placeholders::_4,
+                                                 true);
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_32_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
+  ldff1_32_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+}
+
+static void sve_ldff1_scalar_plus_vector_32_unscaled_offset(Test* config,
+                                                            uintptr_t data) {
+  auto ldff1_32_unscaled_offset_helper = std::bind(&Ldff1Helper,
+                                                   config,
+                                                   data,
+                                                   std::placeholders::_1,
+                                                   kSRegSize,
+                                                   CPURegister::kZRegister,
+                                                   std::placeholders::_2,
+                                                   std::placeholders::_3,
+                                                   std::placeholders::_4,
+                                                   false);
+
+  Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
+  Ld1Macro ld1b = &MacroAssembler::Ld1b;
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_UXTW);
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_SXTW);
+
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_32_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
+  ldff1_32_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+
+  Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
+  Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_UXTW);
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_SXTW);
+
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+}
+
+static void sve_ldff1_scalar_plus_vector_32_unpacked_scaled_offset(
+    Test* config, uintptr_t data) {
+  auto ldff1_32_unpacked_scaled_offset_helper =
+      std::bind(&Ldff1Helper,
+                config,
+                data,
+                std::placeholders::_1,
+                kDRegSize,
+                CPURegister::kZRegister,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                std::placeholders::_4,
+                true);
+
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  ldff1_32_unpacked_scaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_SXTW);
+
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_SXTW);
+}
+
+static void sve_ldff1_scalar_plus_vector_32_unpacked_unscaled_offset(
+    Test* config, uintptr_t data) {
+  auto ldff1_32_unpacked_unscaled_offset_helper =
+      std::bind(&Ldff1Helper,
+                config,
+                data,
+                std::placeholders::_1,
+                kDRegSize,
+                CPURegister::kZRegister,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                std::placeholders::_4,
+                false);
+
+  Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
+  Ld1Macro ld1b = &MacroAssembler::Ld1b;
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_SXTW);
+
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  ldff1_32_unpacked_unscaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_SXTW);
+
+  Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
+  Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_SXTW);
+
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_SXTW);
+}
+
+static void sve_ldff1_scalar_plus_vector_64_scaled_offset(Test* config,
+                                                          uintptr_t data) {
+  auto ldff1_64_scaled_offset_helper = std::bind(&Ldff1Helper,
+                                                 config,
+                                                 data,
+                                                 std::placeholders::_1,
+                                                 kDRegSize,
+                                                 CPURegister::kZRegister,
+                                                 std::placeholders::_2,
+                                                 std::placeholders::_3,
+                                                 SVE_LSL,
+                                                 true);
+
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_64_scaled_offset_helper(kHRegSize, ldff1h, ld1h);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_64_scaled_offset_helper(kSRegSize, ldff1w, ld1w);
+
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  ldff1_64_scaled_offset_helper(kDRegSize, ldff1d, ld1d);
+
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  ldff1_64_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh);
+
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  ldff1_64_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw);
+}
+
+static void sve_ldff1_scalar_plus_vector_64_unscaled_offset(Test* config,
+                                                            uintptr_t data) {
+  auto ldff1_64_unscaled_offset_helper = std::bind(&Ldff1Helper,
+                                                   config,
+                                                   data,
+                                                   std::placeholders::_1,
+                                                   kDRegSize,
+                                                   CPURegister::kZRegister,
+                                                   std::placeholders::_2,
+                                                   std::placeholders::_3,
+                                                   NO_SVE_OFFSET_MODIFIER,
+                                                   false);
+
+  Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
+  Ld1Macro ld1b = &MacroAssembler::Ld1b;
+  ldff1_64_unscaled_offset_helper(kBRegSize, ldff1b, ld1b);
+
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  ldff1_64_unscaled_offset_helper(kHRegSize, ldff1h, ld1h);
+
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  ldff1_64_unscaled_offset_helper(kSRegSize, ldff1w, ld1w);
+
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  ldff1_64_unscaled_offset_helper(kDRegSize, ldff1d, ld1d);
+
+  Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
+  Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
+  ldff1_64_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb);
+
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  ldff1_64_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh);
+
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  ldff1_64_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw);
 }
 
 TEST_SVE(sve_ldff1_scalar_plus_vector) {
@@ -9080,38 +9356,12 @@ TEST_SVE(sve_ldff1_scalar_plus_vector) {
     memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
   }
 
-  Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
-  Ld1Macro ld1b = &MacroAssembler::Ld1b;
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1b, ld1b, UXTW);
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1b, ld1b, SXTW);
-
-  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
-  Ld1Macro ld1h = &MacroAssembler::Ld1h;
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1h, ld1h, UXTW);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1h, ld1h, SXTW);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1h, ld1h, UXTW, true);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1h, ld1h, SXTW, true);
-
-  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
-  Ld1Macro ld1w = &MacroAssembler::Ld1w;
-  Ldff1Helper(config, data, kSRegSize, kSRegSize, ldff1w, ld1w, UXTW);
-  Ldff1Helper(config, data, kSRegSize, kSRegSize, ldff1w, ld1w, SXTW);
-  Ldff1Helper(config, data, kSRegSize, kSRegSize, ldff1w, ld1w, UXTW, true);
-  Ldff1Helper(config, data, kSRegSize, kSRegSize, ldff1w, ld1w, SXTW, true);
-
-  Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
-  Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1sb, ld1sb, UXTW);
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1sb, ld1sb, SXTW);
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1sb, ld1sb, UXTW, true);
-  Ldff1Helper(config, data, kBRegSize, kSRegSize, ldff1sb, ld1sb, SXTW, true);
-
-  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
-  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1sh, ld1sh, UXTW);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1sh, ld1sh, SXTW);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1sh, ld1sh, UXTW, true);
-  Ldff1Helper(config, data, kHRegSize, kSRegSize, ldff1sh, ld1sh, UXTW, true);
+  sve_ldff1_scalar_plus_vector_32_scaled_offset(config, data);
+  sve_ldff1_scalar_plus_vector_32_unscaled_offset(config, data);
+  sve_ldff1_scalar_plus_vector_32_unpacked_scaled_offset(config, data);
+  sve_ldff1_scalar_plus_vector_32_unpacked_unscaled_offset(config, data);
+  sve_ldff1_scalar_plus_vector_64_scaled_offset(config, data);
+  sve_ldff1_scalar_plus_vector_64_unscaled_offset(config, data);
 
   munmap(reinterpret_cast<void*>(data), page_size * 2);
 }

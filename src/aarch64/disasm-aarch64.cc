@@ -5215,56 +5215,41 @@ void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #1]
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #1]";
+  const char *form = (instr->ExtractBit(22) == 0)
+                         ? "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, uxtw #'u2423]"
+                         : "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, sxtw #'u2423]";
 
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
-    // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #3]
     case LD1D_z_p_bz_d_x32_scaled:
       mnemonic = "ld1d";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #3]";
       break;
-    // LD1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #1]
     case LD1H_z_p_bz_d_x32_scaled:
       mnemonic = "ld1h";
       break;
-    // LD1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #1]
     case LD1SH_z_p_bz_d_x32_scaled:
       mnemonic = "ld1sh";
       break;
-    // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #2]
     case LD1SW_z_p_bz_d_x32_scaled:
       mnemonic = "ld1sw";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #2]";
       break;
-    // LD1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #2]
     case LD1W_z_p_bz_d_x32_scaled:
       mnemonic = "ld1w";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #2]";
       break;
-    // LDFF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #3]
     case LDFF1D_z_p_bz_d_x32_scaled:
       mnemonic = "ldff1d";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #3]";
       break;
-    // LDFF1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #1]
     case LDFF1H_z_p_bz_d_x32_scaled:
       mnemonic = "ldff1h";
       break;
-    // LDFF1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #1]
     case LDFF1SH_z_p_bz_d_x32_scaled:
       mnemonic = "ldff1sh";
       break;
-    // LDFF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #2]
     case LDFF1SW_z_p_bz_d_x32_scaled:
       mnemonic = "ldff1sw";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #2]";
       break;
-    // LDFF1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod> #2]
     case LDFF1W_z_p_bz_d_x32_scaled:
       mnemonic = "ldff1w";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod> #2]";
       break;
     default:
       break;
@@ -5275,53 +5260,36 @@ void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #2]";
+  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, lsl #'u2423]";
 
   switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)) {
-    // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #3]
     case LD1D_z_p_bz_d_64_scaled:
       mnemonic = "ld1d";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #3]";
       break;
-    // LD1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #1]
     case LD1H_z_p_bz_d_64_scaled:
       mnemonic = "ld1h";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #1]";
       break;
-    // LD1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #1]
     case LD1SH_z_p_bz_d_64_scaled:
       mnemonic = "ld1sh";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #1]";
       break;
-    // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
     case LD1SW_z_p_bz_d_64_scaled:
       mnemonic = "ld1sw";
       break;
-    // LD1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
     case LD1W_z_p_bz_d_64_scaled:
       mnemonic = "ld1w";
       break;
-    // LDFF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #3]
     case LDFF1D_z_p_bz_d_64_scaled:
       mnemonic = "ldff1d";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #3]";
       break;
-    // LDFF1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #1]
     case LDFF1H_z_p_bz_d_64_scaled:
       mnemonic = "ldff1h";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #1]";
       break;
-    // LDFF1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #1]
     case LDFF1SH_z_p_bz_d_64_scaled:
       mnemonic = "ldff1sh";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, LSL #1]";
       break;
-    // LDFF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
     case LDFF1SW_z_p_bz_d_64_scaled:
       mnemonic = "ldff1sw";
       break;
-    // LDFF1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
     case LDFF1W_z_p_bz_d_64_scaled:
       mnemonic = "ldff1w";
       break;
@@ -5404,64 +5372,51 @@ void Disassembler::
     VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, <mod>]";
+  const char *form = (instr->ExtractBit(22) == 0)
+                         ? "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, uxtw]"
+                         : "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, sxtw]";
 
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
-    // LD1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1B_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1b";
       break;
-    // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1D_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1d";
       break;
-    // LD1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1H_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1h";
       break;
-    // LD1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1SB_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1sb";
       break;
-    // LD1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1SH_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1sh";
       break;
-    // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1SW_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1sw";
       break;
-    // LD1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LD1W_z_p_bz_d_x32_unscaled:
       mnemonic = "ld1w";
       break;
-    // LDFF1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1B_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1b";
       break;
-    // LDFF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1D_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1d";
       break;
-    // LDFF1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1H_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1h";
       break;
-    // LDFF1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1SB_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1sb";
       break;
-    // LDFF1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1SH_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1sh";
       break;
-    // LDFF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1SW_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1sw";
       break;
-    // LDFF1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, <mod>]
     case LDFF1W_z_p_bz_d_x32_unscaled:
       mnemonic = "ldff1w";
       break;

@@ -3924,9 +3924,17 @@ void Assembler::SVELd1GatherHelper(unsigned msize_in_bytes_log2,
     } else if (zt.IsLaneSizeD()) {
       if (mod == NO_SVE_OFFSET_MODIFIER) {
         op = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed;
+      } else if (mod == SVE_LSL) {
+        op = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed;
       } else {
-        // TODO: Implement 32-bit unpacked and 64-bit scaled offsets.
-        VIXL_UNIMPLEMENTED();
+        VIXL_ASSERT((mod == SVE_UXTW) || (mod == SVE_SXTW));
+        unsigned shift_amount = addr.GetShiftAmount();
+        if (shift_amount == 0) {
+          op = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed;
+        } else {
+          VIXL_ASSERT(shift_amount == msize_in_bytes_log2);
+          op = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed;
+        }
       }
     }
   } else {
@@ -3937,7 +3945,10 @@ void Assembler::SVELd1GatherHelper(unsigned msize_in_bytes_log2,
   if ((op == SVE32BitGatherLoad_VectorPlusImmFixed) ||
       (op == SVE64BitGatherLoad_VectorPlusImmFixed) ||
       (op == SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed) ||
+      (op == SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed) ||
       (op == SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed) ||
+      (op == SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed) ||
+      (op == SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed) ||
       (op == SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed) ||
       (op == SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed)) {
     Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr);

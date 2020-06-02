@@ -9768,25 +9768,18 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
     case LD1W_z_p_bz_d_x32_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDFF1D_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1W_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
+    case LDFF1D_z_p_bz_d_x32_scaled:
+    case LDFF1SH_z_p_bz_d_x32_scaled:
+    case LDFF1SW_z_p_bz_d_x32_scaled:
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
@@ -9808,25 +9801,18 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
     case LD1W_z_p_bz_d_64_scaled:
       VIXL_UNIMPLEMENTED();
       break;
-    case LDFF1D_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1W_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
+    case LDFF1D_z_p_bz_d_64_scaled:
+    case LDFF1SH_z_p_bz_d_64_scaled:
+    case LDFF1SW_z_p_bz_d_64_scaled:
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
@@ -9840,7 +9826,6 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     case LD1SH_z_p_bz_d_64_unscaled:
     case LD1SW_z_p_bz_d_64_unscaled:
     case LD1W_z_p_bz_d_64_unscaled:
-      break;
     case LDFF1B_z_p_bz_d_64_unscaled:
     case LDFF1D_z_p_bz_d_64_unscaled:
     case LDFF1H_z_p_bz_d_64_unscaled:
@@ -9848,7 +9833,6 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     case LDFF1SH_z_p_bz_d_64_unscaled:
     case LDFF1SW_z_p_bz_d_64_unscaled:
     case LDFF1W_z_p_bz_d_64_unscaled:
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -9885,30 +9869,19 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
       VIXL_UNIMPLEMENTED();
       break;
     case LDFF1B_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1D_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SB_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SH_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
-    case LDFF1SW_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1W_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
+    case LDFF1D_z_p_bz_d_x32_unscaled:
+    case LDFF1SB_z_p_bz_d_x32_unscaled:
+    case LDFF1SH_z_p_bz_d_x32_unscaled:
+    case LDFF1SW_z_p_bz_d_x32_unscaled:
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_VectorPlusImm(
