@@ -3573,6 +3573,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     bic(zd, zn, zm);
   }
+  void Bic(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    if (IsImmLogical(imm, zd.GetLaneSizeInBits())) {
+      bic(zd, zn, imm);
+    } else {
+      // TODO: Synthesise the immediate once 'Mov' is implemented.
+      VIXL_UNIMPLEMENTED();
+    }
+  }
   void Bics(const PRegisterWithLaneSize& pd,
             const PRegisterZ& pg,
             const PRegisterWithLaneSize& pn,
@@ -4041,6 +4051,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     dup(zd, zn, index);
   }
   void Dup(const ZRegister& zd, IntegerOperand imm);
+  void Eon(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    if (IsImmLogical(imm, zd.GetLaneSizeInBits())) {
+      eon(zd, zn, imm);
+    } else {
+      // TODO: Synthesise the immediate once 'Mov' is implemented.
+      VIXL_UNIMPLEMENTED();
+    }
+  }
   void Eor(const PRegisterWithLaneSize& pd,
            const PRegisterZ& pg,
            const PRegisterWithLaneSize& pn,
@@ -5325,6 +5345,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     orn(pd, pg, pn, pm);
+  }
+  void Orn(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    if (IsImmLogical(imm, zd.GetLaneSizeInBits())) {
+      orn(zd, zn, imm);
+    } else {
+      // TODO: Synthesise the immediate once 'Mov' is implemented.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Orns(const PRegisterWithLaneSize& pd,
             const PRegisterZ& pg,

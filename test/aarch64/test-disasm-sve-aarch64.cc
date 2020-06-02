@@ -169,6 +169,13 @@ TEST(sve_bitwise_imm) {
                  "eor z26.h, z26.h, #0x7ff8");
   COMPARE_PREFIX(orr(z13.VnB(), z13.VnB(), 0x78), "orr z13.b, z13.b, #0x78");
 
+  // Logical aliases.
+  COMPARE_PREFIX(bic(z21.VnD(), z21.VnD(), 0xffff00000000ffff),
+                 "and z21.d, z21.d, #0xffffffff0000");
+  COMPARE_PREFIX(eon(z31.VnS(), z31.VnS(), 0x1ffe),
+                 "eor z31.s, z31.s, #0xffffe001");
+  COMPARE_PREFIX(orn(z11.VnH(), z11.VnH(), 0x2), "orr z11.h, z11.h, #0xfffd");
+
   // Mov alias for dupm.
   COMPARE_PREFIX(mov(z0.VnH(), 0xf00f), "mov z0.h, #0xf00f");
   COMPARE_MACRO(Mov(z11.VnS(), 0xe0000003), "mov z11.s, #0xe0000003");

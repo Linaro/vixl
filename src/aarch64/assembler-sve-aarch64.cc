@@ -6485,6 +6485,18 @@ void Assembler::wrffr(const PRegisterWithLaneSize& pn) {
 
 // Aliases.
 
+void Assembler::bic(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
+  and_(zd, zn, ~imm);
+}
+
+void Assembler::eon(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
+  eor(zd, zn, ~imm);
+}
+
+void Assembler::orn(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
+  orr(zd, zn, ~imm);
+}
+
 void Assembler::mov(const PRegister& pd, const PRegister& pn) {
   // If the inputs carry a lane size, they must match.
   VIXL_ASSERT((!pd.HasLaneSize() && !pn.HasLaneSize()) ||

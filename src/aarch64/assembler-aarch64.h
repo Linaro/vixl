@@ -3729,6 +3729,9 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zn,
            const ZRegister& zm);
 
+  // Bitwise clear bits using immediate (unpredicated).
+  void bic(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
   // Bitwise clear vectors (unpredicated).
   void bic(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
@@ -4046,6 +4049,9 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Broadcast logical bitmask immediate to vector (unpredicated).
   void dupm(const ZRegister& zd, uint64_t imm);
+
+  // Bitwise exclusive OR with inverted immediate (unpredicated).
+  void eon(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
 
   // Bitwise exclusive OR predicates.
   void eor(const PRegister& pd,
@@ -5140,6 +5146,9 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegisterZ& pg,
             const PRegister& pn,
             const PRegister& pm);
+
+  // Bitwise OR with inverted immediate (unpredicated).
+  void orn(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
 
   // Bitwise OR predicate.
   void orr(const PRegister& pd,
