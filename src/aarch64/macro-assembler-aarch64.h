@@ -4444,6 +4444,30 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zn,
             const ZRegister& zm,
             int index);
+  void Fmov(const ZRegister& zd, double imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fdup(zd, imm);
+  }
+  void Fmov(const ZRegister& zd, float imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fdup(zd, imm);
+  }
+  void Fmov(const ZRegister& zd, Float16 imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fdup(zd, imm);
+  }
+  void Fmov(const ZRegister& zd, const PRegisterM& pg, double imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fcpy(zd, pg, imm);
+  }
+  void Fmov(const ZRegister& zd, const PRegisterM& pg, float imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fcpy(zd, pg, imm);
+  }
+  void Fmov(const ZRegister& zd, const PRegisterM& pg, Float16 imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    Fcpy(zd, pg, imm);
+  }
   void Fmsb(const ZRegister& zdn,
             const PRegisterM& pg,
             const ZRegister& zm,

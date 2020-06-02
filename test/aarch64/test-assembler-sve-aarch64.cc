@@ -6689,7 +6689,7 @@ TEST_SVE(sve_fcpy_imm) {
   __ Fcpy(z6.VnS(), pg.Merging(), 6.0);
   __ Fcpy(z7.VnD(), pg.Merging(), Float16(7.0));
   __ Fcpy(z8.VnD(), pg.Merging(), 8.0f);
-  __ Fcpy(z9.VnD(), pg.Merging(), -9.0);
+  __ Fmov(z9.VnD(), pg.Merging(), -9.0);
 
   // Unencodable immediates.
   __ Fcpy(z10.VnS(), pg.Merging(), 0.0);
@@ -6697,6 +6697,11 @@ TEST_SVE(sve_fcpy_imm) {
   __ Fcpy(z12.VnD(), pg.Merging(), RawbitsToDouble(0x7ff0000012340000));  // NaN
   __ Fcpy(z13.VnH(), pg.Merging(), kFP64NegativeInfinity);
 
+  // Fmov alias.
+  __ Fmov(z14.VnS(), pg.Merging(), 0.0);
+  __ Fmov(z15.VnH(), pg.Merging(), Float16(42.0));
+  __ Fmov(z16.VnD(), pg.Merging(), RawbitsToDouble(0x7ff0000012340000));  // NaN
+  __ Fmov(z17.VnH(), pg.Merging(), kFP64NegativeInfinity);
   END();
 
   if (CAN_RUN()) {
@@ -6781,6 +6786,10 @@ TEST_SVE(sve_fcpy_imm) {
         {0xe9eaebecfc00eff0, 0xf1f2fc00f5f6fc00, 0xfc00fbfcfdfefc00};
     ASSERT_EQUAL_SVE(expected_z13, z13.VnD());
 
+    ASSERT_EQUAL_SVE(z10.VnD(), z14.VnD());
+    ASSERT_EQUAL_SVE(z11.VnD(), z15.VnD());
+    ASSERT_EQUAL_SVE(z12.VnD(), z16.VnD());
+    ASSERT_EQUAL_SVE(z13.VnD(), z17.VnD());
     // clang-format on
   }
 }

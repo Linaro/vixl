@@ -6497,6 +6497,13 @@ void Assembler::orn(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
   orr(zd, zn, ~imm);
 }
 
+
+void Assembler::fmov(const ZRegister& zd, const PRegisterM& pg, double imm) {
+  fcpy(zd, pg, imm);
+}
+
+void Assembler::fmov(const ZRegister& zd, double imm) { fdup(zd, imm); }
+
 void Assembler::mov(const PRegister& pd, const PRegister& pn) {
   // If the inputs carry a lane size, they must match.
   VIXL_ASSERT((!pd.HasLaneSize() && !pn.HasLaneSize()) ||

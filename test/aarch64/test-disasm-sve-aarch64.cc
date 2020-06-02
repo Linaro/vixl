@@ -3021,11 +3021,11 @@ TEST(sve_cpy_fcpy_imm) {
                  "mov z25.d, p13/m, #-42, lsl #8");
 
   COMPARE_PREFIX(fcpy(z20.VnH(), p11.Merging(), 29.0),
-                 "fcpy z20.h, p11/m, #0x3d (29.0000)");
-  COMPARE_PREFIX(fcpy(z20.VnS(), p11.Merging(), -31.0),
-                 "fcpy z20.s, p11/m, #0xbf (-31.0000)");
+                 "fmov z20.h, p11/m, #0x3d (29.0000)");
+  COMPARE_PREFIX(fmov(z20.VnS(), p11.Merging(), -31.0),
+                 "fmov z20.s, p11/m, #0xbf (-31.0000)");
   COMPARE_PREFIX(fcpy(z20.VnD(), p11.Merging(), 1.0),
-                 "fcpy z20.d, p11/m, #0x70 (1.0000)");
+                 "fmov z20.d, p11/m, #0x70 (1.0000)");
 
   CLEANUP();
 }
@@ -3090,9 +3090,10 @@ TEST(sve_int_wide_imm_unpredicated) {
                  "uqsub z13.d, z13.d, #245, lsl #8");
 
   COMPARE_PREFIX(fdup(z26.VnH(), Float16(-5.0f)),
-                 "fdup z26.h, #0x94 (-5.0000)");
-  COMPARE_PREFIX(fdup(z27.VnS(), -13.0f), "fdup z27.s, #0xaa (-13.0000)");
-  COMPARE_PREFIX(fdup(z28.VnD(), 1.0f), "fdup z28.d, #0x70 (1.0000)");
+                 "fmov z26.h, #0x94 (-5.0000)");
+  COMPARE_PREFIX(fdup(z27.VnS(), -13.0f), "fmov z27.s, #0xaa (-13.0000)");
+  COMPARE_PREFIX(fdup(z28.VnD(), 1.0f), "fmov z28.d, #0x70 (1.0000)");
+  COMPARE_PREFIX(fmov(z28.VnD(), 1.0f), "fmov z28.d, #0x70 (1.0000)");
 
   COMPARE_PREFIX(mul(z15.VnB(), z15.VnB(), -128), "mul z15.b, z15.b, #-128");
   COMPARE_PREFIX(mul(z16.VnH(), z16.VnH(), -1), "mul z16.h, z16.h, #-1");
@@ -3236,10 +3237,22 @@ TEST(sve_int_wide_imm_unpredicated_macro) {
   COMPARE_MACRO(Dup(z9.VnD(), 0x80000000), "mov z9.d, #0x80000000");
   COMPARE_MACRO(Mov(z9.VnD(), 0x80000000), "mov z9.d, #0x80000000");
   COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "mov z26.h, #0");
+  COMPARE_MACRO(Fdup(z26.VnH(), Float16(0.0)), "mov z26.h, #0");
   COMPARE_MACRO(Fdup(z27.VnS(), 255.0f),
                 "mov w16, #0x437f0000\n"
                 "mov z27.s, w16");
   COMPARE_MACRO(Fdup(z28.VnD(), 12.3456),
+                "mov x16, #0xfec5\n"
+                "movk x16, #0x7bb2, lsl #16\n"
+                "movk x16, #0xb0f2, lsl #32\n"
+                "movk x16, #0x4028, lsl #48\n"
+                "mov z28.d, x16");
+  COMPARE_MACRO(Fmov(z26.VnH(), Float16(0.0)), "mov z26.h, #0");
+  COMPARE_MACRO(Fmov(z26.VnH(), Float16(0.0)), "mov z26.h, #0");
+  COMPARE_MACRO(Fmov(z27.VnS(), 255.0f),
+                "mov w16, #0x437f0000\n"
+                "mov z27.s, w16");
+  COMPARE_MACRO(Fmov(z28.VnD(), 12.3456),
                 "mov x16, #0xfec5\n"
                 "movk x16, #0x7bb2, lsl #16\n"
                 "movk x16, #0xb0f2, lsl #32\n"

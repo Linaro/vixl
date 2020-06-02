@@ -4350,6 +4350,12 @@ class Assembler : public vixl::internal::AssemblerBase {
             const ZRegister& zm,
             int index);
 
+  // Move 8-bit floating-point immediate to vector elements (unpredicated).
+  void fmov(const ZRegister& zd, double imm);
+
+  // Move 8-bit floating-point immediate to vector elements (predicated).
+  void fmov(const ZRegister& zd, const PRegisterM& pg, double imm);
+
   // Floating-point fused multiply-subtract vectors (predicated), writing
   // multiplicand [Zdn = Za + -Zdn * Zm].
   void fmsb(const ZRegister& zdn,

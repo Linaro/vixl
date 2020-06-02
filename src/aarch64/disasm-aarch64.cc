@@ -5990,7 +5990,8 @@ void Disassembler::VisitSVEBroadcastFPImm_Unpredicated(
 
   switch (instr->Mask(SVEBroadcastFPImm_UnpredicatedMask)) {
     case FDUP_z_i:
-      mnemonic = "fdup";
+      // The preferred disassembly for fdup is "fmov".
+      mnemonic = "fmov";
       form = "'Zd.'t, 'IFPSve";
       break;
     default:
@@ -6554,9 +6555,9 @@ void Disassembler::VisitSVECopyFPImm_Predicated(const Instruction *instr) {
   const char *form = "(SVECopyFPImm_Predicated)";
 
   switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {
-    // FCPY <Zd>.<T>, <Pg>/M, #<const>
     case FCPY_z_p_i:
-      mnemonic = "fcpy";
+      // The preferred disassembly for fcpy is "fmov".
+      mnemonic = "fmov";
       form = "'Zd.'t, 'Pm/m, 'IFPSve";
       break;
     default:
