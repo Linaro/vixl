@@ -207,6 +207,19 @@ def DefaultVariable(name, help, allowed_values):
   return (name, help, default_value, validator)
 
 
+def SortListVariable(iterator):
+  # Previously this code relied on the order of items in a list
+  # converted from a set. However in Python 3 the order changes each run.
+  # Here we do a custom partial sort to ensure that the build directory
+  # name is stable, the same across Python 2 and 3, and the same as the
+  # old code.
+  result = list(sorted(iterator))
+  result = sorted(result, key=lambda x: x == 't32', reverse=True)
+  result = sorted(result, key=lambda x: x == 'a32', reverse=True)
+  result = sorted(result, key=lambda x: x == 'a64', reverse=True)
+  return result
+
+
 def AliasedListVariable(name, help, default_value, allowed_values, aliasing):
   help = '%s (all|auto|comma-separated list) (any combination from [%s])' % \
          (help, ', '.join(allowed_values))
@@ -222,10 +235,10 @@ def AliasedListVariable(name, help, default_value, allowed_values, aliasing):
     if value == 'auto': return []
     if value == 'all':
       translated = [aliasing[v] for v in allowed_values]
-      return list(set(itertools.chain.from_iterable(translated)))
+      return SortListVariable(itertools.chain.from_iterable(translated))
     # The validator is run later hence the get.
     translated = [aliasing.get(v, v) for v in value.split(',')]
-    return list(set(itertools.chain.from_iterable(translated)))
+    return SortListVariable(itertools.chain.from_iterable(translated))
 
   return (name, help, default_value, validator, converter)
 
@@ -292,9 +305,9 @@ def target_handler(env):
   if Is32BitHost(env):
     # We use list(set(...)) to keep the same order as if it was specify as
     # an option.
-    env['target'] = list(set(['a32', 't32']))
+    env['target'] = SortListVariable(['a32', 't32'])
   else:
-    env['target'] = list(set(['a64', 'a32', 't32']))
+    env['target'] = SortListVariable(['a64', 'a32', 't32'])
 
 
 def target_validator(env):
