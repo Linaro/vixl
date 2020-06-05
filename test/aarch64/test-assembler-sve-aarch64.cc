@@ -8842,6 +8842,7 @@ typedef void (MacroAssembler::*Ld1Macro)(const ZRegister& zt,
                                          const PRegisterZ& pg,
                                          const SVEMemOperand& addr);
 
+template <typename T>
 static void Ldff1Helper(Test* config,
                         uintptr_t data,
                         unsigned msize_in_bits,
@@ -8849,7 +8850,7 @@ static void Ldff1Helper(Test* config,
                         CPURegister::RegisterType base_type,
                         Ld1Macro ldff1,
                         Ld1Macro ld1,
-                        SVEOffsetModifier mod,
+                        T mod,
                         bool scale = false) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
@@ -8901,30 +8902,33 @@ static void Ldff1Helper(Test* config,
 
   if (base_type == CPURegister::kRegister) {
     // Scalar-plus-scalar mode.
-    if ((mod == SVE_LSL) || (mod == NO_SVE_OFFSET_MODIFIER)) {
-      (masm.*ldff1)(z0.WithLaneSize(esize_in_bits),
-                    all.Zeroing(),
-                    SVEMemOperand(x20, x21, mod, msize_in_bytes_log2));
-    } else {
-      VIXL_UNIMPLEMENTED();
-    }
-
-  } else if (base_type == CPURegister::kZRegister) {
+    VIXL_ASSERT((std::is_same<T, vixl::aarch64::Shift>::value));
+    VIXL_ASSERT((static_cast<int>(mod) == LSL) ||
+                (static_cast<int>(mod) == NO_SHIFT));
+    (masm.*ldff1)(z0.WithLaneSize(esize_in_bits),
+                  all.Zeroing(),
+                  SVEMemOperand(x20, x21, mod, msize_in_bytes_log2));
+  } else {
+    VIXL_ASSERT(base_type == CPURegister::kZRegister);
     int offs_size;
     bool offs_is_unsigned;
-    if ((mod == SVE_SXTW) || (mod == SVE_UXTW)) {
+    if (std::is_same<T, vixl::aarch64::Extend>::value) {
       // Scalar-plus-vector mode with 32-bit optional unpacked or upacked, and
       // unscaled or scaled offset.
+      VIXL_ASSERT((static_cast<int>(mod) == SXTW) ||
+                  (static_cast<int>(mod) == UXTW));
       if (scale == true) {
         // Gather first-fault bytes load doesn't support scaled offset.
         VIXL_ASSERT(msize_in_bits != kBRegSize);
       }
-      offs_is_unsigned = (mod == SVE_UXTW) ? true : false;
+      offs_is_unsigned = (static_cast<int>(mod) == UXTW) ? true : false;
       offs_size = kSRegSize;
 
     } else {
       // Scalar-plus-vector mode with 64-bit unscaled or scaled offset.
-      VIXL_ASSERT((mod == SVE_LSL) || (mod == NO_SVE_OFFSET_MODIFIER));
+      VIXL_ASSERT((std::is_same<T, vixl::aarch64::Shift>::value));
+      VIXL_ASSERT((static_cast<int>(mod) == LSL) ||
+                  (static_cast<int>(mod) == NO_SHIFT));
       offs_is_unsigned = false;
       offs_size = kDRegSize;
     }
@@ -8970,8 +8974,6 @@ static void Ldff1Helper(Test* config,
      ldff1)(z0.WithLaneSize(esize_in_bits),
             all.Zeroing(),
             SVEMemOperand(x19, z17.WithLaneSize(esize_in_bits), mod, shift));
-  } else {
-    VIXL_UNIMPLEMENTED();
   }
 
   __ Rdffrs(p0.VnB(), all.Zeroing());
@@ -9046,7 +9048,7 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
     memcpy(reinterpret_cast<void*>(data + i), &byte, 1);
   }
 
-  auto ldff1_unscaled_offset_helper = std::bind(&Ldff1Helper,
+  auto ldff1_unscaled_offset_helper = std::bind(&Ldff1Helper<Shift>,
                                                 config,
                                                 data,
                                                 std::placeholders::_1,
@@ -9054,7 +9056,7 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
                                                 CPURegister::kRegister,
                                                 std::placeholders::_3,
                                                 std::placeholders::_4,
-                                                NO_SVE_OFFSET_MODIFIER,
+                                                NO_SHIFT,
                                                 false);
 
   Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
@@ -9070,7 +9072,7 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
   ldff1_unscaled_offset_helper(kBRegSize, kSRegSize, ldff1sb, ld1sb);
   ldff1_unscaled_offset_helper(kBRegSize, kDRegSize, ldff1sb, ld1sb);
 
-  auto ldff1_scaled_offset_helper = std::bind(&Ldff1Helper,
+  auto ldff1_scaled_offset_helper = std::bind(&Ldff1Helper<Shift>,
                                               config,
                                               data,
                                               std::placeholders::_1,
@@ -9078,7 +9080,7 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
                                               CPURegister::kRegister,
                                               std::placeholders::_3,
                                               std::placeholders::_4,
-                                              SVE_LSL,
+                                              LSL,
                                               true);
 
   Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
@@ -9110,7 +9112,7 @@ TEST_SVE(sve_ldff1_scalar_plus_scalar) {
 
 static void sve_ldff1_scalar_plus_vector_32_scaled_offset(Test* config,
                                                           uintptr_t data) {
-  auto ldff1_32_scaled_offset_helper = std::bind(&Ldff1Helper,
+  auto ldff1_32_scaled_offset_helper = std::bind(&Ldff1Helper<Extend>,
                                                  config,
                                                  data,
                                                  std::placeholders::_1,
@@ -9122,23 +9124,23 @@ static void sve_ldff1_scalar_plus_vector_32_scaled_offset(Test* config,
                                                  true);
   Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
   Ld1Macro ld1h = &MacroAssembler::Ld1h;
-  ldff1_32_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
-  ldff1_32_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1h, ld1h, UXTW);
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SXTW);
 
   Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
   Ld1Macro ld1w = &MacroAssembler::Ld1w;
-  ldff1_32_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
-  ldff1_32_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+  ldff1_32_scaled_offset_helper(kSRegSize, ldff1w, ld1w, UXTW);
+  ldff1_32_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SXTW);
 
   Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
   Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
-  ldff1_32_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
-  ldff1_32_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, UXTW);
+  ldff1_32_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SXTW);
 }
 
 static void sve_ldff1_scalar_plus_vector_32_unscaled_offset(Test* config,
                                                             uintptr_t data) {
-  auto ldff1_32_unscaled_offset_helper = std::bind(&Ldff1Helper,
+  auto ldff1_32_unscaled_offset_helper = std::bind(&Ldff1Helper<Extend>,
                                                    config,
                                                    data,
                                                    std::placeholders::_1,
@@ -9151,34 +9153,34 @@ static void sve_ldff1_scalar_plus_vector_32_unscaled_offset(Test* config,
 
   Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
   Ld1Macro ld1b = &MacroAssembler::Ld1b;
-  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_UXTW);
-  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_SXTW);
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, UXTW);
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SXTW);
 
   Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
   Ld1Macro ld1h = &MacroAssembler::Ld1h;
-  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
-  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, UXTW);
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SXTW);
 
   Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
   Ld1Macro ld1w = &MacroAssembler::Ld1w;
-  ldff1_32_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
-  ldff1_32_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+  ldff1_32_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, UXTW);
+  ldff1_32_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SXTW);
 
   Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
   Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
-  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_UXTW);
-  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_SXTW);
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, UXTW);
+  ldff1_32_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SXTW);
 
   Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
   Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
-  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
-  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, UXTW);
+  ldff1_32_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SXTW);
 }
 
 static void sve_ldff1_scalar_plus_vector_32_unpacked_scaled_offset(
     Test* config, uintptr_t data) {
   auto ldff1_32_unpacked_scaled_offset_helper =
-      std::bind(&Ldff1Helper,
+      std::bind(&Ldff1Helper<Extend>,
                 config,
                 data,
                 std::placeholders::_1,
@@ -9191,34 +9193,34 @@ static void sve_ldff1_scalar_plus_vector_32_unpacked_scaled_offset(
 
   Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
   Ld1Macro ld1h = &MacroAssembler::Ld1h;
-  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
-  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1h, ld1h, UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1h, ld1h, SXTW);
 
   Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
   Ld1Macro ld1w = &MacroAssembler::Ld1w;
-  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
-  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1w, ld1w, UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1w, ld1w, SXTW);
 
   Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
   Ld1Macro ld1d = &MacroAssembler::Ld1d;
-  ldff1_32_unpacked_scaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_UXTW);
-  ldff1_32_unpacked_scaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_SXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kDRegSize, ldff1d, ld1d, UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kDRegSize, ldff1d, ld1d, SXTW);
 
   Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
   Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
-  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
-  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SXTW);
 
   Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
   Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
-  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_UXTW);
-  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_SXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw, UXTW);
+  ldff1_32_unpacked_scaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SXTW);
 }
 
 static void sve_ldff1_scalar_plus_vector_32_unpacked_unscaled_offset(
     Test* config, uintptr_t data) {
   auto ldff1_32_unpacked_unscaled_offset_helper =
-      std::bind(&Ldff1Helper,
+      std::bind(&Ldff1Helper<Extend>,
                 config,
                 data,
                 std::placeholders::_1,
@@ -9231,43 +9233,43 @@ static void sve_ldff1_scalar_plus_vector_32_unpacked_unscaled_offset(
 
   Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
   Ld1Macro ld1b = &MacroAssembler::Ld1b;
-  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1b, ld1b, SXTW);
 
   Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
   Ld1Macro ld1h = &MacroAssembler::Ld1h;
-  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1h, ld1h, SXTW);
 
   Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
   Ld1Macro ld1w = &MacroAssembler::Ld1w;
-  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1w, ld1w, SXTW);
 
   Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
   Ld1Macro ld1d = &MacroAssembler::Ld1d;
-  ldff1_32_unpacked_unscaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kDRegSize, ldff1d, ld1d, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kDRegSize, ldff1d, ld1d, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kDRegSize, ldff1d, ld1d, SXTW);
 
   Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
   Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
-  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kBRegSize, ldff1sb, ld1sb, SXTW);
 
   Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
   Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
-  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kHRegSize, ldff1sh, ld1sh, SXTW);
 
   Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
   Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
-  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_UXTW);
-  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SVE_SXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw, UXTW);
+  ldff1_32_unpacked_unscaled_offset_helper(kSRegSize, ldff1sw, ld1sw, SXTW);
 }
 
 static void sve_ldff1_scalar_plus_vector_64_scaled_offset(Test* config,
                                                           uintptr_t data) {
-  auto ldff1_64_scaled_offset_helper = std::bind(&Ldff1Helper,
+  auto ldff1_64_scaled_offset_helper = std::bind(&Ldff1Helper<Shift>,
                                                  config,
                                                  data,
                                                  std::placeholders::_1,
@@ -9275,7 +9277,7 @@ static void sve_ldff1_scalar_plus_vector_64_scaled_offset(Test* config,
                                                  CPURegister::kZRegister,
                                                  std::placeholders::_2,
                                                  std::placeholders::_3,
-                                                 SVE_LSL,
+                                                 LSL,
                                                  true);
 
   Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
@@ -9301,7 +9303,7 @@ static void sve_ldff1_scalar_plus_vector_64_scaled_offset(Test* config,
 
 static void sve_ldff1_scalar_plus_vector_64_unscaled_offset(Test* config,
                                                             uintptr_t data) {
-  auto ldff1_64_unscaled_offset_helper = std::bind(&Ldff1Helper,
+  auto ldff1_64_unscaled_offset_helper = std::bind(&Ldff1Helper<Shift>,
                                                    config,
                                                    data,
                                                    std::placeholders::_1,
@@ -9309,7 +9311,7 @@ static void sve_ldff1_scalar_plus_vector_64_unscaled_offset(Test* config,
                                                    CPURegister::kZRegister,
                                                    std::placeholders::_2,
                                                    std::placeholders::_3,
-                                                   NO_SVE_OFFSET_MODIFIER,
+                                                   NO_SHIFT,
                                                    false);
 
   Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
@@ -9674,13 +9676,195 @@ TEST_SVE(sve_ldff1_regression_test) {
   }
 }
 
+// Emphasis on test if the modifiers are propagated and simulated correctly.
+TEST_SVE(sve_ld1_regression_test) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  size_t page_size = sysconf(_SC_PAGE_SIZE);
+  VIXL_ASSERT(page_size > static_cast<size_t>(config->sve_vl_in_bytes()));
+
+  uintptr_t data = reinterpret_cast<uintptr_t>(mmap(NULL,
+                                                    page_size * 2,
+                                                    PROT_READ | PROT_WRITE,
+                                                    MAP_PRIVATE | MAP_ANONYMOUS,
+                                                    -1,
+                                                    0));
+  uintptr_t middle = data + page_size;
+  // Fill the accessible page with arbitrary data.
+  for (size_t i = 0; i < page_size; i++) {
+    // Reverse bits so we get a mixture of positive and negative values.
+    uint8_t byte = ReverseBits(static_cast<uint8_t>(i));
+    memcpy(reinterpret_cast<void*>(middle + i), &byte, 1);
+    // Make one bit roughly different in every byte and copy the bytes in the
+    // reverse direction that convenient to verifying the loads in negative
+    // indexes.
+    byte += 1;
+    memcpy(reinterpret_cast<void*>(middle - i), &byte, 1);
+  }
+
+  PRegister all = p6;
+  __ Ptrue(all.VnB());
+
+  __ Mov(x0, middle);
+  __ Index(z31.VnS(), 0, 3);
+  __ Neg(z30.VnS(), z31.VnS());
+
+  // Scalar plus vector 32 unscaled offset
+  __ Ld1b(z1.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW));
+  __ Ld1h(z2.VnS(), all.Zeroing(), SVEMemOperand(x0, z30.VnS(), SXTW));
+  __ Ld1w(z3.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW));
+  __ Ld1sb(z4.VnS(), all.Zeroing(), SVEMemOperand(x0, z30.VnS(), SXTW));
+  __ Ld1sh(z5.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW));
+
+  // Scalar plus vector 32 scaled offset
+  __ Ld1h(z6.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW, 1));
+  __ Ld1w(z7.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW, 2));
+  __ Ld1sh(z8.VnS(), all.Zeroing(), SVEMemOperand(x0, z30.VnS(), SXTW, 1));
+
+  __ Index(z31.VnD(), 0, 3);
+  __ Neg(z30.VnD(), z31.VnD());
+
+  // Ensure only the low 32 bits are used for the testing with positive index
+  // values. It also test if the indexes are treated as positive in `uxtw` form.
+  __ Mov(x3, 0x8000000080000000);
+  __ Dup(z28.VnD(), x3);
+  __ Sub(x2, x0, 0x80000000);
+  __ Add(z29.VnD(), z31.VnD(), z28.VnD());
+
+  // Scalar plus vector 32 unpacked unscaled offset
+  __ Ld1b(z9.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+  __ Ld1h(z10.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW));
+  __ Ld1w(z11.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+  __ Ld1sb(z12.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+  __ Ld1sh(z13.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW));
+  __ Ld1sw(z14.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+
+  // Scalar plus vector 32 unpacked scaled offset
+  __ Ld1h(z15.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW, 1));
+  __ Ld1w(z16.VnD(), all.Zeroing(), SVEMemOperand(x0, z31.VnD(), UXTW, 2));
+  __ Ld1d(z17.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW, 3));
+  __ Ld1sh(z18.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW, 1));
+  __ Ld1sw(z19.VnD(), all.Zeroing(), SVEMemOperand(x0, z31.VnD(), UXTW, 2));
+
+  __ Sub(x0, x0, x3);
+  // Note that the positive indexes has been added by `0x8000000080000000`. The
+  // wrong address will be accessed if the address is treated as negative.
+
+  // Scalar plus vector 64 unscaled offset
+  __ Ld1b(z20.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ld1h(z21.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ld1w(z22.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ld1sh(z23.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ld1sw(z24.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+
+  // Scalar plus vector 64 scaled offset
+  __ Lsr(z29.VnD(), z28.VnD(), 1);  // Shift right to 0x4000000040000000
+  __ Add(z30.VnD(), z31.VnD(), z29.VnD());
+  __ Ld1h(z25.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 1));
+  __ Ld1sh(z26.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 1));
+
+  __ Lsr(z29.VnD(), z29.VnD(), 1);  // Shift right to 0x2000000020000000
+  __ Add(z30.VnD(), z31.VnD(), z29.VnD());
+  __ Ld1w(z27.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 2));
+  __ Ld1sw(z28.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 2));
+
+  __ Lsr(z29.VnD(), z29.VnD(), 1);  // Shift right to 0x1000000010000000
+  __ Add(z30.VnD(), z31.VnD(), z29.VnD());
+  __ Ld1d(z29.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 3));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // Scalar plus vector 32 unscaled offset
+    uint32_t expected_z1[] = {0x00000090, 0x00000060, 0x000000c0, 0x00000001};
+    uint32_t expected_z2[] = {0x00001191, 0x0000a161, 0x000041c1, 0x00008001};
+    uint32_t expected_z3[] = {0x30d05090, 0x9010e060, 0x60a020c0, 0xc0408001};
+    uint32_t expected_z4[] = {0xffffff91, 0x00000061, 0xffffffc1, 0x00000001};
+    uint32_t expected_z5[] = {0x00005090, 0xffffe060, 0x000020c0, 0xffff8001};
+
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnS());
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnS());
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnS());
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnS());
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnS());
+
+    // Scalar plus vector 32 scaled offset
+    uint32_t expected_z6[] = {0x0000c848, 0x0000b030, 0x0000e060, 0x00008001};
+    uint32_t expected_z7[] = {0xe464a424, 0xd8589818, 0xf070b030, 0xc0408001};
+    uint32_t expected_z8[] = {0xffff8949, 0xffffd131, 0xffffa161, 0xffff8001};
+
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnS());
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnS());
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnS());
+
+    // Scalar plus vector 32 unpacked unscaled offset
+    uint64_t expected_z9[] = {0x00000000000000c0, 0x0000000000000001};
+    uint64_t expected_z10[] = {0x00000000000041c1, 0x0000000000008001};
+    uint64_t expected_z11[] = {0x0000000060a020c0, 0x00000000c0408001};
+    uint64_t expected_z12[] = {0xffffffffffffffc0, 0x0000000000000001};
+    uint64_t expected_z13[] = {0x00000000000041c1, 0xffffffffffff8001};
+    uint64_t expected_z14[] = {0x0000000060a020c0, 0xffffffffc0408001};
+
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
+    ASSERT_EQUAL_SVE(expected_z12, z12.VnD());
+    ASSERT_EQUAL_SVE(expected_z13, z13.VnD());
+    ASSERT_EQUAL_SVE(expected_z14, z14.VnD());
+
+    // Scalar plus vector 32 unpacked scaled offset
+    uint64_t expected_z15[] = {0x000000000000a161, 0x0000000000008001};
+    uint64_t expected_z16[] = {0x00000000f070b030, 0x00000000c0408001};
+    uint64_t expected_z17[] = {0x8949c929a969e919, 0xe060a020c0408001};
+    uint64_t expected_z18[] = {0xffffffffffffa161, 0xffffffffffff8001};
+    uint64_t expected_z19[] = {0xfffffffff070b030, 0xffffffffc0408001};
+
+    ASSERT_EQUAL_SVE(expected_z15, z15.VnD());
+    ASSERT_EQUAL_SVE(expected_z16, z16.VnD());
+    ASSERT_EQUAL_SVE(expected_z17, z17.VnD());
+    ASSERT_EQUAL_SVE(expected_z18, z18.VnD());
+    ASSERT_EQUAL_SVE(expected_z19, z19.VnD());
+
+    // Scalar plus vector 64 unscaled offset
+    uint64_t expected_z20[] = {0x00000000000000c0, 0x0000000000000001};
+    uint64_t expected_z21[] = {0x00000000000020c0, 0x0000000000008001};
+    uint64_t expected_z22[] = {0x0000000060a020c0, 0x00000000c0408001};
+    uint64_t expected_z23[] = {0x00000000000020c0, 0xffffffffffff8001};
+    uint64_t expected_z24[] = {0x0000000060a020c0, 0xffffffffc0408001};
+
+    ASSERT_EQUAL_SVE(expected_z20, z20.VnD());
+    ASSERT_EQUAL_SVE(expected_z21, z21.VnD());
+    ASSERT_EQUAL_SVE(expected_z22, z22.VnD());
+    ASSERT_EQUAL_SVE(expected_z23, z23.VnD());
+    ASSERT_EQUAL_SVE(expected_z24, z24.VnD());
+
+    uint64_t expected_z25[] = {0x000000000000e060, 0x0000000000008001};
+    uint64_t expected_z26[] = {0xffffffffffffe060, 0xffffffffffff8001};
+    uint64_t expected_z27[] = {0x00000000f070b030, 0x00000000c0408001};
+    uint64_t expected_z28[] = {0xfffffffff070b030, 0xffffffffc0408001};
+    uint64_t expected_z29[] = {0xf878b838d8589818, 0xe060a020c0408001};
+
+    // Scalar plus vector 64 scaled offset
+    ASSERT_EQUAL_SVE(expected_z25, z25.VnD());
+    ASSERT_EQUAL_SVE(expected_z26, z26.VnD());
+    ASSERT_EQUAL_SVE(expected_z27, z27.VnD());
+    ASSERT_EQUAL_SVE(expected_z28, z28.VnD());
+    ASSERT_EQUAL_SVE(expected_z29, z29.VnD());
+  }
+}
+
 // Test gather loads by comparing them with the result of a set of equivalent
 // scalar loads.
+template <typename T>
 static void GatherLoadScalarPlusVectorHelper(Test* config,
                                              unsigned msize_in_bits,
                                              unsigned esize_in_bits,
                                              Ld1Macro ld1,
                                              Ld1Macro ldff1,
+                                             T mod,
                                              bool is_signed,
                                              bool is_scaled) {
   // SVE supports 32- and 64-bit addressing for gather loads.
@@ -9710,10 +9894,10 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
 
   ZRegister zn = z0.WithLaneSize(esize_in_bits);
   ZRegister zt_ref = z1.WithLaneSize(esize_in_bits);
-  ZRegister zt_ux = z2.WithLaneSize(esize_in_bits);
-  ZRegister zt_sx = z3.WithLaneSize(esize_in_bits);
-  ZRegister zt_ff_ux = z4.WithLaneSize(esize_in_bits);
-  ZRegister zt_ff_sx = z5.WithLaneSize(esize_in_bits);
+  ZRegister zt = z2.WithLaneSize(esize_in_bits);
+  ZRegister zt_ff = z3.WithLaneSize(esize_in_bits);
+  PRegisterWithLaneSize pg_ff = p1.WithLaneSize(esize_in_bits);
+  PRegisterWithLaneSize pg_diff = p2.WithLaneSize(esize_in_bits);
 
   int shift = 0;
   if (is_scaled) {
@@ -9755,42 +9939,29 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
     __ Lsr(zn, zn, shift);
   }
 
-  // TODO: Also test 64 bit scalar-plus-vector SVEMemOperands.
-  VIXL_ASSERT(esize_in_bits == kSRegSize);
-  (masm.*ld1)(zt_ux, pg, SVEMemOperand(x0, zn, UXTW, shift));
-  (masm.*ld1)(zt_sx, pg, SVEMemOperand(x0, zn, SXTW, shift));
+  (masm.*ld1)(zt, pg, SVEMemOperand(x0, zn, mod, shift));
 
   Register ffr_check_count = x17;
   __ Mov(ffr_check_count, 0);
 
-  // Compare these two vector register and place the different to
-  // `ffr_check_count`.
-  auto ffr_check = [&](auto zt_ref, auto zt) {
-    PRegisterWithLaneSize pg_ff = p1.WithLaneSize(esize_in_bits);
-    PRegisterWithLaneSize pg_diff = p2.WithLaneSize(esize_in_bits);
-
-    masm.Rdffrs(pg_ff.VnB(), all.Zeroing());
-    masm.Cmpeq(pg_diff, all.Zeroing(), zt_ref, zt);
-    masm.Eor(pg_diff.VnB(), all.Zeroing(), pg_diff.VnB(), pg_ff.VnB());
-    masm.Cntp(x12, all, pg_diff);
-    masm.Add(ffr_check_count, ffr_check_count, x12);
-  };
-
   // Test the data correctness in which the data gather load from different
   // addresses. The first-fault behavior test is emphasized in `Ldff1Helper`.
   __ Setffr();
-  (masm.*ldff1)(zt_ff_ux, pg, SVEMemOperand(x0, zn, UXTW, shift));
-  ffr_check(zt_ref, zt_ff_ux);
-  (masm.*ldff1)(zt_ff_sx, pg, SVEMemOperand(x0, zn, SXTW, shift));
-  ffr_check(zt_ref, zt_ff_sx);
+  (masm.*ldff1)(zt_ff, pg, SVEMemOperand(x0, zn, mod, shift));
+
+  // Compare these two vector register and place the different to
+  // `ffr_check_count`.
+  __ Rdffrs(pg_ff.VnB(), all.Zeroing());
+  __ Cmpeq(pg_diff, all.Zeroing(), zt_ref, zt_ff);
+  __ Eor(pg_diff.VnB(), all.Zeroing(), pg_diff.VnB(), pg_ff.VnB());
+  __ Incp(ffr_check_count, pg_diff);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    ASSERT_EQUAL_SVE(zt_ref, zt_ux);
-    ASSERT_EQUAL_SVE(zt_ref, zt_sx);
+    ASSERT_EQUAL_SVE(zt_ref, zt);
     ASSERT_EQUAL_64(0, ffr_check_count);
   }
 
@@ -9987,91 +10158,220 @@ TEST_SVE(sve_ld1sh_32bit_vector_plus_immediate) {
                                         true);
 }
 
-TEST_SVE(sve_ld1b_32bit_scalar_plus_vector) {
-  bool is_signed = false;
-  bool is_scaled = false;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kBRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1b,
-                                   &MacroAssembler::Ldff1b,
-                                   is_signed,
-                                   is_scaled);
+TEST_SVE(sve_ld1_scalar_plus_vector_32_scaled_offset) {
+  auto ld1_32_scaled_offset_helper =
+      std::bind(&GatherLoadScalarPlusVectorHelper<Extend>,
+                config,
+                std::placeholders::_1,
+                kSRegSize,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                std::placeholders::_4,
+                std::placeholders::_5,
+                true);
+
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  ld1_32_scaled_offset_helper(kHRegSize, ld1h, ldff1h, UXTW, false);
+  ld1_32_scaled_offset_helper(kHRegSize, ld1h, ldff1h, SXTW, false);
+
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  ld1_32_scaled_offset_helper(kSRegSize, ld1w, ldff1w, UXTW, false);
+  ld1_32_scaled_offset_helper(kSRegSize, ld1w, ldff1w, SXTW, false);
+
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  ld1_32_scaled_offset_helper(kHRegSize, ld1sh, ldff1sh, UXTW, true);
+  ld1_32_scaled_offset_helper(kHRegSize, ld1sh, ldff1sh, SXTW, true);
 }
 
-TEST_SVE(sve_ld1h_32bit_scalar_plus_vector) {
-  bool is_signed = false;
-  bool is_scaled = false;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kHRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1h,
-                                   &MacroAssembler::Ldff1h,
-                                   is_signed,
-                                   is_scaled);
+TEST_SVE(sve_ld1_scalar_plus_vector_32_unscaled_offset) {
+  auto ld1_32_unscaled_offset_helper =
+      std::bind(&GatherLoadScalarPlusVectorHelper<Extend>,
+                config,
+                std::placeholders::_1,
+                kSRegSize,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                std::placeholders::_4,
+                std::placeholders::_5,
+                false);
 
-  is_scaled = true;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kHRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1h,
-                                   &MacroAssembler::Ldff1h,
-                                   is_signed,
-                                   is_scaled);
+  Ld1Macro ld1b = &MacroAssembler::Ld1b;
+  Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
+  ld1_32_unscaled_offset_helper(kBRegSize, ld1b, ldff1b, UXTW, false);
+  ld1_32_unscaled_offset_helper(kBRegSize, ld1b, ldff1b, SXTW, false);
+
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  ld1_32_unscaled_offset_helper(kHRegSize, ld1h, ldff1h, UXTW, false);
+  ld1_32_unscaled_offset_helper(kHRegSize, ld1h, ldff1h, SXTW, false);
+
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  ld1_32_unscaled_offset_helper(kSRegSize, ld1w, ldff1w, UXTW, false);
+  ld1_32_unscaled_offset_helper(kSRegSize, ld1w, ldff1w, SXTW, false);
+
+  Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
+  Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
+  ld1_32_unscaled_offset_helper(kBRegSize, ld1sb, ldff1sb, UXTW, true);
+  ld1_32_unscaled_offset_helper(kBRegSize, ld1sb, ldff1sb, SXTW, true);
+
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  ld1_32_unscaled_offset_helper(kHRegSize, ld1sh, ldff1sh, UXTW, true);
+  ld1_32_unscaled_offset_helper(kHRegSize, ld1sh, ldff1sh, SXTW, true);
 }
 
-TEST_SVE(sve_ld1w_32bit_scalar_plus_vector) {
-  bool is_signed = false;
-  bool is_scaled = false;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kSRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1w,
-                                   &MacroAssembler::Ldff1w,
-                                   is_signed,
-                                   is_scaled);
+TEST_SVE(sve_ld1_scalar_plus_vector_32_unpacked_scaled_offset) {
+  auto ld1_32_unpacked_scaled_offset_helper =
+      std::bind(&GatherLoadScalarPlusVectorHelper<Extend>,
+                config,
+                std::placeholders::_1,
+                kDRegSize,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                std::placeholders::_4,
+                std::placeholders::_5,
+                true);
 
-  is_scaled = true;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kSRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1w,
-                                   &MacroAssembler::Ldff1w,
-                                   is_signed,
-                                   is_scaled);
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  ld1_32_unpacked_scaled_offset_helper(kHRegSize, ld1h, ldff1h, UXTW, false);
+  ld1_32_unpacked_scaled_offset_helper(kHRegSize, ld1h, ldff1h, SXTW, false);
+
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  ld1_32_unpacked_scaled_offset_helper(kSRegSize, ld1w, ldff1w, UXTW, false);
+  ld1_32_unpacked_scaled_offset_helper(kSRegSize, ld1w, ldff1w, SXTW, false);
+
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  ld1_32_unpacked_scaled_offset_helper(kDRegSize, ld1d, ldff1d, UXTW, false);
+  ld1_32_unpacked_scaled_offset_helper(kDRegSize, ld1d, ldff1d, SXTW, false);
+
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  ld1_32_unpacked_scaled_offset_helper(kHRegSize, ld1sh, ldff1sh, UXTW, true);
+  ld1_32_unpacked_scaled_offset_helper(kHRegSize, ld1sh, ldff1sh, SXTW, true);
+
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  ld1_32_unpacked_scaled_offset_helper(kSRegSize, ld1sw, ldff1sw, UXTW, true);
+  ld1_32_unpacked_scaled_offset_helper(kSRegSize, ld1sw, ldff1sw, SXTW, true);
 }
 
-TEST_SVE(sve_ld1sb_32bit_scalar_plus_vector) {
-  bool is_signed = true;
-  bool is_scaled = false;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kBRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1sb,
-                                   &MacroAssembler::Ldff1sb,
-                                   is_signed,
-                                   is_scaled);
+TEST_SVE(sve_ld1_scalar_plus_vector_32_unpacked_unscaled_offset) {
+  auto ld1_32_unpacked_unscaled_offset_helper =
+      std::bind(&GatherLoadScalarPlusVectorHelper<Extend>,
+                config,
+                std::placeholders::_1,
+                kDRegSize,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                std::placeholders::_4,
+                std::placeholders::_5,
+                false);
+
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  ld1_32_unpacked_unscaled_offset_helper(kHRegSize, ld1h, ldff1h, UXTW, false);
+  ld1_32_unpacked_unscaled_offset_helper(kHRegSize, ld1h, ldff1h, SXTW, false);
+
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  ld1_32_unpacked_unscaled_offset_helper(kSRegSize, ld1w, ldff1w, UXTW, false);
+  ld1_32_unpacked_unscaled_offset_helper(kSRegSize, ld1w, ldff1w, SXTW, false);
+
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  ld1_32_unpacked_unscaled_offset_helper(kDRegSize, ld1d, ldff1d, UXTW, false);
+  ld1_32_unpacked_unscaled_offset_helper(kDRegSize, ld1d, ldff1d, SXTW, false);
+
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  ld1_32_unpacked_unscaled_offset_helper(kHRegSize, ld1sh, ldff1sh, UXTW, true);
+  ld1_32_unpacked_unscaled_offset_helper(kHRegSize, ld1sh, ldff1sh, SXTW, true);
+
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  ld1_32_unpacked_unscaled_offset_helper(kSRegSize, ld1sw, ldff1sw, UXTW, true);
+  ld1_32_unpacked_unscaled_offset_helper(kSRegSize, ld1sw, ldff1sw, SXTW, true);
 }
 
-TEST_SVE(sve_ld1sh_32bit_scalar_plus_vector) {
-  bool is_signed = true;
-  bool is_scaled = false;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kHRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1sh,
-                                   &MacroAssembler::Ldff1sh,
-                                   is_signed,
-                                   is_scaled);
+TEST_SVE(sve_ld1_scalar_plus_vector_64_scaled_offset) {
+  auto ld1_64_scaled_offset_helper =
+      std::bind(&GatherLoadScalarPlusVectorHelper<Shift>,
+                config,
+                std::placeholders::_1,
+                kDRegSize,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                LSL,
+                std::placeholders::_4,
+                true);
 
-  is_scaled = true;
-  GatherLoadScalarPlusVectorHelper(config,
-                                   kHRegSize,
-                                   kSRegSize,
-                                   &MacroAssembler::Ld1sh,
-                                   &MacroAssembler::Ldff1sh,
-                                   is_signed,
-                                   is_scaled);
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  ld1_64_scaled_offset_helper(kHRegSize, ld1h, ldff1h, false);
+
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  ld1_64_scaled_offset_helper(kSRegSize, ld1w, ldff1w, false);
+
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  ld1_64_scaled_offset_helper(kDRegSize, ld1d, ldff1d, false);
+
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  ld1_64_scaled_offset_helper(kHRegSize, ld1sh, ldff1sh, true);
+
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  ld1_64_scaled_offset_helper(kSRegSize, ld1sw, ldff1sw, true);
+}
+
+TEST_SVE(sve_ld1_scalar_plus_vector_64_unscaled_offset) {
+  auto ld1_64_unscaled_offset_helper =
+      std::bind(&GatherLoadScalarPlusVectorHelper<Shift>,
+                config,
+                std::placeholders::_1,
+                kDRegSize,
+                std::placeholders::_2,
+                std::placeholders::_3,
+                NO_SHIFT,
+                std::placeholders::_4,
+                false);
+
+  Ld1Macro ld1b = &MacroAssembler::Ld1b;
+  Ld1Macro ldff1b = &MacroAssembler::Ldff1b;
+  ld1_64_unscaled_offset_helper(kBRegSize, ld1b, ldff1b, false);
+
+  Ld1Macro ld1h = &MacroAssembler::Ld1h;
+  Ld1Macro ldff1h = &MacroAssembler::Ldff1h;
+  ld1_64_unscaled_offset_helper(kHRegSize, ld1h, ldff1h, false);
+
+  Ld1Macro ld1w = &MacroAssembler::Ld1w;
+  Ld1Macro ldff1w = &MacroAssembler::Ldff1w;
+  ld1_64_unscaled_offset_helper(kSRegSize, ld1w, ldff1w, false);
+
+  Ld1Macro ld1d = &MacroAssembler::Ld1d;
+  Ld1Macro ldff1d = &MacroAssembler::Ldff1d;
+  ld1_64_unscaled_offset_helper(kDRegSize, ld1d, ldff1d, false);
+
+  Ld1Macro ld1sb = &MacroAssembler::Ld1sb;
+  Ld1Macro ldff1sb = &MacroAssembler::Ldff1sb;
+  ld1_64_unscaled_offset_helper(kBRegSize, ld1sb, ldff1sb, true);
+
+  Ld1Macro ld1sh = &MacroAssembler::Ld1sh;
+  Ld1Macro ldff1sh = &MacroAssembler::Ldff1sh;
+  ld1_64_unscaled_offset_helper(kHRegSize, ld1sh, ldff1sh, true);
+
+  Ld1Macro ld1sw = &MacroAssembler::Ld1sw;
+  Ld1Macro ldff1sw = &MacroAssembler::Ldff1sw;
+  ld1_64_unscaled_offset_helper(kSRegSize, ld1sw, ldff1sw, true);
 }
 
 TEST_SVE(sve_ldnt1) {

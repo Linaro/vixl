@@ -3948,19 +3948,26 @@ void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
           break;
       }
     } else if (zt.IsLaneSizeD()) {
-      if (mod == NO_SVE_OFFSET_MODIFIER) {
-        op = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed;
-      } else if (mod == SVE_LSL) {
-        op = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed;
-      } else {
-        VIXL_ASSERT((mod == SVE_UXTW) || (mod == SVE_SXTW));
-        unsigned shift_amount = addr.GetShiftAmount();
-        if (shift_amount == 0) {
-          op = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed;
-        } else {
-          VIXL_ASSERT(shift_amount == msize_in_bytes_log2);
-          op = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed;
+      switch (mod) {
+        case NO_SVE_OFFSET_MODIFIER:
+          op = SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed;
+          break;
+        case SVE_LSL:
+          op = SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed;
+          break;
+        case SVE_UXTW:
+        case SVE_SXTW: {
+          unsigned shift_amount = addr.GetShiftAmount();
+          if (shift_amount == 0) {
+            op = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed;
+          } else {
+            VIXL_ASSERT(shift_amount == msize_in_bytes_log2);
+            op = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed;
+          }
+          break;
         }
+        default:
+          VIXL_UNIMPLEMENTED();
       }
     }
   } else {
@@ -4196,136 +4203,6 @@ void Assembler::ldr(const CPURegister& rt, const SVEMemOperand& addr) {
 }
 
 // SVEMem64BitGather.
-
-// This prototype maps to 3 instruction encodings:
-//  LD1B_z_p_bz_d_64_unscaled
-//  LD1B_z_p_bz_d_x32_unscaled
-void Assembler::ld1b(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // LD1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
-  //  1100 0100 010. .... 110. .... .... ....
-  //  msz<24:23> = 00 | Zm<20:16> | U<14> = 1 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1B_z_p_bz_d_64_unscaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 4 instruction encodings:
-//  LD1D_z_p_bz_d_64_scaled
-//  LD1D_z_p_bz_d_64_unscaled
-//  LD1D_z_p_bz_d_x32_scaled
-//  LD1D_z_p_bz_d_x32_unscaled
-void Assembler::ld1d(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #3]
-  //  1100 0101 111. .... 110. .... .... ....
-  //  msz<24:23> = 11 | Zm<20:16> | U<14> = 1 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1D_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 6 instruction encodings:
-//  LD1H_z_p_bz_d_64_scaled
-//  LD1H_z_p_bz_d_64_unscaled
-//  LD1H_z_p_bz_d_x32_scaled
-//  LD1H_z_p_bz_d_x32_unscaled
-void Assembler::ld1h(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // LD1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #1]
-  //  1100 0100 111. .... 110. .... .... ....
-  //  msz<24:23> = 01 | Zm<20:16> | U<14> = 1 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1H_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 3 instruction encodings:
-//  LD1SB_z_p_bz_d_64_unscaled
-//  LD1SB_z_p_bz_d_x32_unscaled
-void Assembler::ld1sb(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      const ZRegister& zm) {
-  // LD1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
-  //  1100 0100 010. .... 100. .... .... ....
-  //  msz<24:23> = 00 | Zm<20:16> | U<14> = 0 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SB_z_p_bz_d_64_unscaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) |
-       Rm(zm));
-}
-
-// This prototype maps to 6 instruction encodings:
-//  LD1SH_z_p_bz_d_64_scaled
-//  LD1SH_z_p_bz_d_64_unscaled
-//  LD1SH_z_p_bz_d_x32_scaled
-//  LD1SH_z_p_bz_d_x32_unscaled
-void Assembler::ld1sh(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      const ZRegister& zm) {
-  // LD1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #1]
-  //  1100 0100 111. .... 100. .... .... ....
-  //  msz<24:23> = 01 | Zm<20:16> | U<14> = 0 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SH_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 4 instruction encodings:
-//  LD1SW_z_p_bz_d_64_scaled
-//  LD1SW_z_p_bz_d_64_unscaled
-//  LD1SW_z_p_bz_d_x32_scaled
-//  LD1SW_z_p_bz_d_x32_unscaled
-void Assembler::ld1sw(const ZRegister& zt,
-                      const PRegisterZ& pg,
-                      const Register& xn,
-                      const ZRegister& zm) {
-  // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
-  //  1100 0101 011. .... 100. .... .... ....
-  //  msz<24:23> = 10 | Zm<20:16> | U<14> = 0 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1SW_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 6 instruction encodings:
-//  LD1W_z_p_bz_d_64_scaled
-//  LD1W_z_p_bz_d_64_unscaled
-//  LD1W_z_p_bz_d_x32_scaled
-//  LD1W_z_p_bz_d_x32_unscaled
-void Assembler::ld1w(const ZRegister& zt,
-                     const PRegisterZ& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // LD1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D, LSL #2]
-  //  1100 0101 011. .... 110. .... .... ....
-  //  msz<24:23> = 10 | Zm<20:16> | U<14> = 1 | ff<13> = 0 | Pg<12:10> | Rn<9:5>
-  //  | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(LD1W_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
 
 // This prototype maps to 3 instruction encodings:
 //  LDFF1B_z_p_bz_d_64_unscaled

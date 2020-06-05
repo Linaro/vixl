@@ -5218,9 +5218,9 @@ void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = (instr->ExtractBit(22) == 0)
-                         ? "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, uxtw #'u2423]"
-                         : "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, sxtw #'u2423]";
+  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, ";
+  const char *suffix =
+      (instr->ExtractBit(22) == 0) ? "uxtw #'u2423]" : "sxtw #'u2423]";
 
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
@@ -5255,9 +5255,11 @@ void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
       mnemonic = "ldff1w";
       break;
     default:
+      form = "(SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)";
+      suffix = NULL;
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
@@ -5297,6 +5299,7 @@ void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
       mnemonic = "ldff1w";
       break;
     default:
+      form = "(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)";
       break;
   }
   Format(instr, mnemonic, form);
@@ -5375,9 +5378,8 @@ void Disassembler::
     VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = (instr->ExtractBit(22) == 0)
-                         ? "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, uxtw]"
-                         : "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, sxtw]";
+  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, ";
+  const char *suffix = (instr->ExtractBit(22) == 0) ? "uxtw]" : "sxtw]";
 
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
@@ -5424,9 +5426,11 @@ void Disassembler::
       mnemonic = "ldff1w";
       break;
     default:
+      form = "(SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)";
+      suffix = NULL;
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE64BitGatherLoad_VectorPlusImm(

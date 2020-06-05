@@ -663,6 +663,7 @@ class SVEMemOperand {
   // Allow standard `Shift` and `Extend` arguments to be used.
   SVEOffsetModifier GetSVEOffsetModifierFor(Shift shift) {
     if (shift == LSL) return SVE_LSL;
+    if (shift == NO_SHIFT) return NO_SVE_OFFSET_MODIFIER;
     // SVE does not accept any other shift.
     VIXL_UNIMPLEMENTED();
     return NO_SVE_OFFSET_MODIFIER;

@@ -9779,24 +9779,13 @@ void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
     case LD1D_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1H_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SW_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_x32_scaled:
     case LDFF1W_z_p_bz_d_x32_scaled:
     case LDFF1D_z_p_bz_d_x32_scaled:
@@ -9814,23 +9803,12 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)) {
     case LD1D_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1H_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SW_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_bz_d_64_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1H_z_p_bz_d_64_scaled:
     case LDFF1W_z_p_bz_d_64_scaled:
     case LDFF1D_z_p_bz_d_64_scaled:
@@ -9847,7 +9825,6 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask)) {
     case LD1B_z_p_bz_d_64_unscaled:
     case LD1D_z_p_bz_d_64_unscaled:
@@ -9876,30 +9853,15 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
     case LD1B_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1D_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1H_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SB_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SH_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1SW_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LD1W_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case LDFF1B_z_p_bz_d_x32_unscaled:
     case LDFF1H_z_p_bz_d_x32_unscaled:
     case LDFF1W_z_p_bz_d_x32_unscaled:

@@ -4586,30 +4586,6 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // TODO: Merge other loads into the SVEMemOperand versions.
 
-  // Gather load unsigned bytes to vector (vector index).
-  void ld1b(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Gather load doublewords to vector (vector index).
-  void ld1d(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Gather load unsigned halfwords to vector (vector index).
-  void ld1h(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Gather load unsigned words to vector (vector index).
-  void ld1w(const ZRegister& zt,
-            const PRegisterZ& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
   // Load and broadcast unsigned byte to vector.
   void ld1rb(const ZRegister& zt,
              const PRegisterZ& pg,
@@ -4681,24 +4657,6 @@ class Assembler : public vixl::internal::AssemblerBase {
              const SVEMemOperand& addr);
 
   // TODO: Merge other loads into the SVEMemOperand versions.
-
-  // Gather load signed bytes to vector (vector index).
-  void ld1sb(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             const ZRegister& zm);
-
-  // Gather load signed halfwords to vector (vector index).
-  void ld1sh(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             const ZRegister& zm);
-
-  // Gather load signed words to vector (vector index).
-  void ld1sw(const ZRegister& zt,
-             const PRegisterZ& pg,
-             const Register& xn,
-             const ZRegister& zm);
 
   // Contiguous load two-byte structures to two vectors.
   void ld2b(const ZRegister& zt1,
