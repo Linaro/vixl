@@ -3771,7 +3771,7 @@ class Assembler : public vixl::internal::AssemblerBase {
     if (IsUint12(imm)) {  // No shift required.
       imm <<= ImmAddSub_offset;
     } else {
-      imm = ((imm >> 12) << ImmAddSub_offset) | (1 << ShiftAddSub_offset);
+      imm = ((imm >> 12) << ImmAddSub_offset) | (1 << ImmAddSubShift_offset);
     }
     return imm;
   }

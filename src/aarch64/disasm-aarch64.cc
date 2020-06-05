@@ -5391,8 +5391,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       return 6;
     }
     case 'A': {  // IAddSub.
-      VIXL_ASSERT(instr->GetShiftAddSub() <= 1);
-      int64_t imm = instr->GetImmAddSub() << (12 * instr->GetShiftAddSub());
+      int64_t imm = instr->GetImmAddSub() << (12 * instr->GetImmAddSubShift());
       AppendToOutput("#0x%" PRIx64 " (%" PRId64 ")", imm, imm);
       return 7;
     }

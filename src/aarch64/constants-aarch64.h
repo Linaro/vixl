@@ -74,7 +74,7 @@ V_(ImmDPShift, 15, 10, ExtractBits)                                          \
                                                                              \
 /* Add/subtract immediate */                                                 \
 V_(ImmAddSub, 21, 10, ExtractBits)                                           \
-V_(ShiftAddSub, 23, 22, ExtractBits)                                         \
+V_(ImmAddSubShift, 22, 22, ExtractBits)                                      \
                                                                              \
 /* Add/substract extend */                                                   \
 V_(ImmExtendShift, 12, 10, ExtractBits)                                      \
@@ -531,8 +531,8 @@ enum AddSubOp {
 
 enum AddSubImmediateOp {
   AddSubImmediateFixed = 0x11000000,
-  AddSubImmediateFMask = 0x1F000000,
-  AddSubImmediateMask  = 0xFF000000,
+  AddSubImmediateFMask = 0x1F800000,
+  AddSubImmediateMask  = 0xFF800000,
   #define ADD_SUB_IMMEDIATE(A)           \
   A##_w_imm = AddSubImmediateFixed | A,  \
   A##_x_imm = AddSubImmediateFixed | A | SixtyFourBits
