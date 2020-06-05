@@ -6368,6 +6368,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   // Morello.
 
+  void Add(CRegister cd, CRegister cn, const Operand& operand);
+
   // Switch between A64 and C64. This does _not_ change the MacroAssembler's
   // target ISA.
   // TODO: Should it?
@@ -6376,6 +6378,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     bx(kInstructionSize);
   }
+
+  void Sub(CRegister cd, CRegister cn, const Operand& operand);
 
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {

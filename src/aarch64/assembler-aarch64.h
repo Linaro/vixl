@@ -5893,10 +5893,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Morello instructions.
 
   // ADD <Cd|CSP>, <Cn|CSP>, <Xm>, <extend>{ #<amount>}
+  // This can also assemble the immediate form (with implicit shift).
   void add(CRegister cd, CRegister cn, const Operand& operand);
 
   // ADD <Cd|CSP>, <Cn|CSP>, #<imm>{, LSL <amount>}
-  void add(CRegister cd, CRegister cn, int imm);
+  // ... with explicit shift.
+  void add(CRegister cd, CRegister cn, uint64_t imm12, int shift);
+
+  // ADD <Cd|CSP>, <Cn|CSP>, #<imm>{, LSL <amount>}
+  // ... with implicit shift.
+  void add(CRegister cd, CRegister cn, uint64_t imm);
 
   // ADRDP <Cd>, <label>
   void adrdp(CRegister cd, Label label);
@@ -6412,7 +6418,12 @@ class Assembler : public vixl::internal::AssemblerBase {
   void stxr(Register ws, CRegister ct, const MemOperand& addr);
 
   // SUB <Cd|CSP>, <Cn|CSP>, #<imm>{, LSL <amount>}
-  void sub(CRegister cd, CRegister cn, int imm);
+  // ... with explicit shift.
+  void sub(CRegister cd, CRegister cn, uint64_t imm12, int shift);
+
+  // SUB <Cd|CSP>, <Cn|CSP>, #<imm>{, LSL <amount>}
+  // ... with implicit shift.
+  void sub(CRegister cd, CRegister cn, uint64_t imm);
 
   // SUBS <Xd>, <Cn>, <Cm>
   void subs(Register xd, CRegister cn, CRegister cm);
@@ -6494,9 +6505,19 @@ class Assembler : public vixl::internal::AssemblerBase {
     return (rd.GetCode() & kRegCodeMask) << Rd_offset;
   }
 
+  static Instr RdSP(CRegister cd) {
+    VIXL_ASSERT(!cd.IsZero());
+    return (cd.GetCode() & kRegCodeMask) << Rd_offset;
+  }
+
   static Instr RnSP(Register rn) {
     VIXL_ASSERT(!rn.IsZero());
     return (rn.GetCode() & kRegCodeMask) << Rn_offset;
+  }
+
+  static Instr RnSP(CRegister cn) {
+    VIXL_ASSERT(!cn.IsZero());
+    return (cn.GetCode() & kRegCodeMask) << Rn_offset;
   }
 
   static Instr RmSP(Register rm) {
@@ -6609,14 +6630,25 @@ class Assembler : public vixl::internal::AssemblerBase {
     return rd.Is64Bits() ? SixtyFourBits : ThirtyTwoBits;
   }
 
-  static Instr ImmAddSub(int imm) {
-    VIXL_ASSERT(IsImmAddSub(imm));
-    if (IsUint12(imm)) {  // No shift required.
-      imm <<= ImmAddSub_offset;
-    } else {
-      imm = ((imm >> 12) << ImmAddSub_offset) | (1 << ImmAddSubShift_offset);
+  // Encode `imm` for `add` or `sub` instructions, with implicit shift if
+  // necessary.
+  static Instr ImmAddSub(uint64_t imm) {
+    if (IsUint12(imm)) return ImmAddSub(imm, 0);
+    if (IsMultiple<(1 << 12)>(imm)) return ImmAddSub(imm >> 12, 12);
+    VIXL_ABORT();
+    return 0xffffffff;
+  }
+
+  // Encode `imm` for `add` or `sub` instructions, with explicit shift.
+  static Instr ImmAddSub(uint64_t imm, int shift) {
+    if (IsUint12(imm) && ((shift == 0) || (shift == 12))) {
+      static const int lsb = ImmAddSub_offset;
+      static const int msb = lsb + ImmAddSub_width - 1;
+      Instr sh = (shift == 0) ? 0 : 1 << ImmAddSubShift_offset;
+      return ImmUnsignedField<msb, lsb>(imm) | sh;
     }
-    return imm;
+    VIXL_ABORT();
+    return 0xffffffff;
   }
 
   static Instr SVEImmSetBits(unsigned imms, unsigned lane_size) {
@@ -6872,7 +6904,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // Immediate field checking helpers.
-  static bool IsImmAddSub(int64_t immediate);
+  // True iff the immediate can be encoded (with any shift).
+  static bool IsImmAddSub(uint64_t imm);
+  // True iff the immediate and explicit shift can be encoded.
+  static bool IsImmAddSub(uint64_t imm, int shift);
   static bool IsImmConditionalCompare(int64_t immediate);
   static bool IsImmFP16(Float16 imm);
   static bool IsImmFP32(float imm);

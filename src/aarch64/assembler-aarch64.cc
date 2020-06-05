@@ -5353,7 +5353,7 @@ void Assembler::AddSub(const Register& rd,
     VIXL_ASSERT(IsImmAddSub(immediate));
     Instr dest_reg = (S == SetFlags) ? Rd(rd) : RdSP(rd);
     Emit(SF(rd) | AddSubImmediateFixed | op | Flags(S) |
-         ImmAddSub(static_cast<int>(immediate)) | dest_reg | RnSP(rn));
+         ImmAddSub(immediate) | dest_reg | RnSP(rn));
   } else if (operand.IsShiftedRegister()) {
     VIXL_ASSERT(operand.GetRegister().GetSizeInBits() == rd.GetSizeInBits());
     VIXL_ASSERT(operand.GetShift() != ROR);
@@ -5759,12 +5759,13 @@ void Assembler::Prefetch(PrefetchOperation op,
   Prefetch(static_cast<int>(op), addr, option);
 }
 
-
-bool Assembler::IsImmAddSub(int64_t immediate) {
-  return IsUint12(immediate) ||
-         (IsUint12(immediate >> 12) && ((immediate & 0xfff) == 0));
+bool Assembler::IsImmAddSub(uint64_t imm) {
+  return IsUint12(imm) || (IsUint12(imm >> 12) && ((imm & 0xfff) == 0));
 }
 
+bool Assembler::IsImmAddSub(uint64_t imm, int shift) {
+  return IsUint12(imm) && ((shift == 0) || (shift == 12));
+}
 
 bool Assembler::IsImmConditionalCompare(int64_t immediate) {
   return IsUint5(immediate);

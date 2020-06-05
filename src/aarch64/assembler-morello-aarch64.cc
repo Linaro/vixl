@@ -29,6 +29,45 @@
 namespace vixl {
 namespace aarch64 {
 
+void Assembler::add(CRegister cd, CRegister cn, const Operand& operand) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  if (operand.IsExtendedRegister()) {
+    Register reg = operand.GetRegister();
+    Extend ext = operand.GetExtend();
+    unsigned shift = operand.GetShiftAmount();
+    // The ISA specifies an X register, but we accept a W register (with an
+    // appropriate extend mode) for consistency with the core `add`.
+    if ((ext == UXTX) || (ext == SXTX)) VIXL_ASSERT(reg.IsX());
+    if ((shift <= 4) && !reg.IsSP()) {
+      Emit(ADD_c_cri | Rm(reg) | ExtendMode(ext) | ImmExtendShift(shift) |
+           RdSP(cd) | RnSP(cn));
+      return;
+    }
+  } else if (operand.IsImmediate()) {
+    add(cd, cn, operand.GetImmediate());
+    return;
+  }
+  VIXL_ABORT();
+}
+
+void Assembler::add(CRegister cd, CRegister cn, uint64_t imm12, int shift) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  if (IsImmAddSub(imm12, shift)) {
+    Emit(ADD_c_cis | ImmAddSub(imm12, shift) | RdSP(cd) | RnSP(cn));
+    return;
+  }
+  VIXL_ABORT();
+}
+
+void Assembler::add(CRegister cd, CRegister cn, uint64_t imm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  if (IsImmAddSub(imm)) {
+    Emit(ADD_c_cis | ImmAddSub(imm) | RdSP(cd) | RnSP(cn));
+    return;
+  }
+  VIXL_ABORT();
+}
+
 void Assembler::bx(ptrdiff_t offset_in_bytes) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(offset_in_bytes == kInstructionSize);
@@ -52,6 +91,26 @@ void Assembler::bx(Label* label) {
   // `bx` unconditionally switches ISA.
   label->EnsureISA(vixl::aarch64::ExchangeISA(GetISA()));
   bx(kInstructionSize);
+}
+
+void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm12, int shift) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // Morello's `sub` only has an immediate form.
+  if (IsImmAddSub(imm12, shift)) {
+    Emit(SUB_c_cis | ImmAddSub(imm12, shift) | RnSP(cn) | RdSP(cd));
+    return;
+  }
+  VIXL_ABORT();
+}
+
+void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // Morello's `sub` only has an immediate form.
+  if (IsImmAddSub(imm)) {
+    Emit(SUB_c_cis | ImmAddSub(imm) | RnSP(cn) | RdSP(cd));
+    return;
+  }
+  VIXL_ABORT();
 }
 
 }  // namespace aarch64

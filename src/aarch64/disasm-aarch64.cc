@@ -9527,8 +9527,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(Morello1Src1Dst)                          \
   V(Morello2SrcCap)                           \
-  V(MorelloADD)                               \
-  V(MorelloAddSubCap)                         \
   V(MorelloAlignment)                         \
   V(MorelloBitwise)                           \
   V(MorelloBranch)                            \
@@ -9593,7 +9591,6 @@ VIXL_UNIMPLEMENTED_VISITOR_LIST(VIXL_DEFINE_UNIMPLEMENTED_VISITOR)
 #undef VIXL_DEFINE_UNIMPLEMENTED_VISITOR
 #undef VIXL_UNIMPLEMENTED_VISITOR_LIST
 
-
 void Disassembler::VisitMorelloBranchBx(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(MorelloBranchBx)";
@@ -9608,6 +9605,39 @@ void Disassembler::VisitMorelloBranchBx(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::VisitMorelloADD(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(MorelloADD)";
+
+  switch (instr->Mask(MorelloADDMask)) {
+    case ADD_c_cri:
+      mnemonic = "add";
+      // Note that '<extend>' is mandatory, and Rm is always an X register.
+      form = "'cds, 'cns, 'Xm'ExtC";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloAddSubCap(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, 'IAddSub";
+
+  switch (instr->Mask(MorelloAddSubCapMask)) {
+    case ADD_c_cis:
+      mnemonic = "add";
+      break;
+    case SUB_c_cis:
+      mnemonic = "sub";
+      break;
+    default:
+      form = "(MorelloAddSubCap)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
 
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {
   // The base disasm does nothing more than disassembling into a buffer.
@@ -9622,6 +9652,8 @@ void Disassembler::AppendRegisterNameToOutput(const Instruction *instr,
 
   if (reg.IsRegister()) {
     reg_char = reg.Is64Bits() ? 'x' : 'w';
+  } else if (reg.IsCRegister()) {
+    reg_char = 'c';
   } else {
     VIXL_ASSERT(reg.IsVRegister());
     switch (reg.GetSizeInBits()) {
@@ -9643,12 +9675,17 @@ void Disassembler::AppendRegisterNameToOutput(const Instruction *instr,
     }
   }
 
-  if (reg.IsVRegister() || !(reg.Aliases(sp) || reg.Aliases(xzr))) {
-    // A core or scalar/vector register: [wx]0 - 30, [bhsdq]0 - 31.
+  if (reg.IsVRegister() || ((reg.IsRegister() || reg.IsCRegister()) &&
+                            !(reg.IsZero() || reg.IsSP()))) {
+    // A core or scalar/vector register: [wxc]0 - 30, [bhsdq]0 - 31.
     AppendToOutput("%c%d", reg_char, reg.GetCode());
   } else if (reg.Aliases(sp)) {
-    // Disassemble w31/x31 as stack pointer wsp/sp.
-    AppendToOutput("%s", reg.Is64Bits() ? "sp" : "wsp");
+    // Disassemble w31/x31/c31 as stack pointer wsp/sp/csp.
+    if (reg.Is64Bits()) {
+      AppendToOutput("sp");
+    } else {
+      AppendToOutput("%csp", reg_char);
+    }
   } else {
     // Disassemble w31/x31 as zero register wzr/xzr.
     AppendToOutput("%czr", reg_char);
@@ -9772,6 +9809,7 @@ int Disassembler::SubstituteField(const Instruction *instr,
     case 'S':
     case 'D':
     case 'Q':
+    case 'c':  // Capability registers.
       return SubstituteRegisterField(instr, format);
     case 'P':
       return SubstitutePredicateRegisterField(instr, format);
@@ -9867,7 +9905,8 @@ std::pair<unsigned, unsigned> Disassembler::GetRegNumForField(
       field_len++;
       break;
     case 's':  // Core registers that are (w)sp rather than zr.
-      VIXL_ASSERT((reg_prefix == 'W') || (reg_prefix == 'X'));
+      VIXL_ASSERT((reg_prefix == 'W') || (reg_prefix == 'X') ||
+                  (reg_prefix == 'C'));
       reg_num = (reg_num == kZeroRegCode) ? kSPRegInternalCode : reg_num;
       field_len++;
       break;
@@ -9903,6 +9942,8 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
     }
     reg_prefix = is_x ? 'X' : 'W';
   }
+
+  if (reg_prefix == 'c') reg_prefix = 'C';
 
   std::pair<unsigned, unsigned> rn =
       GetRegNumForField(instr, reg_prefix, reg_field);
@@ -9966,6 +10007,10 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
     case 'X':
       reg_type = CPURegister::kRegister;
       reg_size = kXRegSize;
+      break;
+    case 'C':
+      reg_type = CPURegister::kCRegister;
+      reg_size = kCRegSize;
       break;
     case 'B':
       reg_type = CPURegister::kVRegister;
@@ -10682,27 +10727,35 @@ int Disassembler::SubstituteBranchTargetField(const Instruction *instr,
 int Disassembler::SubstituteExtendField(const Instruction *instr,
                                         const char *format) {
   VIXL_ASSERT(strncmp(format, "Ext", 3) == 0);
+  int len = 3;
   VIXL_ASSERT(instr->GetExtendMode() <= 7);
   USE(format);
 
-  const char *extend_mode[] =
-      {"uxtb", "uxth", "uxtw", "uxtx", "sxtb", "sxth", "sxtw", "sxtx"};
+  bool lsl = false;
+  if (strncmp(format, "ExtC", 4) == 0) {
+    len = 4;
+  } else {
+    // If rd or rn is SP, uxtw on 32-bit registers and uxtx on 64-bit
+    // registers becomes lsl.
+    lsl = ((instr->GetRd() == kSpRegCode) || (instr->GetRn() == kSpRegCode)) &&
+          (((instr->GetExtendMode() == UXTW) &&
+            (instr->GetSixtyFourBits() == 0)) ||
+           (instr->GetExtendMode() == UXTX));
+  }
 
-  // If rd or rn is SP, uxtw on 32-bit registers and uxtx on 64-bit
-  // registers becomes lsl.
-  if (((instr->GetRd() == kZeroRegCode) || (instr->GetRn() == kZeroRegCode)) &&
-      (((instr->GetExtendMode() == UXTW) && (instr->GetSixtyFourBits() == 0)) ||
-       (instr->GetExtendMode() == UXTX))) {
+  if (lsl) {
     if (instr->GetImmExtendShift() > 0) {
       AppendToOutput(", lsl #%" PRId32, instr->GetImmExtendShift());
     }
   } else {
+    const char *extend_mode[] =
+        {"uxtb", "uxth", "uxtw", "uxtx", "sxtb", "sxth", "sxtw", "sxtx"};
     AppendToOutput(", %s", extend_mode[instr->GetExtendMode()]);
     if (instr->GetImmExtendShift() > 0) {
       AppendToOutput(" #%" PRId32, instr->GetImmExtendShift());
     }
   }
-  return 3;
+  return len;
 }
 
 

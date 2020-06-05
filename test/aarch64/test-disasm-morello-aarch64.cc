@@ -49,14 +49,86 @@ TEST(morello_mov_cpy_c_c_c) {
 TEST(morello_add_c_cis_c) {
   SETUP();
 
-  // COMPARE_MORELLO(add(c0, c1, 0x6f8 << 12), "TODO");
-  // COMPARE_MORELLO(add(c0, c1, 0x903), "TODO");
+  // Explicit shift.
+  COMPARE_MORELLO(add(c0, c1, 0x6f8, 12), "add c0, c1, #0x6f8000 (7307264)");
+  COMPARE_MORELLO(add(c0, c1, 0x903, 0), "add c0, c1, #0x903 (2307)");
+  COMPARE_MORELLO(add(csp, c1, 0x6f8, 12), "add csp, c1, #0x6f8000 (7307264)");
+  COMPARE_MORELLO(add(c0, csp, 0x903, 0), "add c0, csp, #0x903 (2307)");
+  COMPARE_MORELLO(add(c30, c30, 0x6f8, 12),
+                  "add c30, c30, #0x6f8000 (7307264)");
+
+  // Implicit shift.
+  COMPARE_MORELLO(add(c0, c1, 0x6f8 << 12), "add c0, c1, #0x6f8000 (7307264)");
+  COMPARE_MORELLO(add(c0, c1, 0x903), "add c0, c1, #0x903 (2307)");
+  COMPARE_MORELLO(add(csp, c1, 0x6f8 << 12),
+                  "add csp, c1, #0x6f8000 (7307264)");
+  COMPARE_MORELLO(add(c0, csp, 0x903), "add c0, csp, #0x903 (2307)");
+  COMPARE_MORELLO(add(c30, c30, 0x6f8 << 12),
+                  "add c30, c30, #0x6f8000 (7307264)");
+
+  // Implicit shift (via Operand).
+  COMPARE_MORELLO(add(c0, c1, Operand(0x6f8 << 12)),
+                  "add c0, c1, #0x6f8000 (7307264)");
+  COMPARE_MORELLO(add(c0, c1, Operand(0x903)), "add c0, c1, #0x903 (2307)");
+  COMPARE_MORELLO(add(csp, c1, Operand(0x6f8 << 12)),
+                  "add csp, c1, #0x6f8000 (7307264)");
+  COMPARE_MORELLO(add(c0, csp, Operand(0x903)), "add c0, csp, #0x903 (2307)");
+  COMPARE_MORELLO(add(c30, c30, Operand(0x6f8 << 12)),
+                  "add c30, c30, #0x6f8000 (7307264)");
 }
 
 TEST(morello_add_c_cri_c) {
   SETUP();
 
-  // COMPARE_MORELLO(add(c0, c1, Operand(x2, UXTX, 0)), "TODO");
+  COMPARE_MORELLO(add(c0, c1, Operand(x2, UXTX, 0)), "add c0, c1, x2, uxtx");
+  COMPARE_MORELLO(add(c0, c1, Operand(w2, SXTW, 4)), "add c0, c1, x2, sxtw #4");
+  COMPARE_MORELLO(add(c0, c1, Operand(x2, UXTB, 0)), "add c0, c1, x2, uxtb");
+  COMPARE_MORELLO(add(c0, c1, Operand(w2, SXTH, 4)), "add c0, c1, x2, sxth #4");
+  COMPARE_MORELLO(add(csp, c1, Operand(x2, UXTX, 0)), "add csp, c1, x2, uxtx");
+  COMPARE_MORELLO(add(c0, csp, Operand(w2, SXTW, 3)),
+                  "add c0, csp, x2, sxtw #3");
+  COMPARE_MORELLO(add(c0, c1, Operand(xzr, UXTX, 0)), "add c0, c1, xzr, uxtx");
+  COMPARE_MORELLO(add(c30, c30, Operand(x30, UXTX, 2)),
+                  "add c30, c30, x30, uxtx #2");
+}
+
+TEST(morello_add_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_MORELLO(Add(c3, c23, 42), "add c3, c23, #0x2a (42)");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, 0x000fff), "add c3, c23, #0xfff (4095)");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, 0xfff000),
+                        "add c3, c23, #0xfff000 (16773120)");
+  COMPARE_MACRO_MORELLO(Add(csp, csp, 42), "add csp, csp, #0x2a (42)");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, Operand(x30, UXTX, 0)),
+                        "add c3, c23, x30, uxtx");
+  COMPARE_MACRO_MORELLO(Add(csp, csp, Operand(xzr, UXTX, 0)),
+                        "add csp, csp, xzr, uxtx");
+
+  // Negative immediates are handled by `sub`, if they are encodable.
+  COMPARE_MACRO_MORELLO(Add(c3, c23, -1), "sub c3, c23, #0x1 (1)");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, -0xfff), "sub c3, c23, #0xfff (4095)");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, -0xfff000),
+                        "sub c3, c23, #0xfff000 (16773120)");
+
+  // LSL and no-op shifts get translated into UXTX.
+  COMPARE_MACRO_MORELLO(Add(c3, c23, Operand(x8, LSL, 3)),
+                        "add c3, c23, x8, uxtx #3");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, Operand(x8, LSR, 0)),
+                        "add c3, c23, x8, uxtx");
+
+  // Other operands are emulated with `Mov`.
+  COMPARE_MACRO_MORELLO(Add(c3, c23, 0x001fff),
+                        "mov x3, #0x1fff\n"
+                        "add c3, c23, x3, uxtx");
+  COMPARE_MACRO_MORELLO(Add(c3, c23, 0xfff001),
+                        "mov x3, #0xf001\n"
+                        "movk x3, #0xff, lsl #16\n"
+                        "add c3, c23, x3, uxtx");
+  COMPARE_MACRO_MORELLO(Add(c3, c3, Operand(x8, LSR, 1)),
+                        "lsr x16, x8, #1\n"
+                        "add c3, c3, x16, uxtx");
 }
 
 TEST(morello_adrdp_c_id_c) {
@@ -503,14 +575,63 @@ TEST(morello_seal_c_ci_c) {
 TEST(morello_sub_c_cis_c) {
   SETUP();
 
-  // COMPARE_MORELLO(sub(c0, c1, 0x21c << 12), "TODO");
-  // COMPARE_MORELLO(sub(c0, c1, 0xb1f), "TODO");
+  // Explicit shift.
+  COMPARE_MORELLO(sub(c0, c1, 0x21c, 12), "sub c0, c1, #0x21c000 (2211840)");
+  COMPARE_MORELLO(sub(c0, c1, 0xb1f, 0), "sub c0, c1, #0xb1f (2847)");
+  COMPARE_MORELLO(sub(csp, c1, 0x21c, 12), "sub csp, c1, #0x21c000 (2211840)");
+  COMPARE_MORELLO(sub(c0, csp, 0xb1f, 0), "sub c0, csp, #0xb1f (2847)");
+  COMPARE_MORELLO(sub(c30, c30, 0x21c, 12),
+                  "sub c30, c30, #0x21c000 (2211840)");
+
+  // Implicit shift.
+  COMPARE_MORELLO(sub(c0, c1, 0x21c << 12), "sub c0, c1, #0x21c000 (2211840)");
+  COMPARE_MORELLO(sub(c0, c1, 0xb1f), "sub c0, c1, #0xb1f (2847)");
+  COMPARE_MORELLO(sub(csp, c1, 0x21c << 12),
+                  "sub csp, c1, #0x21c000 (2211840)");
+  COMPARE_MORELLO(sub(c0, csp, 0xb1f), "sub c0, csp, #0xb1f (2847)");
+  COMPARE_MORELLO(sub(c30, c30, 0x21c << 12),
+                  "sub c30, c30, #0x21c000 (2211840)");
 }
 
 TEST(morello_subs_r_cc_c) {
   SETUP();
 
   // COMPARE_MORELLO(subs(x0, c1, c2), "TODO");
+}
+
+
+TEST(morello_sub_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, 42), "sub c3, c23, #0x2a (42)");
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, 0x000fff), "sub c3, c23, #0xfff (4095)");
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, 0xfff000),
+                        "sub c3, c23, #0xfff000 (16773120)");
+  COMPARE_MACRO_MORELLO(Sub(csp, csp, 42), "sub csp, csp, #0x2a (42)");
+
+  // Negative immediates are handled by `add`, if they are encodable.
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, -1), "add c3, c23, #0x1 (1)");
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, -0xfff), "add c3, c23, #0xfff (4095)");
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, -0xfff000),
+                        "add c3, c23, #0xfff000 (16773120)");
+
+  // Note that `sub` has no register-operand form, so other operands are
+  // emulated with `Neg` and `add`.
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, 0x001fff),
+                        "mov x3, #0xffffffffffffe001\n"
+                        "add c3, c23, x3, uxtx");
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, 0xfff001),
+                        "mov x3, #0xffffffffff000fff\n"
+                        "add c3, c23, x3, uxtx");
+  COMPARE_MACRO_MORELLO(Sub(c3, c23, Operand(x8, LSR, 1)),
+                        "neg x3, x8, lsr #1\n"
+                        "add c3, c23, x3, uxtx");
+  // TODO: Improve code generation in this case.
+  COMPARE_MACRO_MORELLO(Sub(c3, c3, Operand(x8, SXTX)),
+                        "lsr x16, x8, #0\n"
+                        "neg x16, x16\n"
+                        "add c3, c3, x16, uxtx");
 }
 
 TEST(morello_unseal_c_cc_c) {
