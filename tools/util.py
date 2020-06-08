@@ -87,7 +87,8 @@ def GetCompilerDirectives(env):
   args += ['-E', '-dM', '-']
 
   # Instruct the compiler to dump all its preprocessor macros.
-  dump = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+  dump = subprocess.Popen(args, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                          universal_newlines=True)
   out, _ = dump.communicate()
   return {
     # Extract the macro name as key and value as element.
