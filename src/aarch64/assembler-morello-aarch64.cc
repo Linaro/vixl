@@ -68,6 +68,18 @@ void Assembler::add(CRegister cd, CRegister cn, uint64_t imm) {
   VIXL_ABORT();
 }
 
+void Assembler::alignd(CRegister cd, CRegister cn, int imm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT((imm >= 0) && (imm < 64));
+  Emit(ALIGND_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 15>(imm));
+}
+
+void Assembler::alignu(CRegister cd, CRegister cn, int imm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT((imm >= 0) && (imm < 64));
+  Emit(ALIGNU_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 15>(imm));
+}
+
 void Assembler::bx(ptrdiff_t offset_in_bytes) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(offset_in_bytes == kInstructionSize);

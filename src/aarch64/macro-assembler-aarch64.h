@@ -6370,6 +6370,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   void Add(CRegister cd, CRegister cn, const Operand& operand);
 
+  void Alignd(CRegister cd, CRegister cn, int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    alignd(cd, cn, imm);
+  }
+
+  void Alignu(CRegister cd, CRegister cn, int imm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    alignu(cd, cn, imm);
+  }
+
   // Switch between A64 and C64. This does _not_ change the MacroAssembler's
   // target ISA.
   // TODO: Should it?

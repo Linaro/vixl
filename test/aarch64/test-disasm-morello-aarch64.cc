@@ -146,13 +146,29 @@ TEST(morello_adrp_c_ip_c) {
 TEST(morello_alignd_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(alignd(c0, c1, 45), "TODO");
+  COMPARE_MORELLO(alignd(c0, c1, 45), "alignd c0, c1, #45");
+  COMPARE_MORELLO(alignd(c0, c30, 0), "alignd c0, c30, #0");
+  COMPARE_MORELLO(alignd(c30, c1, 0), "alignd c30, c1, #0");
+  COMPARE_MORELLO(alignd(c0, csp, 63), "alignd c0, csp, #63");
+  COMPARE_MORELLO(alignd(csp, c1, 63), "alignd csp, c1, #63");
+  COMPARE_MORELLO(alignd(csp, csp, 45), "alignd csp, csp, #45");
+
+  COMPARE_MACRO_MORELLO(Alignd(c6, c7, 42), "alignd c6, c7, #42");
+  COMPARE_MACRO_MORELLO(Alignd(csp, csp, 42), "alignd csp, csp, #42");
 }
 
 TEST(morello_alignu_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(alignu(c0, c1, 63), "TODO");
+  COMPARE_MORELLO(alignu(c0, c1, 63), "alignu c0, c1, #63");
+  COMPARE_MORELLO(alignu(c0, c30, 0), "alignu c0, c30, #0");
+  COMPARE_MORELLO(alignu(c30, c1, 0), "alignu c30, c1, #0");
+  COMPARE_MORELLO(alignu(c0, csp, 42), "alignu c0, csp, #42");
+  COMPARE_MORELLO(alignu(csp, c1, 42), "alignu csp, c1, #42");
+  COMPARE_MORELLO(alignu(csp, csp, 63), "alignu csp, csp, #63");
+
+  COMPARE_MACRO_MORELLO(Alignu(c6, c7, 42), "alignu c6, c7, #42");
+  COMPARE_MACRO_MORELLO(Alignu(csp, csp, 42), "alignu csp, csp, #42");
 }
 
 TEST(morello_bicflgs_c_ci_c) {

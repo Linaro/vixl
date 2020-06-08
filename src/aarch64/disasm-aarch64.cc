@@ -9527,7 +9527,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(Morello1Src1Dst)                          \
   V(Morello2SrcCap)                           \
-  V(MorelloAlignment)                         \
   V(MorelloBitwise)                           \
   V(MorelloBranch)                            \
   V(MorelloBranchRestricted)                  \
@@ -9632,6 +9631,25 @@ void Disassembler::VisitMorelloAddSubCap(const Instruction *instr) {
       break;
     default:
       form = "(MorelloAddSubCap)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloAlignment(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, #'u2015";
+
+  switch (instr->Mask(MorelloAlignmentMask)) {
+    case ALIGND_c_ci:
+      mnemonic = "alignd";
+      break;
+    case ALIGNU_c_ci:
+      mnemonic = "alignu";
+      break;
+    default:
+      form = "(MorelloAlignment)";
       break;
   }
 
