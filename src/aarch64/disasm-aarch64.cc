@@ -9527,7 +9527,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(Morello1Src1Dst)                          \
   V(Morello2SrcCap)                           \
-  V(MorelloBitwise)                           \
   V(MorelloBranch)                            \
   V(MorelloBranchRestricted)                  \
   V(MorelloBranchSealedDirect)                \
@@ -9567,7 +9566,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLoadStoreUnscaledImmediateAltBase) \
   V(MorelloLoadStoreUnsignedOffset)           \
   V(MorelloLoadStoreUnsignedOffsetAltBase)    \
-  V(MorelloLogicalImm)                        \
   V(MorelloMiscCap0)                          \
   V(MorelloMiscCap1)                          \
   V(MorelloMiscCap2)                          \
@@ -9588,6 +9586,33 @@ VIXL_UNIMPLEMENTED_VISITOR_LIST(VIXL_DEFINE_UNIMPLEMENTED_VISITOR)
 
 #undef VIXL_DEFINE_UNIMPLEMENTED_VISITOR
 #undef VIXL_UNIMPLEMENTED_VISITOR_LIST
+
+void Disassembler::VisitMorelloBitwise(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, 'Xm";
+
+  switch (instr->Mask(MorelloBitwiseMask)) {
+    case BICFLGS_c_cr:
+      mnemonic = "bicflgs";
+      break;
+    case ORRFLGS_c_cr:
+      mnemonic = "orrflgs";
+      break;
+    case EORFLGS_c_cr:
+      mnemonic = "eorflgs";
+      break;
+    case CTHI_c_cr:
+      mnemonic = "cthi";
+      // <Cn> cannot be CSP for `cthi`.
+      form = "'cds, 'cn, 'Xm";
+      break;
+    default:
+      form = "(MorelloBitwise)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
 
 void Disassembler::VisitMorelloBranchBx(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -9650,6 +9675,28 @@ void Disassembler::VisitMorelloAlignment(const Instruction *instr) {
       break;
     default:
       form = "(MorelloAlignment)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLogicalImm(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, #'x2013";
+
+  switch (instr->Mask(MorelloLogicalImmMask)) {
+    case BICFLGS_c_ci:
+      mnemonic = "bicflgs";
+      break;
+    case EORFLGS_c_ci:
+      mnemonic = "eorflgs";
+      break;
+    case ORRFLGS_c_ci:
+      mnemonic = "orrflgs";
+      break;
+    default:
+      form = "(MorelloLogicalImm)";
       break;
   }
 
@@ -9875,6 +9922,7 @@ int Disassembler::SubstituteField(const Instruction *instr,
       return SubstitutePrefetchField(instr, format);
     case 'u':
     case 's':
+    case 'x':
       return SubstituteIntField(instr, format);
     case 't':
       return SubstituteSVESize(instr, format);
@@ -10925,13 +10973,16 @@ int Disassembler::SubstituteCrField(const Instruction *instr,
 
 int Disassembler::SubstituteIntField(const Instruction *instr,
                                      const char *format) {
-  VIXL_ASSERT((format[0] == 'u') || (format[0] == 's'));
+  VIXL_ASSERT((format[0] == 'u') || (format[0] == 's') || (format[0] == 'x'));
 
-  // A generic signed or unsigned int field uses a placeholder of the form
-  // 'sAABB and 'uAABB respectively where AA and BB are two digit bit positions
-  // between 00 and 31, and AA >= BB. The placeholder is substituted with the
-  // decimal integer represented by the bits in the instruction between
-  // positions AA and BB inclusive.
+  // A generic int field uses a placeholder of the form 'sAABB, 'uAABB or
+  // 'xAABB, where AA and BB are two digit bit positions between 00 and 31, and
+  // AA >= BB. The placeholder is substituted with the integer represented by
+  // the bits in the instruction between positions AA and BB inclusive.
+  //
+  //  's: Signed decimal integer.
+  //  'u: Unsigned decimal integer.
+  //  'x: Unsigned hexadecimal integer.
   //
   // In addition, split fields can be represented using 'sAABB:CCDD, where CCDD
   // become the least-significant bits of the result, and bit AA is the sign bit
@@ -10976,7 +11027,19 @@ int Disassembler::SubstituteIntField(const Instruction *instr,
     bits *= value;
   }
 
-  AppendToOutput("%d", bits);
+  switch (format[0]) {
+    case 's':
+      AppendToOutput("%d", bits);
+      break;
+    case 'u':
+      AppendToOutput("%u", bits);
+      break;
+    case 'x':
+      // For hexadecimal outputs, always include the leading zeroes.
+      // TODO: Perhaps make this behaviour optional, with some flag.
+      AppendToOutput("0x%0*x", (width + 3) / 4, bits);
+      break;
+  }
 
   return static_cast<int>(c - format);
 }

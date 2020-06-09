@@ -5920,7 +5920,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void bicflgs(CRegister cd, CRegister cn, Register xm);
 
   // BICFLGS <Cd|CSP>, <Cn|CSP>, #<imm>
-  void bicflgs(CRegister cd, CRegister cn, int imm);
+  void bicflgs(CRegister cd, CRegister cn, int imm8);
 
   // BLR <Cn>
   void blr(CRegister cn);

@@ -174,13 +174,27 @@ TEST(morello_alignu_c_ci_c) {
 TEST(morello_bicflgs_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(bicflgs(c0, c1, 118), "TODO");
+  COMPARE_MORELLO(bicflgs(c0, c1, 0x00), "bicflgs c0, c1, #0x00");
+  COMPARE_MORELLO(bicflgs(c0, c1, 0xad), "bicflgs c0, c1, #0xad");
+  COMPARE_MORELLO(bicflgs(c0, c1, 0xff), "bicflgs c0, c1, #0xff");
+  COMPARE_MORELLO(bicflgs(c0, csp, 0xad), "bicflgs c0, csp, #0xad");
+  COMPARE_MORELLO(bicflgs(csp, c1, 0xad), "bicflgs csp, c1, #0xad");
+  COMPARE_MORELLO(bicflgs(c30, c30, 0xad), "bicflgs c30, c30, #0xad");
+
+  COMPARE_MACRO_MORELLO(Bicflgs(c0, c1, 0x42), "bicflgs c0, c1, #0x42");
 }
 
 TEST(morello_bicflgs_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(bicflgs(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(bicflgs(c0, c1, x2), "bicflgs c0, c1, x2");
+  COMPARE_MORELLO(bicflgs(c0, c1, xzr), "bicflgs c0, c1, xzr");
+  COMPARE_MORELLO(bicflgs(c0, csp, x2), "bicflgs c0, csp, x2");
+  COMPARE_MORELLO(bicflgs(csp, c1, x2), "bicflgs csp, c1, x2");
+  COMPARE_MORELLO(bicflgs(c30, c29, x28), "bicflgs c30, c29, x28");
+  COMPARE_MORELLO(bicflgs(c30, c30, x30), "bicflgs c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Bicflgs(c10, c11, x12), "bicflgs c10, c11, x12");
 }
 
 TEST(morello_blr_c_c) {
@@ -343,7 +357,14 @@ TEST(morello_csel_c_ci_c) {
 TEST(morello_cthi_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(cthi(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(cthi(c0, c1, x2), "cthi c0, c1, x2");
+  COMPARE_MORELLO(cthi(c0, c1, xzr), "cthi c0, c1, xzr");
+  COMPARE_MORELLO(cthi(c0, czr, x2), "cthi c0, czr, x2");  // <Cn> takes xzr.
+  COMPARE_MORELLO(cthi(csp, c1, x2), "cthi csp, c1, x2");
+  COMPARE_MORELLO(cthi(c30, c29, x28), "cthi c30, c29, x28");
+  COMPARE_MORELLO(cthi(c30, c30, x30), "cthi c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Cthi(c10, c11, x12), "cthi c10, c11, x12");
 }
 
 TEST(morello_cvt_c_cr_c) {
@@ -403,13 +424,27 @@ TEST(morello_cvtz_c_cr_c) {
 TEST(morello_eorflgs_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(eorflgs(c0, c1, 173), "TODO");
+  COMPARE_MORELLO(eorflgs(c0, c1, 0x00), "eorflgs c0, c1, #0x00");
+  COMPARE_MORELLO(eorflgs(c0, c1, 0xad), "eorflgs c0, c1, #0xad");
+  COMPARE_MORELLO(eorflgs(c0, c1, 0xff), "eorflgs c0, c1, #0xff");
+  COMPARE_MORELLO(eorflgs(c0, csp, 0xad), "eorflgs c0, csp, #0xad");
+  COMPARE_MORELLO(eorflgs(csp, c1, 0xad), "eorflgs csp, c1, #0xad");
+  COMPARE_MORELLO(eorflgs(c30, c30, 0xad), "eorflgs c30, c30, #0xad");
+
+  COMPARE_MACRO_MORELLO(Eorflgs(c0, c1, 0x42), "eorflgs c0, c1, #0x42");
 }
 
 TEST(morello_eorflgs_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(eorflgs(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(eorflgs(c0, c1, x2), "eorflgs c0, c1, x2");
+  COMPARE_MORELLO(eorflgs(c0, c1, xzr), "eorflgs c0, c1, xzr");
+  COMPARE_MORELLO(eorflgs(c0, csp, x2), "eorflgs c0, csp, x2");
+  COMPARE_MORELLO(eorflgs(csp, c1, x2), "eorflgs csp, c1, x2");
+  COMPARE_MORELLO(eorflgs(c30, c29, x28), "eorflgs c30, c29, x28");
+  COMPARE_MORELLO(eorflgs(c30, c30, x30), "eorflgs c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Eorflgs(c10, c11, x12), "eorflgs c10, c11, x12");
 }
 
 TEST(morello_gcbase_r_c_c) {
@@ -489,13 +524,27 @@ TEST(morello_msr_c_i_c) {
 TEST(morello_orrflgs_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(orrflgs(c0, c1, 124), "TODO");
+  COMPARE_MORELLO(orrflgs(c0, c1, 0x00), "orrflgs c0, c1, #0x00");
+  COMPARE_MORELLO(orrflgs(c0, c1, 0xad), "orrflgs c0, c1, #0xad");
+  COMPARE_MORELLO(orrflgs(c0, c1, 0xff), "orrflgs c0, c1, #0xff");
+  COMPARE_MORELLO(orrflgs(c0, csp, 0xad), "orrflgs c0, csp, #0xad");
+  COMPARE_MORELLO(orrflgs(csp, c1, 0xad), "orrflgs csp, c1, #0xad");
+  COMPARE_MORELLO(orrflgs(c30, c30, 0xad), "orrflgs c30, c30, #0xad");
+
+  COMPARE_MACRO_MORELLO(Orrflgs(c0, c1, 0x42), "orrflgs c0, c1, #0x42");
 }
 
 TEST(morello_orrflgs_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(orrflgs(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(orrflgs(c0, c1, x2), "orrflgs c0, c1, x2");
+  COMPARE_MORELLO(orrflgs(c0, c1, xzr), "orrflgs c0, c1, xzr");
+  COMPARE_MORELLO(orrflgs(c0, csp, x2), "orrflgs c0, csp, x2");
+  COMPARE_MORELLO(orrflgs(csp, c1, x2), "orrflgs csp, c1, x2");
+  COMPARE_MORELLO(orrflgs(c30, c29, x28), "orrflgs c30, c29, x28");
+  COMPARE_MORELLO(orrflgs(c30, c30, x30), "orrflgs c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Orrflgs(c10, c11, x12), "orrflgs c10, c11, x12");
 }
 
 TEST(morello_ret_c_c) {

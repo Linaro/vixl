@@ -80,6 +80,17 @@ void Assembler::alignu(CRegister cd, CRegister cn, int imm) {
   Emit(ALIGNU_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 15>(imm));
 }
 
+void Assembler::bicflgs(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(BICFLGS_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::bicflgs(CRegister cd, CRegister cn, int imm8) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(BICFLGS_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 13>(imm8));
+}
+
 void Assembler::bx(ptrdiff_t offset_in_bytes) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(offset_in_bytes == kInstructionSize);
@@ -108,6 +119,34 @@ void Assembler::bx(Label* label) {
 void Assembler::cmp(CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   subs(xzr, cn, cm);
+}
+
+void Assembler::cthi(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(CTHI_c_cr | RdSP(cd) | Rn(cn) | Rm(xm));
+}
+
+void Assembler::eorflgs(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(EORFLGS_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::eorflgs(CRegister cd, CRegister cn, int imm8) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(EORFLGS_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 13>(imm8));
+}
+
+void Assembler::orrflgs(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(ORRFLGS_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::orrflgs(CRegister cd, CRegister cn, int imm8) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(ORRFLGS_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 13>(imm8));
 }
 
 void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm12, int shift) {

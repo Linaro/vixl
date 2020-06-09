@@ -6366,20 +6366,38 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     zip2(zd, zn, zm);
   }
 
-  // Morello.
+  // Morello instructions.
 
   void Add(CRegister cd, CRegister cn, const Operand& operand);
 
+  // Align down to the nearest multiple of 2^(imm).
   void Alignd(CRegister cd, CRegister cn, int imm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     alignd(cd, cn, imm);
   }
 
+  // Align up to the nearest multiple of 2^(imm).
   void Alignu(CRegister cd, CRegister cn, int imm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     alignu(cd, cn, imm);
+  }
+
+  // Clear flags bits that are set in xm<63:56>.
+  // The flags field of a capability is bits <63:56>.
+  void Bicflgs(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    bicflgs(cd, cn, xm);
+  }
+
+  // Clear flags bits that are set in imm8<7:0>.
+  // The flags field of a capability is bits <63:56>.
+  void Bicflgs(CRegister cd, CRegister cn, int imm8) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    bicflgs(cd, cn, imm8);
   }
 
   // Switch between A64 and C64. This does _not_ change the MacroAssembler's
@@ -6395,6 +6413,47 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     cmp(cn, cm);
+  }
+
+  // Copy to high.
+  // Note that this always clears the tag:
+  //    cd<128:0> = 0:xm<63:0>:cn<63:0>
+  void Cthi(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cthi(cd, cn, xm);
+  }
+
+  // Invert flags bits that are set in xm<63:56>.
+  // The flags field of a capability is bits <63:56>.
+  void Eorflgs(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    eorflgs(cd, cn, xm);
+  }
+
+  // Invert flags bits that are set in imm8<7:0>.
+  // The flags field of a capability is bits <63:56>.
+  void Eorflgs(CRegister cd, CRegister cn, int imm8) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    eorflgs(cd, cn, imm8);
+  }
+
+  // Invert flags bits that are set in xm<63:56>.
+  // The flags field of a capability is bits <63:56>.
+  void Orrflgs(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    orrflgs(cd, cn, xm);
+  }
+
+  // Invert flags bits that are set in imm8<7:0>.
+  // The flags field of a capability is bits <63:56>.
+  void Orrflgs(CRegister cd, CRegister cn, int imm8) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    orrflgs(cd, cn, imm8);
   }
 
   void Sub(CRegister cd, CRegister cn, const Operand& operand);
