@@ -9563,10 +9563,7 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloMiscCap0)                          \
   V(MorelloMiscCap1)                          \
   V(MorelloMiscCap2)                          \
-  V(MorelloSCFLGS)                            \
   V(MorelloSEAL)                              \
-  V(MorelloSetField1)                         \
-  V(MorelloSetField2)                         \
   V(MorelloStoreExclusive)                    \
   V(MorelloStorePairExclusive)                \
   V(MorelloSwap)
@@ -9830,6 +9827,66 @@ void Disassembler::VisitMorelloLogicalImm(const Instruction *instr) {
       break;
     default:
       form = "(MorelloLogicalImm)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloSCFLGS(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, 'Xm";
+
+  switch (instr->Mask(MorelloSCFLGSMask)) {
+    case SCFLGS_c_cr:
+      mnemonic = "scflgs";
+      break;
+    default:
+      form = "(MorelloSCFLGS)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloSetField1(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, 'Xm";
+
+  switch (instr->Mask(MorelloSetField1Mask)) {
+    case SCBNDS_c_cr:
+      mnemonic = "scbnds";
+      break;
+    case SCBNDSE_c_cr:
+      mnemonic = "scbndse";
+      break;
+    case SCVALUE_c_cr:
+      mnemonic = "scvalue";
+      break;
+    case SCOFF_c_cr:
+      mnemonic = "scoff";
+      break;
+    default:
+      form = "(MorelloSetField1)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloSetField2(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, 'Xm";
+
+  switch (instr->Mask(MorelloSetField2Mask)) {
+    case SCTAG_c_cr:
+      mnemonic = "sctag";
+      break;
+    case CLRPERM_c_cr:
+      mnemonic = "clrperm";
+      break;
+    default:
+      form = "(MorelloSetField2)";
       break;
   }
 

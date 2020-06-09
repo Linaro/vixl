@@ -122,6 +122,12 @@ void Assembler::cfhi(Register xd, CRegister cn) {
   Emit(CFHI_r_c | Rd(xd) | RnSP(cn));
 }
 
+void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(CLRPERM_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
 void Assembler::cmp(CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   subs(xzr, cn, cm);
@@ -267,6 +273,36 @@ void Assembler::orrflgs(CRegister cd, CRegister cn, Register xm) {
 void Assembler::orrflgs(CRegister cd, CRegister cn, int imm8) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(ORRFLGS_c_ci | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 13>(imm8));
+}
+
+void Assembler::scbnds(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(SCBNDS_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::scbndse(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(SCBNDSE_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::scflgs(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(SCFLGS_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::scoff(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(SCOFF_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::scvalue(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(SCVALUE_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
 }
 
 void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm12, int shift) {

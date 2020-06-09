@@ -320,7 +320,17 @@ TEST(morello_clrperm_c_ci_c) {
 TEST(morello_clrperm_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(clrperm(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(clrperm(c18, c19, x20), "clrperm c18, c19, x20");
+  COMPARE_MORELLO(clrperm(c18, c19, xzr), "clrperm c18, c19, xzr");
+  COMPARE_MORELLO(clrperm(c18, csp, x20), "clrperm c18, csp, x20");
+  COMPARE_MORELLO(clrperm(csp, c19, x20), "clrperm csp, c19, x20");
+  COMPARE_MORELLO(clrperm(c30, c30, x30), "clrperm c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Clrperm(c18, c19, x20), "clrperm c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Clrperm(c18, c19, w20), "clrperm c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Clrperm(csp, csp, xzr), "clrperm csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Clrperm(csp, csp, wzr), "clrperm csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Clrperm(c0, c0, x0), "clrperm c0, c0, x0");
 }
 
 TEST(morello_clrtag_c_c_c) {
@@ -741,31 +751,71 @@ TEST(morello_scbnds_c_ci_s) {
 TEST(morello_scbnds_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(scbnds(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(scbnds(c18, c19, x20), "scbnds c18, c19, x20");
+  COMPARE_MORELLO(scbnds(c18, c19, xzr), "scbnds c18, c19, xzr");
+  COMPARE_MORELLO(scbnds(c18, csp, x20), "scbnds c18, csp, x20");
+  COMPARE_MORELLO(scbnds(csp, c19, x20), "scbnds csp, c19, x20");
+  COMPARE_MORELLO(scbnds(c30, c30, x30), "scbnds c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Scbnds(c18, c19, x20), "scbnds c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Scbnds(csp, csp, xzr), "scbnds csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c0, x0), "scbnds c0, c0, x0");
 }
 
 TEST(morello_scbndse_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(scbndse(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(scbndse(c18, c19, x20), "scbndse c18, c19, x20");
+  COMPARE_MORELLO(scbndse(c18, c19, xzr), "scbndse c18, c19, xzr");
+  COMPARE_MORELLO(scbndse(c18, csp, x20), "scbndse c18, csp, x20");
+  COMPARE_MORELLO(scbndse(csp, c19, x20), "scbndse csp, c19, x20");
+  COMPARE_MORELLO(scbndse(c30, c30, x30), "scbndse c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Scbndse(c18, c19, x20), "scbndse c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Scbndse(csp, csp, xzr), "scbndse csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Scbndse(c0, c0, x0), "scbndse c0, c0, x0");
 }
 
 TEST(morello_scflgs_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(scflgs(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(scflgs(c18, c19, x20), "scflgs c18, c19, x20");
+  COMPARE_MORELLO(scflgs(c18, c19, xzr), "scflgs c18, c19, xzr");
+  COMPARE_MORELLO(scflgs(c18, csp, x20), "scflgs c18, csp, x20");
+  COMPARE_MORELLO(scflgs(csp, c19, x20), "scflgs csp, c19, x20");
+  COMPARE_MORELLO(scflgs(c30, c30, x30), "scflgs c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Scflgs(c18, c19, x20), "scflgs c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Scflgs(csp, csp, xzr), "scflgs csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Scflgs(c0, c0, x0), "scflgs c0, c0, x0");
 }
 
 TEST(morello_scoff_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(scoff(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(scoff(c18, c19, x20), "scoff c18, c19, x20");
+  COMPARE_MORELLO(scoff(c18, c19, xzr), "scoff c18, c19, xzr");
+  COMPARE_MORELLO(scoff(c18, csp, x20), "scoff c18, csp, x20");
+  COMPARE_MORELLO(scoff(csp, c19, x20), "scoff csp, c19, x20");
+  COMPARE_MORELLO(scoff(c30, c30, x30), "scoff c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Scoff(c18, c19, x20), "scoff c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Scoff(csp, csp, xzr), "scoff csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Scoff(c0, c0, x0), "scoff c0, c0, x0");
 }
 
 TEST(morello_scvalue_c_cr_c) {
   SETUP();
 
-  // COMPARE_MORELLO(scvalue(c0, c1, x2), "TODO");
+  COMPARE_MORELLO(scvalue(c18, c19, x20), "scvalue c18, c19, x20");
+  COMPARE_MORELLO(scvalue(c18, c19, xzr), "scvalue c18, c19, xzr");
+  COMPARE_MORELLO(scvalue(c18, csp, x20), "scvalue c18, csp, x20");
+  COMPARE_MORELLO(scvalue(csp, c19, x20), "scvalue csp, c19, x20");
+  COMPARE_MORELLO(scvalue(c30, c30, x30), "scvalue c30, c30, x30");
+
+  COMPARE_MACRO_MORELLO(Scvalue(c18, c19, x20), "scvalue c18, c19, x20");
+  COMPARE_MACRO_MORELLO(Scvalue(csp, csp, xzr), "scvalue csp, csp, xzr");
+  COMPARE_MACRO_MORELLO(Scvalue(c0, c0, x0), "scvalue c0, c0, x0");
 }
 
 TEST(morello_seal_c_cc_c) {

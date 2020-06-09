@@ -6409,6 +6409,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     bx(kInstructionSize);
   }
 
+  // Clear permissions bits that are set in xm<17:0>.
+  void Clrperm(CRegister cd, CRegister cn, Register rm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // Bits outside xm<17:0> are ignored, so we accept a W register here.
+    clrperm(cd, cn, rm.X());
+  }
+
   // Copy from high.
   void Cfhi(Register xd, CRegister cn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6583,6 +6591,37 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     orrflgs(cd, cn, imm8);
+  }
+
+  void Scbnds(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    scbnds(cd, cn, xm);
+  }
+
+  void Scbndse(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    scbndse(cd, cn, xm);
+  }
+
+  // Set flags field to xm<63:56>.
+  void Scflgs(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    scflgs(cd, cn, xm);
+  }
+
+  void Scoff(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    scoff(cd, cn, xm);
+  }
+
+  void Scvalue(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    scvalue(cd, cn, xm);
   }
 
   void Sub(CRegister cd, CRegister cn, const Operand& operand);
