@@ -9574,7 +9574,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloMiscCap2)                          \
   V(MorelloSCFLGS)                            \
   V(MorelloSEAL)                              \
-  V(MorelloSUBS)                              \
   V(MorelloSetField1)                         \
   V(MorelloSetField2)                         \
   V(MorelloStoreExclusive)                    \
@@ -9633,6 +9632,25 @@ void Disassembler::VisitMorelloAddSubCap(const Instruction *instr) {
       break;
     default:
       form = "(MorelloAddSubCap)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloSUBS(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(MorelloSUBS)";
+
+  switch (instr->Mask(MorelloSUBSMask)) {
+    case SUBS_r_cc:
+      if (instr->GetRd() == kZeroRegCode) {
+        mnemonic = "cmp";
+        form = "'cn, 'cm";
+      } else {
+        mnemonic = "subs";
+        form = "'Xd, 'cn, 'cm";
+      }
       break;
   }
 

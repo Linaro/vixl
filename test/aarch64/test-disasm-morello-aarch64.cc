@@ -596,9 +596,17 @@ TEST(morello_sub_c_cis_c) {
 TEST(morello_subs_r_cc_c) {
   SETUP();
 
-  // COMPARE_MORELLO(subs(x0, c1, c2), "TODO");
-}
+  COMPARE_MORELLO(subs(x0, c1, c2), "subs x0, c1, c2");
+  COMPARE_MORELLO(subs(xzr, c1, c2), "cmp c1, c2");
+  COMPARE_MORELLO(subs(x0, czr, c2), "subs x0, czr, c2");
+  COMPARE_MORELLO(subs(x0, c1, czr), "subs x0, c1, czr");
+  COMPARE_MORELLO(subs(x30, c30, c30), "subs x30, c30, c30");
+  // 'cmp' is an alias of 'subs'.
+  COMPARE_MORELLO(cmp(c4, c9), "cmp c4, c9");
 
+  COMPARE_MACRO_MORELLO(Subs(x0, c1, c2), "subs x0, c1, c2");
+  COMPARE_MACRO_MORELLO(Cmp(c4, c9), "cmp c4, c9");
+}
 
 TEST(morello_sub_macro) {
   SETUP();

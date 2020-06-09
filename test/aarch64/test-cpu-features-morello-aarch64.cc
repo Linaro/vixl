@@ -125,7 +125,7 @@ TEST_MORELLO(sub_0, sub(c0, c1, 0xb1f))
 TEST_MORELLO(sub_1, sub(c0, c1, 0xb1f, 0))
 TEST_MORELLO(sub_2, sub(c0, c1, 0x21c << 12))
 TEST_MORELLO(sub_3, sub(c0, c1, 0x21c, 12))
-// TEST_MORELLO(subs_0, subs(x0, c1, c2))
+TEST_MORELLO(subs_0, subs(x0, c1, c2))
 // TEST_MORELLO(unseal_0, unseal(c0, c1, c2))
 
 #define TEST_RNG_MORELLO(NAME, ASM)                                    \

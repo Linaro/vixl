@@ -93,6 +93,11 @@ void Assembler::bx(Label* label) {
   bx(kInstructionSize);
 }
 
+void Assembler::cmp(CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  subs(xzr, cn, cm);
+}
+
 void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm12, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // Morello's `sub` only has an immediate form.
@@ -111,6 +116,12 @@ void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm) {
     return;
   }
   VIXL_ABORT();
+}
+
+void Assembler::subs(Register xd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xd.IsX());
+  Emit(SUBS_r_cc | Rd(xd) | Rn(cn) | Rm(cm));
 }
 
 }  // namespace aarch64

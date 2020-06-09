@@ -6379,7 +6379,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     bx(kInstructionSize);
   }
 
+  void Cmp(CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cmp(cn, cm);
+  }
+
   void Sub(CRegister cd, CRegister cn, const Operand& operand);
+
+  void Subs(Register xd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    subs(xd, cn, cm);
+  }
 
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
