@@ -284,7 +284,14 @@ TEST(morello_cfhi_r_c_c) {
 TEST(morello_chkeq_cc_c) {
   SETUP();
 
-  // COMPARE_MORELLO(chkeq(c0, c1), "TODO");
+  COMPARE_MORELLO(chkeq(c0, c1), "chkeq c0, c1");
+  COMPARE_MORELLO(chkeq(c0, czr), "chkeq c0, czr");
+  COMPARE_MORELLO(chkeq(csp, c1), "chkeq csp, c1");
+  COMPARE_MORELLO(chkeq(c30, c30), "chkeq c30, c30");
+
+  COMPARE_MACRO_MORELLO(Chkeq(c0, c1), "chkeq c0, c1");
+  COMPARE_MACRO_MORELLO(Chkeq(csp, czr), "chkeq csp, czr");
+  COMPARE_MACRO_MORELLO(Chkeq(c29, c28), "chkeq c29, c28");
 }
 
 TEST(morello_chksld_c_c) {
@@ -296,7 +303,14 @@ TEST(morello_chksld_c_c) {
 TEST(morello_chkss_cc_c) {
   SETUP();
 
-  // COMPARE_MORELLO(chkss(c0, c1), "TODO");
+  COMPARE_MORELLO(chkss(c0, c1), "chkss c0, c1");
+  COMPARE_MORELLO(chkss(c0, csp), "chkss c0, csp");
+  COMPARE_MORELLO(chkss(csp, c1), "chkss csp, c1");
+  COMPARE_MORELLO(chkss(c30, c30), "chkss c30, c30");
+
+  COMPARE_MACRO_MORELLO(Chkss(c0, c1), "chkss c0, c1");
+  COMPARE_MACRO_MORELLO(Chkss(csp, csp), "chkss csp, csp");
+  COMPARE_MACRO_MORELLO(Chkss(c29, c28), "chkss c29, c28");
 }
 
 TEST(morello_chkssu_c_cc_c) {

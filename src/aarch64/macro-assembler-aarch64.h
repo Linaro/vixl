@@ -6424,6 +6424,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     cfhi(xd, cn);
   }
 
+  void Chkeq(CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    chkeq(cn, cm);
+  }
+
+  void Chkss(CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    chkss(cn, cm);
+  }
+
   void Cmp(CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

@@ -6525,6 +6525,11 @@ class Assembler : public vixl::internal::AssemblerBase {
     return (rm.GetCode() & kRegCodeMask) << Rm_offset;
   }
 
+  static Instr RmSP(CRegister cm) {
+    VIXL_ASSERT(!cm.IsZero());
+    return (cm.GetCode() & kRegCodeMask) << Rm_offset;
+  }
+
   static Instr Pd(PRegister pd) {
     return Rx<Pd_offset + Pd_width - 1, Pd_offset>(pd);
   }

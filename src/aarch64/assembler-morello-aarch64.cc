@@ -122,6 +122,16 @@ void Assembler::cfhi(Register xd, CRegister cn) {
   Emit(CFHI_r_c | Rd(xd) | RnSP(cn));
 }
 
+void Assembler::chkeq(CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CHKEQ_cc | RnSP(cn) | Rm(cm));
+}
+
+void Assembler::chkss(CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CHKSS_cc | RnSP(cn) | RmSP(cm));
+}
+
 void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());
