@@ -9535,11 +9535,7 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloChecks)                            \
   V(MorelloCLRPERMImm)                        \
   V(MorelloCompareAndSwap)                    \
-  V(MorelloConvertToCap)                      \
-  V(MorelloConvertToCapWithImplicitOperand)   \
-  V(MorelloConvertToPointer)                  \
   V(MorelloCSEL)                              \
-  V(MorelloCVT)                               \
   V(MorelloGetSetSystemRegister)              \
   V(MorelloImmBounds)                         \
   V(MorelloLDAPR)                             \
@@ -9673,6 +9669,86 @@ void Disassembler::VisitMorelloAlignment(const Instruction *instr) {
       break;
     default:
       form = "(MorelloAlignment)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloConvertToCap(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cd, 'cns, 'Xm";
+
+  switch (instr->Mask(MorelloConvertToCapMask)) {
+    case CVT_c_cr:
+      mnemonic = "cvt";
+      break;
+    case CVTZ_c_cr:
+      mnemonic = "cvtz";
+      break;
+    default:
+      form = "(MorelloConvertToCap)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloConvertToCapWithImplicitOperand(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cd, 'Xn";
+
+  switch (instr->Mask(MorelloConvertToCapWithImplicitOperandMask)) {
+    case CVTD_c_r:
+      mnemonic = "cvtd";
+      break;
+    case CVTDZ_c_r:
+      mnemonic = "cvtdz";
+      break;
+    case CVTP_c_r:
+      mnemonic = "cvtp";
+      break;
+    case CVTPZ_c_r:
+      mnemonic = "cvtpz";
+      break;
+    default:
+      form = "(MorelloConvertToCapWithImplicitOperand)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloConvertToPointer(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Xd, 'cns";
+
+  switch (instr->Mask(MorelloConvertToPointerMask)) {
+    case CVTD_r_c:
+      mnemonic = "cvtd";
+      break;
+    case CVTP_r_c:
+      mnemonic = "cvtp";
+      break;
+    default:
+      form = "(MorelloConvertToPointer)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloCVT(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Xd, 'cns, 'cm";
+
+  switch (instr->Mask(MorelloCVTMask)) {
+    case CVT_r_cc:
+      mnemonic = "cvt";
+      break;
+    default:
+      form = "(MorelloCVT)";
       break;
   }
 

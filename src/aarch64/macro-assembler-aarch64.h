@@ -6431,6 +6431,60 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     cthi(cd, cn, xm);
   }
 
+  void Cvt(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvt(cd, cn, xm);
+  }
+
+  void Cvt(Register xd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvt(xd, cn, cm);
+  }
+
+  void Cvtd(CRegister cd, Register xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtd(cd, xn);
+  }
+
+  void Cvtd(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtd(xd, cn);
+  }
+
+  void Cvtdz(CRegister cd, Register xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtdz(cd, xn);
+  }
+
+  void Cvtp(CRegister cd, Register xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtp(cd, xn);
+  }
+
+  void Cvtp(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtp(xd, cn);
+  }
+
+  void Cvtpz(CRegister cd, Register xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtpz(cd, xn);
+  }
+
+  void Cvtz(CRegister cd, CRegister cn, Register xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cvtz(cd, cn, xm);
+  }
+
   // Invert flags bits that are set in xm<63:56>.
   // The flags field of a capability is bits <63:56>.
   void Eorflgs(CRegister cd, CRegister cn, Register xm) {

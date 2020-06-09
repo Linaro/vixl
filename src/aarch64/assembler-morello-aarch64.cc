@@ -133,6 +133,60 @@ void Assembler::cthi(CRegister cd, CRegister cn, Register xm) {
   Emit(CTHI_c_cr | RdSP(cd) | Rn(cn) | Rm(xm));
 }
 
+void Assembler::cvt(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(CVT_c_cr | Rd(cd) | RnSP(cn) | Rm(xm));
+}
+
+void Assembler::cvt(Register xd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xd.IsX());
+  Emit(CVT_r_cc | Rd(xd) | RnSP(cn) | Rm(cm));
+}
+
+void Assembler::cvtd(CRegister cd, Register xn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xn.IsX());
+  Emit(CVTD_c_r | Rd(cd) | Rn(xn));
+}
+
+void Assembler::cvtd(Register xd, CRegister cn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xd.IsX());
+  Emit(CVTD_r_c | Rd(xd) | RnSP(cn));
+}
+
+void Assembler::cvtdz(CRegister cd, Register xn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xn.IsX());
+  Emit(CVTDZ_c_r | Rd(cd) | Rn(xn));
+}
+
+void Assembler::cvtp(CRegister cd, Register xn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xn.IsX());
+  Emit(CVTP_c_r | Rd(cd) | Rn(xn));
+}
+
+void Assembler::cvtp(Register xd, CRegister cn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xd.IsX());
+  Emit(CVTP_r_c | Rd(xd) | RnSP(cn));
+}
+
+void Assembler::cvtpz(CRegister cd, Register xn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xn.IsX());
+  Emit(CVTPZ_c_r | Rd(cd) | Rn(xn));
+}
+
+void Assembler::cvtz(CRegister cd, CRegister cn, Register xm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xm.IsX());
+  Emit(CVTZ_c_cr | Rd(cd) | RnSP(cn) | Rm(xm));
+}
+
 void Assembler::eorflgs(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());
