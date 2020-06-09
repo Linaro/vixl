@@ -273,7 +273,12 @@ TEST(morello_bx_c) {
 TEST(morello_cfhi_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(cfhi(x0, c1), "TODO");
+  COMPARE_MORELLO(cfhi(x14, c15), "cfhi x14, c15");
+  COMPARE_MORELLO(cfhi(x14, csp), "cfhi x14, csp");
+  COMPARE_MORELLO(cfhi(xzr, c15), "cfhi xzr, c15");
+  COMPARE_MORELLO(cfhi(x30, c30), "cfhi x30, c30");
+
+  COMPARE_MACRO_MORELLO(Cfhi(x30, c30), "cfhi x30, c30");
 }
 
 TEST(morello_chkeq_cc_c) {
@@ -450,61 +455,131 @@ TEST(morello_eorflgs_c_cr_c) {
 TEST(morello_gcbase_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gcbase(x0, c1), "TODO");
+  COMPARE_MORELLO(gcbase(x15, c13), "gcbase x15, c13");
+  COMPARE_MORELLO(gcbase(x15, csp), "gcbase x15, csp");
+  COMPARE_MORELLO(gcbase(xzr, c13), "gcbase xzr, c13");
+  COMPARE_MORELLO(gcbase(x30, c30), "gcbase x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gcbase(x30, c30), "gcbase x30, c30");
 }
 
 TEST(morello_gcflgs_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gcflgs(x0, c1), "TODO");
+  COMPARE_MORELLO(gcflgs(x15, c13), "gcflgs x15, c13");
+  COMPARE_MORELLO(gcflgs(x15, csp), "gcflgs x15, csp");
+  COMPARE_MORELLO(gcflgs(xzr, c13), "gcflgs xzr, c13");
+  COMPARE_MORELLO(gcflgs(x30, c30), "gcflgs x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gcflgs(x30, c30), "gcflgs x30, c30");
 }
 
 TEST(morello_gclen_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gclen(x0, c1), "TODO");
+  COMPARE_MORELLO(gclen(x15, c13), "gclen x15, c13");
+  COMPARE_MORELLO(gclen(x15, csp), "gclen x15, csp");
+  COMPARE_MORELLO(gclen(xzr, c13), "gclen xzr, c13");
+  COMPARE_MORELLO(gclen(x30, c30), "gclen x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gclen(x30, c30), "gclen x30, c30");
 }
 
 TEST(morello_gclim_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gclim(x0, c1), "TODO");
+  COMPARE_MORELLO(gclim(x15, c13), "gclim x15, c13");
+  COMPARE_MORELLO(gclim(x15, csp), "gclim x15, csp");
+  COMPARE_MORELLO(gclim(xzr, c13), "gclim xzr, c13");
+  COMPARE_MORELLO(gclim(x30, c30), "gclim x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gclim(x30, c30), "gclim x30, c30");
 }
 
 TEST(morello_gcoff_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gcoff(x0, c1), "TODO");
+  COMPARE_MORELLO(gcoff(x15, c13), "gcoff x15, c13");
+  COMPARE_MORELLO(gcoff(x15, csp), "gcoff x15, csp");
+  COMPARE_MORELLO(gcoff(xzr, c13), "gcoff xzr, c13");
+  COMPARE_MORELLO(gcoff(x30, c30), "gcoff x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gcoff(x30, c30), "gcoff x30, c30");
 }
 
 TEST(morello_gcperm_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gcperm(x0, c1), "TODO");
+  COMPARE_MORELLO(gcperm(x15, c13), "gcperm x15, c13");
+  COMPARE_MORELLO(gcperm(x15, csp), "gcperm x15, csp");
+  COMPARE_MORELLO(gcperm(xzr, c13), "gcperm xzr, c13");
+  COMPARE_MORELLO(gcperm(x30, c30), "gcperm x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gcperm(x15, c13), "gcperm x15, c13");
+  COMPARE_MACRO_MORELLO(Gcperm(w15, c13), "gcperm x15, c13");
+  COMPARE_MACRO_MORELLO(Gcperm(w30, c30), "gcperm x30, c30");
+  COMPARE_MACRO_MORELLO(Gcperm(xzr, c13), "gcperm xzr, c13");
+  COMPARE_MACRO_MORELLO(Gcperm(wzr, c13), "gcperm xzr, c13");
+  COMPARE_MACRO_MORELLO(Gcperm(wzr, csp), "gcperm xzr, csp");
 }
 
 TEST(morello_gcseal_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gcseal(x0, c1), "TODO");
+  COMPARE_MORELLO(gcseal(x15, c13), "gcseal x15, c13");
+  COMPARE_MORELLO(gcseal(x15, csp), "gcseal x15, csp");
+  COMPARE_MORELLO(gcseal(xzr, c13), "gcseal xzr, c13");
+  COMPARE_MORELLO(gcseal(x30, c30), "gcseal x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gcseal(x15, c13), "gcseal x15, c13");
+  COMPARE_MACRO_MORELLO(Gcseal(w15, c13), "gcseal x15, c13");
+  COMPARE_MACRO_MORELLO(Gcseal(w30, c30), "gcseal x30, c30");
+  COMPARE_MACRO_MORELLO(Gcseal(xzr, c13), "gcseal xzr, c13");
+  COMPARE_MACRO_MORELLO(Gcseal(wzr, c13), "gcseal xzr, c13");
+  COMPARE_MACRO_MORELLO(Gcseal(wzr, csp), "gcseal xzr, csp");
 }
 
 TEST(morello_gctag_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gctag(x0, c1), "TODO");
+  COMPARE_MORELLO(gctag(x15, c13), "gctag x15, c13");
+  COMPARE_MORELLO(gctag(x15, csp), "gctag x15, csp");
+  COMPARE_MORELLO(gctag(xzr, c13), "gctag xzr, c13");
+  COMPARE_MORELLO(gctag(x30, c30), "gctag x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gctag(x15, c13), "gctag x15, c13");
+  COMPARE_MACRO_MORELLO(Gctag(w15, c13), "gctag x15, c13");
+  COMPARE_MACRO_MORELLO(Gctag(w30, c30), "gctag x30, c30");
+  COMPARE_MACRO_MORELLO(Gctag(xzr, c13), "gctag xzr, c13");
+  COMPARE_MACRO_MORELLO(Gctag(wzr, c13), "gctag xzr, c13");
+  COMPARE_MACRO_MORELLO(Gctag(wzr, csp), "gctag xzr, csp");
 }
 
 TEST(morello_gctype_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gctype(x0, c1), "TODO");
+  COMPARE_MORELLO(gctype(x15, c13), "gctype x15, c13");
+  COMPARE_MORELLO(gctype(x15, csp), "gctype x15, csp");
+  COMPARE_MORELLO(gctype(xzr, c13), "gctype xzr, c13");
+  COMPARE_MORELLO(gctype(x30, c30), "gctype x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gctype(x15, c13), "gctype x15, c13");
+  COMPARE_MACRO_MORELLO(Gctype(w15, c13), "gctype x15, c13");
+  COMPARE_MACRO_MORELLO(Gctype(w30, c30), "gctype x30, c30");
+  COMPARE_MACRO_MORELLO(Gctype(xzr, c13), "gctype xzr, c13");
+  COMPARE_MACRO_MORELLO(Gctype(wzr, c13), "gctype xzr, c13");
+  COMPARE_MACRO_MORELLO(Gctype(wzr, csp), "gctype xzr, csp");
 }
 
 TEST(morello_gcvalue_r_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(gcvalue(x0, c1), "TODO");
+  COMPARE_MORELLO(gcvalue(x15, c13), "gcvalue x15, c13");
+  COMPARE_MORELLO(gcvalue(x15, csp), "gcvalue x15, csp");
+  COMPARE_MORELLO(gcvalue(xzr, c13), "gcvalue xzr, c13");
+  COMPARE_MORELLO(gcvalue(x30, c30), "gcvalue x30, c30");
+
+  COMPARE_MACRO_MORELLO(Gcvalue(x30, c30), "gcvalue x30, c30");
 }
 
 TEST(morello_mrs_c_i_c) {

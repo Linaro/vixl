@@ -6409,6 +6409,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     bx(kInstructionSize);
   }
 
+  // Copy from high.
+  void Cfhi(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cfhi(xd, cn);
+  }
+
   void Cmp(CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6438,6 +6445,74 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     eorflgs(cd, cn, imm8);
+  }
+
+  void Gcbase(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcbase(xd, cn);
+  }
+
+  void Gclen(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gclen(xd, cn);
+  }
+
+  void Gclim(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gclim(xd, cn);
+  }
+
+  void Gcflgs(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // Note that the flags field is written to xd<63:56>, so xd must be an X
+    // register.
+    gcflgs(xd, cn);
+  }
+
+  void Gcoff(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcoff(xd, cn);
+  }
+
+  void Gcperm(Register rd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // The perms field is written (zero-extended) to xd<17:0>, so we accept a W
+    // register here.
+    gcperm(rd.X(), cn);
+  }
+
+  void Gcseal(Register rd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // The result is either 0 or 1, so we accept a W register here.
+    gcseal(rd.X(), cn);
+  }
+
+  void Gctag(Register rd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // The result is either 0 or 1, so we accept a W register here.
+    gctag(rd.X(), cn);
+  }
+
+  void Gctype(Register rd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // The type field is written (zero-extended) to xd<14:0>, so we accept a W
+    // register here.
+    gctype(rd.X(), cn);
+  }
+
+  void Gcvalue(Register xd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcvalue(xd, cn);
   }
 
   // Invert flags bits that are set in xm<63:56>.

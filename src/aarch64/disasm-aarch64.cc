@@ -9540,8 +9540,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloConvertToPointer)                  \
   V(MorelloCSEL)                              \
   V(MorelloCVT)                               \
-  V(MorelloGetField1)                         \
-  V(MorelloGetField2)                         \
   V(MorelloGetSetSystemRegister)              \
   V(MorelloImmBounds)                         \
   V(MorelloLDAPR)                             \
@@ -9675,6 +9673,65 @@ void Disassembler::VisitMorelloAlignment(const Instruction *instr) {
       break;
     default:
       form = "(MorelloAlignment)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloGetField1(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Xd, 'cns";
+
+  switch (instr->Mask(MorelloGetField1Mask)) {
+    case GCBASE_r_c:
+      mnemonic = "gcbase";
+      break;
+    case GCLEN_r_c:
+      mnemonic = "gclen";
+      break;
+    case GCVALUE_r_c:
+      mnemonic = "gcvalue";
+      break;
+    case GCOFF_r_c:
+      mnemonic = "gcoff";
+      break;
+    case GCTAG:
+      mnemonic = "gctag";
+      break;
+    case GCSEAL_r_c:
+      mnemonic = "gcseal";
+      break;
+    case GCPERM_r_c:
+      mnemonic = "gcperm";
+      break;
+    case GCTYPE_r_c:
+      mnemonic = "gctype";
+      break;
+    default:
+      form = "(MorelloGetField1)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloGetField2(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Xd, 'cns";
+
+  switch (instr->Mask(MorelloGetField2Mask)) {
+    case GCLIM_r_c:
+      mnemonic = "gclim";
+      break;
+    case GCFLGS_r_c:
+      mnemonic = "gcflgs";
+      break;
+    case CFHI_r_c:
+      mnemonic = "cfhi";
+      break;
+    default:
+      form = "(MorelloGetField2)";
       break;
   }
 
