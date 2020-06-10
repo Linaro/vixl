@@ -6454,6 +6454,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     brs(cd, cn, cm);
   }
 
+  void Build(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    build(cd, cn, cm);
+  }
+
   // Switch between A64 and C64. This does _not_ change the MacroAssembler's
   // target ISA.
   // TODO: Should it?
@@ -6500,6 +6506,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     cmp(cn, cm);
+  }
+
+  void Cpytype(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpytype(cd, cn, cm);
+  }
+
+  void Cpyvalue(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyvalue(cd, cn, cm);
+  }
+
+  void Cseal(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cseal(cd, cn, cm);
   }
 
   // Copy to high.

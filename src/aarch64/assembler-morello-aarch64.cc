@@ -135,6 +135,11 @@ void Assembler::brs(CRegister cd, CRegister cn, CRegister cm) {
   Emit(BRS_c_c | Rn(cn) | Rm(cm));
 }
 
+void Assembler::build(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(BUILD_c_c | RdSP(cd) | RnSP(cn) | RmSP(cm));
+}
+
 void Assembler::bx(ptrdiff_t offset_in_bytes) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(offset_in_bytes == kInstructionSize);
@@ -190,6 +195,21 @@ void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {
 void Assembler::cmp(CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   subs(xzr, cn, cm);
+}
+
+void Assembler::cpytype(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CPYTYPE_c_c | Rd(cd) | Rn(cn) | Rm(cm));
+}
+
+void Assembler::cpyvalue(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CPYVALUE_c_c | Rd(cd) | Rn(cn) | Rm(cm));
+}
+
+void Assembler::cseal(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CSEAL_c_c | RdSP(cd) | RnSP(cn) | RmSP(cm));
 }
 
 void Assembler::cthi(CRegister cd, CRegister cn, Register xm) {

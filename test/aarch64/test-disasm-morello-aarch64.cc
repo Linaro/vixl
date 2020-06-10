@@ -304,7 +304,14 @@ TEST(morello_brs_c_c_c) {
 TEST(morello_build_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(build(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(build(c0, c1, c2), "build c0, c1, c2");
+  COMPARE_MORELLO(build(c0, c1, csp), "build c0, c1, csp");
+  COMPARE_MORELLO(build(c0, csp, c2), "build c0, csp, c2");
+  COMPARE_MORELLO(build(csp, c1, c2), "build csp, c1, c2");
+  COMPARE_MORELLO(build(c30, c30, c30), "build c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Build(c0, c1, c2), "build c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Build(csp, csp, csp), "build csp, csp, csp");
 }
 
 TEST(morello_bx_c) {
@@ -414,19 +421,40 @@ TEST(morello_cpy_c_c_c) {
 TEST(morello_cpytype_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(cpytype(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(cpytype(c0, c1, c2), "cpytype c0, c1, c2");
+  COMPARE_MORELLO(cpytype(c0, c1, czr), "cpytype c0, c1, czr");
+  COMPARE_MORELLO(cpytype(c0, czr, c2), "cpytype c0, czr, c2");
+  COMPARE_MORELLO(cpytype(czr, c1, c2), "cpytype czr, c1, c2");
+  COMPARE_MORELLO(cpytype(c30, c30, c30), "cpytype c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Cpytype(c0, c1, c2), "cpytype c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Cpytype(czr, czr, czr), "cpytype czr, czr, czr");
 }
 
 TEST(morello_cpyvalue_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(cpyvalue(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(cpyvalue(c0, c1, c2), "cpyvalue c0, c1, c2");
+  COMPARE_MORELLO(cpyvalue(c0, c1, czr), "cpyvalue c0, c1, czr");
+  COMPARE_MORELLO(cpyvalue(c0, czr, c2), "cpyvalue c0, czr, c2");
+  COMPARE_MORELLO(cpyvalue(czr, c1, c2), "cpyvalue czr, c1, c2");
+  COMPARE_MORELLO(cpyvalue(c30, c30, c30), "cpyvalue c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Cpyvalue(c0, c1, c2), "cpyvalue c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Cpyvalue(czr, czr, czr), "cpyvalue czr, czr, czr");
 }
 
 TEST(morello_cseal_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(cseal(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(cseal(c0, c1, c2), "cseal c0, c1, c2");
+  COMPARE_MORELLO(cseal(c0, c1, csp), "cseal c0, c1, csp");
+  COMPARE_MORELLO(cseal(c0, csp, c2), "cseal c0, csp, c2");
+  COMPARE_MORELLO(cseal(csp, c1, c2), "cseal csp, c1, c2");
+  COMPARE_MORELLO(cseal(c30, c30, c30), "cseal c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Cseal(c0, c1, c2), "cseal c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Cseal(csp, csp, csp), "cseal csp, csp, csp");
 }
 
 TEST(morello_csel_c_ci_c) {
