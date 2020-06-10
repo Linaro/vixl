@@ -470,7 +470,17 @@ TEST(morello_cseal_c_c_c) {
 TEST(morello_csel_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(csel(c0, c1, c2, hi), "TODO");
+  COMPARE_MORELLO(csel(c0, c1, c2, pl), "csel c0, c1, c2, pl");
+  COMPARE_MORELLO(csel(c0, c1, c2, eq), "csel c0, c1, c2, eq");
+  COMPARE_MORELLO(csel(c0, c1, c2, nv), "csel c0, c1, c2, nv");
+  COMPARE_MORELLO(csel(c0, c1, czr, pl), "csel c0, c1, czr, pl");
+  COMPARE_MORELLO(csel(c0, czr, c2, pl), "csel c0, czr, c2, pl");
+  COMPARE_MORELLO(csel(czr, c1, c2, pl), "csel czr, c1, c2, pl");
+  COMPARE_MORELLO(csel(c30, c30, c30, pl), "csel c30, c30, c30, pl");
+
+  COMPARE_MACRO_MORELLO(Csel(c0, c1, c2, pl), "csel c0, c1, c2, pl");
+  COMPARE_MACRO_MORELLO(Csel(czr, czr, czr, pl), "csel czr, czr, czr, pl");
+  COMPARE_MACRO_MORELLO(Csel(c30, c30, c30, pl), "csel c30, c30, c30, pl");
 }
 
 TEST(morello_cthi_c_cr_c) {

@@ -222,6 +222,11 @@ void Assembler::cseal(CRegister cd, CRegister cn, CRegister cm) {
   Emit(CSEAL_c_c | RdSP(cd) | RnSP(cn) | RmSP(cm));
 }
 
+void Assembler::csel(CRegister cd, CRegister cn, CRegister cm, Condition cond) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CSEL_c_ci | Rd(cd) | Rn(cn) | Rm(cm) | Cond(cond));
+}
+
 void Assembler::cthi(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());

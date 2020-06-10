@@ -6538,6 +6538,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     cseal(cd, cn, cm);
   }
 
+  void Csel(CRegister cd, CRegister cn, CRegister cm, Condition cond) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    csel(cd, cn, cm, cond);
+  }
+
   // Copy to high.
   // Note that this always clears the tag:
   //    cd<128:0> = 0:xm<63:0>:cn<63:0>

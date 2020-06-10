@@ -9528,7 +9528,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloBranchSealedIndirect)              \
   V(MorelloCLRPERMImm)                        \
   V(MorelloCompareAndSwap)                    \
-  V(MorelloCSEL)                              \
   V(MorelloGetSetSystemRegister)              \
   V(MorelloImmBounds)                         \
   V(MorelloLDAPR)                             \
@@ -9882,6 +9881,22 @@ void Disassembler::VisitMorelloCVT(const Instruction *instr) {
       break;
     default:
       form = "(MorelloCVT)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloCSEL(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cd, 'cn, 'cm, 'Cond";
+
+  switch (instr->Mask(MorelloCSELMask)) {
+    case CSEL_c_ci:
+      mnemonic = "csel";
+      break;
+    default:
+      form = "(MorelloCSEL)";
       break;
   }
 
