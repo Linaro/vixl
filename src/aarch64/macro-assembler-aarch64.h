@@ -6424,6 +6424,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     blrs(cn);
   }
 
+  void Blrs(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blrs(cd, cn, cm);
+  }
+
   void Br(CRegister cn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6440,6 +6446,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     brs(cn);
+  }
+
+  void Brs(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    brs(cd, cn, cm);
   }
 
   // Switch between A64 and C64. This does _not_ change the MacroAssembler's
@@ -6670,6 +6682,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     rets(cn);
+  }
+
+  void Rets(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    rets(cd, cn, cm);
   }
 
   void Rrlen(Register xd, Register xn) {

@@ -106,6 +106,13 @@ void Assembler::blrs(CRegister cn) {
   Emit(BLRS_c | Rn(cn));
 }
 
+void Assembler::blrs(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(cd.Is(c29));
+  USE(cd);
+  Emit(BLRS_c_c | Rn(cn) | Rm(cm));
+}
+
 void Assembler::br(CRegister cn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(BR_c | Rn(cn));
@@ -119,6 +126,13 @@ void Assembler::brr(CRegister cn) {
 void Assembler::brs(CRegister cn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(BRS_c | Rn(cn));
+}
+
+void Assembler::brs(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(cd.Is(c29));
+  USE(cd);
+  Emit(BRS_c_c | Rn(cn) | Rm(cm));
 }
 
 void Assembler::bx(ptrdiff_t offset_in_bytes) {
@@ -333,6 +347,13 @@ void Assembler::retr(CRegister cn) {
 void Assembler::rets(CRegister cn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(RETS_c | Rn(cn));
+}
+
+void Assembler::rets(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(cd.Is(c29));
+  USE(cd);
+  Emit(RETS_c_c | Rn(cn) | Rm(cm));
 }
 
 void Assembler::rrlen(Register xd, Register xn) {

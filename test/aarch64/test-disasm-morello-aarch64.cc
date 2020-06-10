@@ -239,7 +239,14 @@ TEST(morello_blrs_c_c) {
 TEST(morello_blrs_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(blrs(C29, c0, c1), "TODO");
+  // The destination must be c29.
+  COMPARE_MORELLO(blrs(c29, c0, c1), "blrs c29, c0, c1");
+  COMPARE_MORELLO(blrs(c29, c0, czr), "blrs c29, c0, czr");
+  COMPARE_MORELLO(blrs(c29, czr, c1), "blrs c29, czr, c1");
+  COMPARE_MORELLO(blrs(c29, c29, c29), "blrs c29, c29, c29");
+
+  COMPARE_MACRO_MORELLO(Blrs(c29, c0, c1), "blrs c29, c0, c1");
+  COMPARE_MACRO_MORELLO(Blrs(c29, czr, czr), "blrs c29, czr, czr");
 }
 
 TEST(morello_br_c_c) {
@@ -284,7 +291,14 @@ TEST(morello_brs_c_c) {
 TEST(morello_brs_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(brs(C29, c0, c1), "TODO");
+  // The destination must be c29.
+  COMPARE_MORELLO(brs(c29, c0, c1), "brs c29, c0, c1");
+  COMPARE_MORELLO(brs(c29, c0, czr), "brs c29, c0, czr");
+  COMPARE_MORELLO(brs(c29, czr, c1), "brs c29, czr, c1");
+  COMPARE_MORELLO(brs(c29, c29, c29), "brs c29, c29, c29");
+
+  COMPARE_MACRO_MORELLO(Brs(c29, c0, c1), "brs c29, c0, c1");
+  COMPARE_MACRO_MORELLO(Brs(c29, czr, czr), "brs c29, czr, czr");
 }
 
 TEST(morello_build_c_c_c) {
@@ -795,7 +809,14 @@ TEST(morello_rets_c_c) {
 TEST(morello_rets_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(rets(C29, c0, c1), "TODO");
+  // The destination must be c29.
+  COMPARE_MORELLO(rets(c29, c0, c1), "rets c29, c0, c1");
+  COMPARE_MORELLO(rets(c29, c0, czr), "rets c29, c0, czr");
+  COMPARE_MORELLO(rets(c29, czr, c1), "rets c29, czr, c1");
+  COMPARE_MORELLO(rets(c29, c29, c29), "rets c29, c29, c29");
+
+  COMPARE_MACRO_MORELLO(Rets(c29, c0, c1), "rets c29, c0, c1");
+  COMPARE_MACRO_MORELLO(Rets(c29, czr, czr), "rets c29, czr, czr");
 }
 
 TEST(morello_rrlen_r_r_c) {
