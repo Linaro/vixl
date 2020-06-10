@@ -9552,7 +9552,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLoadStoreUnscaledImmediateAltBase) \
   V(MorelloLoadStoreUnsignedOffset)           \
   V(MorelloLoadStoreUnsignedOffsetAltBase)    \
-  V(MorelloMiscCap0)                          \
   V(MorelloSEAL)                              \
   V(MorelloStoreExclusive)                    \
   V(MorelloStorePairExclusive)                \
@@ -9978,6 +9977,26 @@ void Disassembler::VisitMorelloLogicalImm(const Instruction *instr) {
       break;
     default:
       form = "(MorelloLogicalImm)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloMiscCap0(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns";
+
+  switch (instr->Mask(MorelloMiscCap0Mask)) {
+    case CPY_c_c:
+      // `cpy` always disassembles to `mov`.
+      mnemonic = "mov";
+      break;
+    case CLRTAG_c_c:
+      mnemonic = "clrtag";
+      break;
+    default:
+      form = "(MorelloMiscCap0)";
       break;
   }
 

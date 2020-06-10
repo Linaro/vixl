@@ -202,9 +202,19 @@ void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {
   Emit(CLRPERM_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
 }
 
+void Assembler::clrtag(CRegister cd, CRegister cn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CLRTAG_c_c | RdSP(cd) | RnSP(cn));
+}
+
 void Assembler::cmp(CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   subs(xzr, cn, cm);
+}
+
+void Assembler::cpy(CRegister cd, CRegister cn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CPY_c_c | RdSP(cd) | RnSP(cn));
 }
 
 void Assembler::cpytype(CRegister cd, CRegister cn, CRegister cm) {

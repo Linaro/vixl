@@ -24,6 +24,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+namespace vixl {
+namespace aarch64 {
+
 #define TEST(name) TEST_(AARCH64_DISASM_##name)
 
 #define SETUP_COMMON()                                \
@@ -184,3 +187,21 @@
 #define COMPARE_MACRO_PREFIX(ASM, EXP) COMPARE_MACRO_PREFIX_A64(ASM, EXP)
 
 #define CLEANUP()
+
+// Some tests need to do things that aren't possible in a single call. This
+// MacroAssembler replacement allows that, via callbacks.
+class DisasmTestUtilMacroAssembler : public MacroAssembler {
+ public:
+  // Call `fn` with only the specified features enabled.
+  // Disassembler tests, by default, run with all features enabled. This allows
+  // tests to be more specific, in case the absence of a feature can result in
+  // different behaviour.
+  void WithCPUFeatures(std::function<void()> fn, CPUFeatures cpu) {
+    CPUFeaturesScope scope(this);
+    scope.SetCPUFeatures(cpu);
+    fn();
+  }
+};
+
+}  // namespace aarch64
+}  // namespace vixl

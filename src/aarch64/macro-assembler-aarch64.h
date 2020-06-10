@@ -632,7 +632,18 @@ enum BranchType {
 };
 
 
-enum DiscardMoveMode { kDontDiscardForSameWReg, kDiscardForSameWReg };
+enum DiscardMoveMode {
+  // Keep moves like `mov w0, w0`, which write outside the W view of the
+  // register. Same-register moves that don't write outside their view, like
+  // `mov c0, c0`, will still be discarded.
+  kKeepExtendingMoves,
+  // Discard moves like `mov w0, w0`. Use this to elide the move if the result
+  // will only be used as `w0`.
+  kDiscardForSameReg,
+  // Kept for backwards-compatibility.
+  kDontDiscardForSameWReg = kKeepExtendingMoves,
+  kDiscardForSameWReg = kDiscardForSameReg,
+};
 
 // The macro assembler supports moving automatically pre-shifted immediates for
 // arithmetic and logical instructions, and then applying a post shift in the
@@ -779,7 +790,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Mov(const Register& rd, uint64_t imm);
   void Mov(const Register& rd,
            const Operand& operand,
-           DiscardMoveMode discard_mode = kDontDiscardForSameWReg);
+           DiscardMoveMode discard_mode = kKeepExtendingMoves);
   void Mvn(const Register& rd, uint64_t imm) {
     Mov(rd, (rd.GetSizeInBits() == kXRegSize) ? ~imm : (~imm & kWRegMask));
   }
@@ -2077,21 +2088,31 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     mneg(rd, rn, rm);
   }
+  // Emit a register move only if the registers are distinct, or if they are not
+  // full registers. A "full register" is a C register if Morello is supported,
+  // or an X register otherwise.
+  //
+  // Note that mov(w0, w0) is not a no-op because it clears the top word of
+  // x0/c0. A flag is provided (kDiscardForSameReg) if a move between the same W
+  // registers is not required to clear the top word of the X/C register. In
+  // this case, the instruction is discarded.
+  //
+  // Care is required if CPUFeatures::kMorello is momentarily turned off for the
+  // `Mov`, since a same-register X move might be elided here. In particular,
+  // `Mov(x0, x0)` with Morello disabled will _not_ invalidate `c0`, since it
+  // won't be considered an extending move.
+  //
+  // For `Mov(c0, c0)`, see `Mov(CRegister, CRegister)`.
   void Mov(const Register& rd,
            const Register& rn,
-           DiscardMoveMode discard_mode = kDontDiscardForSameWReg) {
+           DiscardMoveMode discard_mode = kKeepExtendingMoves) {
     VIXL_ASSERT(allow_macro_instructions_);
-    // Emit a register move only if the registers are distinct, or if they are
-    // not X registers.
-    //
-    // Note that mov(w0, w0) is not a no-op because it clears the top word of
-    // x0. A flag is provided (kDiscardForSameWReg) if a move between the same W
-    // registers is not required to clear the top word of the X register. In
-    // this case, the instruction is discarded.
-    //
-    // If the sp is an operand, add #0 is emitted, otherwise, orr #0.
+    unsigned max_reg_size =
+        CPUHas(CPUFeatures::kMorello) ? kCRegSize : kXRegSize;
+    unsigned reg_size = rd.GetSizeInBits();
+    VIXL_ASSERT(reg_size <= max_reg_size);
     if (!rd.Is(rn) ||
-        (rd.Is32Bits() && (discard_mode == kDontDiscardForSameWReg))) {
+        ((reg_size < max_reg_size) && (discard_mode == kKeepExtendingMoves))) {
       SingleEmissionCheckScope guard(this);
       mov(rd, rn);
     }
@@ -6514,10 +6535,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     chktgd(cn);
   }
 
+  void Clrtag(CRegister cd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    clrtag(cd, cn);
+  }
+
   void Cmp(CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     cmp(cn, cm);
+  }
+
+  void Cpy(CRegister cd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // Elide no-op moves (like kKeepExtendingMoves, but where this move never
+    // extends).
+    if (!cd.Is(cn)) cpy(cd, cn);
   }
 
   void Cpytype(CRegister cd, CRegister cn, CRegister cm) {
@@ -6689,6 +6724,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     gcvalue(xd, cn);
+  }
+
+  void Mov(CRegister cd, CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // Elide no-op moves (like kKeepExtendingMoves, but where this move never
+    // extends).
+    if (!cd.Is(cn)) mov(cd, cn);
   }
 
   // Invert flags bits that are set in xm<63:56>.

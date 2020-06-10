@@ -43,7 +43,51 @@ namespace aarch64 {
 TEST(morello_mov_cpy_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(mov(c0, c1), "TODO");
+  COMPARE_MORELLO(mov(c0, c1), "mov c0, c1");
+  COMPARE_MORELLO(mov(c0, csp), "mov c0, csp");
+  COMPARE_MORELLO(mov(csp, c1), "mov csp, c1");
+  COMPARE_MORELLO(mov(c30, c30), "mov c30, c30");
+}
+
+TEST(morello_mov_cpy_macro) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  auto mov_x_00 = [&masm] { masm.Mov(x0, x0); };
+  auto mov_x_00_keep = [&masm] { masm.Mov(x0, x0, kKeepExtendingMoves); };
+  auto mov_x_00_discard = [&masm] { masm.Mov(x0, x0, kDiscardForSameReg); };
+  auto mov_x_01 = [&masm] { masm.Mov(x0, x1); };
+  auto mov_x_01_keep = [&masm] { masm.Mov(x0, x1, kKeepExtendingMoves); };
+  auto mov_x_01_discard = [&masm] { masm.Mov(x0, x1, kDiscardForSameReg); };
+  CPUFeatures cpu_none = CPUFeatures::None();
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00_keep, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00_discard, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01, cpu_none), "mov x0, x1");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01_keep, cpu_none), "mov x0, x1");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01_discard, cpu_none), "mov x0, x1");
+
+  COMPARE_MACRO_MORELLO(Mov(x0, x0), "mov x0, x0");
+  COMPARE_MACRO_MORELLO(Mov(x0, x0, kKeepExtendingMoves), "mov x0, x0");
+  COMPARE_MACRO_MORELLO(Mov(x0, x0, kDiscardForSameReg), "");
+  COMPARE_MACRO_MORELLO(Mov(x0, x1), "mov x0, x1");
+  COMPARE_MACRO_MORELLO(Mov(x0, x1, kKeepExtendingMoves), "mov x0, x1");
+  COMPARE_MACRO_MORELLO(Mov(x0, x1, kDiscardForSameReg), "mov x0, x1");
+
+  COMPARE_MACRO_MORELLO(Mov(c0, c1), "mov c0, c1");
+  COMPARE_MACRO_MORELLO(Mov(c0, csp), "mov c0, csp");
+  COMPARE_MACRO_MORELLO(Mov(csp, c0), "mov csp, c0");
+  // The MacroAssembler elides no-op moves.
+  COMPARE_MACRO_MORELLO(Mov(csp, csp), "");
+  COMPARE_MACRO_MORELLO(Mov(c30, c30), "");
+
+  // CRegister `Cpy` behaves exactly like CRegister`Mov`
+  COMPARE_MACRO_MORELLO(Cpy(c0, c1), "mov c0, c1");
+  COMPARE_MACRO_MORELLO(Cpy(c0, csp), "mov c0, csp");
+  COMPARE_MACRO_MORELLO(Cpy(csp, c0), "mov csp, c0");
+  COMPARE_MACRO_MORELLO(Cpy(csp, csp), "");
+  COMPARE_MACRO_MORELLO(Cpy(c30, c30), "");
 }
 
 TEST(morello_add_c_cis_c) {
@@ -419,13 +463,26 @@ TEST(morello_clrperm_c_cr_c) {
 TEST(morello_clrtag_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(clrtag(c0, c1), "TODO");
+  COMPARE_MORELLO(clrtag(c0, c1), "clrtag c0, c1");
+  COMPARE_MORELLO(clrtag(c0, csp), "clrtag c0, csp");
+  COMPARE_MORELLO(clrtag(csp, c1), "clrtag csp, c1");
+  COMPARE_MORELLO(clrtag(c30, c30), "clrtag c30, c30");
+
+  COMPARE_MACRO_MORELLO(Clrtag(c0, c1), "clrtag c0, c1");
+  COMPARE_MACRO_MORELLO(Clrtag(csp, csp), "clrtag csp, csp");
+  COMPARE_MACRO_MORELLO(Clrtag(c30, c30), "clrtag c30, c30");
 }
 
 TEST(morello_cpy_c_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(cpy(c0, c1), "TODO");
+  // `cpy` always disassembles as `mov`.
+  COMPARE_MORELLO(cpy(c0, c1), "mov c0, c1");
+  COMPARE_MORELLO(cpy(c0, csp), "mov c0, csp");
+  COMPARE_MORELLO(cpy(csp, c1), "mov csp, c1");
+  COMPARE_MORELLO(cpy(c30, c30), "mov c30, c30");
+
+  // The MacroAssembler is tested in `morello_mov_cpy_macro`.
 }
 
 TEST(morello_cpytype_c_c_c) {

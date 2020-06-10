@@ -6252,7 +6252,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ldxr(CRegister ct, const MemOperand& addr);
 
   // MOV <Cd|CSP>, <Cn|CSP>
-  void mov(CRegister cd, CRegister cn);
+  void mov(CRegister cd, CRegister cn) { cpy(cd, cn); }
 
   // MRS <Ct>, (<systemreg>|S<op0>_<op1>_<Cn>_<Cm>_<op2>)
   void mrs(CRegister ct, SystemRegister sysreg);
