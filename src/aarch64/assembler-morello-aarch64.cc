@@ -335,6 +335,20 @@ void Assembler::rets(CRegister cn) {
   Emit(RETS_c | Rn(cn));
 }
 
+void Assembler::rrlen(Register xd, Register xn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xd.IsX());
+  VIXL_ASSERT(xn.IsX());
+  Emit(RRLEN_r_r | Rd(xd) | Rn(xn));
+}
+
+void Assembler::rrmask(Register xd, Register xn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xd.IsX());
+  VIXL_ASSERT(xn.IsX());
+  Emit(RRMASK_r_r | Rd(xd) | Rn(xn));
+}
+
 void Assembler::scbnds(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());

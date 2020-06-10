@@ -6672,6 +6672,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     rets(cn);
   }
 
+  void Rrlen(Register xd, Register xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    rrlen(xd, xn);
+  }
+
+  void Rrmask(Register xd, Register xn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    rrmask(xd, xn);
+  }
+
   void Scbnds(CRegister cd, CRegister cn, Register xm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

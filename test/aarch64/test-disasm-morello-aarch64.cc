@@ -801,13 +801,25 @@ TEST(morello_rets_c_c_c) {
 TEST(morello_rrlen_r_r_c) {
   SETUP();
 
-  // COMPARE_MORELLO(rrlen(x0, x1), "TODO");
+  COMPARE_MORELLO(rrlen(x21, x20), "rrlen x21, x20");
+  COMPARE_MORELLO(rrlen(x21, xzr), "rrlen x21, xzr");
+  COMPARE_MORELLO(rrlen(xzr, x20), "rrlen xzr, x20");
+  COMPARE_MORELLO(rrlen(x0, x0), "rrlen x0, x0");
+
+  COMPARE_MACRO_MORELLO(Rrlen(x21, x20), "rrlen x21, x20");
+  COMPARE_MACRO_MORELLO(Rrlen(xzr, xzr), "rrlen xzr, xzr");
 }
 
 TEST(morello_rrmask_r_r_c) {
   SETUP();
 
-  // COMPARE_MORELLO(rrmask(x0, x1), "TODO");
+  COMPARE_MORELLO(rrmask(x21, x20), "rrmask x21, x20");
+  COMPARE_MORELLO(rrmask(x21, xzr), "rrmask x21, xzr");
+  COMPARE_MORELLO(rrmask(xzr, x20), "rrmask xzr, x20");
+  COMPARE_MORELLO(rrmask(x0, x0), "rrmask x0, x0");
+
+  COMPARE_MACRO_MORELLO(Rrmask(x21, x20), "rrmask x21, x20");
+  COMPARE_MACRO_MORELLO(Rrmask(xzr, xzr), "rrmask xzr, xzr");
 }
 
 TEST(morello_scbnds_c_ci_c) {
