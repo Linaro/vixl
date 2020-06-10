@@ -9561,7 +9561,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLoadStoreUnsignedOffsetAltBase)    \
   V(MorelloMiscCap0)                          \
   V(MorelloMiscCap1)                          \
-  V(MorelloMiscCap2)                          \
   V(MorelloSEAL)                              \
   V(MorelloStoreExclusive)                    \
   V(MorelloStorePairExclusive)                \
@@ -9844,6 +9843,30 @@ void Disassembler::VisitMorelloLogicalImm(const Instruction *instr) {
       break;
     default:
       form = "(MorelloLogicalImm)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloMiscCap2(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cd, 'cn, 'cm";
+
+  switch (instr->Mask(MorelloMiscCap2Mask)) {
+    case SEAL_c_cc:
+      mnemonic = "seal";
+      break;
+    case UNSEAL_c_cc:
+      mnemonic = "unseal";
+      break;
+    case CHKSSU_c_cc:
+      mnemonic = "chkssu";
+      // `chkssu` can take SP as either input.
+      form = "'cd, 'cns, 'cms";
+      break;
+    default:
+      form = "(MorelloMiscCap2)";
       break;
   }
 

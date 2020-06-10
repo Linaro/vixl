@@ -316,7 +316,15 @@ TEST(morello_chkss_cc_c) {
 TEST(morello_chkssu_c_cc_c) {
   SETUP();
 
-  // COMPARE_MORELLO(chkssu(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(chkssu(c0, c1, c2), "chkssu c0, c1, c2");
+  COMPARE_MORELLO(chkssu(c0, c1, csp), "chkssu c0, c1, csp");
+  COMPARE_MORELLO(chkssu(c0, csp, c2), "chkssu c0, csp, c2");
+  COMPARE_MORELLO(chkssu(czr, c1, c2), "chkssu czr, c1, c2");
+  COMPARE_MORELLO(chkssu(c30, c30, c30), "chkssu c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Chkssu(c0, c1, c2), "chkssu c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Chkssu(czr, csp, csp), "chkssu czr, csp, csp");
+  COMPARE_MACRO_MORELLO(Chkssu(c28, c29, c30), "chkssu c28, c29, c30");
 }
 
 TEST(morello_chktgd_c_c) {
@@ -835,7 +843,15 @@ TEST(morello_scvalue_c_cr_c) {
 TEST(morello_seal_c_cc_c) {
   SETUP();
 
-  // COMPARE_MORELLO(seal(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(seal(c0, c1, c2), "seal c0, c1, c2");
+  COMPARE_MORELLO(seal(c0, c1, czr), "seal c0, c1, czr");
+  COMPARE_MORELLO(seal(c0, czr, c2), "seal c0, czr, c2");
+  COMPARE_MORELLO(seal(czr, c1, c2), "seal czr, c1, c2");
+  COMPARE_MORELLO(seal(c30, c30, c30), "seal c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Seal(c0, c1, c2), "seal c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Seal(czr, czr, czr), "seal czr, czr, czr");
+  COMPARE_MACRO_MORELLO(Seal(c28, c29, c30), "seal c28, c29, c30");
 }
 
 TEST(morello_seal_c_ci_c) {
@@ -917,7 +933,15 @@ TEST(morello_sub_macro) {
 TEST(morello_unseal_c_cc_c) {
   SETUP();
 
-  // COMPARE_MORELLO(unseal(c0, c1, c2), "TODO");
+  COMPARE_MORELLO(unseal(c0, c1, c2), "unseal c0, c1, c2");
+  COMPARE_MORELLO(unseal(c0, c1, czr), "unseal c0, c1, czr");
+  COMPARE_MORELLO(unseal(c0, czr, c2), "unseal c0, czr, c2");
+  COMPARE_MORELLO(unseal(czr, c1, c2), "unseal czr, c1, c2");
+  COMPARE_MORELLO(unseal(c30, c30, c30), "unseal c30, c30, c30");
+
+  COMPARE_MACRO_MORELLO(Unseal(c0, c1, c2), "unseal c0, c1, c2");
+  COMPARE_MACRO_MORELLO(Unseal(czr, czr, czr), "unseal czr, czr, czr");
+  COMPARE_MACRO_MORELLO(Unseal(c28, c29, c30), "unseal c28, c29, c30");
 }
 
 }  // namespace aarch64

@@ -6436,6 +6436,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     chkss(cn, cm);
   }
 
+  void Chkssu(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    chkssu(cd, cn, cm);
+  }
+
   void Cmp(CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6636,12 +6642,24 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     scvalue(cd, cn, xm);
   }
 
+  void Seal(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    seal(cd, cn, cm);
+  }
+
   void Sub(CRegister cd, CRegister cn, const Operand& operand);
 
   void Subs(Register xd, CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     subs(xd, cn, cm);
+  }
+
+  void Unseal(CRegister cd, CRegister cn, CRegister cm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    unseal(cd, cn, cm);
   }
 
   template <typename T>

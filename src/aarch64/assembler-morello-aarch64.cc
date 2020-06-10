@@ -132,6 +132,11 @@ void Assembler::chkss(CRegister cn, CRegister cm) {
   Emit(CHKSS_cc | RnSP(cn) | RmSP(cm));
 }
 
+void Assembler::chkssu(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CHKSSU_c_cc | Rd(cd) | RnSP(cn) | RmSP(cm));
+}
+
 void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());
@@ -315,6 +320,11 @@ void Assembler::scvalue(CRegister cd, CRegister cn, Register xm) {
   Emit(SCVALUE_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
 }
 
+void Assembler::seal(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(SEAL_c_cc | Rd(cd) | Rn(cn) | Rm(cm));
+}
+
 void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm12, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // Morello's `sub` only has an immediate form.
@@ -339,6 +349,11 @@ void Assembler::subs(Register xd, CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xd.IsX());
   Emit(SUBS_r_cc | Rd(xd) | Rn(cn) | Rm(cm));
+}
+
+void Assembler::unseal(CRegister cd, CRegister cn, CRegister cm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(UNSEAL_c_cc | Rd(cd) | Rn(cn) | Rm(cm));
 }
 
 }  // namespace aarch64
