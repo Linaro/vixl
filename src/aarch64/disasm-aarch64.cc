@@ -669,7 +669,7 @@ void Disassembler::VisitUnconditionalBranchToRegister(
       break;
     case RET: {
       mnemonic = "ret";
-      if (instr->GetRn() == kLinkRegCode) {
+      if ((instr->GetRn() == kLinkRegCode) && (GetISA() == ISA::A64)) {
         form = NULL;
       } else {
         form = "'Xn";
@@ -9526,9 +9526,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 // TODO: Implement these.
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(Morello1Src1Dst)                          \
-  V(MorelloBranch)                            \
-  V(MorelloBranchRestricted)                  \
-  V(MorelloBranchSealedDirect)                \
   V(MorelloBranchSealedIndirect)              \
   V(MorelloBranchToSealed)                    \
   V(MorelloChecks)                            \
@@ -9682,6 +9679,73 @@ void Disassembler::VisitMorelloAlignment(const Instruction *instr) {
       break;
     default:
       form = "(MorelloAlignment)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloBranch(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cn";
+
+  switch (instr->Mask(MorelloBranchMask)) {
+    case BR_c:
+      mnemonic = "br";
+      break;
+    case BLR_c:
+      mnemonic = "blr";
+      break;
+    case RET_c:
+      mnemonic = "ret";
+      break;
+    default:
+      // `bx #4` is handled by VisitMorelloBranchBx.
+      form = "(MorelloBranch)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloBranchRestricted(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cn";
+
+  switch (instr->Mask(MorelloBranchRestrictedMask)) {
+    case BRR_c:
+      mnemonic = "brr";
+      break;
+    case BLRR_c:
+      mnemonic = "blrr";
+      break;
+    case RETR_c:
+      mnemonic = "retr";
+      break;
+    default:
+      form = "(MorelloBranchRestricted)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloBranchSealedDirect(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cn";
+
+  switch (instr->Mask(MorelloBranchSealedDirectMask)) {
+    case BRS_c:
+      mnemonic = "brs";
+      break;
+    case BLRS_c:
+      mnemonic = "blrs";
+      break;
+    case RETS_c:
+      mnemonic = "rets";
+      break;
+    default:
+      form = "(MorelloBranchSealedDirect)";
       break;
   }
 

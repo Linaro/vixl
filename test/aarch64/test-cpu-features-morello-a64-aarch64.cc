@@ -38,6 +38,12 @@
 namespace vixl {
 namespace aarch64 {
 
+#define TEST_NONE(NAME, ASM) \
+  TEST_TEMPLATE_A64(CPUFeatures::None(), NONE_##NAME, ASM)
+
+// `ret` defaults to `lr` in A64 mode.
+TEST_NONE(ret_default, ret())
+
 #define TEST_MORELLO(NAME, ASM) \
   TEST_TEMPLATE_A64(CPUFeatures(CPUFeatures::kMorello), Morello_##NAME, ASM)
 

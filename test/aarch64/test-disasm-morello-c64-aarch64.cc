@@ -547,6 +547,20 @@ TEST(morello_c64_ldxr_c_r_c) {
   // COMPARE_C64(ldxr(c0, MemOperand(c1)), "TODO");
 }
 
+
+TEST(morello_c64_ret_default) {
+  SETUP();
+
+  // `ret()` defaults to `ret(lr)` in A64, but we disassemble this as `ret`.
+  COMPARE_C64(ret(), "ret c30");
+  COMPARE_MACRO_C64(Ret(), "ret c30");
+
+  // Check that we disassemble `ret(lr)` and `ret(clr)` unambiguously regardless
+  // of the ISA.
+  COMPARE_C64(dci(RET | Assembler::Rn(lr)), "ret x30");
+  COMPARE_C64(dci(RET_c | Assembler::Rn(clr)), "ret c30");
+}
+
 TEST(morello_c64_stct_r_r_) {
   SETUP();
 

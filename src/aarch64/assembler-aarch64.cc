@@ -190,18 +190,23 @@ void Assembler::br(const Register& xn) {
   Emit(BR | Rn(xn));
 }
 
-
 void Assembler::blr(const Register& xn) {
   VIXL_ASSERT(xn.Is64Bits());
   Emit(BLR | Rn(xn));
 }
-
 
 void Assembler::ret(const Register& xn) {
   VIXL_ASSERT(xn.Is64Bits());
   Emit(RET | Rn(xn));
 }
 
+void Assembler::ret() {
+  if (GetISA() == ISA::C64) {
+    ret(clr);
+  } else {
+    ret(lr);
+  }
+}
 
 void Assembler::braaz(const Register& xn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));

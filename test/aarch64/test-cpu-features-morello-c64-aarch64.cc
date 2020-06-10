@@ -142,6 +142,9 @@ namespace aarch64 {
 // TEST_MORELLO(stxp_0, stxp(w0, c1, c2, MemOperand(c3)))
 // TEST_MORELLO(stxr_0, stxr(w0, c1, MemOperand(c2)))
 
+// `ret` defaults to `clr` in C64 mode.
+TEST_MORELLO(ret_default, ret())
+
 #define TEST_FP_MORELLO(NAME, ASM)                                        \
   TEST_TEMPLATE_C64(CPUFeatures(CPUFeatures::kFP, CPUFeatures::kMorello), \
                     FP_Morello_##NAME,                                    \

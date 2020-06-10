@@ -200,7 +200,12 @@ TEST(morello_bicflgs_c_cr_c) {
 TEST(morello_blr_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(blr(c0), "TODO");
+  COMPARE_MORELLO(blr(c0), "blr c0");
+  COMPARE_MORELLO(blr(czr), "blr czr");
+  COMPARE_MORELLO(blr(c30), "blr c30");
+
+  COMPARE_MACRO_MORELLO(Blr(c0), "blr c0");
+  COMPARE_MACRO_MORELLO(Blr(czr), "blr czr");
 }
 
 TEST(morello_blr_ci_c) {
@@ -212,13 +217,23 @@ TEST(morello_blr_ci_c) {
 TEST(morello_blrr_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(blrr(c0), "TODO");
+  COMPARE_MORELLO(blrr(c0), "blrr c0");
+  COMPARE_MORELLO(blrr(czr), "blrr czr");
+  COMPARE_MORELLO(blrr(c30), "blrr c30");
+
+  COMPARE_MACRO_MORELLO(Blrr(c0), "blrr c0");
+  COMPARE_MACRO_MORELLO(Blrr(czr), "blrr czr");
 }
 
 TEST(morello_blrs_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(blrs(c0), "TODO");
+  COMPARE_MORELLO(blrs(c0), "blrs c0");
+  COMPARE_MORELLO(blrs(czr), "blrs czr");
+  COMPARE_MORELLO(blrs(c30), "blrs c30");
+
+  COMPARE_MACRO_MORELLO(Blrs(c0), "blrs c0");
+  COMPARE_MACRO_MORELLO(Blrs(czr), "blrs czr");
 }
 
 TEST(morello_blrs_c_c_c) {
@@ -230,7 +245,12 @@ TEST(morello_blrs_c_c_c) {
 TEST(morello_br_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(br(c0), "TODO");
+  COMPARE_MORELLO(br(c0), "br c0");
+  COMPARE_MORELLO(br(czr), "br czr");
+  COMPARE_MORELLO(br(c30), "br c30");
+
+  COMPARE_MACRO_MORELLO(Br(c0), "br c0");
+  COMPARE_MACRO_MORELLO(Br(czr), "br czr");
 }
 
 TEST(morello_br_ci_c) {
@@ -242,13 +262,23 @@ TEST(morello_br_ci_c) {
 TEST(morello_brr_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(brr(c0), "TODO");
+  COMPARE_MORELLO(brr(c0), "brr c0");
+  COMPARE_MORELLO(brr(czr), "brr czr");
+  COMPARE_MORELLO(brr(c30), "brr c30");
+
+  COMPARE_MACRO_MORELLO(Brr(c0), "brr c0");
+  COMPARE_MACRO_MORELLO(Brr(czr), "brr czr");
 }
 
 TEST(morello_brs_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(brs(c0), "TODO");
+  COMPARE_MORELLO(brs(c0), "brs c0");
+  COMPARE_MORELLO(brs(czr), "brs czr");
+  COMPARE_MORELLO(brs(c30), "brs c30");
+
+  COMPARE_MACRO_MORELLO(Brs(c0), "brs c0");
+  COMPARE_MACRO_MORELLO(Brs(czr), "brs czr");
 }
 
 TEST(morello_brs_c_c_c) {
@@ -725,19 +755,41 @@ TEST(morello_orrflgs_c_cr_c) {
 TEST(morello_ret_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(ret(c0), "TODO");
+  COMPARE_MORELLO(ret(c0), "ret c0");
+  COMPARE_MORELLO(ret(czr), "ret czr");
+  COMPARE_MORELLO(ret(c30), "ret c30");
+
+  COMPARE_MACRO_MORELLO(Ret(c0), "ret c0");
+  COMPARE_MACRO_MORELLO(Ret(czr), "ret czr");
+
+  // If no register is specified, the behaviour depends on the target ISA. See
+  // the ISA-specific `ret_default` tests for details.
 }
 
 TEST(morello_retr_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(retr(c0), "TODO");
+  COMPARE_MORELLO(retr(c0), "retr c0");
+  COMPARE_MORELLO(retr(czr), "retr czr");
+  COMPARE_MORELLO(retr(c30), "retr c30");
+  COMPARE_MORELLO(retr(), "retr c30");
+
+  COMPARE_MACRO_MORELLO(Retr(c0), "retr c0");
+  COMPARE_MACRO_MORELLO(Retr(czr), "retr czr");
+  COMPARE_MACRO_MORELLO(Retr(), "retr c30");
 }
 
 TEST(morello_rets_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(rets(c0), "TODO");
+  COMPARE_MORELLO(rets(c0), "rets c0");
+  COMPARE_MORELLO(rets(czr), "rets czr");
+  COMPARE_MORELLO(rets(c30), "rets c30");
+  COMPARE_MORELLO(rets(), "rets c30");
+
+  COMPARE_MACRO_MORELLO(Rets(c0), "rets c0");
+  COMPARE_MACRO_MORELLO(Rets(czr), "rets czr");
+  COMPARE_MACRO_MORELLO(Rets(), "rets c30");
 }
 
 TEST(morello_rets_c_c_c) {

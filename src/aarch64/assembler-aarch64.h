@@ -563,7 +563,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void blr(const Register& xn);
 
   // Branch to register with return hint.
-  void ret(const Register& xn = lr);
+  void ret(const Register& xn);
+
+  // Branch to `lr` (in A64) or `clr` (in C64) with return hint.
+  void ret();
 
   // Branch to register, with pointer authentication. Using key A and a modifier
   // of zero [Armv8.3].
@@ -6264,16 +6267,18 @@ class Assembler : public vixl::internal::AssemblerBase {
   void orrflgs(CRegister cd, CRegister cn, int imm);
 
   // RET { <Cn>}
+  // The behaviour when `cn` is omitted depends on the ISA. Refer to `ret()` for
+  // details.
   void ret(CRegister cn);
 
   // RETR { <Cn>}
-  void retr(CRegister cn);
+  void retr(CRegister cn = clr);
 
   // RETS C29, <Cn>, <Cm>
   void rets(CRegister cd, CRegister cn, CRegister cm);
 
   // RETS { <Cn>}
-  void rets(CRegister cn);
+  void rets(CRegister cn = clr);
 
   // RRLEN <Xd>, <Xn>
   void rrlen(Register xd, Register xn);

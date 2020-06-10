@@ -2176,11 +2176,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     rbit(rd, rn);
   }
-  void Ret(const Register& xn = lr) {
+  void Ret(const Register& xn) {
     VIXL_ASSERT(allow_macro_instructions_);
     VIXL_ASSERT(!xn.IsZero());
     SingleEmissionCheckScope guard(this);
     ret(xn);
+  }
+  void Ret() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    // Allow the Assembler to choose between `ret(lr)` and `ret(clr)`.
+    ret();
   }
   void Rev(const Register& rd, const Register& rn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6400,6 +6406,42 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     bicflgs(cd, cn, imm8);
   }
 
+  void Blr(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blr(cn);
+  }
+
+  void Blrr(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blrr(cn);
+  }
+
+  void Blrs(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    blrs(cn);
+  }
+
+  void Br(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    br(cn);
+  }
+
+  void Brr(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    brr(cn);
+  }
+
+  void Brs(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    brs(cn);
+  }
+
   // Switch between A64 and C64. This does _not_ change the MacroAssembler's
   // target ISA.
   // TODO: Should it?
@@ -6609,6 +6651,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     orrflgs(cd, cn, imm8);
+  }
+
+  // See `Ret()` for the behaviour when `cn` is omitted.
+  void Ret(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ret(cn);
+  }
+
+  void Retr(CRegister cn = clr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    retr(cn);
+  }
+
+  void Rets(CRegister cn = clr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    rets(cn);
   }
 
   void Scbnds(CRegister cd, CRegister cn, Register xm) {
