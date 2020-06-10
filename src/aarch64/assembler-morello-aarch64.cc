@@ -176,6 +176,11 @@ void Assembler::chkeq(CRegister cn, CRegister cm) {
   Emit(CHKEQ_cc | RnSP(cn) | Rm(cm));
 }
 
+void Assembler::chksld(CRegister cn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CHKSLD_c | RnSP(cn));
+}
+
 void Assembler::chkss(CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(CHKSS_cc | RnSP(cn) | RmSP(cm));
@@ -184,6 +189,11 @@ void Assembler::chkss(CRegister cn, CRegister cm) {
 void Assembler::chkssu(CRegister cd, CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(CHKSSU_c_cc | Rd(cd) | RnSP(cn) | RmSP(cm));
+}
+
+void Assembler::chktgd(CRegister cn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Emit(CHKTGD_c | RnSP(cn));
 }
 
 void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {

@@ -348,7 +348,12 @@ TEST(morello_chkeq_cc_c) {
 TEST(morello_chksld_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(chksld(c0), "TODO");
+  COMPARE_MORELLO(chksld(c0), "chksld c0");
+  COMPARE_MORELLO(chksld(csp), "chksld csp");
+  COMPARE_MORELLO(chksld(c30), "chksld c30");
+
+  COMPARE_MACRO_MORELLO(Chksld(c0), "chksld c0");
+  COMPARE_MACRO_MORELLO(Chksld(csp), "chksld csp");
 }
 
 TEST(morello_chkss_cc_c) {
@@ -381,7 +386,12 @@ TEST(morello_chkssu_c_cc_c) {
 TEST(morello_chktgd_c_c) {
   SETUP();
 
-  // COMPARE_MORELLO(chktgd(c0), "TODO");
+  COMPARE_MORELLO(chktgd(c0), "chktgd c0");
+  COMPARE_MORELLO(chktgd(csp), "chktgd csp");
+  COMPARE_MORELLO(chktgd(c30), "chktgd c30");
+
+  COMPARE_MACRO_MORELLO(Chktgd(c0), "chktgd c0");
+  COMPARE_MACRO_MORELLO(Chktgd(csp), "chktgd csp");
 }
 
 TEST(morello_clrperm_c_ci_c) {

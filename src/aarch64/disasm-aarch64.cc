@@ -9526,7 +9526,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 // TODO: Implement these.
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(MorelloBranchSealedIndirect)              \
-  V(MorelloChecks)                            \
   V(MorelloCLRPERMImm)                        \
   V(MorelloCompareAndSwap)                    \
   V(MorelloCSEL)                              \
@@ -9784,6 +9783,25 @@ void Disassembler::VisitMorelloBranchToSealed(const Instruction *instr) {
       break;
     default:
       form = "(MorelloBranchToSealed)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloChecks(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cns";
+
+  switch (instr->Mask(MorelloChecksMask)) {
+    case CHKSLD_c:
+      mnemonic = "chksld";
+      break;
+    case CHKTGD_c:
+      mnemonic = "chktgd";
+      break;
+    default:
+      form = "(MorelloChecks)";
       break;
   }
 

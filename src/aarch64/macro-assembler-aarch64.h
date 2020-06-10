@@ -6490,6 +6490,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     chkeq(cn, cm);
   }
 
+  void Chksld(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    chksld(cn);
+  }
+
   void Chkss(CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6500,6 +6506,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     chkssu(cd, cn, cm);
+  }
+
+  void Chktgd(CRegister cn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    chktgd(cn);
   }
 
   void Cmp(CRegister cn, CRegister cm) {
