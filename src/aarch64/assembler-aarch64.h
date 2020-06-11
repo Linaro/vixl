@@ -5470,32 +5470,6 @@ class Assembler : public vixl::internal::AssemblerBase {
             const PRegister& pg,
             const SVEMemOperand& addr);
 
-  // TODO: Merge other stores into the SVEMemOperand versions.
-
-  // Scatter store bytes from a vector (vector index).
-  void st1b(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Scatter store doublewords from a vector (vector index).
-  void st1d(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Scatter store halfwords from a vector (vector index).
-  void st1h(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
-  // Scatter store words from a vector (vector index).
-  void st1w(const ZRegister& zt,
-            const PRegister& pg,
-            const Register& xn,
-            const ZRegister& zm);
-
   // Contiguous store two-byte structures from two vectors.
   void st2b(const ZRegister& zt1,
             const ZRegister& zt2,
@@ -6629,9 +6603,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                              const MemOperand& addr,
                              Instr op);
 
+  // Set `is_load` to false in default as it's only used in the
+  // scalar-plus-vector form.
   Instr SVEMemOperandHelper(unsigned msize_in_bytes_log2,
                             int num_regs,
-                            const SVEMemOperand& addr);
+                            const SVEMemOperand& addr,
+                            bool is_load = false);
 
   // E.g. st1b, st1h, ...
   // This supports both contiguous and scatter stores.

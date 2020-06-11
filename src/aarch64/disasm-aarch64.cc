@@ -5142,49 +5142,46 @@ void Disassembler::VisitSVE32BitGatherPrefetch_VectorPlusImm(
 void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVE32BitScatterStore_ScalarPlus32BitScaledOffsets)";
+  const char *form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, ";
+  const char *suffix =
+      (instr->ExtractBit(14) == 0) ? "uxtw #'u2423]" : "sxtw #'u2423]";
 
   switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
-    // ST1H { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #1]
     case ST1H_z_p_bz_s_x32_scaled:
       mnemonic = "st1h";
-      form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, <mod> #1]";
       break;
-    // ST1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod> #2]
     case ST1W_z_p_bz_s_x32_scaled:
       mnemonic = "st1w";
-      form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, <mod> #2]";
       break;
     default:
+      form = "(SVE32BitScatterStore_ScalarPlus32BitScaledOffsets)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
-  const char *form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, <mod>]";
+  const char *form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, ";
+  const char *suffix = (instr->ExtractBit(14) == 0) ? "uxtw]" : "sxtw]";
 
   switch (
       instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
-    // ST1B { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
     case ST1B_z_p_bz_s_x32_unscaled:
       mnemonic = "st1b";
       break;
-    // ST1H { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
     case ST1H_z_p_bz_s_x32_unscaled:
       mnemonic = "st1h";
       break;
-    // ST1W { <Zt>.S }, <Pg>, [<Xn|SP>, <Zm>.S, <mod>]
     case ST1W_z_p_bz_s_x32_unscaled:
       mnemonic = "st1w";
       break;
     default:
+      form = "(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
@@ -5643,61 +5640,54 @@ void Disassembler::
     VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form =
-      "(SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets)";
+  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, ";
+  const char *suffix =
+      (instr->ExtractBit(14) == 0) ? "uxtw #'u2423]" : "sxtw #'u2423]";
 
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #3]
     case ST1D_z_p_bz_d_x32_scaled:
       mnemonic = "st1d";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, <mod> #3]";
       break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #1]
     case ST1H_z_p_bz_d_x32_scaled:
       mnemonic = "st1h";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, <mod> #1]";
       break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod> #2]
     case ST1W_z_p_bz_d_x32_scaled:
       mnemonic = "st1w";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, <mod> #2]";
       break;
     default:
+      form = "(SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::
     VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, <mod>]";
+  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, ";
+  const char *suffix = (instr->ExtractBit(14) == 0) ? "uxtw]" : "sxtw]";
 
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
-    // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
     case ST1B_z_p_bz_d_x32_unscaled:
       mnemonic = "st1b";
       break;
-    // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
     case ST1D_z_p_bz_d_x32_unscaled:
       mnemonic = "st1d";
       break;
-    // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
     case ST1H_z_p_bz_d_x32_unscaled:
       mnemonic = "st1h";
       break;
-    // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, <mod>]
     case ST1W_z_p_bz_d_x32_unscaled:
       mnemonic = "st1w";
       break;
     default:
+      form = "(SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets)";
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVE64BitScatterStore_VectorPlusImm(

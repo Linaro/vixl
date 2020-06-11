@@ -10271,11 +10271,25 @@ void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
   USE(instr);
   switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
     case ST1H_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
+    case ST1W_z_p_bz_s_x32_scaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnS,
+                                 mod,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnS,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
       break;
-    case ST1W_z_p_bz_s_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
@@ -10288,14 +10302,24 @@ void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
   switch (
       instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
     case ST1B_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1H_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
+    case ST1W_z_p_bz_s_x32_unscaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnS,
+                                 mod);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnS,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
       break;
-    case ST1W_z_p_bz_s_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
@@ -10368,13 +10392,11 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
     case ST1W_z_p_bz_d_64_unscaled: {
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
-      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
       uint64_t base = ReadXRegister(instr->GetRn());
       LogicSVEAddressVector addr(base,
                                  &ReadVRegister(instr->GetRm()),
                                  kFormatVnD,
-                                 SVE_LSL,
-                                 scale);
+                                 NO_SVE_OFFSET_MODIFIER);
       addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
       SVEStructuredStoreHelper(kFormatVnD,
                                ReadPRegister(instr->GetPgLow8()),
@@ -10394,14 +10416,26 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
     case ST1D_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1H_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
+    case ST1W_z_p_bz_d_x32_scaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 mod,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
       break;
-    case ST1W_z_p_bz_d_x32_scaled:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;
@@ -10415,17 +10449,25 @@ void Simulator::
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
     case ST1B_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1D_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
     case ST1H_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
+    case ST1W_z_p_bz_d_x32_unscaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 mod);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
       break;
-    case ST1W_z_p_bz_d_x32_unscaled:
-      VIXL_UNIMPLEMENTED();
-      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
       break;

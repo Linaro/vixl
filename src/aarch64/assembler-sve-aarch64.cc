@@ -3926,26 +3926,34 @@ void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
         op = SVE64BitScatterStore_VectorPlusImmFixed;
       }
     }
-  } else if (addr.IsScalarPlusVector()) {
+  } else {
+    VIXL_ASSERT(addr.IsScalarPlusVector());
     VIXL_ASSERT(AreSameLaneSize(zt, addr.GetVectorOffset()));
     SVEOffsetModifier mod = addr.GetOffsetModifier();
     if (zt.IsLaneSizeS()) {
       VIXL_ASSERT((mod == SVE_UXTW) || (mod == SVE_SXTW));
-      switch (addr.GetShiftAmount()) {
-        case 0:
+      unsigned shift_amount = addr.GetShiftAmount();
+      if (shift_amount == 0) {
+        if (is_load) {
           op = SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed;
-          break;
-        case 1:
-          VIXL_ASSERT(msize_in_bytes_log2 == kHRegSizeInBytesLog2);
+        } else {
+          op = SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsFixed;
+        }
+      } else if (shift_amount == 1) {
+        VIXL_ASSERT(msize_in_bytes_log2 == kHRegSizeInBytesLog2);
+        if (is_load) {
           op = SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed;
-          break;
-        case 2:
-          VIXL_ASSERT(msize_in_bytes_log2 == kSRegSizeInBytesLog2);
+        } else {
+          op = SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsFixed;
+        }
+      } else {
+        VIXL_ASSERT(shift_amount == 2);
+        VIXL_ASSERT(msize_in_bytes_log2 == kSRegSizeInBytesLog2);
+        if (is_load) {
           op = SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed;
-          break;
-        default:
-          VIXL_UNIMPLEMENTED();
-          break;
+        } else {
+          op = SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsFixed;
+        }
       }
     } else if (zt.IsLaneSizeD()) {
       switch (mod) {
@@ -3967,10 +3975,21 @@ void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
         case SVE_SXTW: {
           unsigned shift_amount = addr.GetShiftAmount();
           if (shift_amount == 0) {
-            op = SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed;
+            if (is_load) {
+              op =
+                  SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed;
+            } else {
+              op =
+                  SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsFixed;
+            }
           } else {
             VIXL_ASSERT(shift_amount == msize_in_bytes_log2);
-            op = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed;
+            if (is_load) {
+              op = SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed;
+            } else {
+              op =
+                  SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsFixed;
+            }
           }
           break;
         }
@@ -3978,33 +3997,13 @@ void Assembler::SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
           VIXL_UNIMPLEMENTED();
       }
     }
-  } else {
-    // All gather loads are either vector-plus-immediate or scalar-plus-vector.
-    VIXL_UNREACHABLE();
   }
 
-  if ((op == SVE32BitGatherLoad_VectorPlusImmFixed) ||
-      (op == SVE64BitGatherLoad_VectorPlusImmFixed) ||
-      (op == SVE32BitScatterStore_VectorPlusImmFixed) ||
-      (op == SVE64BitScatterStore_VectorPlusImmFixed) ||
-      (op == SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsFixed) ||
-      (op == SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsFixed) ||
-      (op == SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsFixed) ||
-      (op == SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsFixed) ||
-      (op == SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsFixed) ||
-      (op == SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsFixed) ||
-      (op == SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsFixed) ||
-      (op == SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsFixed) ||
-      (op == SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsFixed)) {
-    Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr);
-    Instr msz = ImmUnsignedField<24, 23>(msize_in_bytes_log2);
-    Instr u = (!is_load || is_signed) ? 0 : (1 << 14);
-    Instr ff = is_first_fault ? (1 << 13) : 0;
-    Emit(op | mem_op | msz | u | ff | Rt(zt) | PgLow8(pg));
-  } else {
-    // Other groups are encoded slightly differently.
-    VIXL_UNIMPLEMENTED();
-  }
+  Instr mem_op = SVEMemOperandHelper(msize_in_bytes_log2, 1, addr, is_load);
+  Instr msz = ImmUnsignedField<24, 23>(msize_in_bytes_log2);
+  Instr u = (!is_load || is_signed) ? 0 : (1 << 14);
+  Instr ff = is_first_fault ? (1 << 13) : 0;
+  Emit(op | mem_op | msz | u | ff | Rt(zt) | PgLow8(pg));
 }
 
 void Assembler::SVELd234Helper(int num_regs,
@@ -4943,7 +4942,8 @@ void Assembler::ldnt1w(const ZRegister& zt,
 
 Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
                                      int num_regs,
-                                     const SVEMemOperand& addr) {
+                                     const SVEMemOperand& addr,
+                                     bool is_load) {
   VIXL_ASSERT((num_regs >= 1) && (num_regs <= 4));
 
   Instr op = 0xfffffff;
@@ -4972,7 +4972,8 @@ Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
     Register xn = addr.GetScalarBase();
     ZRegister zm = addr.GetVectorOffset();
     SVEOffsetModifier mod = addr.GetOffsetModifier();
-    Instr xs = (mod == SVE_SXTW) ? (1 << 22) : 0;
+    Instr modifier_bit = 1 << (is_load ? 22 : 14);
+    Instr xs = (mod == SVE_SXTW) ? modifier_bit : 0;
     VIXL_ASSERT(num_regs == 1);
 
     if (mod == SVE_LSL) {
@@ -5112,81 +5113,6 @@ VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_ST1)
 VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_ST2)
 VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_ST3)
 VIXL_SVE_LOAD_STORE_VARIANT_LIST(VIXL_DEFINE_ST4)
-
-// This prototype maps to 3 instruction encodings:
-//  ST1B_z_p_bz_d_64_unscaled
-//  ST1B_z_p_bz_d_x32_unscaled
-//  ST1B_z_p_bz_s_x32_unscaled
-void Assembler::st1b(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // ST1B { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D]
-  //  1110 0100 000. .... 101. .... .... ....
-  //  msz<24:23> = 00 | Zm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1B_z_p_bz_d_64_unscaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 4 instruction encodings:
-//  ST1D_z_p_bz_d_64_scaled
-//  ST1D_z_p_bz_d_64_unscaled
-//  ST1D_z_p_bz_d_x32_scaled
-//  ST1D_z_p_bz_d_x32_unscaled
-void Assembler::st1d(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // ST1D { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #3]
-  //  1110 0101 101. .... 101. .... .... ....
-  //  msz<24:23> = 11 | Zm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1D_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 6 instruction encodings:
-//  ST1H_z_p_bz_d_64_scaled
-//  ST1H_z_p_bz_d_64_unscaled
-//  ST1H_z_p_bz_d_x32_scaled
-//  ST1H_z_p_bz_d_x32_unscaled
-//  ST1H_z_p_bz_s_x32_scaled
-//  ST1H_z_p_bz_s_x32_unscaled
-void Assembler::st1h(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // ST1H { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #1]
-  //  1110 0100 101. .... 101. .... .... ....
-  //  msz<24:23> = 01 | Zm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1H_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
-
-// This prototype maps to 6 instruction encodings:
-//  ST1W_z_p_bz_d_64_scaled
-//  ST1W_z_p_bz_d_64_unscaled
-//  ST1W_z_p_bz_d_x32_scaled
-//  ST1W_z_p_bz_d_x32_unscaled
-//  ST1W_z_p_bz_s_x32_scaled
-//  ST1W_z_p_bz_s_x32_unscaled
-void Assembler::st1w(const ZRegister& zt,
-                     const PRegister& pg,
-                     const Register& xn,
-                     const ZRegister& zm) {
-  // ST1W { <Zt>.D }, <Pg>, [<Xn|SP>, <Zm>.D, LSL #2]
-  //  1110 0101 001. .... 101. .... .... ....
-  //  msz<24:23> = 10 | Zm<20:16> | Pg<12:10> | Rn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-
-  Emit(ST1W_z_p_bz_d_64_scaled | Rt(zt) | Rx<12, 10>(pg) | RnSP(xn) | Rm(zm));
-}
 
 void Assembler::stnt1b(const ZRegister& zt,
                        const PRegister& pg,

@@ -10673,7 +10673,11 @@ TEST_SVE(sve_st1_vec_imm) {
   }
 }
 
-TEST_SVE(sve_st1_sca_vec) {
+template <typename T>
+static void sve_st1_scalar_plus_vector_helper(Test* config,
+                                              int esize_in_bits,
+                                              T mod,
+                                              bool is_scaled) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
@@ -10681,79 +10685,130 @@ TEST_SVE(sve_st1_sca_vec) {
   int data_size = vl * 160;
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
-  int vl_d = vl / kDRegSizeInBytes;
+  int vl_per_esize = vl / (esize_in_bits / kBitsPerByte);
+
+  ZRegister zn_b = z0.WithLaneSize(esize_in_bits);
+  ZRegister zn_h = z1.WithLaneSize(esize_in_bits);
+  ZRegister zn_s = z2.WithLaneSize(esize_in_bits);
+  ZRegister zn_d = z3.WithLaneSize(esize_in_bits);
+
+  ZRegister zn_ld_b = z10.WithLaneSize(esize_in_bits);
+  ZRegister zn_ld_h = z11.WithLaneSize(esize_in_bits);
+  ZRegister zn_ld_s = z12.WithLaneSize(esize_in_bits);
+  ZRegister zn_ld_d = z13.WithLaneSize(esize_in_bits);
+  ZRegister offsets = z31.WithLaneSize(esize_in_bits);
 
   // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
-  __ Ptrue(p8.VnD());
-  __ Pfalse(p9.VnD());
-  __ Zip1(p0.VnD(), p8.VnD(), p9.VnD());
-  __ Zip1(p1.VnD(), p9.VnD(), p8.VnD());
+  __ Ptrue(p6.WithLaneSize(esize_in_bits));
+  __ Pfalse(p7.WithLaneSize(esize_in_bits));
+  __ Zip1(p0.WithLaneSize(esize_in_bits),
+          p6.WithLaneSize(esize_in_bits),
+          p7.WithLaneSize(esize_in_bits));
+  __ Zip1(p1.WithLaneSize(esize_in_bits),
+          p7.WithLaneSize(esize_in_bits),
+          p6.WithLaneSize(esize_in_bits));
 
-  // Testing positve offsets.
-  // Simply stepping the index by 2 to simulate a scatter memory access.
-  __ Index(z31.VnD(), 0, 2);
-  __ St1b(z31.VnD(), p0, SVEMemOperand(x0, z31.VnD()));
-  __ Ld1b(z10.VnD(), p0.Zeroing(), SVEMemOperand(x0, z31.VnD()));
-  __ Dup(z0.VnD(), 0);
-  __ Mov(z0.VnD(), p0.Merging(), z31.VnD());
+  // `st1b` doesn't have the scaled-offset forms.
+  if (is_scaled == false) {
+    // Simply stepping the index by 2 to simulate a scatter memory access.
+    __ Index(offsets, 1, 2);
+    __ St1b(offsets, p0, SVEMemOperand(x0, offsets, mod));
+    __ Ld1b(zn_ld_b, p0.Zeroing(), SVEMemOperand(x0, offsets, mod));
+    __ Dup(zn_b, 0);
+    __ Mov(zn_b, p0.Merging(), offsets);
+  }
 
-  uintptr_t offset_h = vl_d * 4;
   // Store the values to isolated range different with other stores.
-  __ Add(x1, x0, offset_h);
-  __ Index(z31.VnD(), 6, 4);
-  __ St1h(z31.VnD(), p0, SVEMemOperand(x1, z31.VnD()));
-  __ Ld1h(z11.VnD(), p0.Zeroing(), SVEMemOperand(x1, z31.VnD()));
-  __ Add(x1, x1, offset_h);
-  __ St1h(z31.VnD(), p0, SVEMemOperand(x1, z31.VnD(), LSL, 1));
-  __ Ld1h(z14.VnD(), p0.Zeroing(), SVEMemOperand(x1, z31.VnD(), LSL, 1));
-  __ Dup(z1.VnD(), 0);
-  __ Mov(z1.VnD(), p0.Merging(), z31.VnD());
+  int scale = is_scaled ? 1 : 0;
+  __ Add(x1, x0, vl_per_esize * 4);
+  __ Index(offsets, 6, 4);
+  __ St1h(offsets, p0, SVEMemOperand(x1, offsets, mod, scale));
+  __ Ld1h(zn_ld_h, p0.Zeroing(), SVEMemOperand(x1, offsets, mod, scale));
+  __ Dup(zn_h, 0);
+  __ Mov(zn_h, p0.Merging(), offsets);
 
-  // Testing negative offsets.
-  uintptr_t offset_s = UINT64_MAX + (vl_d * -8) + 1;
-  __ Add(x2, x0, offset_s);
-  __ Index(z31.VnD(), -64, -8);
-  __ St1w(z31.VnD(), p1, SVEMemOperand(x2, z31.VnD()));
-  __ Ld1w(z12.VnD(), p1.Zeroing(), SVEMemOperand(x2, z31.VnD()));
-  __ Add(x2, x2, offset_s);
-  __ St1w(z31.VnD(), p1, SVEMemOperand(x2, z31.VnD(), LSL, 2));
-  __ Ld1w(z15.VnD(), p1.Zeroing(), SVEMemOperand(x2, z31.VnD(), LSL, 2));
-  __ Dup(z2.VnD(), 0);
-  __ Mov(z2.VnD(), p1.Merging(), z31.VnD());
+  scale = is_scaled ? 2 : 0;
+  __ Add(x2, x0, UINT64_MAX + (vl_per_esize * -8) + 1);
+  __ Index(offsets, 64, 8);
+  if ((std::is_same<T, vixl::aarch64::Extend>::value) &&
+      (static_cast<int>(mod) == SXTW)) {
+    // Testing negative offsets.
+    __ Neg(offsets, p6.Merging(), offsets);
+  }
+  __ St1w(offsets, p1, SVEMemOperand(x2, offsets, mod, scale));
+  __ Ld1w(zn_ld_s, p1.Zeroing(), SVEMemOperand(x2, offsets, mod, scale));
+  __ Dup(zn_s, 0);
+  __ Mov(zn_s, p1.Merging(), offsets);
 
-  // Test st1w by comparing the 32-bit value loaded correspondingly with the
-  // 32-bit value stored.
-  __ Lsl(z2.VnD(), z2.VnD(), kSRegSize);
-  __ Lsr(z2.VnD(), z2.VnD(), kSRegSize);
+  if (esize_in_bits == kDRegSize) {
+    // Test st1w by comparing the 32-bit value loaded correspondingly with the
+    // 32-bit value stored.
+    __ Lsl(zn_s, zn_s, kSRegSize);
+    __ Lsr(zn_s, zn_s, kSRegSize);
+  }
 
-  uintptr_t offset_d = UINT64_MAX + (vl_d * -16) + 1;
-  __ Add(x3, x0, offset_d);
-  __ Index(z31.VnD(), -128, -16);
-  __ St1d(z31.VnD(), p1, SVEMemOperand(x3, z31.VnD()));
-  __ Ld1d(z13.VnD(), p1.Zeroing(), SVEMemOperand(x3, z31.VnD()));
-  __ Add(x3, x3, offset_d);
-  __ St1d(z31.VnD(), p1, SVEMemOperand(x3, z31.VnD(), LSL, 3));
-  __ Ld1d(z16.VnD(), p1.Zeroing(), SVEMemOperand(x3, z31.VnD(), LSL, 3));
-  __ Dup(z3.VnD(), 0);
-  __ Mov(z3.VnD(), p1.Merging(), z31.VnD());
+  // `st1d` doesn't have the S-sized lane forms.
+  if (esize_in_bits == kDRegSize) {
+    scale = is_scaled ? 3 : 0;
+    __ Add(x3, x0, UINT64_MAX + (vl_per_esize * -16) + 1);
+    __ Index(offsets, 128, 16);
+    if ((std::is_same<T, vixl::aarch64::Extend>::value) &&
+        (static_cast<int>(mod) == SXTW)) {
+      __ Neg(offsets, p6.Merging(), offsets);
+    }
+    __ St1d(offsets, p1, SVEMemOperand(x3, offsets, mod, scale));
+    __ Ld1d(zn_ld_d, p1.Zeroing(), SVEMemOperand(x3, offsets, mod, scale));
+    __ Dup(zn_d, 0);
+    __ Mov(zn_d, p1.Merging(), offsets);
+  }
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    ASSERT_EQUAL_SVE(z10, z0);
-    ASSERT_EQUAL_SVE(z11, z1);
-    ASSERT_EQUAL_SVE(z12, z2);
-    ASSERT_EQUAL_SVE(z13, z3);
+    if (scale == false) {
+      ASSERT_EQUAL_SVE(zn_ld_b, zn_b);
+    }
 
-    ASSERT_EQUAL_SVE(z14, z1);
-    ASSERT_EQUAL_SVE(z15, z2);
-    ASSERT_EQUAL_SVE(z16, z3);
+    ASSERT_EQUAL_SVE(zn_ld_h, zn_h);
+    ASSERT_EQUAL_SVE(zn_ld_s, zn_s);
+
+    if (esize_in_bits == kDRegSize) {
+      ASSERT_EQUAL_SVE(zn_ld_d, zn_d);
+    }
   }
 
   delete[] data;
+}
+
+TEST_SVE(sve_st1_sca_vec_32_unpacked_unscaled) {
+  sve_st1_scalar_plus_vector_helper(config, kDRegSize, UXTW, false);
+  sve_st1_scalar_plus_vector_helper(config, kDRegSize, SXTW, false);
+}
+
+TEST_SVE(sve_st1_sca_vec_32_unpacked_scaled) {
+  sve_st1_scalar_plus_vector_helper(config, kDRegSize, UXTW, true);
+  sve_st1_scalar_plus_vector_helper(config, kDRegSize, SXTW, true);
+}
+
+TEST_SVE(sve_st1_sca_vec_32_unscaled) {
+  sve_st1_scalar_plus_vector_helper(config, kSRegSize, UXTW, false);
+  sve_st1_scalar_plus_vector_helper(config, kSRegSize, SXTW, false);
+}
+
+TEST_SVE(sve_st1_sca_vec_32_scaled) {
+  sve_st1_scalar_plus_vector_helper(config, kSRegSize, UXTW, true);
+  sve_st1_scalar_plus_vector_helper(config, kSRegSize, SXTW, true);
+}
+
+TEST_SVE(sve_st1_sca_vec_64_scaled) {
+  sve_st1_scalar_plus_vector_helper(config, kDRegSize, LSL, true);
+}
+
+TEST_SVE(sve_st1_sca_vec_64_unscaled) {
+  sve_st1_scalar_plus_vector_helper(config, kDRegSize, NO_SHIFT, false);
 }
 
 typedef void (MacroAssembler::*IntWideImmFn)(const ZRegister& zd,
