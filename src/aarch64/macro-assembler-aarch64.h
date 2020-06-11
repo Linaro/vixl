@@ -60,7 +60,7 @@
 #define LSPAIR_MACRO_LIST(V)                             \
   V(Ldp, CPURegister&, rt, rt2, LoadPairOpFor(rt, rt2))  \
   V(Stp, CPURegister&, rt, rt2, StorePairOpFor(rt, rt2)) \
-  V(Ldpsw, CPURegister&, rt, rt2, LDPSW_x)
+  V(Ldpsw, Register&, rt, rt2, LDPSW_x)
 
 namespace vixl {
 namespace aarch64 {

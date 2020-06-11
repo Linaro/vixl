@@ -1141,7 +1141,13 @@ void Assembler::LoadStorePair(const CPURegister& rt,
       addrmodeop = LoadStorePairPostIndexFixed;
     }
   }
-  Emit(addrmodeop | memop);
+
+  Instr emitop = addrmodeop | memop;
+
+  // Only X registers may be specified for ldpsw.
+  VIXL_ASSERT(((emitop & LoadStorePairMask) != LDPSW_x) || rt.IsX());
+
+  Emit(emitop);
 }
 
 
