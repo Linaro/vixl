@@ -5220,12 +5220,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     mov(pd.VnB(), pn.VnB());
   }
-  void Mov(const PRegister& pd, const PRegisterM& pg, const PRegister& pn) {
+  void Mov(const PRegisterWithLaneSize& pd,
+           const PRegisterM& pg,
+           const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     mov(pd, pg, pn);
   }
-  void Mov(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn) {
+  void Mov(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     mov(pd, pg, pn);
@@ -5281,7 +5285,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     movs(pd, pn);
   }
-  void Movs(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn) {
+  void Movs(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     movs(pd, pg, pn);
@@ -5343,7 +5349,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     nors(pd, pg, pn, pm);
   }
-  void Not(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn) {
+  void Not(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     not_(pd, pg, pn);
@@ -5353,7 +5361,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     not_(zd, pg, zn);
   }
-  void Nots(const PRegister& pd, const PRegisterZ& pg, const PRegister& pn) {
+  void Nots(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     nots(pd, pg, pn);
