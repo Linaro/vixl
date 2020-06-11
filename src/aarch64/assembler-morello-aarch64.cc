@@ -68,6 +68,39 @@ void Assembler::add(CRegister cd, CRegister cn, uint64_t imm) {
   VIXL_ABORT();
 }
 
+void Assembler::adr(CRegister cd, int64_t imm21) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // In A64, this encoding has different behaviour. See `adr(Register, ...)`.
+  VIXL_ASSERT(GetISA() == ISA::C64);
+  Emit(ADR | ImmPCRelAddress(imm21) | Rd(cd));
+}
+
+void Assembler::adr(CRegister cd, Label* label) {
+  adr(cd, LinkAndGetByteOffsetTo(label));
+}
+
+void Assembler::adrdp(CRegister cd, int64_t imm20) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // In A64, this encoding has different behaviour. See `adrp(Register, ...)`.
+  VIXL_ASSERT(GetISA() == ISA::C64);
+  // We don't need to check `AllowPageOffsetDependentCode()` here because this
+  // is based on DDC/c28, not PCC.
+  Emit(ADRP | ImmC64RelAddressADRDP(imm20) | Rd(cd));
+}
+
+void Assembler::adrp(CRegister cd, int64_t imm20) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // In A64, this encoding has different behaviour. See `adrp(Register, ...)`.
+  VIXL_ASSERT(GetISA() == ISA::C64);
+  VIXL_ASSERT(AllowPageOffsetDependentCode());
+  Emit(ADRP | ImmC64RelAddressADRP(imm20) | Rd(cd));
+}
+
+void Assembler::adrp(CRegister cd, Label* label) {
+  VIXL_ASSERT(AllowPageOffsetDependentCode());
+  adrp(cd, LinkAndGetPageOffsetTo(label));
+}
+
 void Assembler::alignd(CRegister cd, CRegister cn, int imm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT((imm >= 0) && (imm < 64));

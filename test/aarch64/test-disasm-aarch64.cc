@@ -872,14 +872,15 @@ TEST(dp_2_source) {
 TEST(adr) {
   SETUP();
 
-  COMPARE_PREFIX(adr(x0, INT64_C(0)), "adr x0, #+0x0");
-  COMPARE_PREFIX(adr(x1, 1), "adr x1, #+0x1");
-  COMPARE_PREFIX(adr(x2, -1), "adr x2, #-0x1");
-  COMPARE_PREFIX(adr(x3, 4), "adr x3, #+0x4");
-  COMPARE_PREFIX(adr(x4, -4), "adr x4, #-0x4");
-  COMPARE_PREFIX(adr(x5, 0x000fffff), "adr x5, #+0xfffff");
-  COMPARE_PREFIX(adr(x6, -0x00100000), "adr x6, #-0x100000");
-  COMPARE_PREFIX(adr(xzr, INT64_C(0)), "adr xzr, #+0x0");
+  // These encodings write capabilities in C64.
+  COMPARE_PREFIX_A64(adr(x0, 0), "adr x0, #+0x0");
+  COMPARE_PREFIX_A64(adr(x1, 1), "adr x1, #+0x1");
+  COMPARE_PREFIX_A64(adr(x2, -1), "adr x2, #-0x1");
+  COMPARE_PREFIX_A64(adr(x3, 4), "adr x3, #+0x4");
+  COMPARE_PREFIX_A64(adr(x4, -4), "adr x4, #-0x4");
+  COMPARE_PREFIX_A64(adr(x5, 0x000fffff), "adr x5, #+0xfffff");
+  COMPARE_PREFIX_A64(adr(x6, -0x00100000), "adr x6, #-0x100000");
+  COMPARE_PREFIX_A64(adr(xzr, 0), "adr xzr, #+0x0");
 
   CLEANUP();
 }
@@ -888,14 +889,15 @@ TEST(adr) {
 TEST(adrp) {
   SETUP();
 
-  COMPARE_PREFIX(adrp(x0, INT64_C(0)), "adrp x0, #+0x0");
-  COMPARE_PREFIX(adrp(x1, 1), "adrp x1, #+0x1000");
-  COMPARE_PREFIX(adrp(x2, -1), "adrp x2, #-0x1000");
-  COMPARE_PREFIX(adrp(x3, 4), "adrp x3, #+0x4000");
-  COMPARE_PREFIX(adrp(x4, -4), "adrp x4, #-0x4000");
-  COMPARE_PREFIX(adrp(x5, 0x000fffff), "adrp x5, #+0xfffff000");
-  COMPARE_PREFIX(adrp(x6, -0x00100000), "adrp x6, #-0x100000000");
-  COMPARE_PREFIX(adrp(xzr, INT64_C(0)), "adrp xzr, #+0x0");
+  // These encodings write capabilities in C64.
+  COMPARE_PREFIX_A64(adrp(x0, 0), "adrp x0, #+0x0");
+  COMPARE_PREFIX_A64(adrp(x1, 1), "adrp x1, #+0x1000");
+  COMPARE_PREFIX_A64(adrp(x2, -1), "adrp x2, #-0x1000");
+  COMPARE_PREFIX_A64(adrp(x3, 4), "adrp x3, #+0x4000");
+  COMPARE_PREFIX_A64(adrp(x4, -4), "adrp x4, #-0x4000");
+  COMPARE_PREFIX_A64(adrp(x5, 0x000fffff), "adrp x5, #+0xfffff000");
+  COMPARE_PREFIX_A64(adrp(x6, -0x00100000), "adrp x6, #-0x100000000");
+  COMPARE_PREFIX_A64(adrp(xzr, 0), "adrp xzr, #+0x0");
 
   CLEANUP();
 }

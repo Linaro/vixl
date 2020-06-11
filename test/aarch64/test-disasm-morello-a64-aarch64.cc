@@ -40,6 +40,59 @@
 namespace vixl {
 namespace aarch64 {
 
+TEST(morello_a64_adr_label) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  // Morello does not change this instruction, but if `adr` refers to a C64
+  // label, we set bit 0 (for correct interworking with `br` etc).
+
+  auto adr_x4 = [&masm](Label* l) { masm.adr(x4, l); };
+  auto adr_xzr = [&masm](Label* l) { masm.adr(xzr, l); };
+
+  // When targeting C64, the bottom bit should be set (for use in `br`, etc).
+  COMPARE_PREFIX_A64(WithA64LabelBefore(adr_x4), "adr x4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithC64LabelBefore(adr_xzr), "adr xzr, #+0x1 (addr 0x");
+  COMPARE_PREFIX_A64(WithDataLabelBefore(adr_x4), "adr x4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithA64LabelAfter(adr_x4), "adr x4, #+0x4 (addr 0x");
+  COMPARE_PREFIX_A64(WithC64LabelAfter(adr_x4), "adr x4, #+0x5 (addr 0x");
+  COMPARE_PREFIX_A64(WithDataLabelAfter(adr_x4), "adr x4, #+0x4 (addr 0x");
+
+  auto macro_adr_x4 = [&masm](Label* l) { masm.Adr(x4, l); };
+  COMPARE_MACRO_PREFIX_A64(WithA64LabelBefore(macro_adr_x4),
+                           "adr x4, #+0x0 (addr 0x");
+  COMPARE_MACRO_PREFIX_A64(WithC64LabelAfter(macro_adr_x4),
+                           "adr x4, #+0x5 (addr 0x");
+}
+
+TEST(morello_a64_adrp_c_i_c) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  // Morello does not change this instruction in A64 mode, but check that the
+  // C64 interworking bit is not applied when the offset is page-scaled.
+
+  auto adrp_x4 = [&masm](Label* l) { masm.adrp(x4, l); };
+  auto adrp_xzr = [&masm](Label* l) { masm.adrp(xzr, l); };
+
+  // Check that the C64 interworking bit is not applied when the offset is
+  // page-scaled.
+  COMPARE_PREFIX_A64(WithA64LabelBefore(adrp_x4), "adrp x4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithC64LabelBefore(adrp_xzr), "adrp xzr, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithDataLabelBefore(adrp_x4), "adrp x4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithA64LabelAfter(adrp_x4), "adrp x4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithC64LabelAfter(adrp_x4), "adrp x4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_A64(WithDataLabelAfter(adrp_x4), "adrp x4, #+0x0 (addr 0x");
+
+  auto macro_adrp_x4 = [&masm](Label* l) { masm.Adrp(x4, l); };
+  COMPARE_MACRO_PREFIX_A64(WithA64LabelBefore(macro_adrp_x4),
+                           "adrp x4, #+0x0 (addr 0x");
+  COMPARE_MACRO_PREFIX_A64(WithC64LabelAfter(macro_adrp_x4),
+                           "adrp x4, #+0x0 (addr 0x");
+}
+
 TEST(morello_a64_aldar_c_r_c) {
   SETUP();
 

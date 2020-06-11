@@ -54,85 +54,85 @@ TEST(morello_isa_labels) {
   VIXL_ASSERT(masm.GetISA() == ISA::A64);
 
   // Labels to be bound in A64 code.
-  Label a0, a1, a2;
+  Label a64_0, a64_1, a64_2;
   // Labels to be bound in C64 code.
-  Label c0, c1, c2;
+  Label c64_0, c64_1, c64_2;
   // Labels to be bound in data.
-  Label d0, d1;
+  Label data_0, data_1;
 
   // Labels are initialised with an unknown target ISA.
-  VIXL_ASSERT(!a0.HasKnownISA());
-  VIXL_ASSERT(!a1.HasKnownISA());
-  VIXL_ASSERT(!a2.HasKnownISA());
-  VIXL_ASSERT(!c0.HasKnownISA());
-  VIXL_ASSERT(!c1.HasKnownISA());
-  VIXL_ASSERT(!c2.HasKnownISA());
-  VIXL_ASSERT(!d0.HasKnownISA());
-  VIXL_ASSERT(!d1.HasKnownISA());
+  VIXL_ASSERT(!a64_0.HasKnownISA());
+  VIXL_ASSERT(!a64_1.HasKnownISA());
+  VIXL_ASSERT(!a64_2.HasKnownISA());
+  VIXL_ASSERT(!c64_0.HasKnownISA());
+  VIXL_ASSERT(!c64_1.HasKnownISA());
+  VIXL_ASSERT(!c64_2.HasKnownISA());
+  VIXL_ASSERT(!data_0.HasKnownISA());
+  VIXL_ASSERT(!data_1.HasKnownISA());
 
-  __ B(&a0);
-  __ Bind(&a2);
-  __ B(&a1, eq);
+  __ B(&a64_0);
+  __ Bind(&a64_2);
+  __ B(&a64_1, eq);
   // Conventional branches don't interwork.
-  VIXL_ASSERT(a0.GetISA() == ISA::A64);
-  VIXL_ASSERT(a1.GetISA() == ISA::A64);
+  VIXL_ASSERT(a64_0.GetISA() == ISA::A64);
+  VIXL_ASSERT(a64_1.GetISA() == ISA::A64);
   // Binding a label always sets its ISA.
-  VIXL_ASSERT(a2.GetISA() == ISA::A64);
+  VIXL_ASSERT(a64_2.GetISA() == ISA::A64);
 
   // `adr` can address both code and data, so it doesn't affect the target ISA.
-  __ Adr(x0, &a2);
-  __ Adr(x1, &d0);
-  VIXL_ASSERT(!d0.HasKnownISA());
+  __ Adr(x0, &a64_2);
+  __ Adr(x1, &data_0);
+  VIXL_ASSERT(!data_0.HasKnownISA());
 
   // `bx` interworks unconditionally.
   {
     ExactAssemblyScope guard(&masm, kInstructionSize);
-    __ bx(&c0);
-    VIXL_ASSERT(c0.GetISA() == ISA::C64);
+    __ bx(&c64_0);
+    VIXL_ASSERT(c64_0.GetISA() == ISA::C64);
     masm.SetISA(ISA::C64);
-    __ bind(&c0);
+    __ bind(&c64_0);
   }
 
   // Adr works irrespective of the target ISA.
-  __ Adr(x2, &a0);
-  __ Adr(x3, &a1);
-  __ Adr(x4, &a2);
-  __ Adr(x5, &c0);
-  __ Adr(x6, &c1);
-  __ Adr(x7, &c2);
+  __ Adr(c2, &a64_0);
+  __ Adr(c3, &a64_1);
+  __ Adr(c4, &a64_2);
+  __ Adr(c5, &c64_0);
+  __ Adr(c6, &c64_1);
+  __ Adr(c7, &c64_2);
 
-  __ Bind(&c2);
-  __ B(&c0, eq);
-  __ B(&c1);
+  __ Bind(&c64_2);
+  __ B(&c64_0, eq);
+  __ B(&c64_1);
 
   // Only `adr` can address Data, but it can address the same data from both A64
   // and C64.
-  __ Adr(x8, &d0);
+  __ Adr(c8, &data_0);
   {
     ISAScope isa(&masm, ISA::Data);
     ExactAssemblyScope guard(&masm, sizeof(uint32_t) * 2);
-    __ bind(&d0);
+    __ bind(&data_0);
     __ dc32(42);
-    __ bind(&d1);
+    __ bind(&data_1);
     __ dc32(43);
   }
-  __ Adr(x9, &d0);
-  __ Adr(x10, &d1);
-  __ Bind(&c1);
+  __ Adr(c9, &data_0);
+  __ Adr(c10, &data_1);
+  __ Bind(&c64_1);
 
   // `bx` interworks unconditionally.
   {
     ExactAssemblyScope guard(&masm, kInstructionSize);
-    __ bx(&a0);
-    VIXL_ASSERT(a0.GetISA() == ISA::A64);
+    __ bx(&a64_0);
+    VIXL_ASSERT(a64_0.GetISA() == ISA::A64);
     masm.SetISA(ISA::A64);
-    __ bind(&a0);
+    __ bind(&a64_0);
   }
 
   // We can jump over a C64 region.
-  __ B(&a2);
+  __ B(&a64_2);
 
-  __ Bind(&a1);
+  __ Bind(&a64_1);
 
   END();
   DISASSEMBLE();

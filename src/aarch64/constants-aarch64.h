@@ -92,9 +92,15 @@ V_(PgLow8, 12, 10, ExtractBits)   /* Governing predicate (p0-p7).         */ \
 V_(SixtyFourBits, 31, 31, ExtractBits)                                       \
 V_(FlagsUpdate, 29, 29, ExtractBits)                                         \
                                                                              \
-/* PC relative addressing */                                                 \
+/* PC-, PCC- and DDC-relative addressing */                                  \
+/* Use `GetImmPCRel()` to read hi:lo.    */                                  \
 V_(ImmPCRelHi, 23, 5, ExtractSignedBits)                                     \
 V_(ImmPCRelLo, 30, 29, ExtractBits)                                          \
+/* C64 uses one bit to distinguish ADRP (PCC) from ADRDP (DDC/c28). */       \
+/* Use `GetImmC64RelPage()` to read p:hi:lo.                  */             \
+V_(ImmC64RelP, 23, 23, ExtractBits)                                          \
+V_(ImmC64RelHiADRP, 22, 5, ExtractSignedBits)                                \
+V_(ImmC64RelHiADRDP, 22, 5, ExtractBits)                                     \
                                                                              \
 /* Add/subtract/logical shift register */                                    \
 V_(ShiftDP, 23, 22, ExtractBits)                                             \
@@ -647,6 +653,7 @@ enum PCRelAddressingOp {
   PCRelAddressingMask  = 0x9F000000,
   ADR                  = PCRelAddressingFixed | 0x00000000,
   ADRP                 = PCRelAddressingFixed | 0x80000000
+  // Morello's ADRP and ADRDP are based on the ADR and ADRP encodings.
 };
 
 // Add/sub (immediate, shifted and extended.)

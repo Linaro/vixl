@@ -937,55 +937,78 @@ int Instruction::GetImmBranch() const {
 }
 
 
-void Instruction::SetImmPCOffsetTarget(const Instruction* target) {
+void Instruction::SetImmPCOffsetTarget(const Instruction* target,
+                                       ISA source_isa,
+                                       ISA target_isa) {
   if (IsPCRelAddressing()) {
-    SetPCRelImmTarget(target);
+    SetPCRelImmTarget(target, source_isa, target_isa);
   } else {
-    SetBranchImmTarget(target);
+    SetBranchImmTarget(target, source_isa, target_isa);
   }
 }
 
 
-void Instruction::SetPCRelImmTarget(const Instruction* target) {
-  ptrdiff_t imm21;
+void Instruction::SetPCRelImmTarget(const Instruction* target,
+                                    ISA source_isa,
+                                    ISA target_isa) {
+  Instr imm;
+  int interwork_offset = GetInterworkOffset(target_isa);
   if ((Mask(PCRelAddressingMask) == ADR)) {
-    imm21 = target - this;
+    imm = Assembler::ImmPCRelAddress(target - this + interwork_offset);
   } else {
     VIXL_ASSERT(Mask(PCRelAddressingMask) == ADRP);
     uintptr_t this_page = reinterpret_cast<uintptr_t>(this) / kPageSize;
     uintptr_t target_page = reinterpret_cast<uintptr_t>(target) / kPageSize;
-    imm21 = target_page - this_page;
+    // The `target_isa` is irrelevant here.
+    VIXL_ASSERT(interwork_offset < static_cast<int>(kPageSize));
+    if (source_isa == ISA::C64) {
+      // C64 only has a 20-bit field for ADRP.
+      imm = Assembler::ImmC64RelAddressADRP(
+          RawbitsToInt64(target_page - this_page));
+    } else {
+      imm = Assembler::ImmPCRelAddress(RawbitsToInt64(target_page - this_page));
+    }
   }
-  Instr imm = Assembler::ImmPCRelAddress(static_cast<int32_t>(imm21));
 
   SetInstructionBits(Mask(~ImmPCRel_mask) | imm);
 }
 
 
-void Instruction::SetBranchImmTarget(const Instruction* target) {
+void Instruction::SetBranchImmTarget(const Instruction* target,
+                                     ISA source_isa,
+                                     ISA target_isa) {
+  // The ISAs are checked, but not used. None of the encodings are
+  // ISA-sensitive.
+  USE(source_isa);
+  USE(target_isa);
   VIXL_ASSERT(((target - this) & 3) == 0);
   Instr branch_imm = 0xffffffff;
   uint32_t imm_mask = 0xffffffff;
   int offset = static_cast<int>((target - this) >> kInstructionSizeLog2);
   switch (GetBranchType()) {
     case CondBranchType:
+      VIXL_ASSERT(source_isa == target_isa);
       branch_imm = Assembler::ImmCondBranch(offset);
       imm_mask = ImmCondBranch_mask;
       break;
     case UncondBranchType:
+      VIXL_ASSERT(source_isa == target_isa);
       branch_imm = Assembler::ImmUncondBranch(offset);
       imm_mask = ImmUncondBranch_mask;
       break;
     case CompareBranchType:
+      VIXL_ASSERT(source_isa == target_isa);
       branch_imm = Assembler::ImmCmpBranch(offset);
       imm_mask = ImmCmpBranch_mask;
       break;
     case TestBranchType:
+      VIXL_ASSERT(source_isa == target_isa);
       branch_imm = Assembler::ImmTestBranch(offset);
       imm_mask = ImmTestBranch_mask;
       break;
     case MorelloBXType:
-      // `bx` can only branch to the next instruction.
+      // `bx` can only branch to the next instruction, and always interworks.
+      VIXL_ASSERT(source_isa != target_isa);
       VIXL_ASSERT(offset == 1);
       branch_imm = 0;
       imm_mask = 0;

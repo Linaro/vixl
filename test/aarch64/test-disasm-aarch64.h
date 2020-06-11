@@ -29,11 +29,13 @@ namespace aarch64 {
 
 #define TEST(name) TEST_(AARCH64_DISASM_##name)
 
-#define SETUP_COMMON()                                \
-  MacroAssembler masm;                                \
-  masm.GetCPUFeatures()->Combine(CPUFeatures::All()); \
-  Decoder decoder;                                    \
-  Disassembler disasm;                                \
+#define SETUP_COMMON()                                        \
+  MacroAssembler masm;                                        \
+  /* Use PositionDependentCode to allow the likes of adrp. */ \
+  masm.SetPic(PositionDependentCode);                         \
+  masm.GetCPUFeatures()->Combine(CPUFeatures::All());         \
+  Decoder decoder;                                            \
+  Disassembler disasm;                                        \
   decoder.AppendVisitor(&disasm)
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
@@ -99,7 +101,7 @@ namespace aarch64 {
     decoder.Decode(masm.GetBuffer()->GetStartAddress<Instruction*>(), ISA); \
     uint32_t encoding = *masm.GetBuffer()->GetStartAddress<uint32_t*>();    \
     if (strncmp(disasm.GetOutput(), EXP, strlen(EXP)) != 0) {               \
-      printf("\nEncoding: %08" PRIx32 "\nExpected: %s\nFound:    %s\n",     \
+      printf("\nEncoding: %08" PRIx32 "\nExpected: %s...\nFound:    %s\n",  \
              encoding,                                                      \
              EXP,                                                           \
              disasm.GetOutput());                                           \
@@ -139,14 +141,14 @@ namespace aarch64 {
     if (Test::disassemble()) DISASSEMBLE();                     \
   } while (0)
 
-#define COMPARE_MACRO_PREFIX_ISA(ASM, ISA, EXP)                          \
-  do {                                                                   \
-    COMPARE_MACRO_BASE(ASM, ISA, EXP)                                    \
-    if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                   \
-      printf("Expected (prefix): %s\nFound:    %s\n", EXP, res.c_str()); \
-      abort();                                                           \
-    }                                                                    \
-    if (Test::disassemble()) DISASSEMBLE();                              \
+#define COMPARE_MACRO_PREFIX_ISA(ASM, ISA, EXP)                             \
+  do {                                                                      \
+    COMPARE_MACRO_BASE(ASM, ISA, EXP)                                       \
+    if (strncmp(res.c_str(), EXP, strlen(EXP)) != 0) {                      \
+      printf("Expected (prefix): %s...\nFound:    %s\n", EXP, res.c_str()); \
+      abort();                                                              \
+    }                                                                       \
+    if (Test::disassemble()) DISASSEMBLE();                                 \
   } while (0)
 
 
@@ -200,6 +202,41 @@ class DisasmTestUtilMacroAssembler : public MacroAssembler {
     CPUFeaturesScope scope(this);
     scope.SetCPUFeatures(cpu);
     fn();
+  }
+
+  // Call `fn` with labels bound immediately before and after it, and bound in
+  // the specified ISA.
+  void WithLabels(std::function<void(Label*, Label*)> fn, ISA label_isa) {
+    Label before;
+    Label after;
+    {
+      vixl::aarch64::ISAScope isa(this, label_isa);
+      bind(&before);
+    }
+    fn(&before, &after);
+    {
+      vixl::aarch64::ISAScope isa(this, label_isa);
+      bind(&after);
+    }
+  }
+
+  void WithA64LabelBefore(std::function<void(Label*)> fn) {
+    WithLabels([fn](Label* before, Label*) { fn(before); }, ISA::A64);
+  }
+  void WithC64LabelBefore(std::function<void(Label*)> fn) {
+    WithLabels([fn](Label* before, Label*) { fn(before); }, ISA::C64);
+  }
+  void WithDataLabelBefore(std::function<void(Label*)> fn) {
+    WithLabels([fn](Label* before, Label*) { fn(before); }, ISA::Data);
+  }
+  void WithA64LabelAfter(std::function<void(Label*)> fn) {
+    WithLabels([fn](Label*, Label* after) { fn(after); }, ISA::A64);
+  }
+  void WithC64LabelAfter(std::function<void(Label*)> fn) {
+    WithLabels([fn](Label*, Label* after) { fn(after); }, ISA::C64);
+  }
+  void WithDataLabelAfter(std::function<void(Label*)> fn) {
+    WithLabels([fn](Label*, Label* after) { fn(after); }, ISA::Data);
   }
 };
 

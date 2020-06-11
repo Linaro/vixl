@@ -85,6 +85,12 @@ class Label {
     }
   }
 
+  // C64 labels have their bottom bit set, for use by `br` and similar
+  // instructions. This returns 0 or 1.
+  int GetInterworkOffset() const {
+    return vixl::aarch64::GetInterworkOffset(GetISA());
+  }
+
   // If the ISA is known, check that `isa` matches.
   // If the ISA is unknown, set it.
   void EnsureISA(ISA isa) {
@@ -144,19 +150,23 @@ class Label {
     using LabelLinksIteratorBase::Current;
   };
 
-  void Bind(ptrdiff_t location, ISA isa) {
-    EnsureISA(isa);
+  void Bind(ptrdiff_t location) {
+    // Labels can only be bound once the target ISA is known.
+    VIXL_ASSERT(HasKnownISA());
     // Labels can only be bound once.
     VIXL_ASSERT(!IsBound());
     location_ = location;
     VIXL_ASSERT(IsBound());
   }
 
-  void AddLink(ptrdiff_t instruction) {
+  void AddLink(ptrdiff_t source, ISA source_isa) {
     // If a label is bound, the assembler already has the information it needs
     // to write the instruction, so there is no need to add it to links_.
     VIXL_ASSERT(!IsBound());
-    links_.insert(instruction);
+    // Encode the ISA in the link so we don't need an O(log(n)) `GetISAAt()`
+    // lookup when we bind the label.
+    VIXL_ASSERT((source % kInstructionSize) == 0);
+    links_.insert(source + vixl::aarch64::GetInterworkOffset(source_isa));
     VIXL_ASSERT(IsLinked());
   }
 
@@ -698,17 +708,35 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Calculate a PC-relative address. Unlike for branches the offset in adr is
   // unscaled (i.e. the result can be unaligned).
 
-  // Calculate the address of a label.
+  // A64 only: Calculate the address of a label.
   void adr(const Register& xd, Label* label);
 
-  // Calculate the address of a PC offset.
+  // A64 only: Calculate the address of a PC offset.
   void adr(const Register& xd, int64_t imm21);
 
-  // Calculate the page address of a label.
+  // A64 or C64 `adr`, ensuring that the `int64_t` variant is preferred over the
+  // `Label` variant when `0` is passed.
+  template <typename R,
+            typename I,
+            typename = std::enable_if<std::is_convertible<I, int64_t>::value>>
+  void adr(R rd, I imm21) {
+    adr(rd, static_cast<int64_t>(imm21));
+  }
+
+  // A64 only: Calculate the page address of a label.
   void adrp(const Register& xd, Label* label);
 
-  // Calculate the page address of a PC offset.
+  // A64 only: Calculate the page address of a PC offset.
   void adrp(const Register& xd, int64_t imm21);
+
+  // A64 or C64 `adrp`, ensuring that the `int64_t` variant is preferred over
+  // the `Label` variant when `0` is passed.
+  template <typename R,
+            typename I,
+            typename = std::enable_if<std::is_convertible<I, int64_t>::value>>
+  void adrp(R rd, I imm21) {
+    adrp(rd, static_cast<int64_t>(imm21));
+  }
 
   // Data Processing instructions.
 
@@ -5907,11 +5935,23 @@ class Assembler : public vixl::internal::AssemblerBase {
   // ... with implicit shift.
   void add(CRegister cd, CRegister cn, uint64_t imm);
 
-  // ADRDP <Cd>, <label>
-  void adrdp(CRegister cd, Label label);
+  // C64 only:
+  //     <Cd> = PCC + <imm21>
+  void adr(CRegister cd, int64_t imm21);
 
-  // ADRP <Cd>, <label>
-  void adrp(CRegister cd, Label label);
+  // C64 only: Calculate the address of a PCC-relative label.
+  void adr(CRegister cd, Label* label);
+
+  // C64 only:
+  //     <Cd> = AlignDown(PCC, 4k) + SignExtend(<imm20> * 4k)
+  void adrp(CRegister cd, int64_t imm20);
+
+  // C64 only: Calculate the page address of a PCC-relative label.
+  void adrp(CRegister cd, Label* label);
+
+  // C64 only:
+  //     <Cd> = AlignDown(DDC/c28, 4k) + ZeroExtend(<imm20> * 4k)
+  void adrdp(CRegister cd, int64_t imm20);
 
   // ALIGND <Cd|CSP>, <Cn|CSP>, #<imm>
   void alignd(CRegister cd, CRegister cn, int imm);
@@ -6596,12 +6636,31 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // PC-relative address encoding.
-  static Instr ImmPCRelAddress(int64_t imm21) {
-    VIXL_ASSERT(IsInt21(imm21));
-    Instr imm = static_cast<Instr>(TruncateToUint21(imm21));
+  static Instr ImmPCRelAddressCommon(uint64_t p_immhi_immlo) {
+    VIXL_ASSERT(IsUint21(p_immhi_immlo));
+    Instr imm = static_cast<Instr>(p_immhi_immlo);
     Instr immhi = (imm >> ImmPCRelLo_width) << ImmPCRelHi_offset;
     Instr immlo = imm << ImmPCRelLo_offset;
     return (immhi & ImmPCRelHi_mask) | (immlo & ImmPCRelLo_mask);
+  }
+
+  static Instr ImmPCRelAddress(int64_t imm21) {
+    VIXL_ASSERT(IsInt21(imm21));
+    return ImmPCRelAddressCommon(TruncateToUint21(imm21));
+  }
+
+  static Instr ImmC64RelAddressADRP(int64_t imm20) {
+    // Used for C64's ADRP, which takes a signed immediate and sets the top bit
+    // ("P") of the immediate field.
+    VIXL_ASSERT(IsInt20(imm20));
+    return ImmPCRelAddressCommon((1 << 20) | TruncateToUint20(imm20));
+  }
+
+  static Instr ImmC64RelAddressADRDP(int64_t imm20) {
+    // Used for C64's ADRDP, which takes an unsigned immediate and clears the
+    // top bit ("P") of the immediate field.
+    VIXL_ASSERT(IsUint20(imm20));
+    return ImmPCRelAddressCommon(TruncateToUint20(imm20));
   }
 
   // Branch encoding.
@@ -7191,6 +7250,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   VIXL_DEPRECATED("GetPic", PositionIndependentCodeOption pic() const) {
     return GetPic();
   }
+
+  void SetPic(PositionIndependentCodeOption option) { pic_ = option; }
 
   CPUFeatures* GetCPUFeatures() { return &cpu_features_; }
 

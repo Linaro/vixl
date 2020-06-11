@@ -40,6 +40,96 @@
 namespace vixl {
 namespace aarch64 {
 
+TEST(morello_c64_adr_c_i_c) {
+  SETUP();
+
+  COMPARE_PREFIX_C64(adr(c0, 0), "adr c0, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(adr(c0, 1), "adr c0, #+0x1 (addr 0x");
+  COMPARE_PREFIX_C64(adr(c0, -1), "adr c0, #-0x1 (addr 0x");
+  COMPARE_PREFIX_C64(adr(c0, 42), "adr c0, #+0x2a (addr 0x");
+  COMPARE_PREFIX_C64(adr(c0, 0xfffff), "adr c0, #+0xfffff (addr 0x");
+  COMPARE_PREFIX_C64(adr(c0, -0x100000), "adr c0, #-0x100000 (addr 0x");
+  COMPARE_PREFIX_C64(adr(czr, 42), "adr czr, #+0x2a (addr 0x");
+  COMPARE_PREFIX_C64(adr(c30, 42), "adr c30, #+0x2a (addr 0x");
+}
+
+TEST(morello_c64_adr_label) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  auto adr_c4 = [&masm](Label* l) { masm.adr(c4, l); };
+  auto adr_czr = [&masm](Label* l) { masm.adr(czr, l); };
+
+  // When targeting C64, the bottom bit should be set (for use in `br`, etc).
+  COMPARE_PREFIX_C64(WithA64LabelBefore(adr_c4), "adr c4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithC64LabelBefore(adr_czr), "adr czr, #+0x1 (addr 0x");
+  COMPARE_PREFIX_C64(WithDataLabelBefore(adr_c4), "adr c4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithA64LabelAfter(adr_c4), "adr c4, #+0x4 (addr 0x");
+  COMPARE_PREFIX_C64(WithC64LabelAfter(adr_c4), "adr c4, #+0x5 (addr 0x");
+  COMPARE_PREFIX_C64(WithDataLabelAfter(adr_c4), "adr c4, #+0x4 (addr 0x");
+
+  auto macro_adr_c4 = [&masm](Label* l) { masm.Adr(c4, l); };
+  COMPARE_MACRO_PREFIX_C64(WithA64LabelBefore(macro_adr_c4),
+                           "adr c4, #+0x0 (addr 0x");
+  COMPARE_MACRO_PREFIX_C64(WithC64LabelAfter(macro_adr_c4),
+                           "adr c4, #+0x5 (addr 0x");
+}
+
+TEST(morello_c64_adrdp_c_id_c) {
+  SETUP();
+
+  COMPARE_C64(adrdp(c0, 0), "adrdp c0, #+0x0");
+  COMPARE_C64(adrdp(c0, 1), "adrdp c0, #+0x1");
+  COMPARE_C64(adrdp(c0, 42), "adrdp c0, #+0x2a");
+  COMPARE_C64(adrdp(c0, 0xfffff), "adrdp c0, #+0xfffff");
+  COMPARE_C64(adrdp(czr, 42), "adrdp czr, #+0x2a");
+  COMPARE_C64(adrdp(c30, 42), "adrdp c30, #+0x2a");
+
+  // We don't implement adrdp(CRegister, Label*) because VIXL labels can only be
+  // PC or PCC-relative.
+
+  COMPARE_MACRO_C64(Adrdp(c0, 0), "adrdp c0, #+0x0");
+  COMPARE_MACRO_C64(Adrdp(c0, 42), "adrdp c0, #+0x2a");
+}
+
+TEST(morello_c64_adrp_c_ip_c) {
+  SETUP();
+
+  COMPARE_PREFIX_C64(adrp(c0, 0), "adrp c0, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, 1), "adrp c0, #+0x1 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, -1), "adrp c0, #-0x1 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, 42), "adrp c0, #+0x2a (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, 0x7ffff), "adrp c0, #+0x7ffff (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, -0x80000), "adrp c0, #-0x80000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(czr, 42), "adrp czr, #+0x2a (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c30, 42), "adrp c30, #+0x2a (addr 0x");
+}
+
+TEST(morello_c64_adrp_label) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  auto adrp_c4 = [&masm](Label* l) { masm.adrp(c4, l); };
+  auto adrp_czr = [&masm](Label* l) { masm.adrp(czr, l); };
+
+  // Check that the C64 interworking bit is not applied when the offset is
+  // page-scaled.
+  COMPARE_PREFIX_C64(WithA64LabelBefore(adrp_c4), "adrp c4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithC64LabelBefore(adrp_czr), "adrp czr, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithDataLabelBefore(adrp_c4), "adrp c4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithA64LabelAfter(adrp_c4), "adrp c4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithC64LabelAfter(adrp_c4), "adrp c4, #+0x0 (addr 0x");
+  COMPARE_PREFIX_C64(WithDataLabelAfter(adrp_c4), "adrp c4, #+0x0 (addr 0x");
+
+  auto macro_adrp_c4 = [&masm](Label* l) { masm.Adrp(c4, l); };
+  COMPARE_MACRO_PREFIX_C64(WithA64LabelBefore(macro_adrp_c4),
+                           "adrp c4, #+0x0 (addr 0x");
+  COMPARE_MACRO_PREFIX_C64(WithC64LabelAfter(macro_adrp_c4),
+                           "adrp c4, #+0x0 (addr 0x");
+}
+
 TEST(morello_c64_aldar_c_r_c) {
   SETUP();
 

@@ -6397,6 +6397,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   void Add(CRegister cd, CRegister cn, const Operand& operand);
 
+  // Derive a capability relative to PCC.
+  void Adr(CRegister cd, Label* label) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    adr(cd, label);
+  }
+
+  // Derive a page-aligned capability relative to DDC or c28.
+  void Adrdp(CRegister cd, int64_t offset_in_pages) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    adrdp(cd, offset_in_pages);
+  }
+
+  // Derive a page-aligned capability relative to PCC.
+  void Adrp(CRegister cd, Label* label) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    adrp(cd, label);
+  }
+
   // Align down to the nearest multiple of 2^(imm).
   void Alignd(CRegister cd, CRegister cn, int imm) {
     VIXL_ASSERT(allow_macro_instructions_);

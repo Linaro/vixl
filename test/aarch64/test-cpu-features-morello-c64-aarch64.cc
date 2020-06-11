@@ -41,6 +41,12 @@ namespace aarch64 {
 #define TEST_MORELLO(NAME, ASM) \
   TEST_TEMPLATE_C64(CPUFeatures(CPUFeatures::kMorello), Morello_##NAME, ASM)
 
+TEST_MORELLO(adr_0, adr(c0, 42))
+TEST_MORELLO(adr_1, adr(c0, &label))
+TEST_MORELLO(adrdp_0, adrdp(c0, 42))
+// VIXL does not implement adrdp(..., Label*).
+TEST_MORELLO(adrp_0, adrp(c0, 42))
+TEST_MORELLO(adrp_1, adrp(c0, &label))
 // TEST_MORELLO(ldar_0, ldar(c0, MemOperand(x1)))
 // TEST_MORELLO(ldar_1, ldar(w0, MemOperand(x1)))
 // TEST_MORELLO(ldar_2, ldar(c0, MemOperand(c1)))

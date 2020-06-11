@@ -629,16 +629,33 @@ void Disassembler::VisitExtract(const Instruction *instr) {
 
 
 void Disassembler::VisitPCRelAddressing(const Instruction *instr) {
-  switch (instr->Mask(PCRelAddressingMask)) {
-    case ADR:
-      Format(instr, "adr", "'Xd, 'AddrPCRelByte");
-      break;
-    case ADRP:
-      Format(instr, "adrp", "'Xd, 'AddrPCRelPage");
-      break;
-    default:
-      Format(instr, "unimplemented", "(PCRelAddressing)");
+  const char *mnemonic = "unimplemented";
+  const char *form = "(PCRelAddressing)";
+  if (GetISA() == ISA::C64) {
+    switch (instr->Mask(PCRelAddressingMask)) {
+      case ADR:
+        mnemonic = "adr";
+        form = "'cd, 'AddrPCCRelByte";
+        break;
+      case ADRP:
+        // C64 splits the A64 ADRP encoding into ADRDP and its own ADRP.
+        mnemonic = instr->GetImmC64RelP() ? "adrp" : "adrdp";
+        form = "'cd, 'AddrC64RelPage";
+        break;
+    }
+  } else {
+    switch (instr->Mask(PCRelAddressingMask)) {
+      case ADR:
+        mnemonic = "adr";
+        form = "'Xd, 'AddrPCRelByte";
+        break;
+      case ADRP:
+        mnemonic = "adrp";
+        form = "'Xd, 'AddrPCRelPage";
+        break;
+    }
   }
+  Format(instr, mnemonic, form);
 }
 
 
@@ -10320,7 +10337,7 @@ int Disassembler::SubstituteField(const Instruction *instr,
     case 'E':
       return SubstituteExtendField(instr, format);
     case 'A':
-      return SubstitutePCRelAddressField(instr, format);
+      return SubstituteRelAddressField(instr, format);
     case 'T':
       return SubstituteBranchTargetField(instr, format);
     case 'O':
@@ -11158,29 +11175,49 @@ int Disassembler::SubstituteConditionField(const Instruction *instr,
 }
 
 
-int Disassembler::SubstitutePCRelAddressField(const Instruction *instr,
-                                              const char *format) {
-  VIXL_ASSERT((strcmp(format, "AddrPCRelByte") == 0) ||  // Used by `adr`.
-              (strcmp(format, "AddrPCRelPage") == 0));   // Used by `adrp`.
-
-  int64_t offset = instr->GetImmPCRel();
-
-  // Compute the target address based on the effective address (after applying
-  // code_address_offset). This is required for correct behaviour of adrp.
-  const Instruction *base = instr + code_address_offset();
-  if (format[9] == 'P') {
-    offset *= kPageSize;
-    base = AlignDown(base, kPageSize);
+int Disassembler::SubstituteRelAddressField(const Instruction *instr,
+                                            const char *format) {
+  bool c64_page;  // C64 `adrp` or `adrdp`.
+  int len;
+  if (GetISA() == ISA::C64) {
+    // Check strcmp, not strncmp, to ensure that these fields appear last in the
+    // format (so we can test them with COMPARE_PREFIX).
+    VIXL_ASSERT((strcmp(format, "AddrPCCRelByte") == 0) ||  // Used by `adr`.
+                (strcmp(format, "AddrC64RelPage") == 0));  // Used by `adr{d}p`.
+    c64_page = format[10] == 'P';                          // 'AddrC64RelPage
+    len = 14;
+  } else {
+    VIXL_ASSERT((strcmp(format, "AddrPCRelByte") == 0) ||  // Used by `adr`.
+                (strcmp(format, "AddrPCRelPage") == 0));   // Used by `adrp`.
+    c64_page = false;
+    len = 13;
   }
-  // Strip code_address_offset before printing, so we can use the
-  // semantically-correct AppendCodeRelativeAddressToOutput.
-  const void *target =
-      reinterpret_cast<const void *>(base + offset - code_address_offset());
+  int64_t offset = c64_page ? instr->GetImmC64RelPage() : instr->GetImmPCRel();
 
-  AppendPCRelativeOffsetToOutput(instr, offset);
-  AppendToOutput(" ");
-  AppendCodeRelativeAddressToOutput(instr, target);
-  return 13;
+  if (c64_page && !instr->GetImmC64RelP()) {
+    // Although described as DDC-relative, `adrdp` can also be configured to be
+    // relative to c28, so we don't mention DDC in the output. We do not know
+    // the base address, so we can only print the offset.
+    VIXL_ASSERT(offset >= 0);
+    AppendToOutput("#+0x%" PRIx64, offset);
+  } else {
+    // Compute the target address based on the effective address (after applying
+    // code_address_offset). This is required for correct behaviour of adrp.
+    const Instruction *base = instr + code_address_offset();
+    if (format[9] == 'P') {
+      offset *= kPageSize;
+      base = AlignDown(base, kPageSize);
+    }
+    // Strip code_address_offset before printing, so we can use the
+    // semantically-correct AppendCodeRelativeAddressToOutput.
+    const void *target =
+        reinterpret_cast<const void *>(base + offset - code_address_offset());
+
+    AppendPCRelativeOffsetToOutput(instr, offset);
+    AppendToOutput(" ");
+    AppendCodeRelativeAddressToOutput(instr, target);
+  }
+  return len;
 }
 
 

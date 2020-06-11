@@ -69,6 +69,18 @@ inline const char* GetISAName(ISA isa) {
   return "Unknown";
 }
 
+inline int GetInterworkOffset(ISA isa) {
+  switch (isa) {
+    case ISA::C64:
+      return 1;
+    case ISA::A64:
+    case ISA::Data:
+      return 0;
+  }
+  VIXL_UNREACHABLE();
+  return 0;
+}
+
 // Map buffer addresses to ISAs.
 // This is used to record ISA changes by the Assembler, for later passing to a
 // Decoder for inspection (e.g. disassembly).
@@ -89,6 +101,11 @@ class ISAMap {
   }
 
   // Get the ISA at the specified address.
+  //
+  // This is O(log(n)) in general (as per `std::map::upper_bound()`), but only
+  // O(1) for repeated and sequential `GetISAAt`/`SetISAAt` accesses. This makes
+  // Assembler::GetISA() fast whilst permitting arbitrary access where
+  // necessary.
   ISA GetISAAt(ptrdiff_t at) const {
     if (isas_.empty()) return default_isa_;
 

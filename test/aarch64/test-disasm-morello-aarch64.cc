@@ -175,18 +175,6 @@ TEST(morello_add_macro) {
                         "add c3, c3, x16, uxtx");
 }
 
-TEST(morello_adrdp_c_id_c) {
-  SETUP();
-
-  // COMPARE_MORELLO(adrdp(c0, &label), "TODO");
-}
-
-TEST(morello_adrp_c_ip_c) {
-  SETUP();
-
-  // COMPARE_MORELLO(adrp(c0, &label), "TODO");
-}
-
 TEST(morello_alignd_c_ci_c) {
   SETUP();
 

@@ -31,6 +31,7 @@
 #include "../utils-vixl.h"
 
 #include "constants-aarch64.h"
+#include "isa-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -221,6 +222,8 @@ enum VectorFormat {
 
 // Instructions. ---------------------------------------------------------------
 
+// An `Instruction` can represent either an A64 or a C64 instruction. The
+// encodings are identical in almost all cases.
 class Instruction {
  public:
   Instr GetInstructionBits() const {
@@ -322,14 +325,19 @@ class Instruction {
 
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
-  int GetImmPCRel() const {
-    uint32_t hi = static_cast<uint32_t>(GetImmPCRelHi());
-    uint32_t lo = GetImmPCRelLo();
-    uint32_t offset = (hi << ImmPCRelLo_width) | lo;
-    int width = ImmPCRelLo_width + ImmPCRelHi_width;
-    return ExtractSignedBitfield32(width - 1, 0, offset);
+  int32_t GetImmPCRel() const {
+    int32_t lo = static_cast<int32_t>(GetImmPCRelLo());
+    return (GetImmPCRelHi() * (1 << ImmPCRelLo_width)) + lo;
   }
   VIXL_DEPRECATED("GetImmPCRel", int ImmPCRel() const) { return GetImmPCRel(); }
+
+  // As GetImmPCRel, but the top bit of ImmPCRelHi is used to indicate whether
+  // the lower bits are to be signed and PCC-based, or unsigned and DDC-based.
+  int32_t GetImmC64RelPage() const {
+    int32_t hi = GetImmC64RelP() ? GetImmC64RelHiADRP() : GetImmC64RelHiADRDP();
+    int32_t lo = static_cast<int32_t>(GetImmPCRelLo());
+    return (hi * (1 << ImmPCRelLo_width)) + lo;
+  }
 
   // ImmLSPAC is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmLSPACLo and ImmLSPACHi.
@@ -585,7 +593,13 @@ class Instruction {
 
   // Patch a PC-relative offset to refer to 'target'. 'this' may be a branch or
   // a PC-relative addressing instruction.
-  void SetImmPCOffsetTarget(const Instruction* target);
+  //  - The `source_isa` must be known because C64 has a different
+  //    interpretation of the ADRP encoding.
+  //  - The `target_isa` is used to set bit 0 for interworking (currently only
+  //    used by ADR).
+  void SetImmPCOffsetTarget(const Instruction* target,
+                            ISA source_isa,
+                            ISA target_isa);
   // Patch a literal load instruction to load from 'source'.
   void SetImmLLiteral(const Instruction* source);
 
@@ -681,8 +695,12 @@ class Instruction {
  private:
   int GetImmBranch() const;
 
-  void SetPCRelImmTarget(const Instruction* target);
-  void SetBranchImmTarget(const Instruction* target);
+  void SetPCRelImmTarget(const Instruction* target,
+                         ISA source_isa,
+                         ISA target_isa);
+  void SetBranchImmTarget(const Instruction* target,
+                          ISA source_isa,
+                          ISA target_isa);
 };
 
 

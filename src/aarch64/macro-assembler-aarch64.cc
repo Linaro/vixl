@@ -300,7 +300,12 @@ void VeneerPool::Emit(EmitOption option, size_t amount) {
       // Patch the branch to point to the current position, and emit a branch
       // to the label.
       Instruction* veneer = masm_->GetCursorAddress<Instruction*>();
-      branch->SetImmPCOffsetTarget(veneer);
+      // The source/target ISA makes a difference for `bx #4` and variants of
+      // `adr`. None of those are handled by the veneer pool, so we just pretend
+      // that we are branching from A64 to A64.
+      VIXL_ASSERT(!branch->IsPCRelAddressing());
+      VIXL_ASSERT(!branch->IsMorelloBX());
+      branch->SetImmPCOffsetTarget(veneer, ISA::A64, ISA::A64);
       {
         ExactAssemblyScopeWithoutPoolsCheck guard(masm_, kInstructionSize);
         masm_->b(label);

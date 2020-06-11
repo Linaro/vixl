@@ -56,20 +56,34 @@ void Assembler::Reset() {
 
 
 void Assembler::bind(Label* label) {
+  label->EnsureISA(GetISA());
   BindToOffset(label, GetBuffer()->GetCursorOffset());
 }
 
 
 void Assembler::BindToOffset(Label* label, ptrdiff_t offset) {
   VIXL_ASSERT((offset >= 0) && (offset <= GetBuffer()->GetCursorOffset()));
-  VIXL_ASSERT(offset % kInstructionSize == 0);
+  // Labels bound to instructions must be bound at instruction boundaries. This
+  // function adds an interworking bit for C64 targets.
+  VIXL_ASSERT((label->GetISA() == ISA::Data) ||
+              ((offset % kInstructionSize) == 0));
 
-  label->Bind(offset, GetISA());
+  // This requires that `label` has a known target ISA.
+  label->Bind(offset);
 
+  Instruction* target = GetLabelAddress<Instruction*>(label);
+  ISA target_isa = label->GetISA();
+
+  int isa_mask = kInstructionSize - 1;
   for (Label::LabelLinksIterator it(label); !it.Done(); it.Advance()) {
-    Instruction* link =
-        GetBuffer()->GetOffsetAddress<Instruction*>(*it.Current());
-    link->SetImmPCOffsetTarget(GetLabelAddress<Instruction*>(label));
+    ptrdiff_t link = *it.Current();
+    // Only instructions can be links, so the source must be either A64 or C64.
+    VIXL_ASSERT((link & isa_mask) <= 1);
+    ISA source_isa = ((link & isa_mask) == 1) ? ISA::C64 : ISA::A64;
+    Instruction* source =
+        GetBuffer()->GetOffsetAddress<Instruction*>(link & ~isa_mask);
+
+    source->SetImmPCOffsetTarget(target, source_isa, target_isa);
   }
   label->ClearAllLinks();
 }
@@ -82,14 +96,17 @@ void Assembler::BindToOffset(Label* label, ptrdiff_t offset) {
 // them. This matches the semantics of adrp, for example.
 template <int element_shift>
 ptrdiff_t Assembler::LinkAndGetOffsetTo(Label* label) {
+  VIXL_STATIC_ASSERT(element_shift >= 0);
   VIXL_STATIC_ASSERT(element_shift < (sizeof(ptrdiff_t) * 8));
 
   if (label->IsBound()) {
-    uintptr_t pc_offset = GetCursorAddress<uintptr_t>() >> element_shift;
-    uintptr_t label_offset = GetLabelAddress<uintptr_t>(label) >> element_shift;
-    return label_offset - pc_offset;
+    uint64_t label_offset = GetLabelAddress<uint64_t>(label) >> element_shift;
+    uint64_t interwork_offset =
+        static_cast<uint64_t>(label->GetInterworkOffset()) >> element_shift;
+    uint64_t pc_offset = GetCursorAddress<uint64_t>() >> element_shift;
+    return RawbitsToInt64(label_offset + interwork_offset - pc_offset);
   } else {
-    label->AddLink(GetBuffer()->GetCursorOffset());
+    label->AddLink(GetBuffer()->GetCursorOffset(), GetISA());
     return 0;
   }
 }
@@ -457,6 +474,8 @@ void Assembler::tbnz(const Register& rt, unsigned bit_pos, Label* label) {
 
 
 void Assembler::adr(const Register& xd, int64_t imm21) {
+  // In C64, this has different behaviour. See `adr(CRegister, ...)`.
+  VIXL_ASSERT(GetISA() == ISA::A64);
   VIXL_ASSERT(xd.Is64Bits());
   Emit(ADR | ImmPCRelAddress(imm21) | Rd(xd));
 }
@@ -468,6 +487,10 @@ void Assembler::adr(const Register& xd, Label* label) {
 
 
 void Assembler::adrp(const Register& xd, int64_t imm21) {
+  VIXL_ASSERT(AllowPageOffsetDependentCode());
+  // In C64, this has different behaviour. See `adrp(CRegister, ...)` and
+  // variants.
+  VIXL_ASSERT(GetISA() == ISA::A64);
   VIXL_ASSERT(xd.Is64Bits());
   Emit(ADRP | ImmPCRelAddress(imm21) | Rd(xd));
 }
