@@ -6511,6 +6511,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     bx(kInstructionSize);
   }
 
+  void Clrperm(CRegister cd, CRegister cn, ClrpermImm perm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    clrperm(cd, cn, perm);
+  }
+
   // Clear permissions bits that are set in xm<17:0>.
   void Clrperm(CRegister cd, CRegister cn, Register rm) {
     VIXL_ASSERT(allow_macro_instructions_);

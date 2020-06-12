@@ -9543,7 +9543,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 // TODO: Implement these.
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(MorelloBranchSealedIndirect)              \
-  V(MorelloCLRPERMImm)                        \
   V(MorelloCompareAndSwap)                    \
   V(MorelloImmBounds)                         \
   V(MorelloLDAPR)                             \
@@ -9820,6 +9819,28 @@ void Disassembler::VisitMorelloChecks(const Instruction *instr) {
   }
 
   Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloCLRPERMImm(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cds, 'cns, ";
+  const char *suffix = "";
+
+  const char *perm_names[] = {"#0", "X", "W", "WX", "R", "RX", "RW", "RWX"};
+  uint32_t perm = instr->ExtractBits(15, 13);
+  VIXL_ASSERT(perm <= ArrayLength(perm_names));
+
+  switch (instr->Mask(MorelloCLRPERMImmMask)) {
+    case CLRPERM_c_ci:
+      mnemonic = "clrperm";
+      suffix = perm_names[perm];
+      break;
+    default:
+      form = "(MorelloCLRPERMImm)";
+      break;
+  }
+
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitMorelloConvertToCap(const Instruction *instr) {

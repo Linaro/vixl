@@ -229,6 +229,12 @@ void Assembler::chktgd(CRegister cn) {
   Emit(CHKTGD_c | RnSP(cn));
 }
 
+void Assembler::clrperm(CRegister cd, CRegister cn, ClrpermImm perm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Instr perm_enc = ImmUnsignedField<15, 13>(static_cast<int>(perm));
+  Emit(CLRPERM_c_ci | RdSP(cd) | RnSP(cn) | perm_enc);
+}
+
 void Assembler::clrperm(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());

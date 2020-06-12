@@ -429,7 +429,22 @@ TEST(morello_chktgd_c_c) {
 TEST(morello_clrperm_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(clrperm(c0, c1, Clrperm::X), "TODO");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::None), "clrperm c0, c1, #0");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::X), "clrperm c0, c1, X");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::W), "clrperm c0, c1, W");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::WX), "clrperm c0, c1, WX");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::R), "clrperm c0, c1, R");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::RX), "clrperm c0, c1, RX");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::RW), "clrperm c0, c1, RW");
+  COMPARE_MORELLO(clrperm(c0, c1, ClrpermImm::RWX), "clrperm c0, c1, RWX");
+  COMPARE_MORELLO(clrperm(c0, csp, ClrpermImm::None), "clrperm c0, csp, #0");
+  COMPARE_MORELLO(clrperm(csp, c1, ClrpermImm::None), "clrperm csp, c1, #0");
+  COMPARE_MORELLO(clrperm(c30, c30, ClrpermImm::None), "clrperm c30, c30, #0");
+
+  COMPARE_MACRO_MORELLO(Clrperm(c14, c5, ClrpermImm::RWX),
+                        "clrperm c14, c5, RWX");
+  COMPARE_MACRO_MORELLO(Clrperm(csp, csp, ClrpermImm::RWX),
+                        "clrperm csp, csp, RWX");
 }
 
 TEST(morello_clrperm_c_cr_c) {
