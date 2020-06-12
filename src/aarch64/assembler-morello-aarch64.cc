@@ -501,6 +501,12 @@ void Assembler::seal(CRegister cd, CRegister cn, CRegister cm) {
   Emit(SEAL_c_cc | Rd(cd) | Rn(cn) | Rm(cm));
 }
 
+void Assembler::seal(CRegister cd, CRegister cn, SealForm form) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  Instr form_enc = ImmUnsignedField<14, 13>(static_cast<int>(form));
+  Emit(SEAL_c_ci | Rd(cd) | Rn(cn) | form_enc);
+}
+
 void Assembler::sub(CRegister cd, CRegister cn, uint64_t imm12, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // Morello's `sub` only has an immediate form.

@@ -1085,7 +1085,19 @@ TEST(morello_seal_c_cc_c) {
 TEST(morello_seal_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(seal(c0, c1, Seal::LPB), "TODO");
+  COMPARE_MORELLO(seal(c0, c1, SealForm::RB), "seal c0, c1, rb");
+  COMPARE_MORELLO(seal(c0, c1, SealForm::LPB), "seal c0, c1, lpb");
+  COMPARE_MORELLO(seal(c0, c1, SealForm::LB), "seal c0, c1, lb");
+  COMPARE_MORELLO(seal(c0, czr, SealForm::LB), "seal c0, czr, lb");
+  COMPARE_MORELLO(seal(czr, c1, SealForm::LB), "seal czr, c1, lb");
+  COMPARE_MORELLO(seal(c30, c30, SealForm::LB), "seal c30, c30, lb");
+
+  COMPARE_MACRO_MORELLO(Seal(c0, c1, SealForm::RB), "seal c0, c1, rb");
+  COMPARE_MACRO_MORELLO(Seal(c23, c12, SealForm::RB), "seal c23, c12, rb");
+  COMPARE_MACRO_MORELLO(Seal(czr, czr, SealForm::RB), "seal czr, czr, rb");
+
+  // Check that RESERVED encodings (form = 0b00) are disassembled as such.
+  COMPARE_MORELLO(dci(SEAL_c_ci), "seal c0, c0, RESERVED");
 }
 
 TEST(morello_sub_c_cis_c) {

@@ -6857,6 +6857,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     scvalue(cd, cn, xm);
   }
 
+  void Seal(CRegister cd, CRegister cn, SealForm form) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    seal(cd, cn, form);
+  }
+
   void Seal(CRegister cd, CRegister cn, CRegister cm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

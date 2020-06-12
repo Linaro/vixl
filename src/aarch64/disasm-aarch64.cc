@@ -9567,7 +9567,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLoadStoreUnscaledImmediateAltBase) \
   V(MorelloLoadStoreUnsignedOffset)           \
   V(MorelloLoadStoreUnsignedOffsetAltBase)    \
-  V(MorelloSEAL)                              \
   V(MorelloStoreExclusive)                    \
   V(MorelloStorePairExclusive)                \
   V(MorelloSwap)
@@ -10125,6 +10124,28 @@ void Disassembler::VisitMorelloSCFLGS(const Instruction *instr) {
   }
 
   Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloSEAL(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cd, 'cn, ";
+  const char *suffix = "";
+
+  const char *seal_form_names[] = {"RESERVED", "rb", "lpb", "lb"};
+  uint32_t seal_form = instr->ExtractBits(14, 13);
+  VIXL_ASSERT(seal_form <= ArrayLength(seal_form_names));
+
+  switch (instr->Mask(MorelloSEALMask)) {
+    case SEAL_c_ci:
+      mnemonic = "seal";
+      suffix = seal_form_names[seal_form];
+      break;
+    default:
+      form = "(MorelloSEAL)";
+      break;
+  }
+
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitMorelloSetField1(const Instruction *instr) {
