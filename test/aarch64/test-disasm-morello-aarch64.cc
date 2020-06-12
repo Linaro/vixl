@@ -822,15 +822,50 @@ TEST(morello_gcvalue_r_c_c) {
 TEST(morello_mrs_c_i_c) {
   SETUP();
 
-  // COMPARE_MORELLO(mrs(c0, FPCR), "TODO");
-  // COMPARE_MORELLO(mrs(c0, RNDR), "TODO");
-  // COMPARE_MORELLO(mrs(c0, RNDRRS), "TODO");
+  COMPARE_MORELLO(mrs(c0, CCTLR_EL0), "mrs c0, cctlr_el0");
+  COMPARE_MORELLO(mrs(c0, CID_EL0), "mrs c0, cid_el0");
+  COMPARE_MORELLO(mrs(c0, DDC), "mrs c0, ddc");
+  COMPARE_MORELLO(mrs(c0, RCSP_EL0), "mrs c0, rcsp_el0");
+  COMPARE_MORELLO(mrs(c0, RDDC_EL0), "mrs c0, rddc_el0");
+  COMPARE_MORELLO(mrs(c30, DDC), "mrs c30, ddc");
+  COMPARE_MORELLO(mrs(czr, DDC), "mrs czr, ddc");
+
+  COMPARE_MACRO_MORELLO(Mrs(c0, CID_EL0), "mrs c0, cid_el0");
+  COMPARE_MACRO_MORELLO(Mrs(c30, CID_EL0), "mrs c30, cid_el0");
+  COMPARE_MACRO_MORELLO(Mrs(czr, CID_EL0), "mrs czr, cid_el0");
+
+  // Test disassembly of registers that VIXL doesn't name.
+  COMPARE(dci(MRS_c_i | (0b1'011'0001'0010'111 << 5)), "mrs c0, S3_3_c1_c2_7");
 }
 
 TEST(morello_msr_c_i_c) {
   SETUP();
 
-  // COMPARE_MORELLO(msr(FPCR, c0), "TODO");
+  COMPARE_MORELLO(msr(CCTLR_EL0, c0), "msr cctlr_el0, c0");
+  COMPARE_MORELLO(msr(CID_EL0, c0), "msr cid_el0, c0");
+  COMPARE_MORELLO(msr(DDC, c0), "msr ddc, c0");
+  COMPARE_MORELLO(msr(RCSP_EL0, c0), "msr rcsp_el0, c0");
+  COMPARE_MORELLO(msr(RDDC_EL0, c0), "msr rddc_el0, c0");
+  COMPARE_MORELLO(msr(DDC, c30), "msr ddc, c30");
+  COMPARE_MORELLO(msr(DDC, czr), "msr ddc, czr");
+
+  COMPARE_MACRO_MORELLO(Msr(CID_EL0, c0), "msr cid_el0, c0");
+  COMPARE_MACRO_MORELLO(Msr(CID_EL0, c30), "msr cid_el0, c30");
+  COMPARE_MACRO_MORELLO(Msr(CID_EL0, czr), "msr cid_el0, czr");
+
+  // Test disassembly of registers that VIXL doesn't name.
+  COMPARE(dci(MSR_c_i | (0b1'011'0001'0010'111 << 5)), "msr S3_3_c1_c2_7, c0");
+}
+
+TEST(morello_mrs_msr_x) {
+  // X-sized accesses to Morello system registers.
+  SETUP();
+
+  COMPARE(mrs(x15, RSP_EL0), "mrs x15, rsp_el0");
+  COMPARE(msr(RSP_EL0, x15), "msr rsp_el0, x15");
+
+  COMPARE_MACRO(Mrs(x15, RSP_EL0), "mrs x15, rsp_el0");
+  COMPARE_MACRO(Msr(RSP_EL0, x15), "msr rsp_el0, x15");
 }
 
 TEST(morello_orrflgs_c_ci_c) {

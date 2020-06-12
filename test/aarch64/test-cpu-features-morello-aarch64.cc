@@ -100,8 +100,10 @@ TEST_MORELLO(gctag_0, gctag(x0, c1))
 TEST_MORELLO(gctype_0, gctype(x0, c1))
 TEST_MORELLO(gcvalue_0, gcvalue(x0, c1))
 TEST_MORELLO(mov_0, mov(c0, c1))
-// TEST_MORELLO(mrs_0, mrs(c0, FPCR))
-// TEST_MORELLO(msr_0, msr(FPCR, c0))
+TEST_MORELLO(mrs_0, mrs(c0, DDC))
+TEST_MORELLO(mrs_1, mrs(x0, RSP_EL0))
+TEST_MORELLO(msr_0, msr(DDC, c0))
+TEST_MORELLO(msr_1, msr(RSP_EL0, x0))
 TEST_MORELLO(orrflgs_0, orrflgs(c0, c1, 124))
 TEST_MORELLO(orrflgs_1, orrflgs(c0, c1, x2))
 TEST_MORELLO(ret_0, ret(c0))
@@ -125,14 +127,6 @@ TEST_MORELLO(sub_2, sub(c0, c1, 0x21c << 12))
 TEST_MORELLO(sub_3, sub(c0, c1, 0x21c, 12))
 TEST_MORELLO(subs_0, subs(x0, c1, c2))
 TEST_MORELLO(unseal_0, unseal(c0, c1, c2))
-
-#define TEST_RNG_MORELLO(NAME, ASM)                                    \
-  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kRNG, CPUFeatures::kMorello), \
-                RNG_Morello_##NAME,                                    \
-                ASM)
-
-// TEST_RNG_MORELLO(mrs_0, mrs(c0, RNDR))
-// TEST_RNG_MORELLO(mrs_1, mrs(c0, RNDRRS))
 
 }  // namespace aarch64
 }  // namespace vixl

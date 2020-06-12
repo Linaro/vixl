@@ -1408,13 +1408,15 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
         break;
     }
   } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
-    if (instr->Mask(SystemSysRegMask) == MRS) {
-      switch (instr->GetImmSystemRegister()) {
-        case RNDR:
-        case RNDRRS:
-          scope.Record(CPUFeatures::kRNG);
-          break;
-      }
+    bool mrs = instr->Mask(SystemSysRegMask) == MRS;
+    switch (instr->GetImmSystemRegister()) {
+      case RSP_EL0:
+        scope.Record(CPUFeatures::kMorello);
+        break;
+      case RNDR:
+      case RNDRRS:
+        if (mrs) scope.Record(CPUFeatures::kRNG);
+        break;
     }
   }
 }

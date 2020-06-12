@@ -168,10 +168,10 @@ V_(ImmBarrierType, 9, 8, ExtractBits)                                        \
 V_(ImmUdf, 15, 0, ExtractBits)                                               \
                                                                              \
 /* System (MRS, MSR, SYS) */                                                 \
-V_(ImmSystemRegister, 20, 5, ExtractBits)                                    \
+V_(ImmSystemRegister, 19, 5, ExtractBits)                                    \
 V_(SysO0, 19, 19, ExtractBits)                                               \
 V_(SysOp, 18, 5, ExtractBits)                                                \
-V_(SysOp0, 20, 19, ExtractBits)                                              \
+/* SysOp0 is derived from SysO0. Use GetSysOp0() to decode it. */            \
 V_(SysOp1, 18, 16, ExtractBits)                                              \
 V_(SysOp2, 7, 5, ExtractBits)                                                \
 V_(CRn, 15, 12, ExtractBits)                                                 \
@@ -490,25 +490,52 @@ enum BType {
   BranchFromGuardedNotToIP = 3
 };
 
+// SystemRegisters are not encoded not as one field, but as a combination of
+// multiple fields (Op0, Op1, Crn, Crm, Op2).
 template<int op0, int op1, int crn, int crm, int op2>
 class SystemRegisterEncoder {
  public:
   static const uint32_t value =
-      ((op0 << SysO0_offset) |
+      (((op0 & 0b01) << SysO0_offset) |
        (op1 << SysOp1_offset) |
        (crn << CRn_offset) |
        (crm << CRm_offset) |
        (op2 << SysOp2_offset)) >> ImmSystemRegister_offset;
+
+  // op0<1> is not encoded, and is assumed to be 1.
+  VIXL_STATIC_ASSERT((op0 >= 0b10) && (op0 <= 0b11));
+  VIXL_STATIC_ASSERT((op1 >= 0b000) && (op1 <= 0b111));
+  VIXL_STATIC_ASSERT((op2 >= 0b000) && (op2 <= 0b111));
+  VIXL_STATIC_ASSERT((crn >= 0b0000) && (crn <= 0b1111));
+  VIXL_STATIC_ASSERT((crm >= 0b0000) && (crm <= 0b1111));
 };
 
-// System/special register names.
-// This information is not encoded as one field but as the concatenation of
-// multiple fields (Op0, Op1, Crn, Crm, Op2).
+// 64-bit system registers.
 enum SystemRegister {
   NZCV = SystemRegisterEncoder<3, 3, 4, 2, 0>::value,
   FPCR = SystemRegisterEncoder<3, 3, 4, 4, 0>::value,
   RNDR = SystemRegisterEncoder<3, 3, 2, 4, 0>::value,    // Random number.
-  RNDRRS = SystemRegisterEncoder<3, 3, 2, 4, 1>::value   // Reseeded random number.
+  RNDRRS = SystemRegisterEncoder<3, 3, 2, 4, 1>::value,  // Reseeded random number.
+
+  // 64-bit aliases of bits <63:0> of capability system registers.
+  // Note that aliases are not available for every capability system register.
+  RSP_EL0 = SystemRegisterEncoder<3, 7, 4, 1, 3>::value
+};
+
+enum CapabilitySystemRegister {
+  // Capability Control Register. Access is possible at EL0 if the PCC has the
+  // "System" permission. Also note that CPACR_EL1 can configure EL0 accesses to
+  // this register to trap.
+  CCTLR_EL0 = SystemRegisterEncoder<3, 3, 1, 2, 2>::value,
+  // Compartment ID.
+  CID_EL0 = SystemRegisterEncoder<3, 3, 13, 0, 7>::value,
+  // In EL0, this maps to "DDC_EL0" or "RDDC_EL0" in Executive or Restricted
+  // state, respective. EL0 cannot access "DDC_EL0" explicitly.
+  DDC = SystemRegisterEncoder<3, 3, 4, 1, 1>::value,
+  // Access the Restricted state stack pointer from Executive state.
+  RCSP_EL0 = SystemRegisterEncoder<3, 7, 4, 1, 3>::value,
+  // Access the Restricted state DDC from Executive state.
+  RDDC_EL0 = SystemRegisterEncoder<3, 3, 4, 3, 1>::value,
 };
 
 template<int op1, int crn, int crm, int op2>
@@ -919,7 +946,7 @@ enum SystemSysRegOp {
   SystemSysRegFixed = 0xD5100000,
   SystemSysRegFMask = 0xFFD00000,
   SystemSysRegMask  = 0xFFF00000,
-  MRS               = SystemSysRegFixed | 0x00200000,
+  MRS               = SystemSysRegFixed | 0x00300000,
   MSR               = SystemSysRegFixed | 0x00000000
 };
 

@@ -6265,6 +6265,8 @@ bool Assembler::CPUHas(const CPURegister& rt, const CPURegister& rt2) const {
 
 bool Assembler::CPUHas(SystemRegister sysreg) const {
   switch (sysreg) {
+    case RSP_EL0:
+      return CPUHas(CPUFeatures::kMorello);
     case RNDR:
     case RNDRRS:
       return CPUHas(CPUFeatures::kRNG);
@@ -6273,6 +6275,19 @@ bool Assembler::CPUHas(SystemRegister sysreg) const {
       break;
   }
   return true;
+}
+
+bool Assembler::CPUHas(CapabilitySystemRegister sysreg) const {
+  switch (sysreg) {
+    case CCTLR_EL0:
+    case CID_EL0:
+    case DDC:
+    case RCSP_EL0:
+    case RDDC_EL0:
+      return CPUHas(CPUFeatures::kMorello);
+  }
+  VIXL_UNREACHABLE();
+  return false;
 }
 
 bool Assembler::CPUHas(ISA isa) const {

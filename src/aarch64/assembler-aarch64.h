@@ -6295,10 +6295,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void mov(CRegister cd, CRegister cn) { cpy(cd, cn); }
 
   // MRS <Ct>, (<systemreg>|S<op0>_<op1>_<Cn>_<Cm>_<op2>)
-  void mrs(CRegister ct, SystemRegister sysreg);
+  void mrs(CRegister ct, CapabilitySystemRegister sysreg);
 
   // MSR (<systemreg>|S<op0>_<op1>_<Cn>_<Cm>_<op2>), <Ct>
-  void msr(SystemRegister sysreg, CRegister ct);
+  void msr(CapabilitySystemRegister sysreg, CRegister ct);
 
   // ORRFLGS <Cd|CSP>, <Cn|CSP>, <Xm>
   void orrflgs(CRegister cd, CRegister cn, Register xm);
@@ -7558,6 +7558,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   bool CPUHas(const CPURegister& rt, const CPURegister& rt2) const;
 
   bool CPUHas(SystemRegister sysreg) const;
+  bool CPUHas(CapabilitySystemRegister sysreg) const;
 
   bool CPUHas(ISA isa) const;
 

@@ -339,6 +339,13 @@ class Instruction {
     return (hi * (1 << ImmPCRelLo_width)) + lo;
   }
 
+  // op0 is always 0b1x, and op0<1> is not encoded.
+  int GetSysOp0() const {
+    int op0_0 = GetSysO0();
+    VIXL_ASSERT((op0_0 == 0) || (op0_0 == 1));
+    return op0_0 | 0b10;
+  }
+
   // ImmLSPAC is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmLSPACLo and ImmLSPACHi.
   int GetImmLSPAC() const {

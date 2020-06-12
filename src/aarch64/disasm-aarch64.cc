@@ -9545,7 +9545,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloBranchSealedIndirect)              \
   V(MorelloCLRPERMImm)                        \
   V(MorelloCompareAndSwap)                    \
-  V(MorelloGetSetSystemRegister)              \
   V(MorelloImmBounds)                         \
   V(MorelloLDAPR)                             \
   V(MorelloLDR)                               \
@@ -9972,6 +9971,24 @@ void Disassembler::VisitMorelloGetField2(const Instruction *instr) {
       break;
     default:
       form = "(MorelloGetField2)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloGetSetSystemRegister(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(MorelloGetSetSystemRegister)";
+
+  switch (instr->Mask(MorelloGetSetSystemRegisterMask)) {
+    case MRS_c_i:
+      mnemonic = "mrs";
+      form = "'ct, 'IZ";
+      break;
+    case MSR_c_i:
+      mnemonic = "msr";
+      form = "'IZ, 'ct";
       break;
   }
 
@@ -10945,6 +10962,9 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 'Y': {  // IY - system register immediate.
       switch (instr->GetImmSystemRegister()) {
+        case RSP_EL0:
+          AppendToOutput("rsp_el0");
+          break;
         case NZCV:
           AppendToOutput("nzcv");
           break;
@@ -10956,6 +10976,34 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           break;
         case RNDRRS:
           AppendToOutput("rndrrs");
+          break;
+        default:
+          AppendToOutput("S%d_%d_c%d_c%d_%d",
+                         instr->GetSysOp0(),
+                         instr->GetSysOp1(),
+                         instr->GetCRn(),
+                         instr->GetCRm(),
+                         instr->GetSysOp2());
+          break;
+      }
+      return 2;
+    }
+    case 'Z': {  // IZ - Capability system register immediate.
+      switch (instr->GetImmSystemRegister()) {
+        case CCTLR_EL0:
+          AppendToOutput("cctlr_el0");
+          break;
+        case CID_EL0:
+          AppendToOutput("cid_el0");
+          break;
+        case DDC:
+          AppendToOutput("ddc");
+          break;
+        case RCSP_EL0:
+          AppendToOutput("rcsp_el0");
+          break;
+        case RDDC_EL0:
+          AppendToOutput("rddc_el0");
           break;
         default:
           AppendToOutput("S%d_%d_c%d_c%d_%d",

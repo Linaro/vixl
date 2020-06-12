@@ -6755,6 +6755,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     if (!cd.Is(cn)) mov(cd, cn);
   }
 
+  void Mrs(CRegister ct, CapabilitySystemRegister sysreg) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    mrs(ct, sysreg);
+  }
+
+  void Msr(CapabilitySystemRegister sysreg, CRegister ct) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    msr(sysreg, ct);
+  }
+
   // Invert flags bits that are set in xm<63:56>.
   // The flags field of a capability is bits <63:56>.
   void Orrflgs(CRegister cd, CRegister cn, Register xm) {

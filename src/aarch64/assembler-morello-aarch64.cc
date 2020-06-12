@@ -401,6 +401,18 @@ void Assembler::gcvalue(Register xd, CRegister cn) {
   Emit(GCVALUE_r_c | Rd(xd) | RnSP(cn));
 }
 
+void Assembler::mrs(CRegister ct, CapabilitySystemRegister sysreg) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(CPUHas(sysreg));
+  Emit(MRS_c_i | Rt(ct) | ImmSystemRegister(sysreg));
+}
+
+void Assembler::msr(CapabilitySystemRegister sysreg, CRegister ct) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(CPUHas(sysreg));
+  Emit(MSR_c_i | Rt(ct) | ImmSystemRegister(sysreg));
+}
+
 void Assembler::orrflgs(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());
