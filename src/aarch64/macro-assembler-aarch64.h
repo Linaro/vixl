@@ -6826,11 +6826,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     rrmask(xd, xn);
   }
 
-  void Scbnds(CRegister cd, CRegister cn, Register xm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    scbnds(cd, cn, xm);
-  }
+  void Scbnds(CRegister cd, CRegister cn, const Operand& operand);
 
   void Scbndse(CRegister cd, CRegister cn, Register xm) {
     VIXL_ASSERT(allow_macro_instructions_);

@@ -472,6 +472,19 @@ void Assembler::scbnds(CRegister cd, CRegister cn, Register xm) {
   Emit(SCBNDS_c_cr | RdSP(cd) | RnSP(cn) | Rm(xm));
 }
 
+void Assembler::scbnds(CRegister cd, CRegister cn, uint64_t imm6) {
+  // TODO: Should this be able to infer a shift, like `add`? Currently we only
+  // do that in the MacroAssembler.
+  scbnds(cd, cn, imm6, 0);
+}
+
+void Assembler::scbnds(CRegister cd, CRegister cn, uint64_t imm6, int shift) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT((shift == 0) || (shift == 4));
+  Instr op = (shift == 0) ? SCBNDS_c_ci_c : SCBNDS_c_ci_s;
+  Emit(op | RdSP(cd) | RnSP(cn) | ImmUnsignedField<20, 15>(imm6));
+}
+
 void Assembler::scbndse(CRegister cd, CRegister cn, Register xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xm.IsX());

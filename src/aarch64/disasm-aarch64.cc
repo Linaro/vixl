@@ -9544,7 +9544,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
   V(MorelloBranchSealedIndirect)              \
   V(MorelloCompareAndSwap)                    \
-  V(MorelloImmBounds)                         \
   V(MorelloLDAPR)                             \
   V(MorelloLDR)                               \
   V(MorelloLoadPairAndBranch)                 \
@@ -10009,6 +10008,24 @@ void Disassembler::VisitMorelloGetSetSystemRegister(const Instruction *instr) {
     case MSR_c_i:
       mnemonic = "msr";
       form = "'IZ, 'ct";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloImmBounds(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(MorelloImmBounds)";
+
+  switch (instr->Mask(MorelloImmBoundsMask)) {
+    case SCBNDS_c_ci_c:
+      mnemonic = "scbnds";
+      form = "'cds, 'cns, #'u2015";
+      break;
+    case SCBNDS_c_ci_s:
+      mnemonic = "scbnds";
+      form = "'cds, 'cns, #'u2015, lsl #4 ('u2015*16)";
       break;
   }
 

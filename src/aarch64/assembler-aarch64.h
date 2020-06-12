@@ -6330,8 +6330,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   void scbnds(CRegister cd, CRegister cn, Register xm);
 
   // SCBNDS <Cd|CSP>, <Cn|CSP>, #<imm>
+  void scbnds(CRegister cd, CRegister cn, uint64_t imm6);
+
   // SCBNDS <Cd|CSP>, <Cn|CSP>, #<imm>, LSL #4
-  void scbnds(CRegister cd, CRegister cn, int imm);
+  // This also accepts shift = 0, and emits the unshifted form.
+  void scbnds(CRegister cd, CRegister cn, uint64_t imm6, int shift);
 
   // SCBNDSE <Cd|CSP>, <Cn|CSP>, <Xm>
   void scbndse(CRegister cd, CRegister cn, Register xm);

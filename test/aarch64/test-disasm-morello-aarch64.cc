@@ -989,13 +989,26 @@ TEST(morello_rrmask_r_r_c) {
 TEST(morello_scbnds_c_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(scbnds(c0, c1, 42), "TODO");
+  COMPARE_MORELLO(scbnds(c0, c1, 42), "scbnds c0, c1, #42");
+  COMPARE_MORELLO(scbnds(c0, c1, 42, 0), "scbnds c0, c1, #42");
+  COMPARE_MORELLO(scbnds(c0, csp, 42), "scbnds c0, csp, #42");
+  COMPARE_MORELLO(scbnds(csp, c1, 42), "scbnds csp, c1, #42");
+  COMPARE_MORELLO(scbnds(c30, c30, 42), "scbnds c30, c30, #42");
+  COMPARE_MORELLO(scbnds(c0, c1, 0), "scbnds c0, c1, #0");
+  COMPARE_MORELLO(scbnds(c0, c1, 0x3f), "scbnds c0, c1, #63");
 }
 
 TEST(morello_scbnds_c_ci_s) {
   SETUP();
 
-  // COMPARE_MORELLO(scbnds(c0, c1, 0x77 << 4), "TODO");
+  COMPARE_MORELLO(scbnds(c0, c1, 42, 4), "scbnds c0, c1, #42, lsl #4 (672)");
+  COMPARE_MORELLO(scbnds(c0, c1, 42, 4), "scbnds c0, c1, #42, lsl #4 (672)");
+  COMPARE_MORELLO(scbnds(c0, csp, 42, 4), "scbnds c0, csp, #42, lsl #4 (672)");
+  COMPARE_MORELLO(scbnds(csp, c1, 42, 4), "scbnds csp, c1, #42, lsl #4 (672)");
+  COMPARE_MORELLO(scbnds(c30, c30, 42, 4),
+                  "scbnds c30, c30, #42, lsl #4 (672)");
+  COMPARE_MORELLO(scbnds(c0, c1, 0, 4), "scbnds c0, c1, #0, lsl #4 (0)");
+  COMPARE_MORELLO(scbnds(c0, c1, 0x3f, 4), "scbnds c0, c1, #63, lsl #4 (1008)");
 }
 
 TEST(morello_scbnds_c_cr_c) {
@@ -1006,10 +1019,47 @@ TEST(morello_scbnds_c_cr_c) {
   COMPARE_MORELLO(scbnds(c18, csp, x20), "scbnds c18, csp, x20");
   COMPARE_MORELLO(scbnds(csp, c19, x20), "scbnds csp, c19, x20");
   COMPARE_MORELLO(scbnds(c30, c30, x30), "scbnds c30, c30, x30");
+}
 
+TEST(morello_scbnds_macro) {
+  SETUP();
+
+  // Encodable immediates.
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 0), "scbnds c0, c1, #0");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 42), "scbnds c0, c1, #42");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 48), "scbnds c0, c1, #48");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 63), "scbnds c0, c1, #63");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 4 << 4),
+                        "scbnds c0, c1, #4, lsl #4 (64)");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 32 << 4),
+                        "scbnds c0, c1, #32, lsl #4 (512)");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 63 << 4),
+                        "scbnds c0, c1, #63, lsl #4 (1008)");
+  COMPARE_MACRO_MORELLO(Scbnds(csp, csp, 63), "scbnds csp, csp, #63");
+  COMPARE_MACRO_MORELLO(Scbnds(c30, c30, 63), "scbnds c30, c30, #63");
+  COMPARE_MACRO_MORELLO(Scbnds(csp, csp, 63 << 4),
+                        "scbnds csp, csp, #63, lsl #4 (1008)");
+  COMPARE_MACRO_MORELLO(Scbnds(c30, c30, 63 << 4),
+                        "scbnds c30, c30, #63, lsl #4 (1008)");
+
+  // Encodable X registers.
   COMPARE_MACRO_MORELLO(Scbnds(c18, c19, x20), "scbnds c18, c19, x20");
   COMPARE_MACRO_MORELLO(Scbnds(csp, csp, xzr), "scbnds csp, csp, xzr");
   COMPARE_MACRO_MORELLO(Scbnds(c0, c0, x0), "scbnds c0, c0, x0");
+
+  // Unencodable Operands.
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 65),
+                        "mov x16, #0x41\n"
+                        "scbnds c0, c1, x16");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, 1 << (6 + 4)),
+                        "mov x16, #0x400\n"
+                        "scbnds c0, c1, x16");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, Operand(x2, ASR, 5)),
+                        "asr x16, x2, #5\n"
+                        "scbnds c0, c1, x16");
+  COMPARE_MACRO_MORELLO(Scbnds(c0, c1, Operand(w2, UXTB, 3)),
+                        "ubfiz x16, x2, #3, #8\n"
+                        "scbnds c0, c1, x16");
 }
 
 TEST(morello_scbndse_c_cr_c) {

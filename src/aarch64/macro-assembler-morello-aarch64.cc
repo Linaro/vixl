@@ -82,6 +82,42 @@ void MacroAssembler::Add(CRegister cd, CRegister cn, const Operand& operand) {
   add(cd, cn, Operand(xm, UXTX));
 }
 
+void MacroAssembler::Scbnds(CRegister cd,
+                            CRegister cn,
+                            const Operand& operand) {
+  VIXL_ASSERT(allow_macro_instructions_);
+
+  if (operand.IsImmediate()) {
+    uint64_t imm = operand.GetImmediate();
+    int shift = 0;
+    if (!IsUint6(imm) && ((imm % 4) == 0)) {
+      shift = 4;
+      imm >>= shift;
+    }
+    if (IsUint6(imm)) {
+      SingleEmissionCheckScope guard(this);
+      scbnds(cd, cn, imm, shift);
+      return;
+    }
+  }
+
+  if (operand.IsPlainRegister()) {
+    Register xm = operand.GetRegister();
+    if (xm.IsX() && !xm.IsSP()) {
+      SingleEmissionCheckScope guard(this);
+      scbnds(cd, cn, xm);
+      return;
+    }
+  }
+
+  // Materialise the operand and use the register form.
+  UseScratchRegisterScope temps(this);
+  Register xm = temps.AcquireX();
+  Mov(xm, operand);
+  SingleEmissionCheckScope guard(this);
+  scbnds(cd, cn, xm);
+}
+
 void MacroAssembler::Sub(CRegister cd, CRegister cn, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
 
