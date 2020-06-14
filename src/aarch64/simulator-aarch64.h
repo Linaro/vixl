@@ -4362,7 +4362,8 @@ class Simulator : public DecoderVisitor {
                                             FlagsUpdate flags = SetFlags);
 
   void SVEGatherLoadScalarPlusVectorHelper(const Instruction* instr,
-                                           VectorFormat vform);
+                                           VectorFormat vform,
+                                           SVEOffsetModifier mod);
 
   // Store each active zt<i>[lane] to `addr.GetElementAddress(lane, ...)`.
   //

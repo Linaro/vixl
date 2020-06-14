@@ -9478,6 +9478,202 @@ TEST_SVE(sve_ldnf1) {
   munmap(reinterpret_cast<void*>(data), page_size * 2);
 }
 
+// Emphasis on test if the modifiers are propagated and simulated correctly.
+TEST_SVE(sve_ldff1_regression_test) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  size_t page_size = sysconf(_SC_PAGE_SIZE);
+  VIXL_ASSERT(page_size > static_cast<size_t>(config->sve_vl_in_bytes()));
+
+  uintptr_t data = reinterpret_cast<uintptr_t>(mmap(NULL,
+                                                    page_size * 2,
+                                                    PROT_READ | PROT_WRITE,
+                                                    MAP_PRIVATE | MAP_ANONYMOUS,
+                                                    -1,
+                                                    0));
+  uintptr_t middle = data + page_size;
+  // Fill the accessible page with arbitrary data.
+  for (size_t i = 0; i < page_size; i++) {
+    // Reverse bits so we get a mixture of positive and negative values.
+    uint8_t byte = ReverseBits(static_cast<uint8_t>(i));
+    memcpy(reinterpret_cast<void*>(middle + i), &byte, 1);
+    // Make one bit roughly different in every byte and copy the bytes in the
+    // reverse direction that convenient to verifying the loads in negative
+    // indexes.
+    byte += 1;
+    memcpy(reinterpret_cast<void*>(middle - i), &byte, 1);
+  }
+
+  PRegister all = p6;
+  __ Ptrue(all.VnB());
+
+  __ Mov(x0, middle);
+  __ Index(z31.VnS(), 0, 3);
+  __ Neg(z30.VnS(), z31.VnS());
+
+  __ Setffr();
+
+  // Scalar plus vector 32 unscaled offset
+  __ Ldff1b(z1.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW));
+  __ Ldff1h(z2.VnS(), all.Zeroing(), SVEMemOperand(x0, z30.VnS(), SXTW));
+  __ Ldff1w(z3.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW));
+  __ Ldff1sb(z4.VnS(), all.Zeroing(), SVEMemOperand(x0, z30.VnS(), SXTW));
+  __ Ldff1sh(z5.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW));
+
+  // Scalar plus vector 32 scaled offset
+  __ Ldff1h(z6.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW, 1));
+  __ Ldff1w(z7.VnS(), all.Zeroing(), SVEMemOperand(x0, z31.VnS(), UXTW, 2));
+  __ Ldff1sh(z8.VnS(), all.Zeroing(), SVEMemOperand(x0, z30.VnS(), SXTW, 1));
+
+  __ Index(z31.VnD(), 0, 3);
+  __ Neg(z30.VnD(), z31.VnD());
+
+  // Ensure only the low 32 bits are used for the testing with positive index
+  // values. It also test if the indexes are treated as positive in `uxtw` form.
+  __ Mov(x3, 0x8000000080000000);
+  __ Dup(z28.VnD(), x3);
+  __ Sub(x2, x0, 0x80000000);
+  __ Add(z29.VnD(), z31.VnD(), z28.VnD());
+
+  // Scalar plus vector 32 unpacked unscaled offset
+  __ Ldff1b(z9.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+  __ Ldff1h(z10.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW));
+  __ Ldff1w(z11.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+  __ Ldff1sb(z12.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+  __ Ldff1sh(z13.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW));
+  __ Ldff1sw(z14.VnD(), all.Zeroing(), SVEMemOperand(x2, z29.VnD(), UXTW));
+
+  // Scalar plus vector 32 unpacked scaled offset
+  __ Ldff1h(z15.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW, 1));
+  __ Ldff1w(z16.VnD(), all.Zeroing(), SVEMemOperand(x0, z31.VnD(), UXTW, 2));
+  __ Ldff1d(z17.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW, 3));
+  __ Ldff1sh(z18.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), SXTW, 1));
+  __ Ldff1sw(z19.VnD(), all.Zeroing(), SVEMemOperand(x0, z31.VnD(), UXTW, 2));
+
+  __ Sub(x0, x0, x3);
+  // Note that the positive indexes has been added by `0x8000000080000000`. The
+  // wrong address will be accessed if the address is treated as negative.
+
+  // Scalar plus vector 64 unscaled offset
+  __ Ldff1b(z20.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ldff1h(z21.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ldff1w(z22.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ldff1sh(z23.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+  __ Ldff1sw(z24.VnD(), all.Zeroing(), SVEMemOperand(x0, z29.VnD()));
+
+  // Scalar plus vector 64 scaled offset
+  __ Lsr(z29.VnD(), z28.VnD(), 1);  // Shift right to 0x4000000040000000
+  __ Add(z30.VnD(), z31.VnD(), z29.VnD());
+  __ Ldff1h(z25.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 1));
+  __ Ldff1sh(z26.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 1));
+
+  __ Lsr(z29.VnD(), z29.VnD(), 1);  // Shift right to 0x2000000020000000
+  __ Add(z30.VnD(), z31.VnD(), z29.VnD());
+  __ Ldff1w(z27.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 2));
+  __ Ldff1sw(z28.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 2));
+
+  __ Lsr(z29.VnD(), z29.VnD(), 1);  // Shift right to 0x1000000010000000
+  __ Add(z30.VnD(), z31.VnD(), z29.VnD());
+  __ Ldff1d(z29.VnD(), all.Zeroing(), SVEMemOperand(x0, z30.VnD(), LSL, 3));
+
+  __ Rdffr(p1.VnB());
+  __ Cntp(x10, all, p1.VnB());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int64_t loaded_data_in_bytes = core.xreg(x10.GetCode());
+    // Only check 128 bits in this test.
+    if (loaded_data_in_bytes < kQRegSizeInBytes) {
+      // Report a warning when we hit fault-tolerant loads before all expected
+      // loads performed.
+      printf(
+          "WARNING: Fault-tolerant loads detected faults before the "
+          "expected loads completed.\n");
+      return;
+    }
+
+    // Scalar plus vector 32 unscaled offset
+    uint32_t expected_z1[] = {0x00000090, 0x00000060, 0x000000c0, 0x00000001};
+    uint32_t expected_z2[] = {0x00001191, 0x0000a161, 0x000041c1, 0x00008001};
+    uint32_t expected_z3[] = {0x30d05090, 0x9010e060, 0x60a020c0, 0xc0408001};
+    uint32_t expected_z4[] = {0xffffff91, 0x00000061, 0xffffffc1, 0x00000001};
+    uint32_t expected_z5[] = {0x00005090, 0xffffe060, 0x000020c0, 0xffff8001};
+
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnS());
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnS());
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnS());
+    ASSERT_EQUAL_SVE(expected_z4, z4.VnS());
+    ASSERT_EQUAL_SVE(expected_z5, z5.VnS());
+
+    // Scalar plus vector 32 scaled offset
+    uint32_t expected_z6[] = {0x0000c848, 0x0000b030, 0x0000e060, 0x00008001};
+    uint32_t expected_z7[] = {0xe464a424, 0xd8589818, 0xf070b030, 0xc0408001};
+    uint32_t expected_z8[] = {0xffff8949, 0xffffd131, 0xffffa161, 0xffff8001};
+
+    ASSERT_EQUAL_SVE(expected_z6, z6.VnS());
+    ASSERT_EQUAL_SVE(expected_z7, z7.VnS());
+    ASSERT_EQUAL_SVE(expected_z8, z8.VnS());
+
+    // Scalar plus vector 32 unpacked unscaled offset
+    uint64_t expected_z9[] = {0x00000000000000c0, 0x0000000000000001};
+    uint64_t expected_z10[] = {0x00000000000041c1, 0x0000000000008001};
+    uint64_t expected_z11[] = {0x0000000060a020c0, 0x00000000c0408001};
+    uint64_t expected_z12[] = {0xffffffffffffffc0, 0x0000000000000001};
+    uint64_t expected_z13[] = {0x00000000000041c1, 0xffffffffffff8001};
+    uint64_t expected_z14[] = {0x0000000060a020c0, 0xffffffffc0408001};
+
+    ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+    ASSERT_EQUAL_SVE(expected_z10, z10.VnD());
+    ASSERT_EQUAL_SVE(expected_z11, z11.VnD());
+    ASSERT_EQUAL_SVE(expected_z12, z12.VnD());
+    ASSERT_EQUAL_SVE(expected_z13, z13.VnD());
+    ASSERT_EQUAL_SVE(expected_z14, z14.VnD());
+
+    // Scalar plus vector 32 unpacked scaled offset
+    uint64_t expected_z15[] = {0x000000000000a161, 0x0000000000008001};
+    uint64_t expected_z16[] = {0x00000000f070b030, 0x00000000c0408001};
+    uint64_t expected_z17[] = {0x8949c929a969e919, 0xe060a020c0408001};
+    uint64_t expected_z18[] = {0xffffffffffffa161, 0xffffffffffff8001};
+    uint64_t expected_z19[] = {0xfffffffff070b030, 0xffffffffc0408001};
+
+    ASSERT_EQUAL_SVE(expected_z15, z15.VnD());
+    ASSERT_EQUAL_SVE(expected_z16, z16.VnD());
+    ASSERT_EQUAL_SVE(expected_z17, z17.VnD());
+    ASSERT_EQUAL_SVE(expected_z18, z18.VnD());
+    ASSERT_EQUAL_SVE(expected_z19, z19.VnD());
+
+    // Scalar plus vector 64 unscaled offset
+    uint64_t expected_z20[] = {0x00000000000000c0, 0x0000000000000001};
+    uint64_t expected_z21[] = {0x00000000000020c0, 0x0000000000008001};
+    uint64_t expected_z22[] = {0x0000000060a020c0, 0x00000000c0408001};
+    uint64_t expected_z23[] = {0x00000000000020c0, 0xffffffffffff8001};
+    uint64_t expected_z24[] = {0x0000000060a020c0, 0xffffffffc0408001};
+
+    ASSERT_EQUAL_SVE(expected_z20, z20.VnD());
+    ASSERT_EQUAL_SVE(expected_z21, z21.VnD());
+    ASSERT_EQUAL_SVE(expected_z22, z22.VnD());
+    ASSERT_EQUAL_SVE(expected_z23, z23.VnD());
+    ASSERT_EQUAL_SVE(expected_z24, z24.VnD());
+
+    uint64_t expected_z25[] = {0x000000000000e060, 0x0000000000008001};
+    uint64_t expected_z26[] = {0xffffffffffffe060, 0xffffffffffff8001};
+    uint64_t expected_z27[] = {0x00000000f070b030, 0x00000000c0408001};
+    uint64_t expected_z28[] = {0xfffffffff070b030, 0xffffffffc0408001};
+    uint64_t expected_z29[] = {0xf878b838d8589818, 0xe060a020c0408001};
+
+    // Scalar plus vector 64 scaled offset
+    ASSERT_EQUAL_SVE(expected_z25, z25.VnD());
+    ASSERT_EQUAL_SVE(expected_z26, z26.VnD());
+    ASSERT_EQUAL_SVE(expected_z27, z27.VnD());
+    ASSERT_EQUAL_SVE(expected_z28, z28.VnD());
+    ASSERT_EQUAL_SVE(expected_z29, z29.VnD());
+  }
+}
+
 // Test gather loads by comparing them with the result of a set of equivalent
 // scalar loads.
 static void GatherLoadScalarPlusVectorHelper(Test* config,

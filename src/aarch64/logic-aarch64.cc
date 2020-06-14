@@ -7262,14 +7262,14 @@ void Simulator::SVEFaultTolerantLoadHelper(VectorFormat vform,
 }
 
 void Simulator::SVEGatherLoadScalarPlusVectorHelper(const Instruction* instr,
-                                                    VectorFormat vform) {
+                                                    VectorFormat vform,
+                                                    SVEOffsetModifier mod) {
   bool is_signed = instr->ExtractBit(14) == 0;
   bool is_ff = instr->ExtractBit(13) == 1;
   // Note that these instructions don't use the Dtype encoding.
   int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
   int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
   uint64_t base = ReadXRegister(instr->GetRn());
-  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
   LogicSVEAddressVector addr(base,
                              &ReadVRegister(instr->GetRm()),
                              vform,

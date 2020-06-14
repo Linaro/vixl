@@ -9540,7 +9540,8 @@ void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS);
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS, mod);
 }
 
 void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
@@ -9563,7 +9564,8 @@ void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS);
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS, mod);
 }
 
 void Simulator::VisitSVE32BitGatherLoad_VectorPlusImm(
@@ -9619,7 +9621,8 @@ void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS);
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS, mod);
 }
 
 void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
@@ -9805,7 +9808,8 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD, mod);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
@@ -9838,7 +9842,7 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD, SVE_LSL);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
@@ -9865,7 +9869,9 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
+  SVEGatherLoadScalarPlusVectorHelper(instr,
+                                      kFormatVnD,
+                                      NO_SVE_OFFSET_MODIFIER);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
@@ -9907,7 +9913,8 @@ void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
       break;
   }
 
-  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD);
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD, mod);
 }
 
 void Simulator::VisitSVE64BitGatherLoad_VectorPlusImm(
