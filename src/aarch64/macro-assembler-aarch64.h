@@ -7605,6 +7605,9 @@ class UseScratchRegisterScope {
   Register AcquireX() {
     return AcquireFrom(masm_->GetScratchRegisterList()).X();
   }
+  CRegister AcquireC() {
+    return AcquireFrom(masm_->GetScratchRegisterList()).C();
+  }
   VRegister AcquireH() {
     return AcquireFrom(masm_->GetScratchVRegisterList()).H();
   }
@@ -7642,10 +7645,16 @@ class UseScratchRegisterScope {
   VRegister AcquireSameSizeAs(const VRegister& reg) {
     return AcquireVRegisterOfSize(reg.GetSizeInBits());
   }
+  CPURegister AcquireSameSizeAs(CPURegister reg) {
+    return AcquireCPURegisterOfSize(reg.GetSizeInBits());
+  }
   CPURegister AcquireCPURegisterOfSize(int size_in_bits) {
-    return masm_->GetScratchRegisterList()->IsEmpty()
-               ? CPURegister(AcquireVRegisterOfSize(size_in_bits))
-               : CPURegister(AcquireRegisterOfSize(size_in_bits));
+    if (masm_->GetScratchRegisterList()->IsEmpty()) {
+      return AcquireVRegisterOfSize(size_in_bits);
+    }
+    // AcquireRegisterOfSize can't return a C register.
+    if (size_in_bits == kCRegSize) return AcquireC();
+    return AcquireRegisterOfSize(size_in_bits);
   }
 
   // Acquire a register big enough to represent one lane of `vector`.

@@ -106,5 +106,42 @@ TEST(morello_isa) {
   VIXL_CHECK(obj.GetISA() == ISA::A64);
 }
 
+TEST(morello_scratch_scope_basic) {
+  MacroAssembler masm;
+  // c16 and c17 are available as scratch registers by default.
+  {
+    UseScratchRegisterScope temps(&masm);
+    CRegister temp1 = temps.AcquireC();
+    CRegister temp2 = temps.AcquireC();
+    VIXL_CHECK(temp1.Is(c16));
+    VIXL_CHECK(temp2.Is(c17));
+  }
+  {
+    UseScratchRegisterScope temps(&masm);
+    CPURegister temp1 = temps.AcquireCPURegisterOfSize(kCRegSize);
+    CPURegister temp2 = temps.AcquireCPURegisterOfSize(kCRegSize);
+    VIXL_CHECK(temp1.Is(c16));
+    VIXL_CHECK(temp2.Is(c17));
+  }
+}
+
+TEST(morello_scratch_scope_overlap) {
+  MacroAssembler masm;
+  // c16 and c17 are aliased with x16 and x17. Check that we can't acquire
+  // overlapping registers.
+  {
+    UseScratchRegisterScope temps(&masm);
+    Register temp1 = temps.AcquireX();
+    CRegister temp2 = temps.AcquireC();
+    VIXL_CHECK(!AreAliased(temp1, temp2));
+  }
+  {
+    UseScratchRegisterScope temps(&masm);
+    CRegister temp1 = temps.AcquireC();
+    Register temp2 = temps.AcquireX();
+    VIXL_CHECK(!AreAliased(temp1, temp2));
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
