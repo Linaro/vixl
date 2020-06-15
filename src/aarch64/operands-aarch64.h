@@ -387,20 +387,38 @@ class MemOperand {
  public:
   // Creates an invalid `MemOperand`.
   MemOperand();
-  explicit MemOperand(Register base,
+
+  // [(xn|cn), #offset]     // AddrMode::Offset
+  // [(xn|cn), #offset]!    // AddrMode::PreIndex
+  // [(xn|cn)], #offset     // AddrMode::PostIndex
+  explicit MemOperand(CPURegister base,
                       int64_t offset = 0,
                       AddrMode addrmode = Offset);
-  MemOperand(Register base,
+
+  // [(xn|cn), xm], <shift> #amount
+  MemOperand(CPURegister base,
              Register regoffset,
              Shift shift = LSL,
              unsigned shift_amount = 0);
-  MemOperand(Register base,
+
+  // [(xn|cn), xm], <extend> #amount
+  MemOperand(CPURegister base,
              Register regoffset,
              Extend extend,
              unsigned shift_amount = 0);
-  MemOperand(Register base, const Operand& offset, AddrMode addrmode = Offset);
 
-  const Register& GetBaseRegister() const { return base_; }
+  // Conveniently convert an `Operand` to one of the above modes.
+  MemOperand(CPURegister base,
+             const Operand& offset,
+             AddrMode addrmode = Offset);
+
+  CPURegister GetBase() const { return base_; }
+  Register GetBaseRegister() const { return Register(base_); }
+  CRegister GetBaseCRegister() const { return CRegister(base_); }
+
+  // In A64, alt-base instructions have a C base.
+  // In C64, alt-base instructions have an X base.
+  bool IsAltBase(ISA isa) const { return (isa == ISA::C64) != GetBase().IsC(); }
 
   // If the MemOperand has a register offset, return it. (This also applies to
   // pre- and post-index modes.) Otherwise, return NoReg.
@@ -456,7 +474,7 @@ class MemOperand {
   }
 
  private:
-  Register base_;
+  CPURegister base_;
   Register regoffset_;
   int64_t offset_;
   AddrMode addrmode_;

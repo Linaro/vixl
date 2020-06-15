@@ -6548,34 +6548,22 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // These encoding functions allow the stack pointer to be encoded, and
   // disallow the zero register.
-  static Instr RdSP(Register rd) {
+  static Instr RdSP(CPURegister rd) {
     VIXL_ASSERT(!rd.IsZero());
+    VIXL_ASSERT(rd.IsRegister() || rd.IsCRegister());
     return (rd.GetCode() & kRegCodeMask) << Rd_offset;
   }
 
-  static Instr RdSP(CRegister cd) {
-    VIXL_ASSERT(!cd.IsZero());
-    return (cd.GetCode() & kRegCodeMask) << Rd_offset;
-  }
-
-  static Instr RnSP(Register rn) {
+  static Instr RnSP(CPURegister rn) {
     VIXL_ASSERT(!rn.IsZero());
+    VIXL_ASSERT(rn.IsRegister() || rn.IsCRegister());
     return (rn.GetCode() & kRegCodeMask) << Rn_offset;
   }
 
-  static Instr RnSP(CRegister cn) {
-    VIXL_ASSERT(!cn.IsZero());
-    return (cn.GetCode() & kRegCodeMask) << Rn_offset;
-  }
-
-  static Instr RmSP(Register rm) {
+  static Instr RmSP(CPURegister rm) {
     VIXL_ASSERT(!rm.IsZero());
+    VIXL_ASSERT(rm.IsRegister() || rm.IsCRegister());
     return (rm.GetCode() & kRegCodeMask) << Rm_offset;
-  }
-
-  static Instr RmSP(CRegister cm) {
-    VIXL_ASSERT(!cm.IsZero());
-    return (cm.GetCode() & kRegCodeMask) << Rm_offset;
   }
 
   static Instr Pd(PRegister pd) {

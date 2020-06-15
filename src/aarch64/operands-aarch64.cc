@@ -241,7 +241,7 @@ MemOperand::MemOperand()
       extend_(NO_EXTEND) {}
 
 
-MemOperand::MemOperand(Register base, int64_t offset, AddrMode addrmode)
+MemOperand::MemOperand(CPURegister base, int64_t offset, AddrMode addrmode)
     : base_(base),
       regoffset_(NoReg),
       offset_(offset),
@@ -249,11 +249,11 @@ MemOperand::MemOperand(Register base, int64_t offset, AddrMode addrmode)
       shift_(NO_SHIFT),
       extend_(NO_EXTEND),
       shift_amount_(0) {
-  VIXL_ASSERT(base.Is64Bits() && !base.IsZero());
+  VIXL_ASSERT((base.IsX() || base.IsC()) && !base.IsZero());
 }
 
 
-MemOperand::MemOperand(Register base,
+MemOperand::MemOperand(CPURegister base,
                        Register regoffset,
                        Extend extend,
                        unsigned shift_amount)
@@ -264,7 +264,7 @@ MemOperand::MemOperand(Register base,
       shift_(NO_SHIFT),
       extend_(extend),
       shift_amount_(shift_amount) {
-  VIXL_ASSERT(base.Is64Bits() && !base.IsZero());
+  VIXL_ASSERT((base.IsX() || base.IsC()) && !base.IsZero());
   VIXL_ASSERT(!regoffset.IsSP());
   VIXL_ASSERT((extend == UXTW) || (extend == SXTW) || (extend == SXTX));
 
@@ -273,7 +273,7 @@ MemOperand::MemOperand(Register base,
 }
 
 
-MemOperand::MemOperand(Register base,
+MemOperand::MemOperand(CPURegister base,
                        Register regoffset,
                        Shift shift,
                        unsigned shift_amount)
@@ -284,20 +284,22 @@ MemOperand::MemOperand(Register base,
       shift_(shift),
       extend_(NO_EXTEND),
       shift_amount_(shift_amount) {
-  VIXL_ASSERT(base.Is64Bits() && !base.IsZero());
+  VIXL_ASSERT((base.IsX() || base.IsC()) && !base.IsZero());
   VIXL_ASSERT(regoffset.Is64Bits() && !regoffset.IsSP());
   VIXL_ASSERT(shift == LSL);
 }
 
 
-MemOperand::MemOperand(Register base, const Operand& offset, AddrMode addrmode)
+MemOperand::MemOperand(CPURegister base,
+                       const Operand& offset,
+                       AddrMode addrmode)
     : base_(base),
       regoffset_(NoReg),
       addrmode_(addrmode),
       shift_(NO_SHIFT),
       extend_(NO_EXTEND),
       shift_amount_(0) {
-  VIXL_ASSERT(base.Is64Bits() && !base.IsZero());
+  VIXL_ASSERT((base.IsX() || base.IsC()) && !base.IsZero());
 
   if (offset.IsImmediate()) {
     offset_ = offset.GetImmediate();

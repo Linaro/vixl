@@ -813,7 +813,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Move(const GenericOperand& dst, const GenericOperand& src);
 
   // Synthesises the address represented by a MemOperand into a register.
-  void ComputeAddress(const Register& dst, const MemOperand& mem_op);
+  void ComputeAddress(CPURegister dst, const MemOperand& mem_op);
 
   // Conditional macros.
   void Ccmp(const Register& rn,
@@ -7106,6 +7106,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 #endif  // #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 
  protected:
+  // Compute `cd = cn + operand` or `xd = xn + operand`. This simplifies
+  // ISA-agnostic address calcuations.
+  void AddPtr(CPURegister rd, CPURegister rn, const Operand& operand) {
+    VIXL_ASSERT(AreSameFormat(rd, rn));
+    if (rd.IsX()) {
+      Add(Register(rd), Register(rn), operand);
+    } else if (rd.IsC()) {
+      Add(CRegister(rd), CRegister(rn), operand);
+    } else {
+      VIXL_UNREACHABLE();
+    }
+  }
+
   void BlockLiteralPool() { literal_pool_.Block(); }
   void ReleaseLiteralPool() { literal_pool_.Release(); }
   bool IsLiteralPoolBlocked() const { return literal_pool_.IsBlocked(); }

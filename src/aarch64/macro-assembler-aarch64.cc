@@ -1742,13 +1742,15 @@ void MacroAssembler::Move(const GenericOperand& dst,
 }
 
 
-void MacroAssembler::ComputeAddress(const Register& dst,
-                                    const MemOperand& mem_op) {
+void MacroAssembler::ComputeAddress(CPURegister dst, const MemOperand& mem_op) {
+  // We don't convert between pointers and capabilities.
+  VIXL_ASSERT(AreSameFormat(dst, mem_op.GetBase()));
   // We cannot handle pre-indexing or post-indexing.
   VIXL_ASSERT(mem_op.GetAddrMode() == Offset);
-  Register base = mem_op.GetBaseRegister();
+
+  CPURegister base = mem_op.GetBase();
   if (mem_op.IsImmediateOffset()) {
-    Add(dst, base, mem_op.GetOffset());
+    AddPtr(dst, base, mem_op.GetOffset());
   } else {
     VIXL_ASSERT(mem_op.IsRegisterOffset());
     Register reg_offset = mem_op.GetRegisterOffset();
@@ -1756,10 +1758,10 @@ void MacroAssembler::ComputeAddress(const Register& dst,
     Extend extend = mem_op.GetExtend();
     if (shift == NO_SHIFT) {
       VIXL_ASSERT(extend != NO_EXTEND);
-      Add(dst, base, Operand(reg_offset, extend, mem_op.GetShiftAmount()));
+      AddPtr(dst, base, Operand(reg_offset, extend, mem_op.GetShiftAmount()));
     } else {
       VIXL_ASSERT(extend == NO_EXTEND);
-      Add(dst, base, Operand(reg_offset, shift, mem_op.GetShiftAmount()));
+      AddPtr(dst, base, Operand(reg_offset, shift, mem_op.GetShiftAmount()));
     }
   }
 }
@@ -1976,17 +1978,17 @@ void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
     // Immediate offset that can't be encoded using unsigned or unscaled
     // addressing modes.
     UseScratchRegisterScope temps(this);
-    Register temp = temps.AcquireSameSizeAs(addr.GetBaseRegister());
+    Register temp = temps.AcquireX();
     Mov(temp, addr.GetOffset());
-    LoadStore(rt, MemOperand(addr.GetBaseRegister(), temp), op);
+    LoadStore(rt, MemOperand(addr.GetBase(), temp), op);
   } else if (addr.IsPostIndex() && !IsImmLSUnscaled(offset)) {
     // Post-index beyond unscaled addressing range.
-    LoadStore(rt, MemOperand(addr.GetBaseRegister()), op);
-    Add(addr.GetBaseRegister(), addr.GetBaseRegister(), Operand(offset));
+    LoadStore(rt, MemOperand(addr.GetBase()), op);
+    AddPtr(addr.GetBase(), addr.GetBase(), addr.GetOffset());
   } else if (addr.IsPreIndex() && !IsImmLSUnscaled(offset)) {
     // Pre-index beyond unscaled addressing range.
-    Add(addr.GetBaseRegister(), addr.GetBaseRegister(), Operand(offset));
-    LoadStore(rt, MemOperand(addr.GetBaseRegister()), op);
+    AddPtr(addr.GetBase(), addr.GetBase(), addr.GetOffset());
+    LoadStore(rt, MemOperand(addr.GetBase()), op);
   } else {
     // Encodable in one load/store instruction.
     LoadStore(rt, addr, op);
@@ -2025,18 +2027,18 @@ void MacroAssembler::LoadStorePairMacro(const CPURegister& rt,
     // Encodable in one load/store pair instruction.
     LoadStorePair(rt, rt2, addr, op);
   } else {
-    Register base = addr.GetBaseRegister();
+    CPURegister base = addr.GetBase();
     if (addr.IsImmediateOffset()) {
       UseScratchRegisterScope temps(this);
-      Register temp = temps.AcquireSameSizeAs(base);
-      Add(temp, base, offset);
+      CPURegister temp = temps.AcquireSameSizeAs(base);
+      AddPtr(temp, base, offset);
       LoadStorePair(rt, rt2, MemOperand(temp), op);
     } else if (addr.IsPostIndex()) {
       LoadStorePair(rt, rt2, MemOperand(base), op);
-      Add(base, base, offset);
+      AddPtr(base, base, offset);
     } else {
       VIXL_ASSERT(addr.IsPreIndex());
-      Add(base, base, offset);
+      AddPtr(base, base, offset);
       LoadStorePair(rt, rt2, MemOperand(base), op);
     }
   }
@@ -2060,9 +2062,9 @@ void MacroAssembler::Prfm(PrefetchOperation op, const MemOperand& addr) {
     // Immediate offset that can't be encoded using unsigned or unscaled
     // addressing modes.
     UseScratchRegisterScope temps(this);
-    Register temp = temps.AcquireSameSizeAs(addr.GetBaseRegister());
+    Register temp = temps.AcquireX();
     Mov(temp, addr.GetOffset());
-    Prefetch(op, MemOperand(addr.GetBaseRegister(), temp));
+    Prefetch(op, MemOperand(addr.GetBase(), temp));
   } else {
     // Simple register-offsets are encodable in one instruction.
     Prefetch(op, addr);

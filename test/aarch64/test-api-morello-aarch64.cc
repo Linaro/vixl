@@ -143,5 +143,35 @@ TEST(morello_scratch_scope_overlap) {
   }
 }
 
+TEST(morello_memoperand_base) {
+  VIXL_CHECK(MemOperand(c0).GetBase().Is(c0));
+  VIXL_CHECK(MemOperand(x0).GetBase().Is(x0));
+  VIXL_CHECK(!MemOperand(c0).GetBase().Is(x0));
+  VIXL_CHECK(!MemOperand(x0).GetBase().Is(c0));
+
+  VIXL_CHECK(MemOperand(c0).GetBaseCRegister().Is(c0));
+  VIXL_CHECK(MemOperand(x0).GetBaseRegister().Is(x0));
+
+  VIXL_CHECK(MemOperand(c0, 42).GetBase().Is(c0));
+  VIXL_CHECK(MemOperand(x0, 42).GetBase().Is(x0));
+  VIXL_CHECK(!MemOperand(c0, 42).GetBase().Is(x0));
+  VIXL_CHECK(!MemOperand(x0, 42).GetBase().Is(c0));
+
+  VIXL_CHECK(MemOperand(c0, 42).GetBaseCRegister().Is(c0));
+  VIXL_CHECK(MemOperand(x0, 42).GetBaseRegister().Is(x0));
+}
+
+TEST(morello_memoperand_alt_base) {
+  VIXL_CHECK(!MemOperand(x0).IsAltBase(ISA::A64));
+  VIXL_CHECK(MemOperand(x0).IsAltBase(ISA::C64));
+  VIXL_CHECK(MemOperand(c0).IsAltBase(ISA::A64));
+  VIXL_CHECK(!MemOperand(c0).IsAltBase(ISA::C64));
+
+  VIXL_CHECK(!MemOperand(x0, 42).IsAltBase(ISA::A64));
+  VIXL_CHECK(MemOperand(x0, 42).IsAltBase(ISA::C64));
+  VIXL_CHECK(MemOperand(c0, 42).IsAltBase(ISA::A64));
+  VIXL_CHECK(!MemOperand(c0, 42).IsAltBase(ISA::C64));
+}
+
 }  // namespace aarch64
 }  // namespace vixl
