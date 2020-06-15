@@ -243,7 +243,36 @@ TEST(morello_blr_c_c) {
 TEST(morello_blr_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(blr(MemOperand(c0, -64)), "TODO");
+  COMPARE_MORELLO(blr(MemOperand(c0, 0)), "blr [c0, #0]");
+  COMPARE_MORELLO(blr(MemOperand(c0, 640)), "blr [c0, #640]");
+  COMPARE_MORELLO(blr(MemOperand(c0, 1008)), "blr [c0, #1008]");
+  COMPARE_MORELLO(blr(MemOperand(c0, -1024)), "blr [c0, #-1024]");
+
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c0, 0)), "blr [c0, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(csp, 0)), "blr [csp, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c30, 0)), "blr [c30, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c0, 640)), "blr [c0, #640]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c0, 1008)), "blr [c0, #1008]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c0, -1024)), "blr [c0, #-1024]");
+
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c21, 1)),
+                        "add c16, c21, #0x1 (1)\n"
+                        "blr [c16, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c21, -1)),
+                        "sub c16, c21, #0x1 (1)\n"
+                        "blr [c16, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c21, 1024)),
+                        "add c16, c21, #0x400 (1024)\n"
+                        "blr [c16, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c21, -1040)),
+                        "sub c16, c21, #0x410 (1040)\n"
+                        "blr [c16, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c21, x0)),
+                        "add c16, c21, x0, uxtx\n"
+                        "blr [c16, #0]");
+  COMPARE_MACRO_MORELLO(Blr(MemOperand(c21, w0, SXTW, 4)),
+                        "add c16, c21, x0, sxtw #4\n"
+                        "blr [c16, #0]");
 }
 
 TEST(morello_blrr_c_c) {
@@ -295,7 +324,38 @@ TEST(morello_br_c_c) {
 TEST(morello_br_ci_c) {
   SETUP();
 
-  // COMPARE_MORELLO(br(MemOperand(c0, 640)), "TODO");
+  COMPARE_MORELLO(br(MemOperand(c0, 0)), "br [c0, #0]");
+  COMPARE_MORELLO(br(MemOperand(csp, 0)), "br [csp, #0]");
+  COMPARE_MORELLO(br(MemOperand(c30, 0)), "br [c30, #0]");
+  COMPARE_MORELLO(br(MemOperand(c0, 640)), "br [c0, #640]");
+  COMPARE_MORELLO(br(MemOperand(c0, 1008)), "br [c0, #1008]");
+  COMPARE_MORELLO(br(MemOperand(c0, -1024)), "br [c0, #-1024]");
+
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c0, 0)), "br [c0, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(csp, 0)), "br [csp, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c30, 0)), "br [c30, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c0, 640)), "br [c0, #640]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c0, 1008)), "br [c0, #1008]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c0, -1024)), "br [c0, #-1024]");
+
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c21, 1)),
+                        "add c16, c21, #0x1 (1)\n"
+                        "br [c16, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c21, -1)),
+                        "sub c16, c21, #0x1 (1)\n"
+                        "br [c16, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c21, 1024)),
+                        "add c16, c21, #0x400 (1024)\n"
+                        "br [c16, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c21, -1040)),
+                        "sub c16, c21, #0x410 (1040)\n"
+                        "br [c16, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c21, x0)),
+                        "add c16, c21, x0, uxtx\n"
+                        "br [c16, #0]");
+  COMPARE_MACRO_MORELLO(Br(MemOperand(c21, w0, SXTW, 4)),
+                        "add c16, c21, x0, sxtw #4\n"
+                        "br [c16, #0]");
 }
 
 TEST(morello_brr_c_c) {

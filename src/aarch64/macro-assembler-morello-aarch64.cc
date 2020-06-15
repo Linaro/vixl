@@ -150,5 +150,24 @@ void MacroAssembler::Sub(CRegister cd, CRegister cn, const Operand& operand) {
   add(cd, cn, Operand(xm, UXTX));
 }
 
+void MacroAssembler::MorelloBranchSealedIndirect(
+    const MemOperand& addr, void (Assembler::*asm_fn)(const MemOperand&)) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (!addr.GetBaseCRegister().IsZero() && addr.IsImmediateOffset()) {
+    int64_t offset = addr.GetOffset();
+    if (IsScaledInt<7>(offset, kCRegSizeInBytes)) {
+      SingleEmissionCheckScope guard(this);
+      (this->*asm_fn)(addr);
+      return;
+    }
+  }
+
+  UseScratchRegisterScope temps(this);
+  CRegister cn = temps.AcquireC();
+  ComputeAddress(cn, addr);
+  SingleEmissionCheckScope guard(this);
+  (this->*asm_fn)(MemOperand(cn));
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -129,6 +129,17 @@ void Assembler::blr(CRegister cn) {
   Emit(BLR_c | Rn(cn));
 }
 
+void Assembler::blr(const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // The base register must be a capability.
+  CRegister cn = addr.GetBaseCRegister();
+  // The offset is signed, and scaled by 16 bytes.
+  VIXL_ASSERT(addr.IsImmediateOffset());
+  int64_t offset = addr.GetOffset();
+  VIXL_ASSERT(IsMultiple<kCRegSizeInBytes>(offset));
+  Emit(BLR_ci | RnSP(cn) | ImmField<19, 13>(offset / kCRegSizeInBytes));
+}
+
 void Assembler::blrr(CRegister cn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(BLRR_c | Rn(cn));
@@ -149,6 +160,17 @@ void Assembler::blrs(CRegister cd, CRegister cn, CRegister cm) {
 void Assembler::br(CRegister cn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   Emit(BR_c | Rn(cn));
+}
+
+void Assembler::br(const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  // The base register must be a capability.
+  CRegister cn = addr.GetBaseCRegister();
+  // The offset is signed, and scaled by 16 bytes.
+  VIXL_ASSERT(addr.IsImmediateOffset());
+  int64_t offset = addr.GetOffset();
+  VIXL_ASSERT(IsMultiple<kCRegSizeInBytes>(offset));
+  Emit(BR_ci | RnSP(cn) | ImmField<19, 13>(offset / kCRegSizeInBytes));
 }
 
 void Assembler::brr(CRegister cn) {

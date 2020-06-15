@@ -5968,6 +5968,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // BLR <Cn>
   void blr(CRegister cn);
 
+  // Unseal, load and branch with link.
   // BLR [<Cn|CSP>, #<imm>]
   void blr(const MemOperand& addr);
 
@@ -5983,6 +5984,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // BR <Cn>
   void br(CRegister cn);
 
+  // Unseal, load and branch.
   // BR [<Cn|CSP>, #<imm>]
   void br(const MemOperand& addr);
 

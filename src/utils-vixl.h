@@ -567,6 +567,16 @@ inline bool IsMultiple(T value, unsigned multiple) {
   return (value & (multiple - 1)) == 0;
 }
 
+template <unsigned N, typename T>
+inline bool IsScaledInt(T value, unsigned multiple) {
+  return IsMultiple(value, multiple) && IsIntN(N, value / multiple);
+}
+
+template <unsigned N, typename T>
+inline bool IsScaledUint(T value, unsigned multiple) {
+  return IsMultiple(value, multiple) && IsUintN(N, value / multiple);
+}
+
 template <typename T>
 inline bool IsAligned(T pointer, int alignment) {
   VIXL_ASSERT(IsPowerOf2(alignment));

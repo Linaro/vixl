@@ -6454,6 +6454,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     blr(cn);
   }
 
+  void Blr(const MemOperand& addr) {
+    MorelloBranchSealedIndirect(addr, &Assembler::blr);
+  }
+
   void Blrr(CRegister cn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6476,6 +6480,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     br(cn);
+  }
+
+  void Br(const MemOperand& addr) {
+    MorelloBranchSealedIndirect(addr, &Assembler::br);
   }
 
   void Brr(CRegister cn) {
@@ -7118,6 +7126,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       VIXL_UNREACHABLE();
     }
   }
+
+  // Helper for Br/Blr (sealed indirect).
+  void MorelloBranchSealedIndirect(const MemOperand& addr,
+                                   void (Assembler::*)(const MemOperand&));
 
   void BlockLiteralPool() { literal_pool_.Block(); }
   void ReleaseLiteralPool() { literal_pool_.Release(); }
