@@ -1069,7 +1069,7 @@ void Disassembler::VisitLoadStorePreIndex(const Instruction *instr) {
 #define LS_PREINDEX(A, B, C)   \
   case A##_pre:                \
     mnemonic = B;              \
-    form = C ", ['Xns'ILSi]!"; \
+    form = C ", ['nns'ILSi]!"; \
     break;
     LOAD_STORE_LIST(LS_PREINDEX)
 #undef LS_PREINDEX
@@ -1086,7 +1086,7 @@ void Disassembler::VisitLoadStorePostIndex(const Instruction *instr) {
 #define LS_POSTINDEX(A, B, C) \
   case A##_post:              \
     mnemonic = B;             \
-    form = C ", ['Xns]'ILSi"; \
+    form = C ", ['nns]'ILSi"; \
     break;
     LOAD_STORE_LIST(LS_POSTINDEX)
 #undef LS_POSTINDEX
@@ -1103,13 +1103,13 @@ void Disassembler::VisitLoadStoreUnsignedOffset(const Instruction *instr) {
 #define LS_UNSIGNEDOFFSET(A, B, C) \
   case A##_unsigned:               \
     mnemonic = B;                  \
-    form = C ", ['Xns'ILU]";       \
+    form = C ", ['nns'ILU]";       \
     break;
     LOAD_STORE_LIST(LS_UNSIGNEDOFFSET)
 #undef LS_UNSIGNEDOFFSET
     case PRFM_unsigned:
       mnemonic = "prfm";
-      form = "'prefOp, ['Xns'ILU]";
+      form = "'prefOp, ['nns'ILU]";
   }
   Format(instr, mnemonic, form);
 }
@@ -1117,8 +1117,8 @@ void Disassembler::VisitLoadStoreUnsignedOffset(const Instruction *instr) {
 
 void Disassembler::VisitLoadStoreRCpcUnscaledOffset(const Instruction *instr) {
   const char *mnemonic;
-  const char *form = "'Wt, ['Xns'ILS]";
-  const char *form_x = "'Xt, ['Xns'ILS]";
+  const char *form = "'Wt, ['nns'ILS]";
+  const char *form_x = "'Xt, ['nns'ILS]";
 
   switch (instr->Mask(LoadStoreRCpcUnscaledOffsetMask)) {
     case STLURB:
@@ -1182,13 +1182,13 @@ void Disassembler::VisitLoadStoreRegisterOffset(const Instruction *instr) {
 #define LS_REGISTEROFFSET(A, B, C)   \
   case A##_reg:                      \
     mnemonic = B;                    \
-    form = C ", ['Xns, 'Offsetreg]"; \
+    form = C ", ['nns, 'Offsetreg]"; \
     break;
     LOAD_STORE_LIST(LS_REGISTEROFFSET)
 #undef LS_REGISTEROFFSET
     case PRFM_reg:
       mnemonic = "prfm";
-      form = "'prefOp, ['Xns, 'Offsetreg]";
+      form = "'prefOp, ['nns, 'Offsetreg]";
   }
   Format(instr, mnemonic, form);
 }
@@ -1196,14 +1196,14 @@ void Disassembler::VisitLoadStoreRegisterOffset(const Instruction *instr) {
 
 void Disassembler::VisitLoadStoreUnscaledOffset(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "'Wt, ['Xns'ILS]";
-  const char *form_x = "'Xt, ['Xns'ILS]";
-  const char *form_b = "'Bt, ['Xns'ILS]";
-  const char *form_h = "'Ht, ['Xns'ILS]";
-  const char *form_s = "'St, ['Xns'ILS]";
-  const char *form_d = "'Dt, ['Xns'ILS]";
-  const char *form_q = "'Qt, ['Xns'ILS]";
-  const char *form_prefetch = "'prefOp, ['Xns'ILS]";
+  const char *form = "'Wt, ['nns'ILS]";
+  const char *form_x = "'Xt, ['nns'ILS]";
+  const char *form_b = "'Bt, ['nns'ILS]";
+  const char *form_h = "'Ht, ['nns'ILS]";
+  const char *form_s = "'St, ['nns'ILS]";
+  const char *form_d = "'Dt, ['nns'ILS]";
+  const char *form_q = "'Qt, ['nns'ILS]";
+  const char *form_prefetch = "'prefOp, ['nns'ILS]";
 
   switch (instr->Mask(LoadStoreUnscaledOffsetMask)) {
     case STURB_w:
@@ -1357,7 +1357,7 @@ void Disassembler::VisitLoadStorePairPostIndex(const Instruction *instr) {
 #define LSP_POSTINDEX(A, B, C, D)  \
   case A##_post:                   \
     mnemonic = B;                  \
-    form = C ", ['Xns]'ILP" D "i"; \
+    form = C ", ['nns]'ILP" D "i"; \
     break;
     LOAD_STORE_PAIR_LIST(LSP_POSTINDEX)
 #undef LSP_POSTINDEX
@@ -1374,7 +1374,7 @@ void Disassembler::VisitLoadStorePairPreIndex(const Instruction *instr) {
 #define LSP_PREINDEX(A, B, C, D)    \
   case A##_pre:                     \
     mnemonic = B;                   \
-    form = C ", ['Xns'ILP" D "i]!"; \
+    form = C ", ['nns'ILP" D "i]!"; \
     break;
     LOAD_STORE_PAIR_LIST(LSP_PREINDEX)
 #undef LSP_PREINDEX
@@ -1391,7 +1391,7 @@ void Disassembler::VisitLoadStorePairOffset(const Instruction *instr) {
 #define LSP_OFFSET(A, B, C, D)    \
   case A##_off:                   \
     mnemonic = B;                 \
-    form = C ", ['Xns'ILP" D "]"; \
+    form = C ", ['nns'ILP" D "]"; \
     break;
     LOAD_STORE_PAIR_LIST(LSP_OFFSET)
 #undef LSP_OFFSET
@@ -1407,43 +1407,43 @@ void Disassembler::VisitLoadStorePairNonTemporal(const Instruction *instr) {
   switch (instr->Mask(LoadStorePairNonTemporalMask)) {
     case STNP_w:
       mnemonic = "stnp";
-      form = "'Wt, 'Wt2, ['Xns'ILP2]";
+      form = "'Wt, 'Wt2, ['nns'ILP2]";
       break;
     case LDNP_w:
       mnemonic = "ldnp";
-      form = "'Wt, 'Wt2, ['Xns'ILP2]";
+      form = "'Wt, 'Wt2, ['nns'ILP2]";
       break;
     case STNP_x:
       mnemonic = "stnp";
-      form = "'Xt, 'Xt2, ['Xns'ILP3]";
+      form = "'Xt, 'Xt2, ['nns'ILP3]";
       break;
     case LDNP_x:
       mnemonic = "ldnp";
-      form = "'Xt, 'Xt2, ['Xns'ILP3]";
+      form = "'Xt, 'Xt2, ['nns'ILP3]";
       break;
     case STNP_s:
       mnemonic = "stnp";
-      form = "'St, 'St2, ['Xns'ILP2]";
+      form = "'St, 'St2, ['nns'ILP2]";
       break;
     case LDNP_s:
       mnemonic = "ldnp";
-      form = "'St, 'St2, ['Xns'ILP2]";
+      form = "'St, 'St2, ['nns'ILP2]";
       break;
     case STNP_d:
       mnemonic = "stnp";
-      form = "'Dt, 'Dt2, ['Xns'ILP3]";
+      form = "'Dt, 'Dt2, ['nns'ILP3]";
       break;
     case LDNP_d:
       mnemonic = "ldnp";
-      form = "'Dt, 'Dt2, ['Xns'ILP3]";
+      form = "'Dt, 'Dt2, ['nns'ILP3]";
       break;
     case STNP_q:
       mnemonic = "stnp";
-      form = "'Qt, 'Qt2, ['Xns'ILP4]";
+      form = "'Qt, 'Qt2, ['nns'ILP4]";
       break;
     case LDNP_q:
       mnemonic = "ldnp";
-      form = "'Qt, 'Qt2, ['Xns'ILP4]";
+      form = "'Qt, 'Qt2, ['nns'ILP4]";
       break;
     default:
       form = "(LoadStorePairNonTemporal)";
@@ -1528,7 +1528,7 @@ void Disassembler::VisitLoadStoreExclusive(const Instruction *instr) {
 #define LSX(A, B, C)     \
   case A:                \
     mnemonic = B;        \
-    form = C ", ['Xns]"; \
+    form = C ", ['nns]"; \
     break;
     LOAD_STORE_EXCLUSIVE_LIST(LSX)
 #undef LSX
@@ -1594,7 +1594,7 @@ void Disassembler::VisitLoadStorePAC(const Instruction *instr) {
 void Disassembler::VisitAtomicMemory(const Instruction *instr) {
   const int kMaxAtomicOpMnemonicLength = 16;
   const char *mnemonic;
-  const char *form = "'Ws, 'Wt, ['Xns]";
+  const char *form = "'Ws, 'Wt, ['nns]";
 
   switch (instr->Mask(AtomicMemoryMask)) {
 #define AMS(A, MN)             \
@@ -1636,19 +1636,19 @@ void Disassembler::VisitAtomicMemory(const Instruction *instr) {
     break;                     \
   case A##_x:                  \
     mnemonic = MN;             \
-    form = "'Xs, 'Xt, ['Xns]"; \
+    form = "'Xs, 'Xt, ['nns]"; \
     break;                     \
   case A##A_x:                 \
     mnemonic = MN "a";         \
-    form = "'Xs, 'Xt, ['Xns]"; \
+    form = "'Xs, 'Xt, ['nns]"; \
     break;                     \
   case A##L_x:                 \
     mnemonic = MN "l";         \
-    form = "'Xs, 'Xt, ['Xns]"; \
+    form = "'Xs, 'Xt, ['nns]"; \
     break;                     \
   case A##AL_x:                \
     mnemonic = MN "al";        \
-    form = "'Xs, 'Xt, ['Xns]"; \
+    form = "'Xs, 'Xt, ['nns]"; \
     break;
     ATOMIC_MEMORY_SIMPLE_LIST(AMS)
 
@@ -1658,19 +1658,19 @@ void Disassembler::VisitAtomicMemory(const Instruction *instr) {
 
     case LDAPRB:
       mnemonic = "ldaprb";
-      form = "'Wt, ['Xns]";
+      form = "'Wt, ['nns]";
       break;
     case LDAPRH:
       mnemonic = "ldaprh";
-      form = "'Wt, ['Xns]";
+      form = "'Wt, ['nns]";
       break;
     case LDAPR_w:
       mnemonic = "ldapr";
-      form = "'Wt, ['Xns]";
+      form = "'Wt, ['nns]";
       break;
     case LDAPR_x:
       mnemonic = "ldapr";
-      form = "'Xt, ['Xns]";
+      form = "'Xt, ['nns]";
       break;
     default:
       mnemonic = "unimplemented";
@@ -1700,7 +1700,7 @@ void Disassembler::VisitAtomicMemory(const Instruction *instr) {
     unsigned rt = instr->GetRt();    \
     if (Register(rt, 32).IsZero()) { \
       prefix = "st";                 \
-      form = "'Ws, ['Xns]";          \
+      form = "'Ws, ['nns]";          \
     }                                \
     break;                           \
   }                                  \
@@ -1710,7 +1710,7 @@ void Disassembler::VisitAtomicMemory(const Instruction *instr) {
     unsigned rt = instr->GetRt();    \
     if (Register(rt, 64).IsZero()) { \
       prefix = "st";                 \
-      form = "'Xs, ['Xns]";          \
+      form = "'Xs, ['nns]";          \
     }                                \
     break;                           \
   }
@@ -3463,10 +3463,10 @@ void Disassembler::VisitNEONExtract(const Instruction *instr) {
 void Disassembler::VisitNEONLoadStoreMultiStruct(const Instruction *instr) {
   const char *mnemonic = NULL;
   const char *form = NULL;
-  const char *form_1v = "{'Vt.%1$s}, ['Xns]";
-  const char *form_2v = "{'Vt.%1$s, 'Vt2.%1$s}, ['Xns]";
-  const char *form_3v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s}, ['Xns]";
-  const char *form_4v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns]";
+  const char *form_1v = "{'Vt.%1$s}, ['nns]";
+  const char *form_2v = "{'Vt.%1$s, 'Vt2.%1$s}, ['nns]";
+  const char *form_3v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s}, ['nns]";
+  const char *form_4v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['nns]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
 
   switch (instr->Mask(NEONLoadStoreMultiStructMask)) {
@@ -3561,11 +3561,11 @@ void Disassembler::VisitNEONLoadStoreMultiStructPostIndex(
     const Instruction *instr) {
   const char *mnemonic = NULL;
   const char *form = NULL;
-  const char *form_1v = "{'Vt.%1$s}, ['Xns], 'Xmr1";
-  const char *form_2v = "{'Vt.%1$s, 'Vt2.%1$s}, ['Xns], 'Xmr2";
-  const char *form_3v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s}, ['Xns], 'Xmr3";
+  const char *form_1v = "{'Vt.%1$s}, ['nns], 'Xmr1";
+  const char *form_2v = "{'Vt.%1$s, 'Vt2.%1$s}, ['nns], 'Xmr2";
+  const char *form_3v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s}, ['nns], 'Xmr3";
   const char *form_4v =
-      "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns], 'Xmr4";
+      "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['nns], 'Xmr4";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
 
   switch (instr->Mask(NEONLoadStoreMultiStructPostIndexMask)) {
@@ -3660,10 +3660,10 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
   const char *mnemonic = NULL;
   const char *form = NULL;
 
-  const char *form_1b = "{'Vt.b}['IVLSLane0], ['Xns]";
-  const char *form_1h = "{'Vt.h}['IVLSLane1], ['Xns]";
-  const char *form_1s = "{'Vt.s}['IVLSLane2], ['Xns]";
-  const char *form_1d = "{'Vt.d}['IVLSLane3], ['Xns]";
+  const char *form_1b = "{'Vt.b}['IVLSLane0], ['nns]";
+  const char *form_1h = "{'Vt.h}['IVLSLane1], ['nns]";
+  const char *form_1s = "{'Vt.s}['IVLSLane2], ['nns]";
+  const char *form_1d = "{'Vt.d}['IVLSLane3], ['nns]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
 
   switch (instr->Mask(NEONLoadStoreSingleStructMask)) {
@@ -3695,17 +3695,17 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD1R:
       mnemonic = "ld1r";
-      form = "{'Vt.%s}, ['Xns]";
+      form = "{'Vt.%s}, ['nns]";
       break;
     case NEON_LD2_b:
     case NEON_ST2_b:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
-      form = "{'Vt.b, 'Vt2.b}['IVLSLane0], ['Xns]";
+      form = "{'Vt.b, 'Vt2.b}['IVLSLane0], ['nns]";
       break;
     case NEON_LD2_h:
     case NEON_ST2_h:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
-      form = "{'Vt.h, 'Vt2.h}['IVLSLane1], ['Xns]";
+      form = "{'Vt.h, 'Vt2.h}['IVLSLane1], ['nns]";
       break;
     case NEON_LD2_s:
     case NEON_ST2_s:
@@ -3713,47 +3713,47 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       VIXL_STATIC_ASSERT((NEON_LD2_s | (1 << NEONLSSize_offset)) == NEON_LD2_d);
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
       if ((instr->GetNEONLSSize() & 1) == 0) {
-        form = "{'Vt.s, 'Vt2.s}['IVLSLane2], ['Xns]";
+        form = "{'Vt.s, 'Vt2.s}['IVLSLane2], ['nns]";
       } else {
-        form = "{'Vt.d, 'Vt2.d}['IVLSLane3], ['Xns]";
+        form = "{'Vt.d, 'Vt2.d}['IVLSLane3], ['nns]";
       }
       break;
     case NEON_LD2R:
       mnemonic = "ld2r";
-      form = "{'Vt.%s, 'Vt2.%s}, ['Xns]";
+      form = "{'Vt.%s, 'Vt2.%s}, ['nns]";
       break;
     case NEON_LD3_b:
     case NEON_ST3_b:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
-      form = "{'Vt.b, 'Vt2.b, 'Vt3.b}['IVLSLane0], ['Xns]";
+      form = "{'Vt.b, 'Vt2.b, 'Vt3.b}['IVLSLane0], ['nns]";
       break;
     case NEON_LD3_h:
     case NEON_ST3_h:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
-      form = "{'Vt.h, 'Vt2.h, 'Vt3.h}['IVLSLane1], ['Xns]";
+      form = "{'Vt.h, 'Vt2.h, 'Vt3.h}['IVLSLane1], ['nns]";
       break;
     case NEON_LD3_s:
     case NEON_ST3_s:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
       if ((instr->GetNEONLSSize() & 1) == 0) {
-        form = "{'Vt.s, 'Vt2.s, 'Vt3.s}['IVLSLane2], ['Xns]";
+        form = "{'Vt.s, 'Vt2.s, 'Vt3.s}['IVLSLane2], ['nns]";
       } else {
-        form = "{'Vt.d, 'Vt2.d, 'Vt3.d}['IVLSLane3], ['Xns]";
+        form = "{'Vt.d, 'Vt2.d, 'Vt3.d}['IVLSLane3], ['nns]";
       }
       break;
     case NEON_LD3R:
       mnemonic = "ld3r";
-      form = "{'Vt.%s, 'Vt2.%s, 'Vt3.%s}, ['Xns]";
+      form = "{'Vt.%s, 'Vt2.%s, 'Vt3.%s}, ['nns]";
       break;
     case NEON_LD4_b:
     case NEON_ST4_b:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
-      form = "{'Vt.b, 'Vt2.b, 'Vt3.b, 'Vt4.b}['IVLSLane0], ['Xns]";
+      form = "{'Vt.b, 'Vt2.b, 'Vt3.b, 'Vt4.b}['IVLSLane0], ['nns]";
       break;
     case NEON_LD4_h:
     case NEON_ST4_h:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
-      form = "{'Vt.h, 'Vt2.h, 'Vt3.h, 'Vt4.h}['IVLSLane1], ['Xns]";
+      form = "{'Vt.h, 'Vt2.h, 'Vt3.h, 'Vt4.h}['IVLSLane1], ['nns]";
       break;
     case NEON_LD4_s:
     case NEON_ST4_s:
@@ -3761,14 +3761,14 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       VIXL_STATIC_ASSERT((NEON_ST4_s | (1 << NEONLSSize_offset)) == NEON_ST4_d);
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
       if ((instr->GetNEONLSSize() & 1) == 0) {
-        form = "{'Vt.s, 'Vt2.s, 'Vt3.s, 'Vt4.s}['IVLSLane2], ['Xns]";
+        form = "{'Vt.s, 'Vt2.s, 'Vt3.s, 'Vt4.s}['IVLSLane2], ['nns]";
       } else {
-        form = "{'Vt.d, 'Vt2.d, 'Vt3.d, 'Vt4.d}['IVLSLane3], ['Xns]";
+        form = "{'Vt.d, 'Vt2.d, 'Vt3.d, 'Vt4.d}['IVLSLane3], ['nns]";
       }
       break;
     case NEON_LD4R:
       mnemonic = "ld4r";
-      form = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns]";
+      form = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['nns]";
       break;
     default:
       break;
@@ -3827,10 +3827,10 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
   const char *mnemonic = NULL;
   const char *form = NULL;
 
-  const char *form_1b = "{'Vt.b}['IVLSLane0], ['Xns], 'Xmb1";
-  const char *form_1h = "{'Vt.h}['IVLSLane1], ['Xns], 'Xmb2";
-  const char *form_1s = "{'Vt.s}['IVLSLane2], ['Xns], 'Xmb4";
-  const char *form_1d = "{'Vt.d}['IVLSLane3], ['Xns], 'Xmb8";
+  const char *form_1b = "{'Vt.b}['IVLSLane0], ['nns], 'Xmb1";
+  const char *form_1h = "{'Vt.h}['IVLSLane1], ['nns], 'Xmb2";
+  const char *form_1s = "{'Vt.s}['IVLSLane2], ['nns], 'Xmb4";
+  const char *form_1d = "{'Vt.d}['IVLSLane3], ['nns], 'Xmb8";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
 
   switch (instr->Mask(NEONLoadStoreSingleStructPostIndexMask)) {
@@ -3862,73 +3862,73 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD1R_post:
       mnemonic = "ld1r";
-      form = "{'Vt.%s}, ['Xns], 'Xmz1";
+      form = "{'Vt.%s}, ['nns], 'Xmz1";
       break;
     case NEON_LD2_b_post:
     case NEON_ST2_b_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
-      form = "{'Vt.b, 'Vt2.b}['IVLSLane0], ['Xns], 'Xmb2";
+      form = "{'Vt.b, 'Vt2.b}['IVLSLane0], ['nns], 'Xmb2";
       break;
     case NEON_ST2_h_post:
     case NEON_LD2_h_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
-      form = "{'Vt.h, 'Vt2.h}['IVLSLane1], ['Xns], 'Xmb4";
+      form = "{'Vt.h, 'Vt2.h}['IVLSLane1], ['nns], 'Xmb4";
       break;
     case NEON_LD2_s_post:
     case NEON_ST2_s_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld2" : "st2";
       if ((instr->GetNEONLSSize() & 1) == 0)
-        form = "{'Vt.s, 'Vt2.s}['IVLSLane2], ['Xns], 'Xmb8";
+        form = "{'Vt.s, 'Vt2.s}['IVLSLane2], ['nns], 'Xmb8";
       else
-        form = "{'Vt.d, 'Vt2.d}['IVLSLane3], ['Xns], 'Xmb16";
+        form = "{'Vt.d, 'Vt2.d}['IVLSLane3], ['nns], 'Xmb16";
       break;
     case NEON_LD2R_post:
       mnemonic = "ld2r";
-      form = "{'Vt.%s, 'Vt2.%s}, ['Xns], 'Xmz2";
+      form = "{'Vt.%s, 'Vt2.%s}, ['nns], 'Xmz2";
       break;
     case NEON_LD3_b_post:
     case NEON_ST3_b_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
-      form = "{'Vt.b, 'Vt2.b, 'Vt3.b}['IVLSLane0], ['Xns], 'Xmb3";
+      form = "{'Vt.b, 'Vt2.b, 'Vt3.b}['IVLSLane0], ['nns], 'Xmb3";
       break;
     case NEON_LD3_h_post:
     case NEON_ST3_h_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
-      form = "{'Vt.h, 'Vt2.h, 'Vt3.h}['IVLSLane1], ['Xns], 'Xmb6";
+      form = "{'Vt.h, 'Vt2.h, 'Vt3.h}['IVLSLane1], ['nns], 'Xmb6";
       break;
     case NEON_LD3_s_post:
     case NEON_ST3_s_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld3" : "st3";
       if ((instr->GetNEONLSSize() & 1) == 0)
-        form = "{'Vt.s, 'Vt2.s, 'Vt3.s}['IVLSLane2], ['Xns], 'Xmb12";
+        form = "{'Vt.s, 'Vt2.s, 'Vt3.s}['IVLSLane2], ['nns], 'Xmb12";
       else
-        form = "{'Vt.d, 'Vt2.d, 'Vt3.d}['IVLSLane3], ['Xns], 'Xmb24";
+        form = "{'Vt.d, 'Vt2.d, 'Vt3.d}['IVLSLane3], ['nns], 'Xmb24";
       break;
     case NEON_LD3R_post:
       mnemonic = "ld3r";
-      form = "{'Vt.%s, 'Vt2.%s, 'Vt3.%s}, ['Xns], 'Xmz3";
+      form = "{'Vt.%s, 'Vt2.%s, 'Vt3.%s}, ['nns], 'Xmz3";
       break;
     case NEON_LD4_b_post:
     case NEON_ST4_b_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
-      form = "{'Vt.b, 'Vt2.b, 'Vt3.b, 'Vt4.b}['IVLSLane0], ['Xns], 'Xmb4";
+      form = "{'Vt.b, 'Vt2.b, 'Vt3.b, 'Vt4.b}['IVLSLane0], ['nns], 'Xmb4";
       break;
     case NEON_LD4_h_post:
     case NEON_ST4_h_post:
       mnemonic = (instr->GetLdStXLoad()) == 1 ? "ld4" : "st4";
-      form = "{'Vt.h, 'Vt2.h, 'Vt3.h, 'Vt4.h}['IVLSLane1], ['Xns], 'Xmb8";
+      form = "{'Vt.h, 'Vt2.h, 'Vt3.h, 'Vt4.h}['IVLSLane1], ['nns], 'Xmb8";
       break;
     case NEON_LD4_s_post:
     case NEON_ST4_s_post:
       mnemonic = (instr->GetLdStXLoad() == 1) ? "ld4" : "st4";
       if ((instr->GetNEONLSSize() & 1) == 0)
-        form = "{'Vt.s, 'Vt2.s, 'Vt3.s, 'Vt4.s}['IVLSLane2], ['Xns], 'Xmb16";
+        form = "{'Vt.s, 'Vt2.s, 'Vt3.s, 'Vt4.s}['IVLSLane2], ['nns], 'Xmb16";
       else
-        form = "{'Vt.d, 'Vt2.d, 'Vt3.d, 'Vt4.d}['IVLSLane3], ['Xns], 'Xmb32";
+        form = "{'Vt.d, 'Vt2.d, 'Vt3.d, 'Vt4.d}['IVLSLane3], ['nns], 'Xmb32";
       break;
     case NEON_LD4R_post:
       mnemonic = "ld4r";
-      form = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns], 'Xmz4";
+      form = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['nns], 'Xmz4";
       break;
     default:
       break;
@@ -10418,6 +10418,8 @@ int Disassembler::SubstituteField(const Instruction *instr,
     case 'D':
     case 'Q':
     case 'c':  // Capability registers.
+    case 'n':  // Native base: 'X in A64, 'c in C64.
+    case 'a':  // Alt base: 'c in A64, 'X in C64.
       return SubstituteRegisterField(instr, format);
     case 'P':
       return SubstitutePredicateRegisterField(instr, format);
@@ -10553,6 +10555,12 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
   }
 
   if (reg_prefix == 'c') reg_prefix = 'C';
+  if (reg_prefix == 'n') {
+    reg_prefix = (GetISA() == ISA::C64) ? 'C' : 'X';
+  }
+  if (reg_prefix == 'a') {
+    reg_prefix = (GetISA() == ISA::C64) ? 'X' : 'C';
+  }
 
   std::pair<unsigned, unsigned> rn =
       GetRegNumForField(instr, reg_prefix, reg_field);

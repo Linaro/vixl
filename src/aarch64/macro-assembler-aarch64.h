@@ -2435,7 +2435,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const Register& rt2,
              const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     VIXL_ASSERT(!rs.Aliases(rt2));
     SingleEmissionCheckScope guard(this);
@@ -2443,21 +2443,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Stlxr(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stlxr(rs, rt, dst);
   }
   void Stlxrb(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stlxrb(rs, rt, dst);
   }
   void Stlxrh(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stlxrh(rs, rt, dst);
@@ -2474,7 +2474,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const Register& rt2,
             const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     VIXL_ASSERT(!rs.Aliases(rt2));
     SingleEmissionCheckScope guard(this);
@@ -2482,21 +2482,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Stxr(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stxr(rs, rt, dst);
   }
   void Stxrb(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stxrb(rs, rt, dst);
   }
   void Stxrh(const Register& rs, const Register& rt, const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    VIXL_ASSERT(!rs.Aliases(dst.GetBaseRegister()));
+    VIXL_ASSERT(!rs.Aliases(dst.GetBase()));
     VIXL_ASSERT(!rs.Aliases(rt));
     SingleEmissionCheckScope guard(this);
     stxrh(rs, rt, dst);

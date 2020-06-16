@@ -169,6 +169,7 @@ namespace aarch64 {
   COMPARE_MACRO_PREFIX_ISA(ASM, ISA::C64, EXP)
 
 // Instructions common to both A64 and C64.
+// TODO: Also check that the encodings are the same.
 #define COMPARE_MORELLO(ASM, EXP) \
   COMPARE_A64(ASM, EXP);          \
   COMPARE_C64(ASM, EXP)
@@ -183,6 +184,7 @@ namespace aarch64 {
   COMPARE_MACRO_PREFIX_C64(ASM, EXP)
 
 // To avoid changing many existing tests, operate on A64 by default.
+// TODO: Make this work in both A64 and C64, then remove the _MORELLO variants.
 #define COMPARE(ASM, EXP) COMPARE_A64(ASM, EXP)
 #define COMPARE_PREFIX(ASM, EXP) COMPARE_PREFIX_A64(ASM, EXP)
 #define COMPARE_MACRO(ASM, EXP) COMPARE_MACRO_A64(ASM, EXP)

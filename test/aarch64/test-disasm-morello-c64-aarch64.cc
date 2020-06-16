@@ -40,6 +40,8 @@
 namespace vixl {
 namespace aarch64 {
 
+// Tests of instructions new to Morello, in the C64 ISA.
+
 TEST(morello_c64_adr_c_i_c) {
   SETUP();
 
