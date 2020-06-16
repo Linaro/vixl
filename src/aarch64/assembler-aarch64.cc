@@ -1132,6 +1132,7 @@ void Assembler::xpacd(const Register& xd) {
 void Assembler::ldp(const CPURegister& rt,
                     const CPURegister& rt2,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStorePair(rt, rt2, src, LoadPairOpFor(rt, rt2));
 }
 
@@ -1139,6 +1140,7 @@ void Assembler::ldp(const CPURegister& rt,
 void Assembler::stp(const CPURegister& rt,
                     const CPURegister& rt2,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStorePair(rt, rt2, dst, StorePairOpFor(rt, rt2));
 }
 
@@ -1146,6 +1148,7 @@ void Assembler::stp(const CPURegister& rt,
 void Assembler::ldpsw(const Register& xt,
                       const Register& xt2,
                       const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(xt.Is64Bits() && xt2.Is64Bits());
   LoadStorePair(xt, xt2, src, LDPSW_x);
 }
@@ -1155,6 +1158,7 @@ void Assembler::LoadStorePair(const CPURegister& rt,
                               const CPURegister& rt2,
                               const MemOperand& addr,
                               LoadStorePairOp op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(rt, rt2));
 
   // 'rt' and 'rt2' can only be aliased for stores.
@@ -1190,6 +1194,7 @@ void Assembler::LoadStorePair(const CPURegister& rt,
 void Assembler::ldnp(const CPURegister& rt,
                      const CPURegister& rt2,
                      const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStorePairNonTemporal(rt, rt2, src, LoadPairNonTemporalOpFor(rt, rt2));
 }
 
@@ -1197,6 +1202,7 @@ void Assembler::ldnp(const CPURegister& rt,
 void Assembler::stnp(const CPURegister& rt,
                      const CPURegister& rt2,
                      const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStorePairNonTemporal(rt, rt2, dst, StorePairNonTemporalOpFor(rt, rt2));
 }
 
@@ -1205,6 +1211,7 @@ void Assembler::LoadStorePairNonTemporal(const CPURegister& rt,
                                          const CPURegister& rt2,
                                          const MemOperand& addr,
                                          LoadStorePairNonTemporalOp op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(rt, rt2));
 
   VIXL_ASSERT(!rt.Is(rt2));
@@ -1224,6 +1231,7 @@ void Assembler::LoadStorePairNonTemporal(const CPURegister& rt,
 void Assembler::ldrb(const Register& rt,
                      const MemOperand& src,
                      LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, src, LDRB_w, option);
@@ -1233,6 +1241,7 @@ void Assembler::ldrb(const Register& rt,
 void Assembler::strb(const Register& rt,
                      const MemOperand& dst,
                      LoadStoreScalingOption option) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, dst, STRB_w, option);
@@ -1242,6 +1251,7 @@ void Assembler::strb(const Register& rt,
 void Assembler::ldrsb(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
@@ -1251,6 +1261,7 @@ void Assembler::ldrsb(const Register& rt,
 void Assembler::ldrh(const Register& rt,
                      const MemOperand& src,
                      LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, src, LDRH_w, option);
@@ -1260,6 +1271,7 @@ void Assembler::ldrh(const Register& rt,
 void Assembler::strh(const Register& rt,
                      const MemOperand& dst,
                      LoadStoreScalingOption option) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, dst, STRH_w, option);
@@ -1269,6 +1281,7 @@ void Assembler::strh(const Register& rt,
 void Assembler::ldrsh(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
@@ -1278,6 +1291,7 @@ void Assembler::ldrsh(const Register& rt,
 void Assembler::ldr(const CPURegister& rt,
                     const MemOperand& src,
                     LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, src, LoadOpFor(rt), option);
@@ -1287,6 +1301,7 @@ void Assembler::ldr(const CPURegister& rt,
 void Assembler::str(const CPURegister& rt,
                     const MemOperand& dst,
                     LoadStoreScalingOption option) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   LoadStore(rt, dst, StoreOpFor(rt), option);
@@ -1296,6 +1311,7 @@ void Assembler::str(const CPURegister& rt,
 void Assembler::ldrsw(const Register& xt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(xt.Is64Bits());
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
@@ -1306,6 +1322,7 @@ void Assembler::ldrsw(const Register& xt,
 void Assembler::ldurb(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, src, LDRB_w, option);
@@ -1315,6 +1332,7 @@ void Assembler::ldurb(const Register& rt,
 void Assembler::sturb(const Register& rt,
                       const MemOperand& dst,
                       LoadStoreScalingOption option) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, dst, STRB_w, option);
@@ -1324,6 +1342,7 @@ void Assembler::sturb(const Register& rt,
 void Assembler::ldursb(const Register& rt,
                        const MemOperand& src,
                        LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
@@ -1333,6 +1352,7 @@ void Assembler::ldursb(const Register& rt,
 void Assembler::ldurh(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, src, LDRH_w, option);
@@ -1342,6 +1362,7 @@ void Assembler::ldurh(const Register& rt,
 void Assembler::sturh(const Register& rt,
                       const MemOperand& dst,
                       LoadStoreScalingOption option) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, dst, STRH_w, option);
@@ -1351,6 +1372,7 @@ void Assembler::sturh(const Register& rt,
 void Assembler::ldursh(const Register& rt,
                        const MemOperand& src,
                        LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
@@ -1360,6 +1382,7 @@ void Assembler::ldursh(const Register& rt,
 void Assembler::ldur(const CPURegister& rt,
                      const MemOperand& src,
                      LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, src, LoadOpFor(rt), option);
@@ -1369,6 +1392,7 @@ void Assembler::ldur(const CPURegister& rt,
 void Assembler::stur(const CPURegister& rt,
                      const MemOperand& dst,
                      LoadStoreScalingOption option) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   LoadStore(rt, dst, StoreOpFor(rt), option);
@@ -1378,6 +1402,7 @@ void Assembler::stur(const CPURegister& rt,
 void Assembler::ldursw(const Register& xt,
                        const MemOperand& src,
                        LoadStoreScalingOption option) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(xt.Is64Bits());
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
@@ -1386,12 +1411,14 @@ void Assembler::ldursw(const Register& xt,
 
 
 void Assembler::ldraa(const Register& xt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
   LoadStorePAC(xt, src, LDRAA);
 }
 
 
 void Assembler::ldrab(const Register& xt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
   LoadStorePAC(xt, src, LDRAB);
 }
@@ -1438,6 +1465,8 @@ void Assembler::prfm(PrefetchOperation op, int64_t imm19) {
 void Assembler::stxrb(const Register& rs,
                       const Register& rt,
                       const MemOperand& dst) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!dst.IsAltBase(GetISA()));
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STXRB_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
@@ -1446,6 +1475,8 @@ void Assembler::stxrb(const Register& rs,
 void Assembler::stxrh(const Register& rs,
                       const Register& rt,
                       const MemOperand& dst) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!dst.IsAltBase(GetISA()));
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STXRH_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
@@ -1454,6 +1485,8 @@ void Assembler::stxrh(const Register& rs,
 void Assembler::stxr(const Register& rs,
                      const Register& rt,
                      const MemOperand& dst) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!dst.IsAltBase(GetISA()));
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STXR_x : STXR_w;
   Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
@@ -1461,18 +1494,24 @@ void Assembler::stxr(const Register& rs,
 
 
 void Assembler::ldxrb(const Register& rt, const MemOperand& src) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!src.IsAltBase(GetISA()));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDXRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
 }
 
 
 void Assembler::ldxrh(const Register& rt, const MemOperand& src) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!src.IsAltBase(GetISA()));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDXRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
 }
 
 
 void Assembler::ldxr(const Register& rt, const MemOperand& src) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!src.IsAltBase(GetISA()));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDXR_x : LDXR_w;
   Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
@@ -1483,6 +1522,8 @@ void Assembler::stxp(const Register& rs,
                      const Register& rt,
                      const Register& rt2,
                      const MemOperand& dst) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!dst.IsAltBase(GetISA()));
   VIXL_ASSERT(rt.GetSizeInBits() == rt2.GetSizeInBits());
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STXP_x : STXP_w;
@@ -1493,6 +1534,8 @@ void Assembler::stxp(const Register& rs,
 void Assembler::ldxp(const Register& rt,
                      const Register& rt2,
                      const MemOperand& src) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!src.IsAltBase(GetISA()));
   VIXL_ASSERT(rt.GetSizeInBits() == rt2.GetSizeInBits());
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDXP_x : LDXP_w;
@@ -1503,6 +1546,7 @@ void Assembler::ldxp(const Register& rt,
 void Assembler::stlxrb(const Register& rs,
                        const Register& rt,
                        const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLXRB_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
@@ -1511,6 +1555,7 @@ void Assembler::stlxrb(const Register& rs,
 void Assembler::stlxrh(const Register& rs,
                        const Register& rt,
                        const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLXRH_w | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
@@ -1519,6 +1564,7 @@ void Assembler::stlxrh(const Register& rs,
 void Assembler::stlxr(const Register& rs,
                       const Register& rt,
                       const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STLXR_x : STLXR_w;
   Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
@@ -1526,18 +1572,21 @@ void Assembler::stlxr(const Register& rs,
 
 
 void Assembler::ldaxrb(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDAXRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
 }
 
 
 void Assembler::ldaxrh(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDAXRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
 }
 
 
 void Assembler::ldaxr(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDAXR_x : LDAXR_w;
   Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
@@ -1548,6 +1597,7 @@ void Assembler::stlxp(const Register& rs,
                       const Register& rt,
                       const Register& rt2,
                       const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(rt.GetSizeInBits() == rt2.GetSizeInBits());
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STLXP_x : STLXP_w;
@@ -1558,6 +1608,7 @@ void Assembler::stlxp(const Register& rs,
 void Assembler::ldaxp(const Register& rt,
                       const Register& rt2,
                       const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(rt.GetSizeInBits() == rt2.GetSizeInBits());
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDAXP_x : LDAXP_w;
@@ -1566,11 +1617,13 @@ void Assembler::ldaxp(const Register& rt,
 
 
 void Assembler::stlrb(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
 
 void Assembler::stlurb(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
 
@@ -1581,11 +1634,13 @@ void Assembler::stlurb(const Register& rt, const MemOperand& dst) {
 
 
 void Assembler::stlrh(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLRH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
 
 void Assembler::stlurh(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
 
@@ -1596,12 +1651,14 @@ void Assembler::stlurh(const Register& rt, const MemOperand& dst) {
 
 
 void Assembler::stlr(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STLR_x : STLR_w;
   Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
 }
 
 void Assembler::stlur(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(dst.IsImmediateOffset() && IsImmLSUnscaled(dst.GetOffset()));
 
@@ -1613,18 +1670,21 @@ void Assembler::stlur(const Register& rt, const MemOperand& dst) {
 
 
 void Assembler::ldarb(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDARB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
 }
 
 
 void Assembler::ldarh(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDARH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
 }
 
 
 void Assembler::ldar(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDAR_x : LDAR_w;
   Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
@@ -1632,6 +1692,7 @@ void Assembler::ldar(const Register& rt, const MemOperand& src) {
 
 
 void Assembler::stllrb(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kLORegions));
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLLRB | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
@@ -1639,6 +1700,7 @@ void Assembler::stllrb(const Register& rt, const MemOperand& dst) {
 
 
 void Assembler::stllrh(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kLORegions));
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   Emit(STLLRH | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBaseRegister()));
@@ -1646,6 +1708,7 @@ void Assembler::stllrh(const Register& rt, const MemOperand& dst) {
 
 
 void Assembler::stllr(const Register& rt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kLORegions));
   VIXL_ASSERT(dst.IsImmediateOffset() && (dst.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? STLLR_x : STLLR_w;
@@ -1654,6 +1717,7 @@ void Assembler::stllr(const Register& rt, const MemOperand& dst) {
 
 
 void Assembler::ldlarb(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kLORegions));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDLARB | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
@@ -1661,6 +1725,7 @@ void Assembler::ldlarb(const Register& rt, const MemOperand& src) {
 
 
 void Assembler::ldlarh(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kLORegions));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   Emit(LDLARH | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister()));
@@ -1668,6 +1733,7 @@ void Assembler::ldlarh(const Register& rt, const MemOperand& src) {
 
 
 void Assembler::ldlar(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kLORegions));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   LoadStoreExclusive op = rt.Is64Bits() ? LDLAR_x : LDLAR_w;
@@ -1687,6 +1753,7 @@ void Assembler::ldlar(const Register& rt, const MemOperand& src) {
   void Assembler::FN(const Register& rs,                                 \
                      const Register& rt,                                 \
                      const MemOperand& src) {                            \
+    if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();                   \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                          \
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
     VIXL_ASSERT(AreSameFormat(rs, rt));                                  \
@@ -1712,6 +1779,7 @@ COMPARE_AND_SWAP_W_X_LIST(VIXL_DEFINE_ASM_FUNC)
   void Assembler::FN(const Register& rs,                                 \
                      const Register& rt,                                 \
                      const MemOperand& src) {                            \
+    if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();                   \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                          \
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
     Emit(OP | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
@@ -1734,6 +1802,7 @@ COMPARE_AND_SWAP_W_LIST(VIXL_DEFINE_ASM_FUNC)
                      const Register& rt,                                 \
                      const Register& rt1,                                \
                      const MemOperand& src) {                            \
+    if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();                   \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                          \
     USE(rs1, rt1);                                                       \
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
@@ -1784,6 +1853,7 @@ COMPARE_AND_SWAP_PAIR_LIST(VIXL_DEFINE_ASM_FUNC)
   void Assembler::ld##FN(const Register& rs,                        \
                          const Register& rt,                        \
                          const MemOperand& src) {                   \
+    if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();              \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                     \
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0)); \
     AtomicMemoryOp op = rt.Is64Bits() ? OP_X : OP_W;                \
@@ -1791,6 +1861,7 @@ COMPARE_AND_SWAP_PAIR_LIST(VIXL_DEFINE_ASM_FUNC)
   }
 #define DEFINE_ASM_STORE_FUNC(FN, OP_X, OP_W)                         \
   void Assembler::st##FN(const Register& rs, const MemOperand& src) { \
+    if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();                \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                       \
     ld##FN(rs, AppropriateZeroRegFor(rs), src);                       \
   }
@@ -1804,6 +1875,7 @@ ATOMIC_MEMORY_SIMPLE_OPERATION_LIST(ATOMIC_MEMORY_STORE_MODES,
   void Assembler::FN(const Register& rs,                            \
                      const Register& rt,                            \
                      const MemOperand& src) {                       \
+    if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();              \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                     \
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0)); \
     AtomicMemoryOp op = rt.Is64Bits() ? OP_X : OP_W;                \
@@ -1818,6 +1890,7 @@ ATOMIC_MEMORY_LOAD_MODES(DEFINE_ASM_SWP_FUNC, swp, SWP)
 
 
 void Assembler::ldaprb(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   AtomicMemoryOp op = LDAPRB;
@@ -1825,6 +1898,7 @@ void Assembler::ldaprb(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapurb(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
 
@@ -1834,6 +1908,7 @@ void Assembler::ldapurb(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapursb(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
 
@@ -1844,6 +1919,7 @@ void Assembler::ldapursb(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldaprh(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   AtomicMemoryOp op = LDAPRH;
@@ -1851,6 +1927,7 @@ void Assembler::ldaprh(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapurh(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
 
@@ -1860,6 +1937,7 @@ void Assembler::ldapurh(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapursh(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
 
@@ -1870,6 +1948,7 @@ void Assembler::ldapursh(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapr(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc));
   VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));
   AtomicMemoryOp op = rt.Is64Bits() ? LDAPR_x : LDAPR_w;
@@ -1877,6 +1956,7 @@ void Assembler::ldapr(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapur(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
 
@@ -1887,6 +1967,7 @@ void Assembler::ldapur(const Register& rt, const MemOperand& src) {
 }
 
 void Assembler::ldapursw(const Register& rt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kRCpc, CPUFeatures::kRCpcImm));
   VIXL_ASSERT(rt.Is64Bits());
   VIXL_ASSERT(src.IsImmediateOffset() && IsImmLSUnscaled(src.GetOffset()));
@@ -1899,6 +1980,8 @@ void Assembler::ldapursw(const Register& rt, const MemOperand& src) {
 void Assembler::prfm(int op,
                      const MemOperand& address,
                      LoadStoreScalingOption option) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!address.IsAltBase(GetISA()));
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
   Prefetch(op, address, option);
@@ -1907,6 +1990,8 @@ void Assembler::prfm(int op,
 void Assembler::prfm(PrefetchOperation op,
                      const MemOperand& address,
                      LoadStoreScalingOption option) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!address.IsAltBase(GetISA()));
   // Passing unnamed values in 'op' is undefined behaviour in C++.
   VIXL_ASSERT(IsNamedPrefetchOperation(op));
   prfm(static_cast<int>(op), address, option);
@@ -1916,6 +2001,8 @@ void Assembler::prfm(PrefetchOperation op,
 void Assembler::prfum(int op,
                       const MemOperand& address,
                       LoadStoreScalingOption option) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!address.IsAltBase(GetISA()));
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
   Prefetch(op, address, option);
@@ -1924,6 +2011,8 @@ void Assembler::prfum(int op,
 void Assembler::prfum(PrefetchOperation op,
                       const MemOperand& address,
                       LoadStoreScalingOption option) {
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!address.IsAltBase(GetISA()));
   // Passing unnamed values in 'op' is undefined behaviour in C++.
   VIXL_ASSERT(IsNamedPrefetchOperation(op));
   prfum(static_cast<int>(op), address, option);
@@ -1977,6 +2066,7 @@ void Assembler::hint(int imm7) {
 
 // NEON structure loads and stores.
 Instr Assembler::LoadStoreStructAddrModeField(const MemOperand& addr) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   Instr addr_field = RnSP(addr.GetBaseRegister());
 
   if (addr.IsPostIndex()) {
@@ -2001,6 +2091,7 @@ Instr Assembler::LoadStoreStructAddrModeField(const MemOperand& addr) {
 void Assembler::LoadStoreStructVerify(const VRegister& vt,
                                       const MemOperand& addr,
                                       Instr op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
 #ifdef VIXL_DEBUG
   // Assert that addressing mode is either offset (with immediate 0), post
   // index by immediate of the size of the register list, or post index by a
@@ -2070,6 +2161,7 @@ void Assembler::LoadStoreStructVerify(const VRegister& vt,
 void Assembler::LoadStoreStruct(const VRegister& vt,
                                 const MemOperand& addr,
                                 NEONLoadStoreMultiStructOp op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStoreStructVerify(vt, addr, op);
   VIXL_ASSERT(vt.IsVector() || vt.Is1D());
   Emit(op | LoadStoreStructAddrModeField(addr) | LSVFormat(vt) | Rt(vt));
@@ -2079,12 +2171,14 @@ void Assembler::LoadStoreStruct(const VRegister& vt,
 void Assembler::LoadStoreStructSingleAllLanes(const VRegister& vt,
                                               const MemOperand& addr,
                                               NEONLoadStoreSingleStructOp op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStoreStructVerify(vt, addr, op);
   Emit(op | LoadStoreStructAddrModeField(addr) | LSVFormat(vt) | Rt(vt));
 }
 
 
 void Assembler::ld1(const VRegister& vt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   LoadStoreStruct(vt, src, NEON_LD1_1v);
 }
@@ -2093,6 +2187,7 @@ void Assembler::ld1(const VRegister& vt, const MemOperand& src) {
 void Assembler::ld1(const VRegister& vt,
                     const VRegister& vt2,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
@@ -2105,6 +2200,7 @@ void Assembler::ld1(const VRegister& vt,
                     const VRegister& vt2,
                     const VRegister& vt3,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
@@ -2118,6 +2214,7 @@ void Assembler::ld1(const VRegister& vt,
                     const VRegister& vt3,
                     const VRegister& vt4,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
@@ -2129,6 +2226,7 @@ void Assembler::ld1(const VRegister& vt,
 void Assembler::ld2(const VRegister& vt,
                     const VRegister& vt2,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
@@ -2141,6 +2239,7 @@ void Assembler::ld2(const VRegister& vt,
                     const VRegister& vt2,
                     int lane,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
@@ -2152,6 +2251,7 @@ void Assembler::ld2(const VRegister& vt,
 void Assembler::ld2r(const VRegister& vt,
                      const VRegister& vt2,
                      const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
@@ -2164,6 +2264,7 @@ void Assembler::ld3(const VRegister& vt,
                     const VRegister& vt2,
                     const VRegister& vt3,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
@@ -2177,6 +2278,7 @@ void Assembler::ld3(const VRegister& vt,
                     const VRegister& vt3,
                     int lane,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
@@ -2189,6 +2291,7 @@ void Assembler::ld3r(const VRegister& vt,
                      const VRegister& vt2,
                      const VRegister& vt3,
                      const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
@@ -2202,6 +2305,7 @@ void Assembler::ld4(const VRegister& vt,
                     const VRegister& vt3,
                     const VRegister& vt4,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
@@ -2216,6 +2320,7 @@ void Assembler::ld4(const VRegister& vt,
                     const VRegister& vt4,
                     int lane,
                     const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
@@ -2229,6 +2334,7 @@ void Assembler::ld4r(const VRegister& vt,
                      const VRegister& vt3,
                      const VRegister& vt4,
                      const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
@@ -2237,32 +2343,35 @@ void Assembler::ld4r(const VRegister& vt,
 }
 
 
-void Assembler::st1(const VRegister& vt, const MemOperand& src) {
+void Assembler::st1(const VRegister& vt, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
-  LoadStoreStruct(vt, src, NEON_ST1_1v);
+  LoadStoreStruct(vt, dst, NEON_ST1_1v);
 }
 
 
 void Assembler::st1(const VRegister& vt,
                     const VRegister& vt2,
-                    const MemOperand& src) {
+                    const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
   VIXL_ASSERT(AreConsecutive(vt, vt2));
-  LoadStoreStruct(vt, src, NEON_ST1_2v);
+  LoadStoreStruct(vt, dst, NEON_ST1_2v);
 }
 
 
 void Assembler::st1(const VRegister& vt,
                     const VRegister& vt2,
                     const VRegister& vt3,
-                    const MemOperand& src) {
+                    const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
   VIXL_ASSERT(AreConsecutive(vt, vt2, vt3));
-  LoadStoreStruct(vt, src, NEON_ST1_3v);
+  LoadStoreStruct(vt, dst, NEON_ST1_3v);
 }
 
 
@@ -2270,18 +2379,20 @@ void Assembler::st1(const VRegister& vt,
                     const VRegister& vt2,
                     const VRegister& vt3,
                     const VRegister& vt4,
-                    const MemOperand& src) {
+                    const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
   VIXL_ASSERT(AreConsecutive(vt, vt2, vt3, vt4));
-  LoadStoreStruct(vt, src, NEON_ST1_4v);
+  LoadStoreStruct(vt, dst, NEON_ST1_4v);
 }
 
 
 void Assembler::st2(const VRegister& vt,
                     const VRegister& vt2,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
@@ -2294,6 +2405,7 @@ void Assembler::st2(const VRegister& vt,
                     const VRegister& vt2,
                     int lane,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2));
@@ -2306,6 +2418,7 @@ void Assembler::st3(const VRegister& vt,
                     const VRegister& vt2,
                     const VRegister& vt3,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
@@ -2319,6 +2432,7 @@ void Assembler::st3(const VRegister& vt,
                     const VRegister& vt3,
                     int lane,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3));
@@ -2332,6 +2446,7 @@ void Assembler::st4(const VRegister& vt,
                     const VRegister& vt3,
                     const VRegister& vt4,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
@@ -2346,6 +2461,7 @@ void Assembler::st4(const VRegister& vt,
                     const VRegister& vt4,
                     int lane,
                     const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   USE(vt2, vt3, vt4);
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   VIXL_ASSERT(AreSameFormat(vt, vt2, vt3, vt4));
@@ -2358,6 +2474,7 @@ void Assembler::LoadStoreStructSingle(const VRegister& vt,
                                       uint32_t lane,
                                       const MemOperand& addr,
                                       NEONLoadStoreSingleStructOp op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   LoadStoreStructVerify(vt, addr, op);
 
   // We support vt arguments of the form vt.VxT() or vt.T(), where x is the
@@ -2396,18 +2513,21 @@ void Assembler::LoadStoreStructSingle(const VRegister& vt,
 
 
 void Assembler::ld1(const VRegister& vt, int lane, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   LoadStoreStructSingle(vt, lane, src, NEONLoadStoreSingleStructLoad1);
 }
 
 
 void Assembler::ld1r(const VRegister& vt, const MemOperand& src) {
+  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   LoadStoreStructSingleAllLanes(vt, src, NEON_LD1R);
 }
 
 
 void Assembler::st1(const VRegister& vt, int lane, const MemOperand& dst) {
+  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
   LoadStoreStructSingle(vt, lane, dst, NEONLoadStoreSingleStructStore1);
 }
@@ -5681,6 +5801,7 @@ void Assembler::DataProcExtendedRegister(const Register& rd,
 Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
                                      unsigned access_size_in_bytes_log2,
                                      LoadStoreScalingOption option) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   Instr base = RnSP(addr.GetBaseRegister());
   int64_t offset = addr.GetOffset();
 
@@ -5748,6 +5869,7 @@ void Assembler::LoadStore(const CPURegister& rt,
                           const MemOperand& addr,
                           LoadStoreOp op,
                           LoadStoreScalingOption option) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(rt));
   Emit(op | Rt(rt) | LoadStoreMemOperand(addr, CalcLSDataSize(op), option));
 }
@@ -5755,6 +5877,7 @@ void Assembler::LoadStore(const CPURegister& rt,
 void Assembler::LoadStorePAC(const Register& xt,
                              const MemOperand& addr,
                              LoadStorePACOp op) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(xt.Is64Bits());
   VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsPreIndex());
 
@@ -5773,6 +5896,7 @@ void Assembler::LoadStorePAC(const Register& xt,
 void Assembler::Prefetch(int op,
                          const MemOperand& addr,
                          LoadStoreScalingOption option) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(addr.IsRegisterOffset() || addr.IsImmediateOffset());
 
   Instr prfop = ImmPrefetchOperation(op);
@@ -5782,6 +5906,7 @@ void Assembler::Prefetch(int op,
 void Assembler::Prefetch(PrefetchOperation op,
                          const MemOperand& addr,
                          LoadStoreScalingOption option) {
+  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   // Passing unnamed values in 'op' is undefined behaviour in C++.
   VIXL_ASSERT(IsNamedPrefetchOperation(op));
   Prefetch(static_cast<int>(op), addr, option);
