@@ -5909,6 +5909,14 @@ class Assembler : public vixl::internal::AssemblerBase {
     return Rx<PgLow8_offset + PgLow8_width - 1, PgLow8_offset>(pg);
   }
 
+  template <int hibit, int lobit>
+  static Instr Pg(PRegister pg) {
+    // Governing predicates can be merging, zeroing, or unqualified. They should
+    // never have a lane size.
+    VIXL_ASSERT(!pg.HasLaneSize());
+    return Rx<hibit, lobit>(pg);
+  }
+
   // Flags encoding.
   static Instr Flags(FlagsUpdate S) {
     if (S == SetFlags) {

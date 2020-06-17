@@ -1982,14 +1982,6 @@ TEST(sve_inc_dec_by_predicate_count) {
   COMPARE_PREFIX(uqincp(z4.VnS(), p3), "uqincp z4.s, p3");
   COMPARE_PREFIX(uqincp(z4.VnD(), p3), "uqincp z4.d, p3");
 
-  // The governing predicate can have a lane size as long as it matches zdn.
-  COMPARE_PREFIX(decp(z0.VnH(), p1.VnH()), "decp z0.h, p1");
-  COMPARE_PREFIX(incp(z2.VnS(), p3.VnS()), "incp z2.s, p3");
-  COMPARE_PREFIX(sqdecp(z4.VnD(), p5.VnD()), "sqdecp z4.d, p5");
-  COMPARE_PREFIX(sqincp(z6.VnH(), p7.VnH()), "sqincp z6.h, p7");
-  COMPARE_PREFIX(uqdecp(z8.VnS(), p9.VnS()), "uqdecp z8.s, p9");
-  COMPARE_PREFIX(uqincp(z10.VnD(), p11.VnD()), "uqincp z10.d, p11");
-
   CLEANUP();
 }
 
@@ -2039,14 +2031,6 @@ TEST(sve_inc_dec_by_predicate_count_macro) {
   COMPARE_MACRO(Uqdecp(x10, p11.VnH()), "uqdecp x10, p11.h");
   COMPARE_MACRO(Uqdecp(x12, p13.VnS()), "uqdecp x12, p13.s");
   COMPARE_MACRO(Uqdecp(w14, p15.VnD()), "uqdecp w14, p15.d");
-
-  // The governing predicate can have a lane size as long as it matches zdn.
-  COMPARE_MACRO(Decp(z10.VnH(), p6.VnH()), "decp z10.h, p6");
-  COMPARE_MACRO(Incp(z12.VnS(), p8.VnS()), "incp z12.s, p8");
-  COMPARE_MACRO(Sqdecp(z14.VnD(), p10.VnD()), "sqdecp z14.d, p10");
-  COMPARE_MACRO(Sqincp(z16.VnH(), p12.VnH()), "sqincp z16.h, p12");
-  COMPARE_MACRO(Uqdecp(z18.VnS(), p14.VnS()), "uqdecp z18.s, p14");
-  COMPARE_MACRO(Uqincp(z20.VnD(), p15.VnD()), "uqincp z20.d, p15");
 
   CLEANUP();
 }

@@ -2996,19 +2996,19 @@ TEST_SVE(sve_pfirst_alias) {
   __ Mov(x10, NZCVFlag);
 
   __ Msr(NZCV, x10);
-  __ Pfirst(p0.VnB(), p0.VnB(), p0.VnB());
+  __ Pfirst(p0.VnB(), p0, p0.VnB());
   __ Mrs(x0, NZCV);
 
   __ Msr(NZCV, x10);
-  __ Pfirst(p1.VnB(), p1.VnB(), p1.VnB());
+  __ Pfirst(p1.VnB(), p1, p1.VnB());
   __ Mrs(x1, NZCV);
 
   __ Msr(NZCV, x10);
-  __ Pfirst(p2.VnB(), p2.VnB(), p2.VnB());
+  __ Pfirst(p2.VnB(), p2, p2.VnB());
   __ Mrs(x2, NZCV);
 
   __ Msr(NZCV, x10);
-  __ Pfirst(p3.VnB(), p3.VnB(), p3.VnB());
+  __ Pfirst(p3.VnB(), p3, p3.VnB());
   __ Mrs(x3, NZCV);
 
   END();
@@ -3337,19 +3337,19 @@ TEST_SVE(sve_pnext_alias) {
   __ Mov(x10, NZCVFlag);
 
   __ Msr(NZCV, x10);
-  __ Pnext(p0.VnB(), p0.VnB(), p0.VnB());
+  __ Pnext(p0.VnB(), p0, p0.VnB());
   __ Mrs(x0, NZCV);
 
   __ Msr(NZCV, x10);
-  __ Pnext(p1.VnB(), p1.VnB(), p1.VnB());
+  __ Pnext(p1.VnB(), p1, p1.VnB());
   __ Mrs(x1, NZCV);
 
   __ Msr(NZCV, x10);
-  __ Pnext(p2.VnB(), p2.VnB(), p2.VnB());
+  __ Pnext(p2.VnB(), p2, p2.VnB());
   __ Mrs(x2, NZCV);
 
   __ Msr(NZCV, x10);
-  __ Pnext(p3.VnB(), p3.VnB(), p3.VnB());
+  __ Pnext(p3.VnB(), p3, p3.VnB());
   __ Mrs(x3, NZCV);
 
   END();
