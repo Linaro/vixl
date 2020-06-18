@@ -3874,12 +3874,12 @@ void Assembler::SVELdff1Helper(unsigned msize_in_bytes_log2,
     return;
   }
 
-  if (addr.IsScalar()) {
+  if (addr.IsPlainScalar()) {
     // SVEMemOperand(x0) is treated as a scalar-plus-immediate form ([x0, #0]).
     // In these instructions, we want to treat it as [x0, xzr].
     SVEMemOperand addr_scalar_plus_scalar(addr.GetScalarBase(), xzr);
     // Guard against infinite recursion.
-    VIXL_ASSERT(!addr_scalar_plus_scalar.IsScalar());
+    VIXL_ASSERT(!addr_scalar_plus_scalar.IsPlainScalar());
     SVELdff1Helper(msize_in_bytes_log2,
                    zt,
                    pg,
@@ -4179,8 +4179,9 @@ void Assembler::ldr(const CPURegister& rt, const SVEMemOperand& addr) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(rt.IsPRegister() || rt.IsZRegister());
-  VIXL_ASSERT(addr.IsScalar() || (addr.IsScalarPlusImmediate() &&
-                                  (addr.GetOffsetModifier() == SVE_MUL_VL)));
+  VIXL_ASSERT(addr.IsPlainScalar() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
   int64_t imm9 = addr.GetImmediateOffset();
   VIXL_ASSERT(IsInt9(imm9));
   Instr imm9l = ExtractUnsignedBitfield32(2, 0, imm9) << 10;
@@ -5008,7 +5009,7 @@ void Assembler::ldnf1w(const ZRegister& zt,
 void Assembler::ldnt1b(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)));
   SVELd1St1ScaImmHelper(zt,
@@ -5021,7 +5022,7 @@ void Assembler::ldnt1b(const ZRegister& zt,
 void Assembler::ldnt1d(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)));
   SVELd1St1ScaImmHelper(zt,
@@ -5034,7 +5035,7 @@ void Assembler::ldnt1d(const ZRegister& zt,
 void Assembler::ldnt1h(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)));
   SVELd1St1ScaImmHelper(zt,
@@ -5047,7 +5048,7 @@ void Assembler::ldnt1h(const ZRegister& zt,
 void Assembler::ldnt1w(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)));
   SVELd1St1ScaImmHelper(zt,
@@ -5307,7 +5308,7 @@ void Assembler::st1w(const ZRegister& zt,
 void Assembler::stnt1b(const ZRegister& zt,
                        const PRegister& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)));
   SVELd1St1ScaImmHelper(zt,
@@ -5320,7 +5321,7 @@ void Assembler::stnt1b(const ZRegister& zt,
 void Assembler::stnt1d(const ZRegister& zt,
                        const PRegister& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)));
   SVELd1St1ScaImmHelper(zt,
@@ -5333,7 +5334,7 @@ void Assembler::stnt1d(const ZRegister& zt,
 void Assembler::stnt1h(const ZRegister& zt,
                        const PRegister& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)));
   SVELd1St1ScaImmHelper(zt,
@@ -5346,7 +5347,7 @@ void Assembler::stnt1h(const ZRegister& zt,
 void Assembler::stnt1w(const ZRegister& zt,
                        const PRegister& pg,
                        const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalar() ||
+  VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
               (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)));
   SVELd1St1ScaImmHelper(zt,
@@ -5361,8 +5362,9 @@ void Assembler::str(const CPURegister& rt, const SVEMemOperand& addr) {
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(rt.IsPRegister() || rt.IsZRegister());
-  VIXL_ASSERT(addr.IsScalar() || (addr.IsScalarPlusImmediate() &&
-                                  (addr.GetOffsetModifier() == SVE_MUL_VL)));
+  VIXL_ASSERT(addr.IsPlainScalar() ||
+              (addr.IsScalarPlusImmediate() &&
+               (addr.GetOffsetModifier() == SVE_MUL_VL)));
   int64_t imm9 = addr.GetImmediateOffset();
   VIXL_ASSERT(IsInt9(imm9));
   Instr imm9l = ExtractUnsignedBitfield32(2, 0, imm9) << 10;

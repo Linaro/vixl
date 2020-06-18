@@ -1113,7 +1113,7 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(rt.IsZRegister() || rt.IsPRegister());
 
-  if (addr.IsScalar() ||
+  if (addr.IsPlainScalar() ||
       (addr.IsScalarPlusImmediate() && IsInt9(addr.GetImmediateOffset()) &&
        addr.IsMulVl())) {
     SingleEmissionCheckScope guard(this);
@@ -1147,7 +1147,7 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(
   VIXL_ASSERT(allow_macro_instructions_);
   int imm_divisor = 1 << shift_amount;
 
-  if (addr.IsScalar() ||
+  if (addr.IsPlainScalar() ||
       (addr.IsScalarPlusImmediate() &&
        IsIntN(imm_bits, addr.GetImmediateOffset() / imm_divisor) &&
        ((addr.GetImmediateOffset() % imm_divisor) == 0) &&
@@ -1183,7 +1183,7 @@ void MacroAssembler::SVELoadStore1Helper(int msize_in_bytes_log2,
                                          const Tg& pg,
                                          const SVEMemOperand& addr,
                                          Tf fn) {
-  if (addr.IsScalar() ||
+  if (addr.IsPlainScalar() ||
       (addr.IsScalarPlusScalar() && !addr.GetScalarOffset().IsZero() &&
        addr.IsEquivalentToLSL(msize_in_bytes_log2)) ||
       (addr.IsScalarPlusImmediate() && IsInt4(addr.GetImmediateOffset()) &&
@@ -1261,11 +1261,12 @@ void MacroAssembler::SVELoadFFHelper(int msize_in_bytes_log2,
 
   // Contiguous first-faulting loads have no scalar-plus-immediate form at all,
   // so we don't do immediate synthesis. However, we cannot currently
-  // distinguish "[x0]" from "[x0, #0]" so we have to permit `IsScalar()` here.
-  VIXL_ASSERT(addr.IsScalarPlusImmediate() || !addr.IsScalar());
+  // distinguish "[x0]" from "[x0, #0]" so we have to permit `IsPlainScalar()`
+  // here.
+  VIXL_ASSERT(addr.IsScalarPlusImmediate() || !addr.IsPlainScalar());
 
-  if (addr.IsScalar() || (addr.IsScalarPlusScalar() &&
-                          addr.IsEquivalentToLSL(msize_in_bytes_log2))) {
+  if (addr.IsPlainScalar() || (addr.IsScalarPlusScalar() &&
+                               addr.IsEquivalentToLSL(msize_in_bytes_log2))) {
     SingleEmissionCheckScope guard(this);
     (this->*fn)(zt, pg, addr);
     return;

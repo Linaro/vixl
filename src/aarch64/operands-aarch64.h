@@ -563,7 +563,9 @@ class SVEMemOperand {
   // True for SVEMemOperands which represent something like [x0].
   // This will also return true for [x0, #0], because there is no way
   // to distinguish the two.
-  bool IsScalar() const { return IsScalarPlusImmediate() && (offset_ == 0); }
+  bool IsPlainScalar() const {
+    return IsScalarPlusImmediate() && (offset_ == 0);
+  }
 
   // True for SVEMemOperands which represent something like [x0], or for
   // compound SVEMemOperands which are functionally equivalent, such as

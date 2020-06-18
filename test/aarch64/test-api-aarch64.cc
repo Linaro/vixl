@@ -1051,20 +1051,20 @@ TEST(memoperand_is_plain_register_or_equivalent) {
   VIXL_CHECK(!MemOperand(x21, x30).IsEquivalentToPlainRegister());
 }
 
-TEST(sve_memoperand_is_scalar) {
-  VIXL_CHECK(SVEMemOperand(x0).IsScalar());
-  VIXL_CHECK(SVEMemOperand(sp).IsScalar());
-  VIXL_CHECK(SVEMemOperand(x1, 0).IsScalar());
+TEST(sve_memoperand_is_plain_scalar) {
+  VIXL_CHECK(SVEMemOperand(x0).IsPlainScalar());
+  VIXL_CHECK(SVEMemOperand(sp).IsPlainScalar());
+  VIXL_CHECK(SVEMemOperand(x1, 0).IsPlainScalar());
 
-  VIXL_CHECK(!SVEMemOperand(x2, xzr).IsScalar());
-  VIXL_CHECK(!SVEMemOperand(x4, xzr, LSL, 2).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(x2, xzr).IsPlainScalar());
+  VIXL_CHECK(!SVEMemOperand(x4, xzr, LSL, 2).IsPlainScalar());
 
-  VIXL_CHECK(!SVEMemOperand(x20, 1).IsScalar());
-  VIXL_CHECK(!SVEMemOperand(x21, x30).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(x20, 1).IsPlainScalar());
+  VIXL_CHECK(!SVEMemOperand(x21, x30).IsPlainScalar());
 
-  VIXL_CHECK(!SVEMemOperand(x0, z1.VnD()).IsScalar());
-  VIXL_CHECK(!SVEMemOperand(x2, z3.VnS(), UXTW).IsScalar());
-  VIXL_CHECK(!SVEMemOperand(z4.VnD(), 0).IsScalar());
+  VIXL_CHECK(!SVEMemOperand(x0, z1.VnD()).IsPlainScalar());
+  VIXL_CHECK(!SVEMemOperand(x2, z3.VnS(), UXTW).IsPlainScalar());
+  VIXL_CHECK(!SVEMemOperand(z4.VnD(), 0).IsPlainScalar());
 }
 
 TEST(sve_memoperand_is_scalar_or_equivalent) {
