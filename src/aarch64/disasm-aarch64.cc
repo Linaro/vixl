@@ -4928,7 +4928,7 @@ void Disassembler::
     VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw #1]";
+  const char *form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw #1]";
 
   switch (instr->Mask(
       SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
@@ -4954,7 +4954,7 @@ void Disassembler::
 void Disassembler::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw #2]";
+  const char *form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw #2]";
 
   switch (
       instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
@@ -4973,7 +4973,7 @@ void Disassembler::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
 
 void Disassembler::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
     const Instruction *instr) {
-  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw]";
+  const char *form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw]";
 
   const char *mnemonic = "unimplemented";
   switch (instr->Mask(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask)) {
@@ -5016,10 +5016,10 @@ void Disassembler::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
 
 void Disassembler::VisitSVE32BitGatherLoad_VectorPlusImm(
     const Instruction *instr) {
-  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Zn.s]";
-  const char *form_imm_b = "{ 'Zt.s }, 'Pgl/z, ['Zn.s, #'u2016]";
-  const char *form_imm_h = "{ 'Zt.s }, 'Pgl/z, ['Zn.s, #'u2016*2]";
-  const char *form_imm_w = "{ 'Zt.s }, 'Pgl/z, ['Zn.s, #'u2016*4]";
+  const char *form = "{'Zt.s}, 'Pgl/z, ['Zn.s]";
+  const char *form_imm_b = "{'Zt.s}, 'Pgl/z, ['Zn.s, #'u2016]";
+  const char *form_imm_h = "{'Zt.s}, 'Pgl/z, ['Zn.s, #'u2016*2]";
+  const char *form_imm_w = "{'Zt.s}, 'Pgl/z, ['Zn.s, #'u2016*4]";
   const char *form_imm;
 
   const char *mnemonic = "unimplemented";
@@ -5134,7 +5134,7 @@ void Disassembler::VisitSVE32BitGatherPrefetch_VectorPlusImm(
 void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw #'u2423]";
+  const char *form = "{'Zt.s}, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw #'u2423]";
 
   switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
     case ST1H_z_p_bz_s_x32_scaled:
@@ -5153,7 +5153,7 @@ void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
 void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw]";
+  const char *form = "{'Zt.s}, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw]";
 
   switch (
       instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
@@ -5176,7 +5176,7 @@ void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
 void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.s }, 'Pgl, ['Zn.s";
+  const char *form = "{'Zt.s}, 'Pgl, ['Zn.s";
   const char *suffix = NULL;
 
   bool is_zero = instr->ExtractBits(20, 16) == 0;
@@ -5204,7 +5204,7 @@ void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, '?22:suxtw #'u2423]";
+  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, '?22:suxtw #'u2423]";
 
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
@@ -5248,7 +5248,7 @@ void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, lsl #'u2423]";
+  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, lsl #'u2423]";
 
   switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)) {
     case LD1D_z_p_bz_d_64_scaled:
@@ -5291,63 +5291,63 @@ void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  // { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d]";
+  // {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d]";
 
   switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask)) {
-    // LD1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1B {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1B_z_p_bz_d_64_unscaled:
       mnemonic = "ld1b";
       break;
-    // LD1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1D {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1D_z_p_bz_d_64_unscaled:
       mnemonic = "ld1d";
       break;
-    // LD1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1H {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1H_z_p_bz_d_64_unscaled:
       mnemonic = "ld1h";
       break;
-    // LD1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1SB {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1SB_z_p_bz_d_64_unscaled:
       mnemonic = "ld1sb";
       break;
-    // LD1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1SH {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1SH_z_p_bz_d_64_unscaled:
       mnemonic = "ld1sh";
       break;
-    // LD1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1SW {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1SW_z_p_bz_d_64_unscaled:
       mnemonic = "ld1sw";
       break;
-    // LD1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LD1W {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LD1W_z_p_bz_d_64_unscaled:
       mnemonic = "ld1w";
       break;
-    // LDFF1B { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1B {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1B_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1b";
       break;
-    // LDFF1D { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1D {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1D_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1d";
       break;
-    // LDFF1H { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1H {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1H_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1h";
       break;
-    // LDFF1SB { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1SB {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1SB_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1sb";
       break;
-    // LDFF1SH { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1SH {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1SH_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1sh";
       break;
-    // LDFF1SW { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1SW {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1SW_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1sw";
       break;
-    // LDFF1W { <Zt>.D }, <Pg>/Z, [<Xn|SP>, <Zm>.D]
+    // LDFF1W {<Zt>.D}, <Pg>/Z, [<Xn|SP>, <Zm>.D]
     case LDFF1W_z_p_bz_d_64_unscaled:
       mnemonic = "ldff1w";
       break;
@@ -5361,7 +5361,7 @@ void Disassembler::
     VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Zm.d, '?22:suxtw]";
+  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, '?22:suxtw]";
 
   switch (instr->Mask(
       SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
@@ -5416,11 +5416,11 @@ void Disassembler::
 
 void Disassembler::VisitSVE64BitGatherLoad_VectorPlusImm(
     const Instruction *instr) {
-  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Zn.d]";
-  const char *form_imm[4] = {"{ 'Zt.d }, 'Pgl/z, ['Zn.d, #'u2016]",
-                             "{ 'Zt.d }, 'Pgl/z, ['Zn.d, #'u2016*2]",
-                             "{ 'Zt.d }, 'Pgl/z, ['Zn.d, #'u2016*4]",
-                             "{ 'Zt.d }, 'Pgl/z, ['Zn.d, #'u2016*8]"};
+  const char *form = "{'Zt.d}, 'Pgl/z, ['Zn.d]";
+  const char *form_imm[4] = {"{'Zt.d}, 'Pgl/z, ['Zn.d, #'u2016]",
+                             "{'Zt.d}, 'Pgl/z, ['Zn.d, #'u2016*2]",
+                             "{'Zt.d}, 'Pgl/z, ['Zn.d, #'u2016*4]",
+                             "{'Zt.d}, 'Pgl/z, ['Zn.d, #'u2016*8]"};
 
   if (instr->ExtractBits(20, 16) != 0) {
     unsigned msz = instr->ExtractBits(24, 23);
@@ -5573,7 +5573,7 @@ void Disassembler::VisitSVE64BitGatherPrefetch_VectorPlusImm(
 void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, lsl #'u2423]";
+  const char *form = "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d, lsl #'u2423]";
 
   switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
     case ST1D_z_p_bz_d_64_scaled:
@@ -5595,7 +5595,7 @@ void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
 void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d]";
+  const char *form = "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d]";
 
   switch (
       instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
@@ -5622,7 +5622,7 @@ void Disassembler::
     VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, '?14:suxtw #'u2423]";
+  const char *form = "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d, '?14:suxtw #'u2423]";
 
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
@@ -5646,7 +5646,7 @@ void Disassembler::
     VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets(
         const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Zm.d, '?14:suxtw]";
+  const char *form = "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d, '?14:suxtw]";
 
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
@@ -5672,7 +5672,7 @@ void Disassembler::
 void Disassembler::VisitSVE64BitScatterStore_VectorPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Zn.d";
+  const char *form = "{'Zt.d}, 'Pgl, ['Zn.d";
   const char *suffix = NULL;
 
   bool is_zero = instr->ExtractBits(20, 16) == 0;
@@ -6151,8 +6151,8 @@ void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
 
   bool rm_is_zr = instr->GetRm() == kZeroRegCode;
 
-  const char *form_zr = "{ 'Zt.'tls }, 'Pgl/z, ['Xns]";
-  const char *form_zr_s = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns]";
+  const char *form_zr = "{'Zt.'tls}, 'Pgl/z, ['Xns]";
+  const char *form_zr_s = "{'Zt.'tlss}, 'Pgl/z, ['Xns]";
 
   switch (instr->Mask(SVEContiguousFirstFaultLoad_ScalarPlusScalarMask)) {
     case LDFF1B_z_p_br_u16:
@@ -6160,39 +6160,37 @@ void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
     case LDFF1B_z_p_br_u64:
     case LDFF1B_z_p_br_u8:
       mnemonic = "ldff1b";
-      form = rm_is_zr ? form_zr : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm]";
+      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm]";
       break;
     case LDFF1D_z_p_br_u64:
       mnemonic = "ldff1d";
-      form = rm_is_zr ? form_zr : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #3]";
+      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #3]";
       break;
     case LDFF1H_z_p_br_u16:
     case LDFF1H_z_p_br_u32:
     case LDFF1H_z_p_br_u64:
       mnemonic = "ldff1h";
-      form = rm_is_zr ? form_zr : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
+      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
       break;
     case LDFF1SB_z_p_br_s16:
     case LDFF1SB_z_p_br_s32:
     case LDFF1SB_z_p_br_s64:
       mnemonic = "ldff1sb";
-      form = rm_is_zr ? form_zr_s : "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm]";
+      form = rm_is_zr ? form_zr_s : "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm]";
       break;
     case LDFF1SH_z_p_br_s32:
     case LDFF1SH_z_p_br_s64:
       mnemonic = "ldff1sh";
-      form =
-          rm_is_zr ? form_zr_s : "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
+      form = rm_is_zr ? form_zr_s : "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
       break;
     case LDFF1SW_z_p_br_s64:
       mnemonic = "ldff1sw";
-      form =
-          rm_is_zr ? form_zr_s : "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
+      form = rm_is_zr ? form_zr_s : "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
       break;
     case LDFF1W_z_p_br_u32:
     case LDFF1W_z_p_br_u64:
       mnemonic = "ldff1w";
-      form = rm_is_zr ? form_zr : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
+      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
       break;
     default:
       break;
@@ -6204,7 +6202,7 @@ void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
 void Disassembler::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns";
+  const char *form = "{'Zt.'tls}, 'Pgl/z, ['Xns";
   const char *suffix =
       (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, mul vl]";
 
@@ -6226,16 +6224,16 @@ void Disassembler::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
     case LDNF1SB_z_p_bi_s16:
     case LDNF1SB_z_p_bi_s32:
     case LDNF1SB_z_p_bi_s64:
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns";
+      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sb";
       break;
     case LDNF1SH_z_p_bi_s32:
     case LDNF1SH_z_p_bi_s64:
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns";
+      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sh";
       break;
     case LDNF1SW_z_p_bi_s64:
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns";
+      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sw";
       break;
     case LDNF1W_z_p_bi_u32:
@@ -6260,19 +6258,19 @@ void Disassembler::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(
   switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusImmMask)) {
     case LDNT1B_z_p_bi_contiguous:
       mnemonic = "ldnt1b";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns";
+      form = "{'Zt.b}, 'Pgl/z, ['Xns";
       break;
     case LDNT1D_z_p_bi_contiguous:
       mnemonic = "ldnt1d";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       break;
     case LDNT1H_z_p_bi_contiguous:
       mnemonic = "ldnt1h";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns";
       break;
     case LDNT1W_z_p_bi_contiguous:
       mnemonic = "ldnt1w";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       break;
     default:
       suffix = NULL;
@@ -6289,19 +6287,19 @@ void Disassembler::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
   switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusScalarMask)) {
     case LDNT1B_z_p_br_contiguous:
       mnemonic = "ldnt1b";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns, 'Rm]";
+      form = "{'Zt.b}, 'Pgl/z, ['Xns, 'Rm]";
       break;
     case LDNT1D_z_p_br_contiguous:
       mnemonic = "ldnt1d";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Rm, lsl #3]";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Rm, lsl #3]";
       break;
     case LDNT1H_z_p_br_contiguous:
       mnemonic = "ldnt1h";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns, 'Rm, lsl #1]";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns, 'Rm, lsl #1]";
       break;
     case LDNT1W_z_p_br_contiguous:
       mnemonic = "ldnt1w";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Rm, lsl #2]";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Rm, lsl #2]";
       break;
     default:
       break;
@@ -6319,19 +6317,19 @@ void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(
   switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusImmMask)) {
     case STNT1B_z_p_bi_contiguous:
       mnemonic = "stnt1b";
-      form = "{ 'Zt.b }, 'Pgl, ['Xns";
+      form = "{'Zt.b}, 'Pgl, ['Xns";
       break;
     case STNT1D_z_p_bi_contiguous:
       mnemonic = "stnt1d";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns";
+      form = "{'Zt.d}, 'Pgl, ['Xns";
       break;
     case STNT1H_z_p_bi_contiguous:
       mnemonic = "stnt1h";
-      form = "{ 'Zt.h }, 'Pgl, ['Xns";
+      form = "{'Zt.h}, 'Pgl, ['Xns";
       break;
     case STNT1W_z_p_bi_contiguous:
       mnemonic = "stnt1w";
-      form = "{ 'Zt.s }, 'Pgl, ['Xns";
+      form = "{'Zt.s}, 'Pgl, ['Xns";
       break;
     default:
       suffix = NULL;
@@ -6348,19 +6346,19 @@ void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
   switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusScalarMask)) {
     case STNT1B_z_p_br_contiguous:
       mnemonic = "stnt1b";
-      form = "{ 'Zt.b }, 'Pgl, ['Xns, 'Rm]";
+      form = "{'Zt.b}, 'Pgl, ['Xns, 'Rm]";
       break;
     case STNT1D_z_p_br_contiguous:
       mnemonic = "stnt1d";
-      form = "{ 'Zt.d }, 'Pgl, ['Xns, 'Rm, lsl #3]";
+      form = "{'Zt.d}, 'Pgl, ['Xns, 'Rm, lsl #3]";
       break;
     case STNT1H_z_p_br_contiguous:
       mnemonic = "stnt1h";
-      form = "{ 'Zt.h }, 'Pgl, ['Xns, 'Rm, lsl #1]";
+      form = "{'Zt.h}, 'Pgl, ['Xns, 'Rm, lsl #1]";
       break;
     case STNT1W_z_p_br_contiguous:
       mnemonic = "stnt1w";
-      form = "{ 'Zt.s }, 'Pgl, ['Xns, 'Rm, lsl #2]";
+      form = "{'Zt.s}, 'Pgl, ['Xns, 'Rm, lsl #2]";
       break;
     default:
       break;
@@ -6427,9 +6425,9 @@ void Disassembler::VisitSVEContiguousStore_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
 
   // The 'size' field isn't in the usual place here.
-  const char *form = "{ 'Zt.'tls }, 'Pgl, ['Xns, #'s1916, mul vl]";
+  const char *form = "{'Zt.'tls}, 'Pgl, ['Xns, #'s1916, mul vl]";
   if (instr->ExtractBits(19, 16) == 0) {
-    form = "{ 'Zt.'tls }, 'Pgl, ['Xns]";
+    form = "{'Zt.'tls}, 'Pgl, ['Xns]";
   }
 
   switch (instr->Mask(SVEContiguousStore_ScalarPlusImmMask)) {
@@ -6456,7 +6454,7 @@ void Disassembler::VisitSVEContiguousStore_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
 
   // The 'size' field isn't in the usual place here.
-  const char *form = "{ 'Zt.'tls }, 'Pgl, ['Xns, 'Xm'NSveS]";
+  const char *form = "{'Zt.'tls}, 'Pgl, ['Xns, 'Xm'NSveS]";
 
   switch (instr->Mask(SVEContiguousStore_ScalarPlusScalarMask)) {
     case ST1B_z_p_br:
@@ -7408,82 +7406,82 @@ void Disassembler::VisitSVELoadAndBroadcastElement(const Instruction *instr) {
   switch (instr->Mask(SVELoadAndBroadcastElementMask)) {
     case LD1RB_z_p_bi_u16:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RB_z_p_bi_u32:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RB_z_p_bi_u64:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RB_z_p_bi_u8:
       mnemonic = "ld1rb";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns";
+      form = "{'Zt.b}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RD_z_p_bi_u64:
       mnemonic = "ld1rd";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_d;
       break;
     case LD1RH_z_p_bi_u16:
       mnemonic = "ld1rh";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns";
       suffix = suffix_h;
       break;
     case LD1RH_z_p_bi_u32:
       mnemonic = "ld1rh";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       suffix = suffix_h;
       break;
     case LD1RH_z_p_bi_u64:
       mnemonic = "ld1rh";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_h;
       break;
     case LD1RSB_z_p_bi_s16:
       mnemonic = "ld1rsb";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RSB_z_p_bi_s32:
       mnemonic = "ld1rsb";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RSB_z_p_bi_s64:
       mnemonic = "ld1rsb";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_b;
       break;
     case LD1RSH_z_p_bi_s32:
       mnemonic = "ld1rsh";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       suffix = suffix_h;
       break;
     case LD1RSH_z_p_bi_s64:
       mnemonic = "ld1rsh";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_h;
       break;
     case LD1RSW_z_p_bi_s64:
       mnemonic = "ld1rsw";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_w;
       break;
     case LD1RW_z_p_bi_u32:
       mnemonic = "ld1rw";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       suffix = suffix_w;
       break;
     case LD1RW_z_p_bi_u64:
       mnemonic = "ld1rw";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       suffix = suffix_w;
       break;
     default:
@@ -7509,19 +7507,19 @@ void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
   switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
     case LD1RQB_z_p_bi_u8:
       mnemonic = "ld1rqb";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns";
+      form = "{'Zt.b}, 'Pgl/z, ['Xns";
       break;
     case LD1RQD_z_p_bi_u64:
       mnemonic = "ld1rqd";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns";
       break;
     case LD1RQH_z_p_bi_u16:
       mnemonic = "ld1rqh";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns";
       break;
     case LD1RQW_z_p_bi_u32:
       mnemonic = "ld1rqw";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns";
       break;
     default:
       suffix = NULL;
@@ -7538,19 +7536,19 @@ void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
   switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
     case LD1RQB_z_p_br_contiguous:
       mnemonic = "ld1rqb";
-      form = "{ 'Zt.b }, 'Pgl/z, ['Xns, 'Rm]";
+      form = "{'Zt.b}, 'Pgl/z, ['Xns, 'Rm]";
       break;
     case LD1RQD_z_p_br_contiguous:
       mnemonic = "ld1rqd";
-      form = "{ 'Zt.d }, 'Pgl/z, ['Xns, 'Rm, lsl #3]";
+      form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Rm, lsl #3]";
       break;
     case LD1RQH_z_p_br_contiguous:
       mnemonic = "ld1rqh";
-      form = "{ 'Zt.h }, 'Pgl/z, ['Xns, 'Rm, lsl #1]";
+      form = "{'Zt.h}, 'Pgl/z, ['Xns, 'Rm, lsl #1]";
       break;
     case LD1RQW_z_p_br_contiguous:
       mnemonic = "ld1rqw";
-      form = "{ 'Zt.s }, 'Pgl/z, ['Xns, 'Rm, lsl #2]";
+      form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Rm, lsl #2]";
       break;
     default:
       break;
@@ -7563,11 +7561,11 @@ void Disassembler::VisitSVELoadMultipleStructures_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVELoadMultipleStructures_ScalarPlusImm)";
 
-  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, 'Pgl/z, ['Xns'ISveSvl]";
+  const char *form_2 = "{'Zt.'tmsz, 'Zt2.'tmsz}, 'Pgl/z, ['Xns'ISveSvl]";
   const char *form_3 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, 'Pgl/z, ['Xns'ISveSvl]";
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz}, 'Pgl/z, ['Xns'ISveSvl]";
   const char *form_4 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz}, "
       "'Pgl/z, ['Xns'ISveSvl]";
 
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
@@ -7630,11 +7628,11 @@ void Disassembler::VisitSVELoadMultipleStructures_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVELoadMultipleStructures_ScalarPlusScalar)";
 
-  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, 'Pgl/z, ['Xns, 'Xm'NSveS]";
+  const char *form_2 = "{'Zt.'tmsz, 'Zt2.'tmsz}, 'Pgl/z, ['Xns, 'Xm'NSveS]";
   const char *form_3 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, 'Pgl/z, ['Xns, 'Xm'NSveS]";
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz}, 'Pgl/z, ['Xns, 'Xm'NSveS]";
   const char *form_4 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz}, "
       "'Pgl/z, ['Xns, 'Xm'NSveS]";
 
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusScalarMask)) {
@@ -8103,11 +8101,11 @@ void Disassembler::VisitSVEStoreMultipleStructures_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStoreMultipleStructures_ScalarPlusImm)";
 
-  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, 'Pgl, ['Xns'ISveSvl]";
+  const char *form_2 = "{'Zt.'tmsz, 'Zt2.'tmsz}, 'Pgl, ['Xns'ISveSvl]";
   const char *form_3 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, 'Pgl, ['Xns'ISveSvl]";
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz}, 'Pgl, ['Xns'ISveSvl]";
   const char *form_4 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz}, "
       "'Pgl, ['Xns'ISveSvl]";
 
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusImmMask)) {
@@ -8170,11 +8168,11 @@ void Disassembler::VisitSVEStoreMultipleStructures_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEStoreMultipleStructures_ScalarPlusScalar)";
 
-  const char *form_2 = "{ 'Zt.'tmsz, 'Zt2.'tmsz }, 'Pgl, ['Xns, 'Xm'NSveS]";
+  const char *form_2 = "{'Zt.'tmsz, 'Zt2.'tmsz}, 'Pgl, ['Xns, 'Xm'NSveS]";
   const char *form_3 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz }, 'Pgl, ['Xns, 'Xm'NSveS]";
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz}, 'Pgl, ['Xns, 'Xm'NSveS]";
   const char *form_4 =
-      "{ 'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz }, "
+      "{'Zt.'tmsz, 'Zt2.'tmsz, 'Zt3.'tmsz, 'Zt4.'tmsz}, "
       "'Pgl, ['Xns, 'Xm'NSveS]";
 
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusScalarMask)) {
@@ -8277,10 +8275,10 @@ void Disassembler::VisitSVETableLookup(const Instruction *instr) {
   const char *form = "(SVETableLookup)";
 
   switch (instr->Mask(SVETableLookupMask)) {
-    // TBL <Zd>.<T>, { <Zn>.<T> }, <Zm>.<T>
+    // TBL <Zd>.<T>, {<Zn>.<T>}, <Zm>.<T>
     case TBL_z_zz_1:
       mnemonic = "tbl";
-      form = "'Zd.'t, { 'Zn.'t }, 'Zm.'t";
+      form = "'Zd.'t, {'Zn.'t}, 'Zm.'t";
       break;
     default:
       break;
@@ -9624,11 +9622,11 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusImm(
   const char *form;
   // The 'size' field isn't in the usual place here.
   if (instr->ExtractBits(19, 16) == 0) {
-    form = is_signed ? "{ 'Zt.'tlss }, 'Pgl/z, ['Xns]"
-                     : "{ 'Zt.'tls }, 'Pgl/z, ['Xns]";
+    form = is_signed ? "{'Zt.'tlss}, 'Pgl/z, ['Xns]"
+                     : "{'Zt.'tls}, 'Pgl/z, ['Xns]";
   } else {
-    form = is_signed ? "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, #'s1916, mul vl]"
-                     : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, #'s1916, mul vl]";
+    form = is_signed ? "{'Zt.'tlss}, 'Pgl/z, ['Xns, #'s1916, mul vl]"
+                     : "{'Zt.'tls}, 'Pgl/z, ['Xns, #'s1916, mul vl]";
   }
 
   Format(instr, mnemonic, form);
@@ -9645,37 +9643,37 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusScalar(
     case LD1B_z_p_br_u64:
     case LD1B_z_p_br_u8:
       mnemonic = "ld1b";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm]";
+      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm]";
       break;
     case LD1D_z_p_br_u64:
       mnemonic = "ld1d";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
+      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
       break;
     case LD1H_z_p_br_u16:
     case LD1H_z_p_br_u32:
     case LD1H_z_p_br_u64:
       mnemonic = "ld1h";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
+      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
       break;
     case LD1SB_z_p_br_s16:
     case LD1SB_z_p_br_s32:
     case LD1SB_z_p_br_s64:
       mnemonic = "ld1sb";
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm]";
+      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm]";
       break;
     case LD1SH_z_p_br_s32:
     case LD1SH_z_p_br_s64:
       mnemonic = "ld1sh";
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
+      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
       break;
     case LD1SW_z_p_br_s64:
       mnemonic = "ld1sw";
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
+      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
       break;
     case LD1W_z_p_br_u32:
     case LD1W_z_p_br_u64:
       mnemonic = "ld1w";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
+      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
       break;
     default:
       break;
