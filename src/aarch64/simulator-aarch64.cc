@@ -7417,7 +7417,6 @@ void Simulator::VisitSVEBroadcastBitmaskImm(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
-  USE(instr);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister& zm = ReadVRegister(instr->GetRm());
@@ -7987,8 +7986,6 @@ void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
@@ -8732,7 +8729,6 @@ uint64_t Simulator::IncDecN(uint64_t acc,
 }
 
 void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
-  USE(instr);
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   switch (instr->Mask(SVEIndexGenerationMask)) {
@@ -9035,7 +9031,6 @@ void Simulator::VisitSVEConditionallyTerminateScalars(
 }
 
 void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
-  USE(instr);
   bool commute_inputs = false;
   Condition cond;
   switch (instr->Mask(SVEIntCompareSignedImmMask)) {
@@ -9081,7 +9076,6 @@ void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
-  USE(instr);
   bool commute_inputs = false;
   Condition cond;
   switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
@@ -9119,8 +9113,6 @@ void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
-  USE(instr);
-
   Instr op = instr->Mask(SVEIntCompareVectorsMask);
   bool is_wide_elements = false;
   switch (op) {
@@ -9276,8 +9268,6 @@ void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
@@ -9368,8 +9358,6 @@ void Simulator::VisitSVEIntReduction(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
@@ -9527,7 +9515,6 @@ void Simulator::VisitSVEBroadcastFPImm_Unpredicated(const Instruction* instr) {
 
 void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(
       SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
     case LD1H_z_p_bz_s_x32_scaled:
@@ -9546,7 +9533,6 @@ void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
 
 void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask)) {
     case LD1B_z_p_bz_s_x32_unscaled:
     case LD1H_z_p_bz_s_x32_unscaled:
@@ -9570,7 +9556,6 @@ void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
 
 void Simulator::VisitSVE32BitGatherLoad_VectorPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE32BitGatherLoad_VectorPlusImmMask)) {
     case LD1B_z_p_ai_s:
       VIXL_UNIMPLEMENTED();
@@ -9610,7 +9595,6 @@ void Simulator::VisitSVE32BitGatherLoad_VectorPlusImm(
 
 void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (
       instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
     case LD1W_z_p_bz_s_x32_scaled:
@@ -9627,7 +9611,6 @@ void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
 
 void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (
       instr->Mask(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsMask)) {
     // Ignore prefetch hint instructions.
@@ -9644,7 +9627,6 @@ void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
 
 void Simulator::VisitSVE32BitGatherPrefetch_VectorPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE32BitGatherPrefetch_VectorPlusImmMask)) {
     // Ignore prefetch hint instructions.
     case PRFB_i_p_ai_s:
@@ -9660,7 +9642,6 @@ void Simulator::VisitSVE32BitGatherPrefetch_VectorPlusImm(
 
 void Simulator::VisitSVEContiguousPrefetch_ScalarPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusImmMask)) {
     // Ignore prefetch hint instructions.
     case PRFB_i_p_bi_s:
@@ -9757,7 +9738,6 @@ void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {
 }
 
 void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVELoadVectorRegisterMask)) {
     case LDR_z_bi: {
       SimVRegister& zt = ReadVRegister(instr->GetRt());
@@ -9921,7 +9901,6 @@ void Simulator::VisitSVE64BitGatherLoad_VectorPlusImm(
 
 void Simulator::VisitSVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (
       instr->Mask(SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsMask)) {
     // Ignore prefetch hint instructions.
@@ -9939,7 +9918,6 @@ void Simulator::VisitSVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets(
 void Simulator::
     VisitSVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets(
         const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(
       SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
     // Ignore prefetch hint instructions.
@@ -9956,7 +9934,6 @@ void Simulator::
 
 void Simulator::VisitSVE64BitGatherPrefetch_VectorPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE64BitGatherPrefetch_VectorPlusImmMask)) {
     // Ignore prefetch hint instructions.
     case PRFB_i_p_ai_d:
@@ -10196,7 +10173,6 @@ void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
 
 void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
     case LD2B_z_p_bi_contiguous:
     case LD2D_z_p_bi_contiguous:
@@ -10232,7 +10208,6 @@ void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(
 
 void Simulator::VisitSVELoadMultipleStructures_ScalarPlusScalar(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusScalarMask)) {
     case LD2B_z_p_br_contiguous:
     case LD2D_z_p_br_contiguous:
@@ -10268,7 +10243,6 @@ void Simulator::VisitSVELoadMultipleStructures_ScalarPlusScalar(
 
 void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
     case ST1H_z_p_bz_s_x32_scaled:
     case ST1W_z_p_bz_s_x32_scaled: {
@@ -10298,7 +10272,6 @@ void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
 
 void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (
       instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
     case ST1B_z_p_bz_s_x32_unscaled:
@@ -10354,7 +10327,6 @@ void Simulator::VisitSVE32BitScatterStore_VectorPlusImm(
 
 void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
     case ST1D_z_p_bz_d_64_scaled:
     case ST1H_z_p_bz_d_64_scaled:
@@ -10383,7 +10355,6 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
 
 void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (
       instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
     case ST1B_z_p_bz_d_64_unscaled:
@@ -10412,7 +10383,6 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
 
 void Simulator::VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
     case ST1D_z_p_bz_d_x32_scaled:
@@ -10445,7 +10415,6 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
 void Simulator::
     VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets(
         const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(
       SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
     case ST1B_z_p_bz_d_x32_unscaled:
@@ -10564,7 +10533,6 @@ void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
 
 void Simulator::VisitSVEContiguousStore_ScalarPlusImm(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEContiguousStore_ScalarPlusImmMask)) {
     case ST1B_z_p_bi:
     case ST1D_z_p_bi:
@@ -10672,7 +10640,6 @@ void Simulator::VisitSVEStoreMultipleStructures_ScalarPlusImm(
 
 void Simulator::VisitSVEStoreMultipleStructures_ScalarPlusScalar(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusScalarMask)) {
     case ST2B_z_p_br_contiguous:
     case ST2D_z_p_br_contiguous:
@@ -11351,8 +11318,6 @@ void Simulator::VisitSVETableLookup(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
-  USE(instr);
-
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
   SimPRegister& pn = ReadPRegister(instr->GetPn());
@@ -11410,7 +11375,6 @@ void Simulator::VisitSVEPredicateLogical(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPredicateFirstActive(const Instruction* instr) {
-  USE(instr);
   LogicPRegister pg = ReadPRegister(instr->ExtractBits(8, 5));
   LogicPRegister pdn = ReadPRegister(instr->GetPd());
   switch (instr->Mask(SVEPredicateFirstActiveMask)) {
@@ -11426,7 +11390,6 @@ void Simulator::VisitSVEPredicateFirstActive(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPredicateInitialize(const Instruction* instr) {
-  USE(instr);
   // This group only contains PTRUE{S}, and there are no unallocated encodings.
   VIXL_STATIC_ASSERT(
       SVEPredicateInitializeMask ==
@@ -11442,7 +11405,6 @@ void Simulator::VisitSVEPredicateInitialize(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPredicateNextActive(const Instruction* instr) {
-  USE(instr);
   // This group only contains PNEXT, and there are no unallocated encodings.
   VIXL_STATIC_ASSERT(SVEPredicateNextActiveFMask == SVEPredicateNextActiveMask);
   VIXL_ASSERT(instr->Mask(SVEPredicateNextActiveMask) == PNEXT_p_p_p);
@@ -11496,7 +11458,6 @@ void Simulator::VisitSVEPredicateReadFromFFR_Unpredicated(
 }
 
 void Simulator::VisitSVEPredicateTest(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEPredicateTestMask)) {
     case PTEST_p_p:
       PredTest(kFormatVnB,
@@ -11510,7 +11471,6 @@ void Simulator::VisitSVEPredicateTest(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEPredicateZero(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEPredicateZeroMask)) {
     case PFALSE_p:
       pfalse(ReadPRegister(instr->GetPd()));
@@ -11583,8 +11543,6 @@ void Simulator::VisitSVEStackFrameSize(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
-  USE(instr);
-
   // The only instruction in this group is `sel`, and there are no unused
   // encodings.
   VIXL_ASSERT(instr->Mask(SVEVectorSelectMask) == SEL_z_p_zz);
@@ -11599,7 +11557,6 @@ void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFFRInitialise(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEFFRInitialiseMask)) {
     case SETFFR_f: {
       LogicPRegister ffr(ReadFFR());
@@ -11613,7 +11570,6 @@ void Simulator::VisitSVEFFRInitialise(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEFFRWriteFromPredicate(const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEFFRWriteFromPredicateMask)) {
     case WRFFR_f_p: {
       SimPRegister pn(ReadPRegister(instr->GetPn()));
@@ -11636,7 +11592,6 @@ void Simulator::VisitSVEFFRWriteFromPredicate(const Instruction* instr) {
 }
 
 void Simulator::VisitSVEContiguousLoad_ScalarPlusImm(const Instruction* instr) {
-  USE(instr);
   bool is_signed;
   switch (instr->Mask(SVEContiguousLoad_ScalarPlusImmMask)) {
     case LD1B_z_p_bi_u8:
@@ -11686,7 +11641,6 @@ void Simulator::VisitSVEContiguousLoad_ScalarPlusImm(const Instruction* instr) {
 void Simulator::VisitSVEContiguousLoad_ScalarPlusScalar(
     const Instruction* instr) {
   bool is_signed;
-  USE(instr);
   switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
     case LD1B_z_p_br_u8:
     case LD1B_z_p_br_u16:

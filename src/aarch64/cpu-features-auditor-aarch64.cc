@@ -870,7 +870,6 @@ void CPUFeaturesAuditor::VisitNEONModifiedImmediate(const Instruction* instr) {
     scope.Record(CPUFeatures::kFP);
     if (instr->ExtractBit(11)) scope.Record(CPUFeatures::kNEONHalf);
   }
-  USE(instr);
 }
 
 void CPUFeaturesAuditor::VisitNEONPerm(const Instruction* instr) {
