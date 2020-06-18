@@ -2055,6 +2055,7 @@ class Simulator : public DecoderVisitor {
   // allow the suffix to be overridden.
   void PrintZRegister(int code, PrintRegisterFormat format = kPrintRegVnQ);
   void PrintPRegister(int code, PrintRegisterFormat format = kPrintRegVnQ);
+  void PrintFFR(PrintRegisterFormat format = kPrintRegVnQ);
   // Print a single Q-sized part of a Z register, or the corresponding two-byte
   // part of a P register. These print single lines, and therefore allow the
   // suffix to be overridden. The format must include the kPrintRegPartial flag.
@@ -2063,6 +2064,11 @@ class Simulator : public DecoderVisitor {
                              PrintRegisterFormat format = kPrintRegVnQ,
                              const char* suffix = "\n");
   void PrintPartialPRegister(int code,
+                             int q_index,
+                             PrintRegisterFormat format = kPrintRegVnQ,
+                             const char* suffix = "\n");
+  void PrintPartialPRegister(const char* name,
+                             const SimPRegister& reg,
                              int q_index,
                              PrintRegisterFormat format = kPrintRegVnQ,
                              const char* suffix = "\n");
@@ -2079,6 +2085,9 @@ class Simulator : public DecoderVisitor {
   }
   void LogPRegister(unsigned code, PrintRegisterFormat format) {
     if (ShouldTraceVRegs()) PrintPRegister(code, format);
+  }
+  void LogFFR(PrintRegisterFormat format) {
+    if (ShouldTraceVRegs()) PrintFFR(format);
   }
 
   // Other state updates, including system registers.

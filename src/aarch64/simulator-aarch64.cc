@@ -802,6 +802,7 @@ void Simulator::PrintWrittenPRegisters() {
       PrintPRegister(i);
     }
   }
+  if (ReadFFR().WrittenSinceLastLog()) PrintFFR();
 }
 
 void Simulator::PrintSystemRegisters() {
@@ -1086,6 +1087,19 @@ void Simulator::PrintPRegister(int code, PrintRegisterFormat format) {
   pregisters_[code].NotifyRegisterLogged();
 }
 
+void Simulator::PrintFFR(PrintRegisterFormat format) {
+  // We're going to print the register in parts, so force a partial format.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  SimPRegister& ffr = ReadFFR();
+  for (unsigned i = 0; i < (vl / kQRegSize); i++) {
+    PrintPartialPRegister("FFR", ffr, i, format);
+  }
+  ffr.NotifyRegisterLogged();
+}
+
 void Simulator::PrintPartialZRegister(int code,
                                       int q_index,
                                       PrintRegisterFormat format,
@@ -1126,11 +1140,11 @@ void Simulator::PrintPartialZRegister(int code,
   fprintf(stream_, "%s", suffix);
 }
 
-void Simulator::PrintPartialPRegister(int code,
+void Simulator::PrintPartialPRegister(const char* name,
+                                      const SimPRegister& reg,
                                       int q_index,
                                       PrintRegisterFormat format,
                                       const char* suffix) {
-  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfPRegisters);
   VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
   VIXL_ASSERT((format & kPrintRegPartial) != 0);
   VIXL_ASSERT((q_index * kQRegSize) < GetVectorLengthInBits());
@@ -1144,24 +1158,36 @@ void Simulator::PrintPartialPRegister(int code,
   //
   // We print values in binary, with spaces between each bit, in order for the
   // bits to align with the Z register bytes that they predicate.
-  //   "# p{code}<15:0>: 0b{-------------value------------}"
+  //   "# {name}<15:0>: 0b{-------------value------------}"
 
   int print_size_in_bits = kQRegSize / kZRegBitsPerPRegBit;
   int lsb = q_index * print_size_in_bits;
   int msb = lsb + print_size_in_bits - 1;
-  std::stringstream name;
-  name << PRegNameForCode(code) << '<' << msb << ':' << lsb << '>';
+  std::stringstream prefix;
+  prefix << name << '<' << msb << ':' << lsb << '>';
 
   fprintf(stream_,
           "# %s%*s: %s0b",
           clr_preg_name,
           kPrintRegisterNameFieldWidth,
-          name.str().c_str(),
+          prefix.str().c_str(),
           clr_preg_value);
   for (int i = msb; i >= lsb; i--) {
-    fprintf(stream_, " %c", pregisters_[code].GetBit(i) ? '1' : '0');
+    fprintf(stream_, " %c", reg.GetBit(i) ? '1' : '0');
   }
   fprintf(stream_, "%s%s", clr_normal, suffix);
+}
+
+void Simulator::PrintPartialPRegister(int code,
+                                      int q_index,
+                                      PrintRegisterFormat format,
+                                      const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfPRegisters);
+  PrintPartialPRegister(PRegNameForCode(code),
+                        pregisters_[code],
+                        q_index,
+                        format,
+                        suffix);
 }
 
 void Simulator::PrintSystemRegister(SystemRegister id) {
