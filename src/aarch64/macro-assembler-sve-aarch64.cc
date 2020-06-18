@@ -1260,11 +1260,10 @@ void MacroAssembler::SVELoadFFHelper(int msize_in_bytes_log2,
   }
 
   // Contiguous first-faulting loads have no scalar-plus-immediate form at all,
-  // so we don't do immediate synthesis. However, we cannot currently
-  // distinguish "[x0]" from "[x0, #0]" so we have to permit `IsPlainScalar()`
-  // here.
-  VIXL_ASSERT(addr.IsScalarPlusImmediate() || !addr.IsPlainScalar());
+  // so we don't do immediate synthesis.
 
+  // We cannot currently distinguish "[x0]" from "[x0, #0]", and this
+  // is not "scalar-plus-scalar", so we have to permit `IsPlainScalar()` here.
   if (addr.IsPlainScalar() || (addr.IsScalarPlusScalar() &&
                                addr.IsEquivalentToLSL(msize_in_bytes_log2))) {
     SingleEmissionCheckScope guard(this);
