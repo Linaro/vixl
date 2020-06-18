@@ -5959,16 +5959,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Code generation helpers.
 
   // Register encoding.
-  // TODO: When every register type derives from CPURegister, remove the
-  // templating on T.
-  template <int hibit, int lobit, typename T>
-  static Instr Rx(T rx) {
-    VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
-    VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
-    Instr code = rx.GetCode();
-    VIXL_ASSERT(code != kSPRegInternalCode);
-    VIXL_ASSERT(IsUintN(hibit - lobit + 1, code));
-    return code << lobit;
+  template <int hibit, int lobit>
+  static Instr Rx(CPURegister rx) {
+    VIXL_ASSERT(rx.GetCode() != kSPRegInternalCode);
+    return ImmUnsignedField<hibit, lobit>(rx.GetCode());
   }
 
 #define CPU_REGISTER_FIELD_NAMES(V) V(d) V(n) V(m) V(a) V(t) V(t2) V(s)
