@@ -6171,16 +6171,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // LDPBR <Ct>, [<Cn|CSP>]
   void ldpbr(CRegister ct, const MemOperand& addr);
 
-  // LDR <Ct>, [..., #<imm>]!
-  // LDR <Ct>, [..., <R><m>, <extend>{ <amount>}]
-  // LDR <Ct>, [..., <R><m>, <extend>{ <amount>}]
-  // LDR <Ct>, [...{, #<imm>}]
-  // LDR <Ct>, [...{, #<imm>}]
-  void ldr(CRegister ct, const MemOperand& addr);
-
-  // LDR <Ct>, [...], #<imm>
-  void ldr(CRegister ct, const MemOperand& addr, int imm);
-
   // LDR <Ct>, #<imm>
   void ldr(CRegister ct, int imm);
 
@@ -6226,10 +6216,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // LDRSH <Xt>, [..., <R><m>, <extend>{ <amount>}]
   // TODO: Merge into the existing function.
   // void ldrsh(Register xt, const MemOperand& addr);
-
-  // LDUR <Ct>, [...{, #<imm>}]
-  // LDUR <Ct>, [...{, #<imm>}]
-  void ldur(CRegister ct, const MemOperand& addr);
 
   // LDUR <Wt>, [...{, #<imm>}]
   // TODO: Merge into the existing function.
@@ -6384,16 +6370,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // STP <Ct>, <Ct2>, [...], #<imm>
   void stp(CRegister ct, CRegister ct2, const MemOperand& addr, int imm);
 
-  // STR <Ct>, [..., #<imm>]!
-  // STR <Ct>, [..., <R><m>, <extend>{ <amount>}]
-  // STR <Ct>, [..., <R><m>, <extend>{ <amount>}]
-  // STR <Ct>, [...{, #<imm>}]
-  // STR <Ct>, [...{, #<imm>}]
-  void str(CRegister ct, const MemOperand& addr);
-
-  // STR <Ct>, [...], #<imm>
-  void str(CRegister ct, const MemOperand& addr, int imm);
-
   // STR <Wt>, [..., <R><m>, <extend>{ <amount>}]
   // STR <Wt>, [...{, #<imm>}]
   // TODO: Merge into the existing function.
@@ -6420,10 +6396,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // STRH <Wt>, [..., <R><m>, <extend>{ <amount>}]
   // TODO: Merge into the existing function.
   // void strh(Register wt, const MemOperand& addr);
-
-  // STUR <Ct>, [...{, #<imm>}]
-  // STUR <Ct>, [...{, #<imm>}]
-  void stur(CRegister ct, const MemOperand& addr);
 
   // STUR <Wt>, [...{, #<imm>}]
   // TODO: Merge into the existing function.
@@ -7262,10 +7234,107 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
  protected:
+  // Represent a set of encoding bases for a Morello load/store instruction.
+  // Morello loads and stores cannot use the helpers above because their fixed
+  // bits differ.
+  // TODO: This currently only supports Morello's capability and alt-base
+  // accesses. Other accesses (including C64 variants of base instructions) are
+  // handled by older helpers. However, this approach could support all
+  // accesses, and could simplify the logic.
+  class LoadStoreOpSet {
+   public:
+    // True if the MemOperand can be encoded using at least one of the
+    // instructions in this set.
+    bool CanEncode(CPURegister rt,
+                   const MemOperand& addr,
+                   LoadStoreScalingOption option = PreferScaledOffset) const {
+      return TryEncode(rt, addr, option) != kUnsupported;
+    }
+
+    Instr Encode(CPURegister rt,
+                 const MemOperand& addr,
+                 LoadStoreScalingOption option = PreferScaledOffset) const {
+      VIXL_ASSERT(CanEncode(rt, addr, option));
+      return TryEncode(rt, addr, option);
+    }
+
+    // TODO: Make these constexpr.
+    // Morello capability accesses.
+    static LoadStoreOpSet Ldr(CRegister rt);
+    static LoadStoreOpSet Str(CRegister rt);
+    // Morello alt-base encodings.
+    static LoadStoreOpSet Aldr(CPURegister rt);
+    static LoadStoreOpSet Aldrb(Register rt);
+    static LoadStoreOpSet Aldrh(Register rt);
+    static LoadStoreOpSet Aldrsb(Register rt);
+    static LoadStoreOpSet Aldrsh(Register rt);
+    static LoadStoreOpSet Aldrsw(Register rt);
+    static LoadStoreOpSet Astr(CPURegister rt);
+    static LoadStoreOpSet Astrb(Register rt);
+    static LoadStoreOpSet Astrh(Register rt);
+
+// The architecture names addressing modes, but the names don't uniquely
+// identify encoding schemes. For example "unsigned offset" has an unsigned
+// immediate, scaled by element size, but has either a 9- or 12-bit field
+// depending on the instruction. We use descriptive names here, to reduce
+// the chance of errors.
+
+#define VIXL_LOAD_STORE_OP_TYPES(V)                                            \
+  /* Addressing modes like `[<base>, #<imm>]` ("unsigned offset"). */          \
+  V(ScaledUint9OffsetOp, scaled_uint9_offset_op_)                              \
+  /* Addressing modes like `[<base>, #<imm>]` ("unsigned offset"). */          \
+  V(ScaledUint12OffsetOp, scaled_uint12_offset_op_)                            \
+  /* Addressing modes like `[<base>, #<imm>]` ("unscaled"). */                 \
+  V(UnscaledInt9OffsetOp, unscaled_int9_offset_op_)                            \
+  /* Addressing modes like `[<base>, <Rm>, <extend> <amount>]` ("register") */ \
+  /* where: */                                                                 \
+  /*     <extend> is one of UXTW, LSL, SXTW or SXTX. */                        \
+  /*     <amount> is one of 0 or the access size (in bytes). */                \
+  V(ExtendedRegisterOp, extended_register_op_)                                 \
+  /* Addressing modes like `[<base>, #<imm>]!` ("immediate pre-indexed"), */   \
+  V(ScaledInt9PreIndexOp, scaled_int9_pre_index_op_)                           \
+  /* Addressing modes like `[<base>], #<imm>` ("immediate post-indexed"), */   \
+  V(ScaledInt9PostIndexOp, scaled_int9_post_index_op_)
+
+#define VIXL_LOAD_STORE_OP_ACCESSORS(NAME, FIELD)          \
+  bool Has##NAME() const { return FIELD != kUnsupported; } \
+  Instr Get##NAME() const {                                \
+    VIXL_ASSERT(Has##NAME());                              \
+    return FIELD;                                          \
+  }
+    VIXL_LOAD_STORE_OP_TYPES(VIXL_LOAD_STORE_OP_ACCESSORS);
+#undef VIXL_LOAD_STORE_OP_ACCESSORS
+
+   private:
+    Instr TryEncode(CPURegister rt,
+                    const MemOperand& addr,
+                    LoadStoreScalingOption option) const;
+
+    Instr TryEncodeMemOperand(unsigned access_size_in_bytes_log2,
+                              const MemOperand& addr,
+                              LoadStoreScalingOption option) const;
+
+    static const Instr kUnsupported = 0xffffffff;
+
+#define VIXL_LOAD_STORE_OP_FIELDS(NAME, FIELD)                       \
+  /* All encodings are kUnsupported unless explicitly overridden. */ \
+  Instr FIELD = kUnsupported;
+    VIXL_LOAD_STORE_OP_TYPES(VIXL_LOAD_STORE_OP_FIELDS)
+#undef VIXL_LOAD_STORE_OP_FIELDS
+  };
+
+  // Load/store assembly. This does not support capability or alt-base accesses,
+  // since they cannot be represented by LoadStoreOp.
   void LoadStore(const CPURegister& rt,
                  const MemOperand& addr,
                  LoadStoreOp op,
                  LoadStoreScalingOption option = PreferScaledOffset);
+
+  // Like LoadStore(..., LoadStoreOp, ...), but supporting all Morello accesses.
+  void LoadStore(const CPURegister& rt,
+                 const MemOperand& addr,
+                 LoadStoreOpSet op_set,
+                 LoadStoreScalingOption option);
 
   void LoadStorePAC(const Register& xt,
                     const MemOperand& addr,

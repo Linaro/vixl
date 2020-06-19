@@ -153,14 +153,65 @@ TEST(morello_c64_aldarb_r_r_b) {
 TEST(morello_c64_aldr_c_ri_c) {
   SETUP();
 
-  // COMPARE_C64(ldr(c0, MemOperand(x1, 6928)), "TODO");
+  COMPARE_C64(ldr(c0, MemOperand(x1, 6928)), "ldr c0, [x1, #6928]");
+  COMPARE_C64(ldr(c0, MemOperand(x1, 0)), "ldr c0, [x1]");
+  COMPARE_C64(ldr(c0, MemOperand(x1, 8176)), "ldr c0, [x1, #8176]");
+  COMPARE_C64(ldr(c0, MemOperand(sp, 6928)), "ldr c0, [sp, #6928]");
+  COMPARE_C64(ldr(czr, MemOperand(x1, 6928)), "ldr czr, [x1, #6928]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(ldr(CPURegister(c0), MemOperand(x1, 0)), "ldr c0, [x1]");
+  COMPARE_C64(ldr(CPURegister(czr), MemOperand(x1, 8176)),
+              "ldr czr, [x1, #8176]");
 }
 
 TEST(morello_c64_aldr_c_rrb_c) {
   SETUP();
 
-  // COMPARE_C64(ldr(c0, MemOperand(x1, w2, UXTW, 4)), "TODO");
-  // COMPARE_C64(ldr(c0, MemOperand(x1, x2, SXTX, 0)), "TODO");
+  COMPARE_C64(ldr(c0, MemOperand(x1, w2, UXTW, 4)),
+              "ldr c0, [x1, w2, uxtw #4]");
+  COMPARE_C64(ldr(c0, MemOperand(x1, x2, SXTX, 0)), "ldr c0, [x1, x2, sxtx]");
+  COMPARE_C64(ldr(c0, MemOperand(x1, x2, LSL, 4)), "ldr c0, [x1, x2, lsl #4]");
+  COMPARE_C64(ldr(c0, MemOperand(x1, xzr, LSL, 4)),
+              "ldr c0, [x1, xzr, lsl #4]");
+  COMPARE_C64(ldr(c0, MemOperand(sp, x2, LSL, 4)), "ldr c0, [sp, x2, lsl #4]");
+  COMPARE_C64(ldr(czr, MemOperand(x1, x2, LSL, 4)),
+              "ldr czr, [x1, x2, lsl #4]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(ldr(CPURegister(c0), MemOperand(x1, w2, UXTW, 4)),
+              "ldr c0, [x1, w2, uxtw #4]");
+  COMPARE_C64(ldr(CPURegister(czr), MemOperand(x1, x2, LSL, 4)),
+              "ldr czr, [x1, x2, lsl #4]");
+}
+
+TEST(morello_c64_aldr_c_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, 0)), "ldr c0, [x1]");
+  COMPARE_MACRO_C64(Ldr(czr, MemOperand(sp, 0)), "ldr czr, [sp]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, 8176)), "ldr c0, [x1, #8176]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, w2, UXTW, 4)),
+                    "ldr c0, [x1, w2, uxtw #4]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, x2, SXTX, 0)),
+                    "ldr c0, [x1, x2, sxtx]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "ldr c0, [x16]");
+  // There are no index modes so these are always unencodable.
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, 16, PreIndex)),
+                    "add x1, x1, #0x10 (16)\n"
+                    "ldr c0, [x1]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(x1, -16, PostIndex)),
+                    "ldr c0, [x1]\n"
+                    "sub x1, x1, #0x10 (16)");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_C64(Ldr(CPURegister(c0), MemOperand(x1)), "ldr c0, [x1]");
 }
 
 TEST(morello_c64_aldr_r_ri_32) {
@@ -260,7 +311,20 @@ TEST(morello_c64_aldrsh_r_rrb_64) {
 TEST(morello_c64_aldur_c_ri_c) {
   SETUP();
 
-  // COMPARE_C64(ldur(c0, MemOperand(x1, 182)), "TODO");
+  COMPARE_C64(ldur(c0, MemOperand(x1, 255)), "ldur c0, [x1, #255]");
+  COMPARE_C64(ldur(c0, MemOperand(x1, -256)), "ldur c0, [x1, #-256]");
+  COMPARE_C64(ldur(c0, MemOperand(x1, 0)), "ldur c0, [x1]");
+  COMPARE_C64(ldur(c0, MemOperand(sp, 42)), "ldur c0, [sp, #42]");
+  COMPARE_C64(ldur(czr, MemOperand(x1, 42)), "ldur czr, [x1, #42]");
+
+  // `ldr` can assemble to `ldur`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldr(c0, MemOperand(x1, -1)), "ldur c0, [x1, #-1]");
+  COMPARE_C64(ldr(c0, MemOperand(x1, 42)), "ldur c0, [x1, #42]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(ldur(CPURegister(c0), MemOperand(x1, 0)), "ldur c0, [x1]");
+  COMPARE_C64(ldur(CPURegister(czr), MemOperand(x1, 42)),
+              "ldur czr, [x1, #42]");
 }
 
 TEST(morello_c64_aldur_r_ri_32) {
@@ -368,14 +432,65 @@ TEST(morello_c64_astlrb_r_r_b) {
 TEST(morello_c64_astr_c_ri_c) {
   SETUP();
 
-  // COMPARE_C64(str(c0, MemOperand(x1, 7152)), "TODO");
+  COMPARE_C64(str(c0, MemOperand(x1, 6928)), "str c0, [x1, #6928]");
+  COMPARE_C64(str(c0, MemOperand(x1, 0)), "str c0, [x1]");
+  COMPARE_C64(str(c0, MemOperand(x1, 8176)), "str c0, [x1, #8176]");
+  COMPARE_C64(str(c0, MemOperand(sp, 6928)), "str c0, [sp, #6928]");
+  COMPARE_C64(str(czr, MemOperand(x1, 6928)), "str czr, [x1, #6928]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(str(CPURegister(c0), MemOperand(x1, 0)), "str c0, [x1]");
+  COMPARE_C64(str(CPURegister(czr), MemOperand(x1, 8176)),
+              "str czr, [x1, #8176]");
 }
 
 TEST(morello_c64_astr_c_rrb_c) {
   SETUP();
 
-  // COMPARE_C64(str(c0, MemOperand(x1, w2, UXTW, 4)), "TODO");
-  // COMPARE_C64(str(c0, MemOperand(x1, x2, LSL, 4)), "TODO");
+  COMPARE_C64(str(c0, MemOperand(x1, w2, UXTW, 4)),
+              "str c0, [x1, w2, uxtw #4]");
+  COMPARE_C64(str(c0, MemOperand(x1, x2, SXTX, 0)), "str c0, [x1, x2, sxtx]");
+  COMPARE_C64(str(c0, MemOperand(x1, x2, LSL, 4)), "str c0, [x1, x2, lsl #4]");
+  COMPARE_C64(str(c0, MemOperand(x1, xzr, LSL, 4)),
+              "str c0, [x1, xzr, lsl #4]");
+  COMPARE_C64(str(c0, MemOperand(sp, x2, LSL, 4)), "str c0, [sp, x2, lsl #4]");
+  COMPARE_C64(str(czr, MemOperand(x1, x2, LSL, 4)),
+              "str czr, [x1, x2, lsl #4]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(str(CPURegister(c0), MemOperand(x1, w2, UXTW, 4)),
+              "str c0, [x1, w2, uxtw #4]");
+  COMPARE_C64(str(CPURegister(czr), MemOperand(x1, x2, LSL, 4)),
+              "str czr, [x1, x2, lsl #4]");
+}
+
+TEST(morello_c64_astr_c_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, 0)), "str c0, [x1]");
+  COMPARE_MACRO_C64(Str(czr, MemOperand(sp, 0)), "str czr, [sp]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, 8176)), "str c0, [x1, #8176]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, w2, UXTW, 4)),
+                    "str c0, [x1, w2, uxtw #4]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, x2, SXTX, 0)),
+                    "str c0, [x1, x2, sxtx]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "str c0, [x16]");
+  // There are no index modes so these are always unencodable.
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, 16, PreIndex)),
+                    "add x1, x1, #0x10 (16)\n"
+                    "str c0, [x1]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(x1, -16, PostIndex)),
+                    "str c0, [x1]\n"
+                    "sub x1, x1, #0x10 (16)");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_C64(Str(CPURegister(c0), MemOperand(x1)), "str c0, [x1]");
 }
 
 TEST(morello_c64_astr_r_ri_32) {
@@ -443,7 +558,20 @@ TEST(morello_c64_astrh_r_rrb_32) {
 TEST(morello_c64_astur_c_ri_c) {
   SETUP();
 
-  // COMPARE_C64(stur(c0, MemOperand(x1, -85)), "TODO");
+  COMPARE_C64(stur(c0, MemOperand(x1, 255)), "stur c0, [x1, #255]");
+  COMPARE_C64(stur(c0, MemOperand(x1, -256)), "stur c0, [x1, #-256]");
+  COMPARE_C64(stur(c0, MemOperand(x1, 0)), "stur c0, [x1]");
+  COMPARE_C64(stur(c0, MemOperand(sp, 42)), "stur c0, [sp, #42]");
+  COMPARE_C64(stur(czr, MemOperand(x1, 42)), "stur czr, [x1, #42]");
+
+  // `str` can assemble to `stur`, according to its LoadStoreScalingOption.
+  COMPARE_C64(str(c0, MemOperand(x1, -1)), "stur c0, [x1, #-1]");
+  COMPARE_C64(str(c0, MemOperand(x1, 42)), "stur c0, [x1, #42]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(stur(CPURegister(c0), MemOperand(x1, 0)), "stur c0, [x1]");
+  COMPARE_C64(stur(CPURegister(czr), MemOperand(x1, 42)),
+              "stur czr, [x1, #42]");
 }
 
 TEST(morello_c64_astur_r_ri_32) {
@@ -599,32 +727,120 @@ TEST(morello_c64_ldr_c_i_c) {
 TEST(morello_c64_ldr_c_riaw_c) {
   SETUP();
 
-  // COMPARE_C64(ldr(c0, MemOperand(c1, 512, PostIndex)), "TODO");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 0, PostIndex)), "ldr c0, [c1], #0");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 672, PostIndex)), "ldr c0, [c1], #672");
+  COMPARE_C64(ldr(c0, MemOperand(csp, 672, PostIndex)), "ldr c0, [csp], #672");
+  COMPARE_C64(ldr(czr, MemOperand(c1, 672, PostIndex)), "ldr czr, [c1], #672");
+  COMPARE_C64(ldr(c0, MemOperand(c1, -4096, PostIndex)),
+              "ldr c0, [c1], #-4096");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 4080, PostIndex)), "ldr c0, [c1], #4080");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(ldr(CPURegister(c0), MemOperand(c1, 0, PostIndex)),
+              "ldr c0, [c1], #0");
+  COMPARE_C64(ldr(CPURegister(czr), MemOperand(c1, 672, PostIndex)),
+              "ldr czr, [c1], #672");
 }
 
 TEST(morello_c64_ldr_c_rib_c) {
   SETUP();
 
-  // COMPARE_C64(ldr(c0, MemOperand(c1, 6928)), "TODO");
+  // Direct encodings.
+  COMPARE_C64(ldr(c0, MemOperand(c1)), "ldr c0, [c1]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 6928)), "ldr c0, [c1, #6928]");
+  COMPARE_C64(ldr(c0, MemOperand(csp, 6928)), "ldr c0, [csp, #6928]");
+  COMPARE_C64(ldr(czr, MemOperand(c1, 6928)), "ldr czr, [c1, #6928]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 65520)), "ldr c0, [c1, #65520]");
+
+  // `ldur` can assemble to `ldr`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldur(c0, MemOperand(c1, 256)), "ldr c0, [c1, #256]");
+  COMPARE_C64(ldur(c0, MemOperand(c1, 65520)), "ldr c0, [c1, #65520]");
+
+  // A generic CPURegister works the same.
+  COMPARE_C64(ldr(CPURegister(c0), MemOperand(c1)), "ldr c0, [c1]");
+  COMPARE_C64(ldr(CPURegister(czr), MemOperand(c1, 6928)),
+              "ldr czr, [c1, #6928]");
 }
 
 TEST(morello_c64_ldr_c_ribw_c) {
   SETUP();
 
-  // COMPARE_C64(ldr(c0, MemOperand(c1, 5760, PreIndex)), "TODO");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 0, PreIndex)), "ldr c0, [c1, #0]!");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 672, PreIndex)), "ldr c0, [c1, #672]!");
+  COMPARE_C64(ldr(c0, MemOperand(csp, 672, PreIndex)), "ldr c0, [csp, #672]!");
+  COMPARE_C64(ldr(czr, MemOperand(c1, 672, PreIndex)), "ldr czr, [c1, #672]!");
+  COMPARE_C64(ldr(c0, MemOperand(c1, -4096, PreIndex)),
+              "ldr c0, [c1, #-4096]!");
+  COMPARE_C64(ldr(c0, MemOperand(c1, 4080, PreIndex)), "ldr c0, [c1, #4080]!");
+
+  // The generic (CPURegister) API calls the same helper.
+  COMPARE_C64(ldr(CPURegister(c0), MemOperand(c1, 0, PreIndex)),
+              "ldr c0, [c1, #0]!");
+  COMPARE_C64(ldr(CPURegister(czr), MemOperand(c1, 672, PreIndex)),
+              "ldr czr, [c1, #672]!");
 }
 
 TEST(morello_c64_ldr_c_rrb_c) {
   SETUP();
 
-  // COMPARE_C64(ldr(c0, MemOperand(c1, w2, UXTW, 4)), "TODO");
-  // COMPARE_C64(ldr(c0, MemOperand(c1, x2, SXTX, 0)), "TODO");
+  COMPARE_C64(ldr(c0, MemOperand(c1, w2, UXTW, 4)),
+              "ldr c0, [c1, w2, uxtw #4]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, w2, SXTW)), "ldr c0, [c1, w2, sxtw]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, wzr, SXTW)), "ldr c0, [c1, wzr, sxtw]");
+  COMPARE_C64(ldr(c0, MemOperand(csp, w2, SXTW)), "ldr c0, [csp, w2, sxtw]");
+  COMPARE_C64(ldr(czr, MemOperand(c1, w2, SXTW)), "ldr czr, [c1, w2, sxtw]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, x2, SXTX)), "ldr c0, [c1, x2, sxtx]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, xzr, SXTX)), "ldr c0, [c1, xzr, sxtx]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, x2)), "ldr c0, [c1, x2]");
+  COMPARE_C64(ldr(c0, MemOperand(c1, x2, LSL, 4)), "ldr c0, [c1, x2, lsl #4]");
+
+  // The generic (CPURegister) API calls the same helper.
+  COMPARE_C64(ldr(CPURegister(c0), MemOperand(c1, w2, UXTW, 4)),
+              "ldr c0, [c1, w2, uxtw #4]");
+  COMPARE_C64(ldr(CPURegister(czr), MemOperand(c1, w2, SXTW)),
+              "ldr czr, [c1, w2, sxtw]");
 }
 
-TEST(morello_c64_ldur_c_ri_c) {
+TEST(morello_c64_ldr_c_macro) {
   SETUP();
 
-  // COMPARE_C64(ldur(c0, MemOperand(c1, 182)), "TODO");
+  // Encodable cases.
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 0, PostIndex)), "ldr c0, [c1], #0");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, -4096, PostIndex)),
+                    "ldr c0, [c1], #-4096");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 4080, PostIndex)),
+                    "ldr c0, [c1], #4080");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1)), "ldr c0, [c1]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 65520)), "ldr c0, [c1, #65520]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 0, PreIndex)), "ldr c0, [c1, #0]!");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, -4096, PreIndex)),
+                    "ldr c0, [c1, #-4096]!");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 4080, PreIndex)),
+                    "ldr c0, [c1, #4080]!");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, w2, SXTW, 4)),
+                    "ldr c0, [c1, w2, sxtw #4]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, x2)), "ldr c0, [c1, x2]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, -16)), "ldur c0, [c1, #-16]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, -256)), "ldur c0, [c1, #-256]");
+  COMPARE_MACRO_C64(Ldr(czr, MemOperand(c1, 255)), "ldur czr, [c1, #255]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add c16, c1, x16, uxtx\n"
+                    "ldr c0, [c16]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 0x4242, PreIndex)),
+                    "mov x16, #0x4242\n"
+                    "add c1, c1, x16, uxtx\n"
+                    "ldr c0, [c1]");
+  COMPARE_MACRO_C64(Ldr(c0, MemOperand(c1, 0x4242, PostIndex)),
+                    "ldr c0, [c1]\n"
+                    "mov x16, #0x4242\n"
+                    "add c1, c1, x16, uxtx");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_C64(Ldr(CPURegister(c0), MemOperand(c1, 0, PostIndex)),
+                    "ldr c0, [c1], #0");
 }
 
 TEST(morello_c64_ldxp_c_r_c) {
@@ -704,32 +920,120 @@ TEST(morello_c64_stp_cc_riaw_c) {
 TEST(morello_c64_str_c_riaw_c) {
   SETUP();
 
-  // COMPARE_C64(str(c0, MemOperand(c1, 6368, PostIndex)), "TODO");
+  COMPARE_C64(str(c0, MemOperand(c1, 0, PostIndex)), "str c0, [c1], #0");
+  COMPARE_C64(str(c0, MemOperand(c1, 672, PostIndex)), "str c0, [c1], #672");
+  COMPARE_C64(str(c0, MemOperand(csp, 672, PostIndex)), "str c0, [csp], #672");
+  COMPARE_C64(str(czr, MemOperand(c1, 672, PostIndex)), "str czr, [c1], #672");
+  COMPARE_C64(str(c0, MemOperand(c1, -4096, PostIndex)),
+              "str c0, [c1], #-4096");
+  COMPARE_C64(str(c0, MemOperand(c1, 4080, PostIndex)), "str c0, [c1], #4080");
+
+  // The generic (CPURegister) API calls the same helper.
+  COMPARE_C64(str(CPURegister(c0), MemOperand(c1, 0, PostIndex)),
+              "str c0, [c1], #0");
+  COMPARE_C64(str(CPURegister(czr), MemOperand(c1, 672, PostIndex)),
+              "str czr, [c1], #672");
 }
 
 TEST(morello_c64_str_c_rib_c) {
   SETUP();
 
-  // COMPARE_C64(str(c0, MemOperand(c1, 7152)), "TODO");
+  // Direct encodings.
+  COMPARE_C64(str(c0, MemOperand(c1)), "str c0, [c1]");
+  COMPARE_C64(str(c0, MemOperand(c1, 6928)), "str c0, [c1, #6928]");
+  COMPARE_C64(str(c0, MemOperand(csp, 6928)), "str c0, [csp, #6928]");
+  COMPARE_C64(str(czr, MemOperand(c1, 6928)), "str czr, [c1, #6928]");
+  COMPARE_C64(str(c0, MemOperand(c1, 65520)), "str c0, [c1, #65520]");
+
+  // `stur` can assemble to `str`, according to its LoadStoreScalingOption.
+  COMPARE_C64(stur(c0, MemOperand(c1, 256)), "str c0, [c1, #256]");
+  COMPARE_C64(stur(c0, MemOperand(c1, 65520)), "str c0, [c1, #65520]");
+
+  // The generic (CPURegister) API calls the same helper.
+  COMPARE_C64(str(CPURegister(c0), MemOperand(c1)), "str c0, [c1]");
+  COMPARE_C64(str(CPURegister(czr), MemOperand(c1, 6928)),
+              "str czr, [c1, #6928]");
 }
 
 TEST(morello_c64_str_c_ribw_c) {
   SETUP();
 
-  // COMPARE_C64(str(c0, MemOperand(c1, 6352, PreIndex)), "TODO");
+  COMPARE_C64(str(c0, MemOperand(c1, 0, PreIndex)), "str c0, [c1, #0]!");
+  COMPARE_C64(str(c0, MemOperand(c1, 672, PreIndex)), "str c0, [c1, #672]!");
+  COMPARE_C64(str(c0, MemOperand(csp, 672, PreIndex)), "str c0, [csp, #672]!");
+  COMPARE_C64(str(czr, MemOperand(c1, 672, PreIndex)), "str czr, [c1, #672]!");
+  COMPARE_C64(str(c0, MemOperand(c1, -4096, PreIndex)),
+              "str c0, [c1, #-4096]!");
+  COMPARE_C64(str(c0, MemOperand(c1, 4080, PreIndex)), "str c0, [c1, #4080]!");
+
+  // The generic (CPURegister) API calls the same helper.
+  COMPARE_C64(str(CPURegister(c0), MemOperand(c1, 0, PreIndex)),
+              "str c0, [c1, #0]!");
+  COMPARE_C64(str(CPURegister(czr), MemOperand(c1, 672, PreIndex)),
+              "str czr, [c1, #672]!");
 }
 
 TEST(morello_c64_str_c_rrb_c) {
   SETUP();
 
-  // COMPARE_C64(str(c0, MemOperand(c1, w2, UXTW, 4)), "TODO");
-  // COMPARE_C64(str(c0, MemOperand(c1, x2, LSL, 4)), "TODO");
+  COMPARE_C64(str(c0, MemOperand(c1, w2, UXTW, 4)),
+              "str c0, [c1, w2, uxtw #4]");
+  COMPARE_C64(str(c0, MemOperand(c1, w2, SXTW)), "str c0, [c1, w2, sxtw]");
+  COMPARE_C64(str(c0, MemOperand(c1, wzr, SXTW)), "str c0, [c1, wzr, sxtw]");
+  COMPARE_C64(str(c0, MemOperand(csp, w2, SXTW)), "str c0, [csp, w2, sxtw]");
+  COMPARE_C64(str(czr, MemOperand(c1, w2, SXTW)), "str czr, [c1, w2, sxtw]");
+  COMPARE_C64(str(c0, MemOperand(c1, x2, SXTX)), "str c0, [c1, x2, sxtx]");
+  COMPARE_C64(str(c0, MemOperand(c1, xzr, SXTX)), "str c0, [c1, xzr, sxtx]");
+  COMPARE_C64(str(c0, MemOperand(c1, x2)), "str c0, [c1, x2]");
+  COMPARE_C64(str(c0, MemOperand(c1, x2, LSL, 4)), "str c0, [c1, x2, lsl #4]");
+
+  // The generic (CPURegister) API calls the same helper.
+  COMPARE_C64(str(CPURegister(c0), MemOperand(c1, w2, UXTW, 4)),
+              "str c0, [c1, w2, uxtw #4]");
+  COMPARE_C64(str(CPURegister(czr), MemOperand(c1, w2, SXTW)),
+              "str czr, [c1, w2, sxtw]");
 }
 
-TEST(morello_c64_stur_c_ri_c) {
+TEST(morello_c64_str_c_macro) {
   SETUP();
 
-  // COMPARE_C64(stur(c0, MemOperand(c1, -85)), "TODO");
+  // Encodable cases.
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 0, PostIndex)), "str c0, [c1], #0");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, -4096, PostIndex)),
+                    "str c0, [c1], #-4096");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 4080, PostIndex)),
+                    "str c0, [c1], #4080");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1)), "str c0, [c1]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 65520)), "str c0, [c1, #65520]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 0, PreIndex)), "str c0, [c1, #0]!");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, -4096, PreIndex)),
+                    "str c0, [c1, #-4096]!");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 4080, PreIndex)),
+                    "str c0, [c1, #4080]!");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, w2, SXTW, 4)),
+                    "str c0, [c1, w2, sxtw #4]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, x2)), "str c0, [c1, x2]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, -16)), "stur c0, [c1, #-16]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, -256)), "stur c0, [c1, #-256]");
+  COMPARE_MACRO_C64(Str(czr, MemOperand(c1, 255)), "stur czr, [c1, #255]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add c16, c1, x16, uxtx\n"
+                    "str c0, [c16]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 0x4242, PreIndex)),
+                    "mov x16, #0x4242\n"
+                    "add c1, c1, x16, uxtx\n"
+                    "str c0, [c1]");
+  COMPARE_MACRO_C64(Str(c0, MemOperand(c1, 0x4242, PostIndex)),
+                    "str c0, [c1]\n"
+                    "mov x16, #0x4242\n"
+                    "add c1, c1, x16, uxtx");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_C64(Str(CPURegister(c0), MemOperand(c1, 0, PostIndex)),
+                    "str c0, [c1], #0");
 }
 
 TEST(morello_c64_stxp_r_cr_c) {

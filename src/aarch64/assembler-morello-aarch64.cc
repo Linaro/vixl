@@ -573,5 +573,162 @@ void Assembler::unseal(CRegister cd, CRegister cn, CRegister cm) {
   Emit(UNSEAL_c_cc | Rd(cd) | Rn(cn) | Rm(cm));
 }
 
+// Helpers and utilities.
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Ldr(CRegister rt) {
+  USE(rt);
+  LoadStoreOpSet set;
+  set.scaled_uint12_offset_op_ = LDR_c_rib;
+  set.extended_register_op_ = LDR_c_rrb;
+  set.unscaled_int9_offset_op_ = LDUR_c_ri;
+  set.scaled_int9_pre_index_op_ = LDR_c_ribw;
+  set.scaled_int9_post_index_op_ = LDR_c_riaw;
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Str(CRegister rt) {
+  USE(rt);
+  LoadStoreOpSet set;
+  set.scaled_uint12_offset_op_ = STR_c_rib;
+  set.extended_register_op_ = STR_c_rrb;
+  set.unscaled_int9_offset_op_ = STUR_c_ri;
+  set.scaled_int9_pre_index_op_ = STR_c_ribw;
+  set.scaled_int9_post_index_op_ = STR_c_riaw;
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldr(CPURegister rt) {
+  LoadStoreOpSet set;
+  if (rt.IsCRegister()) {
+    set.scaled_uint9_offset_op_ = ALDR_c_ri;
+    set.extended_register_op_ = ALDR_c_rrb;
+    set.unscaled_int9_offset_op_ = ALDUR_c_ri;
+  } else {
+    VIXL_UNIMPLEMENTED();
+  }
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Astr(CPURegister rt) {
+  LoadStoreOpSet set;
+  if (rt.IsCRegister()) {
+    set.scaled_uint9_offset_op_ = ASTR_c_ri;
+    set.extended_register_op_ = ASTR_c_rrb;
+    set.unscaled_int9_offset_op_ = ASTUR_c_ri;
+  } else {
+    VIXL_UNIMPLEMENTED();
+  }
+  return set;
+}
+
+Instr Assembler::LoadStoreOpSet::TryEncode(
+    CPURegister rt,
+    const MemOperand& addr,
+    LoadStoreScalingOption option) const {
+  VIXL_ASSERT(rt.IsScalar());
+  Instr instr = TryEncodeMemOperand(rt.GetLaneSizeInBytesLog2(), addr, option);
+  VIXL_ASSERT((instr == kUnsupported) || ((instr & Rt_mask) == 0));
+  return instr | Rt(rt);
+}
+
+Instr Assembler::LoadStoreOpSet::TryEncodeMemOperand(
+    unsigned access_size_in_bytes_log_2,
+    const MemOperand& addr,
+    LoadStoreScalingOption option) const {
+  unsigned access_size_in_bytes = 1 << access_size_in_bytes_log_2;
+  CPURegister rn = addr.GetBase();
+  int64_t offset = addr.GetOffset();
+  int64_t scaled_offset = offset / access_size_in_bytes;
+
+  if (addr.IsImmediateOffset()) {
+    // Select between "unsigned offset" (e.g. ldr) and "unscaled" (e.g. ldur).
+    bool can_use_scaled_uint9 = HasScaledUint9OffsetOp() &&
+                                (option != RequireUnscaledOffset) &&
+                                IsScaledUint<9>(offset, access_size_in_bytes);
+    bool can_use_scaled_uint12 = HasScaledUint12OffsetOp() &&
+                                 (option != RequireUnscaledOffset) &&
+                                 IsScaledUint<12>(offset, access_size_in_bytes);
+    bool can_use_unscaled_int9 = HasUnscaledInt9OffsetOp() &&
+                                 (option != RequireScaledOffset) &&
+                                 IsInt9(offset);
+
+    bool prefer_unscaled_offset =
+        can_use_unscaled_int9 && (option == PreferUnscaledOffset);
+    if (can_use_scaled_uint9 && !prefer_unscaled_offset) {
+      return GetScaledUint9OffsetOp() | RnSP(rn) |
+             ImmUnsignedField<20, 12>(scaled_offset);
+    }
+    if (can_use_scaled_uint12 && !prefer_unscaled_offset) {
+      return GetScaledUint12OffsetOp() | RnSP(rn) |
+             ImmUnsignedField<21, 10>(scaled_offset);
+    }
+    if (can_use_unscaled_int9) {
+      return GetUnscaledInt9OffsetOp() | RnSP(rn) | ImmField<20, 12>(offset);
+    }
+  }
+
+  // All remaining addressing modes are register-offset, pre-indexed or
+  // post-indexed modes, so we cannot honour Require* options.
+  VIXL_ASSERT((option != RequireUnscaledOffset) &&
+              (option != RequireScaledOffset));
+
+  if (HasExtendedRegisterOp() && addr.IsRegisterOffset()) {
+    Register rm = addr.GetRegisterOffset();
+    unsigned shift_amount = addr.GetShiftAmount();
+    // We must have either a shift (LSL) or an extend (SXTW, UXTW, SXTX).
+    Extend extend = addr.GetExtend();
+    Shift shift = addr.GetShift();
+    if ((shift == LSL) && (extend = NO_EXTEND)) {
+      // LSL is encoded as UXTX. Note that UXTX cannot be specified explicitly.
+      extend = UXTX;
+      shift = NO_SHIFT;
+    }
+    if (!rm.IsSP() &&
+        ((shift_amount == 0) || (shift_amount == access_size_in_bytes_log_2)) &&
+        (shift == NO_SHIFT) && ((extend == UXTW) || (extend == UXTX) ||
+                                (extend == SXTW) || (extend == SXTX))) {
+      return GetExtendedRegisterOp() | RnSP(rn) | Rm(rm) | ExtendMode(extend) |
+             ImmShiftLS((shift_amount > 0) ? 1 : 0);
+    }
+  }
+
+  if (HasScaledInt9PreIndexOp() && addr.IsPreIndex() &&
+      IsScaledInt<9>(offset, access_size_in_bytes)) {
+    return GetScaledInt9PreIndexOp() | Assembler::RnSP(rn) |
+           ImmField<20, 12>(scaled_offset);
+  }
+
+  if (HasScaledInt9PostIndexOp() && addr.IsPostIndex() &&
+      IsScaledInt<9>(offset, access_size_in_bytes)) {
+    return GetScaledInt9PostIndexOp() | Assembler::RnSP(rn) |
+           ImmField<20, 12>(scaled_offset);
+  }
+  return kUnsupported;
+}
+
+void Assembler::LoadStore(const CPURegister& rt,
+                          const MemOperand& addr,
+                          LoadStoreOpSet op_set,
+                          LoadStoreScalingOption option) {
+  VIXL_ASSERT(CPUHas(rt));
+  if (addr.IsAltBase(GetISA())) VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(rt.IsScalar());
+  // TODO: This helper is currently only used for Morello (capability or
+  // alt-base) accesses, but it could work for all accesses.
+  VIXL_ASSERT(rt.IsCRegister() || addr.IsAltBase(GetISA()));
+  // Morello accesses are encoded similarly to base (X or W) transfers, so we
+  // can reuse most encoding helpers, but there are two notable differences:
+  //    1. The fixed encodings are different for each class. We cannot use
+  //       the existing LoadStoreOp, etc.
+  //    2. Pre- and post-indexing offsets are scaled by access size (but still
+  //       signed). We treat this as a new addressing mode.
+
+  if (op_set.CanEncode(rt, addr, option)) {
+    Emit(op_set.Encode(rt, addr, option));
+    return;
+  }
+  VIXL_ABORT();
+}
+
 }  // namespace aarch64
 }  // namespace vixl

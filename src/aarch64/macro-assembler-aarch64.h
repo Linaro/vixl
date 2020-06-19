@@ -52,8 +52,6 @@
   V(Ldrh, Register&, rt, LDRH_w)                             \
   V(Strh, Register&, rt, STRH_w)                             \
   V(Ldrsh, Register&, rt, rt.Is64Bits() ? LDRSH_x : LDRSH_w) \
-  V(Ldr, CPURegister&, rt, LoadOpFor(rt))                    \
-  V(Str, CPURegister&, rt, StoreOpFor(rt))                   \
   V(Ldrsw, Register&, rt, LDRSW_x)
 
 
@@ -860,9 +858,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   LS_MACRO_LIST(DECLARE_FUNCTION)
 #undef DECLARE_FUNCTION
 
+  void Ldr(const CPURegister& rt, const MemOperand& addr);
+  void Str(const CPURegister& rt, const MemOperand& addr);
+
   void LoadStoreMacro(const CPURegister& rt,
                       const MemOperand& addr,
                       LoadStoreOp op);
+  void LoadStoreMacro(CPURegister rt,
+                      const MemOperand& addr,
+                      LoadStoreOpSet op_set);
 
 #define DECLARE_FUNCTION(FN, REGTYPE, REG, REG2, OP) \
   void FN(const REGTYPE REG, const REGTYPE REG2, const MemOperand& addr);
@@ -7662,24 +7666,32 @@ class UseScratchRegisterScope {
     return AcquireFrom(available, kGoverningPRegisterMask).P();
   }
 
-  Register AcquireRegisterOfSize(int size_in_bits);
   Register AcquireSameSizeAs(const Register& reg) {
     return AcquireRegisterOfSize(reg.GetSizeInBits());
   }
-  VRegister AcquireVRegisterOfSize(int size_in_bits);
   VRegister AcquireSameSizeAs(const VRegister& reg) {
     return AcquireVRegisterOfSize(reg.GetSizeInBits());
   }
   CPURegister AcquireSameSizeAs(CPURegister reg) {
     return AcquireCPURegisterOfSize(reg.GetSizeInBits());
   }
+  CPURegister AcquireRRegisterSameSizeAs(CPURegister reg) {
+    return AcquireRRegisterOfSize(reg.GetSizeInBits());
+  }
+
+  Register AcquireRegisterOfSize(int size_in_bits);
+  VRegister AcquireVRegisterOfSize(int size_in_bits);
+  // Like AcquireRegisterOfSize, but able to return a C register.
+  CPURegister AcquireRRegisterOfSize(int size_in_bits) {
+    if (size_in_bits == kCRegSize) return AcquireC();
+    return AcquireRegisterOfSize(size_in_bits);
+  }
   CPURegister AcquireCPURegisterOfSize(int size_in_bits) {
+    // Return a V register if there are no R registers available.
     if (masm_->GetScratchRegisterList()->IsEmpty()) {
       return AcquireVRegisterOfSize(size_in_bits);
     }
-    // AcquireRegisterOfSize can't return a C register.
-    if (size_in_bits == kCRegSize) return AcquireC();
-    return AcquireRegisterOfSize(size_in_bits);
+    return AcquireRRegisterOfSize(size_in_bits);
   }
 
   // Acquire a register big enough to represent one lane of `vector`.

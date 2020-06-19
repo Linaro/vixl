@@ -1959,6 +1959,27 @@ void MacroAssembler::Setf16(const Register& wn) {
 LS_MACRO_LIST(DEFINE_FUNCTION)
 #undef DEFINE_FUNCTION
 
+void MacroAssembler::Ldr(const CPURegister& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Aldr(rt));
+  } else if (rt.IsCRegister()) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Ldr(CRegister(rt)));
+  } else {
+    LoadStoreMacro(rt, addr, LoadOpFor(rt));
+  }
+}
+
+void MacroAssembler::Str(const CPURegister& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Astr(rt));
+  } else if (rt.IsCRegister()) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Str(CRegister(rt)));
+  } else {
+    LoadStoreMacro(rt, addr, StoreOpFor(rt));
+  }
+}
 
 void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
                                     const MemOperand& addr,

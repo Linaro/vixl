@@ -2218,10 +2218,10 @@ static const DecodeMapping kDecodeMapping[] = {
   },
 
   { "DecodeMorello100",
-    {23, 22},
-    { {"00", "VisitMorelloLDR"},  // Load literal.
-      {"01", "VisitMorelloLoadStoreUnsignedOffsetAltBase"},
-      {"1x", "VisitMorelloLoadStoreRegisterAltBase"},
+    {23, 22, 14},
+    { {"00x", "VisitMorelloLDR"},  // Load literal.
+      {"01x", "VisitMorelloLoadStoreUnsignedOffsetAltBase"},
+      {"1x1", "VisitMorelloLoadStoreRegisterAltBase"},
     },
   },
 
@@ -2234,7 +2234,7 @@ static const DecodeMapping kDecodeMapping[] = {
       {"1100000", "VisitMorelloSwap"},
       {"1110000", "VisitMorelloLDAPR"},  // Load-Acquire RCpc capability.
       {"1x11111", "VisitMorelloCompareAndSwap"},
-      {"1xxxx10", "UnallocMorelloLoadStoreRegister"},
+      {"1x1xx10", "UnallocMorelloLoadStoreRegister"},
     },
   },
 
@@ -2468,7 +2468,7 @@ static const DecodeMapping kDecodeMapping[] = {
       {"xxx000", "VisitMorelloLogicalImm"},
       {"xxx010", "VisitMorelloLogicalImm"},
       {"xxx100", "VisitMorelloLogicalImm"},
-      {"xxxxx1", "VisitMorelloLoadStoreCapAltBase"},
+      {"x1xxx1", "VisitMorelloLoadStoreCapAltBase"},
     },
   },
 };

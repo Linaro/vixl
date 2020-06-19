@@ -1290,20 +1290,30 @@ void Assembler::ldrsh(const Register& rt,
 void Assembler::ldr(const CPURegister& rt,
                     const MemOperand& src,
                     LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, src, LoadOpFor(rt), option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldr(rt), option);
+  } else if (rt.IsCRegister()) {
+    LoadStore(rt, src, LoadStoreOpSet::Ldr(CRegister(rt)), option);
+  } else {
+    LoadStore(rt, src, LoadOpFor(rt), option);
+  }
 }
 
 
 void Assembler::str(const CPURegister& rt,
                     const MemOperand& dst,
                     LoadStoreScalingOption option) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, dst, StoreOpFor(rt), option);
+  if (dst.IsAltBase(GetISA())) {
+    LoadStore(rt, dst, LoadStoreOpSet::Astr(rt), option);
+  } else if (rt.IsCRegister()) {
+    LoadStore(rt, dst, LoadStoreOpSet::Str(CRegister(rt)), option);
+  } else {
+    LoadStore(rt, dst, StoreOpFor(rt), option);
+  }
 }
 
 
@@ -1381,20 +1391,30 @@ void Assembler::ldursh(const Register& rt,
 void Assembler::ldur(const CPURegister& rt,
                      const MemOperand& src,
                      LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, src, LoadOpFor(rt), option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldr(rt), option);
+  } else if (rt.IsCRegister()) {
+    LoadStore(rt, src, LoadStoreOpSet::Ldr(CRegister(rt)), option);
+  } else {
+    LoadStore(rt, src, LoadOpFor(rt), option);
+  }
 }
 
 
 void Assembler::stur(const CPURegister& rt,
                      const MemOperand& dst,
                      LoadStoreScalingOption option) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, dst, StoreOpFor(rt), option);
+  if (dst.IsAltBase(GetISA())) {
+    LoadStore(rt, dst, LoadStoreOpSet::Astr(rt), option);
+  } else if (rt.IsCRegister()) {
+    LoadStore(rt, dst, LoadStoreOpSet::Str(CRegister(rt)), option);
+  } else {
+    LoadStore(rt, dst, StoreOpFor(rt), option);
+  }
 }
 
 
@@ -5868,8 +5888,10 @@ void Assembler::LoadStore(const CPURegister& rt,
                           const MemOperand& addr,
                           LoadStoreOp op,
                           LoadStoreScalingOption option) {
-  if (addr.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(CPUHas(rt));
+  // Capability loads and stores are not supported by LoadStoreOp.
+  VIXL_ASSERT(!rt.IsCRegister());
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
   Emit(op | Rt(rt) | LoadStoreMemOperand(addr, CalcLSDataSize(op), option));
 }
 

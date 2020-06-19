@@ -169,5 +169,43 @@ void MacroAssembler::MorelloBranchSealedIndirect(
   (this->*asm_fn)(MemOperand(cn));
 }
 
+void MacroAssembler::LoadStoreMacro(CPURegister rt,
+                                    const MemOperand& addr,
+                                    LoadStoreOpSet op_set) {
+  if (op_set.CanEncode(rt, addr)) {
+    // Directly encodable cases.
+    SingleEmissionCheckScope guard(this);
+    LoadStore(rt, addr, op_set, PreferScaledOffset);
+    return;
+  }
+
+  // TODO: If this is a load, we can include `rt` in the scratch register list
+  // (if we also exclude `rn`).
+
+  CPURegister base = addr.GetBase();
+  int64_t offset = addr.GetOffset();
+  if (addr.IsPreIndex()) {
+    // TODO: If we have a register-offset mode, we could save an instruction
+    // with immediates that we can pass to `movz` but not `add`. This is simple
+    // in principle, but we'd need a variant of ComputeAddress that only
+    // performs part of the calculation.
+    ComputeAddress(base, MemOperand(base, offset));
+    SingleEmissionCheckScope guard(this);
+    LoadStore(rt, MemOperand(base), op_set, PreferScaledOffset);
+  } else if (addr.IsPostIndex()) {
+    {
+      SingleEmissionCheckScope guard(this);
+      LoadStore(rt, MemOperand(base), op_set, PreferScaledOffset);
+    }
+    ComputeAddress(base, MemOperand(base, offset));
+  } else {
+    UseScratchRegisterScope temps(this);
+    CPURegister rn = temps.AcquireRRegisterSameSizeAs(base);
+    ComputeAddress(rn, addr);
+    SingleEmissionCheckScope guard(this);
+    LoadStore(rt, MemOperand(rn), op_set, PreferScaledOffset);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
