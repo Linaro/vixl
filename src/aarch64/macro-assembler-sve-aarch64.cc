@@ -1001,7 +1001,7 @@ void MacroAssembler::Pnext(const PRegisterWithLaneSize& pd,
       temp_pg = temps.AcquireP();
       Mov(temp_pg.VnB(), pg.VnB());
     }
-    Mov(pd, pn);
+    Mov(pd.VnB(), pn.VnB());
     SingleEmissionCheckScope guard(this);
     pnext(pd, temp_pg, pd);
   }

@@ -6763,17 +6763,6 @@ class Assembler : public vixl::internal::AssemblerBase {
                const Operand operand,
                LogicalOp op);
 
-  void Logical(const ZRegister& zd,
-               const ZRegister& zn,
-               const ZRegister& zm,
-               SVEBitwiseLogicalUnpredicatedOp op);
-
-  void Logical(const PRegister& pd,
-               const PRegisterZ& pg,
-               const PRegister& pn,
-               const PRegister& pm,
-               SVEPredicateLogicalOp op);
-
   void SVELogicalImmediate(const ZRegister& zd, uint64_t imm, Instr op);
 
   void LogicalImmediate(const Register& rd,

@@ -127,39 +127,40 @@ void Assembler::orr(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
 }
 
 // SVEBitwiseLogicalUnpredicated.
-void Assembler::Logical(const ZRegister& zd,
-                        const ZRegister& zn,
-                        const ZRegister& zm,
-                        SVEBitwiseLogicalUnpredicatedOp op) {
-  Emit(op | Rd(zd) | Rn(zn) | Rm(zm));
-}
-
 void Assembler::and_(const ZRegister& zd,
                      const ZRegister& zn,
                      const ZRegister& zm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(zd, zn, zm, AND_z_zz);
+  VIXL_ASSERT(zd.IsLaneSizeD());
+  VIXL_ASSERT(AreSameFormat(zd, zn, zm));
+  Emit(AND_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::bic(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(zd, zn, zm, BIC_z_zz);
+  VIXL_ASSERT(zd.IsLaneSizeD());
+  VIXL_ASSERT(AreSameFormat(zd, zn, zm));
+  Emit(BIC_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::eor(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(zd, zn, zm, EOR_z_zz);
+  VIXL_ASSERT(zd.IsLaneSizeD());
+  VIXL_ASSERT(AreSameFormat(zd, zn, zm));
+  Emit(EOR_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::orr(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(zd, zn, zm, ORR_z_zz);
+  VIXL_ASSERT(zd.IsLaneSizeD());
+  VIXL_ASSERT(AreSameFormat(zd, zn, zm));
+  Emit(ORR_z_zz | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
 // SVEBitwiseShiftPredicated.
@@ -6116,22 +6117,14 @@ void Assembler::cntp(const Register& xd,
 }
 
 // SVEPredicateLogicalOp.
-void Assembler::Logical(const PRegister& pd,
-                        const PRegisterZ& pg,
-                        const PRegister& pn,
-                        const PRegister& pm,
-                        SVEPredicateLogicalOp op) {
-  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
-  VIXL_ASSERT(pd.IsLaneSizeB());
-  Emit(op | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
-}
-
 void Assembler::and_(const PRegister& pd,
                      const PRegisterZ& pg,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, AND_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(AND_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::ands(const PRegister& pd,
@@ -6139,7 +6132,9 @@ void Assembler::ands(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, ANDS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(ANDS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::bic(const PRegister& pd,
@@ -6147,7 +6142,9 @@ void Assembler::bic(const PRegister& pd,
                     const PRegister& pn,
                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, BIC_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(BIC_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::bics(const PRegister& pd,
@@ -6155,7 +6152,9 @@ void Assembler::bics(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, BICS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(BICS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::eor(const PRegister& pd,
@@ -6163,7 +6162,9 @@ void Assembler::eor(const PRegister& pd,
                     const PRegister& pn,
                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, EOR_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(EOR_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::eors(const PRegister& pd,
@@ -6171,7 +6172,9 @@ void Assembler::eors(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, EORS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(EORS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::nand(const PRegister& pd,
@@ -6179,7 +6182,9 @@ void Assembler::nand(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, NAND_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(NAND_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::nands(const PRegister& pd,
@@ -6187,7 +6192,9 @@ void Assembler::nands(const PRegister& pd,
                       const PRegister& pn,
                       const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, NANDS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(NANDS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::nor(const PRegister& pd,
@@ -6195,7 +6202,9 @@ void Assembler::nor(const PRegister& pd,
                     const PRegister& pn,
                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, NOR_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(NOR_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::nors(const PRegister& pd,
@@ -6203,7 +6212,9 @@ void Assembler::nors(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, NORS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(NORS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::orn(const PRegister& pd,
@@ -6211,7 +6222,9 @@ void Assembler::orn(const PRegister& pd,
                     const PRegister& pn,
                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, ORN_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(ORN_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::orns(const PRegister& pd,
@@ -6219,7 +6232,9 @@ void Assembler::orns(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, ORNS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(ORNS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::orr(const PRegister& pd,
@@ -6227,7 +6242,9 @@ void Assembler::orr(const PRegister& pd,
                     const PRegister& pn,
                     const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, ORR_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(ORR_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::orrs(const PRegister& pd,
@@ -6235,7 +6252,9 @@ void Assembler::orrs(const PRegister& pd,
                      const PRegister& pn,
                      const PRegister& pm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  Logical(pd, pg, pn, pm, ORRS_p_p_pp_z);
+  VIXL_ASSERT(AreSameFormat(pd, pn, pm));
+  VIXL_ASSERT(pd.IsLaneSizeB());
+  Emit(ORRS_p_p_pp_z | Pd(pd) | Rx<13, 10>(pg) | Pn(pn) | Pm(pm));
 }
 
 void Assembler::sel(const PRegister& pd,
@@ -6539,7 +6558,8 @@ void Assembler::mov(const ZRegister& zd, const VRegister& vn) {
 }
 
 void Assembler::mov(const ZRegister& zd, const ZRegister& zn) {
-  orr(zd, zn, zn);
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  orr(zd.VnD(), zn.VnD(), zn.VnD());
 }
 
 void Assembler::mov(const ZRegister& zd, const ZRegister& zn, unsigned index) {

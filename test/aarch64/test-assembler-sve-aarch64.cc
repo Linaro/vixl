@@ -11067,11 +11067,11 @@ static void SdotUdotHelper(Test* config,
   // zda = zda + (zn . zm)
   dot_fn(da_result, da_result, zn, zm, is_signed, index);
 
-  __ Mov(dn_result, zn);
+  __ Mov(dn_result, zn.WithSameLaneSizeAs(dn_result));
   // zdn = za + (zdn . zm)
   dot_fn(dn_result, za, dn_result.WithSameLaneSizeAs(zn), zm, is_signed, index);
 
-  __ Mov(dm_result, zm);
+  __ Mov(dm_result, zm.WithSameLaneSizeAs(dm_result));
   // zdm = za + (zn . zdm)
   dot_fn(dm_result, za, zn, dm_result.WithSameLaneSizeAs(zm), is_signed, index);
 
@@ -11079,7 +11079,7 @@ static void SdotUdotHelper(Test* config,
   // zd = za + (zn . zm)
   dot_fn(d_result, za, zn, zm, is_signed, index);
 
-  __ Mov(dnm_result, zn);
+  __ Mov(dnm_result, zn.WithSameLaneSizeAs(dnm_result));
   // zdnm = za + (zdmn . zdnm)
   dot_fn(dnm_result,
          za,

@@ -6074,6 +6074,30 @@ TEST(sve_ptest) {
   COMPARE_MACRO(Ptest(p0, p1.VnB()), "ptest p0, p1.b");
 }
 
+TEST(sve_lane_size_relaxing) {
+  SETUP();
+
+  COMPARE_MACRO(Rdffr(p3), "rdffr p3.b");
+  COMPARE_MACRO(Rdffr(p8.VnB()), "rdffr p8.b");
+
+  COMPARE_MACRO(Wrffr(p9), "wrffr p9.b");
+  COMPARE_MACRO(Wrffr(p8.VnB()), "wrffr p8.b");
+
+  COMPARE_MACRO(And(z10, z1, z15), "and z10.d, z1.d, z15.d");
+  COMPARE_MACRO(Bic(z11, z2, z16), "bic z11.d, z2.d, z16.d");
+  COMPARE_MACRO(Eor(z12, z3, z17), "eor z12.d, z3.d, z17.d");
+  COMPARE_MACRO(Orr(z13, z4, z18), "orr z13.d, z4.d, z18.d");
+
+  COMPARE_MACRO(And(z10.VnD(), z1.VnD(), z15.VnD()), "and z10.d, z1.d, z15.d");
+  COMPARE_MACRO(Bic(z11.VnS(), z2.VnS(), z16.VnS()), "bic z11.d, z2.d, z16.d");
+  COMPARE_MACRO(Eor(z12.VnH(), z3.VnH(), z17.VnH()), "eor z12.d, z3.d, z17.d");
+  COMPARE_MACRO(Orr(z13.VnB(), z4.VnB(), z18.VnB()), "orr z13.d, z4.d, z18.d");
+
+  COMPARE_MACRO(Pfalse(p1), "pfalse p1.b");
+
+  CLEANUP();
+}
+
 TEST(sve_read_ffr) {
   SETUP();
 

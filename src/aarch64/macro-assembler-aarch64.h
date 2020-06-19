@@ -3514,13 +3514,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void And(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
     SingleEmissionCheckScope guard(this);
-    and_(zd, zn, zm);
+    and_(zd.VnD(), zn.VnD(), zm.VnD());
   }
-  void Ands(const PRegister& pd,
+  void Ands(const PRegisterWithLaneSize& pd,
             const PRegisterZ& pg,
-            const PRegister& pn,
-            const PRegister& pm) {
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     ands(pd, pg, pn, pm);
@@ -3570,8 +3571,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Bic(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
     SingleEmissionCheckScope guard(this);
-    bic(zd, zn, zm);
+    bic(zd.VnD(), zn.VnD(), zm.VnD());
   }
   void Bic(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -4081,8 +4083,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Eor(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
     SingleEmissionCheckScope guard(this);
-    eor(zd, zn, zm);
+    eor(zd.VnD(), zn.VnD(), zm.VnD());
   }
   void Eors(const PRegisterWithLaneSize& pd,
             const PRegisterZ& pg,
@@ -5401,8 +5404,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Orr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
     SingleEmissionCheckScope guard(this);
-    orr(zd, zn, zm);
+    orr(zd.VnD(), zn.VnD(), zm.VnD());
   }
   void Orrs(const PRegisterWithLaneSize& pd,
             const PRegisterZ& pg,
@@ -5417,9 +5421,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     orv(vd, pg, zn);
   }
-  void Pfalse(const PRegisterWithLaneSize& pd) {
+  void Pfalse(const PRegister& pd) {
     VIXL_ASSERT(allow_macro_instructions_);
+    VIXL_ASSERT(pd.IsUnqualified());
     SingleEmissionCheckScope guard(this);
+    // No matter what the lane size is, overall this operation just writes zeros
+    // throughout the register.
     pfalse(pd.VnB());
   }
   void Pfirst(const PRegisterWithLaneSize& pd,
@@ -5493,10 +5500,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     rbit(zd, pg, zn);
   }
-  void Rdffr(const PRegisterWithLaneSize& pd) {
+  void Rdffr(const PRegister& pd) {
     VIXL_ASSERT(allow_macro_instructions_);
+    // Although this is essentially just a move, it writes every bit and so can
+    // only support b-sized lane because other lane sizes would simplicity clear
+    // bits in `pd`.
+    VIXL_ASSERT(!pd.HasLaneSize() || pd.IsLaneSizeB());
+    VIXL_ASSERT(pd.IsUnqualified());
     SingleEmissionCheckScope guard(this);
-    rdffr(pd);
+    rdffr(pd.VnB());
   }
   void Rdffr(const PRegisterWithLaneSize& pd, const PRegisterZ& pg) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6273,10 +6285,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     whilelt(pd, rn, rm);
   }
-  void Wrffr(const PRegisterWithLaneSize& pn) {
+  void Wrffr(const PRegister& pn) {
     VIXL_ASSERT(allow_macro_instructions_);
+    // Although this is essentially just a move, it writes every bit and so can
+    // only support b-sized lane because other lane sizes would implicitly clear
+    // bits in `ffr`.
+    VIXL_ASSERT(!pn.HasLaneSize() || pn.IsLaneSizeB());
+    VIXL_ASSERT(pn.IsUnqualified());
     SingleEmissionCheckScope guard(this);
-    wrffr(pn);
+    wrffr(pn.VnB());
   }
   void Zip1(const PRegisterWithLaneSize& pd,
             const PRegisterWithLaneSize& pn,
