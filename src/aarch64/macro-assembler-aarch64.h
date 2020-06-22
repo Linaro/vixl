@@ -7145,6 +7145,22 @@ class UseScratchRegisterScope {
                const CPURegister& reg3 = NoCPUReg,
                const CPURegister& reg4 = NoCPUReg);
 
+  // Convenience for excluding registers that are part of Operands. This is
+  // useful for sequences like this:
+  //
+  //    // Use 'rd' as a scratch, but only if it's not aliased by an input.
+  //    temps.Include(rd);
+  //    temps.Exclude(rn);
+  //    temps.Exclude(operand);
+  //
+  // Otherwise, a conditional check is needed on the last 'Exclude'.
+  void Exclude(const Operand& operand) {
+    if (operand.IsShiftedRegister() || operand.IsExtendedRegister()) {
+      Exclude(operand.GetRegister());
+    } else {
+      VIXL_ASSERT(operand.IsImmediate());
+    }
+  }
 
   // Prevent any scratch registers from being used in this scope.
   void ExcludeAll();

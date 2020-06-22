@@ -825,6 +825,12 @@ void MacroAssembler::LogicalMacro(const Register& rd,
   //  * 1 instruction to move to sp
   MacroEmissionCheckScope guard(this);
   UseScratchRegisterScope temps(this);
+  // Use `rd` as a temp, if we can.
+  temps.Include(rd);
+  // We read `rn` after evaluating `operand`.
+  temps.Exclude(rn);
+  // It doesn't matter if `operand` is in `temps` (e.g. because it alises `rd`)
+  // because we don't need it after it is evaluated.
 
   if (operand.IsImmediate()) {
     uint64_t immediate = operand.GetImmediate();
@@ -892,6 +898,7 @@ void MacroAssembler::LogicalMacro(const Register& rd,
     } else {
       // Immediate can't be encoded: synthesize using move immediate.
       Register temp = temps.AcquireSameSizeAs(rn);
+      VIXL_ASSERT(!temp.Aliases(rn));
 
       // If the left-hand input is the stack pointer, we can't pre-shift the
       // immediate, as the encoding won't allow the subsequent post shift.
@@ -916,8 +923,8 @@ void MacroAssembler::LogicalMacro(const Register& rd,
         operand.GetRegister().Is64Bits() ||
         ((operand.GetExtend() != UXTX) && (operand.GetExtend() != SXTX)));
 
-    temps.Exclude(operand.GetRegister());
     Register temp = temps.AcquireSameSizeAs(rn);
+    VIXL_ASSERT(!temp.Aliases(rn));
     EmitExtendShift(temp,
                     operand.GetRegister(),
                     operand.GetExtend(),
@@ -1145,17 +1152,13 @@ void MacroAssembler::Mvn(const Register& rd, const Operand& operand) {
     // Call the macro assembler for generic immediates.
     Mvn(rd, operand.GetImmediate());
   } else if (operand.IsExtendedRegister()) {
-    UseScratchRegisterScope temps(this);
-    temps.Exclude(operand.GetRegister());
-
     // Emit two instructions for the extend case. This differs from Mov, as
     // the extend and invert can't be achieved in one instruction.
-    Register temp = temps.AcquireSameSizeAs(rd);
-    EmitExtendShift(temp,
+    EmitExtendShift(rd,
                     operand.GetRegister(),
                     operand.GetExtend(),
                     operand.GetShiftAmount());
-    mvn(rd, Operand(temp));
+    mvn(rd, rd);
   } else {
     // Otherwise, register and shifted register cases can be handled by the
     // assembler directly, using orn.
@@ -1763,6 +1766,12 @@ void MacroAssembler::AddSubMacro(const Register& rd,
       (rn.IsZero() && !operand.IsShiftedRegister()) ||
       (operand.IsShiftedRegister() && (operand.GetShift() == ROR))) {
     UseScratchRegisterScope temps(this);
+    // Use `rd` as a temp, if we can.
+    temps.Include(rd);
+    // We read `rn` after evaluating `operand`.
+    temps.Exclude(rn);
+    // It doesn't matter if `operand` is in `temps` (e.g. because it alises
+    // `rd`) because we don't need it after it is evaluated.
     Register temp = temps.AcquireSameSizeAs(rn);
     if (operand.IsImmediate()) {
       PreShiftImmMode mode = kAnyShift;
@@ -1848,6 +1857,12 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
   //  * 1 instruction for add/sub
   MacroEmissionCheckScope guard(this);
   UseScratchRegisterScope temps(this);
+  // Use `rd` as a temp, if we can.
+  temps.Include(rd);
+  // We read `rn` after evaluating `operand`.
+  temps.Exclude(rn);
+  // It doesn't matter if `operand` is in `temps` (e.g. because it alises `rd`)
+  // because we don't need it after it is evaluated.
 
   if (operand.IsImmediate() ||
       (operand.IsShiftedRegister() && (operand.GetShift() == ROR))) {
@@ -1862,7 +1877,6 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
     VIXL_ASSERT(
         IsUintN(rd.GetSizeInBits() == kXRegSize ? kXRegSizeLog2 : kWRegSizeLog2,
                 operand.GetShiftAmount()));
-    temps.Exclude(operand.GetRegister());
     Register temp = temps.AcquireSameSizeAs(rn);
     EmitShift(temp,
               operand.GetRegister(),
@@ -1878,7 +1892,6 @@ void MacroAssembler::AddSubWithCarryMacro(const Register& rd,
     VIXL_ASSERT(
         operand.GetRegister().Is64Bits() ||
         ((operand.GetExtend() != UXTX) && (operand.GetExtend() != SXTX)));
-    temps.Exclude(operand.GetRegister());
     Register temp = temps.AcquireSameSizeAs(rn);
     EmitExtendShift(temp,
                     operand.GetRegister(),

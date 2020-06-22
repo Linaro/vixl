@@ -92,6 +92,19 @@ TEST(mov_mvn) {
   CLEANUP();
 }
 
+TEST(mvn_macro) {
+  SETUP();
+
+  // Mvn uses the destination register as a scratch if it can. This only occurs
+  // when `operand.IsExtendedRegister()`.
+  COMPARE_MACRO(Mvn(x0, Operand(w1, SXTW)),
+                "sxtw x0, w1\n"
+                "mvn x0, x0");
+  COMPARE_MACRO(Mvn(x0, Operand(x0, SXTW)),
+                "sxtw x0, w0\n"
+                "mvn x0, x0");
+}
+
 
 TEST(move_immediate) {
   SETUP();
@@ -2741,6 +2754,53 @@ TEST(add_sub_negative) {
   CLEANUP();
 }
 
+TEST(add_sub_macro) {
+  SETUP();
+
+  // Add and Sub use their destination register as a scratch if they can.
+  COMPARE_MACRO(Add(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "add x0, x1, x0");
+  COMPARE_MACRO(Add(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "add x0, x0, x16");
+  COMPARE_MACRO(Adds(x0, xzr, Operand(w1, SXTW)),
+                "sxtw x0, w1\n"
+                "adds x0, xzr, x0");
+  COMPARE_MACRO(Sub(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "sub x0, x1, x0");
+  COMPARE_MACRO(Sub(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "sub x0, x0, x16");
+  COMPARE_MACRO(Subs(x0, xzr, Operand(w1, SXTW)),
+                "sxtw x0, w1\n"
+                "negs x0, x0");
+}
+
+TEST(adc_sbc_macro) {
+  SETUP();
+
+  // Adc and Sbc use their destination register as a scratch if they can.
+  COMPARE_MACRO(Adc(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "adc x0, x1, x0");
+  COMPARE_MACRO(Adc(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "adc x0, x0, x16");
+  COMPARE_MACRO(Adcs(x0, xzr, Operand(w1, SXTW)),
+                "sxtw x0, w1\n"
+                "adcs x0, xzr, x0");
+  COMPARE_MACRO(Sbc(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "sbc x0, x1, x0");
+  COMPARE_MACRO(Sbc(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "sbc x0, x0, x16");
+  COMPARE_MACRO(Sbcs(x0, xzr, Operand(w1, SXTW)),
+                "sxtw x0, w1\n"
+                "ngcs x0, x0");
+}
 
 TEST(logical_immediate_move) {
   SETUP();
@@ -2791,6 +2851,29 @@ TEST(logical_immediate_move) {
   CLEANUP();
 }
 
+TEST(logical_macro) {
+  SETUP();
+
+  // LogicalMacro uses the destination register as a scratch if it can.
+  COMPARE_MACRO(And(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "and x0, x1, x0");
+  COMPARE_MACRO(Bic(x0, x0, 0x4242),
+                "mov x16, #0xffffffffffffbdbd\n"
+                "and x0, x0, x16");
+  COMPARE_MACRO(Orn(x0, xzr, Operand(w1, SXTW)),
+                "sxtw x0, w1\n"
+                "mvn x0, x0");
+  COMPARE_MACRO(Orr(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "orr x0, x1, x0");
+  COMPARE_MACRO(Ands(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "ands x0, x0, x16");
+  COMPARE_MACRO(Tst(xzr, Operand(w1, SXTW)),
+                "sxtw x16, w1\n"
+                "tst xzr, x16");
+}
 
 TEST(barriers) {
   SETUP();
