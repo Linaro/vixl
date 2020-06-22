@@ -1777,7 +1777,9 @@ void MacroAssembler::AddSubMacro(const Register& rd,
   //  * 1 instruction for add/sub
   MacroEmissionCheckScope guard(this);
 
-  if (operand.IsZero() && rd.Is(rn) && rd.Is64Bits() && rn.Is64Bits() &&
+  // TODO: Maybe support DiscardMoveMode here.
+  int max_reg_size = CPUHas(CPUFeatures::kMorello) ? kCRegSize : kXRegSize;
+  if (operand.IsZero() && rd.Is(rn) && (rd.GetSizeInBits() == max_reg_size) &&
       (S == LeaveFlags)) {
     // The instruction would be a nop. Avoid generating useless code.
     return;

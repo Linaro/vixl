@@ -50,23 +50,7 @@ TEST(morello_mov_cpy_c_c_c) {
 }
 
 TEST(morello_mov_cpy_macro) {
-  typedef DisasmTestUtilMacroAssembler MacroAssembler;
-
   SETUP();
-
-  auto mov_x_00 = [&masm] { masm.Mov(x0, x0); };
-  auto mov_x_00_keep = [&masm] { masm.Mov(x0, x0, kKeepExtendingMoves); };
-  auto mov_x_00_discard = [&masm] { masm.Mov(x0, x0, kDiscardForSameReg); };
-  auto mov_x_01 = [&masm] { masm.Mov(x0, x1); };
-  auto mov_x_01_keep = [&masm] { masm.Mov(x0, x1, kKeepExtendingMoves); };
-  auto mov_x_01_discard = [&masm] { masm.Mov(x0, x1, kDiscardForSameReg); };
-  CPUFeatures cpu_none = CPUFeatures::None();
-  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00, cpu_none), "");
-  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00_keep, cpu_none), "");
-  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00_discard, cpu_none), "");
-  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01, cpu_none), "mov x0, x1");
-  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01_keep, cpu_none), "mov x0, x1");
-  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01_discard, cpu_none), "mov x0, x1");
 
   COMPARE_MACRO_MORELLO(Mov(x0, x0), "mov x0, x0");
   COMPARE_MACRO_MORELLO(Mov(x0, x0, kKeepExtendingMoves), "mov x0, x0");
@@ -82,12 +66,46 @@ TEST(morello_mov_cpy_macro) {
   COMPARE_MACRO_MORELLO(Mov(csp, csp), "");
   COMPARE_MACRO_MORELLO(Mov(c30, c30), "");
 
-  // CRegister `Cpy` behaves exactly like CRegister`Mov`
+  // CRegister `Cpy` behaves exactly like CRegister `Mov`.
   COMPARE_MACRO_MORELLO(Cpy(c0, c1), "mov c0, c1");
   COMPARE_MACRO_MORELLO(Cpy(c0, csp), "mov c0, csp");
   COMPARE_MACRO_MORELLO(Cpy(csp, c0), "mov csp, c0");
   COMPARE_MACRO_MORELLO(Cpy(csp, csp), "");
   COMPARE_MACRO_MORELLO(Cpy(c30, c30), "");
+}
+
+TEST(morello_nop_macro) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  auto mov_x_00 = [&masm] { masm.Mov(x0, x0); };
+  auto mov_x_00_keep = [&masm] { masm.Mov(x0, x0, kKeepExtendingMoves); };
+  auto mov_x_00_discard = [&masm] { masm.Mov(x0, x0, kDiscardForSameReg); };
+  auto mov_x_01 = [&masm] { masm.Mov(x0, x1); };
+  auto mov_x_01_keep = [&masm] { masm.Mov(x0, x1, kKeepExtendingMoves); };
+  auto mov_x_01_discard = [&masm] { masm.Mov(x0, x1, kDiscardForSameReg); };
+  CPUFeatures cpu_none = CPUFeatures::None();
+  CPUFeatures cpu_morello(CPUFeatures::kMorello);
+
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00_keep, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_00_discard, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01, cpu_none), "mov x0, x1");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01_keep, cpu_none), "mov x0, x1");
+  COMPARE_MACRO_A64(WithCPUFeatures(mov_x_01_discard, cpu_none), "mov x0, x1");
+
+  auto add_x = [&masm] { masm.Add(x0, x0, 0); };
+  auto sub_x = [&masm] { masm.Sub(x0, x0, 0); };
+
+  // These are NOPs without Morello.
+  COMPARE_MACRO_A64(WithCPUFeatures(add_x, cpu_none), "");
+  COMPARE_MACRO_A64(WithCPUFeatures(sub_x, cpu_none), "");
+  // With Morello, these are not NOPs.
+  COMPARE_MACRO_A64(WithCPUFeatures(add_x, cpu_morello),
+                    "add x0, x0, #0x0 (0)");
+  COMPARE_MACRO_A64(WithCPUFeatures(sub_x, cpu_morello),
+                    "sub x0, x0, #0x0 (0)");
 }
 
 TEST(morello_add_c_cis_c) {
