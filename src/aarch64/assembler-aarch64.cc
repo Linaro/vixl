@@ -5610,7 +5610,7 @@ void Assembler::DataProcExtendedRegister(const Register& rd,
 
 
 Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
-                                     unsigned access_size,
+                                     unsigned access_size_in_bytes_log2,
                                      LoadStoreScalingOption option) {
   Instr base = RnSP(addr.GetBaseRegister());
   int64_t offset = addr.GetOffset();
@@ -5620,21 +5620,22 @@ Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
         (option == PreferUnscaledOffset) || (option == RequireUnscaledOffset);
     if (prefer_unscaled && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
-      return base | LoadStoreUnscaledOffsetFixed |
-             ImmLS(static_cast<int>(offset));
+      return base | LoadStoreUnscaledOffsetFixed | ImmLS(offset);
     }
 
     if ((option != RequireUnscaledOffset) &&
-        IsImmLSScaled(offset, access_size)) {
+        IsImmLSScaled(offset, access_size_in_bytes_log2)) {
+      // We need `offset` to be positive for the shift to be well-defined.
+      // IsImmLSScaled should check this.
+      VIXL_ASSERT(offset >= 0);
       // Use the scaled addressing mode.
       return base | LoadStoreUnsignedOffsetFixed |
-             ImmLSUnsigned(static_cast<int>(offset) >> access_size);
+             ImmLSUnsigned(offset >> access_size_in_bytes_log2);
     }
 
     if ((option != RequireScaledOffset) && IsImmLSUnscaled(offset)) {
       // Use the unscaled addressing mode.
-      return base | LoadStoreUnscaledOffsetFixed |
-             ImmLS(static_cast<int>(offset));
+      return base | LoadStoreUnscaledOffsetFixed | ImmLS(offset);
     }
   }
 
@@ -5655,17 +5656,17 @@ Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
 
     // Shifts are encoded in one bit, indicating a left shift by the memory
     // access size.
-    VIXL_ASSERT((shift_amount == 0) || (shift_amount == access_size));
+    VIXL_ASSERT((shift_amount == 0) || (shift_amount == access_size_in_bytes_log2));
     return base | LoadStoreRegisterOffsetFixed | Rm(addr.GetRegisterOffset()) |
            ExtendMode(ext) | ImmShiftLS((shift_amount > 0) ? 1 : 0);
   }
 
   if (addr.IsPreIndex() && IsImmLSUnscaled(offset)) {
-    return base | LoadStorePreIndexFixed | ImmLS(static_cast<int>(offset));
+    return base | LoadStorePreIndexFixed | ImmLS(offset);
   }
 
   if (addr.IsPostIndex() && IsImmLSUnscaled(offset)) {
-    return base | LoadStorePostIndexFixed | ImmLS(static_cast<int>(offset));
+    return base | LoadStorePostIndexFixed | ImmLS(offset);
   }
 
   // If this point is reached, the MemOperand (addr) cannot be encoded.
@@ -5794,17 +5795,17 @@ bool Assembler::IsImmFP64(double imm) {
 }
 
 
-bool Assembler::IsImmLSPair(int64_t offset, unsigned access_size) {
-  VIXL_ASSERT(access_size <= kQRegSizeInBytesLog2);
-  return IsMultiple(offset, 1 << access_size) &&
-         IsInt7(offset / (1 << access_size));
+bool Assembler::IsImmLSPair(int64_t offset, unsigned access_size_in_bytes_log2) {
+  VIXL_ASSERT(access_size_in_bytes_log2 <= kQRegSizeInBytesLog2);
+  return IsMultiple(offset, 1 << access_size_in_bytes_log2) &&
+         IsInt7(offset / (1 << access_size_in_bytes_log2));
 }
 
 
-bool Assembler::IsImmLSScaled(int64_t offset, unsigned access_size) {
-  VIXL_ASSERT(access_size <= kQRegSizeInBytesLog2);
-  return IsMultiple(offset, 1 << access_size) &&
-         IsUint12(offset / (1 << access_size));
+bool Assembler::IsImmLSScaled(int64_t offset, unsigned access_size_in_bytes_log2) {
+  VIXL_ASSERT(access_size_in_bytes_log2 <= kQRegSizeInBytesLog2);
+  return IsMultiple(offset, 1 << access_size_in_bytes_log2) &&
+         IsUint12(offset / (1 << access_size_in_bytes_log2));
 }
 
 
