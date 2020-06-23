@@ -6277,7 +6277,7 @@ void Disassembler::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(
   const char *form = "(SVEContiguousNonTemporalLoad_ScalarPlusImm)";
 
   const char *suffix =
-      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, MUL VL]";
+      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, mul vl]";
   switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusImmMask)) {
     case LDNT1B_z_p_bi_contiguous:
       mnemonic = "ldnt1b";
@@ -6336,7 +6336,7 @@ void Disassembler::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(
   const char *form = "(SVEContiguousNonTemporalStore_ScalarPlusImm)";
 
   const char *suffix =
-      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, MUL VL]";
+      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, mul vl]";
   switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusImmMask)) {
     case STNT1B_z_p_bi_contiguous:
       mnemonic = "stnt1b";
@@ -6448,7 +6448,7 @@ void Disassembler::VisitSVEContiguousStore_ScalarPlusImm(
   const char *mnemonic = "unimplemented";
 
   // The 'size' field isn't in the usual place here.
-  const char *form = "{ 'Zt.'tls }, 'Pgl, ['Xns, #'s1916, MUL VL]";
+  const char *form = "{ 'Zt.'tls }, 'Pgl, ['Xns, #'s1916, mul vl]";
   if (instr->ExtractBits(19, 16) == 0) {
     form = "{ 'Zt.'tls }, 'Pgl, ['Xns]";
   }
@@ -7723,13 +7723,13 @@ void Disassembler::VisitSVELoadPredicateRegister(const Instruction *instr) {
   const char *form = "(SVELoadPredicateRegister)";
 
   switch (instr->Mask(SVELoadPredicateRegisterMask)) {
-    // LDR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
+    // LDR <Pt>, [<Xn|SP>{, #<imm>, mul vl}]
     case LDR_p_bi:
       mnemonic = "ldr";
       if (instr->Mask(0x003f1c00) == 0) {
         form = "'Pd, ['Xns]";
       } else {
-        form = "'Pd, ['Xns, #'s2116:1210, MUL VL]";
+        form = "'Pd, ['Xns, #'s2116:1210, mul vl]";
       }
       break;
     default:
@@ -7743,13 +7743,13 @@ void Disassembler::VisitSVELoadVectorRegister(const Instruction *instr) {
   const char *form = "(SVELoadVectorRegister)";
 
   switch (instr->Mask(SVELoadVectorRegisterMask)) {
-    // LDR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
+    // LDR <Zt>, [<Xn|SP>{, #<imm>, mul vl}]
     case LDR_z_bi:
       mnemonic = "ldr";
       if (instr->Mask(0x003f1c00) == 0) {
         form = "'Zd, ['Xns]";
       } else {
-        form = "'Zt, ['Xns, #'s2116:1210, MUL VL]";
+        form = "'Zt, ['Xns, #'s2116:1210, mul vl]";
       }
       break;
     default:
@@ -8263,13 +8263,13 @@ void Disassembler::VisitSVEStorePredicateRegister(const Instruction *instr) {
   const char *form = "(SVEStorePredicateRegister)";
 
   switch (instr->Mask(SVEStorePredicateRegisterMask)) {
-    // STR <Pt>, [<Xn|SP>{, #<imm>, MUL VL}]
+    // STR <Pt>, [<Xn|SP>{, #<imm>, mul vl}]
     case STR_p_bi:
       mnemonic = "str";
       if (instr->Mask(0x003f1c00) == 0) {
         form = "'Pd, ['Xns]";
       } else {
-        form = "'Pd, ['Xns, #'s2116:1210, MUL VL]";
+        form = "'Pd, ['Xns, #'s2116:1210, mul vl]";
       }
       break;
     default:
@@ -8283,13 +8283,13 @@ void Disassembler::VisitSVEStoreVectorRegister(const Instruction *instr) {
   const char *form = "(SVEStoreVectorRegister)";
 
   switch (instr->Mask(SVEStoreVectorRegisterMask)) {
-    // STR <Zt>, [<Xn|SP>{, #<imm>, MUL VL}]
+    // STR <Zt>, [<Xn|SP>{, #<imm>, mul vl}]
     case STR_z_bi:
       mnemonic = "str";
       if (instr->Mask(0x003f1c00) == 0) {
         form = "'Zd, ['Xns]";
       } else {
-        form = "'Zt, ['Xns, #'s2116:1210, MUL VL]";
+        form = "'Zt, ['Xns, #'s2116:1210, mul vl]";
       }
       break;
     default:
@@ -9657,8 +9657,8 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusImm(
     form = is_signed ? "{ 'Zt.'tlss }, 'Pgl/z, ['Xns]"
                      : "{ 'Zt.'tls }, 'Pgl/z, ['Xns]";
   } else {
-    form = is_signed ? "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, #'s1916, MUL VL]"
-                     : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, #'s1916, MUL VL]";
+    form = is_signed ? "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, #'s1916, mul vl]"
+                     : "{ 'Zt.'tls }, 'Pgl/z, ['Xns, #'s1916, mul vl]";
   }
 
   Format(instr, mnemonic, form);
@@ -9679,13 +9679,13 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusScalar(
       break;
     case LD1D_z_p_br_u64:
       mnemonic = "ld1d";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, LSL #'u2423]";
+      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
       break;
     case LD1H_z_p_br_u16:
     case LD1H_z_p_br_u32:
     case LD1H_z_p_br_u64:
       mnemonic = "ld1h";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, LSL #'u2423]";
+      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
       break;
     case LD1SB_z_p_br_s16:
     case LD1SB_z_p_br_s32:
@@ -9696,16 +9696,16 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusScalar(
     case LD1SH_z_p_br_s32:
     case LD1SH_z_p_br_s64:
       mnemonic = "ld1sh";
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, LSL #1]";
+      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
       break;
     case LD1SW_z_p_br_s64:
       mnemonic = "ld1sw";
-      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, LSL #2]";
+      form = "{ 'Zt.'tlss }, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
       break;
     case LD1W_z_p_br_u32:
     case LD1W_z_p_br_u64:
       mnemonic = "ld1w";
-      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, LSL #'u2423]";
+      form = "{ 'Zt.'tls }, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
       break;
     default:
       break;
