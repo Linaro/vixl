@@ -137,6 +137,7 @@ class Disassembler : public DecoderVisitor {
   int SubstituteCrField(const Instruction* instr, const char* format);
   int SubstituteIntField(const Instruction* instr, const char* format);
   int SubstituteSVESize(const Instruction* instr, const char* format);
+  int SubstituteTernary(const Instruction* instr, const char* format);
 
   std::pair<unsigned, unsigned> GetRegNumForField(const Instruction* instr,
                                                   char reg_prefix,
