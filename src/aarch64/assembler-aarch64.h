@@ -1089,36 +1089,12 @@ class Assembler : public vixl::internal::AssemblerBase {
   // zero [Armv8.3].
   void pacdza(const Register& xd);
 
-  // Pointer Authentication Code for Data address, using key A, with address in
-  // x17 and modifier in x16 [Armv8.3].
-  void pacda1716();
-
-  // Pointer Authentication Code for Data address, using key A, with address in
-  // LR and modifier in SP [Armv8.3].
-  void pacdasp();
-
-  // Pointer Authentication Code for Data address, using key A, with address in
-  // LR and a modifier of zero [Armv8.3].
-  void pacdaz();
-
   // Pointer Authentication Code for Data address, using key B [Armv8.3].
   void pacdb(const Register& xd, const Register& xn);
 
   // Pointer Authentication Code for Data address, using key B and a modifier of
   // zero [Armv8.3].
   void pacdzb(const Register& xd);
-
-  // Pointer Authentication Code for Data address, using key B, with address in
-  // x17 and modifier in x16 [Armv8.3].
-  void pacdb1716();
-
-  // Pointer Authentication Code for Data address, using key B, with address in
-  // LR and modifier in SP [Armv8.3].
-  void pacdbsp();
-
-  // Pointer Authentication Code for Data address, using key B, with address in
-  // LR and a modifier of zero [Armv8.3].
-  void pacdbz();
 
   // Pointer Authentication Code, using Generic key [Armv8.3].
   void pacga(const Register& xd, const Register& xn, const Register& xm);
@@ -1167,35 +1143,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Authenticate Data address, using key A and a modifier of zero [Armv8.3].
   void autdza(const Register& xd);
 
-  // Authenticate Data address, using key A, with address in x17 and modifier in
-  // x16 [Armv8.3].
-  void autda1716();
-
-  // Authenticate Data address, using key A, with address in LR and modifier in
-  // SP [Armv8.3].
-  void autdasp();
-
-  // Authenticate Data address, using key A, with address in LR and a modifier
-  // of zero [Armv8.3].
-  void autdaz();
-
   // Authenticate Data address, using key B [Armv8.3].
   void autdb(const Register& xd, const Register& xn);
 
   // Authenticate Data address, using key B and a modifier of zero [Armv8.3].
   void autdzb(const Register& xd);
-
-  // Authenticate Data address, using key B, with address in x17 and modifier in
-  // x16 [Armv8.3].
-  void autdb1716();
-
-  // Authenticate Data address, using key B, with address in LR and modifier in
-  // SP [Armv8.3].
-  void autdbsp();
-
-  // Authenticate Data address, using key B, with address in LR and a modifier
-  // of zero [Armv8.3].
-  void autdbz();
 
   // Strip Pointer Authentication Code of Data address [Armv8.3].
   void xpacd(const Register& xd);
@@ -6158,9 +6110,9 @@ class Assembler : public vixl::internal::AssemblerBase {
     return TruncateToUint9(imm9) << ImmLS_offset;
   }
 
-  static Instr ImmLSPair(int64_t imm7, unsigned access_size) {
-    VIXL_ASSERT(IsMultiple(imm7, 1 << access_size));
-    int64_t scaled_imm7 = imm7 / (1 << access_size);
+  static Instr ImmLSPair(int64_t imm7, unsigned access_size_in_bytes_log2) {
+    VIXL_ASSERT(IsMultiple(imm7, 1 << access_size_in_bytes_log2));
+    int64_t scaled_imm7 = imm7 / (1 << access_size_in_bytes_log2);
     VIXL_ASSERT(IsInt7(scaled_imm7));
     return TruncateToUint7(scaled_imm7) << ImmLSPair_offset;
   }
@@ -6292,8 +6244,8 @@ class Assembler : public vixl::internal::AssemblerBase {
                            unsigned* n = NULL,
                            unsigned* imm_s = NULL,
                            unsigned* imm_r = NULL);
-  static bool IsImmLSPair(int64_t offset, unsigned access_size);
-  static bool IsImmLSScaled(int64_t offset, unsigned access_size);
+  static bool IsImmLSPair(int64_t offset, unsigned access_size_in_bytes_log2);
+  static bool IsImmLSScaled(int64_t offset, unsigned access_size_in_bytes_log2);
   static bool IsImmLSUnscaled(int64_t offset);
   static bool IsImmMovn(uint64_t imm, unsigned reg_size);
   static bool IsImmMovz(uint64_t imm, unsigned reg_size);
@@ -7015,7 +6967,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Encode the specified MemOperand for the specified access size and scaling
   // preference.
   Instr LoadStoreMemOperand(const MemOperand& addr,
-                            unsigned access_size,
+                            unsigned access_size_in_bytes_log2,
                             LoadStoreScalingOption option);
 
   // Link the current (not-yet-emitted) instruction to the specified label, then
