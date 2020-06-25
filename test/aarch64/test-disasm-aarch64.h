@@ -190,6 +190,12 @@ namespace aarch64 {
 #define COMPARE_MACRO(ASM, EXP) COMPARE_MACRO_A64(ASM, EXP)
 #define COMPARE_MACRO_PREFIX(ASM, EXP) COMPARE_MACRO_PREFIX_A64(ASM, EXP)
 
+// Unallocated encodings disassemble as "unallocated", followed by an optional
+// instruction class in parentheses. The instruction classes are unstable, so we
+// only check the prefix.
+#define CHECK_UNALLOCATED_MORELLO(ASM) \
+  COMPARE_PREFIX_MORELLO(ASM, "unallocated")
+
 #define CLEANUP()
 
 // Some tests need to do things that aren't possible in a single call. This

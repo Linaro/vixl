@@ -1312,5 +1312,67 @@ TEST(morello_unseal_c_cc_c) {
   COMPARE_MACRO_MORELLO(Unseal(c28, c29, c30), "unseal c28, c29, c30");
 }
 
+TEST(morello_unalloc_load_store_register_alt_base) {
+  SETUP();
+
+  // Test unallocated patterns in MorelloLoadStoreRegisterAltBaseOp.
+
+  // Encodings where option<1> = 0 are unallocated. During assembly, this would
+  // be set using `ExtendMode`.
+  CHECK_UNALLOCATED_MORELLO(dci(ASTRB_r_rrb));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDRSB_r_rrb_64));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDRSH_r_rrb_64));
+  CHECK_UNALLOCATED_MORELLO(dci(ASTRH_r_rrb));
+  CHECK_UNALLOCATED_MORELLO(dci(ASTR_r_rrb_32));
+  CHECK_UNALLOCATED_MORELLO(dci(ASTR_r_rrb_64));
+  CHECK_UNALLOCATED_MORELLO(dci(ASTR_v_rrb_d));
+  CHECK_UNALLOCATED_MORELLO(dci(ASTR_v_rrb_s));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDRB_r_rrb));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDRSB_r_rrb_32));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDRSH_r_rrb_32));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDRH_r_rrb));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDR_r_rrb_32));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDR_r_rrb_64));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDR_v_rrb_d));
+  CHECK_UNALLOCATED_MORELLO(dci(ALDR_v_rrb_s));
+}
+
+
+TEST(morello_unalloc_load_store_register) {
+  SETUP();
+
+  // Test unallocated patterns in MorelloLoadStoreUnscaledImmediateAltBaseOp.
+
+  // V register accesses, but where the register size (op2<1>:op1<1:0>) is
+  // greater than kQRegSizeInBytesLog2.
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'01'1'000000000'10'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'01'1'000000000'11'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'10'1'000000000'10'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'10'1'000000000'11'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'11'1'000000000'10'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'11'1'000000000'11'00000'00000));
+
+  // There is no ldursx.
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'11'0'000000000'10'00000'00000));
+}
+
+TEST(morello_unalloc_load_store_unscaled_immediate_alt_base) {
+  SETUP();
+
+  // Test unallocated patterns in MorelloLoadStoreUnscaledImmediateAltBaseOp.
+
+  // V register accesses, but where the register size (op2<1>:op1<1:0>) is
+  // greater than kQRegSizeInBytesLog2.
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'01'1'000000000'10'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'01'1'000000000'11'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'10'1'000000000'10'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'10'1'000000000'11'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'11'1'000000000'10'00000'00000));
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'11'1'000000000'11'00000'00000));
+
+  // There is no ldursx.
+  CHECK_UNALLOCATED_MORELLO(dci(0b11100010'11'0'000000000'10'00000'00000));
+}
+
 }  // namespace aarch64
 }  // namespace vixl
