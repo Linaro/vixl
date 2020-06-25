@@ -490,55 +490,326 @@ TEST(morello_c64_aldr_v_macro_b) {
 TEST(morello_c64_aldrb_r_ri_b) {
   SETUP();
 
-  // COMPARE_C64(ldrb(w0, MemOperand(x1, 432)), "TODO");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, 42)), "ldrb w0, [x1, #42]");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, 0)), "ldrb w0, [x1]");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, 511)), "ldrb w0, [x1, #511]");
+  COMPARE_C64(ldrb(w0, MemOperand(sp, 42)), "ldrb w0, [sp, #42]");
+  COMPARE_C64(ldrb(wzr, MemOperand(x1, 42)), "ldrb wzr, [x1, #42]");
+
+  // `ldurb` can assemble to `ldrb`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldurb(w0, MemOperand(c1, 256)), "ldrb w0, [c1, #256]");
+  COMPARE_C64(ldurb(w0, MemOperand(c1, 511)), "ldrb w0, [c1, #511]");
 }
 
 TEST(morello_c64_aldrb_r_rrb_b) {
   SETUP();
 
-  // COMPARE_C64(ldrb(w0, MemOperand(x1, w2, SXTW)), "TODO");
-  // COMPARE_C64(ldrb(w0, MemOperand(x1, w2, UXTW)), "TODO");
-  // COMPARE_C64(ldrb(w0, MemOperand(x1, x2, LSL)), "TODO");
-  // COMPARE_C64(ldrb(w0, MemOperand(x1, x2, SXTX)), "TODO");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, w2, UXTW)), "ldrb w0, [x1, w2, uxtw]");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, x2, SXTX, 0)), "ldrb w0, [x1, x2, sxtx]");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, x2, LSL, 0)), "ldrb w0, [x1, x2]");
+  COMPARE_C64(ldrb(w0, MemOperand(x1, xzr)), "ldrb w0, [x1, xzr]");
+  COMPARE_C64(ldrb(w0, MemOperand(sp, x2)), "ldrb w0, [sp, x2]");
+  COMPARE_C64(ldrb(wzr, MemOperand(x1, x2)), "ldrb wzr, [x1, x2]");
 }
 
 TEST(morello_c64_aldrh_r_rrb_32) {
   SETUP();
 
-  // COMPARE_C64(ldrh(w0, MemOperand(x1, w2, UXTW, 1)), "TODO");
-  // COMPARE_C64(ldrh(w0, MemOperand(x1, x2, LSL, 0)), "TODO");
+  COMPARE_C64(ldrh(w0, MemOperand(x1, x2)), "ldrh w0, [x1, x2]");
+  COMPARE_C64(ldrh(w0, MemOperand(x1, w2, SXTW, 0)), "ldrh w0, [x1, w2, sxtw]");
+  COMPARE_C64(ldrh(w0, MemOperand(x1, x2, LSL, 1)),
+              "ldrh w0, [x1, x2, lsl #1]");
+  COMPARE_C64(ldrh(w0, MemOperand(x1, xzr, LSL, 1)),
+              "ldrh w0, [x1, xzr, lsl #1]");
+  COMPARE_C64(ldrh(w0, MemOperand(sp, x2, LSL, 1)),
+              "ldrh w0, [sp, x2, lsl #1]");
+  COMPARE_C64(ldrh(wzr, MemOperand(x1, x2, LSL, 1)),
+              "ldrh wzr, [x1, x2, lsl #1]");
 }
 
 TEST(morello_c64_aldrsb_r_rrb_32) {
   SETUP();
 
-  // COMPARE_C64(ldrsb(w0, MemOperand(x1, w2, SXTW)), "TODO");
-  // COMPARE_C64(ldrsb(w0, MemOperand(x1, w2, UXTW)), "TODO");
-  // COMPARE_C64(ldrsb(w0, MemOperand(x1, x2, LSL)), "TODO");
-  // COMPARE_C64(ldrsb(w0, MemOperand(x1, x2, SXTX)), "TODO");
+  COMPARE_C64(ldrsb(w0, MemOperand(x1, w2, UXTW)), "ldrsb w0, [x1, w2, uxtw]");
+  COMPARE_C64(ldrsb(w0, MemOperand(x1, x2, SXTX, 0)),
+              "ldrsb w0, [x1, x2, sxtx]");
+  COMPARE_C64(ldrsb(w0, MemOperand(x1, x2, LSL, 0)), "ldrsb w0, [x1, x2]");
+  COMPARE_C64(ldrsb(w0, MemOperand(x1, xzr)), "ldrsb w0, [x1, xzr]");
+  COMPARE_C64(ldrsb(w0, MemOperand(sp, x2)), "ldrsb w0, [sp, x2]");
+  COMPARE_C64(ldrsb(wzr, MemOperand(x1, x2)), "ldrsb wzr, [x1, x2]");
 }
 
 TEST(morello_c64_aldrsb_r_rrb_64) {
   SETUP();
 
-  // COMPARE_C64(ldrsb(x0, MemOperand(x1, w2, SXTW)), "TODO");
-  // COMPARE_C64(ldrsb(x0, MemOperand(x1, w2, UXTW)), "TODO");
-  // COMPARE_C64(ldrsb(x0, MemOperand(x1, x2, LSL)), "TODO");
-  // COMPARE_C64(ldrsb(x0, MemOperand(x1, x2, SXTX)), "TODO");
+  COMPARE_C64(ldrsb(x0, MemOperand(x1, w2, UXTW)), "ldrsb x0, [x1, w2, uxtw]");
+  COMPARE_C64(ldrsb(x0, MemOperand(x1, x2, SXTX, 0)),
+              "ldrsb x0, [x1, x2, sxtx]");
+  COMPARE_C64(ldrsb(x0, MemOperand(x1, x2, LSL, 0)), "ldrsb x0, [x1, x2]");
+  COMPARE_C64(ldrsb(x0, MemOperand(x1, xzr)), "ldrsb x0, [x1, xzr]");
+  COMPARE_C64(ldrsb(x0, MemOperand(sp, x2)), "ldrsb x0, [sp, x2]");
+  COMPARE_C64(ldrsb(wzr, MemOperand(x1, x2)), "ldrsb wzr, [x1, x2]");
 }
 
 TEST(morello_c64_aldrsh_r_rrb_32) {
   SETUP();
 
-  // COMPARE_C64(ldrsh(w0, MemOperand(x1, w2, UXTW, 0)), "TODO");
-  // COMPARE_C64(ldrsh(w0, MemOperand(x1, x2, SXTX, 1)), "TODO");
+  COMPARE_C64(ldrsh(w0, MemOperand(x1, x2)), "ldrsh w0, [x1, x2]");
+  COMPARE_C64(ldrsh(w0, MemOperand(x1, x2, SXTX, 0)),
+              "ldrsh w0, [x1, x2, sxtx]");
+  COMPARE_C64(ldrsh(w0, MemOperand(x1, x2, LSL, 1)),
+              "ldrsh w0, [x1, x2, lsl #1]");
+  COMPARE_C64(ldrsh(w0, MemOperand(x1, xzr, LSL, 1)),
+              "ldrsh w0, [x1, xzr, lsl #1]");
+  COMPARE_C64(ldrsh(w0, MemOperand(sp, w2, UXTW)), "ldrsh w0, [sp, w2, uxtw]");
+  COMPARE_C64(ldrsh(wzr, MemOperand(x1, x2, LSL, 1)),
+              "ldrsh wzr, [x1, x2, lsl #1]");
 }
 
 TEST(morello_c64_aldrsh_r_rrb_64) {
   SETUP();
 
-  // COMPARE_C64(ldrsh(x0, MemOperand(x1, w2, UXTW, 0)), "TODO");
-  // COMPARE_C64(ldrsh(x0, MemOperand(x1, x2, SXTX, 1)), "TODO");
+  COMPARE_C64(ldrsh(x0, MemOperand(x1, w2, UXTW)), "ldrsh x0, [x1, w2, uxtw]");
+  COMPARE_C64(ldrsh(x0, MemOperand(x1, x2, SXTX)), "ldrsh x0, [x1, x2, sxtx]");
+  COMPARE_C64(ldrsh(x0, MemOperand(x1, x2, LSL, 1)),
+              "ldrsh x0, [x1, x2, lsl #1]");
+  COMPARE_C64(ldrsh(x0, MemOperand(x1, xzr, SXTX, 1)),
+              "ldrsh x0, [x1, xzr, sxtx #1]");
+  COMPARE_C64(ldrsh(x0, MemOperand(sp, x2, LSL, 1)),
+              "ldrsh x0, [sp, x2, lsl #1]");
+  COMPARE_C64(ldrsh(xzr, MemOperand(x1, x2, LSL, 1)),
+              "ldrsh xzr, [x1, x2, lsl #1]");
+}
+
+TEST(morello_c64_aldrb_macro) {
+  SETUP();
+
+  // Encodable cases.
+  // "unsigned offset"
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, 42)), "ldrb w0, [x1, #42]");
+  COMPARE_MACRO_C64(Ldrb(wzr, MemOperand(sp, 42)), "ldrb wzr, [sp, #42]");
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, 511)), "ldrb w0, [x1, #511]");
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, -256)), "ldurb w0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, -1)), "ldurb w0, [x1, #-1]");
+  COMPARE_MACRO_C64(Ldrb(wzr, MemOperand(sp, -1)), "ldurb wzr, [sp, #-1]");
+  // "register"
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, x2)), "ldrb w0, [x1, x2]");
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, w2, SXTW)),
+                    "ldrb w0, [x1, w2, sxtw]");
+
+  // The MacroAssembler permits an X-sized result for zero-extending loads.
+  COMPARE_MACRO_C64(Ldrb(x0, MemOperand(x1, 42)), "ldrb w0, [x1, #42]");
+  COMPARE_MACRO_C64(Ldrb(x0, MemOperand(x1, -1)), "ldurb w0, [x1, #-1]");
+  COMPARE_MACRO_C64(Ldrb(x0, MemOperand(x1, w2, UXTW)),
+                    "ldrb w0, [x1, w2, uxtw]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, 512)),
+                    "add x16, x1, #0x200 (512)\n"
+                    "ldrb w0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldrb w0, [x1]");
+  COMPARE_MACRO_C64(Ldrb(w0, MemOperand(x1, 16, PostIndex)),
+                    "ldrb w0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+}
+
+TEST(morello_c64_aldrsb_macro_32) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, -256)), "ldursb w0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, -1)), "ldursb w0, [x1, #-1]");
+  COMPARE_MACRO_C64(Ldrsb(wzr, MemOperand(sp, -1)), "ldursb wzr, [sp, #-1]");
+  // "register"
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, x2)), "ldrsb w0, [x1, x2]");
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, w2, SXTW)),
+                    "ldrsb w0, [x1, w2, sxtw]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, 512)),
+                    "add x16, x1, #0x200 (512)\n"
+                    "ldursb w0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldursb w0, [x1]");
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, 16, PostIndex)),
+                    "ldursb w0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Ldrsb(w0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "ldursb w0, [x16]");
+}
+
+TEST(morello_c64_aldrsb_macro_64) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, -256)), "ldursb x0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, -1)), "ldursb x0, [x1, #-1]");
+  COMPARE_MACRO_C64(Ldrsb(xzr, MemOperand(sp, -1)), "ldursb xzr, [sp, #-1]");
+  // "register"
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, x2)), "ldrsb x0, [x1, x2]");
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, w2, SXTW)),
+                    "ldrsb x0, [x1, w2, sxtw]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, 512)),
+                    "add x16, x1, #0x200 (512)\n"
+                    "ldursb x0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldursb x0, [x1]");
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, 16, PostIndex)),
+                    "ldursb x0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Ldrsb(x0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "ldursb x0, [x16]");
+}
+
+TEST(morello_c64_aldrh_macro) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, -256)), "ldurh w0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, 255)), "ldurh w0, [x1, #255]");
+  COMPARE_MACRO_C64(Ldrh(wzr, MemOperand(sp, 42)), "ldurh wzr, [sp, #42]");
+  // "register"
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, x2)), "ldrh w0, [x1, x2]");
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, w2, SXTW)),
+                    "ldrh w0, [x1, w2, sxtw]");
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, x2, LSL, 1)),
+                    "ldrh w0, [x1, x2, lsl #1]");
+
+  // The MacroAssembler permits an X-sized result for zero-extending loads.
+  COMPARE_MACRO_C64(Ldrh(x0, MemOperand(x1, 42)), "ldurh w0, [x1, #42]");
+  COMPARE_MACRO_C64(Ldrh(x0, MemOperand(x1, x2, SXTX, 1)),
+                    "ldrh w0, [x1, x2, sxtx #1]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "ldurh w0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldurh w0, [x1]");
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, 16, PostIndex)),
+                    "ldurh w0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Ldrh(w0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "ldurh w0, [x16]");
+}
+
+TEST(morello_c64_aldrsh_macro_32) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, -256)), "ldursh w0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, 255)), "ldursh w0, [x1, #255]");
+  COMPARE_MACRO_C64(Ldrsh(wzr, MemOperand(sp, 42)), "ldursh wzr, [sp, #42]");
+  // "register"
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, x2)), "ldrsh w0, [x1, x2]");
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, w2, SXTW)),
+                    "ldrsh w0, [x1, w2, sxtw]");
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, x2, LSL, 1)),
+                    "ldrsh w0, [x1, x2, lsl #1]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "ldursh w0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldursh w0, [x1]");
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, 16, PostIndex)),
+                    "ldursh w0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Ldrsh(w0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "ldursh w0, [x16]");
+}
+
+TEST(morello_c64_aldrsh_macro_64) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, -256)), "ldursh x0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, 255)), "ldursh x0, [x1, #255]");
+  COMPARE_MACRO_C64(Ldrsh(xzr, MemOperand(sp, 42)), "ldursh xzr, [sp, #42]");
+  // "register"
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, x2)), "ldrsh x0, [x1, x2]");
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, w2, SXTW)),
+                    "ldrsh x0, [x1, w2, sxtw]");
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, x2, LSL, 1)),
+                    "ldrsh x0, [x1, x2, lsl #1]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "ldursh x0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldursh x0, [x1]");
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, 16, PostIndex)),
+                    "ldursh x0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Ldrsh(x0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "ldursh x0, [x16]");
+}
+
+TEST(morello_c64_aldrsw_macro_64) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, -256)), "ldursw x0, [x1, #-256]");
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, 255)), "ldursw x0, [x1, #255]");
+  COMPARE_MACRO_C64(Ldrsw(xzr, MemOperand(sp, 44)), "ldursw xzr, [sp, #44]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "ldursw x0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "ldursw x0, [x1]");
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, 16, PostIndex)),
+                    "ldursw x0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "ldursw x0, [x16]");
+  // There is no "register" mode.
+  COMPARE_MACRO_C64(Ldrsw(x0, MemOperand(x1, x2)),
+                    "add x16, x1, x2\n"
+                    "ldursw x0, [x16]");
 }
 
 TEST(morello_c64_aldur_c_ri_c) {
@@ -661,43 +932,99 @@ TEST(morello_c64_aldur_v_ri_s) {
 TEST(morello_c64_aldurb_r_ri_32) {
   SETUP();
 
-  // COMPARE_C64(ldurb(w0, MemOperand(x1, 16)), "TODO");
+  COMPARE_C64(ldurb(w0, MemOperand(x1, 42)), "ldurb w0, [x1, #42]");
+  COMPARE_C64(ldurb(w0, MemOperand(x1, 0)), "ldurb w0, [x1]");
+  COMPARE_C64(ldurb(w0, MemOperand(x1, -256)), "ldurb w0, [x1, #-256]");
+  COMPARE_C64(ldurb(w0, MemOperand(x1, 255)), "ldurb w0, [x1, #255]");
+  COMPARE_C64(ldurb(w0, MemOperand(sp, 42)), "ldurb w0, [sp, #42]");
+  COMPARE_C64(ldurb(wzr, MemOperand(x1, 42)), "ldurb wzr, [x1, #42]");
+
+  // `ldrb` can assemble to `ldurb`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldurb(w0, MemOperand(c1, -1)), "ldurb w0, [c1, #-1]");
 }
 
 TEST(morello_c64_aldurh_r_ri_32) {
   SETUP();
 
-  // COMPARE_C64(ldurh(w0, MemOperand(x1, 211)), "TODO");
+  COMPARE_C64(ldurh(w0, MemOperand(x1, 42)), "ldurh w0, [x1, #42]");
+  COMPARE_C64(ldurh(w0, MemOperand(x1, 0)), "ldurh w0, [x1]");
+  COMPARE_C64(ldurh(w0, MemOperand(x1, -256)), "ldurh w0, [x1, #-256]");
+  COMPARE_C64(ldurh(w0, MemOperand(x1, 255)), "ldurh w0, [x1, #255]");
+  COMPARE_C64(ldurh(w0, MemOperand(sp, 42)), "ldurh w0, [sp, #42]");
+  COMPARE_C64(ldurh(wzr, MemOperand(x1, 42)), "ldurh wzr, [x1, #42]");
+
+  // `ldrh` can assemble to `ldurh`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldurh(w0, MemOperand(c1, -1)), "ldurh w0, [c1, #-1]");
 }
 
 TEST(morello_c64_aldursb_r_ri_32) {
   SETUP();
 
-  // COMPARE_C64(ldursb(w0, MemOperand(x1, -123)), "TODO");
+  COMPARE_C64(ldursb(w0, MemOperand(x1, 42)), "ldursb w0, [x1, #42]");
+  COMPARE_C64(ldursb(w0, MemOperand(x1, 0)), "ldursb w0, [x1]");
+  COMPARE_C64(ldursb(w0, MemOperand(x1, -256)), "ldursb w0, [x1, #-256]");
+  COMPARE_C64(ldursb(w0, MemOperand(x1, 255)), "ldursb w0, [x1, #255]");
+  COMPARE_C64(ldursb(w0, MemOperand(sp, 42)), "ldursb w0, [sp, #42]");
+  COMPARE_C64(ldursb(wzr, MemOperand(x1, 42)), "ldursb wzr, [x1, #42]");
+
+  // `ldrsb` can assemble to `ldursb`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldursb(w0, MemOperand(c1, -1)), "ldursb w0, [c1, #-1]");
 }
 
 TEST(morello_c64_aldursb_r_ri_64) {
   SETUP();
 
-  // COMPARE_C64(ldursb(x0, MemOperand(x1, 156)), "TODO");
+  COMPARE_C64(ldursb(x0, MemOperand(x1, 42)), "ldursb x0, [x1, #42]");
+  COMPARE_C64(ldursb(x0, MemOperand(x1, 0)), "ldursb x0, [x1]");
+  COMPARE_C64(ldursb(x0, MemOperand(x1, -256)), "ldursb x0, [x1, #-256]");
+  COMPARE_C64(ldursb(x0, MemOperand(x1, 255)), "ldursb x0, [x1, #255]");
+  COMPARE_C64(ldursb(x0, MemOperand(sp, 42)), "ldursb x0, [sp, #42]");
+  COMPARE_C64(ldursb(xzr, MemOperand(x1, 42)), "ldursb xzr, [x1, #42]");
+
+  // `ldrsb` can assemble to `ldursb`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldursb(x0, MemOperand(c1, -1)), "ldursb x0, [c1, #-1]");
 }
 
 TEST(morello_c64_aldursh_r_ri_32) {
   SETUP();
 
-  // COMPARE_C64(ldursh(w0, MemOperand(x1, -228)), "TODO");
+  COMPARE_C64(ldursh(w0, MemOperand(x1, 42)), "ldursh w0, [x1, #42]");
+  COMPARE_C64(ldursh(w0, MemOperand(x1, 0)), "ldursh w0, [x1]");
+  COMPARE_C64(ldursh(w0, MemOperand(x1, -256)), "ldursh w0, [x1, #-256]");
+  COMPARE_C64(ldursh(w0, MemOperand(x1, 255)), "ldursh w0, [x1, #255]");
+  COMPARE_C64(ldursh(w0, MemOperand(sp, 42)), "ldursh w0, [sp, #42]");
+  COMPARE_C64(ldursh(wzr, MemOperand(x1, 42)), "ldursh wzr, [x1, #42]");
+
+  // `ldrsh` can assemble to `ldursh`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldursh(w0, MemOperand(c1, -1)), "ldursh w0, [c1, #-1]");
 }
 
 TEST(morello_c64_aldursh_r_ri_64) {
   SETUP();
 
-  // COMPARE_C64(ldursh(x0, MemOperand(x1, 243)), "TODO");
+  COMPARE_C64(ldursh(x0, MemOperand(x1, 42)), "ldursh x0, [x1, #42]");
+  COMPARE_C64(ldursh(x0, MemOperand(x1, 0)), "ldursh x0, [x1]");
+  COMPARE_C64(ldursh(x0, MemOperand(x1, -256)), "ldursh x0, [x1, #-256]");
+  COMPARE_C64(ldursh(x0, MemOperand(x1, 255)), "ldursh x0, [x1, #255]");
+  COMPARE_C64(ldursh(x0, MemOperand(sp, 42)), "ldursh x0, [sp, #42]");
+  COMPARE_C64(ldursh(xzr, MemOperand(x1, 42)), "ldursh xzr, [x1, #42]");
+
+  // `ldrsh` can assemble to `ldursh`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldursh(x0, MemOperand(c1, -1)), "ldursh x0, [c1, #-1]");
 }
 
 TEST(morello_c64_aldursw_r_ri_64) {
   SETUP();
 
-  // COMPARE_C64(ldursw(x0, MemOperand(x1, 108)), "TODO");
+  COMPARE_C64(ldursw(x0, MemOperand(x1, 42)), "ldursw x0, [x1, #42]");
+  COMPARE_C64(ldursw(x0, MemOperand(x1, 0)), "ldursw x0, [x1]");
+  COMPARE_C64(ldursw(x0, MemOperand(x1, -256)), "ldursw x0, [x1, #-256]");
+  COMPARE_C64(ldursw(x0, MemOperand(x1, 255)), "ldursw x0, [x1, #255]");
+  COMPARE_C64(ldursw(x0, MemOperand(sp, 42)), "ldursw x0, [sp, #42]");
+  COMPARE_C64(ldursw(xzr, MemOperand(x1, 42)), "ldursw xzr, [x1, #42]");
+
+  // `ldrsw` can assemble to `ldursw`, according to its LoadStoreScalingOption.
+  COMPARE_C64(ldursw(x0, MemOperand(c1, -1)), "ldursw x0, [c1, #-1]");
 }
 
 TEST(morello_c64_astlr_c_r_c) {
@@ -1058,23 +1385,115 @@ TEST(morello_c64_astr_v_macro_b) {
 TEST(morello_c64_astrb_r_ri_b) {
   SETUP();
 
-  // COMPARE_C64(strb(w0, MemOperand(x1, 2032)), "TODO");
+  COMPARE_C64(strb(w0, MemOperand(x1, 42)), "strb w0, [x1, #42]");
+  COMPARE_C64(strb(w0, MemOperand(x1, 0)), "strb w0, [x1]");
+  COMPARE_C64(strb(w0, MemOperand(x1, 511)), "strb w0, [x1, #511]");
+  COMPARE_C64(strb(w0, MemOperand(sp, 42)), "strb w0, [sp, #42]");
+  COMPARE_C64(strb(wzr, MemOperand(x1, 42)), "strb wzr, [x1, #42]");
+
+  // `sturb` can assemble to `strb`, according to its LoadStoreScalingOption.
+  COMPARE_C64(sturb(w0, MemOperand(c1, 256)), "strb w0, [c1, #256]");
+  COMPARE_C64(sturb(w0, MemOperand(c1, 511)), "strb w0, [c1, #511]");
 }
 
 TEST(morello_c64_astrb_r_rrb_b) {
   SETUP();
 
-  // COMPARE_C64(strb(w0, MemOperand(x1, w2, SXTW)), "TODO");
-  // COMPARE_C64(strb(w0, MemOperand(x1, w2, UXTW)), "TODO");
-  // COMPARE_C64(strb(w0, MemOperand(x1, x2, LSL)), "TODO");
-  // COMPARE_C64(strb(w0, MemOperand(x1, x2, SXTX)), "TODO");
+  COMPARE_C64(strb(w0, MemOperand(x1, w2, UXTW)), "strb w0, [x1, w2, uxtw]");
+  COMPARE_C64(strb(w0, MemOperand(x1, x2, SXTX, 0)), "strb w0, [x1, x2, sxtx]");
+  COMPARE_C64(strb(w0, MemOperand(x1, x2, LSL, 0)), "strb w0, [x1, x2]");
+  COMPARE_C64(strb(w0, MemOperand(x1, xzr)), "strb w0, [x1, xzr]");
+  COMPARE_C64(strb(w0, MemOperand(sp, x2)), "strb w0, [sp, x2]");
+  COMPARE_C64(strb(wzr, MemOperand(x1, x2)), "strb wzr, [x1, x2]");
 }
 
 TEST(morello_c64_astrh_r_rrb_32) {
   SETUP();
 
-  // COMPARE_C64(strh(w0, MemOperand(x1, w2, SXTW, 1)), "TODO");
-  // COMPARE_C64(strh(w0, MemOperand(x1, x2, SXTX, 0)), "TODO");
+  COMPARE_C64(strh(w0, MemOperand(x1, x2)), "strh w0, [x1, x2]");
+  COMPARE_C64(strh(w0, MemOperand(x1, w2, SXTW, 0)), "strh w0, [x1, w2, sxtw]");
+  COMPARE_C64(strh(w0, MemOperand(x1, x2, LSL, 1)),
+              "strh w0, [x1, x2, lsl #1]");
+  COMPARE_C64(strh(w0, MemOperand(x1, xzr, LSL, 1)),
+              "strh w0, [x1, xzr, lsl #1]");
+  COMPARE_C64(strh(w0, MemOperand(sp, x2, LSL, 1)),
+              "strh w0, [sp, x2, lsl #1]");
+  COMPARE_C64(strh(wzr, MemOperand(x1, x2, LSL, 1)),
+              "strh wzr, [x1, x2, lsl #1]");
+}
+
+TEST(morello_c64_astrb_macro) {
+  SETUP();
+
+  // Encodable cases.
+  // "unsigned offset"
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, 42)), "strb w0, [x1, #42]");
+  COMPARE_MACRO_C64(Strb(wzr, MemOperand(sp, 42)), "strb wzr, [sp, #42]");
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, 511)), "strb w0, [x1, #511]");
+  // "unscaled"
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, -256)), "sturb w0, [x1, #-256]");
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, -1)), "sturb w0, [x1, #-1]");
+  COMPARE_MACRO_C64(Strb(wzr, MemOperand(sp, -1)), "sturb wzr, [sp, #-1]");
+  // "register"
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, x2)), "strb w0, [x1, x2]");
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, w2, SXTW)),
+                    "strb w0, [x1, w2, sxtw]");
+
+  // The MacroAssembler permits an X-sized source for truncating stores.
+  COMPARE_MACRO_C64(Strb(x0, MemOperand(x1, 42)), "strb w0, [x1, #42]");
+  COMPARE_MACRO_C64(Strb(x0, MemOperand(x1, -1)), "sturb w0, [x1, #-1]");
+  COMPARE_MACRO_C64(Strb(x0, MemOperand(x1, w2, UXTW)),
+                    "strb w0, [x1, w2, uxtw]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, 512)),
+                    "add x16, x1, #0x200 (512)\n"
+                    "strb w0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "strb w0, [x1]");
+  COMPARE_MACRO_C64(Strb(w0, MemOperand(x1, 16, PostIndex)),
+                    "strb w0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+}
+
+TEST(morello_c64_astrh_macro) {
+  SETUP();
+
+  // Encodable cases.
+  // "unscaled"
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, -256)), "sturh w0, [x1, #-256]");
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, 255)), "sturh w0, [x1, #255]");
+  COMPARE_MACRO_C64(Strh(wzr, MemOperand(sp, 42)), "sturh wzr, [sp, #42]");
+  // "register"
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, x2)), "strh w0, [x1, x2]");
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, w2, SXTW)),
+                    "strh w0, [x1, w2, sxtw]");
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, x2, LSL, 1)),
+                    "strh w0, [x1, x2, lsl #1]");
+
+  // The MacroAssembler permits an X-sized source for truncating stores.
+  COMPARE_MACRO_C64(Strh(x0, MemOperand(x1, 42)), "sturh w0, [x1, #42]");
+  COMPARE_MACRO_C64(Strh(x0, MemOperand(x1, x2, SXTX, 1)),
+                    "strh w0, [x1, x2, sxtx #1]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x1, x16\n"
+                    "sturh w0, [x16]");
+  // There are no index modes.
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, -16, PreIndex)),
+                    "sub x1, x1, #0x10 (16)\n"
+                    "sturh w0, [x1]");
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, 16, PostIndex)),
+                    "sturh w0, [x1]\n"
+                    "add x1, x1, #0x10 (16)");
+  // There is no "unsigned offset" mode.
+  COMPARE_MACRO_C64(Strh(w0, MemOperand(x1, 256)),
+                    "add x16, x1, #0x100 (256)\n"
+                    "sturh w0, [x16]");
 }
 
 TEST(morello_c64_astur_c_ri_c) {
@@ -1197,13 +1616,29 @@ TEST(morello_c64_astur_v_ri_s) {
 TEST(morello_c64_asturb_r_ri_32) {
   SETUP();
 
-  // COMPARE_C64(sturb(w0, MemOperand(x1, 154)), "TODO");
+  COMPARE_C64(sturb(w0, MemOperand(x1, 42)), "sturb w0, [x1, #42]");
+  COMPARE_C64(sturb(w0, MemOperand(x1, 0)), "sturb w0, [x1]");
+  COMPARE_C64(sturb(w0, MemOperand(x1, -256)), "sturb w0, [x1, #-256]");
+  COMPARE_C64(sturb(w0, MemOperand(x1, 255)), "sturb w0, [x1, #255]");
+  COMPARE_C64(sturb(w0, MemOperand(sp, 42)), "sturb w0, [sp, #42]");
+  COMPARE_C64(sturb(wzr, MemOperand(x1, 42)), "sturb wzr, [x1, #42]");
+
+  // `strb` can assemble to `sturb`, according to its LoadStoreScalingOption.
+  COMPARE_C64(sturb(w0, MemOperand(c1, -1)), "sturb w0, [c1, #-1]");
 }
 
 TEST(morello_c64_asturh_r_ri_32) {
   SETUP();
 
-  // COMPARE_C64(sturh(w0, MemOperand(x1, 247)), "TODO");
+  COMPARE_C64(sturh(w0, MemOperand(x1, 42)), "sturh w0, [x1, #42]");
+  COMPARE_C64(sturh(w0, MemOperand(x1, 0)), "sturh w0, [x1]");
+  COMPARE_C64(sturh(w0, MemOperand(x1, -256)), "sturh w0, [x1, #-256]");
+  COMPARE_C64(sturh(w0, MemOperand(x1, 255)), "sturh w0, [x1, #255]");
+  COMPARE_C64(sturh(w0, MemOperand(sp, 42)), "sturh w0, [sp, #42]");
+  COMPARE_C64(sturh(wzr, MemOperand(x1, 42)), "sturh wzr, [x1, #42]");
+
+  // `strh` can assemble to `sturh`, according to its LoadStoreScalingOption.
+  COMPARE_C64(sturh(w0, MemOperand(c1, -1)), "sturh w0, [c1, #-1]");
 }
 
 TEST(morello_c64_cas_c_r_c) {

@@ -1950,15 +1950,6 @@ void MacroAssembler::Setf16(const Register& wn) {
   setf16(wn);
 }
 
-
-#define DEFINE_FUNCTION(FN, REGTYPE, REG, OP)                          \
-  void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) { \
-    VIXL_ASSERT(allow_macro_instructions_);                            \
-    LoadStoreMacro(REG, addr, OP);                                     \
-  }
-LS_MACRO_LIST(DEFINE_FUNCTION)
-#undef DEFINE_FUNCTION
-
 void MacroAssembler::Ldr(const CPURegister& rt, const MemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
   if (addr.IsAltBase(GetISA())) {
@@ -1978,6 +1969,70 @@ void MacroAssembler::Str(const CPURegister& rt, const MemOperand& addr) {
     LoadStoreMacro(rt, addr, LoadStoreOpSet::Str(CRegister(rt)));
   } else {
     LoadStoreMacro(rt, addr, StoreOpFor(rt));
+  }
+}
+
+void MacroAssembler::Ldrb(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Aldrb(rt));
+  } else {
+    LoadStoreMacro(rt, addr, LDRB_w);
+  }
+}
+
+void MacroAssembler::Ldrsb(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Aldrsb(rt));
+  } else {
+    LoadStoreMacro(rt, addr, rt.Is64Bits() ? LDRSB_x : LDRSB_w);
+  }
+}
+
+void MacroAssembler::Strb(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Astrb(rt));
+  } else {
+    LoadStoreMacro(rt, addr, STRB_w);
+  }
+}
+
+void MacroAssembler::Ldrh(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Aldrh(rt));
+  } else {
+    LoadStoreMacro(rt, addr, LDRH_w);
+  }
+}
+
+void MacroAssembler::Ldrsh(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Aldrsh(rt));
+  } else {
+    LoadStoreMacro(rt, addr, rt.Is64Bits() ? LDRSH_x : LDRSH_w);
+  }
+}
+
+void MacroAssembler::Strh(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(rt, addr, LoadStoreOpSet::Astrh(rt));
+  } else {
+    LoadStoreMacro(rt, addr, STRH_w);
+  }
+}
+
+void MacroAssembler::Ldrsw(const Register& xt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(xt.Is64Bits());
+  if (addr.IsAltBase(GetISA())) {
+    LoadStoreMacro(xt, addr, LoadStoreOpSet::Aldrsw(xt));
+  } else {
+    LoadStoreMacro(xt, addr, LDRSW_x);
   }
 }
 

@@ -10127,9 +10127,20 @@ void Disassembler::VisitMorelloLoadStoreRegisterAltBase(
 
   switch (instr->Mask(MorelloLoadStoreRegisterAltBaseMask)) {
     case ASTRB_r_rrb:
+      mnemonic = "strb";
+      form = "'Wt, ['ans, 'Offsetregb]";
+      break;
     case ALDRSB_r_rrb_64:
+      mnemonic = "ldrsb";
+      form = "'Xt, ['ans, 'Offsetregb]";
+      break;
     case ALDRSH_r_rrb_64:
+      mnemonic = "ldrsh";
+      form = "'Xt, ['ans, 'Offsetregh]";
+      break;
     case ASTRH_r_rrb:
+      mnemonic = "strh";
+      form = "'Wt, ['ans, 'Offsetregh]";
       break;
     case ASTR_r_rrb_32:
       mnemonic = "str";
@@ -10148,9 +10159,20 @@ void Disassembler::VisitMorelloLoadStoreRegisterAltBase(
       form = "'St, ['ans, 'Offsetregs]";
       break;
     case ALDRB_r_rrb:
+      mnemonic = "ldrb";
+      form = "'Wt, ['ans, 'Offsetregb]";
+      break;
     case ALDRSB_r_rrb_32:
+      mnemonic = "ldrsb";
+      form = "'Wt, ['ans, 'Offsetregb]";
+      break;
     case ALDRSH_r_rrb_32:
+      mnemonic = "ldrsh";
+      form = "'Wt, ['ans, 'Offsetregh]";
+      break;
     case ALDRH_r_rrb:
+      mnemonic = "ldrh";
+      form = "'Wt, ['ans, 'Offsetregh]";
       break;
     case ALDR_r_rrb_32:
       mnemonic = "ldr";
@@ -10203,10 +10225,20 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
 
   switch (instr->Mask(MorelloLoadStoreUnscaledImmediateAltBaseMask)) {
     case ASTURB_r_ri:
+      mnemonic = "sturb";
+      form = "'Wt";
+      break;
     case ALDURB_r_ri:
+      mnemonic = "ldurb";
+      form = "'Wt";
+      break;
     case ALDURSB_r_ri_64:
+      mnemonic = "ldursb";
+      form = "'Xt";
+      break;
     case ALDURSB_r_ri_32:
-      suffix = nullptr;
+      mnemonic = "ldursb";
+      form = "'Wt";
       break;
     case ASTUR_v_ri_b:
       mnemonic = "stur";
@@ -10225,10 +10257,20 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
       form = "'Qt";
       break;
     case ASTURH_r_ri:
+      mnemonic = "sturh";
+      form = "'Wt";
+      break;
     case ALDURH_r_ri:
+      mnemonic = "ldurh";
+      form = "'Wt";
+      break;
     case ALDURSH_r_ri_64:
+      mnemonic = "ldursh";
+      form = "'Xt";
+      break;
     case ALDURSH_r_ri_32:
-      suffix = nullptr;
+      mnemonic = "ldursh";
+      form = "'Wt";
       break;
     case ASTUR_v_ri_h:
       mnemonic = "stur";
@@ -10247,7 +10289,8 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
       form = "'Wt";
       break;
     case ALDURSW_r_ri:
-      suffix = nullptr;
+      mnemonic = "ldursw";
+      form = "'Xt";
       break;
     case ASTUR_c_ri:
       mnemonic = "stur";
@@ -10318,6 +10361,7 @@ void Disassembler::VisitMorelloLoadStoreUnsignedOffsetAltBase(
   const char *form_c = zero ? "'ct, ['ans]" : "'ct, ['ans, #'u2012*16]";
   const char *form_x = zero ? "'Xt, ['ans]" : "'Xt, ['ans, #'u2012*8]";
   const char *form_w = zero ? "'Wt, ['ans]" : "'Wt, ['ans, #'u2012*4]";
+  const char *form_b = zero ? "'Wt, ['ans]" : "'Wt, ['ans, #'u2012]";
 
   switch (instr->Mask(MorelloLoadStoreUnsignedOffsetAltBaseMask)) {
     case ALDR_c_ri:
@@ -10345,7 +10389,13 @@ void Disassembler::VisitMorelloLoadStoreUnsignedOffsetAltBase(
       form = form_x;
       break;
     case ASTRB_r_ri:
+      mnemonic = "strb";
+      form = form_b;
+      break;
     case ALDRB_r_ri:
+      mnemonic = "ldrb";
+      form = form_b;
+      break;
     default:
       break;
   }
@@ -11751,6 +11801,14 @@ int Disassembler::SubstituteLSRegOffsetField(const Instruction *instr,
     case 'w':  // 'Offsetregw
     case 's':  // 'Offsetregs
       size = kWRegSizeInBytesLog2;
+      len++;
+      break;
+    case 'h':  // 'Offsetregh
+      size = kHRegSizeInBytesLog2;
+      len++;
+      break;
+    case 'b':  // 'Offsetregb
+      size = kBRegSizeInBytesLog2;
       len++;
       break;
   }

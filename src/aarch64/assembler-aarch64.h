@@ -7306,16 +7306,25 @@ class Assembler : public vixl::internal::AssemblerBase {
 #undef VIXL_LOAD_STORE_OP_ACCESSORS
 
    private:
+    explicit LoadStoreOpSet(int access_size_in_bytes_log_2)
+        : access_size_in_bytes_log_2_(access_size_in_bytes_log_2) {}
+
     Instr TryEncode(CPURegister rt,
                     const MemOperand& addr,
                     LoadStoreScalingOption option) const;
 
-    Instr TryEncodeMemOperand(unsigned access_size_in_bytes_log2,
-                              const MemOperand& addr,
+    Instr TryEncodeMemOperand(const MemOperand& addr,
                               LoadStoreScalingOption option) const;
 
-    static const Instr kUnsupported = 0xffffffff;
+    unsigned GetAccessSizeInBytesLog2() const {
+      return access_size_in_bytes_log_2_;
+    }
+    unsigned GetAccessSizeInBytes() const {
+      return 1 << access_size_in_bytes_log_2_;
+    }
+    unsigned access_size_in_bytes_log_2_;
 
+    static const Instr kUnsupported = 0xffffffff;
 #define VIXL_LOAD_STORE_OP_FIELDS(NAME, FIELD)                       \
   /* All encodings are kUnsupported unless explicitly overridden. */ \
   Instr FIELD = kUnsupported;

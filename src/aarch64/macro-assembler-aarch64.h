@@ -45,16 +45,6 @@
 #include "simulator-constants-aarch64.h"
 
 
-#define LS_MACRO_LIST(V)                                     \
-  V(Ldrb, Register&, rt, LDRB_w)                             \
-  V(Strb, Register&, rt, STRB_w)                             \
-  V(Ldrsb, Register&, rt, rt.Is64Bits() ? LDRSB_x : LDRSB_w) \
-  V(Ldrh, Register&, rt, LDRH_w)                             \
-  V(Strh, Register&, rt, STRH_w)                             \
-  V(Ldrsh, Register&, rt, rt.Is64Bits() ? LDRSH_x : LDRSH_w) \
-  V(Ldrsw, Register&, rt, LDRSW_x)
-
-
 #define LSPAIR_MACRO_LIST(V)                             \
   V(Ldp, CPURegister&, rt, rt2, LoadPairOpFor(rt, rt2))  \
   V(Stp, CPURegister&, rt, rt2, StorePairOpFor(rt, rt2)) \
@@ -852,14 +842,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     CselHelper(this, rd, left, right, cond);
   }
 
-// Load/store macros.
-#define DECLARE_FUNCTION(FN, REGTYPE, REG, OP) \
-  void FN(const REGTYPE REG, const MemOperand& addr);
-  LS_MACRO_LIST(DECLARE_FUNCTION)
-#undef DECLARE_FUNCTION
-
+  // Load/store macros.
   void Ldr(const CPURegister& rt, const MemOperand& addr);
   void Str(const CPURegister& rt, const MemOperand& addr);
+
+  void Ldrb(const Register& rt, const MemOperand& addr);
+  void Ldrsb(const Register& rt, const MemOperand& addr);
+  void Strb(const Register& rt, const MemOperand& addr);
+
+  void Ldrh(const Register& rt, const MemOperand& addr);
+  void Ldrsh(const Register& rt, const MemOperand& addr);
+  void Strh(const Register& rt, const MemOperand& addr);
+
+  void Ldrsw(const Register& rt, const MemOperand& addr);
 
   void LoadStoreMacro(const CPURegister& rt,
                       const MemOperand& addr,

@@ -1230,60 +1230,78 @@ void Assembler::LoadStorePairNonTemporal(const CPURegister& rt,
 void Assembler::ldrb(const Register& rt,
                      const MemOperand& src,
                      LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, src, LDRB_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrb(rt), option);
+  } else {
+    LoadStore(rt, src, LDRB_w, option);
+  }
 }
 
 
 void Assembler::strb(const Register& rt,
                      const MemOperand& dst,
                      LoadStoreScalingOption option) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, dst, STRB_w, option);
+  if (dst.IsAltBase(GetISA())) {
+    LoadStore(rt, dst, LoadStoreOpSet::Astrb(rt), option);
+  } else {
+    LoadStore(rt, dst, STRB_w, option);
+  }
 }
 
 
 void Assembler::ldrsb(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrsb(rt), option);
+  } else {
+    LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
+  }
 }
 
 
 void Assembler::ldrh(const Register& rt,
                      const MemOperand& src,
                      LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, src, LDRH_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrh(rt), option);
+  } else {
+    LoadStore(rt, src, LDRH_w, option);
+  }
 }
 
 
 void Assembler::strh(const Register& rt,
                      const MemOperand& dst,
                      LoadStoreScalingOption option) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, dst, STRH_w, option);
+  if (dst.IsAltBase(GetISA())) {
+    LoadStore(rt, dst, LoadStoreOpSet::Astrh(rt), option);
+  } else {
+    LoadStore(rt, dst, STRH_w, option);
+  }
 }
 
 
 void Assembler::ldrsh(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrsh(rt), option);
+  } else {
+    LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
+  }
 }
 
 
@@ -1320,71 +1338,92 @@ void Assembler::str(const CPURegister& rt,
 void Assembler::ldrsw(const Register& xt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(xt.Is64Bits());
   VIXL_ASSERT(option != RequireUnscaledOffset);
   VIXL_ASSERT(option != PreferUnscaledOffset);
-  LoadStore(xt, src, LDRSW_x, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(xt, src, LoadStoreOpSet::Aldrsw(xt), option);
+  } else {
+    LoadStore(xt, src, LDRSW_x, option);
+  }
 }
 
 
 void Assembler::ldurb(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, src, LDRB_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrb(rt), option);
+  } else {
+    LoadStore(rt, src, LDRB_w, option);
+  }
 }
 
 
 void Assembler::sturb(const Register& rt,
                       const MemOperand& dst,
                       LoadStoreScalingOption option) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, dst, STRB_w, option);
+  if (dst.IsAltBase(GetISA())) {
+    LoadStore(rt, dst, LoadStoreOpSet::Astrb(rt), option);
+  } else {
+    LoadStore(rt, dst, STRB_w, option);
+  }
 }
 
 
 void Assembler::ldursb(const Register& rt,
                        const MemOperand& src,
                        LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrsb(rt), option);
+  } else {
+    LoadStore(rt, src, rt.Is64Bits() ? LDRSB_x : LDRSB_w, option);
+  }
 }
 
 
 void Assembler::ldurh(const Register& rt,
                       const MemOperand& src,
                       LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, src, LDRH_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrh(rt), option);
+  } else {
+    LoadStore(rt, src, LDRH_w, option);
+  }
 }
 
 
 void Assembler::sturh(const Register& rt,
                       const MemOperand& dst,
                       LoadStoreScalingOption option) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, dst, STRH_w, option);
+  if (dst.IsAltBase(GetISA())) {
+    LoadStore(rt, dst, LoadStoreOpSet::Astrh(rt), option);
+  } else {
+    LoadStore(rt, dst, STRH_w, option);
+  }
 }
 
 
 void Assembler::ldursh(const Register& rt,
                        const MemOperand& src,
                        LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(rt, src, LoadStoreOpSet::Aldrsh(rt), option);
+  } else {
+    LoadStore(rt, src, rt.Is64Bits() ? LDRSH_x : LDRSH_w, option);
+  }
 }
 
 
@@ -1421,11 +1460,14 @@ void Assembler::stur(const CPURegister& rt,
 void Assembler::ldursw(const Register& xt,
                        const MemOperand& src,
                        LoadStoreScalingOption option) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(xt.Is64Bits());
   VIXL_ASSERT(option != RequireScaledOffset);
   VIXL_ASSERT(option != PreferScaledOffset);
-  LoadStore(xt, src, LDRSW_x, option);
+  if (src.IsAltBase(GetISA())) {
+    LoadStore(xt, src, LoadStoreOpSet::Aldrsw(xt), option);
+  } else {
+    LoadStore(xt, src, LDRSW_x, option);
+  }
 }
 
 

@@ -576,8 +576,7 @@ void Assembler::unseal(CRegister cd, CRegister cn, CRegister cm) {
 // Helpers and utilities.
 
 Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Ldr(CRegister rt) {
-  USE(rt);
-  LoadStoreOpSet set;
+  LoadStoreOpSet set(rt.GetLaneSizeInBytesLog2());
   set.scaled_uint12_offset_op_ = LDR_c_rib;
   set.extended_register_op_ = LDR_c_rrb;
   set.unscaled_int9_offset_op_ = LDUR_c_ri;
@@ -587,8 +586,7 @@ Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Ldr(CRegister rt) {
 }
 
 Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Str(CRegister rt) {
-  USE(rt);
-  LoadStoreOpSet set;
+  LoadStoreOpSet set(rt.GetLaneSizeInBytesLog2());
   set.scaled_uint12_offset_op_ = STR_c_rib;
   set.extended_register_op_ = STR_c_rrb;
   set.unscaled_int9_offset_op_ = STUR_c_ri;
@@ -598,7 +596,8 @@ Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Str(CRegister rt) {
 }
 
 Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldr(CPURegister rt) {
-  LoadStoreOpSet set;
+  VIXL_ASSERT(rt.IsScalar());
+  LoadStoreOpSet set(rt.GetLaneSizeInBytesLog2());
   if (rt.IsCRegister()) {
     set.scaled_uint9_offset_op_ = ALDR_c_ri;
     set.extended_register_op_ = ALDR_c_rrb;
@@ -644,7 +643,8 @@ Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldr(CPURegister rt) {
 }
 
 Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Astr(CPURegister rt) {
-  LoadStoreOpSet set;
+  VIXL_ASSERT(rt.IsScalar());
+  LoadStoreOpSet set(rt.GetLaneSizeInBytesLog2());
   if (rt.IsCRegister()) {
     set.scaled_uint9_offset_op_ = ASTR_c_ri;
     set.extended_register_op_ = ASTR_c_rrb;
@@ -689,21 +689,91 @@ Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Astr(CPURegister rt) {
   return set;
 }
 
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldrb(Register rt) {
+  USE(rt);
+  LoadStoreOpSet set(kBRegSizeInBytesLog2);
+  set.scaled_uint9_offset_op_ = ALDRB_r_ri;
+  set.extended_register_op_ = ALDRB_r_rrb;
+  set.unscaled_int9_offset_op_ = ALDURB_r_ri;
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldrsb(Register rt) {
+  LoadStoreOpSet set(kBRegSizeInBytesLog2);
+  switch (rt.GetSizeInBits()) {
+    case kXRegSize:
+      set.extended_register_op_ = ALDRSB_r_rrb_64;
+      set.unscaled_int9_offset_op_ = ALDURSB_r_ri_64;
+      break;
+    case kWRegSize:
+      set.extended_register_op_ = ALDRSB_r_rrb_32;
+      set.unscaled_int9_offset_op_ = ALDURSB_r_ri_32;
+      break;
+  }
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Astrb(Register rt) {
+  USE(rt);
+  LoadStoreOpSet set(kBRegSizeInBytesLog2);
+  set.scaled_uint9_offset_op_ = ASTRB_r_ri;
+  set.extended_register_op_ = ASTRB_r_rrb;
+  set.unscaled_int9_offset_op_ = ASTURB_r_ri;
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldrh(Register rt) {
+  USE(rt);
+  LoadStoreOpSet set(kHRegSizeInBytesLog2);
+  set.extended_register_op_ = ALDRH_r_rrb;
+  set.unscaled_int9_offset_op_ = ALDURH_r_ri;
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldrsh(Register rt) {
+  LoadStoreOpSet set(kHRegSizeInBytesLog2);
+  switch (rt.GetSizeInBits()) {
+    case kXRegSize:
+      set.extended_register_op_ = ALDRSH_r_rrb_64;
+      set.unscaled_int9_offset_op_ = ALDURSH_r_ri_64;
+      break;
+    case kWRegSize:
+      set.extended_register_op_ = ALDRSH_r_rrb_32;
+      set.unscaled_int9_offset_op_ = ALDURSH_r_ri_32;
+      break;
+  }
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Astrh(Register rt) {
+  USE(rt);
+  LoadStoreOpSet set(kHRegSizeInBytesLog2);
+  set.extended_register_op_ = ASTRH_r_rrb;
+  set.unscaled_int9_offset_op_ = ASTURH_r_ri;
+  return set;
+}
+
+Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldrsw(Register rt) {
+  USE(rt);
+  LoadStoreOpSet set(kWRegSizeInBytesLog2);
+  set.unscaled_int9_offset_op_ = ALDURSW_r_ri;
+  return set;
+}
+
 Instr Assembler::LoadStoreOpSet::TryEncode(
     CPURegister rt,
     const MemOperand& addr,
     LoadStoreScalingOption option) const {
   VIXL_ASSERT(rt.IsScalar());
-  Instr instr = TryEncodeMemOperand(rt.GetLaneSizeInBytesLog2(), addr, option);
+  Instr instr = TryEncodeMemOperand(addr, option);
   VIXL_ASSERT((instr == kUnsupported) || ((instr & Rt_mask) == 0));
   return instr | Rt(rt);
 }
 
 Instr Assembler::LoadStoreOpSet::TryEncodeMemOperand(
-    unsigned access_size_in_bytes_log_2,
-    const MemOperand& addr,
-    LoadStoreScalingOption option) const {
-  unsigned access_size_in_bytes = 1 << access_size_in_bytes_log_2;
+    const MemOperand& addr, LoadStoreScalingOption option) const {
+  unsigned access_size_in_bytes_log_2 = GetAccessSizeInBytesLog2();
+  unsigned access_size_in_bytes = GetAccessSizeInBytes();
   CPURegister rn = addr.GetBase();
   int64_t offset = addr.GetOffset();
   int64_t scaled_offset = offset / access_size_in_bytes;
