@@ -603,7 +603,23 @@ Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Aldr(CPURegister rt) {
     set.scaled_uint9_offset_op_ = ALDR_c_ri;
     set.extended_register_op_ = ALDR_c_rrb;
     set.unscaled_int9_offset_op_ = ALDUR_c_ri;
-  } else {
+  } else if (rt.IsRegister()) {
+    switch (rt.GetSizeInBits()) {
+      case kXRegSize:
+        set.scaled_uint9_offset_op_ = ALDR_r_ri_64;
+        set.extended_register_op_ = ALDR_r_rrb_64;
+        set.unscaled_int9_offset_op_ = ALDUR_r_ri_64;
+        break;
+      case kWRegSize:
+        set.scaled_uint9_offset_op_ = ALDR_r_ri_32;
+        set.extended_register_op_ = ALDR_r_rrb_32;
+        set.unscaled_int9_offset_op_ = ALDUR_r_ri_32;
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        break;
+    }
+  } else if (rt.IsVRegister()) {
     VIXL_UNIMPLEMENTED();
   }
   return set;
@@ -615,7 +631,23 @@ Assembler::LoadStoreOpSet Assembler::LoadStoreOpSet::Astr(CPURegister rt) {
     set.scaled_uint9_offset_op_ = ASTR_c_ri;
     set.extended_register_op_ = ASTR_c_rrb;
     set.unscaled_int9_offset_op_ = ASTUR_c_ri;
-  } else {
+  } else if (rt.IsRegister()) {
+    switch (rt.GetSizeInBits()) {
+      case kXRegSize:
+        set.scaled_uint9_offset_op_ = ASTR_r_ri_64;
+        set.extended_register_op_ = ASTR_r_rrb_64;
+        set.unscaled_int9_offset_op_ = ASTUR_r_ri_64;
+        break;
+      case kWRegSize:
+        set.scaled_uint9_offset_op_ = ASTR_r_ri_32;
+        set.extended_register_op_ = ASTR_r_rrb_32;
+        set.unscaled_int9_offset_op_ = ASTUR_r_ri_32;
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        break;
+    }
+  } else if (rt.IsVRegister()) {
     VIXL_UNIMPLEMENTED();
   }
   return set;

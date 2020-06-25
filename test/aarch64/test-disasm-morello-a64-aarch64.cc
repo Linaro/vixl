@@ -185,27 +185,81 @@ TEST(morello_a64_aldr_c_macro) {
 TEST(morello_a64_aldr_r_ri_32) {
   SETUP();
 
-  // COMPARE_A64(ldr(w0, MemOperand(c1, 1508)), "TODO");
+  COMPARE_A64(ldr(w0, MemOperand(c1, 420)), "ldr w0, [c1, #420]");
+  COMPARE_A64(ldr(w0, MemOperand(c1, 0)), "ldr w0, [c1]");
+  COMPARE_A64(ldr(w0, MemOperand(c1, 2044)), "ldr w0, [c1, #2044]");
+  COMPARE_A64(ldr(w0, MemOperand(csp, 420)), "ldr w0, [csp, #420]");
+  COMPARE_A64(ldr(wzr, MemOperand(c1, 420)), "ldr wzr, [c1, #420]");
+
+  // `ldur` can assemble to `ldr`, according to its LoadStoreScalingOption.
+  COMPARE_A64(ldur(w0, MemOperand(c1, 256)), "ldr w0, [c1, #256]");
+  COMPARE_A64(ldur(w0, MemOperand(c1, 2044)), "ldr w0, [c1, #2044]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(ldr(CPURegister(w0), MemOperand(c1, 0)), "ldr w0, [c1]");
+  COMPARE_A64(ldr(CPURegister(wzr), MemOperand(c1, 2044)),
+              "ldr wzr, [c1, #2044]");
 }
 
 TEST(morello_a64_aldr_r_ri_64) {
   SETUP();
 
-  // COMPARE_A64(ldr(x0, MemOperand(c1, 640)), "TODO");
+  COMPARE_A64(ldr(x0, MemOperand(c1, 840)), "ldr x0, [c1, #840]");
+  COMPARE_A64(ldr(x0, MemOperand(c1, 0)), "ldr x0, [c1]");
+  COMPARE_A64(ldr(x0, MemOperand(c1, 4088)), "ldr x0, [c1, #4088]");
+  COMPARE_A64(ldr(x0, MemOperand(csp, 840)), "ldr x0, [csp, #840]");
+  COMPARE_A64(ldr(xzr, MemOperand(c1, 840)), "ldr xzr, [c1, #840]");
+
+  // `ldur` can assemble to `ldr`, according to its LoadStoreScalingOption.
+  COMPARE_A64(ldur(x0, MemOperand(c1, 256)), "ldr x0, [c1, #256]");
+  COMPARE_A64(ldur(x0, MemOperand(c1, 4088)), "ldr x0, [c1, #4088]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(ldr(CPURegister(x0), MemOperand(c1, 0)), "ldr x0, [c1]");
+  COMPARE_A64(ldr(CPURegister(xzr), MemOperand(c1, 4088)),
+              "ldr xzr, [c1, #4088]");
 }
 
 TEST(morello_a64_aldr_r_rrb_32) {
   SETUP();
 
-  // COMPARE_A64(ldr(w0, MemOperand(c1, w2, SXTW, 2)), "TODO");
-  // COMPARE_A64(ldr(w0, MemOperand(c1, x2, SXTX, 0)), "TODO");
+  COMPARE_A64(ldr(w0, MemOperand(c1, w2, UXTW, 2)),
+              "ldr w0, [c1, w2, uxtw #2]");
+  COMPARE_A64(ldr(w0, MemOperand(c1, x2, SXTX, 0)), "ldr w0, [c1, x2, sxtx]");
+  COMPARE_A64(ldr(w0, MemOperand(c1, x2, LSL, 2)), "ldr w0, [c1, x2, lsl #2]");
+  COMPARE_A64(ldr(w0, MemOperand(c1, xzr, LSL, 2)),
+              "ldr w0, [c1, xzr, lsl #2]");
+  COMPARE_A64(ldr(w0, MemOperand(csp, x2, LSL, 2)),
+              "ldr w0, [csp, x2, lsl #2]");
+  COMPARE_A64(ldr(wzr, MemOperand(c1, x2, LSL, 2)),
+              "ldr wzr, [c1, x2, lsl #2]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(ldr(CPURegister(w0), MemOperand(c1, w2, UXTW, 2)),
+              "ldr w0, [c1, w2, uxtw #2]");
+  COMPARE_A64(ldr(CPURegister(wzr), MemOperand(c1, x2, LSL, 2)),
+              "ldr wzr, [c1, x2, lsl #2]");
 }
 
 TEST(morello_a64_aldr_r_rrb_64) {
   SETUP();
 
-  // COMPARE_A64(ldr(x0, MemOperand(c1, w2, UXTW, 0)), "TODO");
-  // COMPARE_A64(ldr(x0, MemOperand(c1, x2, SXTX, 0)), "TODO");
+  COMPARE_A64(ldr(x0, MemOperand(c1, w2, UXTW, 3)),
+              "ldr x0, [c1, w2, uxtw #3]");
+  COMPARE_A64(ldr(x0, MemOperand(c1, x2, SXTX, 0)), "ldr x0, [c1, x2, sxtx]");
+  COMPARE_A64(ldr(x0, MemOperand(c1, x2, LSL, 3)), "ldr x0, [c1, x2, lsl #3]");
+  COMPARE_A64(ldr(x0, MemOperand(c1, xzr, LSL, 3)),
+              "ldr x0, [c1, xzr, lsl #3]");
+  COMPARE_A64(ldr(x0, MemOperand(csp, x2, LSL, 3)),
+              "ldr x0, [csp, x2, lsl #3]");
+  COMPARE_A64(ldr(xzr, MemOperand(c1, x2, LSL, 3)),
+              "ldr xzr, [c1, x2, lsl #3]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(ldr(CPURegister(x0), MemOperand(c1, w2, UXTW, 3)),
+              "ldr x0, [c1, w2, uxtw #3]");
+  COMPARE_A64(ldr(CPURegister(xzr), MemOperand(c1, x2, LSL, 3)),
+              "ldr xzr, [c1, x2, lsl #3]");
 }
 
 TEST(morello_a64_aldr_v_rrb_d) {
@@ -298,13 +352,39 @@ TEST(morello_a64_aldur_c_ri_c) {
 TEST(morello_a64_aldur_r_ri_32) {
   SETUP();
 
-  // COMPARE_A64(ldur(w0, MemOperand(c1, 17)), "TODO");
+  COMPARE_A64(ldur(w0, MemOperand(c1, 255)), "ldur w0, [c1, #255]");
+  COMPARE_A64(ldur(w0, MemOperand(c1, -256)), "ldur w0, [c1, #-256]");
+  COMPARE_A64(ldur(w0, MemOperand(c1, 0)), "ldur w0, [c1]");
+  COMPARE_A64(ldur(w0, MemOperand(csp, 42)), "ldur w0, [csp, #42]");
+  COMPARE_A64(ldur(wzr, MemOperand(c1, 42)), "ldur wzr, [c1, #42]");
+
+  // `ldr` can assemble to `ldur`, according to its LoadStoreScalingOption.
+  COMPARE_A64(ldr(w0, MemOperand(c1, -1)), "ldur w0, [c1, #-1]");
+  COMPARE_A64(ldr(w0, MemOperand(c1, 42)), "ldur w0, [c1, #42]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(ldur(CPURegister(w0), MemOperand(c1, 0)), "ldur w0, [c1]");
+  COMPARE_A64(ldur(CPURegister(wzr), MemOperand(c1, 42)),
+              "ldur wzr, [c1, #42]");
 }
 
 TEST(morello_a64_aldur_r_ri_64) {
   SETUP();
 
-  // COMPARE_A64(ldur(x0, MemOperand(c1, 197)), "TODO");
+  COMPARE_A64(ldur(x0, MemOperand(c1, 255)), "ldur x0, [c1, #255]");
+  COMPARE_A64(ldur(x0, MemOperand(c1, -256)), "ldur x0, [c1, #-256]");
+  COMPARE_A64(ldur(x0, MemOperand(c1, 0)), "ldur x0, [c1]");
+  COMPARE_A64(ldur(x0, MemOperand(csp, 42)), "ldur x0, [csp, #42]");
+  COMPARE_A64(ldur(xzr, MemOperand(c1, 42)), "ldur xzr, [c1, #42]");
+
+  // `ldr` can assemble to `ldur`, according to its LoadStoreScalingOption.
+  COMPARE_A64(ldr(x0, MemOperand(c1, -1)), "ldur x0, [c1, #-1]");
+  COMPARE_A64(ldr(x0, MemOperand(c1, 42)), "ldur x0, [c1, #42]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(ldur(CPURegister(x0), MemOperand(c1, 0)), "ldur x0, [c1]");
+  COMPARE_A64(ldur(CPURegister(xzr), MemOperand(c1, 42)),
+              "ldur xzr, [c1, #42]");
 }
 
 TEST(morello_a64_aldur_v_ri_b) {
@@ -471,27 +551,81 @@ TEST(morello_a64_astr_c_macro) {
 TEST(morello_a64_astr_r_ri_32) {
   SETUP();
 
-  // COMPARE_A64(str(w0, MemOperand(c1, 1520)), "TODO");
+  COMPARE_A64(str(w0, MemOperand(c1, 420)), "str w0, [c1, #420]");
+  COMPARE_A64(str(w0, MemOperand(c1, 0)), "str w0, [c1]");
+  COMPARE_A64(str(w0, MemOperand(c1, 2044)), "str w0, [c1, #2044]");
+  COMPARE_A64(str(w0, MemOperand(csp, 420)), "str w0, [csp, #420]");
+  COMPARE_A64(str(wzr, MemOperand(c1, 420)), "str wzr, [c1, #420]");
+
+  // `stur` can assemble to `str`, according to its LoadStoreScalingOption.
+  COMPARE_A64(stur(w0, MemOperand(c1, 256)), "str w0, [c1, #256]");
+  COMPARE_A64(stur(w0, MemOperand(c1, 2044)), "str w0, [c1, #2044]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(str(CPURegister(w0), MemOperand(c1, 0)), "str w0, [c1]");
+  COMPARE_A64(str(CPURegister(wzr), MemOperand(c1, 2044)),
+              "str wzr, [c1, #2044]");
 }
 
 TEST(morello_a64_astr_r_ri_64) {
   SETUP();
 
-  // COMPARE_A64(str(x0, MemOperand(c1, 2256)), "TODO");
+  COMPARE_A64(str(x0, MemOperand(c1, 840)), "str x0, [c1, #840]");
+  COMPARE_A64(str(x0, MemOperand(c1, 0)), "str x0, [c1]");
+  COMPARE_A64(str(x0, MemOperand(c1, 4088)), "str x0, [c1, #4088]");
+  COMPARE_A64(str(x0, MemOperand(csp, 840)), "str x0, [csp, #840]");
+  COMPARE_A64(str(xzr, MemOperand(c1, 840)), "str xzr, [c1, #840]");
+
+  // `stur` can assemble to `str`, according to its LoadStoreScalingOption.
+  COMPARE_A64(stur(x0, MemOperand(c1, 256)), "str x0, [c1, #256]");
+  COMPARE_A64(stur(x0, MemOperand(c1, 4088)), "str x0, [c1, #4088]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(str(CPURegister(x0), MemOperand(c1, 0)), "str x0, [c1]");
+  COMPARE_A64(str(CPURegister(xzr), MemOperand(c1, 4088)),
+              "str xzr, [c1, #4088]");
 }
 
 TEST(morello_a64_astr_r_rrb_32) {
   SETUP();
 
-  // COMPARE_A64(str(w0, MemOperand(c1, w2, SXTW, 2)), "TODO");
-  // COMPARE_A64(str(w0, MemOperand(c1, x2, SXTX, 0)), "TODO");
+  COMPARE_A64(str(w0, MemOperand(c1, w2, UXTW, 2)),
+              "str w0, [c1, w2, uxtw #2]");
+  COMPARE_A64(str(w0, MemOperand(c1, x2, SXTX, 0)), "str w0, [c1, x2, sxtx]");
+  COMPARE_A64(str(w0, MemOperand(c1, x2, LSL, 2)), "str w0, [c1, x2, lsl #2]");
+  COMPARE_A64(str(w0, MemOperand(c1, xzr, LSL, 2)),
+              "str w0, [c1, xzr, lsl #2]");
+  COMPARE_A64(str(w0, MemOperand(csp, x2, LSL, 2)),
+              "str w0, [csp, x2, lsl #2]");
+  COMPARE_A64(str(wzr, MemOperand(c1, x2, LSL, 2)),
+              "str wzr, [c1, x2, lsl #2]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(str(CPURegister(w0), MemOperand(c1, w2, UXTW, 2)),
+              "str w0, [c1, w2, uxtw #2]");
+  COMPARE_A64(str(CPURegister(wzr), MemOperand(c1, x2, LSL, 2)),
+              "str wzr, [c1, x2, lsl #2]");
 }
 
 TEST(morello_a64_astr_r_rrb_64) {
   SETUP();
 
-  // COMPARE_A64(str(x0, MemOperand(c1, w2, UXTW, 3)), "TODO");
-  // COMPARE_A64(str(x0, MemOperand(c1, x2, SXTX, 3)), "TODO");
+  COMPARE_A64(str(x0, MemOperand(c1, w2, UXTW, 3)),
+              "str x0, [c1, w2, uxtw #3]");
+  COMPARE_A64(str(x0, MemOperand(c1, x2, SXTX, 0)), "str x0, [c1, x2, sxtx]");
+  COMPARE_A64(str(x0, MemOperand(c1, x2, LSL, 3)), "str x0, [c1, x2, lsl #3]");
+  COMPARE_A64(str(x0, MemOperand(c1, xzr, LSL, 3)),
+              "str x0, [c1, xzr, lsl #3]");
+  COMPARE_A64(str(x0, MemOperand(csp, x2, LSL, 3)),
+              "str x0, [csp, x2, lsl #3]");
+  COMPARE_A64(str(xzr, MemOperand(c1, x2, LSL, 3)),
+              "str xzr, [c1, x2, lsl #3]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(str(CPURegister(x0), MemOperand(c1, w2, UXTW, 3)),
+              "str x0, [c1, w2, uxtw #3]");
+  COMPARE_A64(str(CPURegister(xzr), MemOperand(c1, x2, LSL, 3)),
+              "str xzr, [c1, x2, lsl #3]");
 }
 
 TEST(morello_a64_astr_v_rrb_d) {
@@ -552,13 +686,39 @@ TEST(morello_a64_astur_c_ri_c) {
 TEST(morello_a64_astur_r_ri_32) {
   SETUP();
 
-  // COMPARE_A64(stur(w0, MemOperand(c1, 179)), "TODO");
+  COMPARE_A64(stur(w0, MemOperand(c1, 255)), "stur w0, [c1, #255]");
+  COMPARE_A64(stur(w0, MemOperand(c1, -256)), "stur w0, [c1, #-256]");
+  COMPARE_A64(stur(w0, MemOperand(c1, 0)), "stur w0, [c1]");
+  COMPARE_A64(stur(w0, MemOperand(csp, 42)), "stur w0, [csp, #42]");
+  COMPARE_A64(stur(wzr, MemOperand(c1, 42)), "stur wzr, [c1, #42]");
+
+  // `str` can assemble to `stur`, according to its LoadStoreScalingOption.
+  COMPARE_A64(str(w0, MemOperand(c1, -1)), "stur w0, [c1, #-1]");
+  COMPARE_A64(str(w0, MemOperand(c1, 42)), "stur w0, [c1, #42]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(stur(CPURegister(w0), MemOperand(c1, 0)), "stur w0, [c1]");
+  COMPARE_A64(stur(CPURegister(wzr), MemOperand(c1, 42)),
+              "stur wzr, [c1, #42]");
 }
 
 TEST(morello_a64_astur_r_ri_64) {
   SETUP();
 
-  // COMPARE_A64(stur(x0, MemOperand(c1, -226)), "TODO");
+  COMPARE_A64(stur(x0, MemOperand(c1, 255)), "stur x0, [c1, #255]");
+  COMPARE_A64(stur(x0, MemOperand(c1, -256)), "stur x0, [c1, #-256]");
+  COMPARE_A64(stur(x0, MemOperand(c1, 0)), "stur x0, [c1]");
+  COMPARE_A64(stur(x0, MemOperand(csp, 42)), "stur x0, [csp, #42]");
+  COMPARE_A64(stur(xzr, MemOperand(c1, 42)), "stur xzr, [c1, #42]");
+
+  // `str` can assemble to `stur`, according to its LoadStoreScalingOption.
+  COMPARE_A64(str(x0, MemOperand(c1, -1)), "stur x0, [c1, #-1]");
+  COMPARE_A64(str(x0, MemOperand(c1, 42)), "stur x0, [c1, #42]");
+
+  // A generic CPURegister works the same.
+  COMPARE_A64(stur(CPURegister(x0), MemOperand(c1, 0)), "stur x0, [c1]");
+  COMPARE_A64(stur(CPURegister(xzr), MemOperand(c1, 42)),
+              "stur xzr, [c1, #42]");
 }
 
 TEST(morello_a64_astur_v_ri_b) {

@@ -9555,7 +9555,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLoadStorePairNonTemporal)          \
   V(MorelloLoadStorePairPostIndex)            \
   V(MorelloLoadStorePairPreIndex)             \
-  V(MorelloLoadStoreRegisterAltBase)          \
   V(MorelloLoadStoreTags)                     \
   V(MorelloStoreExclusive)                    \
   V(MorelloStorePairExclusive)                \
@@ -10121,6 +10120,49 @@ void Disassembler::VisitMorelloLoadStoreRegister(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::VisitMorelloLoadStoreRegisterAltBase(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "(MorelloLoadStoreRegisterAltBase)";
+
+  switch (instr->Mask(MorelloLoadStoreRegisterAltBaseMask)) {
+    case ASTRB_r_rrb:
+    case ALDRSB_r_rrb_64:
+    case ALDRSH_r_rrb_64:
+    case ASTRH_r_rrb:
+      break;
+    case ASTR_r_rrb_32:
+      mnemonic = "str";
+      form = "'Wt, ['ans, 'Offsetregw]";
+      break;
+    case ASTR_r_rrb_64:
+      mnemonic = "str";
+      form = "'Xt, ['ans, 'Offsetregx]";
+      break;
+    case ASTR_v_rrb_d:
+    case ASTR_v_rrb_s:
+    case ALDRB_r_rrb:
+    case ALDRSB_r_rrb_32:
+    case ALDRSH_r_rrb_32:
+    case ALDRH_r_rrb:
+      break;
+    case ALDR_r_rrb_32:
+      mnemonic = "ldr";
+      form = "'Wt, ['ans, 'Offsetregw]";
+      break;
+    case ALDR_r_rrb_64:
+      mnemonic = "ldr";
+      form = "'Xt, ['ans, 'Offsetregx]";
+      break;
+    case ALDR_v_rrb_d:
+    case ALDR_v_rrb_s:
+    default:
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
 void Disassembler::VisitMorelloLoadStoreUnscaledImmediate(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -10162,8 +10204,16 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
     case ALDURSH_r_ri_32:
     case ASTUR_v_ri_h:
     case ALDUR_v_ri_h:
+      suffix = nullptr;
+      break;
     case ASTUR_r_ri_32:
+      mnemonic = "stur";
+      form = "'Wt";
+      break;
     case ALDUR_r_ri_32:
+      mnemonic = "ldur";
+      form = "'Wt";
+      break;
     case ALDURSW_r_ri:
       suffix = nullptr;
       break;
@@ -10173,9 +10223,15 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
       break;
     case ASTUR_v_ri_s:
     case ALDUR_v_ri_s:
-    case ASTUR_r_ri_64:
-    case ALDUR_r_ri_64:
       suffix = nullptr;
+      break;
+    case ASTUR_r_ri_64:
+      mnemonic = "stur";
+      form = "'Xt";
+      break;
+    case ALDUR_r_ri_64:
+      mnemonic = "ldur";
+      form = "'Xt";
       break;
     case ALDUR_c_ri:
       mnemonic = "ldur";
@@ -10215,33 +10271,44 @@ void Disassembler::VisitMorelloLoadStoreUnsignedOffsetAltBase(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(MorelloLoadStoreUnsignedOffsetAltBase)";
-  const char *suffix = nullptr;
 
   bool zero = instr->GetImmLS() == 0;
+  const char *form_c = zero ? "'ct, ['ans]" : "'ct, ['ans, #'u2012*16]";
+  const char *form_x = zero ? "'Xt, ['ans]" : "'Xt, ['ans, #'u2012*8]";
+  const char *form_w = zero ? "'Wt, ['ans]" : "'Wt, ['ans, #'u2012*4]";
 
   switch (instr->Mask(MorelloLoadStoreUnsignedOffsetAltBaseMask)) {
     case ALDR_c_ri:
       mnemonic = "ldr";
-      form = "'ct, ['ans";
-      suffix = zero ? "]" : ", #'u2012*16]";
+      form = form_c;
       break;
     case ASTR_c_ri:
       mnemonic = "str";
-      form = "'ct, ['ans";
-      suffix = zero ? "]" : ", #'u2012*16]";
+      form = form_c;
+      break;
+    case ASTR_r_ri_32:
+      mnemonic = "str";
+      form = form_w;
+      break;
+    case ASTR_r_ri_64:
+      mnemonic = "str";
+      form = form_x;
+      break;
+    case ALDR_r_ri_32:
+      mnemonic = "ldr";
+      form = form_w;
+      break;
+    case ALDR_r_ri_64:
+      mnemonic = "ldr";
+      form = form_x;
       break;
     case ASTRB_r_ri:
-    case ASTR_r_ri_32:
-    case ASTR_r_ri_64:
     case ALDRB_r_ri:
-    case ALDR_r_ri_32:
-    case ALDR_r_ri_64:
     default:
-      form = "(MorelloLoadStoreUnsignedOffsetAltBase)";
       break;
   }
 
-  Format(instr, mnemonic, form, suffix);
+  Format(instr, mnemonic, form);
 }
 
 void Disassembler::VisitMorelloLogicalImm(const Instruction *instr) {
@@ -11624,8 +11691,27 @@ int Disassembler::SubstituteExtendField(const Instruction *instr,
 
 int Disassembler::SubstituteLSRegOffsetField(const Instruction *instr,
                                              const char *format) {
-  VIXL_ASSERT(strncmp(format, "Offsetreg", 9) == 0);
-  bool is_ls_cap = format[9] == 'c';  // 'Offsetregc
+  int len = 9;
+  VIXL_ASSERT(strncmp(format, "Offsetreg", len) == 0);
+  unsigned size = instr->GetSizeLS();
+  // For some encodings, GetSizeLS doesn't work, but we re-use the formatting
+  // logic by specifying the size explicitly.
+  switch (format[9]) {
+    case 'c':  // 'Offsetregc
+      size = kCRegSizeInBytesLog2;
+      len++;
+      break;
+    case 'x':  // 'Offsetregx
+    case 'd':  // 'Offsetregd
+      size = kXRegSizeInBytesLog2;
+      len++;
+      break;
+    case 'w':  // 'Offsetregw
+    case 's':  // 'Offsetregs
+      size = kWRegSizeInBytesLog2;
+      len++;
+      break;
+  }
   const char *extend_mode[] = {"undefined",
                                "undefined",
                                "uxtw",
@@ -11650,12 +11736,9 @@ int Disassembler::SubstituteLSRegOffsetField(const Instruction *instr,
   // Extend mode UXTX is an alias for shift mode LSL here.
   if (!((ext == UXTX) && (shift == 0))) {
     AppendToOutput(", %s", extend_mode[ext]);
-    if (shift != 0) {
-      unsigned size = is_ls_cap ? kCRegSizeInBytesLog2 : instr->GetSizeLS();
-      AppendToOutput(" #%u", size);
-    }
+    if (shift != 0) AppendToOutput(" #%u", size);
   }
-  return is_ls_cap ? 10 : 9;
+  return len;
 }
 
 
