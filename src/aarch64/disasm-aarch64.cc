@@ -10140,7 +10140,13 @@ void Disassembler::VisitMorelloLoadStoreRegisterAltBase(
       form = "'Xt, ['ans, 'Offsetregx]";
       break;
     case ASTR_v_rrb_d:
+      mnemonic = "str";
+      form = "'Dt, ['ans, 'Offsetregd]";
+      break;
     case ASTR_v_rrb_s:
+      mnemonic = "str";
+      form = "'St, ['ans, 'Offsetregs]";
+      break;
     case ALDRB_r_rrb:
     case ALDRSB_r_rrb_32:
     case ALDRSH_r_rrb_32:
@@ -10155,7 +10161,13 @@ void Disassembler::VisitMorelloLoadStoreRegisterAltBase(
       form = "'Xt, ['ans, 'Offsetregx]";
       break;
     case ALDR_v_rrb_d:
+      mnemonic = "ldr";
+      form = "'Dt, ['ans, 'Offsetregd]";
+      break;
     case ALDR_v_rrb_s:
+      mnemonic = "ldr";
+      form = "'St, ['ans, 'Offsetregs]";
+      break;
     default:
       break;
   }
@@ -10194,17 +10206,37 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
     case ALDURB_r_ri:
     case ALDURSB_r_ri_64:
     case ALDURSB_r_ri_32:
+      suffix = nullptr;
+      break;
     case ASTUR_v_ri_b:
+      mnemonic = "stur";
+      form = "'Bt";
+      break;
     case ALDUR_v_ri_b:
+      mnemonic = "ldur";
+      form = "'Bt";
+      break;
     case ASTUR_v_ri_q:
+      mnemonic = "stur";
+      form = "'Qt";
+      break;
     case ALDUR_v_ri_q:
+      mnemonic = "ldur";
+      form = "'Qt";
+      break;
     case ASTURH_r_ri:
     case ALDURH_r_ri:
     case ALDURSH_r_ri_64:
     case ALDURSH_r_ri_32:
-    case ASTUR_v_ri_h:
-    case ALDUR_v_ri_h:
       suffix = nullptr;
+      break;
+    case ASTUR_v_ri_h:
+      mnemonic = "stur";
+      form = "'Ht";
+      break;
+    case ALDUR_v_ri_h:
+      mnemonic = "ldur";
+      form = "'Ht";
       break;
     case ASTUR_r_ri_32:
       mnemonic = "stur";
@@ -10222,8 +10254,12 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
       form = "'ct";
       break;
     case ASTUR_v_ri_s:
+      mnemonic = "stur";
+      form = "'St";
+      break;
     case ALDUR_v_ri_s:
-      suffix = nullptr;
+      mnemonic = "ldur";
+      form = "'St";
       break;
     case ASTUR_r_ri_64:
       mnemonic = "stur";
@@ -10238,7 +10274,13 @@ void Disassembler::VisitMorelloLoadStoreUnscaledImmediateAltBase(
       form = "'ct";
       break;
     case ASTUR_v_ri_d:
+      mnemonic = "stur";
+      form = "'Dt";
+      break;
     case ALDUR_v_ri_d:
+      mnemonic = "ldur";
+      form = "'Dt";
+      break;
     default:
       suffix = nullptr;
       break;
