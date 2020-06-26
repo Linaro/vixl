@@ -1132,16 +1132,36 @@ void Assembler::xpacd(const Register& xd) {
 void Assembler::ldp(const CPURegister& rt,
                     const CPURegister& rt2,
                     const MemOperand& src) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
-  LoadStorePair(rt, rt2, src, LoadPairOpFor(rt, rt2));
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  if (src.IsAltBase(GetISA())) {
+    // There are no alt-base modes.
+    VIXL_ABORT();
+  } else if (rt.IsCRegister()) {
+    LoadStorePair(CRegister(rt),
+                  CRegister(rt2),
+                  src,
+                  LoadStorePairOpSet::Ldp(CRegister(rt), CRegister(rt2)));
+  } else {
+    LoadStorePair(rt, rt2, src, LoadPairOpFor(rt, rt2));
+  }
 }
 
 
 void Assembler::stp(const CPURegister& rt,
                     const CPURegister& rt2,
                     const MemOperand& dst) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
-  LoadStorePair(rt, rt2, dst, StorePairOpFor(rt, rt2));
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  if (dst.IsAltBase(GetISA())) {
+    // There are no alt-base modes.
+    VIXL_ABORT();
+  } else if (rt.IsCRegister()) {
+    LoadStorePair(CRegister(rt),
+                  CRegister(rt2),
+                  dst,
+                  LoadStorePairOpSet::Stp(CRegister(rt), CRegister(rt2)));
+  } else {
+    LoadStorePair(rt, rt2, dst, StorePairOpFor(rt, rt2));
+  }
 }
 
 

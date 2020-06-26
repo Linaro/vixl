@@ -6158,13 +6158,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // LDNP <Ct>, <Ct2>, [..., #<imm>]
   void ldnp(CRegister ct, CRegister ct2, const MemOperand& addr);
 
-  // LDP <Ct>, <Ct2>, [..., #<imm>]!
-  // LDP <Ct>, <Ct2>, [...{, #<imm>}]
-  void ldp(CRegister ct, CRegister ct2, const MemOperand& addr);
-
-  // LDP <Ct>, <Ct2>, [...], #<imm>
-  void ldp(CRegister ct, CRegister ct2, const MemOperand& addr, int imm);
-
   // LDPBLR <Ct>, [<Cn|CSP>]
   void ldpblr(CRegister ct, const MemOperand& addr);
 
@@ -6362,13 +6355,6 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // STNP <Ct>, <Ct2>, [..., #<imm>]
   void stnp(CRegister ct, CRegister ct2, const MemOperand& addr);
-
-  // STP <Ct>, <Ct2>, [..., #<imm>]!
-  // STP <Ct>, <Ct2>, [...{, #<imm>}]
-  void stp(CRegister ct, CRegister ct2, const MemOperand& addr);
-
-  // STP <Ct>, <Ct2>, [...], #<imm>
-  void stp(CRegister ct, CRegister ct2, const MemOperand& addr, int imm);
 
   // STR <Wt>, [..., <R><m>, <extend>{ <amount>}]
   // STR <Wt>, [...{, #<imm>}]
@@ -7302,6 +7288,7 @@ class Assembler : public vixl::internal::AssemblerBase {
     VIXL_ASSERT(Has##NAME());                              \
     return FIELD;                                          \
   }
+
     VIXL_LOAD_STORE_OP_TYPES(VIXL_LOAD_STORE_OP_ACCESSORS);
 #undef VIXL_LOAD_STORE_OP_ACCESSORS
 
@@ -7324,12 +7311,58 @@ class Assembler : public vixl::internal::AssemblerBase {
     }
     unsigned access_size_in_bytes_log_2_;
 
+    // All encodings are kUnsupported unless explicitly overridden.
     static const Instr kUnsupported = 0xffffffff;
-#define VIXL_LOAD_STORE_OP_FIELDS(NAME, FIELD)                       \
-  /* All encodings are kUnsupported unless explicitly overridden. */ \
-  Instr FIELD = kUnsupported;
+#define VIXL_LOAD_STORE_OP_FIELDS(NAME, FIELD) Instr FIELD = kUnsupported;
     VIXL_LOAD_STORE_OP_TYPES(VIXL_LOAD_STORE_OP_FIELDS)
 #undef VIXL_LOAD_STORE_OP_FIELDS
+  };
+
+  // As above, but for ldp/stp.
+  class LoadStorePairOpSet {
+   public:
+    // True if the MemOperand can be encoded using at least one of the
+    // instructions in this set.
+    bool CanEncode(CRegister ct, CRegister ct2, const MemOperand& addr) const {
+      return TryEncode(ct, ct2, addr) != kUnsupported;
+    }
+
+    Instr Encode(CRegister ct, CRegister ct2, const MemOperand& addr) const {
+      VIXL_ASSERT(CanEncode(ct, ct2, addr));
+      return TryEncode(ct, ct2, addr);
+    }
+
+    // TODO: Make these constexpr.
+    // Morello capability accesses.
+    static LoadStorePairOpSet Ldp(CRegister rt, CRegister rt2);
+    static LoadStorePairOpSet Stp(CRegister rt, CRegister rt2);
+
+#define VIXL_LOAD_STORE_PAIR_OP_TYPES(V)                                     \
+  /* Addressing modes like `[<base>, #<imm>]` ("signed offset"). */          \
+  V(ScaledInt7OffsetOp, scaled_int7_offset_op_)                              \
+  /* Addressing modes like `[<base>, #<imm>]!` ("immediate pre-indexed"), */ \
+  V(ScaledInt7PreIndexOp, scaled_int7_pre_index_op_)                         \
+  /* Addressing modes like `[<base>], #<imm>` ("immediate post-indexed"), */ \
+  V(ScaledInt7PostIndexOp, scaled_int7_post_index_op_)
+
+#define VIXL_LOAD_STORE_PAIR_OP_ACCESSORS(NAME, FIELD)     \
+  bool Has##NAME() const { return FIELD != kUnsupported; } \
+  Instr Get##NAME() const {                                \
+    VIXL_ASSERT(Has##NAME());                              \
+    return FIELD;                                          \
+  }
+
+    VIXL_LOAD_STORE_PAIR_OP_TYPES(VIXL_LOAD_STORE_PAIR_OP_ACCESSORS);
+#undef VIXL_LOAD_STORE_PAIR_OP_ACCESSORS
+
+   private:
+    Instr TryEncode(CRegister ct, CRegister ct2, const MemOperand& addr) const;
+
+    // All encodings are kUnsupported unless explicitly overridden.
+    static const Instr kUnsupported = 0xffffffff;
+#define VIXL_LOAD_STORE_PAIR_OP_FIELDS(NAME, FIELD) Instr FIELD = kUnsupported;
+    VIXL_LOAD_STORE_PAIR_OP_TYPES(VIXL_LOAD_STORE_PAIR_OP_FIELDS)
+#undef VIXL_LOAD_STORE_PAIR_OP_FIELDS
   };
 
   // Load/store assembly. This does not support capability or alt-base accesses,
@@ -7353,6 +7386,13 @@ class Assembler : public vixl::internal::AssemblerBase {
                      const CPURegister& rt2,
                      const MemOperand& addr,
                      LoadStorePairOp op);
+
+  // Like LoadStorePair(..., LoadStoreOp), but supporting all Morello accesses.
+  void LoadStorePair(const CRegister& rt,
+                     const CRegister& rt2,
+                     const MemOperand& addr,
+                     LoadStorePairOpSet op_set);
+
   void LoadStoreStruct(const VRegister& vt,
                        const MemOperand& addr,
                        NEONLoadStoreMultiStructOp op);

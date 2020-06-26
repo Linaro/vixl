@@ -567,9 +567,19 @@ inline bool IsMultiple(T value, unsigned multiple) {
   return (value & (multiple - 1)) == 0;
 }
 
+template <unsigned N, unsigned MULTIPLE, typename T>
+inline bool IsScaledInt(T value) {
+  return IsMultiple<MULTIPLE>(value) && IsIntN(N, value / MULTIPLE);
+}
+
 template <unsigned N, typename T>
 inline bool IsScaledInt(T value, unsigned multiple) {
   return IsMultiple(value, multiple) && IsIntN(N, value / multiple);
+}
+
+template <unsigned N, unsigned MULTIPLE, typename T>
+inline bool IsScaledUint(T value) {
+  return IsMultiple<MULTIPLE>(value) && IsUintN(N, value / MULTIPLE);
 }
 
 template <unsigned N, typename T>

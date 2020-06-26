@@ -2073,16 +2073,55 @@ void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
   }
 }
 
-
-#define DEFINE_FUNCTION(FN, REGTYPE, REG, REG2, OP) \
-  void MacroAssembler::FN(const REGTYPE REG,        \
-                          const REGTYPE REG2,       \
-                          const MemOperand& addr) { \
-    VIXL_ASSERT(allow_macro_instructions_);         \
-    LoadStorePairMacro(REG, REG2, addr, OP);        \
+void MacroAssembler::Ldp(const CPURegister& rt,
+                         const CPURegister& rt2,
+                         const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  if (addr.IsAltBase(GetISA())) {
+    // There are no alt-base modes.
+    VIXL_ABORT();
+  } else if (rt.IsCRegister()) {
+    LoadStorePairMacro(CRegister(rt),
+                       CRegister(rt2),
+                       addr,
+                       LoadStorePairOpSet::Ldp(CRegister(rt), CRegister(rt2)));
+  } else {
+    LoadStorePairMacro(rt, rt2, addr, LoadPairOpFor(rt, rt2));
   }
-LSPAIR_MACRO_LIST(DEFINE_FUNCTION)
-#undef DEFINE_FUNCTION
+}
+
+void MacroAssembler::Stp(const CPURegister& rt,
+                         const CPURegister& rt2,
+                         const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  if (addr.IsAltBase(GetISA())) {
+    // There are no alt-base modes.
+    VIXL_ABORT();
+  } else if (rt.IsCRegister()) {
+    LoadStorePairMacro(CRegister(rt),
+                       CRegister(rt2),
+                       addr,
+                       LoadStorePairOpSet::Stp(CRegister(rt), CRegister(rt2)));
+  } else {
+    LoadStorePairMacro(rt, rt2, addr, StorePairOpFor(rt, rt2));
+  }
+}
+
+void MacroAssembler::Ldpsw(const Register& rt,
+                           const Register& rt2,
+                           const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  VIXL_ASSERT(rt.Is64Bits());
+  if (addr.IsAltBase(GetISA())) {
+    // There are no alt-base modes.
+    VIXL_ABORT();
+  } else {
+    LoadStorePairMacro(rt, rt2, addr, LDPSW_x);
+  }
+}
 
 void MacroAssembler::LoadStorePairMacro(const CPURegister& rt,
                                         const CPURegister& rt2,

@@ -1688,19 +1688,110 @@ TEST(morello_a64_ldnp_c_rib_c) {
 TEST(morello_a64_ldp_c_rib_c) {
   SETUP();
 
-  // COMPARE_A64(ldp(c0, c1, MemOperand(x2, 272)), "TODO");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 272)), "ldp c0, c1, [x2, #272]");
+  COMPARE_A64(ldp(c0, c1, MemOperand(sp, 272)), "ldp c0, c1, [sp, #272]");
+  COMPARE_A64(ldp(c0, czr, MemOperand(x2, 272)), "ldp c0, czr, [x2, #272]");
+  COMPARE_A64(ldp(czr, c1, MemOperand(x2, 272)), "ldp czr, c1, [x2, #272]");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 0)), "ldp c0, c1, [x2]");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, -1024)), "ldp c0, c1, [x2, #-1024]");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 1008)), "ldp c0, c1, [x2, #1008]");
 }
 
 TEST(morello_a64_ldp_c_ribw_c) {
   SETUP();
 
-  // COMPARE_A64(ldp(c0, c1, MemOperand(x2, -352, PreIndex)), "TODO");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 272, PreIndex)),
+              "ldp c0, c1, [x2, #272]!");
+  COMPARE_A64(ldp(c0, c1, MemOperand(sp, 272, PreIndex)),
+              "ldp c0, c1, [sp, #272]!");
+  COMPARE_A64(ldp(c0, czr, MemOperand(x2, 272, PreIndex)),
+              "ldp c0, czr, [x2, #272]!");
+  COMPARE_A64(ldp(czr, c1, MemOperand(x2, 272, PreIndex)),
+              "ldp czr, c1, [x2, #272]!");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 0, PreIndex)),
+              "ldp c0, c1, [x2, #0]!");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, -1024, PreIndex)),
+              "ldp c0, c1, [x2, #-1024]!");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 1008, PreIndex)),
+              "ldp c0, c1, [x2, #1008]!");
 }
 
 TEST(morello_a64_ldp_cc_riaw_c) {
   SETUP();
 
-  // COMPARE_A64(ldp(c0, c1, MemOperand(x2, -256, PostIndex)), "TODO");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 272, PostIndex)),
+              "ldp c0, c1, [x2], #272");
+  COMPARE_A64(ldp(c0, c1, MemOperand(sp, 272, PostIndex)),
+              "ldp c0, c1, [sp], #272");
+  COMPARE_A64(ldp(c0, czr, MemOperand(x2, 272, PostIndex)),
+              "ldp c0, czr, [x2], #272");
+  COMPARE_A64(ldp(czr, c1, MemOperand(x2, 272, PostIndex)),
+              "ldp czr, c1, [x2], #272");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 0, PostIndex)),
+              "ldp c0, c1, [x2], #0");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, -1024, PostIndex)),
+              "ldp c0, c1, [x2], #-1024");
+  COMPARE_A64(ldp(c0, c1, MemOperand(x2, 1008, PostIndex)),
+              "ldp c0, c1, [x2], #1008");
+}
+
+TEST(morello_a64_ldp_c_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2)), "ldp c0, c1, [x2]");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 1008)),
+                    "ldp c0, c1, [x2, #1008]");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, -1024)),
+                    "ldp c0, c1, [x2, #-1024]");
+  COMPARE_MACRO_A64(Ldp(czr, c30, MemOperand(sp)), "ldp czr, c30, [sp]");
+  COMPARE_MACRO_A64(Ldp(c30, czr, MemOperand(sp)), "ldp c30, czr, [sp]");
+
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 0, PostIndex)),
+                    "ldp c0, c1, [x2], #0");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, -1024, PostIndex)),
+                    "ldp c0, c1, [x2], #-1024");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 1008, PostIndex)),
+                    "ldp c0, c1, [x2], #1008");
+  COMPARE_MACRO_A64(Ldp(czr, c30, MemOperand(sp, 0, PostIndex)),
+                    "ldp czr, c30, [sp], #0");
+  COMPARE_MACRO_A64(Ldp(c30, czr, MemOperand(sp, 0, PostIndex)),
+                    "ldp c30, czr, [sp], #0");
+
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 0, PreIndex)),
+                    "ldp c0, c1, [x2, #0]!");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, -1024, PreIndex)),
+                    "ldp c0, c1, [x2, #-1024]!");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 1008, PreIndex)),
+                    "ldp c0, c1, [x2, #1008]!");
+  COMPARE_MACRO_A64(Ldp(czr, c30, MemOperand(sp, 0, PreIndex)),
+                    "ldp czr, c30, [sp, #0]!");
+  COMPARE_MACRO_A64(Ldp(c30, czr, MemOperand(sp, 0, PreIndex)),
+                    "ldp c30, czr, [sp, #0]!");
+
+  // Unencodable cases.
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x2, x16\n"
+                    "ldp c0, c1, [x16]");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 0x4242, PreIndex)),
+                    "mov x16, #0x4242\n"
+                    "add x2, x2, x16\n"
+                    "ldp c0, c1, [x2]");
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, 0x4242, PostIndex)),
+                    "ldp c0, c1, [x2]\n"
+                    "mov x16, #0x4242\n"
+                    "add x2, x2, x16");
+  // There is no register-offset mode.
+  COMPARE_MACRO_A64(Ldp(c0, c1, MemOperand(x2, x3)),
+                    "add x16, x2, x3\n"
+                    "ldp c0, c1, [x16]");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_A64(Ldp(CPURegister(c0),
+                        CPURegister(c1),
+                        MemOperand(x2, 0, PostIndex)),
+                    "ldp c0, c1, [x2], #0");
 }
 
 TEST(morello_a64_ldpblr_c_c_c) {
@@ -1890,19 +1981,110 @@ TEST(morello_a64_stnp_c_rib_c) {
 TEST(morello_a64_stp_c_rib_c) {
   SETUP();
 
-  // COMPARE_A64(stp(c0, c1, MemOperand(x2, -128)), "TODO");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 272)), "stp c0, c1, [x2, #272]");
+  COMPARE_A64(stp(c0, c1, MemOperand(sp, 272)), "stp c0, c1, [sp, #272]");
+  COMPARE_A64(stp(c0, czr, MemOperand(x2, 272)), "stp c0, czr, [x2, #272]");
+  COMPARE_A64(stp(czr, c1, MemOperand(x2, 272)), "stp czr, c1, [x2, #272]");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 0)), "stp c0, c1, [x2]");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, -1024)), "stp c0, c1, [x2, #-1024]");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 1008)), "stp c0, c1, [x2, #1008]");
 }
 
 TEST(morello_a64_stp_c_ribw_c) {
   SETUP();
 
-  // COMPARE_A64(stp(c0, c1, MemOperand(x2, -960, PreIndex)), "TODO");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 272, PreIndex)),
+              "stp c0, c1, [x2, #272]!");
+  COMPARE_A64(stp(c0, c1, MemOperand(sp, 272, PreIndex)),
+              "stp c0, c1, [sp, #272]!");
+  COMPARE_A64(stp(c0, czr, MemOperand(x2, 272, PreIndex)),
+              "stp c0, czr, [x2, #272]!");
+  COMPARE_A64(stp(czr, c1, MemOperand(x2, 272, PreIndex)),
+              "stp czr, c1, [x2, #272]!");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 0, PreIndex)),
+              "stp c0, c1, [x2, #0]!");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, -1024, PreIndex)),
+              "stp c0, c1, [x2, #-1024]!");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 1008, PreIndex)),
+              "stp c0, c1, [x2, #1008]!");
 }
 
 TEST(morello_a64_stp_cc_riaw_c) {
   SETUP();
 
-  // COMPARE_A64(stp(c0, c1, MemOperand(x2, 336, PostIndex)), "TODO");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 272, PostIndex)),
+              "stp c0, c1, [x2], #272");
+  COMPARE_A64(stp(c0, c1, MemOperand(sp, 272, PostIndex)),
+              "stp c0, c1, [sp], #272");
+  COMPARE_A64(stp(c0, czr, MemOperand(x2, 272, PostIndex)),
+              "stp c0, czr, [x2], #272");
+  COMPARE_A64(stp(czr, c1, MemOperand(x2, 272, PostIndex)),
+              "stp czr, c1, [x2], #272");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 0, PostIndex)),
+              "stp c0, c1, [x2], #0");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, -1024, PostIndex)),
+              "stp c0, c1, [x2], #-1024");
+  COMPARE_A64(stp(c0, c1, MemOperand(x2, 1008, PostIndex)),
+              "stp c0, c1, [x2], #1008");
+}
+
+TEST(morello_a64_stp_c_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2)), "stp c0, c1, [x2]");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 1008)),
+                    "stp c0, c1, [x2, #1008]");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, -1024)),
+                    "stp c0, c1, [x2, #-1024]");
+  COMPARE_MACRO_A64(Stp(czr, c30, MemOperand(sp)), "stp czr, c30, [sp]");
+  COMPARE_MACRO_A64(Stp(c30, czr, MemOperand(sp)), "stp c30, czr, [sp]");
+
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 0, PostIndex)),
+                    "stp c0, c1, [x2], #0");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, -1024, PostIndex)),
+                    "stp c0, c1, [x2], #-1024");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 1008, PostIndex)),
+                    "stp c0, c1, [x2], #1008");
+  COMPARE_MACRO_A64(Stp(czr, c30, MemOperand(sp, 0, PostIndex)),
+                    "stp czr, c30, [sp], #0");
+  COMPARE_MACRO_A64(Stp(c30, czr, MemOperand(sp, 0, PostIndex)),
+                    "stp c30, czr, [sp], #0");
+
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 0, PreIndex)),
+                    "stp c0, c1, [x2, #0]!");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, -1024, PreIndex)),
+                    "stp c0, c1, [x2, #-1024]!");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 1008, PreIndex)),
+                    "stp c0, c1, [x2, #1008]!");
+  COMPARE_MACRO_A64(Stp(czr, c30, MemOperand(sp, 0, PreIndex)),
+                    "stp czr, c30, [sp, #0]!");
+  COMPARE_MACRO_A64(Stp(c30, czr, MemOperand(sp, 0, PreIndex)),
+                    "stp c30, czr, [sp, #0]!");
+
+  // Unencodable cases.
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x2, x16\n"
+                    "stp c0, c1, [x16]");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 0x4242, PreIndex)),
+                    "mov x16, #0x4242\n"
+                    "add x2, x2, x16\n"
+                    "stp c0, c1, [x2]");
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, 0x4242, PostIndex)),
+                    "stp c0, c1, [x2]\n"
+                    "mov x16, #0x4242\n"
+                    "add x2, x2, x16");
+  // There is no register-offset mode.
+  COMPARE_MACRO_A64(Stp(c0, c1, MemOperand(x2, x3)),
+                    "add x16, x2, x3\n"
+                    "stp c0, c1, [x16]");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_A64(Stp(CPURegister(c0),
+                        CPURegister(c1),
+                        MemOperand(x2, 0, PostIndex)),
+                    "stp c0, c1, [x2], #0");
 }
 
 TEST(morello_a64_str_c_riaw_c) {

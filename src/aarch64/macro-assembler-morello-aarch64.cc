@@ -207,5 +207,40 @@ void MacroAssembler::LoadStoreMacro(CPURegister rt,
   }
 }
 
+void MacroAssembler::LoadStorePairMacro(CRegister rt,
+                                        CRegister rt2,
+                                        const MemOperand& addr,
+                                        LoadStorePairOpSet op_set) {
+  if (op_set.CanEncode(rt, rt2, addr)) {
+    // Directly encodable cases.
+    SingleEmissionCheckScope guard(this);
+    LoadStorePair(rt, rt2, addr, op_set);
+    return;
+  }
+
+  // TODO: If this is a load, we can include `rt` and `rt2` in the scratch
+  // register list (if we also exclude `rn`).
+
+  CPURegister base = addr.GetBase();
+  int64_t offset = addr.GetOffset();
+  if (addr.IsPreIndex()) {
+    ComputeAddress(base, MemOperand(base, offset));
+    SingleEmissionCheckScope guard(this);
+    LoadStorePair(rt, rt2, MemOperand(base), op_set);
+  } else if (addr.IsPostIndex()) {
+    {
+      SingleEmissionCheckScope guard(this);
+      LoadStorePair(rt, rt2, MemOperand(base), op_set);
+    }
+    ComputeAddress(base, MemOperand(base, offset));
+  } else {
+    UseScratchRegisterScope temps(this);
+    CPURegister rn = temps.AcquireRRegisterSameSizeAs(base);
+    ComputeAddress(rn, addr);
+    SingleEmissionCheckScope guard(this);
+    LoadStorePair(rt, rt2, MemOperand(rn), op_set);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

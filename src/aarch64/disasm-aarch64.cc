@@ -9551,10 +9551,7 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLoadPairExclusive)                 \
   V(MorelloLoadStoreAcquireReleaseAltBase)    \
   V(MorelloLoadStoreAcquireReleaseCapAltBase) \
-  V(MorelloLoadStorePair)                     \
   V(MorelloLoadStorePairNonTemporal)          \
-  V(MorelloLoadStorePairPostIndex)            \
-  V(MorelloLoadStorePairPreIndex)             \
   V(MorelloLoadStoreTags)                     \
   V(MorelloStoreExclusive)                    \
   V(MorelloStorePairExclusive)                \
@@ -10095,6 +10092,64 @@ void Disassembler::VisitMorelloLoadStoreImmediatePreIndex(
       break;
     default:
       form = "(MorelloLoadStoreImmediatePreIndex)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStorePair(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, 'ct2, ['nns'ILP4]";
+
+  switch (instr->Mask(MorelloLoadStorePairMask)) {
+    case LDP_c_rib:
+      mnemonic = "ldp";
+      break;
+    case STP_c_rib:
+      mnemonic = "stp";
+      break;
+    default:
+      form = "(MorelloLoadStorePair)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStorePairPostIndex(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, 'ct2, ['nns]'ILP4i";
+
+  switch (instr->Mask(MorelloLoadStorePairPostIndexMask)) {
+    case LDP_cc_riaw:
+      mnemonic = "ldp";
+      break;
+    case STP_cc_riaw:
+      mnemonic = "stp";
+      break;
+    default:
+      form = "(MorelloLoadStorePairPostIndex)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStorePairPreIndex(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, 'ct2, ['nns'ILP4i]!";
+
+  switch (instr->Mask(MorelloLoadStorePairPreIndexMask)) {
+    case LDP_c_ribw:
+      mnemonic = "ldp";
+      break;
+    case STP_c_ribw:
+      mnemonic = "stp";
+      break;
+    default:
+      form = "(MorelloLoadStorePairPreIndex)";
       break;
   }
 

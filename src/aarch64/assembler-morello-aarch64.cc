@@ -844,6 +844,54 @@ Instr Assembler::LoadStoreOpSet::TryEncodeMemOperand(
   return kUnsupported;
 }
 
+Assembler::LoadStorePairOpSet Assembler::LoadStorePairOpSet::Ldp(
+    CRegister rt, CRegister rt2) {
+  USE(rt, rt2);
+  LoadStorePairOpSet set;
+  set.scaled_int7_offset_op_ = LDP_c_rib;
+  set.scaled_int7_pre_index_op_ = LDP_c_ribw;
+  set.scaled_int7_post_index_op_ = LDP_cc_riaw;
+  return set;
+}
+
+Assembler::LoadStorePairOpSet Assembler::LoadStorePairOpSet::Stp(
+    CRegister rt, CRegister rt2) {
+  USE(rt, rt2);
+  LoadStorePairOpSet set;
+  set.scaled_int7_offset_op_ = STP_c_rib;
+  set.scaled_int7_pre_index_op_ = STP_c_ribw;
+  set.scaled_int7_post_index_op_ = STP_cc_riaw;
+  return set;
+}
+
+Instr Assembler::LoadStorePairOpSet::TryEncode(CRegister ct,
+                                               CRegister ct2,
+                                               const MemOperand& addr) const {
+  VIXL_ASSERT(AreSameFormat(ct, ct2));
+  CPURegister rn = addr.GetBase();
+  int64_t offset = addr.GetOffset();
+  int64_t scaled_offset = offset / kCRegSizeInBytes;
+
+  // All addressing modes are encoded in a similar way.
+  if (IsScaledInt<7, kCRegSizeInBytes>(offset)) {
+    Instr fields =
+        RnSP(rn) | Rt(ct) | Rt2(ct2) | ImmField<21, 15>(scaled_offset);
+
+    if (HasScaledInt7OffsetOp() && addr.IsImmediateOffset()) {
+      return GetScaledInt7OffsetOp() | fields;
+    }
+
+    if (HasScaledInt7PreIndexOp() && addr.IsPreIndex()) {
+      return GetScaledInt7PreIndexOp() | fields;
+    }
+
+    if (HasScaledInt7PostIndexOp() && addr.IsPostIndex()) {
+      return GetScaledInt7PostIndexOp() | fields;
+    }
+  }
+  return kUnsupported;
+}
+
 void Assembler::LoadStore(const CPURegister& rt,
                           const MemOperand& addr,
                           LoadStoreOpSet op_set,
@@ -863,6 +911,20 @@ void Assembler::LoadStore(const CPURegister& rt,
 
   if (op_set.CanEncode(rt, addr, option)) {
     Emit(op_set.Encode(rt, addr, option));
+    return;
+  }
+  VIXL_ABORT();
+}
+
+void Assembler::LoadStorePair(const CRegister& rt,
+                              const CRegister& rt2,
+                              const MemOperand& addr,
+                              LoadStorePairOpSet op_set) {
+  // TODO: This helper is currently only used for capability accesses, but it
+  // could work for all pair accesses.
+  VIXL_ASSERT(CPUHas(rt, rt2));
+  if (op_set.CanEncode(rt, rt2, addr)) {
+    Emit(op_set.Encode(rt, rt2, addr));
     return;
   }
   VIXL_ABORT();

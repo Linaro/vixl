@@ -45,11 +45,6 @@
 #include "simulator-constants-aarch64.h"
 
 
-#define LSPAIR_MACRO_LIST(V)                             \
-  V(Ldp, CPURegister&, rt, rt2, LoadPairOpFor(rt, rt2))  \
-  V(Stp, CPURegister&, rt, rt2, StorePairOpFor(rt, rt2)) \
-  V(Ldpsw, Register&, rt, rt2, LDPSW_x)
-
 namespace vixl {
 namespace aarch64 {
 
@@ -863,15 +858,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                       const MemOperand& addr,
                       LoadStoreOpSet op_set);
 
-#define DECLARE_FUNCTION(FN, REGTYPE, REG, REG2, OP) \
-  void FN(const REGTYPE REG, const REGTYPE REG2, const MemOperand& addr);
-  LSPAIR_MACRO_LIST(DECLARE_FUNCTION)
-#undef DECLARE_FUNCTION
+  void Ldp(const CPURegister& rt,
+           const CPURegister& rt2,
+           const MemOperand& addr);
+  void Stp(const CPURegister& rt,
+           const CPURegister& rt2,
+           const MemOperand& addr);
+  void Ldpsw(const Register& rt, const Register& rt2, const MemOperand& addr);
 
   void LoadStorePairMacro(const CPURegister& rt,
                           const CPURegister& rt2,
                           const MemOperand& addr,
                           LoadStorePairOp op);
+  void LoadStorePairMacro(CRegister rt,
+                          CRegister rt2,
+                          const MemOperand& addr,
+                          LoadStorePairOpSet op_set);
 
   void Prfm(PrefetchOperation op, const MemOperand& addr);
 
