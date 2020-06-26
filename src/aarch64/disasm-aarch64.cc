@@ -6120,12 +6120,11 @@ void Disassembler::VisitSVEConstructivePrefix_Unpredicated(
 void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVEContiguousFirstFaultLoad_ScalarPlusScalar)";
 
   bool rm_is_zr = instr->GetRm() == kZeroRegCode;
 
-  const char *form_zr = "{'Zt.'tls}, 'Pgl/z, ['Xns]";
-  const char *form_zr_s = "{'Zt.'tlss}, 'Pgl/z, ['Xns]";
+  const char *form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
+  const char *suffix = NULL;
 
   switch (instr->Mask(SVEContiguousFirstFaultLoad_ScalarPlusScalarMask)) {
     case LDFF1B_z_p_br_u16:
@@ -6133,49 +6132,50 @@ void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
     case LDFF1B_z_p_br_u64:
     case LDFF1B_z_p_br_u8:
       mnemonic = "ldff1b";
-      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm]";
+      suffix = rm_is_zr ? "]" : ", 'Xm]";
       break;
     case LDFF1D_z_p_br_u64:
       mnemonic = "ldff1d";
-      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #3]";
+      suffix = rm_is_zr ? "]" : ", 'Xm, lsl #3]";
       break;
     case LDFF1H_z_p_br_u16:
     case LDFF1H_z_p_br_u32:
     case LDFF1H_z_p_br_u64:
       mnemonic = "ldff1h";
-      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
+      suffix = rm_is_zr ? "]" : ", 'Xm, lsl #1]";
       break;
     case LDFF1SB_z_p_br_s16:
     case LDFF1SB_z_p_br_s32:
     case LDFF1SB_z_p_br_s64:
       mnemonic = "ldff1sb";
-      form = rm_is_zr ? form_zr_s : "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm]";
+      suffix = rm_is_zr ? "]" : ", 'Xm]";
       break;
     case LDFF1SH_z_p_br_s32:
     case LDFF1SH_z_p_br_s64:
       mnemonic = "ldff1sh";
-      form = rm_is_zr ? form_zr_s : "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
+      suffix = rm_is_zr ? "]" : ", 'Xm, lsl #1]";
       break;
     case LDFF1SW_z_p_br_s64:
       mnemonic = "ldff1sw";
-      form = rm_is_zr ? form_zr_s : "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
+      suffix = rm_is_zr ? "]" : ", 'Xm, lsl #2]";
       break;
     case LDFF1W_z_p_br_u32:
     case LDFF1W_z_p_br_u64:
       mnemonic = "ldff1w";
-      form = rm_is_zr ? form_zr : "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
+      suffix = rm_is_zr ? "]" : ", 'Xm, lsl #2]";
       break;
     default:
+      form = "(SVEContiguousFirstFaultLoad_ScalarPlusScalar)";
       break;
   }
 
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.'tls}, 'Pgl/z, ['Xns";
+  const char *form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
   const char *suffix =
       (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, mul vl]";
 
@@ -6197,16 +6197,13 @@ void Disassembler::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
     case LDNF1SB_z_p_bi_s16:
     case LDNF1SB_z_p_bi_s32:
     case LDNF1SB_z_p_bi_s64:
-      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sb";
       break;
     case LDNF1SH_z_p_bi_s32:
     case LDNF1SH_z_p_bi_s64:
-      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sh";
       break;
     case LDNF1SW_z_p_bi_s64:
-      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
       mnemonic = "ldnf1sw";
       break;
     case LDNF1W_z_p_bi_u32:
@@ -9400,7 +9397,10 @@ void Disassembler::VisitSVEVectorSelect(const Instruction *instr) {
 void Disassembler::VisitSVEContiguousLoad_ScalarPlusImm(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  bool is_signed = false;
+  const char *form = "{'Zt.'tlss}, 'Pgl/z, ['Xns";
+  const char *suffix =
+      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916, mul vl]";
+
   switch (instr->Mask(SVEContiguousLoad_ScalarPlusImmMask)) {
     case LD1B_z_p_bi_u16:
     case LD1B_z_p_bi_u32:
@@ -9420,42 +9420,32 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusImm(
     case LD1SB_z_p_bi_s32:
     case LD1SB_z_p_bi_s64:
       mnemonic = "ld1sb";
-      is_signed = true;
       break;
     case LD1SH_z_p_bi_s32:
     case LD1SH_z_p_bi_s64:
       mnemonic = "ld1sh";
-      is_signed = true;
       break;
     case LD1SW_z_p_bi_s64:
       mnemonic = "ld1sw";
-      is_signed = true;
       break;
     case LD1W_z_p_bi_u32:
     case LD1W_z_p_bi_u64:
       mnemonic = "ld1w";
       break;
     default:
+      form = "(SVEContiguousLoad_ScalarPlusImm)";
+      suffix = NULL;
       break;
   }
 
-  const char *form;
-  // The 'size' field isn't in the usual place here.
-  if (instr->ExtractBits(19, 16) == 0) {
-    form = is_signed ? "{'Zt.'tlss}, 'Pgl/z, ['Xns]"
-                     : "{'Zt.'tls}, 'Pgl/z, ['Xns]";
-  } else {
-    form = is_signed ? "{'Zt.'tlss}, 'Pgl/z, ['Xns, #'s1916, mul vl]"
-                     : "{'Zt.'tls}, 'Pgl/z, ['Xns, #'s1916, mul vl]";
-  }
-
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEContiguousLoad_ScalarPlusScalar(
     const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVEContiguousLoad_ScalarPlusScalar)";
+  const char *form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm";
+  const char *suffix = NULL;
 
   switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
     case LD1B_z_p_br_u16:
@@ -9463,43 +9453,45 @@ void Disassembler::VisitSVEContiguousLoad_ScalarPlusScalar(
     case LD1B_z_p_br_u64:
     case LD1B_z_p_br_u8:
       mnemonic = "ld1b";
-      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm]";
+      suffix = "]";
       break;
     case LD1D_z_p_br_u64:
       mnemonic = "ld1d";
-      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
+      suffix = ", lsl #'u2423]";
       break;
     case LD1H_z_p_br_u16:
     case LD1H_z_p_br_u32:
     case LD1H_z_p_br_u64:
       mnemonic = "ld1h";
-      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
+      suffix = ", lsl #'u2423]";
       break;
     case LD1SB_z_p_br_s16:
     case LD1SB_z_p_br_s32:
     case LD1SB_z_p_br_s64:
       mnemonic = "ld1sb";
-      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm]";
+      suffix = "]";
       break;
     case LD1SH_z_p_br_s32:
     case LD1SH_z_p_br_s64:
       mnemonic = "ld1sh";
-      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #1]";
+      suffix = ", lsl #1]";
       break;
     case LD1SW_z_p_br_s64:
       mnemonic = "ld1sw";
-      form = "{'Zt.'tlss}, 'Pgl/z, ['Xns, 'Xm, lsl #2]";
+      suffix = ", lsl #2]";
       break;
     case LD1W_z_p_br_u32:
     case LD1W_z_p_br_u64:
       mnemonic = "ld1w";
-      form = "{'Zt.'tls}, 'Pgl/z, ['Xns, 'Xm, lsl #'u2423]";
+      suffix = ", lsl #'u2423]";
       break;
     default:
+      form = "(SVEContiguousLoad_ScalarPlusScalar)";
+      suffix = NULL;
       break;
   }
 
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitReserved(const Instruction *instr) {
@@ -10822,7 +10814,8 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
         placeholder_length++;
         if (format[3] == 's') {
           // Sign extension load.
-          size_in_bytes_log2 ^= 0x3;
+          unsigned msize = instr->ExtractBits(24, 23);
+          if (msize > size_in_bytes_log2) size_in_bytes_log2 ^= 0x3;
           placeholder_length++;
         }
       } else {
