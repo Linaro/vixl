@@ -1704,7 +1704,14 @@ TEST(morello_c64_ldar_c_r_c) {
 TEST(morello_c64_ldaxp_c_r_c) {
   SETUP();
 
-  // COMPARE_C64(ldaxp(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(ldaxp(c0, c1, MemOperand(c2)), "ldaxp c0, c1, [c2]");
+  COMPARE_C64(ldaxp(c0, c1, MemOperand(csp)), "ldaxp c0, c1, [csp]");
+  COMPARE_C64(ldaxp(c0, czr, MemOperand(c2)), "ldaxp c0, czr, [c2]");
+  COMPARE_C64(ldaxp(czr, c1, MemOperand(c2)), "ldaxp czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Ldaxp(c30, c29, MemOperand(c28)), "ldaxp c30, c29, [c28]");
+  COMPARE_MACRO_C64(Ldaxp(c30, czr, MemOperand(csp)), "ldaxp c30, czr, [csp]");
 }
 
 TEST(morello_c64_ldaxr_c_r_c) {
@@ -1980,7 +1987,14 @@ TEST(morello_c64_ldr_c_macro) {
 TEST(morello_c64_ldxp_c_r_c) {
   SETUP();
 
-  // COMPARE_C64(ldxp(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(ldxp(c0, c1, MemOperand(c2)), "ldxp c0, c1, [c2]");
+  COMPARE_C64(ldxp(c0, c1, MemOperand(csp)), "ldxp c0, c1, [csp]");
+  COMPARE_C64(ldxp(c0, czr, MemOperand(c2)), "ldxp c0, czr, [c2]");
+  COMPARE_C64(ldxp(czr, c1, MemOperand(c2)), "ldxp czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Ldxp(c30, c29, MemOperand(c28)), "ldxp c30, c29, [c28]");
+  COMPARE_MACRO_C64(Ldxp(c30, czr, MemOperand(csp)), "ldxp c30, czr, [csp]");
 }
 
 TEST(morello_c64_ldxr_c_r_c) {
@@ -2030,7 +2044,17 @@ TEST(morello_c64_stlr_c_r_c) {
 TEST(morello_c64_stlxp_r_cr_c) {
   SETUP();
 
-  // COMPARE_C64(stlxp(w0, c1, c2, MemOperand(c3)), "TODO");
+  COMPARE_C64(stlxp(w0, c1, c2, MemOperand(c3)), "stlxp w0, c1, c2, [c3]");
+  COMPARE_C64(stlxp(w0, c1, c2, MemOperand(csp)), "stlxp w0, c1, c2, [csp]");
+  COMPARE_C64(stlxp(w0, c1, czr, MemOperand(c3)), "stlxp w0, c1, czr, [c3]");
+  COMPARE_C64(stlxp(w0, czr, c2, MemOperand(c3)), "stlxp w0, czr, c2, [c3]");
+  COMPARE_C64(stlxp(wzr, c1, c2, MemOperand(c3)), "stlxp wzr, c1, c2, [c3]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Stlxp(w30, c29, c28, MemOperand(c27)),
+                    "stlxp w30, c29, c28, [c27]");
+  COMPARE_MACRO_C64(Stlxp(w30, c29, czr, MemOperand(csp)),
+                    "stlxp w30, c29, czr, [csp]");
 }
 
 TEST(morello_c64_stlxr_r_cr_c) {
@@ -2283,7 +2307,17 @@ TEST(morello_c64_str_c_macro) {
 TEST(morello_c64_stxp_r_cr_c) {
   SETUP();
 
-  // COMPARE_C64(stxp(w0, c1, c2, MemOperand(c3)), "TODO");
+  COMPARE_C64(stxp(w0, c1, c2, MemOperand(c3)), "stxp w0, c1, c2, [c3]");
+  COMPARE_C64(stxp(w0, c1, c2, MemOperand(csp)), "stxp w0, c1, c2, [csp]");
+  COMPARE_C64(stxp(w0, c1, czr, MemOperand(c3)), "stxp w0, c1, czr, [c3]");
+  COMPARE_C64(stxp(w0, czr, c2, MemOperand(c3)), "stxp w0, czr, c2, [c3]");
+  COMPARE_C64(stxp(wzr, c1, c2, MemOperand(c3)), "stxp wzr, c1, c2, [c3]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Stxp(w30, c29, c28, MemOperand(c27)),
+                    "stxp w30, c29, c28, [c27]");
+  COMPARE_MACRO_C64(Stxp(w30, c29, czr, MemOperand(csp)),
+                    "stxp w30, c29, czr, [csp]");
 }
 
 TEST(morello_c64_stxr_r_cr_c) {

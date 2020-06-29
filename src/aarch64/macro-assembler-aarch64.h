@@ -2176,10 +2176,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldar(ct, addr);
   }
+  void Ldaxp(CRegister ct, CRegister ct2, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldaxp(ct, ct2, addr);
+  }
   void Ldaxr(CRegister ct, const MemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     ldaxr(ct, addr);
+  }
+  void Ldxp(CRegister ct, CRegister ct2, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldxp(ct, ct2, addr);
   }
   void Ldxr(CRegister ct, const MemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -2263,10 +2273,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     stlr(ct, addr);
   }
+  void Stlxp(Register ws, CRegister ct, CRegister ct2, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stlxp(ws, ct, ct2, addr);
+  }
   void Stlxr(Register ws, CRegister ct, const MemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     stlxr(ws, ct, addr);
+  }
+  void Stxp(Register ws, CRegister ct, CRegister ct2, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stxp(ws, ct, ct2, addr);
   }
   void Stxr(Register ws, CRegister ct, const MemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);

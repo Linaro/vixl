@@ -9545,11 +9545,9 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloCompareAndSwap)                 \
   V(MorelloLDR)                            \
   V(MorelloLoadPairAndBranch)              \
-  V(MorelloLoadPairExclusive)              \
   V(MorelloLoadStoreAcquireReleaseAltBase) \
   V(MorelloLoadStorePairNonTemporal)       \
   V(MorelloLoadStoreTags)                  \
-  V(MorelloStorePairExclusive)             \
   V(MorelloSwap)
 
 #define VIXL_DEFINE_UNIMPLEMENTED_VISITOR(NAME)              \
@@ -10168,6 +10166,25 @@ void Disassembler::VisitMorelloLoadStoreImmediatePreIndex(
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::VisitMorelloLoadPairExclusive(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, 'ct2, ['nns]";
+
+  switch (instr->Mask(MorelloLoadPairExclusiveMask)) {
+    case LDXP_c_r:
+      mnemonic = "ldxp";
+      break;
+    case LDAXP_c_r:
+      mnemonic = "ldaxp";
+      break;
+    default:
+      form = "(MorelloLoadPairExclusive)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
 void Disassembler::VisitMorelloLoadStorePair(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'ct, 'ct2, ['nns'ILP4]";
@@ -10718,6 +10735,25 @@ void Disassembler::VisitMorelloStoreExclusive(const Instruction *instr) {
       break;
     default:
       form = "(MorelloStoreExclusive)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloStorePairExclusive(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Ws, 'ct, 'ct2, ['nns]";
+
+  switch (instr->Mask(MorelloStorePairExclusiveMask)) {
+    case STXP_r_cr:
+      mnemonic = "stxp";
+      break;
+    case STLXP_r_cr:
+      mnemonic = "stlxp";
+      break;
+    default:
+      form = "(MorelloStorePairExclusive)";
       break;
   }
 
