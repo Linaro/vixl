@@ -511,6 +511,15 @@ void Assembler::ldpbr(CRegister ct, const MemOperand& addr) {
   Emit(LDPBR_c_c | Rt(ct) | RnSP(cn));
 }
 
+void Assembler::ldct(Register xt, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(xt.IsX());
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(LDCT_r_r | Rt(xt) | RnSP(addr.GetBase()));
+}
+
 void Assembler::ldxr(CRegister ct, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // There is no alt-base form of this instruction.

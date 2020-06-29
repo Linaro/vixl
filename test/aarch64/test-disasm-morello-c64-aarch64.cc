@@ -1778,10 +1778,16 @@ TEST(morello_c64_ldaxr_c_r_c) {
   COMPARE_MACRO_C64(Ldar(czr, MemOperand(csp)), "ldar czr, [csp]");
 }
 
-TEST(morello_c64_ldct_r_r_) {
+TEST(morello_c64_ldct_r_r) {
   SETUP();
 
-  // COMPARE_C64(ldct(x0, MemOperand(c1)), "TODO");
+  COMPARE_C64(ldct(x0, MemOperand(c1)), "ldct x0, [c1]");
+  COMPARE_C64(ldct(x0, MemOperand(csp)), "ldct x0, [csp]");
+  COMPARE_C64(ldct(xzr, MemOperand(c1)), "ldct xzr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Ldct(x30, MemOperand(c29)), "ldct x30, [c29]");
+  COMPARE_MACRO_C64(Ldct(xzr, MemOperand(csp)), "ldct xzr, [csp]");
 }
 
 TEST(morello_c64_ldnp_c_rib_c) {
@@ -2094,12 +2100,6 @@ TEST(morello_c64_ret_default) {
   // of the ISA.
   COMPARE_C64(dci(RET | Assembler::Rn(lr)), "ret x30");
   COMPARE_C64(dci(RET_c | Assembler::Rn(clr)), "ret c30");
-}
-
-TEST(morello_c64_stct_r_r_) {
-  SETUP();
-
-  // COMPARE_C64(stct(x0, MemOperand(c1)), "TODO");
 }
 
 TEST(morello_c64_stlr_c_r_c) {

@@ -9541,9 +9541,7 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 
 
 // TODO: Implement these.
-#define VIXL_UNIMPLEMENTED_VISITOR_LIST(V) \
-  V(MorelloLDR)                            \
-  V(MorelloLoadStoreTags)
+#define VIXL_UNIMPLEMENTED_VISITOR_LIST(V) V(MorelloLDR)
 
 #define VIXL_DEFINE_UNIMPLEMENTED_VISITOR(NAME)              \
   void Disassembler::Visit##NAME(const Instruction *instr) { \
@@ -10206,6 +10204,25 @@ void Disassembler::VisitMorelloLoadStoreImmediatePreIndex(
       break;
     default:
       form = "(MorelloLoadStoreImmediatePreIndex)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStoreTags(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Xt, ['nns]";
+
+  switch (instr->Mask(MorelloLoadStoreTagsMask)) {
+    case STCT_r_r:
+      mnemonic = "stct";
+      break;
+    case LDCT_r_r:
+      mnemonic = "ldct";
+      break;
+    default:
+      form = "(MorelloLoadStoreTags)";
       break;
   }
 

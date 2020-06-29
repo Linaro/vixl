@@ -1762,10 +1762,16 @@ TEST(morello_a64_ldaxr_c_r_c) {
   COMPARE_MACRO_A64(Ldar(czr, MemOperand(sp)), "ldar czr, [sp]");
 }
 
-TEST(morello_a64_ldct_r_r_) {
+TEST(morello_a64_ldct_r_r) {
   SETUP();
 
-  // COMPARE_A64(ldct(x0, MemOperand(x1)), "TODO");
+  COMPARE_A64(ldct(x0, MemOperand(x1)), "ldct x0, [x1]");
+  COMPARE_A64(ldct(x0, MemOperand(sp)), "ldct x0, [sp]");
+  COMPARE_A64(ldct(xzr, MemOperand(x1)), "ldct xzr, [x1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_A64(Ldct(x30, MemOperand(x29)), "ldct x30, [x29]");
+  COMPARE_MACRO_A64(Ldct(xzr, MemOperand(sp)), "ldct xzr, [sp]");
 }
 
 TEST(morello_a64_ldnp_c_rib_c) {
@@ -2069,12 +2075,6 @@ TEST(morello_a64_ret_default) {
 
   // Check that we disassemble `ret(clr)` unambiguously even in A64 mode.
   COMPARE_A64(dci(RET_c | Assembler::Rn(clr)), "ret c30");
-}
-
-TEST(morello_a64_stct_r_r_) {
-  SETUP();
-
-  // COMPARE_A64(stct(x0, MemOperand(x1)), "TODO");
 }
 
 TEST(morello_a64_stlr_c_r_c) {

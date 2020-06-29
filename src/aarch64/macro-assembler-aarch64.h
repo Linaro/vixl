@@ -6859,6 +6859,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     gcvalue(xd, cn);
   }
 
+  void Ldct(Register xt, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldct(xt, addr);
+  }
+
   void Ldpblr(CRegister ct, const MemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
