@@ -6141,14 +6141,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // LDAR <Ct>, [...]
   void ldar(CRegister ct, const MemOperand& addr);
 
-  // LDAR <Wt>, [...]
-  // TODO: Merge into the existing function.
-  // void ldar(Register wt, const MemOperand& addr);
-
-  // LDARB <Wt>, [...]
-  // TODO: Merge into the existing function.
-  // void ldarb(Register wt, const MemOperand& addr);
-
   // LDAXP <Ct>, <Ct2>, [...]
   void ldaxp(CRegister ct, CRegister ct2, const MemOperand& addr);
 
@@ -6169,105 +6161,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // argument should be specified in kCRegSizeInBytes units. That is, this
   // generates a capability load from `AlignDown(pcc, 16) + (imm17 * 16)`.
   void ldr(CRegister ct, int64_t imm17);
-
-  // LDR <Wt>, [..., <R><m>, <extend>{ <amount>}]
-  // LDR <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldr(Register wt, const MemOperand& addr);
-
-  // LDR <Xt>, [..., <R><m>, <extend>{ <amount>}]
-  // LDR <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldr(Register xt, const MemOperand& addr);
-
-  // LDR <Dt>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void ldr(VRegister dt, const MemOperand& addr);
-
-  // LDR <St>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void ldr(VRegister st, const MemOperand& addr);
-
-  // LDRB <Wt>, [..., <R><m>, <extend>]
-  // LDRB <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldrb(Register wt, const MemOperand& addr);
-
-  // LDRH <Wt>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void ldrh(Register wt, const MemOperand& addr);
-
-  // LDRSB <Wt>, [..., <R><m>, <extend>]
-  // TODO: Merge into the existing function.
-  // void ldrsb(Register wt, const MemOperand& addr);
-
-  // LDRSB <Xt>, [..., <R><m>, <extend>]
-  // TODO: Merge into the existing function.
-  // void ldrsb(Register xt, const MemOperand& addr);
-
-  // LDRSH <Wt>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void ldrsh(Register wt, const MemOperand& addr);
-
-  // LDRSH <Xt>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void ldrsh(Register xt, const MemOperand& addr);
-
-  // LDUR <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(Register wt, const MemOperand& addr);
-
-  // LDUR <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(Register xt, const MemOperand& addr);
-
-  // LDUR <Bt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(VRegister bt, const MemOperand& addr);
-
-  // LDUR <Dt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(VRegister dt, const MemOperand& addr);
-
-  // LDUR <Ht>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(VRegister ht, const MemOperand& addr);
-
-  // LDUR <Qt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(VRegister qt, const MemOperand& addr);
-
-  // LDUR <St>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldur(VRegister st, const MemOperand& addr);
-
-  // LDURB <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldurb(Register wt, const MemOperand& addr);
-
-  // LDURH <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldurh(Register wt, const MemOperand& addr);
-
-  // LDURSB <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldursb(Register wt, const MemOperand& addr);
-
-  // LDURSB <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldursb(Register xt, const MemOperand& addr);
-
-  // LDURSH <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldursh(Register wt, const MemOperand& addr);
-
-  // LDURSH <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldursh(Register xt, const MemOperand& addr);
-
-  // LDURSW <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void ldursw(Register xt, const MemOperand& addr);
 
   // LDXP <Ct>, <Ct2>, [...]
   void ldxp(CRegister ct, CRegister ct2, const MemOperand& addr);
@@ -6342,82 +6235,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   // STLR <Ct>, [...]
   void stlr(CRegister ct, const MemOperand& addr);
 
-  // STLR <Wt>, [...]
-  // TODO: Merge into the existing function.
-  // void stlr(Register wt, const MemOperand& addr);
-
-  // STLRB <Wt>, [...]
-  // TODO: Merge into the existing function.
-  // void stlrb(Register wt, const MemOperand& addr);
-
   // STLXP <Ws>, <Ct>, <Ct2>, [...]
   void stlxp(Register ws, CRegister ct, CRegister ct2, const MemOperand& addr);
 
   // STLXR <Ws>, <Ct>, [...]
   void stlxr(Register ws, CRegister ct, const MemOperand& addr);
-
-  // STR <Wt>, [..., <R><m>, <extend>{ <amount>}]
-  // STR <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void str(Register wt, const MemOperand& addr);
-
-  // STR <Xt>, [..., <R><m>, <extend>{ <amount>}]
-  // STR <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void str(Register xt, const MemOperand& addr);
-
-  // STR <Dt>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void str(VRegister dt, const MemOperand& addr);
-
-  // STR <St>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void str(VRegister st, const MemOperand& addr);
-
-  // STRB <Wt>, [..., <R><m>, <extend>]
-  // STRB <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void strb(Register wt, const MemOperand& addr);
-
-  // STRH <Wt>, [..., <R><m>, <extend>{ <amount>}]
-  // TODO: Merge into the existing function.
-  // void strh(Register wt, const MemOperand& addr);
-
-  // STUR <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(Register wt, const MemOperand& addr);
-
-  // STUR <Xt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(Register xt, const MemOperand& addr);
-
-  // STUR <Bt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(VRegister bt, const MemOperand& addr);
-
-  // STUR <Dt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(VRegister dt, const MemOperand& addr);
-
-  // STUR <Ht>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(VRegister ht, const MemOperand& addr);
-
-  // STUR <Qt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(VRegister qt, const MemOperand& addr);
-
-  // STUR <St>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void stur(VRegister st, const MemOperand& addr);
-
-  // STURB <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void sturb(Register wt, const MemOperand& addr);
-
-  // STURH <Wt>, [...{, #<imm>}]
-  // TODO: Merge into the existing function.
-  // void sturh(Register wt, const MemOperand& addr);
 
   // STXP <Ws>, <Ct>, <Ct2>, [...]
   void stxp(Register ws, CRegister ct, CRegister ct2, const MemOperand& addr);
