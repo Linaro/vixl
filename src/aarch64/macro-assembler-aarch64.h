@@ -2166,6 +2166,26 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ic(op, rt);
   }
+  void Ldapr(CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldapr(ct, addr);
+  }
+  void Ldar(CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldar(ct, addr);
+  }
+  void Ldaxr(CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldaxr(ct, addr);
+  }
+  void Ldxr(CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldxr(ct, addr);
+  }
   void Msub(const Register& rd,
             const Register& rn,
             const Register& rm,
@@ -2237,6 +2257,21 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(!rn.IsZero());
     SingleEmissionCheckScope guard(this);
     rev64(rd, rn);
+  }
+  void Stlr(CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stlr(ct, addr);
+  }
+  void Stlxr(Register ws, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stlxr(ws, ct, addr);
+  }
+  void Stxr(Register ws, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    stxr(ws, ct, addr);
   }
 
 #define PAUTH_MASM_VARIATIONS(V) \

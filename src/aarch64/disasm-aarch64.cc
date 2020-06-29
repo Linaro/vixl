@@ -9541,20 +9541,15 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 
 
 // TODO: Implement these.
-#define VIXL_UNIMPLEMENTED_VISITOR_LIST(V)    \
-  V(MorelloCompareAndSwap)                    \
-  V(MorelloLDAPR)                             \
-  V(MorelloLDR)                               \
-  V(MorelloLoadPairAndBranch)                 \
-  V(MorelloLoadStoreAcquireRelease)           \
-  V(MorelloLoadExclusive)                     \
-  V(MorelloLoadPairExclusive)                 \
-  V(MorelloLoadStoreAcquireReleaseAltBase)    \
-  V(MorelloLoadStoreAcquireReleaseCapAltBase) \
-  V(MorelloLoadStorePairNonTemporal)          \
-  V(MorelloLoadStoreTags)                     \
-  V(MorelloStoreExclusive)                    \
-  V(MorelloStorePairExclusive)                \
+#define VIXL_UNIMPLEMENTED_VISITOR_LIST(V) \
+  V(MorelloCompareAndSwap)                 \
+  V(MorelloLDR)                            \
+  V(MorelloLoadPairAndBranch)              \
+  V(MorelloLoadPairExclusive)              \
+  V(MorelloLoadStoreAcquireReleaseAltBase) \
+  V(MorelloLoadStorePairNonTemporal)       \
+  V(MorelloLoadStoreTags)                  \
+  V(MorelloStorePairExclusive)             \
   V(MorelloSwap)
 
 #define VIXL_DEFINE_UNIMPLEMENTED_VISITOR(NAME)              \
@@ -10033,6 +10028,81 @@ void Disassembler::VisitMorelloImmBounds(const Instruction *instr) {
     case SCBNDS_c_ci_s:
       mnemonic = "scbnds";
       form = "'cds, 'cns, #'u2015, lsl #4 ('u2015*16)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLDAPR(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, ['nns]";
+
+  switch (instr->Mask(MorelloLDAPRMask)) {
+    case LDAPR_c_r:
+      mnemonic = "ldapr";
+      break;
+    default:
+      form = "(MorelloLDAPR)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadExclusive(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, ['nns]";
+
+  switch (instr->Mask(MorelloLoadExclusiveMask)) {
+    case LDAXR_c_r:
+      mnemonic = "ldaxr";
+      break;
+    case LDXR_c_r:
+      mnemonic = "ldxr";
+      break;
+    default:
+      form = "(MorelloLoadExclusive)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStoreAcquireReleaseCapAltBase(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, ['ans]";
+
+  switch (instr->Mask(MorelloLoadStoreAcquireReleaseCapAltBaseMask)) {
+    case ALDAR_c_r:
+      mnemonic = "ldar";
+      break;
+    case ASTLR_c_r:
+      mnemonic = "stlr";
+      break;
+    default:
+      form = "(MorelloLoadStoreAcquireReleaseCapAltBase)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStoreAcquireRelease(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, ['nns]";
+
+  switch (instr->Mask(MorelloLoadStoreAcquireReleaseMask)) {
+    case LDAR_c_r:
+      mnemonic = "ldar";
+      break;
+    case STLR_c_r:
+      mnemonic = "stlr";
+      break;
+    default:
+      form = "(MorelloLoadStoreAcquireRelease)";
       break;
   }
 
@@ -10629,6 +10699,25 @@ void Disassembler::VisitMorelloSetField2(const Instruction *instr) {
       break;
     default:
       form = "(MorelloSetField2)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloStoreExclusive(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Ws, 'ct, ['nns]";
+
+  switch (instr->Mask(MorelloStoreExclusiveMask)) {
+    case STLXR_r_cr:
+      mnemonic = "stlxr";
+      break;
+    case STXR_r_cr:
+      mnemonic = "stxr";
+      break;
+    default:
+      form = "(MorelloStoreExclusive)";
       break;
   }
 
