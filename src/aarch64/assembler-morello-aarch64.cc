@@ -220,6 +220,38 @@ void Assembler::bx(Label* label) {
   bx(kInstructionSize);
 }
 
+void Assembler::cas(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(CAS_c_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
+void Assembler::casa(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(CASA_c_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
+void Assembler::casal(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(CASAL_c_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
+void Assembler::casl(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(CASL_c_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
 void Assembler::cfhi(Register xd, CRegister cn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xd.IsX());
@@ -680,6 +712,38 @@ void Assembler::subs(Register xd, CRegister cn, CRegister cm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   VIXL_ASSERT(xd.IsX());
   Emit(SUBS_r_cc | Rd(xd) | Rn(cn) | Rm(cm));
+}
+
+void Assembler::swp(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(SWP_cc_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
+void Assembler::swpa(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(SWPA_cc_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
+void Assembler::swpal(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(SWPAL_cc_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
+}
+
+void Assembler::swpl(CRegister cs, CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello, CPUFeatures::kAtomics));
+  // There is no alt-base form of this instruction.
+  VIXL_ASSERT(!addr.IsAltBase(GetISA()));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  Emit(SWPL_cc_r | Rt(ct) | Rs(cs) | RnSP(addr.GetBase()));
 }
 
 void Assembler::unseal(CRegister cd, CRegister cn, CRegister cm) {

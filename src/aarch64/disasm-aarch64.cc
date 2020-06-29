@@ -9542,10 +9542,8 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 
 // TODO: Implement these.
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V) \
-  V(MorelloCompareAndSwap)                 \
   V(MorelloLDR)                            \
-  V(MorelloLoadStoreTags)                  \
-  V(MorelloSwap)
+  V(MorelloLoadStoreTags)
 
 #define VIXL_DEFINE_UNIMPLEMENTED_VISITOR(NAME)              \
   void Disassembler::Visit##NAME(const Instruction *instr) { \
@@ -9836,6 +9834,31 @@ void Disassembler::VisitMorelloCLRPERMImm(const Instruction *instr) {
   }
 
   Format(instr, mnemonic, form, suffix);
+}
+
+void Disassembler::VisitMorelloCompareAndSwap(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cs, 'ct, ['nns]";
+
+  switch (instr->Mask(MorelloCompareAndSwapMask)) {
+    case CAS_c_r:
+      mnemonic = "cas";
+      break;
+    case CASA_c_r:
+      mnemonic = "casa";
+      break;
+    case CASAL_c_r:
+      mnemonic = "casal";
+      break;
+    case CASL_c_r:
+      mnemonic = "casl";
+      break;
+    default:
+      form = "(MorelloCompareAndSwap)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
 }
 
 void Disassembler::VisitMorelloConvertToCap(const Instruction *instr) {
@@ -10835,6 +10858,31 @@ void Disassembler::VisitMorelloSUBS(const Instruction *instr) {
         mnemonic = "subs";
         form = "'Xd, 'cn, 'cm";
       }
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloSwap(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'cs, 'ct, ['nns]";
+
+  switch (instr->Mask(MorelloSwapMask)) {
+    case SWP_cc_r:
+      mnemonic = "swp";
+      break;
+    case SWPA_cc_r:
+      mnemonic = "swpa";
+      break;
+    case SWPAL_cc_r:
+      mnemonic = "swpal";
+      break;
+    case SWPL_cc_r:
+      mnemonic = "swpl";
+      break;
+    default:
+      form = "(MorelloSwap)";
       break;
   }
 

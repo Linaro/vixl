@@ -6593,6 +6593,30 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     bx(kInstructionSize);
   }
 
+  void Cas(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cas(cs, ct, addr);
+  }
+
+  void Casa(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    casa(cs, ct, addr);
+  }
+
+  void Casal(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    casal(cs, ct, addr);
+  }
+
+  void Casl(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    casl(cs, ct, addr);
+  }
+
   void Clrperm(CRegister cd, CRegister cn, ClrpermImm perm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6965,6 +6989,30 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     subs(xd, cn, cm);
+  }
+
+  void Swp(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    swp(cs, ct, addr);
+  }
+
+  void Swpa(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    swpa(cs, ct, addr);
+  }
+
+  void Swpal(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    swpal(cs, ct, addr);
+  }
+
+  void Swpl(CRegister cs, CRegister ct, const MemOperand& addr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    swpl(cs, ct, addr);
   }
 
   void Unseal(CRegister cd, CRegister cn, CRegister cm) {

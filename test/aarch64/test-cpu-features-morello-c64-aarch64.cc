@@ -207,14 +207,14 @@ TEST_RCPC_MORELLO(ldapr_0, ldapr(c0, MemOperand(c1)))
                     Atomics_Morello_##NAME,                                    \
                     ASM)
 
-// TEST_ATOMICS_MORELLO(cas_0, cas(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(casa_0, casa(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(casal_0, casal(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(casl_0, casl(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(swp_0, swp(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(swpa_0, swpa(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(swpal_0, swpal(c0, c1, MemOperand(c2)))
-// TEST_ATOMICS_MORELLO(swpl_0, swpl(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(cas_0, cas(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(casa_0, casa(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(casal_0, casal(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(casl_0, casl(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(swp_0, swp(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(swpa_0, swpa(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(swpal_0, swpal(c0, c1, MemOperand(c2)))
+TEST_ATOMICS_MORELLO(swpl_0, swpl(c0, c1, MemOperand(c2)))
 
 }  // namespace aarch64
 }  // namespace vixl

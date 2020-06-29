@@ -1680,25 +1680,53 @@ TEST(morello_c64_asturh_r_ri_32) {
 TEST(morello_c64_cas_c_r_c) {
   SETUP();
 
-  // COMPARE_C64(cas(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(cas(c0, c1, MemOperand(c2)), "cas c0, c1, [c2]");
+  COMPARE_C64(cas(c0, c1, MemOperand(csp)), "cas c0, c1, [csp]");
+  COMPARE_C64(cas(c0, czr, MemOperand(c2)), "cas c0, czr, [c2]");
+  COMPARE_C64(cas(czr, c1, MemOperand(c2)), "cas czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Cas(c30, c29, MemOperand(c28)), "cas c30, c29, [c28]");
+  COMPARE_MACRO_C64(Cas(c30, czr, MemOperand(csp)), "cas c30, czr, [csp]");
 }
 
 TEST(morello_c64_casa_c_r_c) {
   SETUP();
 
-  // COMPARE_C64(casa(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(casa(c0, c1, MemOperand(c2)), "casa c0, c1, [c2]");
+  COMPARE_C64(casa(c0, c1, MemOperand(csp)), "casa c0, c1, [csp]");
+  COMPARE_C64(casa(c0, czr, MemOperand(c2)), "casa c0, czr, [c2]");
+  COMPARE_C64(casa(czr, c1, MemOperand(c2)), "casa czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Casa(c30, c29, MemOperand(c28)), "casa c30, c29, [c28]");
+  COMPARE_MACRO_C64(Casa(c30, czr, MemOperand(csp)), "casa c30, czr, [csp]");
 }
 
 TEST(morello_c64_casal_c_r_c) {
   SETUP();
 
-  // COMPARE_C64(casal(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(casal(c0, c1, MemOperand(c2)), "casal c0, c1, [c2]");
+  COMPARE_C64(casal(c0, c1, MemOperand(csp)), "casal c0, c1, [csp]");
+  COMPARE_C64(casal(c0, czr, MemOperand(c2)), "casal c0, czr, [c2]");
+  COMPARE_C64(casal(czr, c1, MemOperand(c2)), "casal czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Casal(c30, c29, MemOperand(c28)), "casal c30, c29, [c28]");
+  COMPARE_MACRO_C64(Casal(c30, czr, MemOperand(csp)), "casal c30, czr, [csp]");
 }
 
 TEST(morello_c64_casl_c_r_c) {
   SETUP();
 
-  // COMPARE_C64(casl(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(casl(c0, c1, MemOperand(c2)), "casl c0, c1, [c2]");
+  COMPARE_C64(casl(c0, c1, MemOperand(csp)), "casl c0, c1, [csp]");
+  COMPARE_C64(casl(c0, czr, MemOperand(c2)), "casl c0, czr, [c2]");
+  COMPARE_C64(casl(czr, c1, MemOperand(c2)), "casl czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Casl(c30, c29, MemOperand(c28)), "casl c30, c29, [c28]");
+  COMPARE_MACRO_C64(Casl(c30, czr, MemOperand(csp)), "casl c30, czr, [csp]");
 }
 
 TEST(morello_c64_ldapr_c_r_c) {
@@ -2414,25 +2442,53 @@ TEST(morello_c64_stxr_r_cr_c) {
 TEST(morello_c64_swp_cc_r_c) {
   SETUP();
 
-  // COMPARE_C64(swp(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(swp(c0, c1, MemOperand(c2)), "swp c0, c1, [c2]");
+  COMPARE_C64(swp(c0, c1, MemOperand(csp)), "swp c0, c1, [csp]");
+  COMPARE_C64(swp(c0, czr, MemOperand(c2)), "swp c0, czr, [c2]");
+  COMPARE_C64(swp(czr, c1, MemOperand(c2)), "swp czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Swp(c30, c29, MemOperand(c28)), "swp c30, c29, [c28]");
+  COMPARE_MACRO_C64(Swp(c30, czr, MemOperand(csp)), "swp c30, czr, [csp]");
 }
 
 TEST(morello_c64_swpa_cc_r_c) {
   SETUP();
 
-  // COMPARE_C64(swpa(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(swpa(c0, c1, MemOperand(c2)), "swpa c0, c1, [c2]");
+  COMPARE_C64(swpa(c0, c1, MemOperand(csp)), "swpa c0, c1, [csp]");
+  COMPARE_C64(swpa(c0, czr, MemOperand(c2)), "swpa c0, czr, [c2]");
+  COMPARE_C64(swpa(czr, c1, MemOperand(c2)), "swpa czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Swpa(c30, c29, MemOperand(c28)), "swpa c30, c29, [c28]");
+  COMPARE_MACRO_C64(Swpa(c30, czr, MemOperand(csp)), "swpa c30, czr, [csp]");
 }
 
 TEST(morello_c64_swpal_cc_r_c) {
   SETUP();
 
-  // COMPARE_C64(swpal(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(swpal(c0, c1, MemOperand(c2)), "swpal c0, c1, [c2]");
+  COMPARE_C64(swpal(c0, c1, MemOperand(csp)), "swpal c0, c1, [csp]");
+  COMPARE_C64(swpal(c0, czr, MemOperand(c2)), "swpal c0, czr, [c2]");
+  COMPARE_C64(swpal(czr, c1, MemOperand(c2)), "swpal czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Swpal(c30, c29, MemOperand(c28)), "swpal c30, c29, [c28]");
+  COMPARE_MACRO_C64(Swpal(c30, czr, MemOperand(csp)), "swpal c30, czr, [csp]");
 }
 
 TEST(morello_c64_swpl_cc_r_c) {
   SETUP();
 
-  // COMPARE_C64(swpl(c0, c1, MemOperand(c2)), "TODO");
+  COMPARE_C64(swpl(c0, c1, MemOperand(c2)), "swpl c0, c1, [c2]");
+  COMPARE_C64(swpl(c0, c1, MemOperand(csp)), "swpl c0, c1, [csp]");
+  COMPARE_C64(swpl(c0, czr, MemOperand(c2)), "swpl c0, czr, [c2]");
+  COMPARE_C64(swpl(czr, c1, MemOperand(c2)), "swpl czr, c1, [c2]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Swpl(c30, c29, MemOperand(c28)), "swpl c30, c29, [c28]");
+  COMPARE_MACRO_C64(Swpl(c30, czr, MemOperand(csp)), "swpl c30, czr, [csp]");
 }
 
 }  // namespace aarch64
