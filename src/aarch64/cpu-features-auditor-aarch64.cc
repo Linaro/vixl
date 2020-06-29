@@ -656,7 +656,6 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
   V(MorelloGetField2)                         \
   V(MorelloGetSetSystemRegister)              \
   V(MorelloImmBounds)                         \
-  V(MorelloLDAPR)                             \
   V(MorelloLDR)                               \
   V(MorelloLoadPairAndBranch)                 \
   V(MorelloLoadStoreAcquireRelease)           \
@@ -698,6 +697,19 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
 VIXL_SIMPLE_MORELLO_VISITOR_LIST(VIXL_DEFINE_SIMPLE_MORELLO_VISITOR)
 #undef VIXL_DEFINE_SIMPLE_MORELLO_VISITOR
 #undef VIXL_SIMPLE_MORELLO_VISITOR_LIST
+
+void CPUFeaturesAuditor::VisitMorelloLDAPR(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kMorello);
+  switch (instr->Mask(MorelloLDAPRMask)) {
+    case LDAPR_c_r:
+      scope.Record(CPUFeatures::kRCpc);
+      return;
+    default:
+      // No additional features.
+      return;
+  }
+}
 
 void CPUFeaturesAuditor::VisitMorelloLoadStoreRegisterAltBase(
     const Instruction* instr) {
