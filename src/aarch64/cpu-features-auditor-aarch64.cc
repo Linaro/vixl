@@ -646,7 +646,6 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
   V(MorelloBranchToSealed)                    \
   V(MorelloChecks)                            \
   V(MorelloCLRPERMImm)                        \
-  V(MorelloCompareAndSwap)                    \
   V(MorelloConvertToCap)                      \
   V(MorelloConvertToCapWithImplicitOperand)   \
   V(MorelloConvertToPointer)                  \
@@ -685,8 +684,7 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
   V(MorelloSetField1)                         \
   V(MorelloSetField2)                         \
   V(MorelloStoreExclusive)                    \
-  V(MorelloStorePairExclusive)                \
-  V(MorelloSwap)
+  V(MorelloStorePairExclusive)
 
 #define VIXL_DEFINE_SIMPLE_MORELLO_VISITOR(NAME)                   \
   void CPUFeaturesAuditor::Visit##NAME(const Instruction* instr) { \
@@ -697,6 +695,22 @@ void CPUFeaturesAuditor::VisitLogicalShifted(const Instruction* instr) {
 VIXL_SIMPLE_MORELLO_VISITOR_LIST(VIXL_DEFINE_SIMPLE_MORELLO_VISITOR)
 #undef VIXL_DEFINE_SIMPLE_MORELLO_VISITOR
 #undef VIXL_SIMPLE_MORELLO_VISITOR_LIST
+
+void CPUFeaturesAuditor::VisitMorelloCompareAndSwap(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kMorello);
+  switch (instr->Mask(MorelloCompareAndSwapMask)) {
+    case CAS_c_r:
+    case CASL_c_r:
+    case CASA_c_r:
+    case CASAL_c_r:
+      scope.Record(CPUFeatures::kAtomics);
+      return;
+    default:
+      // No additional features.
+      return;
+  }
+}
 
 void CPUFeaturesAuditor::VisitMorelloLDAPR(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
@@ -746,6 +760,22 @@ void CPUFeaturesAuditor::VisitMorelloLoadStoreUnscaledImmediateAltBase(
     case ALDUR_v_ri_s:
     case ALDUR_v_ri_d:
       scope.RecordOneOrBothOf(CPUFeatures::kFP, CPUFeatures::kNEON);
+      return;
+    default:
+      // No additional features.
+      return;
+  }
+}
+
+void CPUFeaturesAuditor::VisitMorelloSwap(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kMorello);
+  switch (instr->Mask(MorelloSwapMask)) {
+    case SWP_cc_r:
+    case SWPL_cc_r:
+    case SWPA_cc_r:
+    case SWPAL_cc_r:
+      scope.Record(CPUFeatures::kAtomics);
       return;
     default:
       // No additional features.
