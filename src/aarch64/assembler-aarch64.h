@@ -428,21 +428,24 @@ class Literal : public RawLiteral {
 
 // Control whether or not position-independent code should be emitted.
 enum PositionIndependentCodeOption {
+  // The numeric values are the number of fixed low-order bits in the code
+  // address. See Get/SetFixedCodeAddressBits() for finer control.
+
   // All code generated will be position-independent; all branches and
   // references to labels generated with the Label class will use PC-relative
   // addressing.
-  PositionIndependentCode,
+  PositionIndependentCode = kInstructionSizeLog2,
 
   // Allow VIXL to generate code that refers to absolute addresses. With this
   // option, it will not be possible to copy the code buffer and run it from a
   // different address; code must be generated in its final location.
-  PositionDependentCode,
+  PositionDependentCode = kXRegSize,
 
   // Allow VIXL to assume that the bottom 12 bits of the address will be
   // constant, but that the top 48 bits may change. This allows `adrp` to
   // function in systems which copy code between pages, but otherwise maintain
   // 4KB page alignment.
-  PageOffsetDependentCode
+  PageOffsetDependentCode = kPageSizeLog2,
 };
 
 
@@ -469,21 +472,21 @@ class Assembler : public vixl::internal::AssemblerBase {
  public:
   explicit Assembler(
       PositionIndependentCodeOption pic = PositionIndependentCode)
-      : pic_(pic),
+      : fixed_address_bits_(static_cast<int>(pic)),
         cpu_features_(CPUFeatures::AArch64LegacyBaseline()),
         isa_map_(ISA::A64) {}
   explicit Assembler(
       size_t capacity,
       PositionIndependentCodeOption pic = PositionIndependentCode)
       : AssemblerBase(capacity),
-        pic_(pic),
+        fixed_address_bits_(static_cast<int>(pic)),
         cpu_features_(CPUFeatures::AArch64LegacyBaseline()),
         isa_map_(ISA::A64) {}
   Assembler(byte* buffer,
             size_t capacity,
             PositionIndependentCodeOption pic = PositionIndependentCode)
       : AssemblerBase(buffer, capacity),
-        pic_(pic),
+        fixed_address_bits_(static_cast<int>(pic)),
         cpu_features_(CPUFeatures::AArch64LegacyBaseline()),
         isa_map_(ISA::A64) {}
 
@@ -6162,7 +6165,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ldpbr(CRegister ct, const MemOperand& addr);
 
   // LDR <Ct>, #<imm>
-  void ldr(CRegister ct, int imm);
+  // For consistency with the core `Assembler::ldr(..., imm)`, the `imm17`
+  // argument should be specified in kCRegSizeInBytes units. That is, this
+  // generates a capability load from `AlignDown(pcc, 16) + (imm17 * 16)`.
+  void ldr(CRegister ct, int64_t imm17);
 
   // LDR <Wt>, [..., <R><m>, <extend>{ <amount>}]
   // LDR <Wt>, [...{, #<imm>}]
@@ -7191,22 +7197,53 @@ class Assembler : public vixl::internal::AssemblerBase {
     return GetBuffer().GetRemainingBytes();
   }
 
-  PositionIndependentCodeOption GetPic() const { return pic_; }
+  PositionIndependentCodeOption GetPic() const {
+    if (fixed_address_bits_ >= PositionDependentCode) {
+      return PositionDependentCode;
+    }
+    if (fixed_address_bits_ >= PageOffsetDependentCode) {
+      return PageOffsetDependentCode;
+    }
+    VIXL_ASSERT(fixed_address_bits_ >= PositionIndependentCode);
+    return PositionIndependentCode;
+  }
   VIXL_DEPRECATED("GetPic", PositionIndependentCodeOption pic() const) {
     return GetPic();
   }
 
-  void SetPic(PositionIndependentCodeOption option) { pic_ = option; }
+  void SetPic(PositionIndependentCodeOption option) {
+    fixed_address_bits_ = static_cast<int>(option);
+  }
+
+  // The number of low-order bits that VIXL can assume will remain unchanged in
+  // future code-move events, etc. This is a generalisation of
+  // PositionIndependentCodeOption, permitting finer control.
+  // Useful values:
+  //   2 -> VIXL assumes nothing about address bits: PositionIndependentCode
+  //   4 -> The code may contain embedded capabilities.
+  //   12 -> Code pages may be remapped:             PageOffsetDependentCode
+  //   64 -> Code will execute in-place:             PositionDependentCode
+  // Note that the bottom two bits are always fixed because A64 instructions
+  // must be aligned.
+  int GetFixedCodeAddressBits() const { return fixed_address_bits_; }
+  void SetFixedCodeAddressBits(int bits) {
+    VIXL_ASSERT(static_cast<unsigned>(bits) >= kInstructionSizeLog2);
+    VIXL_ASSERT(static_cast<unsigned>(bits) <= kXRegSize);
+    fixed_address_bits_ = bits;
+  }
+
+  bool HasFixedCodeAddressBits(int bits) const {
+    return GetFixedCodeAddressBits() >= bits;
+  }
+
+  bool AllowPageOffsetDependentCode() const {
+    return HasFixedCodeAddressBits(kPageSizeLog2);
+  }
 
   CPUFeatures* GetCPUFeatures() { return &cpu_features_; }
 
   void SetCPUFeatures(const CPUFeatures& cpu_features) {
     cpu_features_ = cpu_features;
-  }
-
-  bool AllowPageOffsetDependentCode() const {
-    return (GetPic() == PageOffsetDependentCode) ||
-           (GetPic() == PositionDependentCode);
   }
 
   static Register AppropriateZeroRegFor(const CPURegister& reg) {
@@ -7849,7 +7886,11 @@ class Assembler : public vixl::internal::AssemblerBase {
     GetBuffer()->Emit32(instruction);
   }
 
-  PositionIndependentCodeOption pic_;
+  // The number of (low-order) address bits that VIXL can assume won't change as
+  // generated code is copied around (after being finalised). This is 2
+  // (kInstructionSizeLog2) for fully-position-independent code, and 64 for code
+  // that needs to be run in place.
+  int fixed_address_bits_;
 
   CPUFeatures cpu_features_;
 

@@ -9540,19 +9540,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 }
 
 
-// TODO: Implement these.
-#define VIXL_UNIMPLEMENTED_VISITOR_LIST(V) V(MorelloLDR)
-
-#define VIXL_DEFINE_UNIMPLEMENTED_VISITOR(NAME)              \
-  void Disassembler::Visit##NAME(const Instruction *instr) { \
-    Format(instr, "unimplemented", "(" #NAME ")");           \
-  }
-
-VIXL_UNIMPLEMENTED_VISITOR_LIST(VIXL_DEFINE_UNIMPLEMENTED_VISITOR)
-
-#undef VIXL_DEFINE_UNIMPLEMENTED_VISITOR
-#undef VIXL_UNIMPLEMENTED_VISITOR_LIST
-
 void Disassembler::VisitMorelloBitwise(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'cds, 'cns, 'Xm";
@@ -10060,6 +10047,22 @@ void Disassembler::VisitMorelloLDAPR(const Instruction *instr) {
       break;
     default:
       form = "(MorelloLDAPR)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLDR(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, 'ILCLiteral 'LCValue";
+
+  switch (instr->Mask(MorelloLDRMask)) {
+    case LDR_c_i:
+      mnemonic = "ldr";
+      break;
+    default:
+      form = "(MorelloLDR)";
       break;
   }
 
@@ -11384,6 +11387,14 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
                              static_cast<int>(kLiteralEntrySize));
           return 9;
         }
+        case 'C': {  // ILCLiteral - Immediate Load Literal (capability).
+          // The offset is applied to AlignDown(pc, 16), but we disassemble such
+          // that `pcc + #imm` refers to the exact address loaded.
+          uint64_t pc = reinterpret_cast<uint64_t>(instr);
+          uint64_t target = instr->GetLiteralAddress<uint64_t>();
+          AppendToOutput("pcc%+" PRId64, RawbitsToInt64(target - pc));
+          return 10;
+        }
         case 'S': {  // ILS - Immediate Load/Store.
                      // ILSi - As above, but an index field which must not be
                      // omitted even if it is zero.
@@ -11863,40 +11874,46 @@ int Disassembler::SubstituteBitfieldImmediateField(const Instruction *instr,
 
 int Disassembler::SubstituteLiteralField(const Instruction *instr,
                                          const char *format) {
-  VIXL_ASSERT(strncmp(format, "LValue", 6) == 0);
-  USE(format);
-
+  VIXL_ASSERT((strncmp(format, "LValue", 6) == 0) ||
+              (strncmp(format, "LCValue", 7) == 0));
   const void *address = instr->GetLiteralAddress<const void *>();
-  switch (instr->Mask(LoadLiteralMask)) {
-    case LDR_w_lit:
-    case LDR_x_lit:
-    case LDRSW_x_lit:
-    case LDR_s_lit:
-    case LDR_d_lit:
-    case LDR_q_lit:
-      AppendCodeRelativeDataAddressToOutput(instr, address);
-      break;
-    case PRFM_lit: {
-      // Use the prefetch hint to decide how to print the address.
-      switch (instr->GetPrefetchHint()) {
-        case 0x0:  // PLD: prefetch for load.
-        case 0x2:  // PST: prepare for store.
-          AppendCodeRelativeDataAddressToOutput(instr, address);
-          break;
-        case 0x1:  // PLI: preload instructions.
-          AppendCodeRelativeCodeAddressToOutput(instr, address);
-          break;
-        case 0x3:  // Unallocated hint.
-          AppendCodeRelativeAddressToOutput(instr, address);
-          break;
-      }
-      break;
-    }
-    default:
-      VIXL_UNREACHABLE();
-  }
 
-  return 6;
+  if (format[1] == 'C') {
+    // Load capability literal.
+    VIXL_ASSERT(instr->Mask(MorelloLDRMask) == LDR_c_i);
+    AppendCodeRelativeDataAddressToOutput(instr, address);
+    return 7;
+  } else {
+    switch (instr->Mask(LoadLiteralMask)) {
+      case LDR_w_lit:
+      case LDR_x_lit:
+      case LDRSW_x_lit:
+      case LDR_s_lit:
+      case LDR_d_lit:
+      case LDR_q_lit:
+        AppendCodeRelativeDataAddressToOutput(instr, address);
+        break;
+      case PRFM_lit: {
+        // Use the prefetch hint to decide how to print the address.
+        switch (instr->GetPrefetchHint()) {
+          case 0x0:  // PLD: prefetch for load.
+          case 0x2:  // PST: prepare for store.
+            AppendCodeRelativeDataAddressToOutput(instr, address);
+            break;
+          case 0x1:  // PLI: preload instructions.
+            AppendCodeRelativeCodeAddressToOutput(instr, address);
+            break;
+          case 0x3:  // Unallocated hint.
+            AppendCodeRelativeAddressToOutput(instr, address);
+            break;
+        }
+        break;
+      }
+      default:
+        VIXL_UNREACHABLE();
+    }
+    return 6;
+  }
 }
 
 

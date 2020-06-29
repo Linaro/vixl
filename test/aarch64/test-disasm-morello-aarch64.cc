@@ -936,6 +936,91 @@ TEST(morello_ldpbr_c_c_c) {
   COMPARE_MACRO_MORELLO(Ldpbr(czr, MemOperand(csp)), "ldpbr czr, [csp]");
 }
 
+TEST(morello_ldr_c_i_c) {
+  SETUP();
+
+  COMPARE_PREFIX(ldr(c0, 0), "ldr c0, pcc+0 (addr 0x");
+  COMPARE_PREFIX(ldr(c0, 1), "ldr c0, pcc+16 (addr 0x");
+  COMPARE_PREFIX(ldr(c0, -1), "ldr c0, pcc-16 (addr 0x");
+  COMPARE_PREFIX(ldr(c0, 0x0ffff), "ldr c0, pcc+1048560 (addr 0x");
+  COMPARE_PREFIX(ldr(c0, -0x10000), "ldr c0, pcc-1048576 (addr 0x");
+  COMPARE_PREFIX(ldr(c0, 42), "ldr c0, pcc+672 (addr 0x");
+  COMPARE_PREFIX(ldr(c30, 42), "ldr c30, pcc+672 (addr 0x");
+  COMPARE_PREFIX(ldr(czr, 42), "ldr czr, pcc+672 (addr 0x");
+
+  // TODO: Work out how to represent ldr-literal in the MacroAssembler.
+}
+
+TEST(morello_ldr_c_i_c_pic) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  // `ldr` (capability literal) requires some position-independence, but not as
+  // much as `adrp`.
+
+  auto fn = [&masm] {
+    masm.SetFixedCodeAddressBits(kCRegSizeInBytesLog2);
+    ExactAssemblyScope guard(&masm, kInstructionSize);
+    masm.ldr(c0, 42);
+  };
+
+  COMPARE_MACRO_PREFIX(Sequence(fn), "ldr c0, pcc+672 (addr 0x");
+}
+
+TEST(morello_ldr_c_i_c_sequence) {
+  typedef DisasmTestUtilMacroAssembler MacroAssembler;
+
+  SETUP();
+
+  // The `ldr` offset is applied to AlignDown(pcc, 16). Test that we disassemble
+  // it relative to the instruction's actual address.
+
+  auto make_seq = [&masm](int64_t offset) {
+    return [&masm, offset] {
+      ExactAssemblyScope guard(&masm, 8 * kInstructionSize);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+      masm.ldr(c0, offset);
+    };
+  };
+
+  disasm.MapCodeAddress(0x12340000,
+                        masm.GetBuffer()->GetStartAddress<Instruction*>());
+  COMPARE_MACRO(Sequence(make_seq(42)),
+                "ldr c0, pcc+672 (addr 0x123402a0)\n"
+                "ldr c0, pcc+668 (addr 0x123402a0)\n"
+                "ldr c0, pcc+664 (addr 0x123402a0)\n"
+                "ldr c0, pcc+660 (addr 0x123402a0)\n"
+                "ldr c0, pcc+672 (addr 0x123402b0)\n"
+                "ldr c0, pcc+668 (addr 0x123402b0)\n"
+                "ldr c0, pcc+664 (addr 0x123402b0)\n"
+                "ldr c0, pcc+660 (addr 0x123402b0)");
+  COMPARE_MACRO(Sequence(make_seq(-42)),
+                "ldr c0, pcc-672 (addr 0x1233fd60)\n"
+                "ldr c0, pcc-676 (addr 0x1233fd60)\n"
+                "ldr c0, pcc-680 (addr 0x1233fd60)\n"
+                "ldr c0, pcc-684 (addr 0x1233fd60)\n"
+                "ldr c0, pcc-672 (addr 0x1233fd70)\n"
+                "ldr c0, pcc-676 (addr 0x1233fd70)\n"
+                "ldr c0, pcc-680 (addr 0x1233fd70)\n"
+                "ldr c0, pcc-684 (addr 0x1233fd70)");
+  COMPARE_MACRO(Sequence(make_seq(0)),
+                "ldr c0, pcc+0 (addr 0x12340000)\n"
+                "ldr c0, pcc-4 (addr 0x12340000)\n"
+                "ldr c0, pcc-8 (addr 0x12340000)\n"
+                "ldr c0, pcc-12 (addr 0x12340000)\n"
+                "ldr c0, pcc+0 (addr 0x12340010)\n"
+                "ldr c0, pcc-4 (addr 0x12340010)\n"
+                "ldr c0, pcc-8 (addr 0x12340010)\n"
+                "ldr c0, pcc-12 (addr 0x12340010)");
+}
+
 TEST(morello_mrs_c_i_c) {
   SETUP();
 

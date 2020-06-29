@@ -1022,6 +1022,10 @@ void Instruction::SetBranchImmTarget(const Instruction* target,
 
 
 void Instruction::SetImmLLiteral(const Instruction* source) {
+  if (Mask(MorelloLDRMask) == LDR_c_i) {
+    VIXL_UNIMPLEMENTED();
+  }
+
   VIXL_ASSERT(IsWordAligned(source));
   ptrdiff_t offset = (source - this) >> kLiteralEntrySizeLog2;
   Instr imm = Assembler::ImmLLiteral(static_cast<int>(offset));

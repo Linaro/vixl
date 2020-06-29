@@ -202,6 +202,9 @@ namespace aarch64 {
 // MacroAssembler replacement allows that, via callbacks.
 class DisasmTestUtilMacroAssembler : public MacroAssembler {
  public:
+  // Call `fn` to generate an arbitrary code sequence.
+  void Sequence(std::function<void()> fn) { fn(); }
+
   // Call `fn` with only the specified features enabled.
   // Disassembler tests, by default, run with all features enabled. This allows
   // tests to be more specific, in case the absence of a feature can result in

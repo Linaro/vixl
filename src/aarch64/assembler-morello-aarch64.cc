@@ -520,6 +520,13 @@ void Assembler::ldct(Register xt, const MemOperand& addr) {
   Emit(LDCT_r_r | Rt(xt) | RnSP(addr.GetBase()));
 }
 
+void Assembler::ldr(CRegister ct, int64_t imm17) {
+  VIXL_ASSERT(HasFixedCodeAddressBits(kCRegSizeInBytesLog2));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(IsInt17(imm17));
+  Emit(LDR_c_i | ImmField<21, 5>(imm17) | Rt(ct));
+}
+
 void Assembler::ldxr(CRegister ct, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // There is no alt-base form of this instruction.

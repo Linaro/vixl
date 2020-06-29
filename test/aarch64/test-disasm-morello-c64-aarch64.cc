@@ -1938,12 +1938,6 @@ TEST(morello_c64_ldp_c_macro) {
                     "ldp c0, c1, [c2], #0");
 }
 
-TEST(morello_c64_ldr_c_i_c) {
-  SETUP();
-
-  // COMPARE_C64(ldr(c0, -760672), "TODO");
-}
-
 TEST(morello_c64_ldr_c_riaw_c) {
   SETUP();
 
