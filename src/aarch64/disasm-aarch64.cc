@@ -9545,7 +9545,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloCompareAndSwap)                 \
   V(MorelloLDR)                            \
   V(MorelloLoadPairAndBranch)              \
-  V(MorelloLoadStoreAcquireReleaseAltBase) \
   V(MorelloLoadStoreTags)                  \
   V(MorelloSwap)
 
@@ -10060,6 +10059,32 @@ void Disassembler::VisitMorelloLoadExclusive(const Instruction *instr) {
       break;
     default:
       form = "(MorelloLoadExclusive)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStoreAcquireReleaseAltBase(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'Wt, ['ans]";
+
+  switch (instr->Mask(MorelloLoadStoreAcquireReleaseAltBaseMask)) {
+    case ALDAR_r_r:
+      mnemonic = "ldar";
+      break;
+    case ALDARB_r_r:
+      mnemonic = "ldarb";
+      break;
+    case ASTLR_r_r:
+      mnemonic = "stlr";
+      break;
+    case ASTLRB_r_r:
+      mnemonic = "stlrb";
+      break;
+    default:
+      form = "(MorelloLoadStoreAcquireReleaseAltBase)";
       break;
   }
 

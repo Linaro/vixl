@@ -108,13 +108,25 @@ TEST(morello_a64_aldar_c_r_c) {
 TEST(morello_a64_aldar_r_r_32) {
   SETUP();
 
-  // COMPARE_A64(ldar(w0, MemOperand(c1)), "TODO");
+  COMPARE_A64(ldar(w0, MemOperand(c1)), "ldar w0, [c1]");
+  COMPARE_A64(ldar(w0, MemOperand(csp)), "ldar w0, [csp]");
+  COMPARE_A64(ldar(wzr, MemOperand(c1)), "ldar wzr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_A64(Ldar(w30, MemOperand(c29)), "ldar w30, [c29]");
+  COMPARE_MACRO_A64(Ldar(wzr, MemOperand(csp)), "ldar wzr, [csp]");
 }
 
 TEST(morello_a64_aldarb_r_r_b) {
   SETUP();
 
-  // COMPARE_A64(ldarb(w0, MemOperand(c1)), "TODO");
+  COMPARE_A64(ldarb(w0, MemOperand(c1)), "ldarb w0, [c1]");
+  COMPARE_A64(ldarb(w0, MemOperand(csp)), "ldarb w0, [csp]");
+  COMPARE_A64(ldarb(wzr, MemOperand(c1)), "ldarb wzr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_A64(Ldarb(w30, MemOperand(c29)), "ldarb w30, [c29]");
+  COMPARE_MACRO_A64(Ldarb(wzr, MemOperand(csp)), "ldarb wzr, [csp]");
 }
 
 TEST(morello_a64_aldr_c_ri_c) {
@@ -1021,13 +1033,25 @@ TEST(morello_a64_astlr_c_r_c) {
 TEST(morello_a64_astlr_r_r_32) {
   SETUP();
 
-  // COMPARE_A64(stlr(w0, MemOperand(c1)), "TODO");
+  COMPARE_A64(stlr(w0, MemOperand(c1)), "stlr w0, [c1]");
+  COMPARE_A64(stlr(w0, MemOperand(csp)), "stlr w0, [csp]");
+  COMPARE_A64(stlr(wzr, MemOperand(c1)), "stlr wzr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_A64(Stlr(w30, MemOperand(c29)), "stlr w30, [c29]");
+  COMPARE_MACRO_A64(Stlr(wzr, MemOperand(csp)), "stlr wzr, [csp]");
 }
 
 TEST(morello_a64_astlrb_r_r_b) {
   SETUP();
 
-  // COMPARE_A64(stlrb(w0, MemOperand(c1)), "TODO");
+  COMPARE_A64(stlrb(w0, MemOperand(c1)), "stlrb w0, [c1]");
+  COMPARE_A64(stlrb(w0, MemOperand(csp)), "stlrb w0, [csp]");
+  COMPARE_A64(stlrb(wzr, MemOperand(c1)), "stlrb wzr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_A64(Stlrb(w30, MemOperand(c29)), "stlrb w30, [c29]");
+  COMPARE_MACRO_A64(Stlrb(wzr, MemOperand(csp)), "stlrb wzr, [csp]");
 }
 
 TEST(morello_a64_astr_c_ri_c) {

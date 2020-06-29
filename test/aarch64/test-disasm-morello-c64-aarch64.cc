@@ -147,13 +147,25 @@ TEST(morello_c64_aldar_c_r_c) {
 TEST(morello_c64_aldar_r_r_32) {
   SETUP();
 
-  // COMPARE_C64(ldar(w0, MemOperand(x1)), "TODO");
+  COMPARE_C64(ldar(w0, MemOperand(x1)), "ldar w0, [x1]");
+  COMPARE_C64(ldar(w0, MemOperand(sp)), "ldar w0, [sp]");
+  COMPARE_C64(ldar(wzr, MemOperand(x1)), "ldar wzr, [x1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Ldar(w30, MemOperand(x29)), "ldar w30, [x29]");
+  COMPARE_MACRO_C64(Ldar(wzr, MemOperand(sp)), "ldar wzr, [sp]");
 }
 
 TEST(morello_c64_aldarb_r_r_b) {
   SETUP();
 
-  // COMPARE_C64(ldarb(w0, MemOperand(x1)), "TODO");
+  COMPARE_C64(ldarb(w0, MemOperand(x1)), "ldarb w0, [x1]");
+  COMPARE_C64(ldarb(w0, MemOperand(sp)), "ldarb w0, [sp]");
+  COMPARE_C64(ldarb(wzr, MemOperand(x1)), "ldarb wzr, [x1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Ldarb(w30, MemOperand(x29)), "ldarb w30, [x29]");
+  COMPARE_MACRO_C64(Ldarb(wzr, MemOperand(sp)), "ldarb wzr, [sp]");
 }
 
 TEST(morello_c64_aldr_c_ri_c) {
@@ -1048,13 +1060,25 @@ TEST(morello_c64_astlr_c_r_c) {
 TEST(morello_c64_astlr_r_r_32) {
   SETUP();
 
-  // COMPARE_C64(stlr(w0, MemOperand(x1)), "TODO");
+  COMPARE_C64(stlr(w0, MemOperand(x1)), "stlr w0, [x1]");
+  COMPARE_C64(stlr(w0, MemOperand(sp)), "stlr w0, [sp]");
+  COMPARE_C64(stlr(wzr, MemOperand(x1)), "stlr wzr, [x1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Stlr(w30, MemOperand(x29)), "stlr w30, [x29]");
+  COMPARE_MACRO_C64(Stlr(wzr, MemOperand(sp)), "stlr wzr, [sp]");
 }
 
 TEST(morello_c64_astlrb_r_r_b) {
   SETUP();
 
-  // COMPARE_C64(stlrb(w0, MemOperand(x1)), "TODO");
+  COMPARE_C64(stlrb(w0, MemOperand(x1)), "stlrb w0, [x1]");
+  COMPARE_C64(stlrb(w0, MemOperand(sp)), "stlrb w0, [sp]");
+  COMPARE_C64(stlrb(wzr, MemOperand(x1)), "stlrb wzr, [x1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_C64(Stlrb(w30, MemOperand(x29)), "stlrb w30, [x29]");
+  COMPARE_MACRO_C64(Stlrb(wzr, MemOperand(sp)), "stlrb wzr, [sp]");
 }
 
 TEST(morello_c64_astr_c_ri_c) {

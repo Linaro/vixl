@@ -1714,11 +1714,14 @@ void Assembler::ldaxp(const Register& rt,
   Emit(op | Rs_mask | Rt(rt) | Rt2(rt2) | RnSP(src.GetBase()));
 }
 
-
 void Assembler::stlrb(const Register& rt, const MemOperand& dst) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsPlainRegister());
-  Emit(STLRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBase()));
+  if (dst.IsAltBase(GetISA())) {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+    Emit(ASTLRB_r_r | Rt(rt) | RnSP(dst.GetBase()));
+  } else {
+    Emit(STLRB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBase()));
+  }
 }
 
 void Assembler::stlurb(const Register& rt, const MemOperand& dst) {
@@ -1748,12 +1751,17 @@ void Assembler::stlurh(const Register& rt, const MemOperand& dst) {
   Emit(STLURH | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
 }
 
-
 void Assembler::stlr(const Register& rt, const MemOperand& dst) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(dst.IsPlainRegister());
-  LoadStoreExclusive op = rt.Is64Bits() ? STLR_x : STLR_w;
-  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBase()));
+  if (dst.IsAltBase(GetISA())) {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+    // The alt-base form only supports 32-bit accesses.
+    VIXL_ASSERT(rt.Is32Bits());
+    Emit(ASTLR_r_r | Rt(rt) | RnSP(dst.GetBase()));
+  } else {
+    LoadStoreExclusive op = rt.Is64Bits() ? STLR_x : STLR_w;
+    Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(dst.GetBase()));
+  }
 }
 
 void Assembler::stlur(const Register& rt, const MemOperand& dst) {
@@ -1767,13 +1775,15 @@ void Assembler::stlur(const Register& rt, const MemOperand& dst) {
   Emit(op | Rt(rt) | base | ImmLS(static_cast<int>(offset)));
 }
 
-
 void Assembler::ldarb(const Register& rt, const MemOperand& src) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsPlainRegister());
-  Emit(LDARB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBase()));
+  if (src.IsAltBase(GetISA())) {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+    Emit(ALDARB_r_r | Rt(rt) | RnSP(src.GetBase()));
+  } else {
+    Emit(LDARB_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBase()));
+  }
 }
-
 
 void Assembler::ldarh(const Register& rt, const MemOperand& src) {
   if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
@@ -1781,14 +1791,18 @@ void Assembler::ldarh(const Register& rt, const MemOperand& src) {
   Emit(LDARH_w | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBase()));
 }
 
-
 void Assembler::ldar(const Register& rt, const MemOperand& src) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
   VIXL_ASSERT(src.IsPlainRegister());
-  LoadStoreExclusive op = rt.Is64Bits() ? LDAR_x : LDAR_w;
-  Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBase()));
+  if (src.IsAltBase(GetISA())) {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+    // The alt-base form only supports 32-bit accesses.
+    VIXL_ASSERT(rt.Is32Bits());
+    Emit(ALDAR_r_r | Rt(rt) | RnSP(src.GetBase()));
+  } else {
+    LoadStoreExclusive op = rt.Is64Bits() ? LDAR_x : LDAR_w;
+    Emit(op | Rs_mask | Rt(rt) | Rt2_mask | RnSP(src.GetBase()));
+  }
 }
-
 
 void Assembler::stllrb(const Register& rt, const MemOperand& dst) {
   if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
