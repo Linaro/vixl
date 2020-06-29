@@ -1214,16 +1214,34 @@ void Assembler::LoadStorePair(const CPURegister& rt,
 void Assembler::ldnp(const CPURegister& rt,
                      const CPURegister& rt2,
                      const MemOperand& src) {
-  if (src.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
-  LoadStorePairNonTemporal(rt, rt2, src, LoadPairNonTemporalOpFor(rt, rt2));
+  // There is no alt-base form of this instrution.
+  VIXL_ASSERT(!src.IsAltBase(GetISA()));
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  if (rt.IsCRegister()) {
+    LoadStorePair(CRegister(rt),
+                  CRegister(rt2),
+                  src,
+                  LoadStorePairOpSet::Ldnp(CRegister(rt), CRegister(rt2)));
+  } else {
+    LoadStorePairNonTemporal(rt, rt2, src, LoadPairNonTemporalOpFor(rt, rt2));
+  }
 }
 
 
 void Assembler::stnp(const CPURegister& rt,
                      const CPURegister& rt2,
                      const MemOperand& dst) {
-  if (dst.IsAltBase(GetISA())) VIXL_UNIMPLEMENTED();
-  LoadStorePairNonTemporal(rt, rt2, dst, StorePairNonTemporalOpFor(rt, rt2));
+  // There is no alt-base form of this instrution.
+  VIXL_ASSERT(!dst.IsAltBase(GetISA()));
+  VIXL_ASSERT(AreSameFormat(rt, rt2));
+  if (rt.IsCRegister()) {
+    LoadStorePair(CRegister(rt),
+                  CRegister(rt2),
+                  dst,
+                  LoadStorePairOpSet::Stnp(CRegister(rt), CRegister(rt2)));
+  } else {
+    LoadStorePairNonTemporal(rt, rt2, dst, StorePairNonTemporalOpFor(rt, rt2));
+  }
 }
 
 

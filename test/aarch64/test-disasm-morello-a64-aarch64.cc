@@ -1719,7 +1719,40 @@ TEST(morello_a64_ldct_r_r_) {
 TEST(morello_a64_ldnp_c_rib_c) {
   SETUP();
 
-  // COMPARE_A64(ldnp(c0, c1, MemOperand(x2, -816)), "TODO");
+  COMPARE_A64(ldnp(c0, c1, MemOperand(x2, 272)), "ldnp c0, c1, [x2, #272]");
+  COMPARE_A64(ldnp(c0, c1, MemOperand(sp, 272)), "ldnp c0, c1, [sp, #272]");
+  COMPARE_A64(ldnp(c0, czr, MemOperand(x2, 272)), "ldnp c0, czr, [x2, #272]");
+  COMPARE_A64(ldnp(czr, c1, MemOperand(x2, 272)), "ldnp czr, c1, [x2, #272]");
+  COMPARE_A64(ldnp(c0, c1, MemOperand(x2, 0)), "ldnp c0, c1, [x2]");
+  COMPARE_A64(ldnp(c0, c1, MemOperand(x2, -1024)), "ldnp c0, c1, [x2, #-1024]");
+  COMPARE_A64(ldnp(c0, c1, MemOperand(x2, 1008)), "ldnp c0, c1, [x2, #1008]");
+}
+
+TEST(morello_a64_ldnp_c_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_A64(Ldnp(c0, c1, MemOperand(x2)), "ldnp c0, c1, [x2]");
+  COMPARE_MACRO_A64(Ldnp(c0, c1, MemOperand(x2, 1008)),
+                    "ldnp c0, c1, [x2, #1008]");
+  COMPARE_MACRO_A64(Ldnp(c0, c1, MemOperand(x2, -1024)),
+                    "ldnp c0, c1, [x2, #-1024]");
+  COMPARE_MACRO_A64(Ldnp(czr, c30, MemOperand(sp)), "ldnp czr, c30, [sp]");
+  COMPARE_MACRO_A64(Ldnp(c30, czr, MemOperand(sp)), "ldnp c30, czr, [sp]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_A64(Ldnp(c0, c1, MemOperand(x2, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x2, x16\n"
+                    "ldnp c0, c1, [x16]");
+  // There are no addressing modes other than immediate offset.
+  COMPARE_MACRO_A64(Ldnp(c0, c1, MemOperand(x2, x3)),
+                    "add x16, x2, x3\n"
+                    "ldnp c0, c1, [x16]");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_A64(Ldnp(CPURegister(c0), CPURegister(c1), MemOperand(x2)),
+                    "ldnp c0, c1, [x2]");
 }
 
 TEST(morello_a64_ldp_c_rib_c) {
@@ -2048,7 +2081,40 @@ TEST(morello_a64_stlxr_r_cr_c) {
 TEST(morello_a64_stnp_c_rib_c) {
   SETUP();
 
-  // COMPARE_A64(stnp(c0, c1, MemOperand(x2, -464)), "TODO");
+  COMPARE_A64(stnp(c0, c1, MemOperand(x2, 272)), "stnp c0, c1, [x2, #272]");
+  COMPARE_A64(stnp(c0, c1, MemOperand(sp, 272)), "stnp c0, c1, [sp, #272]");
+  COMPARE_A64(stnp(c0, czr, MemOperand(x2, 272)), "stnp c0, czr, [x2, #272]");
+  COMPARE_A64(stnp(czr, c1, MemOperand(x2, 272)), "stnp czr, c1, [x2, #272]");
+  COMPARE_A64(stnp(c0, c1, MemOperand(x2, 0)), "stnp c0, c1, [x2]");
+  COMPARE_A64(stnp(c0, c1, MemOperand(x2, -1024)), "stnp c0, c1, [x2, #-1024]");
+  COMPARE_A64(stnp(c0, c1, MemOperand(x2, 1008)), "stnp c0, c1, [x2, #1008]");
+}
+
+TEST(morello_a64_stnp_c_macro) {
+  SETUP();
+
+  // Encodable cases.
+  COMPARE_MACRO_A64(Stnp(c0, c1, MemOperand(x2)), "stnp c0, c1, [x2]");
+  COMPARE_MACRO_A64(Stnp(c0, c1, MemOperand(x2, 1008)),
+                    "stnp c0, c1, [x2, #1008]");
+  COMPARE_MACRO_A64(Stnp(c0, c1, MemOperand(x2, -1024)),
+                    "stnp c0, c1, [x2, #-1024]");
+  COMPARE_MACRO_A64(Stnp(czr, c30, MemOperand(sp)), "stnp czr, c30, [sp]");
+  COMPARE_MACRO_A64(Stnp(c30, czr, MemOperand(sp)), "stnp c30, czr, [sp]");
+
+  // Unencodable cases.
+  COMPARE_MACRO_A64(Stnp(c0, c1, MemOperand(x2, 0x4242)),
+                    "mov x16, #0x4242\n"
+                    "add x16, x2, x16\n"
+                    "stnp c0, c1, [x16]");
+  // There are no addressing modes other than immediate offset.
+  COMPARE_MACRO_A64(Stnp(c0, c1, MemOperand(x2, x3)),
+                    "add x16, x2, x3\n"
+                    "stnp c0, c1, [x16]");
+
+  // A generic CPURegister produces the same result.
+  COMPARE_MACRO_A64(Stnp(CPURegister(c0), CPURegister(c1), MemOperand(x2)),
+                    "stnp c0, c1, [x2]");
 }
 
 TEST(morello_a64_stp_c_rib_c) {

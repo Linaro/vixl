@@ -9546,7 +9546,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   V(MorelloLDR)                            \
   V(MorelloLoadPairAndBranch)              \
   V(MorelloLoadStoreAcquireReleaseAltBase) \
-  V(MorelloLoadStorePairNonTemporal)       \
   V(MorelloLoadStoreTags)                  \
   V(MorelloSwap)
 
@@ -10198,6 +10197,26 @@ void Disassembler::VisitMorelloLoadStorePair(const Instruction *instr) {
       break;
     default:
       form = "(MorelloLoadStorePair)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadStorePairNonTemporal(
+    const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, 'ct2, ['nns'ILP4]";
+
+  switch (instr->Mask(MorelloLoadStorePairNonTemporalMask)) {
+    case LDNP_c_rib:
+      mnemonic = "ldnp";
+      break;
+    case STNP_c_rib:
+      mnemonic = "stnp";
+      break;
+    default:
+      form = "(MorelloLoadStorePairNonTemporal)";
       break;
   }
 

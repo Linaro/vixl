@@ -1924,8 +1924,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const CPURegister& rt2,
             const MemOperand& src) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnp(rt, rt2, src);
+    VIXL_ASSERT(AreSameFormat(rt, rt2));
+    if (rt.IsCRegister()) {
+      LoadStorePairMacro(CRegister(rt),
+                         CRegister(rt2),
+                         src,
+                         LoadStorePairOpSet::Ldnp(CRegister(rt),
+                                                  CRegister(rt2)));
+    } else {
+      SingleEmissionCheckScope guard(this);
+      ldnp(rt, rt2, src);
+    }
   }
   // Provide both double and float interfaces for FP immediate loads, rather
   // than relying on implicit C++ casts. This allows signalling NaNs to be
@@ -2522,8 +2531,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const CPURegister& rt2,
             const MemOperand& dst) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    stnp(rt, rt2, dst);
+    VIXL_ASSERT(AreSameFormat(rt, rt2));
+    if (rt.IsCRegister()) {
+      LoadStorePairMacro(CRegister(rt),
+                         CRegister(rt2),
+                         dst,
+                         LoadStorePairOpSet::Stnp(CRegister(rt),
+                                                  CRegister(rt2)));
+    } else {
+      SingleEmissionCheckScope guard(this);
+      stnp(rt, rt2, dst);
+    }
   }
   void Stxp(const Register& rs,
             const Register& rt,

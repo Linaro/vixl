@@ -962,6 +962,22 @@ Assembler::LoadStorePairOpSet Assembler::LoadStorePairOpSet::Stp(
   return set;
 }
 
+Assembler::LoadStorePairOpSet Assembler::LoadStorePairOpSet::Ldnp(
+    CRegister rt, CRegister rt2) {
+  USE(rt, rt2);
+  LoadStorePairOpSet set;
+  set.scaled_int7_offset_op_ = LDNP_c_rib;
+  return set;
+}
+
+Assembler::LoadStorePairOpSet Assembler::LoadStorePairOpSet::Stnp(
+    CRegister rt, CRegister rt2) {
+  USE(rt, rt2);
+  LoadStorePairOpSet set;
+  set.scaled_int7_offset_op_ = STNP_c_rib;
+  return set;
+}
+
 Instr Assembler::LoadStorePairOpSet::TryEncode(CRegister ct,
                                                CRegister ct2,
                                                const MemOperand& addr) const {

@@ -6155,9 +6155,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // LDCT <Xt>, [...]
   void ldct(Register xt, const MemOperand& addr);
 
-  // LDNP <Ct>, <Ct2>, [..., #<imm>]
-  void ldnp(CRegister ct, CRegister ct2, const MemOperand& addr);
-
   // LDPBLR <Ct>, [<Cn|CSP>]
   void ldpblr(CRegister ct, const MemOperand& addr);
 
@@ -6352,9 +6349,6 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // STLXR <Ws>, <Ct>, [...]
   void stlxr(Register ws, CRegister ct, const MemOperand& addr);
-
-  // STNP <Ct>, <Ct2>, [..., #<imm>]
-  void stnp(CRegister ct, CRegister ct2, const MemOperand& addr);
 
   // STR <Wt>, [..., <R><m>, <extend>{ <amount>}]
   // STR <Wt>, [...{, #<imm>}]
@@ -7336,6 +7330,8 @@ class Assembler : public vixl::internal::AssemblerBase {
     // Morello capability accesses.
     static LoadStorePairOpSet Ldp(CRegister rt, CRegister rt2);
     static LoadStorePairOpSet Stp(CRegister rt, CRegister rt2);
+    static LoadStorePairOpSet Ldnp(CRegister rt, CRegister rt2);
+    static LoadStorePairOpSet Stnp(CRegister rt, CRegister rt2);
 
 #define VIXL_LOAD_STORE_PAIR_OP_TYPES(V)                                     \
   /* Addressing modes like `[<base>, #<imm>]` ("signed offset"). */          \
