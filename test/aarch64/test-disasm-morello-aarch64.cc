@@ -912,6 +912,30 @@ TEST(morello_gcvalue_r_c_c) {
   COMPARE_MACRO_MORELLO(Gcvalue(x30, c30), "gcvalue x30, c30");
 }
 
+TEST(morello_ldpblr_c_c_c) {
+  SETUP();
+
+  COMPARE_MORELLO(ldpblr(c0, MemOperand(c1)), "ldpblr c0, [c1]");
+  COMPARE_MORELLO(ldpblr(c0, MemOperand(csp)), "ldpblr c0, [csp]");
+  COMPARE_MORELLO(ldpblr(czr, MemOperand(c1)), "ldpblr czr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_MORELLO(Ldpblr(c30, MemOperand(c29)), "ldpblr c30, [c29]");
+  COMPARE_MACRO_MORELLO(Ldpblr(czr, MemOperand(csp)), "ldpblr czr, [csp]");
+}
+
+TEST(morello_ldpbr_c_c_c) {
+  SETUP();
+
+  COMPARE_MORELLO(ldpbr(c0, MemOperand(c1)), "ldpbr c0, [c1]");
+  COMPARE_MORELLO(ldpbr(c0, MemOperand(csp)), "ldpbr c0, [csp]");
+  COMPARE_MORELLO(ldpbr(czr, MemOperand(c1)), "ldpbr czr, [c1]");
+
+  // The MacroAssembler is a simple pass-through.
+  COMPARE_MACRO_MORELLO(Ldpbr(c30, MemOperand(c29)), "ldpbr c30, [c29]");
+  COMPARE_MACRO_MORELLO(Ldpbr(czr, MemOperand(csp)), "ldpbr czr, [csp]");
+}
+
 TEST(morello_mrs_c_i_c) {
   SETUP();
 

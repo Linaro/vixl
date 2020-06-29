@@ -1904,18 +1904,6 @@ TEST(morello_c64_ldp_c_macro) {
                     "ldp c0, c1, [c2], #0");
 }
 
-TEST(morello_c64_ldpblr_c_c_c) {
-  SETUP();
-
-  // COMPARE_C64(ldpblr(c0, MemOperand(c1)), "TODO");
-}
-
-TEST(morello_c64_ldpbr_c_c_c) {
-  SETUP();
-
-  // COMPARE_C64(ldpbr(c0, MemOperand(c1)), "TODO");
-}
-
 TEST(morello_c64_ldr_c_i_c) {
   SETUP();
 

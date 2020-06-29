@@ -463,6 +463,22 @@ void Assembler::ldaxr(CRegister ct, const MemOperand& addr) {
   Emit(LDAXR_c_r | Rt(ct) | RnSP(addr.GetBase()));
 }
 
+void Assembler::ldpblr(CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  // The base register must be a capability.
+  CRegister cn = addr.GetBaseCRegister();
+  Emit(LDPBLR_c_c | Rt(ct) | RnSP(cn));
+}
+
+void Assembler::ldpbr(CRegister ct, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
+  VIXL_ASSERT(addr.IsPlainRegister());
+  // The base register must be a capability.
+  CRegister cn = addr.GetBaseCRegister();
+  Emit(LDPBR_c_c | Rt(ct) | RnSP(cn));
+}
+
 void Assembler::ldxr(CRegister ct, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // There is no alt-base form of this instruction.

@@ -9544,7 +9544,6 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
 #define VIXL_UNIMPLEMENTED_VISITOR_LIST(V) \
   V(MorelloCompareAndSwap)                 \
   V(MorelloLDR)                            \
-  V(MorelloLoadPairAndBranch)              \
   V(MorelloLoadStoreTags)                  \
   V(MorelloSwap)
 
@@ -10184,6 +10183,25 @@ void Disassembler::VisitMorelloLoadStoreImmediatePreIndex(
       break;
     default:
       form = "(MorelloLoadStoreImmediatePreIndex)";
+      break;
+  }
+
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::VisitMorelloLoadPairAndBranch(const Instruction *instr) {
+  const char *mnemonic = "unimplemented";
+  const char *form = "'ct, ['cns]";
+
+  switch (instr->Mask(MorelloLoadPairAndBranchMask)) {
+    case LDPBLR_c_c:
+      mnemonic = "ldpblr";
+      break;
+    case LDPBR_c_c:
+      mnemonic = "ldpbr";
+      break;
+    default:
+      form = "(MorelloLoadPairAndBranch)";
       break;
   }
 
