@@ -26,6 +26,9 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
+#include <errno.h>
+#include <unistd.h>
+
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -65,10 +68,13 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 
 
 Simulator::Simulator(Decoder* decoder, FILE* stream)
-    : cpu_features_auditor_(decoder, CPUFeatures::All()) {
+    : movprfx_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {
   // Ensure that shift operations act as the simulator expects.
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
+
+  // Set up a dummy pipe for CanReadMemory.
+  VIXL_CHECK(pipe(dummy_pipe_fd_) == 0);
 
   // Set up the decoder.
   decoder_ = decoder;
@@ -88,6 +94,10 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
 
   SetColouredTrace(false);
   trace_parameters_ = LOG_NONE;
+
+  // We have to configure the SVE vector register length before calling
+  // ResetState().
+  SetVectorLengthInBits(kZRegMinSize);
 
   ResetState();
 
@@ -112,49 +122,111 @@ Simulator::Simulator(Decoder* decoder, FILE* stream)
 
   // Initialize the common state of RNDR and RNDRRS.
   uint16_t seed[3] = {11, 22, 33};
-  VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rndr_state_));
-  memcpy(rndr_state_, seed, sizeof(rndr_state_));
+  VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rand_state_));
+  memcpy(rand_state_, seed, sizeof(rand_state_));
+
+  // Initialize all bits of pseudo predicate register to true.
+  LogicPRegister ones(pregister_all_true_);
+  ones.SetAllBits();
 }
 
-
-void Simulator::ResetState() {
+void Simulator::ResetSystemRegisters() {
   // Reset the system registers.
   nzcv_ = SimSystemRegister::DefaultValueFor(NZCV);
   fpcr_ = SimSystemRegister::DefaultValueFor(FPCR);
+  ResetFFR();
+}
 
-  // Reset registers to 0.
-  pc_ = NULL;
-  pc_modified_ = false;
+void Simulator::ResetRegisters() {
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
     WriteXRegister(i, 0xbadbeef);
   }
-  // Set FP registers to a value that is a NaN in both 32-bit and 64-bit FP.
-  uint64_t nan_bits[] = {
-      UINT64_C(0x7ff00cab7f8ba9e1), UINT64_C(0x7ff0dead7f8beef1),
-  };
-  VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits[0] & kDRegMask)));
-  VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits[0] & kSRegMask)));
-
-  qreg_t q_bits;
-  VIXL_ASSERT(sizeof(q_bits) == sizeof(nan_bits));
-  memcpy(&q_bits, nan_bits, sizeof(nan_bits));
-
-  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    WriteQRegister(i, q_bits);
-  }
   // Returning to address 0 exits the Simulator.
   WriteLr(kEndOfSimAddress);
+}
 
+void Simulator::ResetVRegisters() {
+  // Set SVE/FP registers to a value that is a NaN in both 32-bit and 64-bit FP.
+  VIXL_ASSERT((GetVectorLengthInBytes() % kDRegSizeInBytes) == 0);
+  int lane_count = GetVectorLengthInBytes() / kDRegSizeInBytes;
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    VIXL_ASSERT(vregisters_[i].GetSizeInBytes() == GetVectorLengthInBytes());
+    vregisters_[i].NotifyAccessAsZ();
+    for (int lane = 0; lane < lane_count; lane++) {
+      // Encode the register number and (D-sized) lane into each NaN, to
+      // make them easier to trace.
+      uint64_t nan_bits = 0x7ff0f0007f80f000 | (0x0000000100000000 * i) |
+                          (0x0000000000000001 * lane);
+      VIXL_ASSERT(IsSignallingNaN(RawbitsToDouble(nan_bits & kDRegMask)));
+      VIXL_ASSERT(IsSignallingNaN(RawbitsToFloat(nan_bits & kSRegMask)));
+      vregisters_[i].Insert(lane, nan_bits);
+    }
+  }
+}
+
+void Simulator::ResetPRegisters() {
+  VIXL_ASSERT((GetPredicateLengthInBytes() % kHRegSizeInBytes) == 0);
+  int lane_count = GetPredicateLengthInBytes() / kHRegSizeInBytes;
+  // Ensure the register configuration fits in this bit encoding.
+  VIXL_STATIC_ASSERT(kNumberOfPRegisters <= UINT8_MAX);
+  VIXL_ASSERT(lane_count <= UINT8_MAX);
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    VIXL_ASSERT(pregisters_[i].GetSizeInBytes() == GetPredicateLengthInBytes());
+    for (int lane = 0; lane < lane_count; lane++) {
+      // Encode the register number and (H-sized) lane into each lane slot.
+      uint16_t bits = (0x0100 * lane) | i;
+      pregisters_[i].Insert(lane, bits);
+    }
+  }
+}
+
+void Simulator::ResetFFR() {
+  VIXL_ASSERT((GetPredicateLengthInBytes() % kHRegSizeInBytes) == 0);
+  int default_active_lanes = GetPredicateLengthInBytes() / kHRegSizeInBytes;
+  ffr_register_.Write(static_cast<uint16_t>(GetUintMask(default_active_lanes)));
+}
+
+void Simulator::ResetState() {
+  ResetSystemRegisters();
+  ResetRegisters();
+  ResetVRegisters();
+  ResetPRegisters();
+
+  pc_ = NULL;
+  pc_modified_ = false;
+
+  // BTI state.
   btype_ = DefaultBType;
   next_btype_ = DefaultBType;
 }
 
+void Simulator::SetVectorLengthInBits(unsigned vector_length) {
+  VIXL_ASSERT((vector_length >= kZRegMinSize) &&
+              (vector_length <= kZRegMaxSize));
+  VIXL_ASSERT((vector_length % kZRegMinSize) == 0);
+  vector_length_ = vector_length;
+
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    vregisters_[i].SetSizeInBytes(GetVectorLengthInBytes());
+  }
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    pregisters_[i].SetSizeInBytes(GetPredicateLengthInBytes());
+  }
+
+  ffr_register_.SetSizeInBytes(GetPredicateLengthInBytes());
+
+  ResetVRegisters();
+  ResetPRegisters();
+  ResetFFR();
+}
 
 Simulator::~Simulator() {
   delete[] stack_;
   // The decoder may outlive the simulator.
   decoder_->RemoveVisitor(print_disasm_);
   delete print_disasm_;
+  close(dummy_pipe_fd_[0]);
+  close(dummy_pipe_fd_[1]);
 }
 
 
@@ -175,6 +247,7 @@ void Simulator::RunFrom(const Instruction* first) {
 }
 
 
+// clang-format off
 const char* Simulator::xreg_names[] = {"x0",  "x1",  "x2",  "x3",  "x4",  "x5",
                                        "x6",  "x7",  "x8",  "x9",  "x10", "x11",
                                        "x12", "x13", "x14", "x15", "x16", "x17",
@@ -188,6 +261,13 @@ const char* Simulator::wreg_names[] = {"w0",  "w1",  "w2",  "w3",  "w4",  "w5",
                                        "w18", "w19", "w20", "w21", "w22", "w23",
                                        "w24", "w25", "w26", "w27", "w28", "w29",
                                        "w30", "wzr", "wsp"};
+
+const char* Simulator::breg_names[] = {"b0",  "b1",  "b2",  "b3",  "b4",  "b5",
+                                       "b6",  "b7",  "b8",  "b9",  "b10", "b11",
+                                       "b12", "b13", "b14", "b15", "b16", "b17",
+                                       "b18", "b19", "b20", "b21", "b22", "b23",
+                                       "b24", "b25", "b26", "b27", "b28", "b29",
+                                       "b30", "b31"};
 
 const char* Simulator::hreg_names[] = {"h0",  "h1",  "h2",  "h3",  "h4",  "h5",
                                        "h6",  "h7",  "h8",  "h9",  "h10", "h11",
@@ -217,24 +297,44 @@ const char* Simulator::vreg_names[] = {"v0",  "v1",  "v2",  "v3",  "v4",  "v5",
                                        "v24", "v25", "v26", "v27", "v28", "v29",
                                        "v30", "v31"};
 
+const char* Simulator::zreg_names[] = {"z0",  "z1",  "z2",  "z3",  "z4",  "z5",
+                                       "z6",  "z7",  "z8",  "z9",  "z10", "z11",
+                                       "z12", "z13", "z14", "z15", "z16", "z17",
+                                       "z18", "z19", "z20", "z21", "z22", "z23",
+                                       "z24", "z25", "z26", "z27", "z28", "z29",
+                                       "z30", "z31"};
+
+const char* Simulator::preg_names[] = {"p0",  "p1",  "p2",  "p3",  "p4",  "p5",
+                                       "p6",  "p7",  "p8",  "p9",  "p10", "p11",
+                                       "p12", "p13", "p14", "p15"};
+// clang-format on
+
 
 const char* Simulator::WRegNameForCode(unsigned code, Reg31Mode mode) {
-  VIXL_ASSERT(code < kNumberOfRegisters);
   // If the code represents the stack pointer, index the name after zr.
-  if ((code == kZeroRegCode) && (mode == Reg31IsStackPointer)) {
+  if ((code == kSPRegInternalCode) ||
+      ((code == kZeroRegCode) && (mode == Reg31IsStackPointer))) {
     code = kZeroRegCode + 1;
   }
+  VIXL_ASSERT(code < ArrayLength(wreg_names));
   return wreg_names[code];
 }
 
 
 const char* Simulator::XRegNameForCode(unsigned code, Reg31Mode mode) {
-  VIXL_ASSERT(code < kNumberOfRegisters);
   // If the code represents the stack pointer, index the name after zr.
-  if ((code == kZeroRegCode) && (mode == Reg31IsStackPointer)) {
+  if ((code == kSPRegInternalCode) ||
+      ((code == kZeroRegCode) && (mode == Reg31IsStackPointer))) {
     code = kZeroRegCode + 1;
   }
+  VIXL_ASSERT(code < ArrayLength(xreg_names));
   return xreg_names[code];
+}
+
+
+const char* Simulator::BRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfVRegisters);
+  return breg_names[code];
 }
 
 
@@ -262,6 +362,39 @@ const char* Simulator::VRegNameForCode(unsigned code) {
 }
 
 
+const char* Simulator::ZRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfZRegisters);
+  return zreg_names[code];
+}
+
+
+const char* Simulator::PRegNameForCode(unsigned code) {
+  VIXL_ASSERT(code < kNumberOfPRegisters);
+  return preg_names[code];
+}
+
+SimVRegister Simulator::ExpandToSimVRegister(const SimPRegister& pg) {
+  SimVRegister ones, result;
+  dup_immediate(kFormatVnB, ones, 0xff);
+  mov_zeroing(kFormatVnB, result, pg, ones);
+  return result;
+}
+
+void Simulator::ExtractFromSimVRegister(VectorFormat vform,
+                                        SimPRegister& pd,
+                                        SimVRegister vreg) {
+  SimVRegister zero;
+  dup_immediate(kFormatVnB, zero, 0);
+  SVEIntCompareVectorsHelper(ne,
+                             vform,
+                             pd,
+                             GetPTrue(),
+                             vreg,
+                             zero,
+                             false,
+                             LeaveFlags);
+}
+
 #define COLOUR(colour_code) "\033[0;" colour_code "m"
 #define COLOUR_BOLD(colour_code) "\033[1;" colour_code "m"
 #define COLOUR_HIGHLIGHT "\033[43m"
@@ -284,6 +417,8 @@ void Simulator::SetColouredTrace(bool value) {
   clr_reg_value = value ? COLOUR(CYAN) : "";
   clr_vreg_name = value ? COLOUR_BOLD(MAGENTA) : "";
   clr_vreg_value = value ? COLOUR(MAGENTA) : "";
+  clr_preg_name = value ? COLOUR_BOLD(GREEN) : "";
+  clr_preg_value = value ? COLOUR(GREEN) : "";
   clr_memory_address = value ? COLOUR_BOLD(BLUE) : "";
   clr_warning = value ? COLOUR_BOLD(YELLOW) : "";
   clr_warning_message = value ? COLOUR(YELLOW) : "";
@@ -356,44 +491,50 @@ uint64_t Simulator::AddWithCarry(unsigned reg_size,
 
 
 int64_t Simulator::ShiftOperand(unsigned reg_size,
-                                int64_t value,
+                                uint64_t uvalue,
                                 Shift shift_type,
                                 unsigned amount) const {
-  VIXL_ASSERT((reg_size == kWRegSize) || (reg_size == kXRegSize));
-  if (amount == 0) {
-    return value;
-  }
-  uint64_t uvalue = static_cast<uint64_t>(value);
-  uint64_t mask = kWRegMask;
-  bool is_negative = (uvalue & kWSignMask) != 0;
-  if (reg_size == kXRegSize) {
-    mask = kXRegMask;
-    is_negative = (uvalue & kXSignMask) != 0;
-  }
-
-  switch (shift_type) {
-    case LSL:
-      uvalue <<= amount;
-      break;
-    case LSR:
-      uvalue >>= amount;
-      break;
-    case ASR:
-      uvalue >>= amount;
-      if (is_negative) {
-        // Simulate sign-extension to 64 bits.
-        uvalue |= ~UINT64_C(0) << (reg_size - amount);
+  VIXL_ASSERT((reg_size == kBRegSize) || (reg_size == kHRegSize) ||
+              (reg_size == kSRegSize) || (reg_size == kDRegSize));
+  if (amount > 0) {
+    uint64_t mask = GetUintMask(reg_size);
+    bool is_negative = (uvalue & GetSignMask(reg_size)) != 0;
+    // The behavior is undefined in c++ if the shift amount greater than or
+    // equal to the register lane size. Work out the shifted result based on
+    // architectural behavior before performing the c++ type shfit operations.
+    switch (shift_type) {
+      case LSL:
+        if (amount >= reg_size) {
+          return UINT64_C(0);
+        }
+        uvalue <<= amount;
+        break;
+      case LSR:
+        if (amount >= reg_size) {
+          return UINT64_C(0);
+        }
+        uvalue >>= amount;
+        break;
+      case ASR:
+        if (amount >= reg_size) {
+          return is_negative ? ~UINT64_C(0) : UINT64_C(0);
+        }
+        uvalue >>= amount;
+        if (is_negative) {
+          // Simulate sign-extension to 64 bits.
+          uvalue |= ~UINT64_C(0) << (reg_size - amount);
+        }
+        break;
+      case ROR: {
+        uvalue = RotateRight(uvalue, amount, reg_size);
+        break;
       }
-      break;
-    case ROR: {
-      uvalue = RotateRight(uvalue, amount, reg_size);
-      break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        return 0;
     }
-    default:
-      VIXL_UNIMPLEMENTED();
-      return 0;
+    uvalue &= mask;
   }
-  uvalue &= mask;
 
   int64_t result;
   memcpy(&result, &uvalue, sizeof(result));
@@ -569,6 +710,15 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormat(
       return kPrintReg1S;
     case kFormatD:
       return kPrintReg1D;
+
+    case kFormatVnB:
+      return kPrintRegVnB;
+    case kFormatVnH:
+      return kPrintRegVnH;
+    case kFormatVnS:
+      return kPrintRegVnS;
+    case kFormatVnD:
+      return kPrintRegVnD;
   }
 }
 
@@ -600,301 +750,445 @@ Simulator::PrintRegisterFormat Simulator::GetPrintRegisterFormatFP(
   }
 }
 
+void Simulator::PrintRegisters() {
+  for (unsigned i = 0; i < kNumberOfRegisters; i++) {
+    if (i == kSpRegCode) i = kSPRegInternalCode;
+    PrintRegister(i);
+  }
+}
+
+void Simulator::PrintVRegisters() {
+  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
+    PrintVRegister(i);
+  }
+}
+
+void Simulator::PrintZRegisters() {
+  for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
+    PrintZRegister(i);
+  }
+}
 
 void Simulator::PrintWrittenRegisters() {
   for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-    if (registers_[i].WrittenSinceLastLog()) PrintRegister(i);
+    if (registers_[i].WrittenSinceLastLog()) {
+      if (i == kSpRegCode) i = kSPRegInternalCode;
+      PrintRegister(i);
+    }
   }
 }
-
 
 void Simulator::PrintWrittenVRegisters() {
+  bool has_sve = GetCPUFeatures()->Has(CPUFeatures::kSVE);
   for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    // At this point there is no type information, so print as a raw 1Q.
-    if (vregisters_[i].WrittenSinceLastLog()) PrintVRegister(i, kPrintReg1Q);
+    if (vregisters_[i].WrittenSinceLastLog()) {
+      // Z registers are initialised in the constructor before the user can
+      // configure the CPU features, so we must also check for SVE here.
+      if (vregisters_[i].AccessedAsZSinceLastLog() && has_sve) {
+        PrintZRegister(i);
+      } else {
+        PrintVRegister(i);
+      }
+    }
   }
 }
 
+void Simulator::PrintWrittenPRegisters() {
+  // P registers are initialised in the constructor before the user can
+  // configure the CPU features, so we must check for SVE here.
+  if (!GetCPUFeatures()->Has(CPUFeatures::kSVE)) return;
+  for (unsigned i = 0; i < kNumberOfPRegisters; i++) {
+    if (pregisters_[i].WrittenSinceLastLog()) {
+      PrintPRegister(i);
+    }
+  }
+  if (ReadFFR().WrittenSinceLastLog()) PrintFFR();
+}
 
 void Simulator::PrintSystemRegisters() {
   PrintSystemRegister(NZCV);
   PrintSystemRegister(FPCR);
 }
 
-
-void Simulator::PrintRegisters() {
-  for (unsigned i = 0; i < kNumberOfRegisters; i++) {
-    PrintRegister(i);
-  }
-}
-
-
-void Simulator::PrintVRegisters() {
-  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    // At this point there is no type information, so print as a raw 1Q.
-    PrintVRegister(i, kPrintReg1Q);
-  }
-}
-
-
-// Print a register's name and raw value.
-//
-// Only the least-significant `size_in_bytes` bytes of the register are printed,
-// but the value is aligned as if the whole register had been printed.
-//
-// For typical register updates, size_in_bytes should be set to kXRegSizeInBytes
-// -- the default -- so that the whole register is printed. Other values of
-// size_in_bytes are intended for use when the register hasn't actually been
-// updated (such as in PrintWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a memory access annotation).
-void Simulator::PrintRegisterRawHelper(unsigned code,
-                                       Reg31Mode r31mode,
-                                       int size_in_bytes) {
-  // The template for all supported sizes.
-  //   "# x{code}: 0xffeeddccbbaa9988"
-  //   "# w{code}:         0xbbaa9988"
-  //   "# w{code}<15:0>:       0x9988"
-  //   "# w{code}<7:0>:          0x88"
-  unsigned padding_chars = (kXRegSizeInBytes - size_in_bytes) * 2;
-
-  const char* name = "";
-  const char* suffix = "";
-  switch (size_in_bytes) {
-    case kXRegSizeInBytes:
-      name = XRegNameForCode(code, r31mode);
-      break;
-    case kWRegSizeInBytes:
-      name = WRegNameForCode(code, r31mode);
-      break;
-    case 2:
-      name = WRegNameForCode(code, r31mode);
-      suffix = "<15:0>";
-      padding_chars -= strlen(suffix);
-      break;
-    case 1:
-      name = WRegNameForCode(code, r31mode);
-      suffix = "<7:0>";
-      padding_chars -= strlen(suffix);
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  fprintf(stream_, "# %s%5s%s: ", clr_reg_name, name, suffix);
-
-  // Print leading padding spaces.
-  VIXL_ASSERT(padding_chars < (kXRegSizeInBytes * 2));
-  for (unsigned i = 0; i < padding_chars; i++) {
-    putc(' ', stream_);
-  }
-
-  // Print the specified bits in hexadecimal format.
-  uint64_t bits = ReadRegister<uint64_t>(code, r31mode);
-  bits &= kXRegMask >> ((kXRegSizeInBytes - size_in_bytes) * 8);
-  VIXL_STATIC_ASSERT(sizeof(bits) == kXRegSizeInBytes);
-
-  int chars = size_in_bytes * 2;
-  fprintf(stream_,
-          "%s0x%0*" PRIx64 "%s",
-          clr_reg_value,
-          chars,
-          bits,
-          clr_normal);
-}
-
-
-void Simulator::PrintRegister(unsigned code, Reg31Mode r31mode) {
-  registers_[code].NotifyRegisterLogged();
-
-  // Don't print writes into xzr.
-  if ((code == kZeroRegCode) && (r31mode == Reg31IsZeroRegister)) {
-    return;
-  }
-
-  // The template for all x and w registers:
-  //   "# x{code}: 0x{value}"
-  //   "# w{code}: 0x{value}"
-
-  PrintRegisterRawHelper(code, r31mode);
-  fprintf(stream_, "\n");
-}
-
-
-// Print a register's name and raw value.
-//
-// The `bytes` and `lsb` arguments can be used to limit the bytes that are
-// printed. These arguments are intended for use in cases where register hasn't
-// actually been updated (such as in PrintVWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a floating-point interpretation or a memory access annotation).
-void Simulator::PrintVRegisterRawHelper(unsigned code, int bytes, int lsb) {
-  // The template for vector types:
-  //   "# v{code}: 0xffeeddccbbaa99887766554433221100".
-  // An example with bytes=4 and lsb=8:
-  //   "# v{code}:         0xbbaa9988                ".
-  fprintf(stream_,
-          "# %s%5s: %s",
-          clr_vreg_name,
-          VRegNameForCode(code),
-          clr_vreg_value);
-
-  int msb = lsb + bytes - 1;
-  int byte = kQRegSizeInBytes - 1;
-
-  // Print leading padding spaces. (Two spaces per byte.)
-  while (byte > msb) {
+void Simulator::PrintRegisterValue(const uint8_t* value,
+                                   int value_size,
+                                   PrintRegisterFormat format) {
+  int print_width = GetPrintRegSizeInBytes(format);
+  VIXL_ASSERT(print_width <= value_size);
+  for (int i = value_size - 1; i >= print_width; i--) {
+    // Pad with spaces so that values align vertically.
     fprintf(stream_, "  ");
-    byte--;
+    // If we aren't explicitly printing a partial value, ensure that the
+    // unprinted bits are zero.
+    VIXL_ASSERT(((format & kPrintRegPartial) != 0) || (value[i] == 0));
   }
-
-  // Print the specified part of the value, byte by byte.
-  qreg_t rawbits = ReadQRegister(code);
   fprintf(stream_, "0x");
-  while (byte >= lsb) {
-    fprintf(stream_, "%02x", rawbits.val[byte]);
-    byte--;
+  for (int i = print_width - 1; i >= 0; i--) {
+    fprintf(stream_, "%02x", value[i]);
   }
-
-  // Print trailing padding spaces.
-  while (byte >= 0) {
-    fprintf(stream_, "  ");
-    byte--;
-  }
-  fprintf(stream_, "%s", clr_normal);
 }
 
-
-// Print each of the specified lanes of a register as a float or double value.
-//
-// The `lane_count` and `lslane` arguments can be used to limit the lanes that
-// are printed. These arguments are intended for use in cases where register
-// hasn't actually been updated (such as in PrintVWrite).
-//
-// No newline is printed. This allows the caller to print more details (such as
-// a memory access annotation).
-void Simulator::PrintVRegisterFPHelper(unsigned code,
-                                       unsigned lane_size_in_bytes,
-                                       int lane_count,
-                                       int rightmost_lane) {
-  VIXL_ASSERT((lane_size_in_bytes == kHRegSizeInBytes) ||
-              (lane_size_in_bytes == kSRegSizeInBytes) ||
-              (lane_size_in_bytes == kDRegSizeInBytes));
-
-  unsigned msb = ((lane_count + rightmost_lane) * lane_size_in_bytes);
-  VIXL_ASSERT(msb <= kQRegSizeInBytes);
-
-  // For scalar types ((lane_count == 1) && (rightmost_lane == 0)), a register
-  // name is used:
-  //   " (h{code}: {value})"
-  //   " (s{code}: {value})"
-  //   " (d{code}: {value})"
-  // For vector types, "..." is used to represent one or more omitted lanes.
-  //   " (..., {value}, {value}, ...)"
-  if (lane_size_in_bytes == kHRegSizeInBytes) {
-    // TODO: Trace tests will fail until we regenerate them.
-    return;
-  }
-  if ((lane_count == 1) && (rightmost_lane == 0)) {
-    const char* name;
-    switch (lane_size_in_bytes) {
-      case kHRegSizeInBytes:
-        name = HRegNameForCode(code);
-        break;
-      case kSRegSizeInBytes:
-        name = SRegNameForCode(code);
-        break;
-      case kDRegSizeInBytes:
-        name = DRegNameForCode(code);
-        break;
-      default:
-        name = NULL;
-        VIXL_UNREACHABLE();
+void Simulator::PrintRegisterValueFPAnnotations(const uint8_t* value,
+                                                uint16_t lane_mask,
+                                                PrintRegisterFormat format) {
+  VIXL_ASSERT((format & kPrintRegAsFP) != 0);
+  int lane_size = GetPrintRegLaneSizeInBytes(format);
+  fprintf(stream_, " (");
+  bool last_inactive = false;
+  const char* sep = "";
+  for (int i = GetPrintRegLaneCount(format) - 1; i >= 0; i--, sep = ", ") {
+    bool access = (lane_mask & (1 << (i * lane_size))) != 0;
+    if (access) {
+      // Read the lane as a double, so we can format all FP types in the same
+      // way. We squash NaNs, and a double can exactly represent any other value
+      // that the smaller types can represent, so this is lossless.
+      double element;
+      switch (lane_size) {
+        case kHRegSizeInBytes: {
+          Float16 element_fp16;
+          VIXL_STATIC_ASSERT(sizeof(element_fp16) == kHRegSizeInBytes);
+          memcpy(&element_fp16, &value[i * lane_size], sizeof(element_fp16));
+          element = FPToDouble(element_fp16, kUseDefaultNaN);
+          break;
+        }
+        case kSRegSizeInBytes: {
+          float element_fp32;
+          memcpy(&element_fp32, &value[i * lane_size], sizeof(element_fp32));
+          element = static_cast<double>(element_fp32);
+          break;
+        }
+        case kDRegSizeInBytes: {
+          memcpy(&element, &value[i * lane_size], sizeof(element));
+          break;
+        }
+        default:
+          VIXL_UNREACHABLE();
+          fprintf(stream_, "{UnknownFPValue}");
+          continue;
+      }
+      if (IsNaN(element)) {
+        // The fprintf behaviour for NaNs is implementation-defined. Always
+        // print "nan", so that traces are consistent.
+        fprintf(stream_, "%s%snan%s", sep, clr_vreg_value, clr_normal);
+      } else {
+        fprintf(stream_,
+                "%s%s%#.4g%s",
+                sep,
+                clr_vreg_value,
+                element,
+                clr_normal);
+      }
+      last_inactive = false;
+    } else if (!last_inactive) {
+      // Replace each contiguous sequence of inactive lanes with "...".
+      fprintf(stream_, "%s...", sep);
+      last_inactive = true;
     }
-    fprintf(stream_, " (%s%s: ", clr_vreg_name, name);
-  } else {
-    if (msb < (kQRegSizeInBytes - 1)) {
-      fprintf(stream_, " (..., ");
-    } else {
-      fprintf(stream_, " (");
-    }
-  }
-
-  // Print the list of values.
-  const char* separator = "";
-  int leftmost_lane = rightmost_lane + lane_count - 1;
-  for (int lane = leftmost_lane; lane >= rightmost_lane; lane--) {
-    double value;
-    switch (lane_size_in_bytes) {
-      case kHRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<uint16_t>(lane);
-        break;
-      case kSRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<float>(lane);
-        break;
-      case kDRegSizeInBytes:
-        value = ReadVRegister(code).GetLane<double>(lane);
-        break;
-      default:
-        value = 0.0;
-        VIXL_UNREACHABLE();
-    }
-    if (IsNaN(value)) {
-      // The output for NaNs is implementation defined. Always print `nan`, so
-      // that traces are coherent across different implementations.
-      fprintf(stream_, "%s%snan%s", separator, clr_vreg_value, clr_normal);
-    } else {
-      fprintf(stream_,
-              "%s%s%#g%s",
-              separator,
-              clr_vreg_value,
-              value,
-              clr_normal);
-    }
-    separator = ", ";
-  }
-
-  if (rightmost_lane > 0) {
-    fprintf(stream_, ", ...");
   }
   fprintf(stream_, ")");
 }
 
+void Simulator::PrintRegister(int code,
+                              PrintRegisterFormat format,
+                              const char* suffix) {
+  VIXL_ASSERT((static_cast<unsigned>(code) < kNumberOfRegisters) ||
+              (static_cast<unsigned>(code) == kSPRegInternalCode));
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsScalar);
+  VIXL_ASSERT((format & kPrintRegAsFP) == 0);
 
-void Simulator::PrintVRegister(unsigned code, PrintRegisterFormat format) {
-  vregisters_[code].NotifyRegisterLogged();
-
-  int lane_size_log2 = format & kPrintRegLaneSizeMask;
-
-  int reg_size_log2;
-  if (format & kPrintRegAsQVector) {
-    reg_size_log2 = kQRegSizeInBytesLog2;
-  } else if (format & kPrintRegAsDVector) {
-    reg_size_log2 = kDRegSizeInBytesLog2;
+  SimRegister* reg;
+  SimRegister zero;
+  if (code == kZeroRegCode) {
+    reg = &zero;
   } else {
-    // Scalar types.
-    reg_size_log2 = lane_size_log2;
+    // registers_[31] holds the SP.
+    VIXL_STATIC_ASSERT((kSPRegInternalCode % kNumberOfRegisters) == 31);
+    reg = &registers_[code % kNumberOfRegisters];
   }
 
-  int lane_count = 1 << (reg_size_log2 - lane_size_log2);
-  int lane_size = 1 << lane_size_log2;
+  // We trace register writes as whole register values, implying that any
+  // unprinted bits are all zero:
+  //   "#       x{code}: 0x{-----value----}"
+  //   "#       w{code}:         0x{-value}"
+  // Stores trace partial register values, implying nothing about the unprinted
+  // bits:
+  //   "# x{code}<63:0>: 0x{-----value----}"
+  //   "# x{code}<31:0>:         0x{-value}"
+  //   "# x{code}<15:0>:             0x{--}"
+  //   "#  x{code}<7:0>:               0x{}"
 
-  // The template for vector types:
-  //   "# v{code}: 0x{rawbits} (..., {value}, ...)".
-  // The template for scalar types:
-  //   "# v{code}: 0x{rawbits} ({reg}:{value})".
-  // The values in parentheses after the bit representations are floating-point
-  // interpretations. They are displayed only if the kPrintVRegAsFP bit is set.
-
-  PrintVRegisterRawHelper(code);
-  if (format & kPrintRegAsFP) {
-    PrintVRegisterFPHelper(code, lane_size, lane_count);
+  bool is_partial = (format & kPrintRegPartial) != 0;
+  unsigned print_reg_size = GetPrintRegSizeInBits(format);
+  std::stringstream name;
+  if (is_partial) {
+    name << XRegNameForCode(code) << GetPartialRegSuffix(format);
+  } else {
+    // Notify the register that it has been logged, but only if we're printing
+    // all of it.
+    reg->NotifyRegisterLogged();
+    switch (print_reg_size) {
+      case kWRegSize:
+        name << WRegNameForCode(code);
+        break;
+      case kXRegSize:
+        name << XRegNameForCode(code);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
   }
 
-  fprintf(stream_, "\n");
+  fprintf(stream_,
+          "# %s%*s: %s",
+          clr_reg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_reg_value);
+  PrintRegisterValue(*reg, format);
+  fprintf(stream_, "%s%s", clr_normal, suffix);
 }
 
+void Simulator::PrintVRegister(int code,
+                               PrintRegisterFormat format,
+                               const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfVRegisters);
+  VIXL_ASSERT(((format & kPrintRegAsVectorMask) == kPrintRegAsScalar) ||
+              ((format & kPrintRegAsVectorMask) == kPrintRegAsDVector) ||
+              ((format & kPrintRegAsVectorMask) == kPrintRegAsQVector));
+
+  // We trace register writes as whole register values, implying that any
+  // unprinted bits are all zero:
+  //   "#        v{code}: 0x{-------------value------------}"
+  //   "#        d{code}:                 0x{-----value----}"
+  //   "#        s{code}:                         0x{-value}"
+  //   "#        h{code}:                             0x{--}"
+  //   "#        b{code}:                               0x{}"
+  // Stores trace partial register values, implying nothing about the unprinted
+  // bits:
+  //   "# v{code}<127:0>: 0x{-------------value------------}"
+  //   "#  v{code}<63:0>:                 0x{-----value----}"
+  //   "#  v{code}<31:0>:                         0x{-value}"
+  //   "#  v{code}<15:0>:                             0x{--}"
+  //   "#   v{code}<7:0>:                               0x{}"
+
+  bool is_partial = ((format & kPrintRegPartial) != 0);
+  std::stringstream name;
+  unsigned print_reg_size = GetPrintRegSizeInBits(format);
+  if (is_partial) {
+    name << VRegNameForCode(code) << GetPartialRegSuffix(format);
+  } else {
+    // Notify the register that it has been logged, but only if we're printing
+    // all of it.
+    vregisters_[code].NotifyRegisterLogged();
+    switch (print_reg_size) {
+      case kBRegSize:
+        name << BRegNameForCode(code);
+        break;
+      case kHRegSize:
+        name << HRegNameForCode(code);
+        break;
+      case kSRegSize:
+        name << SRegNameForCode(code);
+        break;
+      case kDRegSize:
+        name << DRegNameForCode(code);
+        break;
+      case kQRegSize:
+        name << VRegNameForCode(code);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+        return;
+    }
+  }
+
+  fprintf(stream_,
+          "# %s%*s: %s",
+          clr_vreg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_vreg_value);
+  PrintRegisterValue(vregisters_[code], format);
+  fprintf(stream_, "%s", clr_normal);
+  if ((format & kPrintRegAsFP) != 0) {
+    PrintRegisterValueFPAnnotations(vregisters_[code], format);
+  }
+  fprintf(stream_, "%s", suffix);
+}
+
+void Simulator::PrintVRegistersForStructuredAccess(int rt_code,
+                                                   int reg_count,
+                                                   uint16_t focus_mask,
+                                                   PrintRegisterFormat format) {
+  bool print_fp = (format & kPrintRegAsFP) != 0;
+  // Suppress FP formatting, so we can specify the lanes we're interested in.
+  PrintRegisterFormat format_no_fp =
+      static_cast<PrintRegisterFormat>(format & ~kPrintRegAsFP);
+
+  for (int r = 0; r < reg_count; r++) {
+    int code = (rt_code + r) % kNumberOfVRegisters;
+    PrintVRegister(code, format_no_fp, "");
+    if (print_fp) {
+      PrintRegisterValueFPAnnotations(vregisters_[code], focus_mask, format);
+    }
+    fprintf(stream_, "\n");
+  }
+}
+
+void Simulator::PrintZRegistersForStructuredAccess(int rt_code,
+                                                   int q_index,
+                                                   int reg_count,
+                                                   uint16_t focus_mask,
+                                                   PrintRegisterFormat format) {
+  bool print_fp = (format & kPrintRegAsFP) != 0;
+  // Suppress FP formatting, so we can specify the lanes we're interested in.
+  PrintRegisterFormat format_no_fp =
+      static_cast<PrintRegisterFormat>(format & ~kPrintRegAsFP);
+
+  PrintRegisterFormat format_q = GetPrintRegAsQChunkOfSVE(format);
+
+  const unsigned size = kQRegSizeInBytes;
+  unsigned byte_index = q_index * size;
+  const uint8_t* value = vregisters_[rt_code].GetBytes() + byte_index;
+  VIXL_ASSERT((byte_index + size) <= vregisters_[rt_code].GetSizeInBytes());
+
+  for (int r = 0; r < reg_count; r++) {
+    int code = (rt_code + r) % kNumberOfZRegisters;
+    PrintPartialZRegister(code, q_index, format_no_fp, "");
+    if (print_fp) {
+      PrintRegisterValueFPAnnotations(value, focus_mask, format_q);
+    }
+    fprintf(stream_, "\n");
+  }
+}
+
+void Simulator::PrintZRegister(int code, PrintRegisterFormat format) {
+  // We're going to print the register in parts, so force a partial format.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned i = 0; i < (vl / kQRegSize); i++) {
+    PrintPartialZRegister(code, i, format);
+  }
+  vregisters_[code].NotifyRegisterLogged();
+}
+
+void Simulator::PrintPRegister(int code, PrintRegisterFormat format) {
+  // We're going to print the register in parts, so force a partial format.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned i = 0; i < (vl / kQRegSize); i++) {
+    PrintPartialPRegister(code, i, format);
+  }
+  pregisters_[code].NotifyRegisterLogged();
+}
+
+void Simulator::PrintFFR(PrintRegisterFormat format) {
+  // We're going to print the register in parts, so force a partial format.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  SimPRegister& ffr = ReadFFR();
+  for (unsigned i = 0; i < (vl / kQRegSize); i++) {
+    PrintPartialPRegister("FFR", ffr, i, format);
+  }
+  ffr.NotifyRegisterLogged();
+}
+
+void Simulator::PrintPartialZRegister(int code,
+                                      int q_index,
+                                      PrintRegisterFormat format,
+                                      const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfZRegisters);
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  VIXL_ASSERT((format & kPrintRegPartial) != 0);
+  VIXL_ASSERT((q_index * kQRegSize) < GetVectorLengthInBits());
+
+  // We _only_ trace partial Z register values in Q-sized chunks, because
+  // they're often too large to reasonably fit on a single line. Each line
+  // implies nothing about the unprinted bits.
+  //   "# z{code}<127:0>: 0x{-------------value------------}"
+
+  format = GetPrintRegAsQChunkOfSVE(format);
+
+  const unsigned size = kQRegSizeInBytes;
+  unsigned byte_index = q_index * size;
+  const uint8_t* value = vregisters_[code].GetBytes() + byte_index;
+  VIXL_ASSERT((byte_index + size) <= vregisters_[code].GetSizeInBytes());
+
+  int lsb = q_index * kQRegSize;
+  int msb = lsb + kQRegSize - 1;
+  std::stringstream name;
+  name << ZRegNameForCode(code) << '<' << msb << ':' << lsb << '>';
+
+  fprintf(stream_,
+          "# %s%*s: %s",
+          clr_vreg_name,
+          kPrintRegisterNameFieldWidth,
+          name.str().c_str(),
+          clr_vreg_value);
+  PrintRegisterValue(value, size, format);
+  fprintf(stream_, "%s", clr_normal);
+  if ((format & kPrintRegAsFP) != 0) {
+    PrintRegisterValueFPAnnotations(value, GetPrintRegLaneMask(format), format);
+  }
+  fprintf(stream_, "%s", suffix);
+}
+
+void Simulator::PrintPartialPRegister(const char* name,
+                                      const SimPRegister& reg,
+                                      int q_index,
+                                      PrintRegisterFormat format,
+                                      const char* suffix) {
+  VIXL_ASSERT((format & kPrintRegAsVectorMask) == kPrintRegAsSVEVector);
+  VIXL_ASSERT((format & kPrintRegPartial) != 0);
+  VIXL_ASSERT((q_index * kQRegSize) < GetVectorLengthInBits());
+
+  // We don't currently use the format for anything here.
+  USE(format);
+
+  // We _only_ trace partial P register values, because they're often too large
+  // to reasonably fit on a single line. Each line implies nothing about the
+  // unprinted bits.
+  //
+  // We print values in binary, with spaces between each bit, in order for the
+  // bits to align with the Z register bytes that they predicate.
+  //   "# {name}<15:0>: 0b{-------------value------------}"
+
+  int print_size_in_bits = kQRegSize / kZRegBitsPerPRegBit;
+  int lsb = q_index * print_size_in_bits;
+  int msb = lsb + print_size_in_bits - 1;
+  std::stringstream prefix;
+  prefix << name << '<' << msb << ':' << lsb << '>';
+
+  fprintf(stream_,
+          "# %s%*s: %s0b",
+          clr_preg_name,
+          kPrintRegisterNameFieldWidth,
+          prefix.str().c_str(),
+          clr_preg_value);
+  for (int i = msb; i >= lsb; i--) {
+    fprintf(stream_, " %c", reg.GetBit(i) ? '1' : '0');
+  }
+  fprintf(stream_, "%s%s", clr_normal, suffix);
+}
+
+void Simulator::PrintPartialPRegister(int code,
+                                      int q_index,
+                                      PrintRegisterFormat format,
+                                      const char* suffix) {
+  VIXL_ASSERT(static_cast<unsigned>(code) < kNumberOfPRegisters);
+  PrintPartialPRegister(PRegNameForCode(code),
+                        pregisters_[code],
+                        q_index,
+                        format,
+                        suffix);
+}
 
 void Simulator::PrintSystemRegister(SystemRegister id) {
   switch (id) {
@@ -931,90 +1225,347 @@ void Simulator::PrintSystemRegister(SystemRegister id) {
   }
 }
 
-
-void Simulator::PrintRead(uintptr_t address,
-                          unsigned reg_code,
-                          PrintRegisterFormat format) {
-  registers_[reg_code].NotifyRegisterLogged();
-
-  USE(format);
-
-  // The template is "# {reg}: 0x{value} <- {address}".
-  PrintRegisterRawHelper(reg_code, Reg31IsZeroRegister);
-  fprintf(stream_,
-          " <- %s0x%016" PRIxPTR "%s\n",
-          clr_memory_address,
-          address,
-          clr_normal);
-}
-
-
-void Simulator::PrintVRead(uintptr_t address,
-                           unsigned reg_code,
-                           PrintRegisterFormat format,
-                           unsigned lane) {
-  vregisters_[reg_code].NotifyRegisterLogged();
-
-  // The template is "# v{code}: 0x{rawbits} <- address".
-  PrintVRegisterRawHelper(reg_code);
-  if (format & kPrintRegAsFP) {
-    PrintVRegisterFPHelper(reg_code,
-                           GetPrintRegLaneSizeInBytes(format),
-                           GetPrintRegLaneCount(format),
-                           lane);
+uint16_t Simulator::PrintPartialAccess(uint16_t access_mask,
+                                       uint16_t future_access_mask,
+                                       int struct_element_count,
+                                       int lane_size_in_bytes,
+                                       const char* op,
+                                       uintptr_t address,
+                                       int reg_size_in_bytes) {
+  // We want to assume that we'll access at least one lane.
+  VIXL_ASSERT(access_mask != 0);
+  VIXL_ASSERT((reg_size_in_bytes == kXRegSizeInBytes) ||
+              (reg_size_in_bytes == kQRegSizeInBytes));
+  bool started_annotation = false;
+  // Indent to match the register field, the fixed formatting, and the value
+  // prefix ("0x"): "# {name}: 0x"
+  fprintf(stream_, "# %*s    ", kPrintRegisterNameFieldWidth, "");
+  // First, annotate the lanes (byte by byte).
+  for (int lane = reg_size_in_bytes - 1; lane >= 0; lane--) {
+    bool access = (access_mask & (1 << lane)) != 0;
+    bool future = (future_access_mask & (1 << lane)) != 0;
+    if (started_annotation) {
+      // If we've started an annotation, draw a horizontal line in addition to
+      // any other symbols.
+      if (access) {
+        fprintf(stream_, "─╨");
+      } else if (future) {
+        fprintf(stream_, "─║");
+      } else {
+        fprintf(stream_, "──");
+      }
+    } else {
+      if (access) {
+        started_annotation = true;
+        fprintf(stream_, " ╙");
+      } else if (future) {
+        fprintf(stream_, " ║");
+      } else {
+        fprintf(stream_, "  ");
+      }
+    }
+  }
+  VIXL_ASSERT(started_annotation);
+  fprintf(stream_, "─ 0x");
+  int lane_size_in_nibbles = lane_size_in_bytes * 2;
+  // Print the most-significant struct element first.
+  const char* sep = "";
+  for (int i = struct_element_count - 1; i >= 0; i--) {
+    int offset = lane_size_in_bytes * i;
+    uint64_t nibble = Memory::Read(lane_size_in_bytes, address + offset);
+    fprintf(stream_, "%s%0*" PRIx64, sep, lane_size_in_nibbles, nibble);
+    sep = "'";
   }
   fprintf(stream_,
-          " <- %s0x%016" PRIxPTR "%s\n",
+          " %s %s0x%016" PRIxPTR "%s\n",
+          op,
           clr_memory_address,
           address,
           clr_normal);
+  return future_access_mask & ~access_mask;
 }
 
-
-void Simulator::PrintWrite(uintptr_t address,
-                           unsigned reg_code,
-                           PrintRegisterFormat format) {
-  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-
-  // The template is "# v{code}: 0x{value} -> {address}". To keep the trace tidy
-  // and readable, the value is aligned with the values in the register trace.
-  PrintRegisterRawHelper(reg_code,
-                         Reg31IsZeroRegister,
-                         GetPrintRegSizeInBytes(format));
-  fprintf(stream_,
-          " -> %s0x%016" PRIxPTR "%s\n",
-          clr_memory_address,
-          address,
-          clr_normal);
-}
-
-
-void Simulator::PrintVWrite(uintptr_t address,
-                            unsigned reg_code,
+void Simulator::PrintAccess(int code,
                             PrintRegisterFormat format,
-                            unsigned lane) {
-  // The templates:
-  //   "# v{code}: 0x{rawbits} -> {address}"
-  //   "# v{code}: 0x{rawbits} (..., {value}, ...) -> {address}".
-  //   "# v{code}: 0x{rawbits} ({reg}:{value}) -> {address}"
-  // Because this trace doesn't represent a change to the source register's
-  // value, only the relevant part of the value is printed. To keep the trace
-  // tidy and readable, the raw value is aligned with the other values in the
-  // register trace.
-  int lane_count = GetPrintRegLaneCount(format);
-  int lane_size = GetPrintRegLaneSizeInBytes(format);
-  int reg_size = GetPrintRegSizeInBytes(format);
-  PrintVRegisterRawHelper(reg_code, reg_size, lane_size * lane);
-  if (format & kPrintRegAsFP) {
-    PrintVRegisterFPHelper(reg_code, lane_size, lane_count, lane);
+                            const char* op,
+                            uintptr_t address) {
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+  if ((format & kPrintRegPartial) == 0) {
+    registers_[code].NotifyRegisterLogged();
   }
+  // Scalar-format accesses use a simple format:
+  //   "# {reg}: 0x{value} -> {address}"
+
+  // Suppress the newline, so the access annotation goes on the same line.
+  PrintRegister(code, format, "");
   fprintf(stream_,
-          " -> %s0x%016" PRIxPTR "%s\n",
+          " %s %s0x%016" PRIxPTR "%s\n",
+          op,
           clr_memory_address,
           address,
           clr_normal);
 }
 
+void Simulator::PrintVAccess(int code,
+                             PrintRegisterFormat format,
+                             const char* op,
+                             uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // Scalar-format accesses use a simple format:
+  //   "# v{code}: 0x{value} -> {address}"
+
+  // Suppress the newline, so the access annotation goes on the same line.
+  PrintVRegister(code, format, "");
+  fprintf(stream_,
+          " %s %s0x%016" PRIxPTR "%s\n",
+          op,
+          clr_memory_address,
+          address,
+          clr_normal);
+}
+
+void Simulator::PrintVStructAccess(int rt_code,
+                                   int reg_count,
+                                   PrintRegisterFormat format,
+                                   const char* op,
+                                   uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# v{code}: 0x{value}"
+  //   "#     ...: 0x{value}"
+  //   "#              ║   ╙─ {struct_value} -> {lowest_address}"
+  //   "#              ╙───── {struct_value} -> {highest_address}"
+
+  uint16_t lane_mask = GetPrintRegLaneMask(format);
+  PrintVRegistersForStructuredAccess(rt_code, reg_count, lane_mask, format);
+
+  int reg_size_in_bytes = GetPrintRegSizeInBytes(format);
+  int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  for (int i = 0; i < reg_size_in_bytes; i += lane_size_in_bytes) {
+    uint16_t access_mask = 1 << i;
+    VIXL_ASSERT((lane_mask & access_mask) != 0);
+    lane_mask = PrintPartialAccess(access_mask,
+                                   lane_mask,
+                                   reg_count,
+                                   lane_size_in_bytes,
+                                   op,
+                                   address + (i * reg_count));
+  }
+}
+
+void Simulator::PrintVSingleStructAccess(int rt_code,
+                                         int reg_count,
+                                         int lane,
+                                         PrintRegisterFormat format,
+                                         const char* op,
+                                         uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# v{code}: 0x{value}"
+  //   "#     ...: 0x{value}"
+  //   "#              ╙───── {struct_value} -> {address}"
+
+  int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  uint16_t lane_mask = 1 << (lane * lane_size_in_bytes);
+  PrintVRegistersForStructuredAccess(rt_code, reg_count, lane_mask, format);
+  PrintPartialAccess(lane_mask, 0, reg_count, lane_size_in_bytes, op, address);
+}
+
+void Simulator::PrintVReplicatingStructAccess(int rt_code,
+                                              int reg_count,
+                                              PrintRegisterFormat format,
+                                              const char* op,
+                                              uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# v{code}: 0x{value}"
+  //   "#     ...: 0x{value}"
+  //   "#            ╙─╨─╨─╨─ {struct_value} -> {address}"
+
+  int lane_size_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  uint16_t lane_mask = GetPrintRegLaneMask(format);
+  PrintVRegistersForStructuredAccess(rt_code, reg_count, lane_mask, format);
+  PrintPartialAccess(lane_mask, 0, reg_count, lane_size_in_bytes, op, address);
+}
+
+void Simulator::PrintZAccess(int rt_code, const char* op, uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // Scalar-format accesses are split into separate chunks, each of which uses a
+  // simple format:
+  //   "#   z{code}<127:0>: 0x{value} -> {address}"
+  //   "# z{code}<255:128>: 0x{value} -> {address + 16}"
+  //   "# z{code}<383:256>: 0x{value} -> {address + 32}"
+  // etc
+
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned q_index = 0; q_index < (vl / kQRegSize); q_index++) {
+    // Suppress the newline, so the access annotation goes on the same line.
+    PrintPartialZRegister(rt_code, q_index, kPrintRegVnQPartial, "");
+    fprintf(stream_,
+            " %s %s0x%016" PRIxPTR "%s\n",
+            op,
+            clr_memory_address,
+            address,
+            clr_normal);
+    address += kQRegSizeInBytes;
+  }
+}
+
+void Simulator::PrintZStructAccess(int rt_code,
+                                   int reg_count,
+                                   const LogicPRegister& pg,
+                                   PrintRegisterFormat format,
+                                   int msize_in_bytes,
+                                   const char* op,
+                                   const LogicSVEAddressVector& addr) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // For example:
+  //   "# z{code}<255:128>: 0x{value}"
+  //   "#     ...<255:128>: 0x{value}"
+  //   "#                       ║   ╙─ {struct_value} -> {first_address}"
+  //   "#                       ╙───── {struct_value} -> {last_address}"
+
+  // We're going to print the register in parts, so force a partial format.
+  bool skip_inactive_chunks = (format & kPrintRegPartial) != 0;
+  format = GetPrintRegPartial(format);
+
+  int esize_in_bytes = GetPrintRegLaneSizeInBytes(format);
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  int lanes_per_q = kQRegSizeInBytes / esize_in_bytes;
+  for (unsigned q_index = 0; q_index < (vl / kQRegSize); q_index++) {
+    uint16_t pred =
+        pg.GetActiveMask<uint16_t>(q_index) & GetPrintRegLaneMask(format);
+    if ((pred == 0) && skip_inactive_chunks) continue;
+
+    PrintZRegistersForStructuredAccess(rt_code,
+                                       q_index,
+                                       reg_count,
+                                       pred,
+                                       format);
+    if (pred == 0) {
+      // This register chunk has no active lanes. The loop below would print
+      // nothing, so leave a blank line to keep structures grouped together.
+      fprintf(stream_, "#\n");
+      continue;
+    }
+    for (int i = 0; i < lanes_per_q; i++) {
+      uint16_t access = 1 << (i * esize_in_bytes);
+      int lane = (q_index * lanes_per_q) + i;
+      // Skip inactive lanes.
+      if ((pred & access) == 0) continue;
+      pred = PrintPartialAccess(access,
+                                pred,
+                                reg_count,
+                                msize_in_bytes,
+                                op,
+                                addr.GetStructAddress(lane));
+    }
+  }
+
+  // We print the whole register, even for stores.
+  for (int i = 0; i < reg_count; i++) {
+    vregisters_[(rt_code + i) % kNumberOfZRegisters].NotifyRegisterLogged();
+  }
+}
+
+void Simulator::PrintPAccess(int code, const char* op, uintptr_t address) {
+  VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
+
+  // Scalar-format accesses are split into separate chunks, each of which uses a
+  // simple format:
+  //   "#  p{code}<15:0>: 0b{value} -> {address}"
+  //   "# p{code}<31:16>: 0b{value} -> {address + 2}"
+  //   "# p{code}<47:32>: 0b{value} -> {address + 4}"
+  // etc
+
+  int vl = GetVectorLengthInBits();
+  VIXL_ASSERT((vl % kQRegSize) == 0);
+  for (unsigned q_index = 0; q_index < (vl / kQRegSize); q_index++) {
+    // Suppress the newline, so the access annotation goes on the same line.
+    PrintPartialPRegister(code, q_index, kPrintRegVnQPartial, "");
+    fprintf(stream_,
+            " %s %s0x%016" PRIxPTR "%s\n",
+            op,
+            clr_memory_address,
+            address,
+            clr_normal);
+    address += kQRegSizeInBytes;
+  }
+}
+
+void Simulator::PrintRead(int rt_code,
+                          PrintRegisterFormat format,
+                          uintptr_t address) {
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  registers_[rt_code].NotifyRegisterLogged();
+  PrintAccess(rt_code, format, "<-", address);
+}
+
+void Simulator::PrintExtendingRead(int rt_code,
+                                   PrintRegisterFormat format,
+                                   int access_size_in_bytes,
+                                   uintptr_t address) {
+  int reg_size_in_bytes = GetPrintRegSizeInBytes(format);
+  if (access_size_in_bytes == reg_size_in_bytes) {
+    // There is no extension here, so print a simple load.
+    PrintRead(rt_code, format, address);
+    return;
+  }
+  VIXL_ASSERT(access_size_in_bytes < reg_size_in_bytes);
+
+  // For sign- and zero-extension, make it clear that the resulting register
+  // value is different from what is loaded from memory.
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  registers_[rt_code].NotifyRegisterLogged();
+  PrintRegister(rt_code, format);
+  PrintPartialAccess(1,
+                     0,
+                     1,
+                     access_size_in_bytes,
+                     "<-",
+                     address,
+                     kXRegSizeInBytes);
+}
+
+void Simulator::PrintVRead(int rt_code,
+                           PrintRegisterFormat format,
+                           uintptr_t address) {
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  vregisters_[rt_code].NotifyRegisterLogged();
+  PrintVAccess(rt_code, format, "<-", address);
+}
+
+void Simulator::PrintWrite(int rt_code,
+                           PrintRegisterFormat format,
+                           uintptr_t address) {
+  // Because this trace doesn't represent a change to the source register's
+  // value, only print the relevant part of the value.
+  format = GetPrintRegPartial(format);
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  registers_[rt_code].NotifyRegisterLogged();
+  PrintAccess(rt_code, format, "->", address);
+}
+
+void Simulator::PrintVWrite(int rt_code,
+                            PrintRegisterFormat format,
+                            uintptr_t address) {
+  // Because this trace doesn't represent a change to the source register's
+  // value, only print the relevant part of the value.
+  format = GetPrintRegPartial(format);
+  // It only makes sense to write scalar values here. Vectors are handled by
+  // PrintVStructAccess.
+  VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
+  PrintVAccess(rt_code, format, "->", address);
+}
 
 void Simulator::PrintTakenBranch(const Instruction* target) {
   fprintf(stream_,
@@ -1023,7 +1574,6 @@ void Simulator::PrintTakenBranch(const Instruction* target) {
           clr_normal,
           reinterpret_cast<uint64_t>(target));
 }
-
 
 // Visitors---------------------------------------------------------------------
 
@@ -1466,7 +2016,7 @@ void Simulator::LoadAcquireRCpcUnscaledOffsetHelper(const Instruction* instr) {
   // Approximate load-acquire by issuing a full barrier after the load.
   __sync_synchronize();
 
-  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+  LogRead(rt, GetPrintRegisterFormat(element_size), address);
 }
 
 
@@ -1493,7 +2043,7 @@ void Simulator::StoreReleaseUnscaledOffsetHelper(const Instruction* instr) {
 
   Memory::Write<T>(address, ReadRegister<T>(rt));
 
-  LogWrite(address, rt, GetPrintRegisterFormat(element_size));
+  LogWrite(rt, GetPrintRegisterFormat(element_size), address);
 }
 
 
@@ -1580,7 +2130,7 @@ void Simulator::VisitLoadStorePAC(const Instruction* instr) {
 
   WriteXRegister(dst, Memory::Read<uint64_t>(addr_ptr), NoRegLog);
   unsigned access_size = 1 << 3;
-  LogRead(addr_ptr, dst, GetPrintRegisterFormatForSize(access_size));
+  LogRead(dst, GetPrintRegisterFormatForSize(access_size), addr_ptr);
 }
 
 
@@ -1601,49 +2151,65 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
   unsigned srcdst = instr->GetRt();
   uintptr_t address = AddressModeHelper(instr->GetRn(), offset, addrmode);
 
+  bool rt_is_vreg = false;
+  int extend_to_size = 0;
   LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreMask));
   switch (op) {
     case LDRB_w:
       WriteWRegister(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDRH_w:
       WriteWRegister(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDR_w:
       WriteWRegister(srcdst, Memory::Read<uint32_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDR_x:
       WriteXRegister(srcdst, Memory::Read<uint64_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDRSB_w:
       WriteWRegister(srcdst, Memory::Read<int8_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDRSH_w:
       WriteWRegister(srcdst, Memory::Read<int16_t>(address), NoRegLog);
+      extend_to_size = kWRegSizeInBytes;
       break;
     case LDRSB_x:
       WriteXRegister(srcdst, Memory::Read<int8_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDRSH_x:
       WriteXRegister(srcdst, Memory::Read<int16_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDRSW_x:
       WriteXRegister(srcdst, Memory::Read<int32_t>(address), NoRegLog);
+      extend_to_size = kXRegSizeInBytes;
       break;
     case LDR_b:
       WriteBRegister(srcdst, Memory::Read<uint8_t>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_h:
       WriteHRegister(srcdst, Memory::Read<uint16_t>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_s:
       WriteSRegister(srcdst, Memory::Read<float>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_d:
       WriteDRegister(srcdst, Memory::Read<double>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
     case LDR_q:
       WriteQRegister(srcdst, Memory::Read<qreg_t>(address), NoRegLog);
+      rt_is_vreg = true;
       break;
 
     case STRB_w:
@@ -1660,18 +2226,23 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
       break;
     case STR_b:
       Memory::Write<uint8_t>(address, ReadBRegister(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_h:
       Memory::Write<uint16_t>(address, ReadHRegisterBits(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_s:
       Memory::Write<float>(address, ReadSRegister(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_d:
       Memory::Write<double>(address, ReadDRegister(srcdst));
+      rt_is_vreg = true;
       break;
     case STR_q:
       Memory::Write<qreg_t>(address, ReadQRegister(srcdst));
+      rt_is_vreg = true;
       break;
 
     // Ignore prfm hint instructions.
@@ -1682,22 +2253,25 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
       VIXL_UNIMPLEMENTED();
   }
 
+  // Print a detailed trace (including the memory address).
+  bool extend = (extend_to_size != 0);
   unsigned access_size = 1 << instr->GetSizeLS();
+  unsigned result_size = extend ? extend_to_size : access_size;
+  PrintRegisterFormat print_format =
+      rt_is_vreg ? GetPrintRegisterFormatForSizeTryFP(result_size)
+                 : GetPrintRegisterFormatForSize(result_size);
+
   if (instr->IsLoad()) {
-    if ((op == LDR_s) || (op == LDR_d)) {
-      LogVRead(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
-    } else if ((op == LDR_b) || (op == LDR_h) || (op == LDR_q)) {
-      LogVRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+    if (rt_is_vreg) {
+      LogVRead(srcdst, print_format, address);
     } else {
-      LogRead(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+      LogExtendingRead(srcdst, print_format, access_size, address);
     }
   } else if (instr->IsStore()) {
-    if ((op == STR_s) || (op == STR_d)) {
-      LogVWrite(address, srcdst, GetPrintRegisterFormatForSizeFP(access_size));
-    } else if ((op == STR_b) || (op == STR_h) || (op == STR_q)) {
-      LogVWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+    if (rt_is_vreg) {
+      LogVWrite(srcdst, print_format, address);
     } else {
-      LogWrite(address, srcdst, GetPrintRegisterFormatForSize(access_size));
+      LogWrite(srcdst, GetPrintRegisterFormatForSize(result_size), address);
     }
   } else {
     VIXL_ASSERT(op == PRFM);
@@ -1742,6 +2316,8 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
   // 'rt' and 'rt2' can only be aliased for stores.
   VIXL_ASSERT(((op & LoadStorePairLBit) == 0) || (rt != rt2));
 
+  bool rt_is_vreg = false;
+  bool sign_extend = false;
   switch (op) {
     // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
     // will print a more detailed log.
@@ -1753,6 +2329,7 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case LDP_s: {
       WriteSRegister(rt, Memory::Read<float>(address), NoRegLog);
       WriteSRegister(rt2, Memory::Read<float>(address2), NoRegLog);
+      rt_is_vreg = true;
       break;
     }
     case LDP_x: {
@@ -1763,16 +2340,19 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case LDP_d: {
       WriteDRegister(rt, Memory::Read<double>(address), NoRegLog);
       WriteDRegister(rt2, Memory::Read<double>(address2), NoRegLog);
+      rt_is_vreg = true;
       break;
     }
     case LDP_q: {
       WriteQRegister(rt, Memory::Read<qreg_t>(address), NoRegLog);
       WriteQRegister(rt2, Memory::Read<qreg_t>(address2), NoRegLog);
+      rt_is_vreg = true;
       break;
     }
     case LDPSW_x: {
       WriteXRegister(rt, Memory::Read<int32_t>(address), NoRegLog);
       WriteXRegister(rt2, Memory::Read<int32_t>(address2), NoRegLog);
+      sign_extend = true;
       break;
     }
     case STP_w: {
@@ -1783,6 +2363,7 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case STP_s: {
       Memory::Write<float>(address, ReadSRegister(rt));
       Memory::Write<float>(address2, ReadSRegister(rt2));
+      rt_is_vreg = true;
       break;
     }
     case STP_x: {
@@ -1793,40 +2374,43 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     case STP_d: {
       Memory::Write<double>(address, ReadDRegister(rt));
       Memory::Write<double>(address2, ReadDRegister(rt2));
+      rt_is_vreg = true;
       break;
     }
     case STP_q: {
       Memory::Write<qreg_t>(address, ReadQRegister(rt));
       Memory::Write<qreg_t>(address2, ReadQRegister(rt2));
+      rt_is_vreg = true;
       break;
     }
     default:
       VIXL_UNREACHABLE();
   }
 
-  // Print a detailed trace (including the memory address) instead of the basic
-  // register:value trace generated by set_*reg().
+  // Print a detailed trace (including the memory address).
+  unsigned result_size = sign_extend ? kXRegSizeInBytes : element_size;
+  PrintRegisterFormat print_format =
+      rt_is_vreg ? GetPrintRegisterFormatForSizeTryFP(result_size)
+                 : GetPrintRegisterFormatForSize(result_size);
+
   if (instr->IsLoad()) {
-    if ((op == LDP_s) || (op == LDP_d)) {
-      LogVRead(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
-      LogVRead(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
-    } else if (op == LDP_q) {
-      LogVRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogVRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+    if (rt_is_vreg) {
+      LogVRead(rt, print_format, address);
+      LogVRead(rt2, print_format, address2);
+    } else if (sign_extend) {
+      LogExtendingRead(rt, print_format, element_size, address);
+      LogExtendingRead(rt2, print_format, element_size, address2);
     } else {
-      LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogRead(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+      LogRead(rt, print_format, address);
+      LogRead(rt2, print_format, address2);
     }
   } else {
-    if ((op == STP_s) || (op == STP_d)) {
-      LogVWrite(address, rt, GetPrintRegisterFormatForSizeFP(element_size));
-      LogVWrite(address2, rt2, GetPrintRegisterFormatForSizeFP(element_size));
-    } else if (op == STP_q) {
-      LogVWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogVWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+    if (rt_is_vreg) {
+      LogVWrite(rt, print_format, address);
+      LogVWrite(rt2, print_format, address2);
     } else {
-      LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
-      LogWrite(address2, rt2, GetPrintRegisterFormatForSize(element_size));
+      LogWrite(rt, print_format, address);
+      LogWrite(rt2, print_format, address2);
     }
   }
 
@@ -1867,10 +2451,10 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
       __sync_synchronize();
     }
     Memory::Write<T>(address, newvalue);
-    LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+    LogWrite(rt, GetPrintRegisterFormatForSize(element_size), address);
   }
   WriteRegister<T>(rs, data);
-  LogRead(address, rs, GetPrintRegisterFormatForSize(element_size));
+  LogRead(rs, GetPrintRegisterFormatForSize(element_size), address);
 }
 
 
@@ -1925,15 +2509,75 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   WriteRegister<T>(rs + 1, data_high);
   WriteRegister<T>(rs, data_low);
 
-  LogRead(address, rs + 1, GetPrintRegisterFormatForSize(element_size));
-  LogRead(address2, rs, GetPrintRegisterFormatForSize(element_size));
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
+  LogRead(rs + 1, format, address);
+  LogRead(rs, format, address2);
 
   if (same) {
-    LogWrite(address, rt + 1, GetPrintRegisterFormatForSize(element_size));
-    LogWrite(address2, rt, GetPrintRegisterFormatForSize(element_size));
+    LogWrite(rt + 1, format, address);
+    LogWrite(rt, format, address2);
   }
 }
 
+bool Simulator::CanReadMemory(uintptr_t address, size_t size) {
+  // To simulate fault-tolerant loads, we need to know what host addresses we
+  // can access without generating a real fault. One way to do that is to
+  // attempt to `write()` the memory to a dummy pipe[1]. This is more portable
+  // and less intrusive than using (global) signal handlers.
+  //
+  // [1]: https://stackoverflow.com/questions/7134590
+
+  size_t written = 0;
+  bool can_read = true;
+  // `write` will normally return after one invocation, but it is allowed to
+  // handle only part of the operation, so wrap it in a loop.
+  while (can_read && (written < size)) {
+    ssize_t result = write(dummy_pipe_fd_[1],
+                           reinterpret_cast<void*>(address + written),
+                           size - written);
+    if (result > 0) {
+      written += result;
+    } else {
+      switch (result) {
+        case -EPERM:
+        case -EFAULT:
+          // The address range is not accessible.
+          // `write` is supposed to return -EFAULT in this case, but in practice
+          // it seems to return -EPERM, so we accept that too.
+          can_read = false;
+          break;
+        case -EINTR:
+          // The call was interrupted by a signal. Just try again.
+          break;
+        default:
+          // Any other error is fatal.
+          VIXL_ABORT();
+      }
+    }
+  }
+  // Drain the read side of the pipe. If we don't do this, we'll leak memory as
+  // the dummy data is buffered. As before, we expect to drain the whole write
+  // in one invocation, but cannot guarantee that, so we wrap it in a loop. This
+  // function is primarily intended to implement SVE fault-tolerant loads, so
+  // the maximum Z register size is a good default buffer size.
+  char buffer[kZRegMaxSizeInBytes];
+  while (written > 0) {
+    ssize_t result = read(dummy_pipe_fd_[0],
+                          reinterpret_cast<void*>(buffer),
+                          sizeof(buffer));
+    // `read` blocks, and returns 0 only at EOF. We should not hit EOF until
+    // we've read everything that was written, so treat 0 as an error.
+    if (result > 0) {
+      VIXL_ASSERT(static_cast<size_t>(result) <= written);
+      written -= result;
+    } else {
+      // For -EINTR, just try again. We can't handle any other error.
+      VIXL_CHECK(result == -EINTR);
+    }
+  }
+
+  return can_read;
+}
 
 void Simulator::PrintExclusiveAccessWarning() {
   if (print_exclusive_access_warning_) {
@@ -1947,7 +2591,6 @@ void Simulator::PrintExclusiveAccessWarning() {
     print_exclusive_access_warning_ = false;
   }
 }
-
 
 void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
   LoadStoreExclusive op =
@@ -2022,30 +2665,35 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
 
         // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS).
         // We will print a more detailed log.
+        unsigned reg_size = 0;
         switch (op) {
           case LDXRB_w:
           case LDAXRB_w:
           case LDARB_w:
           case LDLARB:
             WriteWRegister(rt, Memory::Read<uint8_t>(address), NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXRH_w:
           case LDAXRH_w:
           case LDARH_w:
           case LDLARH:
             WriteWRegister(rt, Memory::Read<uint16_t>(address), NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXR_w:
           case LDAXR_w:
           case LDAR_w:
           case LDLAR_w:
             WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXR_x:
           case LDAXR_x:
           case LDAR_x:
           case LDLAR_x:
             WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
+            reg_size = kXRegSizeInBytes;
             break;
           case LDXP_w:
           case LDAXP_w:
@@ -2053,6 +2701,7 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
             WriteWRegister(rt2,
                            Memory::Read<uint32_t>(address + element_size),
                            NoRegLog);
+            reg_size = kWRegSizeInBytes;
             break;
           case LDXP_x:
           case LDAXP_x:
@@ -2060,6 +2709,7 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
             WriteXRegister(rt2,
                            Memory::Read<uint64_t>(address + element_size),
                            NoRegLog);
+            reg_size = kXRegSizeInBytes;
             break;
           default:
             VIXL_UNREACHABLE();
@@ -2070,11 +2720,10 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
           __sync_synchronize();
         }
 
-        LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
+        PrintRegisterFormat format = GetPrintRegisterFormatForSize(reg_size);
+        LogExtendingRead(rt, format, element_size, address);
         if (is_pair) {
-          LogRead(address + element_size,
-                  rt2,
-                  GetPrintRegisterFormatForSize(element_size));
+          LogExtendingRead(rt2, format, element_size, address + element_size);
         }
       } else {
         if (is_acquire_release) {
@@ -2138,11 +2787,11 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
               VIXL_UNREACHABLE();
           }
 
-          LogWrite(address, rt, GetPrintRegisterFormatForSize(element_size));
+          PrintRegisterFormat format =
+              GetPrintRegisterFormatForSize(element_size);
+          LogWrite(rt, format, address);
           if (is_pair) {
-            LogWrite(address + element_size,
-                     rt2,
-                     GetPrintRegisterFormatForSize(element_size));
+            LogWrite(rt2, format, address + element_size);
           }
         }
       }
@@ -2209,8 +2858,9 @@ void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
   Memory::Write<T>(address, result);
   WriteRegister<T>(rt, data, NoRegLog);
 
-  LogRead(address, rt, GetPrintRegisterFormatForSize(element_size));
-  LogWrite(address, rs, GetPrintRegisterFormatForSize(element_size));
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
+  LogRead(rt, format, address);
+  LogWrite(rs, format, address);
 }
 
 template <typename T>
@@ -2241,8 +2891,9 @@ void Simulator::AtomicMemorySwapHelper(const Instruction* instr) {
 
   WriteRegister<T>(rt, data);
 
-  LogRead(address, rt, GetPrintRegisterFormat(element_size));
-  LogWrite(address, rs, GetPrintRegisterFormat(element_size));
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
+  LogRead(rt, format, address);
+  LogWrite(rs, format, address);
 }
 
 template <typename T>
@@ -2260,7 +2911,7 @@ void Simulator::LoadAcquireRCpcHelper(const Instruction* instr) {
   // Approximate load-acquire by issuing a full barrier after the load.
   __sync_synchronize();
 
-  LogRead(address, rt, GetPrintRegisterFormat(element_size));
+  LogRead(rt, GetPrintRegisterFormatForSize(element_size), address);
 }
 
 #define ATOMIC_MEMORY_SIMPLE_UINT_LIST(V) \
@@ -2377,27 +3028,27 @@ void Simulator::VisitLoadLiteral(const Instruction* instr) {
     // print a more detailed log.
     case LDR_w_lit:
       WriteWRegister(rt, Memory::Read<uint32_t>(address), NoRegLog);
-      LogRead(address, rt, kPrintWReg);
+      LogRead(rt, kPrintWReg, address);
       break;
     case LDR_x_lit:
       WriteXRegister(rt, Memory::Read<uint64_t>(address), NoRegLog);
-      LogRead(address, rt, kPrintXReg);
+      LogRead(rt, kPrintXReg, address);
       break;
     case LDR_s_lit:
       WriteSRegister(rt, Memory::Read<float>(address), NoRegLog);
-      LogVRead(address, rt, kPrintSReg);
+      LogVRead(rt, kPrintSRegFP, address);
       break;
     case LDR_d_lit:
       WriteDRegister(rt, Memory::Read<double>(address), NoRegLog);
-      LogVRead(address, rt, kPrintDReg);
+      LogVRead(rt, kPrintDRegFP, address);
       break;
     case LDR_q_lit:
       WriteQRegister(rt, Memory::Read<qreg_t>(address), NoRegLog);
-      LogVRead(address, rt, kPrintReg1Q);
+      LogVRead(rt, kPrintReg1Q, address);
       break;
     case LDRSW_x_lit:
       WriteXRegister(rt, Memory::Read<int32_t>(address), NoRegLog);
-      LogRead(address, rt, kPrintWReg);
+      LogExtendingRead(rt, kPrintXReg, kWRegSizeInBytes, address);
       break;
 
     // Ignore prfm hint instructions.
@@ -2772,40 +3423,6 @@ void Simulator::VisitDataProcessing2Source(const Instruction* instr) {
 }
 
 
-// The algorithm used is adapted from the one described in section 8.2 of
-//   Hacker's Delight, by Henry S. Warren, Jr.
-template <typename T>
-static int64_t MultiplyHigh(T u, T v) {
-  uint64_t u0, v0, w0, u1, v1, w1, w2, t;
-  uint64_t sign_mask = UINT64_C(0x8000000000000000);
-  uint64_t sign_ext = 0;
-  if (std::numeric_limits<T>::is_signed) {
-    sign_ext = UINT64_C(0xffffffff00000000);
-  }
-
-  VIXL_ASSERT(sizeof(u) == sizeof(uint64_t));
-  VIXL_ASSERT(sizeof(u) == sizeof(u0));
-
-  u0 = u & 0xffffffff;
-  u1 = u >> 32 | (((u & sign_mask) != 0) ? sign_ext : 0);
-  v0 = v & 0xffffffff;
-  v1 = v >> 32 | (((v & sign_mask) != 0) ? sign_ext : 0);
-
-  w0 = u0 * v0;
-  t = u1 * v0 + (w0 >> 32);
-
-  w1 = t & 0xffffffff;
-  w2 = t >> 32 | (((t & sign_mask) != 0) ? sign_ext : 0);
-  w1 = u0 * v1 + w1;
-  w1 = w1 >> 32 | (((w1 & sign_mask) != 0) ? sign_ext : 0);
-
-  uint64_t value = u1 * v1 + w2 + w1;
-  int64_t result;
-  memcpy(&result, &value, sizeof(result));
-  return result;
-}
-
-
 void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
   unsigned reg_size = instr->GetSixtyFourBits() ? kXRegSize : kWRegSize;
 
@@ -2841,12 +3458,13 @@ void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
       result = ReadXRegister(instr->GetRa()) - (rn_u32 * rm_u32);
       break;
     case UMULH_x:
-      result = MultiplyHigh(ReadRegister<uint64_t>(instr->GetRn()),
-                            ReadRegister<uint64_t>(instr->GetRm()));
+      result =
+          internal::MultiplyHigh<64>(ReadRegister<uint64_t>(instr->GetRn()),
+                                     ReadRegister<uint64_t>(instr->GetRm()));
       break;
     case SMULH_x:
-      result = MultiplyHigh(ReadXRegister(instr->GetRn()),
-                            ReadXRegister(instr->GetRm()));
+      result = internal::MultiplyHigh<64>(ReadXRegister(instr->GetRn()),
+                                          ReadXRegister(instr->GetRm()));
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -3926,8 +4544,8 @@ void Simulator::VisitSystem(const Instruction* instr) {
             break;
           case RNDR:
           case RNDRRS: {
-            uint64_t high = jrand48(rndr_state_);
-            uint64_t low = jrand48(rndr_state_);
+            uint64_t high = jrand48(rand_state_);
+            uint64_t low = jrand48(rand_state_);
             uint64_t rand_num = (high << 32) | (low & 0xffffffff);
             WriteXRegister(instr->GetRt(), rand_num);
             // Simulate successful random number generation.
@@ -4508,10 +5126,10 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
         fminnm(vf, rd, rn, rm);
         break;
       case NEON_FMLA:
-        fmla(vf, rd, rn, rm);
+        fmla(vf, rd, rd, rn, rm);
         break;
       case NEON_FMLS:
-        fmls(vf, rd, rn, rm);
+        fmls(vf, rd, rd, rn, rm);
         break;
       case NEON_FMULX:
         fmulx(vf, rd, rn, rm);
@@ -4602,10 +5220,10 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
         cmptst(vf, rd, rn, rm);
         break;
       case NEON_MLS:
-        mls(vf, rd, rn, rm);
+        mls(vf, rd, rd, rn, rm);
         break;
       case NEON_MLA:
-        mla(vf, rd, rn, rm);
+        mla(vf, rd, rd, rn, rm);
         break;
       case NEON_MUL:
         mul(vf, rd, rn, rm);
@@ -4732,13 +5350,11 @@ void Simulator::VisitNEON3SameFP16(const Instruction* instr) {
     B(vf, rd, rn, rm); \
     break;
     SIM_FUNC(FMAXNM, fmaxnm);
-    SIM_FUNC(FMLA, fmla);
     SIM_FUNC(FADD, fadd);
     SIM_FUNC(FMULX, fmulx);
     SIM_FUNC(FMAX, fmax);
     SIM_FUNC(FRECPS, frecps);
     SIM_FUNC(FMINNM, fminnm);
-    SIM_FUNC(FMLS, fmls);
     SIM_FUNC(FSUB, fsub);
     SIM_FUNC(FMIN, fmin);
     SIM_FUNC(FRSQRTS, frsqrts);
@@ -4751,6 +5367,12 @@ void Simulator::VisitNEON3SameFP16(const Instruction* instr) {
     SIM_FUNC(FABD, fabd);
     SIM_FUNC(FMINP, fminp);
 #undef SIM_FUNC
+    case NEON_FMLA_H:
+      fmla(vf, rd, rd, rn, rm);
+      break;
+    case NEON_FMLS_H:
+      fmls(vf, rd, rd, rn, rm);
+      break;
     case NEON_FCMEQ_H:
       fcmp(vf, rd, rn, rm, eq);
       break;
@@ -4781,7 +5403,7 @@ void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
   VectorFormat vf = nfd.GetVectorFormat();
   if (instr->Mask(NEON3SameExtraFCMLAMask) == NEON_FCMLA) {
     rot = instr->GetImmRotFcmlaVec();
-    fcmla(vf, rd, rn, rm, rot);
+    fcmla(vf, rd, rn, rm, rd, rot);
   } else if (instr->Mask(NEON3SameExtraFCADDMask) == NEON_FCADD) {
     rot = instr->GetImmRotFcadd();
     fcadd(vf, rd, rn, rm, rot);
@@ -5325,7 +5947,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     reg[i] = (instr->GetRt() + i) % kNumberOfVRegisters;
     addr[i] = addr_base + (i * reg_size);
   }
-  int count = 1;
+  int struct_parts = 1;
+  int reg_count = 1;
   bool log_read = true;
 
   // Bit 23 determines whether this is an offset or post-index addressing mode.
@@ -5341,17 +5964,17 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_LD1_4v:
     case NEON_LD1_4v_post:
       ld1(vf, ReadVRegister(reg[3]), addr[3]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_3v:
     case NEON_LD1_3v_post:
       ld1(vf, ReadVRegister(reg[2]), addr[2]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_2v:
     case NEON_LD1_2v_post:
       ld1(vf, ReadVRegister(reg[1]), addr[1]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_1v:
     case NEON_LD1_1v_post:
@@ -5360,17 +5983,17 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_ST1_4v:
     case NEON_ST1_4v_post:
       st1(vf, ReadVRegister(reg[3]), addr[3]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_3v:
     case NEON_ST1_3v_post:
       st1(vf, ReadVRegister(reg[2]), addr[2]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_2v:
     case NEON_ST1_2v_post:
       st1(vf, ReadVRegister(reg[1]), addr[1]);
-      count++;
+      reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_1v:
     case NEON_ST1_1v_post:
@@ -5380,12 +6003,14 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     case NEON_LD2_post:
     case NEON_LD2:
       ld2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
-      count = 2;
+      struct_parts = 2;
+      reg_count = 2;
       break;
     case NEON_ST2:
     case NEON_ST2_post:
       st2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
-      count = 2;
+      struct_parts = 2;
+      reg_count = 2;
       log_read = false;
       break;
     case NEON_LD3_post:
@@ -5395,7 +6020,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[1]),
           ReadVRegister(reg[2]),
           addr[0]);
-      count = 3;
+      struct_parts = 3;
+      reg_count = 3;
       break;
     case NEON_ST3:
     case NEON_ST3_post:
@@ -5404,7 +6030,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[1]),
           ReadVRegister(reg[2]),
           addr[0]);
-      count = 3;
+      struct_parts = 3;
+      reg_count = 3;
       log_read = false;
       break;
     case NEON_ST4:
@@ -5415,7 +6042,8 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[2]),
           ReadVRegister(reg[3]),
           addr[0]);
-      count = 4;
+      struct_parts = 4;
+      reg_count = 4;
       log_read = false;
       break;
     case NEON_LD4_post:
@@ -5426,22 +6054,31 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
           ReadVRegister(reg[2]),
           ReadVRegister(reg[3]),
           addr[0]);
-      count = 4;
+      struct_parts = 4;
+      reg_count = 4;
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
 
-  // Explicitly log the register update whilst we have type information.
-  for (int i = 0; i < count; i++) {
-    // For de-interleaving loads, only print the base address.
-    int lane_size = LaneSizeInBytesFromFormat(vf);
-    PrintRegisterFormat format = GetPrintRegisterFormatTryFP(
-        GetPrintRegisterFormatForSize(reg_size, lane_size));
+  bool do_trace = log_read ? ShouldTraceVRegs() : ShouldTraceWrites();
+  if (do_trace) {
+    PrintRegisterFormat print_format =
+        GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
+    const char* op;
     if (log_read) {
-      LogVRead(addr_base, reg[i], format);
+      op = "<-";
     } else {
-      LogVWrite(addr_base, reg[i], format);
+      op = "->";
+      // Stores don't represent a change to the source register's value, so only
+      // print the relevant part of the value.
+      print_format = GetPrintRegPartial(print_format);
+    }
+
+    VIXL_ASSERT((struct_parts == reg_count) || (struct_parts == 1));
+    for (int s = reg_count - struct_parts; s >= 0; s -= struct_parts) {
+      uintptr_t address = addr_base + (s * RegisterSizeInBytesFromFormat(vf));
+      PrintVStructAccess(reg[s], struct_parts, print_format, op, address);
     }
   }
 
@@ -5449,7 +6086,7 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
     int rm = instr->GetRm();
     // The immediate post index addressing mode is indicated by rm = 31.
     // The immediate is implied by the number of vector registers used.
-    addr_base += (rm == 31) ? RegisterSizeInBytesFromFormat(vf) * count
+    addr_base += (rm == 31) ? (RegisterSizeInBytesFromFormat(vf) * reg_count)
                             : ReadXRegister(rm);
     WriteXRegister(instr->GetRn(), addr_base);
   } else {
@@ -5484,6 +6121,8 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
   // We use the PostIndex mask here, as it works in this case for both Offset
   // and PostIndex addressing.
   bool do_load = false;
+
+  bool replicating = false;
 
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
   VectorFormat vf_t = nfd.GetVectorFormat();
@@ -5559,99 +6198,67 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
     }
 
     case NEON_LD1R:
-    case NEON_LD1R_post: {
-      vf = vf_t;
-      ld1r(vf, ReadVRegister(rt), addr);
-      do_load = true;
-      break;
-    }
-
+    case NEON_LD1R_post:
     case NEON_LD2R:
-    case NEON_LD2R_post: {
-      vf = vf_t;
-      int rt2 = (rt + 1) % kNumberOfVRegisters;
-      ld2r(vf, ReadVRegister(rt), ReadVRegister(rt2), addr);
-      do_load = true;
-      break;
-    }
-
+    case NEON_LD2R_post:
     case NEON_LD3R:
-    case NEON_LD3R_post: {
-      vf = vf_t;
-      int rt2 = (rt + 1) % kNumberOfVRegisters;
-      int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-      ld3r(vf, ReadVRegister(rt), ReadVRegister(rt2), ReadVRegister(rt3), addr);
-      do_load = true;
-      break;
-    }
-
+    case NEON_LD3R_post:
     case NEON_LD4R:
-    case NEON_LD4R_post: {
+    case NEON_LD4R_post:
       vf = vf_t;
-      int rt2 = (rt + 1) % kNumberOfVRegisters;
-      int rt3 = (rt2 + 1) % kNumberOfVRegisters;
-      int rt4 = (rt3 + 1) % kNumberOfVRegisters;
-      ld4r(vf,
-           ReadVRegister(rt),
-           ReadVRegister(rt2),
-           ReadVRegister(rt3),
-           ReadVRegister(rt4),
-           addr);
       do_load = true;
+      replicating = true;
       break;
-    }
+
     default:
       VIXL_UNIMPLEMENTED();
   }
 
-  PrintRegisterFormat print_format =
-      GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
-  // Make sure that the print_format only includes a single lane.
-  print_format =
-      static_cast<PrintRegisterFormat>(print_format & ~kPrintRegAsVectorMask);
-
-  int esize = LaneSizeInBytesFromFormat(vf);
   int index_shift = LaneSizeInBytesLog2FromFormat(vf);
   int lane = instr->GetNEONLSIndex(index_shift);
-  int scale = 0;
+  int reg_count = 0;
   int rt2 = (rt + 1) % kNumberOfVRegisters;
   int rt3 = (rt2 + 1) % kNumberOfVRegisters;
   int rt4 = (rt3 + 1) % kNumberOfVRegisters;
   switch (instr->Mask(NEONLoadStoreSingleLenMask)) {
     case NEONLoadStoreSingle1:
-      scale = 1;
-      if (do_load) {
+      reg_count = 1;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld1r(vf, ReadVRegister(rt), addr);
+      } else if (do_load) {
         ld1(vf, ReadVRegister(rt), lane, addr);
-        LogVRead(addr, rt, print_format, lane);
       } else {
         st1(vf, ReadVRegister(rt), lane, addr);
-        LogVWrite(addr, rt, print_format, lane);
       }
       break;
     case NEONLoadStoreSingle2:
-      scale = 2;
-      if (do_load) {
+      reg_count = 2;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld2r(vf, ReadVRegister(rt), ReadVRegister(rt2), addr);
+      } else if (do_load) {
         ld2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
-        LogVRead(addr, rt, print_format, lane);
-        LogVRead(addr + esize, rt2, print_format, lane);
       } else {
         st2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
-        LogVWrite(addr, rt, print_format, lane);
-        LogVWrite(addr + esize, rt2, print_format, lane);
       }
       break;
     case NEONLoadStoreSingle3:
-      scale = 3;
-      if (do_load) {
+      reg_count = 3;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld3r(vf,
+             ReadVRegister(rt),
+             ReadVRegister(rt2),
+             ReadVRegister(rt3),
+             addr);
+      } else if (do_load) {
         ld3(vf,
             ReadVRegister(rt),
             ReadVRegister(rt2),
             ReadVRegister(rt3),
             lane,
             addr);
-        LogVRead(addr, rt, print_format, lane);
-        LogVRead(addr + esize, rt2, print_format, lane);
-        LogVRead(addr + (2 * esize), rt3, print_format, lane);
       } else {
         st3(vf,
             ReadVRegister(rt),
@@ -5659,14 +6266,19 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ReadVRegister(rt3),
             lane,
             addr);
-        LogVWrite(addr, rt, print_format, lane);
-        LogVWrite(addr + esize, rt2, print_format, lane);
-        LogVWrite(addr + (2 * esize), rt3, print_format, lane);
       }
       break;
     case NEONLoadStoreSingle4:
-      scale = 4;
-      if (do_load) {
+      reg_count = 4;
+      if (replicating) {
+        VIXL_ASSERT(do_load);
+        ld4r(vf,
+             ReadVRegister(rt),
+             ReadVRegister(rt2),
+             ReadVRegister(rt3),
+             ReadVRegister(rt4),
+             addr);
+      } else if (do_load) {
         ld4(vf,
             ReadVRegister(rt),
             ReadVRegister(rt2),
@@ -5674,10 +6286,6 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ReadVRegister(rt4),
             lane,
             addr);
-        LogVRead(addr, rt, print_format, lane);
-        LogVRead(addr + esize, rt2, print_format, lane);
-        LogVRead(addr + (2 * esize), rt3, print_format, lane);
-        LogVRead(addr + (3 * esize), rt4, print_format, lane);
       } else {
         st4(vf,
             ReadVRegister(rt),
@@ -5686,22 +6294,38 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
             ReadVRegister(rt4),
             lane,
             addr);
-        LogVWrite(addr, rt, print_format, lane);
-        LogVWrite(addr + esize, rt2, print_format, lane);
-        LogVWrite(addr + (2 * esize), rt3, print_format, lane);
-        LogVWrite(addr + (3 * esize), rt4, print_format, lane);
       }
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
 
+  // Trace registers and/or memory writes.
+  PrintRegisterFormat print_format =
+      GetPrintRegisterFormatTryFP(GetPrintRegisterFormat(vf));
+  if (do_load) {
+    if (ShouldTraceVRegs()) {
+      if (replicating) {
+        PrintVReplicatingStructAccess(rt, reg_count, print_format, "<-", addr);
+      } else {
+        PrintVSingleStructAccess(rt, reg_count, lane, print_format, "<-", addr);
+      }
+    }
+  } else {
+    if (ShouldTraceWrites()) {
+      // Stores don't represent a change to the source register's value, so only
+      // print the relevant part of the value.
+      print_format = GetPrintRegPartial(print_format);
+      PrintVSingleStructAccess(rt, reg_count, lane, print_format, "->", addr);
+    }
+  }
+
   if (addr_mode == PostIndex) {
     int rm = instr->GetRm();
     int lane_size = LaneSizeInBytesFromFormat(vf);
     WriteXRegister(instr->GetRn(),
-                   addr +
-                       ((rm == 31) ? (scale * lane_size) : ReadXRegister(rm)));
+                   addr + ((rm == 31) ? (reg_count * lane_size)
+                                      : ReadXRegister(rm)));
   }
 }
 
@@ -6399,10 +7023,10 @@ void Simulator::VisitNEONScalarShiftImmediate(const Instruction* instr) {
   NEONFormatDecoder nfd(instr, &map);
   VectorFormat vf = nfd.GetVectorFormat();
 
-  int highestSetBit = HighestSetBitPosition(instr->GetImmNEONImmh());
-  int immhimmb = instr->GetImmNEONImmhImmb();
-  int right_shift = (16 << highestSetBit) - immhimmb;
-  int left_shift = immhimmb - (8 << highestSetBit);
+  int highest_set_bit = HighestSetBitPosition(instr->GetImmNEONImmh());
+  int immh_immb = instr->GetImmNEONImmhImmb();
+  int right_shift = (16 << highest_set_bit) - immh_immb;
+  int left_shift = immh_immb - (8 << highest_set_bit);
   switch (instr->Mask(NEONScalarShiftImmediateMask)) {
     case NEON_SHL_scalar:
       shl(vf, rd, rn, left_shift);
@@ -6507,10 +7131,10 @@ void Simulator::VisitNEONShiftImmediate(const Instruction* instr) {
        {NF_UNDEF, NF_8H, NF_4S, NF_4S, NF_2D, NF_2D, NF_2D, NF_2D}};
   VectorFormat vf_l = nfd.GetVectorFormat(&map_l);
 
-  int highestSetBit = HighestSetBitPosition(instr->GetImmNEONImmh());
-  int immhimmb = instr->GetImmNEONImmhImmb();
-  int right_shift = (16 << highestSetBit) - immhimmb;
-  int left_shift = immhimmb - (8 << highestSetBit);
+  int highest_set_bit = HighestSetBitPosition(instr->GetImmNEONImmh());
+  int immh_immb = instr->GetImmNEONImmhImmb();
+  int right_shift = (16 << highest_set_bit) - immh_immb;
+  int left_shift = immh_immb - (8 << highest_set_bit);
 
   switch (instr->Mask(NEONShiftImmediateMask)) {
     case NEON_SHL:
@@ -6719,6 +7343,4346 @@ void Simulator::VisitNEONPerm(const Instruction* instr) {
   }
 }
 
+void Simulator::VisitSVEAddressGeneration(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimVRegister temp;
+
+  VectorFormat vform = kFormatVnD;
+  mov(vform, temp, zm);
+
+  switch (instr->Mask(SVEAddressGenerationMask)) {
+    case ADR_z_az_d_s32_scaled:
+      sxt(vform, temp, temp, kSRegSize);
+      break;
+    case ADR_z_az_d_u32_scaled:
+      uxt(vform, temp, temp, kSRegSize);
+      break;
+    case ADR_z_az_s_same_scaled:
+      vform = kFormatVnS;
+      break;
+    case ADR_z_az_d_same_scaled:
+      // Nothing to do.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  int shift_amount = instr->ExtractBits(11, 10);
+  shl(vform, temp, temp, shift_amount);
+  add(vform, zd, zn, temp);
+}
+
+void Simulator::VisitSVEBitwiseLogicalWithImm_Unpredicated(
+    const Instruction* instr) {
+  Instr op = instr->Mask(SVEBitwiseLogicalWithImm_UnpredicatedMask);
+  switch (op) {
+    case AND_z_zi:
+    case EOR_z_zi:
+    case ORR_z_zi: {
+      int lane_size = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+      uint64_t imm = instr->GetSVEImmLogical();
+      // Valid immediate is a non-zero bits
+      VIXL_ASSERT(imm != 0);
+      SVEBitwiseImmHelper(static_cast<SVEBitwiseLogicalWithImm_UnpredicatedOp>(
+                              op),
+                          SVEFormatFromLaneSizeInBytesLog2(lane_size),
+                          ReadVRegister(instr->GetRd()),
+                          imm);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastBitmaskImm(const Instruction* instr) {
+  switch (instr->Mask(SVEBroadcastBitmaskImmMask)) {
+    case DUPM_z_i: {
+      /* DUPM uses the same lane size and immediate encoding as bitwise logical
+       * immediate instructions. */
+      int lane_size = instr->GetSVEBitwiseImmLaneSizeInBytesLog2();
+      uint64_t imm = instr->GetSVEImmLogical();
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+      dup_immediate(vform, ReadVRegister(instr->GetRd()), imm);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  Instr op = instr->Mask(SVEBitwiseLogicalUnpredicatedMask);
+
+  LogicalOp logical_op;
+  switch (op) {
+    case AND_z_zz:
+      logical_op = AND;
+      break;
+    case BIC_z_zz:
+      logical_op = BIC;
+      break;
+    case EOR_z_zz:
+      logical_op = EOR;
+      break;
+    case ORR_z_zz:
+      logical_op = ORR;
+      break;
+    default:
+      logical_op = LogicalOpMask;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  // Lane size of registers is irrelevant to the bitwise operations, so perform
+  // the operation on D-sized lanes.
+  SVEBitwiseLogicalUnpredicatedHelper(logical_op, kFormatVnD, zd, zn, zm);
+}
+
+void Simulator::VisitSVEBitwiseShiftByImm_Predicated(const Instruction* instr) {
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister scratch;
+  SimVRegister result;
+
+  bool for_division = false;
+  Shift shift_op = NO_SHIFT;
+  switch (instr->Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
+    case ASRD_z_p_zi:
+      shift_op = ASR;
+      for_division = true;
+      break;
+    case ASR_z_p_zi:
+      shift_op = ASR;
+      break;
+    case LSL_z_p_zi:
+      shift_op = LSL;
+      break;
+    case LSR_z_p_zi:
+      shift_op = LSR;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ true);
+  unsigned lane_size = shift_and_lane_size.second;
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int shift_dist = shift_and_lane_size.first;
+
+  if ((shift_op == ASR) && for_division) {
+    asrd(vform, result, zdn, shift_dist);
+  } else {
+    if (shift_op == LSL) {
+      // Shift distance is computed differently for LSL. Convert the result.
+      shift_dist = (8 << lane_size) - shift_dist;
+    }
+    dup_immediate(vform, scratch, shift_dist);
+    SVEBitwiseShiftHelper(shift_op, vform, result, zdn, scratch, false);
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEBitwiseShiftByVector_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister result;
+  SimVRegister shiftand;  // Vector to be shifted.
+  SimVRegister shiftor;   // Vector shift amount.
+
+  Shift shift_op = ASR;
+  mov(vform, shiftand, zdn);
+  mov(vform, shiftor, zm);
+
+  switch (instr->Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
+    case ASRR_z_p_zz:
+      mov(vform, shiftand, zm);
+      mov(vform, shiftor, zdn);
+      VIXL_FALLTHROUGH();
+    case ASR_z_p_zz:
+      break;
+    case LSLR_z_p_zz:
+      mov(vform, shiftand, zm);
+      mov(vform, shiftor, zdn);
+      VIXL_FALLTHROUGH();
+    case LSL_z_p_zz:
+      shift_op = LSL;
+      break;
+    case LSRR_z_p_zz:
+      mov(vform, shiftand, zm);
+      mov(vform, shiftor, zdn);
+      VIXL_FALLTHROUGH();
+    case LSR_z_p_zz:
+      shift_op = LSR;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  SVEBitwiseShiftHelper(shift_op,
+                        vform,
+                        result,
+                        shiftand,
+                        shiftor,
+                        /* is_wide_elements = */ false);
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEBitwiseShiftByWideElements_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister result;
+  Shift shift_op = ASR;
+
+  switch (instr->Mask(SVEBitwiseShiftByWideElements_PredicatedMask)) {
+    case ASR_z_p_zw:
+      break;
+    case LSL_z_p_zw:
+      shift_op = LSL;
+      break;
+    case LSR_z_p_zw:
+      shift_op = LSR;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  SVEBitwiseShiftHelper(shift_op,
+                        vform,
+                        result,
+                        zdn,
+                        zm,
+                        /* is_wide_elements = */ true);
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  Shift shift_op;
+  switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
+    case ASR_z_zi:
+    case ASR_z_zw:
+      shift_op = ASR;
+      break;
+    case LSL_z_zi:
+    case LSL_z_zw:
+      shift_op = LSL;
+      break;
+    case LSR_z_zi:
+    case LSR_z_zw:
+      shift_op = LSR;
+      break;
+    default:
+      shift_op = NO_SHIFT;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
+    case ASR_z_zi:
+    case LSL_z_zi:
+    case LSR_z_zi: {
+      SimVRegister scratch;
+      std::pair<int, int> shift_and_lane_size =
+          instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+      unsigned lane_size = shift_and_lane_size.second;
+      VIXL_ASSERT(lane_size <= kDRegSizeInBytesLog2);
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+      int shift_dist = shift_and_lane_size.first;
+      if (shift_op == LSL) {
+        // Shift distance is computed differently for LSL. Convert the result.
+        shift_dist = (8 << lane_size) - shift_dist;
+      }
+      dup_immediate(vform, scratch, shift_dist);
+      SVEBitwiseShiftHelper(shift_op, vform, zd, zn, scratch, false);
+      break;
+    }
+    case ASR_z_zw:
+    case LSL_z_zw:
+    case LSR_z_zw:
+      SVEBitwiseShiftHelper(shift_op,
+                            instr->GetSVEVectorFormat(),
+                            zd,
+                            zn,
+                            ReadVRegister(instr->GetRm()),
+                            true);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIncDecRegisterByElementCount(const Instruction* instr) {
+  // Although the instructions have a separate encoding class, the lane size is
+  // encoded in the same way as most other SVE instructions.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
+  switch (instr->Mask(SVEIncDecRegisterByElementCountMask)) {
+    case DECB_r_rs:
+    case DECD_r_rs:
+    case DECH_r_rs:
+    case DECW_r_rs:
+      count = -count;
+      break;
+    case INCB_r_rs:
+    case INCD_r_rs:
+    case INCH_r_rs:
+    case INCW_r_rs:
+      // Nothing to do.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      return;
+  }
+
+  WriteXRegister(instr->GetRd(),
+                 IncDecN(ReadXRegister(instr->GetRd()),
+                         count * multiplier,
+                         kXRegSize));
+}
+
+void Simulator::VisitSVEIncDecVectorByElementCount(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
+  switch (instr->Mask(SVEIncDecVectorByElementCountMask)) {
+    case DECD_z_zs:
+    case DECH_z_zs:
+    case DECW_z_zs:
+      count = -count;
+      break;
+    case INCD_z_zs:
+    case INCH_z_zs:
+    case INCW_z_zs:
+      // Nothing to do.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+  dup_immediate(vform,
+                scratch,
+                IncDecN(0,
+                        count * multiplier,
+                        LaneSizeInBitsFromFormat(vform)));
+  add(vform, zd, zd, scratch);
+}
+
+void Simulator::VisitSVESaturatingIncDecRegisterByElementCount(
+    const Instruction* instr) {
+  // Although the instructions have a separate encoding class, the lane size is
+  // encoded in the same way as most other SVE instructions.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
+  unsigned width = kXRegSize;
+  bool is_signed = false;
+
+  switch (instr->Mask(SVESaturatingIncDecRegisterByElementCountMask)) {
+    case SQDECB_r_rs_sx:
+    case SQDECD_r_rs_sx:
+    case SQDECH_r_rs_sx:
+    case SQDECW_r_rs_sx:
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case SQDECB_r_rs_x:
+    case SQDECD_r_rs_x:
+    case SQDECH_r_rs_x:
+    case SQDECW_r_rs_x:
+      is_signed = true;
+      count = -count;
+      break;
+    case SQINCB_r_rs_sx:
+    case SQINCD_r_rs_sx:
+    case SQINCH_r_rs_sx:
+    case SQINCW_r_rs_sx:
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case SQINCB_r_rs_x:
+    case SQINCD_r_rs_x:
+    case SQINCH_r_rs_x:
+    case SQINCW_r_rs_x:
+      is_signed = true;
+      break;
+    case UQDECB_r_rs_uw:
+    case UQDECD_r_rs_uw:
+    case UQDECH_r_rs_uw:
+    case UQDECW_r_rs_uw:
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case UQDECB_r_rs_x:
+    case UQDECD_r_rs_x:
+    case UQDECH_r_rs_x:
+    case UQDECW_r_rs_x:
+      count = -count;
+      break;
+    case UQINCB_r_rs_uw:
+    case UQINCD_r_rs_uw:
+    case UQINCH_r_rs_uw:
+    case UQINCW_r_rs_uw:
+      width = kWRegSize;
+      VIXL_FALLTHROUGH();
+    case UQINCB_r_rs_x:
+    case UQINCD_r_rs_x:
+    case UQINCH_r_rs_x:
+    case UQINCW_r_rs_x:
+      // Nothing to do.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  WriteXRegister(instr->GetRd(),
+                 IncDecN(ReadXRegister(instr->GetRd()),
+                         count * multiplier,
+                         width,
+                         true,
+                         is_signed));
+}
+
+void Simulator::VisitSVESaturatingIncDecVectorByElementCount(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+  dup_immediate(vform,
+                scratch,
+                IncDecN(0,
+                        count * multiplier,
+                        LaneSizeInBitsFromFormat(vform)));
+
+  switch (instr->Mask(SVESaturatingIncDecVectorByElementCountMask)) {
+    case SQDECD_z_zs:
+    case SQDECH_z_zs:
+    case SQDECW_z_zs:
+      sub(vform, zd, zd, scratch).SignedSaturate(vform);
+      break;
+    case SQINCD_z_zs:
+    case SQINCH_z_zs:
+    case SQINCW_z_zs:
+      add(vform, zd, zd, scratch).SignedSaturate(vform);
+      break;
+    case UQDECD_z_zs:
+    case UQDECH_z_zs:
+    case UQDECW_z_zs:
+      sub(vform, zd, zd, scratch).UnsignedSaturate(vform);
+      break;
+    case UQINCD_z_zs:
+    case UQINCH_z_zs:
+    case UQINCW_z_zs:
+      add(vform, zd, zd, scratch).UnsignedSaturate(vform);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEElementCount(const Instruction* instr) {
+  switch (instr->Mask(SVEElementCountMask)) {
+    case CNTB_r_s:
+    case CNTD_r_s:
+    case CNTH_r_s:
+    case CNTW_r_s:
+      // All handled below.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  // Although the instructions are separated, the lane size is encoded in the
+  // same way as most other SVE instructions.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  int pattern = instr->GetImmSVEPredicateConstraint();
+  int count = GetPredicateConstraintLaneCount(vform, pattern);
+  int multiplier = instr->ExtractBits(19, 16) + 1;
+  WriteXRegister(instr->GetRd(), count * multiplier);
+}
+
+void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
+    case FADDA_v_p_z:
+      fadda(vform, vdn, pg, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  SimVRegister result;
+
+  switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
+    case FABD_z_p_zz:
+      fabd(vform, result, zdn, zm);
+      break;
+    case FADD_z_p_zz:
+      fadd(vform, result, zdn, zm);
+      break;
+    case FDIVR_z_p_zz:
+      fdiv(vform, result, zm, zdn);
+      break;
+    case FDIV_z_p_zz:
+      fdiv(vform, result, zdn, zm);
+      break;
+    case FMAXNM_z_p_zz:
+      fmaxnm(vform, result, zdn, zm);
+      break;
+    case FMAX_z_p_zz:
+      fmax(vform, result, zdn, zm);
+      break;
+    case FMINNM_z_p_zz:
+      fminnm(vform, result, zdn, zm);
+      break;
+    case FMIN_z_p_zz:
+      fmin(vform, result, zdn, zm);
+      break;
+    case FMULX_z_p_zz:
+      fmulx(vform, result, zdn, zm);
+      break;
+    case FMUL_z_p_zz:
+      fmul(vform, result, zdn, zm);
+      break;
+    case FSCALE_z_p_zz:
+      fscale(vform, result, zdn, zm);
+      break;
+    case FSUBR_z_p_zz:
+      fsub(vform, result, zm, zdn);
+      break;
+    case FSUB_z_p_zz:
+      fsub(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEFPArithmeticWithImm_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  int i1 = instr->ExtractBit(5);
+  SimVRegister add_sub_imm, min_max_imm, mul_imm;
+  uint64_t half = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform), 0.5);
+  uint64_t one = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform), 1.0);
+  uint64_t two = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform), 2.0);
+  dup_immediate(vform, add_sub_imm, i1 ? one : half);
+  dup_immediate(vform, min_max_imm, i1 ? one : 0);
+  dup_immediate(vform, mul_imm, i1 ? two : half);
+
+  switch (instr->Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
+    case FADD_z_p_zs:
+      fadd(vform, result, zdn, add_sub_imm);
+      break;
+    case FMAXNM_z_p_zs:
+      fmaxnm(vform, result, zdn, min_max_imm);
+      break;
+    case FMAX_z_p_zs:
+      fmax(vform, result, zdn, min_max_imm);
+      break;
+    case FMINNM_z_p_zs:
+      fminnm(vform, result, zdn, min_max_imm);
+      break;
+    case FMIN_z_p_zs:
+      fmin(vform, result, zdn, min_max_imm);
+      break;
+    case FMUL_z_p_zs:
+      fmul(vform, result, zdn, mul_imm);
+      break;
+    case FSUBR_z_p_zs:
+      fsub(vform, result, add_sub_imm, zdn);
+      break;
+    case FSUB_z_p_zs:
+      fsub(vform, result, zdn, add_sub_imm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+
+  switch (instr->Mask(SVEFPTrigMulAddCoefficientMask)) {
+    case FTMAD_z_zzi:
+      ftmad(vform, zd, zd, zm, instr->ExtractBits(18, 16));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
+    case FADD_z_zz:
+      fadd(vform, zd, zn, zm);
+      break;
+    case FMUL_z_zz:
+      fmul(vform, zd, zn, zm);
+      break;
+    case FRECPS_z_zz:
+      frecps(vform, zd, zn, zm);
+      break;
+    case FRSQRTS_z_zz:
+      frsqrts(vform, zd, zn, zm);
+      break;
+    case FSUB_z_zz:
+      fsub(vform, zd, zn, zm);
+      break;
+    case FTSMUL_z_zz:
+      ftsmul(vform, zd, zn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPCompareVectors(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister result;
+
+  switch (instr->Mask(SVEFPCompareVectorsMask)) {
+    case FACGE_p_p_zz:
+      fabscmp(vform, result, zn, zm, ge);
+      break;
+    case FACGT_p_p_zz:
+      fabscmp(vform, result, zn, zm, gt);
+      break;
+    case FCMEQ_p_p_zz:
+      fcmp(vform, result, zn, zm, eq);
+      break;
+    case FCMGE_p_p_zz:
+      fcmp(vform, result, zn, zm, ge);
+      break;
+    case FCMGT_p_p_zz:
+      fcmp(vform, result, zn, zm, gt);
+      break;
+    case FCMNE_p_p_zz:
+      fcmp(vform, result, zn, zm, ne);
+      break;
+    case FCMUO_p_p_zz:
+      fcmp(vform, result, zn, zm, uo);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  ExtractFromSimVRegister(vform, pd, result);
+  mov_zeroing(pd, pg, pd);
+}
+
+void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister result;
+
+  SimVRegister zeros;
+  dup_immediate(kFormatVnD, zeros, 0);
+
+  switch (instr->Mask(SVEFPCompareWithZeroMask)) {
+    case FCMEQ_p_p_z0:
+      fcmp(vform, result, zn, zeros, eq);
+      break;
+    case FCMGE_p_p_z0:
+      fcmp(vform, result, zn, zeros, ge);
+      break;
+    case FCMGT_p_p_z0:
+      fcmp(vform, result, zn, zeros, gt);
+      break;
+    case FCMLE_p_p_z0:
+      fcmp(vform, result, zn, zeros, le);
+      break;
+    case FCMLT_p_p_z0:
+      fcmp(vform, result, zn, zeros, lt);
+      break;
+    case FCMNE_p_p_z0:
+      fcmp(vform, result, zn, zeros, ne);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  ExtractFromSimVRegister(vform, pd, result);
+  mov_zeroing(pd, pg, pd);
+}
+
+void Simulator::VisitSVEFPComplexAddition(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int rot = instr->ExtractBit(16);
+
+  SimVRegister result;
+
+  switch (instr->Mask(SVEFPComplexAdditionMask)) {
+    case FCADD_z_p_zz:
+      fcadd(vform, result, zdn, zm, rot);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEFPComplexMulAdd(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  if (LaneSizeInBitsFromFormat(vform) == kBRegSize) {
+    VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int rot = instr->ExtractBits(14, 13);
+
+  SimVRegister result;
+
+  switch (instr->Mask(SVEFPComplexMulAddMask)) {
+    case FCMLA_z_p_zzz:
+      fcmla(vform, result, zn, zm, zda, rot);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zda, pg, result);
+}
+
+void Simulator::VisitSVEFPComplexMulAddIndex(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  int rot = instr->ExtractBits(11, 10);
+  unsigned zm_code = instr->GetRm();
+  int index = -1;
+  VectorFormat vform, vform_dup;
+
+  switch (instr->Mask(SVEFPComplexMulAddIndexMask)) {
+    case FCMLA_z_zzzi_h:
+      vform = kFormatVnH;
+      vform_dup = kFormatVnS;
+      index = zm_code >> 3;
+      zm_code &= 0x7;
+      break;
+    case FCMLA_z_zzzi_s:
+      vform = kFormatVnS;
+      vform_dup = kFormatVnD;
+      index = zm_code >> 4;
+      zm_code &= 0xf;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (index >= 0) {
+    SimVRegister temp;
+    dup_elements_to_segments(vform_dup, temp, ReadVRegister(zm_code), index);
+    fcmla(vform, zda, zn, temp, zda, rot);
+  }
+}
+
+typedef LogicVRegister (Simulator::*FastReduceFn)(VectorFormat vform,
+                                                  LogicVRegister dst,
+                                                  const LogicVRegister& src);
+
+void Simulator::VisitSVEFPFastReduction(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+
+  uint64_t inactive_value = 0;
+  FastReduceFn fn = nullptr;
+
+  switch (instr->Mask(SVEFPFastReductionMask)) {
+    case FADDV_v_p_z:
+      fn = &Simulator::faddv;
+      break;
+    case FMAXNMV_v_p_z:
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64DefaultNaN);
+      fn = &Simulator::fmaxnmv;
+      break;
+    case FMAXV_v_p_z:
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64NegativeInfinity);
+      fn = &Simulator::fmaxv;
+      break;
+    case FMINNMV_v_p_z:
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64DefaultNaN);
+      fn = &Simulator::fminnmv;
+      break;
+    case FMINV_v_p_z:
+      inactive_value = FPToRawbitsWithSize(lane_size, kFP64PositiveInfinity);
+      fn = &Simulator::fminv;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SimVRegister scratch;
+  dup_immediate(vform, scratch, inactive_value);
+  mov_merging(vform, scratch, pg, zn);
+  if (fn != nullptr) (this->*fn)(vform, vd, scratch);
+}
+
+void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
+  VectorFormat vform = kFormatUndefined;
+  unsigned zm_code = instr->GetRm() & 0xf;
+  unsigned index = instr->ExtractBits(20, 19);
+
+  switch (instr->Mask(SVEFPMulIndexMask)) {
+    case FMUL_z_zzi_d:
+      vform = kFormatVnD;
+      index >>= 1;  // Only bit 20 is the index for D lanes.
+      break;
+    case FMUL_z_zzi_h_i3h:
+      index += 4;  // Bit 22 (i3h) is the top bit of index.
+      VIXL_FALLTHROUGH();
+    case FMUL_z_zzi_h:
+      vform = kFormatVnH;
+      zm_code &= 7;  // Three bits used for zm.
+      break;
+    case FMUL_z_zzi_s:
+      vform = kFormatVnS;
+      zm_code &= 7;  // Three bits used for zm.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister temp;
+
+  dup_element(vform, temp, ReadVRegister(zm_code), index);
+  fmul(vform, zd, zn, temp);
+}
+
+void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  if (instr->ExtractBit(15) == 0) {
+    // Floating-point multiply-accumulate writing addend.
+    SimVRegister& zm = ReadVRegister(instr->GetRm());
+    SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+    switch (instr->Mask(SVEFPMulAddMask)) {
+      // zda = zda + zn * zm
+      case FMLA_z_p_zzz:
+        fmla(vform, result, zd, zn, zm);
+        break;
+      // zda = -zda + -zn * zm
+      case FNMLA_z_p_zzz:
+        fneg(vform, result, zd);
+        fmls(vform, result, result, zn, zm);
+        break;
+      // zda = zda + -zn * zm
+      case FMLS_z_p_zzz:
+        fmls(vform, result, zd, zn, zm);
+        break;
+      // zda = -zda + zn * zm
+      case FNMLS_z_p_zzz:
+        fneg(vform, result, zd);
+        fmla(vform, result, result, zn, zm);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    // Floating-point multiply-accumulate writing multiplicand.
+    SimVRegister& za = ReadVRegister(instr->GetRm());
+    SimVRegister& zm = ReadVRegister(instr->GetRn());
+
+    switch (instr->Mask(SVEFPMulAddMask)) {
+      // zdn = za + zdn * zm
+      case FMAD_z_p_zzz:
+        fmla(vform, result, za, zd, zm);
+        break;
+      // zdn = -za + -zdn * zm
+      case FNMAD_z_p_zzz:
+        fneg(vform, result, za);
+        fmls(vform, result, result, zd, zm);
+        break;
+      // zdn = za + -zdn * zm
+      case FMSB_z_p_zzz:
+        fmls(vform, result, za, zd, zm);
+        break;
+      // zdn = -za + zdn * zm
+      case FNMSB_z_p_zzz:
+        fneg(vform, result, za);
+        fmla(vform, result, result, zd, zm);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+
+  mov_merging(vform, zd, pg, result);
+}
+
+void Simulator::VisitSVEFPMulAddIndex(const Instruction* instr) {
+  VectorFormat vform = kFormatUndefined;
+  unsigned zm_code = 0xffffffff;
+  unsigned index = 0xffffffff;
+
+  switch (instr->Mask(SVEFPMulAddIndexMask)) {
+    case FMLA_z_zzzi_d:
+    case FMLS_z_zzzi_d:
+      vform = kFormatVnD;
+      zm_code = instr->GetRmLow16();
+      // Only bit 20 is the index for D lanes.
+      index = instr->ExtractBit(20);
+      break;
+    case FMLA_z_zzzi_s:
+    case FMLS_z_zzzi_s:
+      vform = kFormatVnS;
+      zm_code = instr->GetRm() & 0x7;  // Three bits used for zm.
+      index = instr->ExtractBits(20, 19);
+      break;
+    case FMLA_z_zzzi_h:
+    case FMLS_z_zzzi_h:
+    case FMLA_z_zzzi_h_i3h:
+    case FMLS_z_zzzi_h_i3h:
+      vform = kFormatVnH;
+      zm_code = instr->GetRm() & 0x7;  // Three bits used for zm.
+      index = (instr->ExtractBit(22) << 2) | instr->ExtractBits(20, 19);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister temp;
+
+  dup_elements_to_segments(vform, temp, ReadVRegister(zm_code), index);
+  if (instr->ExtractBit(10) == 1) {
+    fmls(vform, zd, zd, zn, temp);
+  } else {
+    fmla(vform, zd, zd, zn, temp);
+  }
+}
+
+void Simulator::VisitSVEFPConvertToInt(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int dst_data_size;
+  int src_data_size;
+
+  switch (instr->Mask(SVEFPConvertToIntMask)) {
+    case FCVTZS_z_p_z_d2w:
+    case FCVTZU_z_p_z_d2w:
+      dst_data_size = kSRegSize;
+      src_data_size = kDRegSize;
+      break;
+    case FCVTZS_z_p_z_d2x:
+    case FCVTZU_z_p_z_d2x:
+      dst_data_size = kDRegSize;
+      src_data_size = kDRegSize;
+      break;
+    case FCVTZS_z_p_z_fp162h:
+    case FCVTZU_z_p_z_fp162h:
+      dst_data_size = kHRegSize;
+      src_data_size = kHRegSize;
+      break;
+    case FCVTZS_z_p_z_fp162w:
+    case FCVTZU_z_p_z_fp162w:
+      dst_data_size = kSRegSize;
+      src_data_size = kHRegSize;
+      break;
+    case FCVTZS_z_p_z_fp162x:
+    case FCVTZU_z_p_z_fp162x:
+      dst_data_size = kDRegSize;
+      src_data_size = kHRegSize;
+      break;
+    case FCVTZS_z_p_z_s2w:
+    case FCVTZU_z_p_z_s2w:
+      dst_data_size = kSRegSize;
+      src_data_size = kSRegSize;
+      break;
+    case FCVTZS_z_p_z_s2x:
+    case FCVTZU_z_p_z_s2x:
+      dst_data_size = kDRegSize;
+      src_data_size = kSRegSize;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      dst_data_size = 0;
+      src_data_size = 0;
+      break;
+  }
+
+  VectorFormat vform =
+      SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
+
+  if (instr->ExtractBit(16) == 0) {
+    fcvts(vform, dst_data_size, src_data_size, zd, pg, zn, FPZero);
+  } else {
+    fcvtu(vform, dst_data_size, src_data_size, zd, pg, zn, FPZero);
+  }
+}
+
+void Simulator::VisitSVEFPConvertPrecision(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  int dst_data_size;
+  int src_data_size;
+
+  switch (instr->Mask(SVEFPConvertPrecisionMask)) {
+    case FCVT_z_p_z_d2h:
+      dst_data_size = kHRegSize;
+      src_data_size = kDRegSize;
+      break;
+    case FCVT_z_p_z_d2s:
+      dst_data_size = kSRegSize;
+      src_data_size = kDRegSize;
+      break;
+    case FCVT_z_p_z_h2d:
+      dst_data_size = kDRegSize;
+      src_data_size = kHRegSize;
+      break;
+    case FCVT_z_p_z_h2s:
+      dst_data_size = kSRegSize;
+      src_data_size = kHRegSize;
+      break;
+    case FCVT_z_p_z_s2d:
+      dst_data_size = kDRegSize;
+      src_data_size = kSRegSize;
+      break;
+    case FCVT_z_p_z_s2h:
+      dst_data_size = kHRegSize;
+      src_data_size = kSRegSize;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      dst_data_size = 0;
+      src_data_size = 0;
+      break;
+  }
+  VectorFormat vform =
+      SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
+
+  fcvt(vform, dst_data_size, src_data_size, zd, pg, zn);
+}
+
+void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister result;
+
+  switch (instr->Mask(SVEFPUnaryOpMask)) {
+    case FRECPX_z_p_z:
+      frecpx(vform, result, zn);
+      break;
+    case FSQRT_z_p_z:
+      fsqrt(vform, result, zn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zd, pg, result);
+}
+
+void Simulator::VisitSVEFPRoundToIntegralValue(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+  bool exact_exception = false;
+
+  switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
+    case FRINTA_z_p_z:
+      fpcr_rounding = FPTieAway;
+      break;
+    case FRINTI_z_p_z:
+      break;  // Use FPCR rounding mode.
+    case FRINTM_z_p_z:
+      fpcr_rounding = FPNegativeInfinity;
+      break;
+    case FRINTN_z_p_z:
+      fpcr_rounding = FPTieEven;
+      break;
+    case FRINTP_z_p_z:
+      fpcr_rounding = FPPositiveInfinity;
+      break;
+    case FRINTX_z_p_z:
+      exact_exception = true;
+      break;
+    case FRINTZ_z_p_z:
+      fpcr_rounding = FPZero;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SimVRegister result;
+  frint(vform, result, zn, fpcr_rounding, exact_exception, kFrintToInteger);
+  mov_merging(vform, zd, pg, result);
+}
+
+void Simulator::VisitSVEIntConvertToFP(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+  int dst_data_size;
+  int src_data_size;
+
+  switch (instr->Mask(SVEIntConvertToFPMask)) {
+    case SCVTF_z_p_z_h2fp16:
+    case UCVTF_z_p_z_h2fp16:
+      dst_data_size = kHRegSize;
+      src_data_size = kHRegSize;
+      break;
+    case SCVTF_z_p_z_w2d:
+    case UCVTF_z_p_z_w2d:
+      dst_data_size = kDRegSize;
+      src_data_size = kSRegSize;
+      break;
+    case SCVTF_z_p_z_w2fp16:
+    case UCVTF_z_p_z_w2fp16:
+      dst_data_size = kHRegSize;
+      src_data_size = kSRegSize;
+      break;
+    case SCVTF_z_p_z_w2s:
+    case UCVTF_z_p_z_w2s:
+      dst_data_size = kSRegSize;
+      src_data_size = kSRegSize;
+      break;
+    case SCVTF_z_p_z_x2d:
+    case UCVTF_z_p_z_x2d:
+      dst_data_size = kDRegSize;
+      src_data_size = kDRegSize;
+      break;
+    case SCVTF_z_p_z_x2fp16:
+    case UCVTF_z_p_z_x2fp16:
+      dst_data_size = kHRegSize;
+      src_data_size = kDRegSize;
+      break;
+    case SCVTF_z_p_z_x2s:
+    case UCVTF_z_p_z_x2s:
+      dst_data_size = kSRegSize;
+      src_data_size = kDRegSize;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      dst_data_size = 0;
+      src_data_size = 0;
+      break;
+  }
+
+  VectorFormat vform =
+      SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
+
+  if (instr->ExtractBit(16) == 0) {
+    scvtf(vform, dst_data_size, src_data_size, zd, pg, zn, fpcr_rounding);
+  } else {
+    ucvtf(vform, dst_data_size, src_data_size, zd, pg, zn, fpcr_rounding);
+  }
+}
+
+void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+
+  switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
+    case FRECPE_z_z:
+      frecpe(vform, zd, zn, fpcr_rounding);
+      break;
+    case FRSQRTE_z_z:
+      frsqrte(vform, zd, zn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIncDecByPredicateCount(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(8, 5));
+
+  int count = CountActiveLanes(vform, pg);
+
+  if (instr->ExtractBit(11) == 0) {
+    SimVRegister& zdn = ReadVRegister(instr->GetRd());
+    switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
+      case DECP_z_p_z:
+        sub_uint(vform, zdn, zdn, count);
+        break;
+      case INCP_z_p_z:
+        add_uint(vform, zdn, zdn, count);
+        break;
+      case SQDECP_z_p_z:
+        sub_uint(vform, zdn, zdn, count).SignedSaturate(vform);
+        break;
+      case SQINCP_z_p_z:
+        add_uint(vform, zdn, zdn, count).SignedSaturate(vform);
+        break;
+      case UQDECP_z_p_z:
+        sub_uint(vform, zdn, zdn, count).UnsignedSaturate(vform);
+        break;
+      case UQINCP_z_p_z:
+        add_uint(vform, zdn, zdn, count).UnsignedSaturate(vform);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    bool is_saturating = (instr->ExtractBit(18) == 0);
+    bool decrement =
+        is_saturating ? instr->ExtractBit(17) : instr->ExtractBit(16);
+    bool is_signed = (instr->ExtractBit(16) == 0);
+    bool sf = is_saturating ? (instr->ExtractBit(10) != 0) : true;
+    unsigned width = sf ? kXRegSize : kWRegSize;
+
+    switch (instr->Mask(SVEIncDecByPredicateCountMask)) {
+      case DECP_r_p_r:
+      case INCP_r_p_r:
+      case SQDECP_r_p_r_sx:
+      case SQDECP_r_p_r_x:
+      case SQINCP_r_p_r_sx:
+      case SQINCP_r_p_r_x:
+      case UQDECP_r_p_r_uw:
+      case UQDECP_r_p_r_x:
+      case UQINCP_r_p_r_uw:
+      case UQINCP_r_p_r_x:
+        WriteXRegister(instr->GetRd(),
+                       IncDecN(ReadXRegister(instr->GetRd()),
+                               decrement ? -count : count,
+                               width,
+                               is_saturating,
+                               is_signed));
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+}
+
+uint64_t Simulator::IncDecN(uint64_t acc,
+                            int64_t delta,
+                            unsigned n,
+                            bool is_saturating,
+                            bool is_signed) {
+  VIXL_ASSERT(n <= 64);
+  VIXL_ASSERT(IsIntN(n, delta));
+
+  uint64_t sign_mask = UINT64_C(1) << (n - 1);
+  uint64_t mask = GetUintMask(n);
+
+  acc &= mask;  // Ignore initial accumulator high bits.
+  uint64_t result = (acc + delta) & mask;
+
+  bool result_negative = ((result & sign_mask) != 0);
+
+  if (is_saturating) {
+    if (is_signed) {
+      bool acc_negative = ((acc & sign_mask) != 0);
+      bool delta_negative = delta < 0;
+
+      // If the signs of the operands are the same, but different from the
+      // result, there was an overflow.
+      if ((acc_negative == delta_negative) &&
+          (acc_negative != result_negative)) {
+        if (result_negative) {
+          // Saturate to [..., INT<n>_MAX].
+          result_negative = false;
+          result = mask & ~sign_mask;  // E.g. 0x000000007fffffff
+        } else {
+          // Saturate to [INT<n>_MIN, ...].
+          result_negative = true;
+          result = ~mask | sign_mask;  // E.g. 0xffffffff80000000
+        }
+      }
+    } else {
+      if ((delta < 0) && (result > acc)) {
+        // Saturate to [0, ...].
+        result = 0;
+      } else if ((delta > 0) && (result < acc)) {
+        // Saturate to [..., UINT<n>_MAX].
+        result = mask;
+      }
+    }
+  }
+
+  // Sign-extend if necessary.
+  if (result_negative && is_signed) result |= ~mask;
+
+  return result;
+}
+
+void Simulator::VisitSVEIndexGeneration(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVEIndexGenerationMask)) {
+    case INDEX_z_ii:
+    case INDEX_z_ir:
+    case INDEX_z_ri:
+    case INDEX_z_rr: {
+      uint64_t start = instr->ExtractBit(10) ? ReadXRegister(instr->GetRn())
+                                             : instr->ExtractSignedBits(9, 5);
+      uint64_t step = instr->ExtractBit(11) ? ReadXRegister(instr->GetRm())
+                                            : instr->ExtractSignedBits(20, 16);
+      index(vform, zd, start, step);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntArithmeticUnpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  switch (instr->Mask(SVEIntArithmeticUnpredicatedMask)) {
+    case ADD_z_zz:
+      add(vform, zd, zn, zm);
+      break;
+    case SQADD_z_zz:
+      add(vform, zd, zn, zm).SignedSaturate(vform);
+      break;
+    case SQSUB_z_zz:
+      sub(vform, zd, zn, zm).SignedSaturate(vform);
+      break;
+    case SUB_z_zz:
+      sub(vform, zd, zn, zm);
+      break;
+    case UQADD_z_zz:
+      add(vform, zd, zn, zm).UnsignedSaturate(vform);
+      break;
+    case UQSUB_z_zz:
+      sub(vform, zd, zn, zm).UnsignedSaturate(vform);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntAddSubtractVectors_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEIntAddSubtractVectors_PredicatedMask)) {
+    case ADD_z_p_zz:
+      add(vform, result, zdn, zm);
+      break;
+    case SUBR_z_p_zz:
+      sub(vform, result, zm, zdn);
+      break;
+    case SUB_z_p_zz:
+      sub(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEBitwiseLogical_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEBitwiseLogical_PredicatedMask)) {
+    case AND_z_p_zz:
+      SVEBitwiseLogicalUnpredicatedHelper(AND, vform, result, zdn, zm);
+      break;
+    case BIC_z_p_zz:
+      SVEBitwiseLogicalUnpredicatedHelper(BIC, vform, result, zdn, zm);
+      break;
+    case EOR_z_p_zz:
+      SVEBitwiseLogicalUnpredicatedHelper(EOR, vform, result, zdn, zm);
+      break;
+    case ORR_z_p_zz:
+      SVEBitwiseLogicalUnpredicatedHelper(ORR, vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMulVectors_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEIntMulVectors_PredicatedMask)) {
+    case MUL_z_p_zz:
+      mul(vform, result, zdn, zm);
+      break;
+    case SMULH_z_p_zz:
+      smulh(vform, result, zdn, zm);
+      break;
+    case UMULH_z_p_zz:
+      umulh(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMinMaxDifference_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (instr->Mask(SVEIntMinMaxDifference_PredicatedMask)) {
+    case SABD_z_p_zz:
+      absdiff(vform, result, zdn, zm, true);
+      break;
+    case SMAX_z_p_zz:
+      smax(vform, result, zdn, zm);
+      break;
+    case SMIN_z_p_zz:
+      smin(vform, result, zdn, zm);
+      break;
+    case UABD_z_p_zz:
+      absdiff(vform, result, zdn, zm, false);
+      break;
+    case UMAX_z_p_zz:
+      umax(vform, result, zdn, zm);
+      break;
+    case UMIN_z_p_zz:
+      umin(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMulImm_Unpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+
+  switch (instr->Mask(SVEIntMulImm_UnpredicatedMask)) {
+    case MUL_z_zi:
+      dup_immediate(vform, scratch, instr->GetImmSVEIntWideSigned());
+      mul(vform, zd, zd, scratch);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntDivideVectors_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  VIXL_ASSERT((vform == kFormatVnS) || (vform == kFormatVnD));
+
+  switch (instr->Mask(SVEIntDivideVectors_PredicatedMask)) {
+    case SDIVR_z_p_zz:
+      sdiv(vform, result, zm, zdn);
+      break;
+    case SDIV_z_p_zz:
+      sdiv(vform, result, zdn, zm);
+      break;
+    case UDIVR_z_p_zz:
+      udiv(vform, result, zm, zdn);
+      break;
+    case UDIV_z_p_zz:
+      udiv(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::VisitSVEIntMinMaxImm_Unpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+
+  uint64_t unsigned_imm = instr->GetImmSVEIntWideUnsigned();
+  int64_t signed_imm = instr->GetImmSVEIntWideSigned();
+
+  switch (instr->Mask(SVEIntMinMaxImm_UnpredicatedMask)) {
+    case SMAX_z_zi:
+      dup_immediate(vform, scratch, signed_imm);
+      smax(vform, zd, zd, scratch);
+      break;
+    case SMIN_z_zi:
+      dup_immediate(vform, scratch, signed_imm);
+      smin(vform, zd, zd, scratch);
+      break;
+    case UMAX_z_zi:
+      dup_immediate(vform, scratch, unsigned_imm);
+      umax(vform, zd, zd, scratch);
+      break;
+    case UMIN_z_zi:
+      dup_immediate(vform, scratch, unsigned_imm);
+      umin(vform, zd, zd, scratch);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntCompareScalarCountAndLimit(
+    const Instruction* instr) {
+  unsigned rn_code = instr->GetRn();
+  unsigned rm_code = instr->GetRm();
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  bool is_64_bit = instr->ExtractBit(12) == 1;
+  int64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
+  int64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+
+  bool last = true;
+  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    bool cond = false;
+    switch (instr->Mask(SVEIntCompareScalarCountAndLimitMask)) {
+      case WHILELE_p_p_rr:
+        cond = src1 <= src2;
+        break;
+      case WHILELO_p_p_rr:
+        cond = static_cast<uint64_t>(src1) < static_cast<uint64_t>(src2);
+        break;
+      case WHILELS_p_p_rr:
+        cond = static_cast<uint64_t>(src1) <= static_cast<uint64_t>(src2);
+        break;
+      case WHILELT_p_p_rr:
+        cond = src1 < src2;
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+    last = last && cond;
+    LogicPRegister dst(pd);
+    dst.SetActive(vform, lane, last);
+    src1 += 1;
+  }
+
+  PredTest(vform, GetPTrue(), pd);
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::VisitSVEConditionallyTerminateScalars(
+    const Instruction* instr) {
+  unsigned rn_code = instr->GetRn();
+  unsigned rm_code = instr->GetRm();
+  bool is_64_bit = instr->ExtractBit(22) == 1;
+  uint64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
+  uint64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+  bool term;
+  switch (instr->Mask(SVEConditionallyTerminateScalarsMask)) {
+    case CTERMEQ_rr:
+      term = src1 == src2;
+      break;
+    case CTERMNE_rr:
+      term = src1 != src2;
+      break;
+    default:
+      term = false;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  ReadNzcv().SetN(term ? 1 : 0);
+  ReadNzcv().SetV(term ? 0 : !ReadC());
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
+  bool commute_inputs = false;
+  Condition cond;
+  switch (instr->Mask(SVEIntCompareSignedImmMask)) {
+    case CMPEQ_p_p_zi:
+      cond = eq;
+      break;
+    case CMPGE_p_p_zi:
+      cond = ge;
+      break;
+    case CMPGT_p_p_zi:
+      cond = gt;
+      break;
+    case CMPLE_p_p_zi:
+      cond = ge;
+      commute_inputs = true;
+      break;
+    case CMPLT_p_p_zi:
+      cond = gt;
+      commute_inputs = true;
+      break;
+    case CMPNE_p_p_zi:
+      cond = ne;
+      break;
+    default:
+      cond = al;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister src2;
+  dup_immediate(vform,
+                src2,
+                ExtractSignedBitfield64(4, 0, instr->ExtractBits(20, 16)));
+  SVEIntCompareVectorsHelper(cond,
+                             vform,
+                             ReadPRegister(instr->GetPd()),
+                             ReadPRegister(instr->GetPgLow8()),
+                             commute_inputs ? src2
+                                            : ReadVRegister(instr->GetRn()),
+                             commute_inputs ? ReadVRegister(instr->GetRn())
+                                            : src2);
+}
+
+void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
+  bool commute_inputs = false;
+  Condition cond;
+  switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
+    case CMPHI_p_p_zi:
+      cond = hi;
+      break;
+    case CMPHS_p_p_zi:
+      cond = hs;
+      break;
+    case CMPLO_p_p_zi:
+      cond = hi;
+      commute_inputs = true;
+      break;
+    case CMPLS_p_p_zi:
+      cond = hs;
+      commute_inputs = true;
+      break;
+    default:
+      cond = al;
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister src2;
+  dup_immediate(vform, src2, instr->ExtractBits(20, 14));
+  SVEIntCompareVectorsHelper(cond,
+                             vform,
+                             ReadPRegister(instr->GetPd()),
+                             ReadPRegister(instr->GetPgLow8()),
+                             commute_inputs ? src2
+                                            : ReadVRegister(instr->GetRn()),
+                             commute_inputs ? ReadVRegister(instr->GetRn())
+                                            : src2);
+}
+
+void Simulator::VisitSVEIntCompareVectors(const Instruction* instr) {
+  Instr op = instr->Mask(SVEIntCompareVectorsMask);
+  bool is_wide_elements = false;
+  switch (op) {
+    case CMPEQ_p_p_zw:
+    case CMPGE_p_p_zw:
+    case CMPGT_p_p_zw:
+    case CMPHI_p_p_zw:
+    case CMPHS_p_p_zw:
+    case CMPLE_p_p_zw:
+    case CMPLO_p_p_zw:
+    case CMPLS_p_p_zw:
+    case CMPLT_p_p_zw:
+    case CMPNE_p_p_zw:
+      is_wide_elements = true;
+      break;
+  }
+
+  Condition cond;
+  switch (op) {
+    case CMPEQ_p_p_zw:
+    case CMPEQ_p_p_zz:
+      cond = eq;
+      break;
+    case CMPGE_p_p_zw:
+    case CMPGE_p_p_zz:
+      cond = ge;
+      break;
+    case CMPGT_p_p_zw:
+    case CMPGT_p_p_zz:
+      cond = gt;
+      break;
+    case CMPHI_p_p_zw:
+    case CMPHI_p_p_zz:
+      cond = hi;
+      break;
+    case CMPHS_p_p_zw:
+    case CMPHS_p_p_zz:
+      cond = hs;
+      break;
+    case CMPNE_p_p_zw:
+    case CMPNE_p_p_zz:
+      cond = ne;
+      break;
+    case CMPLE_p_p_zw:
+      cond = le;
+      break;
+    case CMPLO_p_p_zw:
+      cond = lo;
+      break;
+    case CMPLS_p_p_zw:
+      cond = ls;
+      break;
+    case CMPLT_p_p_zw:
+      cond = lt;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      cond = al;
+      break;
+  }
+
+  SVEIntCompareVectorsHelper(cond,
+                             instr->GetSVEVectorFormat(),
+                             ReadPRegister(instr->GetPd()),
+                             ReadPRegister(instr->GetPgLow8()),
+                             ReadVRegister(instr->GetRn()),
+                             ReadVRegister(instr->GetRm()),
+                             is_wide_elements);
+}
+
+void Simulator::VisitSVEFPExponentialAccelerator(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  VIXL_ASSERT((vform == kFormatVnH) || (vform == kFormatVnS) ||
+              (vform == kFormatVnD));
+
+  switch (instr->Mask(SVEFPExponentialAcceleratorMask)) {
+    case FEXPA_z_z:
+      fexpa(vform, zd, zn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFPTrigSelectCoefficient(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  VIXL_ASSERT((vform == kFormatVnH) || (vform == kFormatVnS) ||
+              (vform == kFormatVnD));
+
+  switch (instr->Mask(SVEFPTrigSelectCoefficientMask)) {
+    case FTSSEL_z_zz:
+      ftssel(vform, zd, zn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEConstructivePrefix_Unpredicated(
+    const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  switch (instr->Mask(SVEConstructivePrefix_UnpredicatedMask)) {
+    case MOVPRFX_z_z:
+      mov(kFormatVnD, zd, zn);  // The lane size is arbitrary.
+      // Record the movprfx, so the next ExecuteInstruction() can check it.
+      movprfx_ = instr;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntMulAddPredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  SimVRegister result;
+  switch (instr->Mask(SVEIntMulAddPredicatedMask)) {
+    case MLA_z_p_zzz:
+      mla(vform, result, zd, ReadVRegister(instr->GetRn()), zm);
+      break;
+    case MLS_z_p_zzz:
+      mls(vform, result, zd, ReadVRegister(instr->GetRn()), zm);
+      break;
+    case MAD_z_p_zzz:
+      // 'za' is encoded in 'Rn'.
+      mla(vform, result, ReadVRegister(instr->GetRn()), zd, zm);
+      break;
+    case MSB_z_p_zzz: {
+      // 'za' is encoded in 'Rn'.
+      mls(vform, result, ReadVRegister(instr->GetRn()), zd, zm);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zd, ReadPRegister(instr->GetPgLow8()), result);
+}
+
+void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  switch (instr->Mask(SVEIntMulAddUnpredicatedMask)) {
+    case SDOT_z_zzz:
+      sdot(vform, zda, zn, zm);
+      break;
+    case UDOT_z_zzz:
+      udot(vform, zda, zn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEMovprfx(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  switch (instr->Mask(SVEMovprfxMask)) {
+    case MOVPRFX_z_p_z:
+      if (instr->ExtractBit(16)) {
+        mov_merging(vform, zd, pg, zn);
+      } else {
+        mov_zeroing(vform, zd, pg, zn);
+      }
+
+      // Record the movprfx, so the next ExecuteInstruction() can check it.
+      movprfx_ = instr;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEIntReduction(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  if (instr->Mask(SVEIntReductionLogicalFMask) == SVEIntReductionLogicalFixed) {
+    switch (instr->Mask(SVEIntReductionLogicalMask)) {
+      case ANDV_r_p_z:
+        andv(vform, vd, pg, zn);
+        break;
+      case EORV_r_p_z:
+        eorv(vform, vd, pg, zn);
+        break;
+      case ORV_r_p_z:
+        orv(vform, vd, pg, zn);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  } else {
+    switch (instr->Mask(SVEIntReductionMask)) {
+      case SADDV_r_p_z:
+        saddv(vform, vd, pg, zn);
+        break;
+      case SMAXV_r_p_z:
+        smaxv(vform, vd, pg, zn);
+        break;
+      case SMINV_r_p_z:
+        sminv(vform, vd, pg, zn);
+        break;
+      case UADDV_r_p_z:
+        uaddv(vform, vd, pg, zn);
+        break;
+      case UMAXV_r_p_z:
+        umaxv(vform, vd, pg, zn);
+        break;
+      case UMINV_r_p_z:
+        uminv(vform, vd, pg, zn);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+  }
+}
+
+void Simulator::VisitSVEIntUnaryArithmeticPredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  SimVRegister result;
+  switch (instr->Mask(SVEIntUnaryArithmeticPredicatedMask)) {
+    case ABS_z_p_z:
+      abs(vform, result, zn);
+      break;
+    case CLS_z_p_z:
+      cls(vform, result, zn);
+      break;
+    case CLZ_z_p_z:
+      clz(vform, result, zn);
+      break;
+    case CNOT_z_p_z:
+      cnot(vform, result, zn);
+      break;
+    case CNT_z_p_z:
+      cnt(vform, result, zn);
+      break;
+    case FABS_z_p_z:
+      fabs_(vform, result, zn);
+      break;
+    case FNEG_z_p_z:
+      fneg(vform, result, zn);
+      break;
+    case NEG_z_p_z:
+      neg(vform, result, zn);
+      break;
+    case NOT_z_p_z:
+      not_(vform, result, zn);
+      break;
+    case SXTB_z_p_z:
+    case SXTH_z_p_z:
+    case SXTW_z_p_z:
+      sxt(vform, result, zn, (kBitsPerByte << instr->ExtractBits(18, 17)));
+      break;
+    case UXTB_z_p_z:
+    case UXTH_z_p_z:
+    case UXTW_z_p_z:
+      uxt(vform, result, zn, (kBitsPerByte << instr->ExtractBits(18, 17)));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  mov_merging(vform, zd, pg, result);
+}
+
+void Simulator::VisitSVECopyFPImm_Predicated(const Instruction* instr) {
+  // There is only one instruction in this group.
+  VIXL_ASSERT(instr->Mask(SVECopyFPImm_PredicatedMask) == FCPY_z_p_i);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(19, 16));
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  SimVRegister result;
+  switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {
+    case FCPY_z_p_i: {
+      int imm8 = instr->ExtractBits(12, 5);
+      uint64_t value = FPToRawbitsWithSize(LaneSizeInBitsFromFormat(vform),
+                                           Instruction::Imm8ToFP64(imm8));
+      dup_immediate(vform, result, value);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zd, pg, result);
+}
+
+void Simulator::VisitSVEIntAddSubtractImm_Unpredicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister scratch;
+
+  uint64_t imm = instr->GetImmSVEIntWideUnsigned();
+  imm <<= instr->ExtractBit(13) * 8;
+
+  switch (instr->Mask(SVEIntAddSubtractImm_UnpredicatedMask)) {
+    case ADD_z_zi:
+      add_uint(vform, zd, zd, imm);
+      break;
+    case SQADD_z_zi:
+      add_uint(vform, zd, zd, imm).SignedSaturate(vform);
+      break;
+    case SQSUB_z_zi:
+      sub_uint(vform, zd, zd, imm).SignedSaturate(vform);
+      break;
+    case SUBR_z_zi:
+      dup_immediate(vform, scratch, imm);
+      sub(vform, zd, scratch, zd);
+      break;
+    case SUB_z_zi:
+      sub_uint(vform, zd, zd, imm);
+      break;
+    case UQADD_z_zi:
+      add_uint(vform, zd, zd, imm).UnsignedSaturate(vform);
+      break;
+    case UQSUB_z_zi:
+      sub_uint(vform, zd, zd, imm).UnsignedSaturate(vform);
+      break;
+    default:
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastIntImm_Unpredicated(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  int64_t imm = instr->GetImmSVEIntWideSigned();
+  imm <<= instr->ExtractBit(13) * 8;
+
+  switch (instr->Mask(SVEBroadcastIntImm_UnpredicatedMask)) {
+    case DUP_z_i:
+      dup_immediate(instr->GetSVEVectorFormat(), zd, imm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastFPImm_Unpredicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  switch (instr->Mask(SVEBroadcastFPImm_UnpredicatedMask)) {
+    case FDUP_z_i:
+      switch (vform) {
+        case kFormatVnH:
+          dup_immediate(vform, zd, Float16ToRawbits(instr->GetSVEImmFP16()));
+          break;
+        case kFormatVnS:
+          dup_immediate(vform, zd, FloatToRawbits(instr->GetSVEImmFP32()));
+          break;
+        case kFormatVnD:
+          dup_immediate(vform, zd, DoubleToRawbits(instr->GetSVEImmFP64()));
+          break;
+        default:
+          VIXL_UNIMPLEMENTED();
+      }
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(
+      SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsetsMask)) {
+    case LD1H_z_p_bz_s_x32_scaled:
+    case LD1SH_z_p_bz_s_x32_scaled:
+    case LDFF1H_z_p_bz_s_x32_scaled:
+    case LDFF1SH_z_p_bz_s_x32_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS, mod);
+}
+
+void Simulator::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask)) {
+    case LD1B_z_p_bz_s_x32_unscaled:
+    case LD1H_z_p_bz_s_x32_unscaled:
+    case LD1SB_z_p_bz_s_x32_unscaled:
+    case LD1SH_z_p_bz_s_x32_unscaled:
+    case LD1W_z_p_bz_s_x32_unscaled:
+    case LDFF1B_z_p_bz_s_x32_unscaled:
+    case LDFF1H_z_p_bz_s_x32_unscaled:
+    case LDFF1SB_z_p_bz_s_x32_unscaled:
+    case LDFF1SH_z_p_bz_s_x32_unscaled:
+    case LDFF1W_z_p_bz_s_x32_unscaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS, mod);
+}
+
+void Simulator::VisitSVE32BitGatherLoad_VectorPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE32BitGatherLoad_VectorPlusImmMask)) {
+    case LD1B_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SB_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1SH_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LD1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1B_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1H_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SB_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1SH_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    case LDFF1W_z_p_ai_s:
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  switch (
+      instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
+    case LD1W_z_p_bz_s_x32_scaled:
+    case LDFF1W_z_p_bz_s_x32_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnS, mod);
+}
+
+void Simulator::VisitSVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  switch (
+      instr->Mask(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsetsMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_bz_s_x32_scaled:
+    case PRFD_i_p_bz_s_x32_scaled:
+    case PRFH_i_p_bz_s_x32_scaled:
+    case PRFW_i_p_bz_s_x32_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitGatherPrefetch_VectorPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE32BitGatherPrefetch_VectorPlusImmMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_ai_s:
+    case PRFD_i_p_ai_s:
+    case PRFH_i_p_ai_s:
+    case PRFW_i_p_ai_s:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousPrefetch_ScalarPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusImmMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_bi_s:
+    case PRFD_i_p_bi_s:
+    case PRFH_i_p_bi_s:
+    case PRFW_i_p_bi_s:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousPrefetch_ScalarPlusScalar(
+    const Instruction* instr) {
+  USE(instr);
+  switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_br_s:
+    case PRFD_i_p_br_s:
+    case PRFH_i_p_br_s:
+    case PRFW_i_p_br_s:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadAndBroadcastElement(const Instruction* instr) {
+  bool is_signed;
+  switch (instr->Mask(SVELoadAndBroadcastElementMask)) {
+    case LD1RB_z_p_bi_u8:
+    case LD1RB_z_p_bi_u16:
+    case LD1RB_z_p_bi_u32:
+    case LD1RB_z_p_bi_u64:
+    case LD1RH_z_p_bi_u16:
+    case LD1RH_z_p_bi_u32:
+    case LD1RH_z_p_bi_u64:
+    case LD1RW_z_p_bi_u32:
+    case LD1RW_z_p_bi_u64:
+    case LD1RD_z_p_bi_u64:
+      is_signed = false;
+      break;
+    case LD1RSB_z_p_bi_s16:
+    case LD1RSB_z_p_bi_s32:
+    case LD1RSB_z_p_bi_s64:
+    case LD1RSH_z_p_bi_s32:
+    case LD1RSH_z_p_bi_s64:
+    case LD1RSW_z_p_bi_s64:
+      is_signed = true;
+      break;
+    default:
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
+      break;
+  }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed, 13);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t offset = instr->ExtractBits(21, 16) << msize_in_bytes_log2;
+  uint64_t base = ReadXRegister(instr->GetRn()) + offset;
+  VectorFormat unpack_vform =
+      SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
+  SimVRegister temp;
+  ld1r(vform, unpack_vform, temp, base, is_signed);
+  mov_zeroing(vform,
+              ReadVRegister(instr->GetRt()),
+              ReadPRegister(instr->GetPgLow8()),
+              temp);
+}
+
+void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {
+  switch (instr->Mask(SVELoadPredicateRegisterMask)) {
+    case LDR_p_bi: {
+      SimPRegister& pt = ReadPRegister(instr->GetPt());
+      int pl = GetPredicateLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+      for (int i = 0; i < pl; i++) {
+        pt.Insert(i, Memory::Read<uint8_t>(address + i));
+      }
+      LogPRead(instr->GetPt(), address);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
+  switch (instr->Mask(SVELoadVectorRegisterMask)) {
+    case LDR_z_bi: {
+      SimVRegister& zt = ReadVRegister(instr->GetRt());
+      int vl = GetVectorLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+      for (int i = 0; i < vl; i++) {
+        zt.Insert(i, Memory::Read<uint8_t>(address + i));
+      }
+      LogZRead(instr->GetRt(), address);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(
+      SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
+    case LD1D_z_p_bz_d_x32_scaled:
+    case LD1H_z_p_bz_d_x32_scaled:
+    case LD1SH_z_p_bz_d_x32_scaled:
+    case LD1SW_z_p_bz_d_x32_scaled:
+    case LD1W_z_p_bz_d_x32_scaled:
+    case LDFF1H_z_p_bz_d_x32_scaled:
+    case LDFF1W_z_p_bz_d_x32_scaled:
+    case LDFF1D_z_p_bz_d_x32_scaled:
+    case LDFF1SH_z_p_bz_d_x32_scaled:
+    case LDFF1SW_z_p_bz_d_x32_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD, mod);
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)) {
+    case LD1D_z_p_bz_d_64_scaled:
+    case LD1H_z_p_bz_d_64_scaled:
+    case LD1SH_z_p_bz_d_64_scaled:
+    case LD1SW_z_p_bz_d_64_scaled:
+    case LD1W_z_p_bz_d_64_scaled:
+    case LDFF1H_z_p_bz_d_64_scaled:
+    case LDFF1W_z_p_bz_d_64_scaled:
+    case LDFF1D_z_p_bz_d_64_scaled:
+    case LDFF1SH_z_p_bz_d_64_scaled:
+    case LDFF1SW_z_p_bz_d_64_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD, SVE_LSL);
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask)) {
+    case LD1B_z_p_bz_d_64_unscaled:
+    case LD1D_z_p_bz_d_64_unscaled:
+    case LD1H_z_p_bz_d_64_unscaled:
+    case LD1SB_z_p_bz_d_64_unscaled:
+    case LD1SH_z_p_bz_d_64_unscaled:
+    case LD1SW_z_p_bz_d_64_unscaled:
+    case LD1W_z_p_bz_d_64_unscaled:
+    case LDFF1B_z_p_bz_d_64_unscaled:
+    case LDFF1D_z_p_bz_d_64_unscaled:
+    case LDFF1H_z_p_bz_d_64_unscaled:
+    case LDFF1SB_z_p_bz_d_64_unscaled:
+    case LDFF1SH_z_p_bz_d_64_unscaled:
+    case LDFF1SW_z_p_bz_d_64_unscaled:
+    case LDFF1W_z_p_bz_d_64_unscaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEGatherLoadScalarPlusVectorHelper(instr,
+                                      kFormatVnD,
+                                      NO_SVE_OFFSET_MODIFIER);
+}
+
+void Simulator::VisitSVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(
+      SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
+    case LD1B_z_p_bz_d_x32_unscaled:
+    case LD1D_z_p_bz_d_x32_unscaled:
+    case LD1H_z_p_bz_d_x32_unscaled:
+    case LD1SB_z_p_bz_d_x32_unscaled:
+    case LD1SH_z_p_bz_d_x32_unscaled:
+    case LD1SW_z_p_bz_d_x32_unscaled:
+    case LD1W_z_p_bz_d_x32_unscaled:
+    case LDFF1B_z_p_bz_d_x32_unscaled:
+    case LDFF1H_z_p_bz_d_x32_unscaled:
+    case LDFF1W_z_p_bz_d_x32_unscaled:
+    case LDFF1D_z_p_bz_d_x32_unscaled:
+    case LDFF1SB_z_p_bz_d_x32_unscaled:
+    case LDFF1SH_z_p_bz_d_x32_unscaled:
+    case LDFF1SW_z_p_bz_d_x32_unscaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  SVEOffsetModifier mod = (instr->ExtractBit(22) == 1) ? SVE_SXTW : SVE_UXTW;
+  SVEGatherLoadScalarPlusVectorHelper(instr, kFormatVnD, mod);
+}
+
+void Simulator::VisitSVE64BitGatherLoad_VectorPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE64BitGatherLoad_VectorPlusImmMask)) {
+    case LD1B_z_p_ai_d:
+    case LD1D_z_p_ai_d:
+    case LD1H_z_p_ai_d:
+    case LD1SB_z_p_ai_d:
+    case LD1SH_z_p_ai_d:
+    case LD1SW_z_p_ai_d:
+    case LD1W_z_p_ai_d:
+    case LDFF1B_z_p_ai_d:
+    case LDFF1D_z_p_ai_d:
+    case LDFF1H_z_p_ai_d:
+    case LDFF1SB_z_p_ai_d:
+    case LDFF1SH_z_p_ai_d:
+    case LDFF1SW_z_p_ai_d:
+    case LDFF1W_z_p_ai_d:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  bool is_signed = instr->ExtractBit(14) == 0;
+  bool is_ff = instr->ExtractBit(13) == 1;
+  // Note that these instructions don't use the Dtype encoding.
+  int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
+  uint64_t imm = instr->ExtractBits(20, 16) << msize_in_bytes_log2;
+  LogicSVEAddressVector addr(imm, &ReadVRegister(instr->GetRn()), kFormatVnD);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  if (is_ff) {
+    VIXL_UNIMPLEMENTED();
+  } else {
+    SVEStructuredLoadHelper(kFormatVnD,
+                            ReadPRegister(instr->GetPgLow8()),
+                            instr->GetRt(),
+                            addr,
+                            is_signed);
+  }
+}
+
+void Simulator::VisitSVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets(
+    const Instruction* instr) {
+  switch (
+      instr->Mask(SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsetsMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_bz_d_64_scaled:
+    case PRFD_i_p_bz_d_64_scaled:
+    case PRFH_i_p_bz_d_64_scaled:
+    case PRFW_i_p_bz_d_64_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::
+    VisitSVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets(
+        const Instruction* instr) {
+  switch (instr->Mask(
+      SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_bz_d_x32_scaled:
+    case PRFD_i_p_bz_d_x32_scaled:
+    case PRFH_i_p_bz_d_x32_scaled:
+    case PRFW_i_p_bz_d_x32_scaled:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitGatherPrefetch_VectorPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE64BitGatherPrefetch_VectorPlusImmMask)) {
+    // Ignore prefetch hint instructions.
+    case PRFB_i_p_ai_d:
+    case PRFD_i_p_ai_d:
+    case PRFH_i_p_ai_d:
+    case PRFW_i_p_ai_d:
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
+    const Instruction* instr) {
+  bool is_signed;
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
+    case LDFF1B_z_p_br_u8:
+    case LDFF1B_z_p_br_u16:
+    case LDFF1B_z_p_br_u32:
+    case LDFF1B_z_p_br_u64:
+    case LDFF1H_z_p_br_u16:
+    case LDFF1H_z_p_br_u32:
+    case LDFF1H_z_p_br_u64:
+    case LDFF1W_z_p_br_u32:
+    case LDFF1W_z_p_br_u64:
+    case LDFF1D_z_p_br_u64:
+      is_signed = false;
+      break;
+    case LDFF1SB_z_p_br_s16:
+    case LDFF1SB_z_p_br_s32:
+    case LDFF1SB_z_p_br_s64:
+    case LDFF1SH_z_p_br_s32:
+    case LDFF1SH_z_p_br_s64:
+    case LDFF1SW_z_p_br_s64:
+      is_signed = true;
+      break;
+    default:
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
+      break;
+  }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t offset = ReadXRegister(instr->GetRm());
+  offset <<= msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEFaultTolerantLoadHelper(vform,
+                             ReadPRegister(instr->GetPgLow8()),
+                             instr->GetRt(),
+                             addr,
+                             kSVEFirstFaultLoad,
+                             is_signed);
+}
+
+void Simulator::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
+    const Instruction* instr) {
+  bool is_signed = false;
+  switch (instr->Mask(SVEContiguousNonFaultLoad_ScalarPlusImmMask)) {
+    case LDNF1B_z_p_bi_u16:
+    case LDNF1B_z_p_bi_u32:
+    case LDNF1B_z_p_bi_u64:
+    case LDNF1B_z_p_bi_u8:
+    case LDNF1D_z_p_bi_u64:
+    case LDNF1H_z_p_bi_u16:
+    case LDNF1H_z_p_bi_u32:
+    case LDNF1H_z_p_bi_u64:
+    case LDNF1W_z_p_bi_u32:
+    case LDNF1W_z_p_bi_u64:
+      break;
+    case LDNF1SB_z_p_bi_s16:
+    case LDNF1SB_z_p_bi_s32:
+    case LDNF1SB_z_p_bi_s64:
+    case LDNF1SH_z_p_bi_s32:
+    case LDNF1SH_z_p_bi_s64:
+    case LDNF1SW_z_p_bi_s64:
+      is_signed = true;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  int vl = GetVectorLengthInBytes();
+  int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+  uint64_t offset =
+      (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEFaultTolerantLoadHelper(vform,
+                             ReadPRegister(instr->GetPgLow8()),
+                             instr->GetRt(),
+                             addr,
+                             kSVENonFaultLoad,
+                             is_signed);
+}
+
+void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(
+    const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = kFormatUndefined;
+
+  switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusImmMask)) {
+    case LDNT1B_z_p_bi_contiguous:
+      vform = kFormatVnB;
+      break;
+    case LDNT1D_z_p_bi_contiguous:
+      vform = kFormatVnD;
+      break;
+    case LDNT1H_z_p_bi_contiguous:
+      vform = kFormatVnH;
+      break;
+    case LDNT1W_z_p_bi_contiguous:
+      vform = kFormatVnS;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  int vl = GetVectorLengthInBytes();
+  uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredLoadHelper(vform,
+                          pg,
+                          instr->GetRt(),
+                          addr,
+                          /* is_signed = */ false);
+}
+
+void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
+    const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = kFormatUndefined;
+
+  switch (instr->Mask(SVEContiguousNonTemporalLoad_ScalarPlusScalarMask)) {
+    case LDNT1B_z_p_br_contiguous:
+      vform = kFormatVnB;
+      break;
+    case LDNT1D_z_p_br_contiguous:
+      vform = kFormatVnD;
+      break;
+    case LDNT1H_z_p_br_contiguous:
+      vform = kFormatVnH;
+      break;
+    case LDNT1W_z_p_br_contiguous:
+      vform = kFormatVnS;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  uint64_t offset = ReadXRegister(instr->GetRm()) << msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredLoadHelper(vform,
+                          pg,
+                          instr->GetRt(),
+                          addr,
+                          /* is_signed = */ false);
+}
+
+void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
+    const Instruction* instr) {
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  uint64_t offset = instr->ExtractSignedBits(19, 16) * 16;
+
+  VectorFormat vform = kFormatUndefined;
+  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
+    case LD1RQB_z_p_bi_u8:
+      vform = kFormatVnB;
+      break;
+    case LD1RQD_z_p_bi_u64:
+      vform = kFormatVnD;
+      break;
+    case LD1RQH_z_p_bi_u16:
+      vform = kFormatVnH;
+      break;
+    case LD1RQW_z_p_bi_u32:
+      vform = kFormatVnS;
+      break;
+    default:
+      addr = offset = 0;
+      break;
+  }
+  ld1(kFormat16B, zt, addr + offset);
+  mov_zeroing(vform, zt, pg, zt);
+  dup_element(kFormatVnQ, zt, zt, 0);
+}
+
+void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
+    const Instruction* instr) {
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  uint64_t offset = ReadXRegister(instr->GetRm());
+
+  VectorFormat vform = kFormatUndefined;
+  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
+    case LD1RQB_z_p_br_contiguous:
+      vform = kFormatVnB;
+      break;
+    case LD1RQD_z_p_br_contiguous:
+      vform = kFormatVnD;
+      offset <<= 3;
+      break;
+    case LD1RQH_z_p_br_contiguous:
+      vform = kFormatVnH;
+      offset <<= 1;
+      break;
+    case LD1RQW_z_p_br_contiguous:
+      vform = kFormatVnS;
+      offset <<= 2;
+      break;
+    default:
+      addr = offset = 0;
+      break;
+  }
+  ld1(kFormat16B, zt, addr + offset);
+  mov_zeroing(vform, zt, pg, zt);
+  dup_element(kFormatVnQ, zt, zt, 0);
+}
+
+void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusImmMask)) {
+    case LD2B_z_p_bi_contiguous:
+    case LD2D_z_p_bi_contiguous:
+    case LD2H_z_p_bi_contiguous:
+    case LD2W_z_p_bi_contiguous:
+    case LD3B_z_p_bi_contiguous:
+    case LD3D_z_p_bi_contiguous:
+    case LD3H_z_p_bi_contiguous:
+    case LD3W_z_p_bi_contiguous:
+    case LD4B_z_p_bi_contiguous:
+    case LD4D_z_p_bi_contiguous:
+    case LD4H_z_p_bi_contiguous:
+    case LD4W_z_p_bi_contiguous: {
+      int vl = GetVectorLengthInBytes();
+      int msz = instr->ExtractBits(24, 23);
+      int reg_count = instr->ExtractBits(22, 21) + 1;
+      uint64_t offset = instr->ExtractSignedBits(19, 16) * vl * reg_count;
+      LogicSVEAddressVector addr(
+          ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset);
+      addr.SetMsizeInBytesLog2(msz);
+      addr.SetRegCount(reg_count);
+      SVEStructuredLoadHelper(SVEFormatFromLaneSizeInBytesLog2(msz),
+                              ReadPRegister(instr->GetPgLow8()),
+                              instr->GetRt(),
+                              addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVELoadMultipleStructures_ScalarPlusScalar(
+    const Instruction* instr) {
+  switch (instr->Mask(SVELoadMultipleStructures_ScalarPlusScalarMask)) {
+    case LD2B_z_p_br_contiguous:
+    case LD2D_z_p_br_contiguous:
+    case LD2H_z_p_br_contiguous:
+    case LD2W_z_p_br_contiguous:
+    case LD3B_z_p_br_contiguous:
+    case LD3D_z_p_br_contiguous:
+    case LD3H_z_p_br_contiguous:
+    case LD3W_z_p_br_contiguous:
+    case LD4B_z_p_br_contiguous:
+    case LD4D_z_p_br_contiguous:
+    case LD4H_z_p_br_contiguous:
+    case LD4W_z_p_br_contiguous: {
+      int msz = instr->ExtractBits(24, 23);
+      uint64_t offset = ReadXRegister(instr->GetRm()) * (1 << msz);
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
+      LogicSVEAddressVector addr(
+          ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset);
+      addr.SetMsizeInBytesLog2(msz);
+      addr.SetRegCount(instr->ExtractBits(22, 21) + 1);
+      SVEStructuredLoadHelper(vform,
+                              ReadPRegister(instr->GetPgLow8()),
+                              instr->GetRt(),
+                              addr,
+                              false);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
+    case ST1H_z_p_bz_s_x32_scaled:
+    case ST1W_z_p_bz_s_x32_scaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnS,
+                                 mod,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnS,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
+    const Instruction* instr) {
+  switch (
+      instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
+    case ST1B_z_p_bz_s_x32_unscaled:
+    case ST1H_z_p_bz_s_x32_unscaled:
+    case ST1W_z_p_bz_s_x32_unscaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnS,
+                                 mod);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnS,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE32BitScatterStore_VectorPlusImm(
+    const Instruction* instr) {
+  int msz = 0;
+  switch (instr->Mask(SVE32BitScatterStore_VectorPlusImmMask)) {
+    case ST1B_z_p_ai_s:
+      msz = 0;
+      break;
+    case ST1H_z_p_ai_s:
+      msz = 1;
+      break;
+    case ST1W_z_p_ai_s:
+      msz = 2;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  uint64_t imm = instr->ExtractBits(20, 16) << msz;
+  LogicSVEAddressVector addr(imm, &ReadVRegister(instr->GetRn()), kFormatVnS);
+  addr.SetMsizeInBytesLog2(msz);
+  SVEStructuredStoreHelper(kFormatVnS,
+                           ReadPRegister(instr->GetPgLow8()),
+                           instr->GetRt(),
+                           addr);
+}
+
+void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
+    case ST1D_z_p_bz_d_64_scaled:
+    case ST1H_z_p_bz_d_64_scaled:
+    case ST1W_z_p_bz_d_64_scaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 SVE_LSL,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
+    const Instruction* instr) {
+  switch (
+      instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
+    case ST1B_z_p_bz_d_64_unscaled:
+    case ST1D_z_p_bz_d_64_unscaled:
+    case ST1H_z_p_bz_d_64_unscaled:
+    case ST1W_z_p_bz_d_64_unscaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      uint64_t base = ReadXRegister(instr->GetRn());
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 NO_SVE_OFFSET_MODIFIER);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
+    const Instruction* instr) {
+  switch (instr->Mask(
+      SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsetsMask)) {
+    case ST1D_z_p_bz_d_x32_scaled:
+    case ST1H_z_p_bz_d_x32_scaled:
+    case ST1W_z_p_bz_d_x32_scaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 mod,
+                                 scale);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::
+    VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets(
+        const Instruction* instr) {
+  switch (instr->Mask(
+      SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsetsMask)) {
+    case ST1B_z_p_bz_d_x32_unscaled:
+    case ST1D_z_p_bz_d_x32_unscaled:
+    case ST1H_z_p_bz_d_x32_unscaled:
+    case ST1W_z_p_bz_d_x32_unscaled: {
+      unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
+      uint64_t base = ReadXRegister(instr->GetRn());
+      SVEOffsetModifier mod =
+          (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
+      LogicSVEAddressVector addr(base,
+                                 &ReadVRegister(instr->GetRm()),
+                                 kFormatVnD,
+                                 mod);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(kFormatVnD,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVE64BitScatterStore_VectorPlusImm(
+    const Instruction* instr) {
+  int msz = 0;
+  switch (instr->Mask(SVE64BitScatterStore_VectorPlusImmMask)) {
+    case ST1B_z_p_ai_d:
+      msz = 0;
+      break;
+    case ST1D_z_p_ai_d:
+      msz = 3;
+      break;
+    case ST1H_z_p_ai_d:
+      msz = 1;
+      break;
+    case ST1W_z_p_ai_d:
+      msz = 2;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  uint64_t imm = instr->ExtractBits(20, 16) << msz;
+  LogicSVEAddressVector addr(imm, &ReadVRegister(instr->GetRn()), kFormatVnD);
+  addr.SetMsizeInBytesLog2(msz);
+  SVEStructuredStoreHelper(kFormatVnD,
+                           ReadPRegister(instr->GetPgLow8()),
+                           instr->GetRt(),
+                           addr);
+}
+
+void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(
+    const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = kFormatUndefined;
+
+  switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusImmMask)) {
+    case STNT1B_z_p_bi_contiguous:
+      vform = kFormatVnB;
+      break;
+    case STNT1D_z_p_bi_contiguous:
+      vform = kFormatVnD;
+      break;
+    case STNT1H_z_p_bi_contiguous:
+      vform = kFormatVnH;
+      break;
+    case STNT1W_z_p_bi_contiguous:
+      vform = kFormatVnS;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  int vl = GetVectorLengthInBytes();
+  uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredStoreHelper(vform, pg, instr->GetRt(), addr);
+}
+
+void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
+    const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  VectorFormat vform = kFormatUndefined;
+
+  switch (instr->Mask(SVEContiguousNonTemporalStore_ScalarPlusScalarMask)) {
+    case STNT1B_z_p_br_contiguous:
+      vform = kFormatVnB;
+      break;
+    case STNT1D_z_p_br_contiguous:
+      vform = kFormatVnD;
+      break;
+    case STNT1H_z_p_br_contiguous:
+      vform = kFormatVnH;
+      break;
+    case STNT1W_z_p_br_contiguous:
+      vform = kFormatVnS;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  uint64_t offset = ReadXRegister(instr->GetRm()) << msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredStoreHelper(vform, pg, instr->GetRt(), addr);
+}
+
+void Simulator::VisitSVEContiguousStore_ScalarPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVEContiguousStore_ScalarPlusImmMask)) {
+    case ST1B_z_p_bi:
+    case ST1D_z_p_bi:
+    case ST1H_z_p_bi:
+    case ST1W_z_p_bi: {
+      int vl = GetVectorLengthInBytes();
+      int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
+      int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(false);
+      VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
+      int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+      uint64_t offset =
+          (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
+      VectorFormat vform =
+          SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+      LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+      addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+      SVEStructuredStoreHelper(vform,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousStore_ScalarPlusScalar(
+    const Instruction* instr) {
+  switch (instr->Mask(SVEContiguousStore_ScalarPlusScalarMask)) {
+    case ST1B_z_p_br:
+    case ST1D_z_p_br:
+    case ST1H_z_p_br:
+    case ST1W_z_p_br: {
+      uint64_t offset = ReadXRegister(instr->GetRm());
+      offset <<= instr->ExtractBits(24, 23);
+      VectorFormat vform =
+          SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
+      LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+      addr.SetMsizeInBytesLog2(instr->ExtractBits(24, 23));
+      SVEStructuredStoreHelper(vform,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVECopySIMDFPScalarRegisterToVector_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister z_result;
+
+  switch (instr->Mask(SVECopySIMDFPScalarRegisterToVector_PredicatedMask)) {
+    case CPY_z_p_v:
+      dup_element(vform, z_result, ReadVRegister(instr->GetRn()), 0);
+      mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStoreMultipleStructures_ScalarPlusImm(
+    const Instruction* instr) {
+  switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusImmMask)) {
+    case ST2B_z_p_bi_contiguous:
+    case ST2D_z_p_bi_contiguous:
+    case ST2H_z_p_bi_contiguous:
+    case ST2W_z_p_bi_contiguous:
+    case ST3B_z_p_bi_contiguous:
+    case ST3D_z_p_bi_contiguous:
+    case ST3H_z_p_bi_contiguous:
+    case ST3W_z_p_bi_contiguous:
+    case ST4B_z_p_bi_contiguous:
+    case ST4D_z_p_bi_contiguous:
+    case ST4H_z_p_bi_contiguous:
+    case ST4W_z_p_bi_contiguous: {
+      int vl = GetVectorLengthInBytes();
+      int msz = instr->ExtractBits(24, 23);
+      int reg_count = instr->ExtractBits(22, 21) + 1;
+      uint64_t offset = instr->ExtractSignedBits(19, 16) * vl * reg_count;
+      LogicSVEAddressVector addr(
+          ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset);
+      addr.SetMsizeInBytesLog2(msz);
+      addr.SetRegCount(reg_count);
+      SVEStructuredStoreHelper(SVEFormatFromLaneSizeInBytesLog2(msz),
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStoreMultipleStructures_ScalarPlusScalar(
+    const Instruction* instr) {
+  switch (instr->Mask(SVEStoreMultipleStructures_ScalarPlusScalarMask)) {
+    case ST2B_z_p_br_contiguous:
+    case ST2D_z_p_br_contiguous:
+    case ST2H_z_p_br_contiguous:
+    case ST2W_z_p_br_contiguous:
+    case ST3B_z_p_br_contiguous:
+    case ST3D_z_p_br_contiguous:
+    case ST3H_z_p_br_contiguous:
+    case ST3W_z_p_br_contiguous:
+    case ST4B_z_p_br_contiguous:
+    case ST4D_z_p_br_contiguous:
+    case ST4H_z_p_br_contiguous:
+    case ST4W_z_p_br_contiguous: {
+      int msz = instr->ExtractBits(24, 23);
+      uint64_t offset = ReadXRegister(instr->GetRm()) * (1 << msz);
+      VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
+      LogicSVEAddressVector addr(
+          ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset);
+      addr.SetMsizeInBytesLog2(msz);
+      addr.SetRegCount(instr->ExtractBits(22, 21) + 1);
+      SVEStructuredStoreHelper(vform,
+                               ReadPRegister(instr->GetPgLow8()),
+                               instr->GetRt(),
+                               addr);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStorePredicateRegister(const Instruction* instr) {
+  switch (instr->Mask(SVEStorePredicateRegisterMask)) {
+    case STR_p_bi: {
+      SimPRegister& pt = ReadPRegister(instr->GetPt());
+      int pl = GetPredicateLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+      for (int i = 0; i < pl; i++) {
+        Memory::Write(address + i, pt.GetLane<uint8_t>(i));
+      }
+      LogPWrite(instr->GetPt(), address);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEStoreVectorRegister(const Instruction* instr) {
+  switch (instr->Mask(SVEStoreVectorRegisterMask)) {
+    case STR_z_bi: {
+      SimVRegister& zt = ReadVRegister(instr->GetRt());
+      int vl = GetVectorLengthInBytes();
+      int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
+      uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
+      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+      for (int i = 0; i < vl; i++) {
+        Memory::Write(address + i, zt.GetLane<uint8_t>(i));
+      }
+      LogZWrite(instr->GetRt(), address);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEMulIndex(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  switch (instr->Mask(SVEMulIndexMask)) {
+    case SDOT_z_zzzi_d:
+      sdot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(19, 16)),
+           instr->ExtractBit(20));
+      break;
+    case SDOT_z_zzzi_s:
+      sdot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(18, 16)),
+           instr->ExtractBits(20, 19));
+      break;
+    case UDOT_z_zzzi_d:
+      udot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(19, 16)),
+           instr->ExtractBit(20));
+      break;
+    case UDOT_z_zzzi_s:
+      udot(vform,
+           zda,
+           zn,
+           ReadVRegister(instr->ExtractBits(18, 16)),
+           instr->ExtractBits(20, 19));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPartitionBreakCondition(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister result;
+
+  switch (instr->Mask(SVEPartitionBreakConditionMask)) {
+    case BRKAS_p_p_p_z:
+    case BRKA_p_p_p:
+      brka(result, pg, pn);
+      break;
+    case BRKBS_p_p_p_z:
+    case BRKB_p_p_p:
+      brkb(result, pg, pn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (instr->ExtractBit(4) == 1) {
+    mov_merging(pd, pg, result);
+  } else {
+    mov_zeroing(pd, pg, result);
+  }
+
+  // Set flag if needed.
+  if (instr->ExtractBit(22) == 1) {
+    PredTest(kFormatVnB, pg, pd);
+  }
+}
+
+void Simulator::VisitSVEPropagateBreakToNextPartition(
+    const Instruction* instr) {
+  SimPRegister& pdm = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+
+  switch (instr->Mask(SVEPropagateBreakToNextPartitionMask)) {
+    case BRKNS_p_p_pp:
+    case BRKN_p_p_pp:
+      brkn(pdm, pg, pn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  // Set flag if needed.
+  if (instr->ExtractBit(22) == 1) {
+    PredTest(kFormatVnB, pg, pdm);
+  }
+}
+
+void Simulator::VisitSVEUnpackPredicateElements(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+
+  SimVRegister temp = Simulator::ExpandToSimVRegister(pn);
+  SimVRegister zero;
+  dup_immediate(kFormatVnB, zero, 0);
+
+  switch (instr->Mask(SVEUnpackPredicateElementsMask)) {
+    case PUNPKHI_p_p:
+      zip2(kFormatVnB, temp, temp, zero);
+      break;
+    case PUNPKLO_p_p:
+      zip1(kFormatVnB, temp, temp, zero);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  Simulator::ExtractFromSimVRegister(kFormatVnB, pd, temp);
+}
+
+void Simulator::VisitSVEPermutePredicateElements(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister& pm = ReadPRegister(instr->GetPm());
+
+  SimVRegister temp0 = Simulator::ExpandToSimVRegister(pn);
+  SimVRegister temp1 = Simulator::ExpandToSimVRegister(pm);
+
+  switch (instr->Mask(SVEPermutePredicateElementsMask)) {
+    case TRN1_p_pp:
+      trn1(vform, temp0, temp0, temp1);
+      break;
+    case TRN2_p_pp:
+      trn2(vform, temp0, temp0, temp1);
+      break;
+    case UZP1_p_pp:
+      uzp1(vform, temp0, temp0, temp1);
+      break;
+    case UZP2_p_pp:
+      uzp2(vform, temp0, temp0, temp1);
+      break;
+    case ZIP1_p_pp:
+      zip1(vform, temp0, temp0, temp1);
+      break;
+    case ZIP2_p_pp:
+      zip2(vform, temp0, temp0, temp1);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  Simulator::ExtractFromSimVRegister(kFormatVnB, pd, temp0);
+}
+
+void Simulator::VisitSVEReversePredicateElements(const Instruction* instr) {
+  switch (instr->Mask(SVEReversePredicateElementsMask)) {
+    case REV_p_p: {
+      VectorFormat vform = instr->GetSVEVectorFormat();
+      SimPRegister& pn = ReadPRegister(instr->GetPn());
+      SimPRegister& pd = ReadPRegister(instr->GetPd());
+      SimVRegister temp = Simulator::ExpandToSimVRegister(pn);
+      rev(vform, temp, temp);
+      Simulator::ExtractFromSimVRegister(kFormatVnB, pd, temp);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPermuteVectorExtract(const Instruction* instr) {
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  // Second source register "Zm" is encoded where "Zn" would usually be.
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+
+  const int imm8h_mask = 0x001F0000;
+  const int imm8l_mask = 0x00001C00;
+  int index = instr->ExtractBits<imm8h_mask | imm8l_mask>();
+  int vl = GetVectorLengthInBytes();
+  index = (index >= vl) ? 0 : index;
+
+  switch (instr->Mask(SVEPermuteVectorExtractMask)) {
+    case EXT_z_zi_des:
+      ext(kFormatVnB, zdn, zdn, zm, index);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPermuteVectorInterleaving(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  switch (instr->Mask(SVEPermuteVectorInterleavingMask)) {
+    case TRN1_z_zz:
+      trn1(vform, zd, zn, zm);
+      break;
+    case TRN2_z_zz:
+      trn2(vform, zd, zn, zm);
+      break;
+    case UZP1_z_zz:
+      uzp1(vform, zd, zn, zm);
+      break;
+    case UZP2_z_zz:
+      uzp2(vform, zd, zn, zm);
+      break;
+    case ZIP1_z_zz:
+      zip1(vform, zd, zn, zm);
+      break;
+    case ZIP2_z_zz:
+      zip2(vform, zd, zn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEConditionallyBroadcastElementToVector(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
+  switch (instr->Mask(SVEConditionallyBroadcastElementToVectorMask)) {
+    case CLASTA_z_p_zz:
+      active_offset = 1;
+      break;
+    case CLASTB_z_p_zz:
+      active_offset = 0;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (active_offset >= 0) {
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    if (value.first) {
+      dup_immediate(vform, zdn, value.second);
+    } else {
+      // Trigger a line of trace for the operation, even though it doesn't
+      // change the register value.
+      mov(vform, zdn, zdn);
+    }
+  }
+}
+
+void Simulator::VisitSVEConditionallyExtractElementToSIMDFPScalar(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
+  switch (instr->Mask(SVEConditionallyExtractElementToSIMDFPScalarMask)) {
+    case CLASTA_v_p_z:
+      active_offset = 1;
+      break;
+    case CLASTB_v_p_z:
+      active_offset = 0;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (active_offset >= 0) {
+    LogicVRegister dst(vdn);
+    uint64_t src1_value = dst.Uint(vform, 0);
+    std::pair<bool, uint64_t> src2_value = clast(vform, pg, zm, active_offset);
+    dup_immediate(vform, vdn, 0);
+    dst.SetUint(vform, 0, src2_value.first ? src2_value.second : src1_value);
+  }
+}
+
+void Simulator::VisitSVEConditionallyExtractElementToGeneralRegister(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
+  switch (instr->Mask(SVEConditionallyExtractElementToGeneralRegisterMask)) {
+    case CLASTA_r_p_z:
+      active_offset = 1;
+      break;
+    case CLASTB_r_p_z:
+      active_offset = 0;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (active_offset >= 0) {
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    uint64_t masked_src = ReadXRegister(instr->GetRd()) &
+                          GetUintMask(LaneSizeInBitsFromFormat(vform));
+    WriteXRegister(instr->GetRd(), value.first ? value.second : masked_src);
+  }
+}
+
+void Simulator::VisitSVEExtractElementToSIMDFPScalarRegister(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& vdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
+  switch (instr->Mask(SVEExtractElementToSIMDFPScalarRegisterMask)) {
+    case LASTA_v_p_z:
+      active_offset = 1;
+      break;
+    case LASTB_v_p_z:
+      active_offset = 0;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (active_offset >= 0) {
+    LogicVRegister dst(vdn);
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    dup_immediate(vform, vdn, 0);
+    dst.SetUint(vform, 0, value.second);
+  }
+}
+
+void Simulator::VisitSVEExtractElementToGeneralRegister(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  int active_offset = -1;
+  switch (instr->Mask(SVEExtractElementToGeneralRegisterMask)) {
+    case LASTA_r_p_z:
+      active_offset = 1;
+      break;
+    case LASTB_r_p_z:
+      active_offset = 0;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (active_offset >= 0) {
+    std::pair<bool, uint64_t> value = clast(vform, pg, zm, active_offset);
+    WriteXRegister(instr->GetRd(), value.second);
+  }
+}
+
+void Simulator::VisitSVECompressActiveElements(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  switch (instr->Mask(SVECompressActiveElementsMask)) {
+    case COMPACT_z_p_z:
+      compact(vform, zd, pg, zn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVECopyGeneralRegisterToVector_Predicated(
+    const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister z_result;
+
+  switch (instr->Mask(SVECopyGeneralRegisterToVector_PredicatedMask)) {
+    case CPY_z_p_r:
+      dup_immediate(vform,
+                    z_result,
+                    ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
+      mov_merging(vform, ReadVRegister(instr->GetRd()), pg, z_result);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVECopyIntImm_Predicated(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(19, 16));
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  SimVRegister result;
+  switch (instr->Mask(SVECopyIntImm_PredicatedMask)) {
+    case CPY_z_p_i: {
+      // Use unsigned arithmetic to avoid undefined behaviour during the shift.
+      uint64_t imm8 = instr->GetImmSVEIntWideSigned();
+      dup_immediate(vform, result, imm8 << (instr->ExtractBit(13) * 8));
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (instr->ExtractBit(14) != 0) {
+    mov_merging(vform, zd, pg, result);
+  } else {
+    mov_zeroing(vform, zd, pg, result);
+  }
+}
+
+void Simulator::VisitSVEReverseWithinElements(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  // In NEON, the chunk size in which elements are REVersed is in the
+  // instruction mnemonic, and the element size attached to the register.
+  // SVE reverses the semantics; the mapping to logic functions below is to
+  // account for this.
+  VectorFormat chunk_form = instr->GetSVEVectorFormat();
+  VectorFormat element_form = kFormatUndefined;
+
+  switch (instr->Mask(SVEReverseWithinElementsMask)) {
+    case RBIT_z_p_z:
+      rbit(chunk_form, result, zn);
+      break;
+    case REVB_z_z:
+      VIXL_ASSERT((chunk_form == kFormatVnH) || (chunk_form == kFormatVnS) ||
+                  (chunk_form == kFormatVnD));
+      element_form = kFormatVnB;
+      break;
+    case REVH_z_z:
+      VIXL_ASSERT((chunk_form == kFormatVnS) || (chunk_form == kFormatVnD));
+      element_form = kFormatVnH;
+      break;
+    case REVW_z_z:
+      VIXL_ASSERT(chunk_form == kFormatVnD);
+      element_form = kFormatVnS;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (instr->Mask(SVEReverseWithinElementsMask) != RBIT_z_p_z) {
+    VIXL_ASSERT(element_form != kFormatUndefined);
+    switch (chunk_form) {
+      case kFormatVnH:
+        rev16(element_form, result, zn);
+        break;
+      case kFormatVnS:
+        rev32(element_form, result, zn);
+        break;
+      case kFormatVnD:
+        rev64(element_form, result, zn);
+        break;
+      default:
+        VIXL_UNIMPLEMENTED();
+    }
+  }
+
+  mov_merging(chunk_form, zd, pg, result);
+}
+
+void Simulator::VisitSVEVectorSplice_Destructive(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  switch (instr->Mask(SVEVectorSplice_DestructiveMask)) {
+    case SPLICE_z_p_zz_des:
+      splice(vform, zdn, pg, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastGeneralRegister(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVEBroadcastGeneralRegisterMask)) {
+    case DUP_z_r:
+      dup_immediate(instr->GetSVEVectorFormat(),
+                    zd,
+                    ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEInsertSIMDFPScalarRegister(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEInsertSIMDFPScalarRegisterMask)) {
+    case INSR_z_v:
+      insr(vform, zd, ReadDRegisterBits(instr->GetRn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEInsertGeneralRegister(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEInsertGeneralRegisterMask)) {
+    case INSR_z_r:
+      insr(vform, zd, ReadXRegister(instr->GetRn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEBroadcastIndexElement(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVEBroadcastIndexElementMask)) {
+    case DUP_z_zi: {
+      std::pair<int, int> index_and_lane_size =
+          instr->GetSVEPermuteIndexAndLaneSizeLog2();
+      int index = index_and_lane_size.first;
+      int lane_size_in_bytes_log_2 = index_and_lane_size.second;
+      VectorFormat vform =
+          SVEFormatFromLaneSizeInBytesLog2(lane_size_in_bytes_log_2);
+      if ((index < 0) || (index >= LaneCountFromFormat(vform))) {
+        // Out of bounds, set the destination register to zero.
+        dup_immediate(kFormatVnD, zd, 0);
+      } else {
+        dup_element(vform, zd, ReadVRegister(instr->GetRn()), index);
+      }
+      return;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEReverseVectorElements(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEReverseVectorElementsMask)) {
+    case REV_z_z:
+      rev(vform, zd, ReadVRegister(instr->GetRn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEUnpackVectorElements(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  switch (instr->Mask(SVEUnpackVectorElementsMask)) {
+    case SUNPKHI_z_z:
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kHiHalf, kSignedExtend);
+      break;
+    case SUNPKLO_z_z:
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kLoHalf, kSignedExtend);
+      break;
+    case UUNPKHI_z_z:
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kHiHalf, kUnsignedExtend);
+      break;
+    case UUNPKLO_z_z:
+      unpk(vform, zd, ReadVRegister(instr->GetRn()), kLoHalf, kUnsignedExtend);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVETableLookup(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  switch (instr->Mask(SVETableLookupMask)) {
+    case TBL_z_zz_1:
+      Table(instr->GetSVEVectorFormat(),
+            zd,
+            ReadVRegister(instr->GetRn()),
+            ReadVRegister(instr->GetRm()));
+      return;
+    default:
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateCount(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+
+  switch (instr->Mask(SVEPredicateCountMask)) {
+    case CNTP_r_p_p: {
+      WriteXRegister(instr->GetRd(), CountActiveAndTrueLanes(vform, pg, pn));
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateLogical(const Instruction* instr) {
+  Instr op = instr->Mask(SVEPredicateLogicalMask);
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister& pm = ReadPRegister(instr->GetPm());
+  SimPRegister result;
+  switch (op) {
+    case ANDS_p_p_pp_z:
+    case AND_p_p_pp_z:
+    case BICS_p_p_pp_z:
+    case BIC_p_p_pp_z:
+    case EORS_p_p_pp_z:
+    case EOR_p_p_pp_z:
+    case NANDS_p_p_pp_z:
+    case NAND_p_p_pp_z:
+    case NORS_p_p_pp_z:
+    case NOR_p_p_pp_z:
+    case ORNS_p_p_pp_z:
+    case ORN_p_p_pp_z:
+    case ORRS_p_p_pp_z:
+    case ORR_p_p_pp_z:
+      SVEPredicateLogicalHelper(static_cast<SVEPredicateLogicalOp>(op),
+                                result,
+                                pn,
+                                pm);
+      break;
+    case SEL_p_p_pp:
+      sel(pd, pg, pn, pm);
+      return;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  mov_zeroing(pd, pg, result);
+  if (instr->Mask(SVEPredicateLogicalSetFlagsBit) != 0) {
+    PredTest(kFormatVnB, pg, pd);
+  }
+}
+
+void Simulator::VisitSVEPredicateFirstActive(const Instruction* instr) {
+  LogicPRegister pg = ReadPRegister(instr->ExtractBits(8, 5));
+  LogicPRegister pdn = ReadPRegister(instr->GetPd());
+  switch (instr->Mask(SVEPredicateFirstActiveMask)) {
+    case PFIRST_p_p_p:
+      pfirst(pdn, pg, pdn);
+      // TODO: Is this broken when pg == pdn?
+      PredTest(kFormatVnB, pg, pdn);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateInitialize(const Instruction* instr) {
+  // This group only contains PTRUE{S}, and there are no unallocated encodings.
+  VIXL_STATIC_ASSERT(
+      SVEPredicateInitializeMask ==
+      (SVEPredicateInitializeFMask | SVEPredicateInitializeSetFlagsBit));
+  VIXL_ASSERT((instr->Mask(SVEPredicateInitializeMask) == PTRUE_p_s) ||
+              (instr->Mask(SVEPredicateInitializeMask) == PTRUES_p_s));
+
+  LogicPRegister pdn = ReadPRegister(instr->GetPd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  ptrue(vform, pdn, instr->GetImmSVEPredicateConstraint());
+  if (instr->ExtractBit(16)) PredTest(vform, pdn, pdn);
+}
+
+void Simulator::VisitSVEPredicateNextActive(const Instruction* instr) {
+  // This group only contains PNEXT, and there are no unallocated encodings.
+  VIXL_STATIC_ASSERT(SVEPredicateNextActiveFMask == SVEPredicateNextActiveMask);
+  VIXL_ASSERT(instr->Mask(SVEPredicateNextActiveMask) == PNEXT_p_p_p);
+
+  LogicPRegister pg = ReadPRegister(instr->ExtractBits(8, 5));
+  LogicPRegister pdn = ReadPRegister(instr->GetPd());
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  pnext(vform, pdn, pg, pdn);
+  // TODO: Is this broken when pg == pdn?
+  PredTest(vform, pg, pdn);
+}
+
+void Simulator::VisitSVEPredicateReadFromFFR_Predicated(
+    const Instruction* instr) {
+  LogicPRegister pd(ReadPRegister(instr->GetPd()));
+  LogicPRegister pg(ReadPRegister(instr->GetPn()));
+  FlagsUpdate flags = LeaveFlags;
+  switch (instr->Mask(SVEPredicateReadFromFFR_PredicatedMask)) {
+    case RDFFR_p_p_f:
+      // Do nothing.
+      break;
+    case RDFFRS_p_p_f:
+      flags = SetFlags;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  LogicPRegister ffr(ReadFFR());
+  mov_zeroing(pd, pg, ffr);
+
+  if (flags == SetFlags) {
+    PredTest(kFormatVnB, pg, pd);
+  }
+}
+
+void Simulator::VisitSVEPredicateReadFromFFR_Unpredicated(
+    const Instruction* instr) {
+  LogicPRegister pd(ReadPRegister(instr->GetPd()));
+  LogicPRegister ffr(ReadFFR());
+  switch (instr->Mask(SVEPredicateReadFromFFR_UnpredicatedMask)) {
+    case RDFFR_p_f:
+      mov(pd, ffr);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateTest(const Instruction* instr) {
+  switch (instr->Mask(SVEPredicateTestMask)) {
+    case PTEST_p_p:
+      PredTest(kFormatVnB,
+               ReadPRegister(instr->ExtractBits(13, 10)),
+               ReadPRegister(instr->GetPn()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPredicateZero(const Instruction* instr) {
+  switch (instr->Mask(SVEPredicateZeroMask)) {
+    case PFALSE_p:
+      pfalse(ReadPRegister(instr->GetPd()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEPropagateBreak(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimPRegister& pn = ReadPRegister(instr->GetPn());
+  SimPRegister& pm = ReadPRegister(instr->GetPm());
+
+  bool set_flags = false;
+  switch (instr->Mask(SVEPropagateBreakMask)) {
+    case BRKPAS_p_p_pp:
+      set_flags = true;
+      VIXL_FALLTHROUGH();
+    case BRKPA_p_p_pp:
+      brkpa(pd, pg, pn, pm);
+      break;
+    case BRKPBS_p_p_pp:
+      set_flags = true;
+      VIXL_FALLTHROUGH();
+    case BRKPB_p_p_pp:
+      brkpb(pd, pg, pn, pm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  if (set_flags) {
+    PredTest(kFormatVnB, pg, pd);
+  }
+}
+
+void Simulator::VisitSVEStackFrameAdjustment(const Instruction* instr) {
+  uint64_t length = 0;
+  switch (instr->Mask(SVEStackFrameAdjustmentMask)) {
+    case ADDPL_r_ri:
+      length = GetPredicateLengthInBytes();
+      break;
+    case ADDVL_r_ri:
+      length = GetVectorLengthInBytes();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+  uint64_t base = ReadXRegister(instr->GetRm(), Reg31IsStackPointer);
+  WriteXRegister(instr->GetRd(),
+                 base + (length * instr->GetImmSVEVLScale()),
+                 LogRegWrites,
+                 Reg31IsStackPointer);
+}
+
+void Simulator::VisitSVEStackFrameSize(const Instruction* instr) {
+  int64_t scale = instr->GetImmSVEVLScale();
+
+  switch (instr->Mask(SVEStackFrameSizeMask)) {
+    case RDVL_r_i:
+      WriteXRegister(instr->GetRd(), GetVectorLengthInBytes() * scale);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::VisitSVEVectorSelect(const Instruction* instr) {
+  // The only instruction in this group is `sel`, and there are no unused
+  // encodings.
+  VIXL_ASSERT(instr->Mask(SVEVectorSelectMask) == SEL_z_p_zz);
+
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimPRegister& pg = ReadPRegister(instr->ExtractBits(13, 10));
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  sel(vform, zd, pg, zn, zm);
+}
+
+void Simulator::VisitSVEFFRInitialise(const Instruction* instr) {
+  switch (instr->Mask(SVEFFRInitialiseMask)) {
+    case SETFFR_f: {
+      LogicPRegister ffr(ReadFFR());
+      ffr.SetAllBits();
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEFFRWriteFromPredicate(const Instruction* instr) {
+  switch (instr->Mask(SVEFFRWriteFromPredicateMask)) {
+    case WRFFR_f_p: {
+      SimPRegister pn(ReadPRegister(instr->GetPn()));
+      bool last_active = true;
+      for (unsigned i = 0; i < pn.GetSizeInBits(); i++) {
+        bool active = pn.GetBit(i);
+        if (active && !last_active) {
+          // `pn` is non-monotonic. This is UNPREDICTABLE.
+          VIXL_ABORT();
+        }
+        last_active = active;
+      }
+      mov(ReadFFR(), pn);
+      break;
+    }
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::VisitSVEContiguousLoad_ScalarPlusImm(const Instruction* instr) {
+  bool is_signed;
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusImmMask)) {
+    case LD1B_z_p_bi_u8:
+    case LD1B_z_p_bi_u16:
+    case LD1B_z_p_bi_u32:
+    case LD1B_z_p_bi_u64:
+    case LD1H_z_p_bi_u16:
+    case LD1H_z_p_bi_u32:
+    case LD1H_z_p_bi_u64:
+    case LD1W_z_p_bi_u32:
+    case LD1W_z_p_bi_u64:
+    case LD1D_z_p_bi_u64:
+      is_signed = false;
+      break;
+    case LD1SB_z_p_bi_s16:
+    case LD1SB_z_p_bi_s32:
+    case LD1SB_z_p_bi_s64:
+    case LD1SH_z_p_bi_s32:
+    case LD1SH_z_p_bi_s64:
+    case LD1SW_z_p_bi_s64:
+      is_signed = true;
+      break;
+    default:
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
+      break;
+  }
+
+  int vl = GetVectorLengthInBytes();
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
+  int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+  uint64_t offset =
+      (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredLoadHelper(vform,
+                          ReadPRegister(instr->GetPgLow8()),
+                          instr->GetRt(),
+                          addr,
+                          is_signed);
+}
+
+void Simulator::VisitSVEContiguousLoad_ScalarPlusScalar(
+    const Instruction* instr) {
+  bool is_signed;
+  switch (instr->Mask(SVEContiguousLoad_ScalarPlusScalarMask)) {
+    case LD1B_z_p_br_u8:
+    case LD1B_z_p_br_u16:
+    case LD1B_z_p_br_u32:
+    case LD1B_z_p_br_u64:
+    case LD1H_z_p_br_u16:
+    case LD1H_z_p_br_u32:
+    case LD1H_z_p_br_u64:
+    case LD1W_z_p_br_u32:
+    case LD1W_z_p_br_u64:
+    case LD1D_z_p_br_u64:
+      is_signed = false;
+      break;
+    case LD1SB_z_p_br_s16:
+    case LD1SB_z_p_br_s32:
+    case LD1SB_z_p_br_s64:
+    case LD1SH_z_p_br_s32:
+    case LD1SH_z_p_br_s64:
+    case LD1SW_z_p_br_s64:
+      is_signed = true;
+      break;
+    default:
+      // This encoding group is complete, so no other values should be possible.
+      VIXL_UNREACHABLE();
+      is_signed = false;
+      break;
+  }
+
+  int msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(is_signed);
+  int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
+  VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t offset = ReadXRegister(instr->GetRm());
+  offset <<= msize_in_bytes_log2;
+  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
+  SVEStructuredLoadHelper(vform,
+                          ReadPRegister(instr->GetPgLow8()),
+                          instr->GetRt(),
+                          addr,
+                          is_signed);
+}
 
 void Simulator::DoUnreachable(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&

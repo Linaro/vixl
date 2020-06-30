@@ -2064,6 +2064,22 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Prefetch from pc + imm19 << 2.
   void prfm(PrefetchOperation op, int64_t imm19);
 
+  // Prefetch memory (allowing unallocated hints).
+  void prfm(int op,
+            const MemOperand& addr,
+            LoadStoreScalingOption option = PreferScaledOffset);
+
+  // Prefetch memory (with unscaled offset, allowing unallocated hints).
+  void prfum(int op,
+             const MemOperand& addr,
+             LoadStoreScalingOption option = PreferUnscaledOffset);
+
+  // Prefetch memory in the literal pool (allowing unallocated hints).
+  void prfm(int op, RawLiteral* literal);
+
+  // Prefetch from pc + imm19 << 2 (allowing unallocated hints).
+  void prfm(int op, int64_t imm19);
+
   // Move instructions. The default shift of -1 indicates that the move
   // instruction will calculate an appropriate 16-bit immediate and left shift
   // that is equal to the 64-bit immediate argument. If an explicit left shift
@@ -3570,6 +3586,2234 @@ class Assembler : public vixl::internal::AssemblerBase {
              const VRegister& vm,
              int rot);
 
+  // Scalable Vector Extensions.
+
+  // Absolute value (predicated).
+  void abs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Add vectors (predicated).
+  void add(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Add vectors (unpredicated).
+  void add(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Add immediate (unpredicated).
+  void add(const ZRegister& zd, const ZRegister& zn, int imm8, int shift = -1);
+
+  // Add multiple of predicate register size to scalar register.
+  void addpl(const Register& xd, const Register& xn, int imm6);
+
+  // Add multiple of vector register size to scalar register.
+  void addvl(const Register& xd, const Register& xn, int imm6);
+
+  // Compute vector address.
+  void adr(const ZRegister& zd, const SVEMemOperand& addr);
+
+  // Bitwise AND predicates.
+  void and_(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise AND vectors (predicated).
+  void and_(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Bitwise AND with immediate (unpredicated).
+  void and_(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
+  // Bitwise AND vectors (unpredicated).
+  void and_(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Bitwise AND predicates.
+  void ands(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise AND reduction to scalar.
+  void andv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Arithmetic shift right by immediate (predicated).
+  void asr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift);
+
+  // Arithmetic shift right by 64-bit wide elements (predicated).
+  void asr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Arithmetic shift right by immediate (unpredicated).
+  void asr(const ZRegister& zd, const ZRegister& zn, int shift);
+
+  // Arithmetic shift right by 64-bit wide elements (unpredicated).
+  void asr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Arithmetic shift right for divide by immediate (predicated).
+  void asrd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            int shift);
+
+  // Reversed arithmetic shift right by vector (predicated).
+  void asrr(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Bitwise clear predicates.
+  void bic(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn,
+           const PRegisterWithLaneSize& pm);
+
+  // Bitwise clear vectors (predicated).
+  void bic(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Bitwise clear bits using immediate (unpredicated).
+  void bic(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
+  // Bitwise clear vectors (unpredicated).
+  void bic(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Bitwise clear predicates.
+  void bics(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Break after first true condition.
+  void brka(const PRegisterWithLaneSize& pd,
+            const PRegister& pg,
+            const PRegisterWithLaneSize& pn);
+
+  // Break after first true condition.
+  void brkas(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const PRegisterWithLaneSize& pn);
+
+  // Break before first true condition.
+  void brkb(const PRegisterWithLaneSize& pd,
+            const PRegister& pg,
+            const PRegisterWithLaneSize& pn);
+
+  // Break before first true condition.
+  void brkbs(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const PRegisterWithLaneSize& pn);
+
+  // Propagate break to next partition.
+  void brkn(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Propagate break to next partition.
+  void brkns(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const PRegisterWithLaneSize& pn,
+             const PRegisterWithLaneSize& pm);
+
+  // Break after first true condition, propagating from previous partition.
+  void brkpa(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const PRegisterWithLaneSize& pn,
+             const PRegisterWithLaneSize& pm);
+
+  // Break after first true condition, propagating from previous partition.
+  void brkpas(const PRegisterWithLaneSize& pd,
+              const PRegisterZ& pg,
+              const PRegisterWithLaneSize& pn,
+              const PRegisterWithLaneSize& pm);
+
+  // Break before first true condition, propagating from previous partition.
+  void brkpb(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const PRegisterWithLaneSize& pn,
+             const PRegisterWithLaneSize& pm);
+
+  // Break before first true condition, propagating from previous partition.
+  void brkpbs(const PRegisterWithLaneSize& pd,
+              const PRegisterZ& pg,
+              const PRegisterWithLaneSize& pn,
+              const PRegisterWithLaneSize& pm);
+
+  // Conditionally extract element after last to general-purpose register.
+  void clasta(const Register& rd,
+              const PRegister& pg,
+              const Register& rn,
+              const ZRegister& zm);
+
+  // Conditionally extract element after last to SIMD&FP scalar register.
+  void clasta(const VRegister& vd,
+              const PRegister& pg,
+              const VRegister& vn,
+              const ZRegister& zm);
+
+  // Conditionally extract element after last to vector register.
+  void clasta(const ZRegister& zd,
+              const PRegister& pg,
+              const ZRegister& zn,
+              const ZRegister& zm);
+
+  // Conditionally extract last element to general-purpose register.
+  void clastb(const Register& rd,
+              const PRegister& pg,
+              const Register& rn,
+              const ZRegister& zm);
+
+  // Conditionally extract last element to SIMD&FP scalar register.
+  void clastb(const VRegister& vd,
+              const PRegister& pg,
+              const VRegister& vn,
+              const ZRegister& zm);
+
+  // Conditionally extract last element to vector register.
+  void clastb(const ZRegister& zd,
+              const PRegister& pg,
+              const ZRegister& zn,
+              const ZRegister& zm);
+
+  // Count leading sign bits (predicated).
+  void cls(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Count leading zero bits (predicated).
+  void clz(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  void cmp(Condition cond,
+           const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Compare vector to 64-bit wide elements.
+  void cmpeq(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmpeq(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             int imm5);
+
+  // Compare vector to 64-bit wide elements.
+  void cmpge(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmpge(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             int imm5);
+
+  // Compare vector to 64-bit wide elements.
+  void cmpgt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmpgt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             int imm5);
+
+  // Compare vector to 64-bit wide elements.
+  void cmphi(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmphi(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             unsigned imm7);
+
+  // Compare vector to 64-bit wide elements.
+  void cmphs(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmphs(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             unsigned imm7);
+
+  // Compare vector to 64-bit wide elements.
+  void cmple(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmple(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             int imm5);
+
+  // Compare vector to 64-bit wide elements.
+  void cmplo(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmplo(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             unsigned imm7);
+
+  // Compare vector to 64-bit wide elements.
+  void cmpls(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmpls(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             unsigned imm7);
+
+  // Compare vector to 64-bit wide elements.
+  void cmplt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmplt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             int imm5);
+
+  // Compare vector to 64-bit wide elements.
+  void cmpne(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Compare vector to immediate.
+  void cmpne(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             int imm5);
+
+  // Logically invert boolean condition in vector (predicated).
+  void cnot(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Count non-zero bits (predicated).
+  void cnt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Set scalar to multiple of predicate constraint element count.
+  void cntb(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Set scalar to multiple of predicate constraint element count.
+  void cntd(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Set scalar to multiple of predicate constraint element count.
+  void cnth(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Set scalar to active predicate element count.
+  void cntp(const Register& xd,
+            const PRegister& pg,
+            const PRegisterWithLaneSize& pn);
+
+  // Set scalar to multiple of predicate constraint element count.
+  void cntw(const Register& rd, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Shuffle active elements of vector to the right and fill with zero.
+  void compact(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);
+
+  // Copy signed integer immediate to vector elements (predicated).
+  void cpy(const ZRegister& zd, const PRegister& pg, int imm8, int shift = -1);
+
+  // Copy general-purpose register to vector elements (predicated).
+  void cpy(const ZRegister& zd, const PRegisterM& pg, const Register& rn);
+
+  // Copy SIMD&FP scalar register to vector elements (predicated).
+  void cpy(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn);
+
+  // Compare and terminate loop.
+  void ctermeq(const Register& rn, const Register& rm);
+
+  // Compare and terminate loop.
+  void ctermne(const Register& rn, const Register& rm);
+
+  // Decrement scalar by multiple of predicate constraint element count.
+  void decb(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Decrement scalar by multiple of predicate constraint element count.
+  void decd(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Decrement vector by multiple of predicate constraint element count.
+  void decd(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Decrement scalar by multiple of predicate constraint element count.
+  void dech(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Decrement vector by multiple of predicate constraint element count.
+  void dech(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Decrement scalar by active predicate element count.
+  void decp(const Register& rdn, const PRegisterWithLaneSize& pg);
+
+  // Decrement vector by active predicate element count.
+  void decp(const ZRegister& zdn, const PRegister& pg);
+
+  // Decrement scalar by multiple of predicate constraint element count.
+  void decw(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Decrement vector by multiple of predicate constraint element count.
+  void decw(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Broadcast general-purpose register to vector elements (unpredicated).
+  void dup(const ZRegister& zd, const Register& xn);
+
+  // Broadcast indexed element to vector (unpredicated).
+  void dup(const ZRegister& zd, const ZRegister& zn, unsigned index);
+
+  // As for movz/movk/movn, if the default shift of -1 is specified to dup, the
+  // assembler will pick an appropriate immediate and left shift that is
+  // equivalent to the immediate argument. If an explicit left shift is
+  // specified (0 or 8), the immediate must be a signed 8-bit integer.
+
+  // Broadcast signed immediate to vector elements (unpredicated).
+  void dup(const ZRegister& zd, int imm8, int shift = -1);
+
+  // Broadcast logical bitmask immediate to vector (unpredicated).
+  void dupm(const ZRegister& zd, uint64_t imm);
+
+  // Bitwise exclusive OR with inverted immediate (unpredicated).
+  void eon(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
+  // Bitwise exclusive OR predicates.
+  void eor(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn,
+           const PRegisterWithLaneSize& pm);
+
+  // Bitwise exclusive OR vectors (predicated).
+  void eor(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Bitwise exclusive OR with immediate (unpredicated).
+  void eor(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
+  // Bitwise exclusive OR vectors (unpredicated).
+  void eor(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Bitwise exclusive OR predicates.
+  void eors(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise XOR reduction to scalar.
+  void eorv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Extract vector from pair of vectors.
+  void ext(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           unsigned offset);
+
+  // Floating-point absolute difference (predicated).
+  void fabd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point absolute value (predicated).
+  void fabs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point absolute compare vectors.
+  void facge(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point absolute compare vectors.
+  void facgt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point add immediate (predicated).
+  void fadd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
+
+  // Floating-point add vector (predicated).
+  void fadd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point add vector (unpredicated).
+  void fadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Floating-point add strictly-ordered reduction, accumulating in scalar.
+  void fadda(const VRegister& vd,
+             const PRegister& pg,
+             const VRegister& vn,
+             const ZRegister& zm);
+
+  // Floating-point add recursive reduction to scalar.
+  void faddv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Floating-point complex add with rotate (predicated).
+  void fcadd(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int rot);
+
+  // Floating-point compare vector with zero.
+  void fcmeq(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn);
+
+  // Floating-point compare vectors.
+  void fcmeq(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point compare vector with zero.
+  void fcmge(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn);
+
+  // Floating-point compare vectors.
+  void fcmge(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point compare vector with zero.
+  void fcmgt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn);
+
+  // Floating-point compare vectors.
+  void fcmgt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point complex multiply-add with rotate (predicated).
+  void fcmla(const ZRegister& zda,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int rot);
+
+  // Floating-point complex multiply-add by indexed values with rotate.
+  void fcmla(const ZRegister& zda,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int index,
+             int rot);
+
+  // Floating-point compare vector with zero.
+  void fcmle(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn);
+
+  // Floating-point compare vector with zero.
+  void fcmlt(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn);
+
+  // Floating-point compare vector with zero.
+  void fcmne(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn);
+
+  // Floating-point compare vectors.
+  void fcmne(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point compare vectors.
+  void fcmuo(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Copy floating-point immediate to vector elements (predicated).
+  void fcpy(const ZRegister& zd, const PRegisterM& pg, double imm);
+
+  // Copy half-precision floating-point immediate to vector elements
+  // (predicated).
+  void fcpy(const ZRegister& zd, const PRegisterM& pg, Float16 imm) {
+    fcpy(zd, pg, FPToDouble(imm, kIgnoreDefaultNaN));
+  }
+
+  // Floating-point convert precision (predicated).
+  void fcvt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point convert to signed integer, rounding toward zero
+  // (predicated).
+  void fcvtzs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point convert to unsigned integer, rounding toward zero
+  // (predicated).
+  void fcvtzu(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point divide by vector (predicated).
+  void fdiv(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point reversed divide by vector (predicated).
+  void fdivr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Broadcast floating-point immediate to vector elements.
+  void fdup(const ZRegister& zd, double imm);
+
+  // Broadcast half-precision floating-point immediate to vector elements.
+  void fdup(const ZRegister& zd, Float16 imm) {
+    fdup(zd, FPToDouble(imm, kIgnoreDefaultNaN));
+  }
+
+  // Floating-point exponential accelerator.
+  void fexpa(const ZRegister& zd, const ZRegister& zn);
+
+  // Floating-point fused multiply-add vectors (predicated), writing
+  // multiplicand [Zdn = Za + Zdn * Zm].
+  void fmad(const ZRegister& zdn,
+            const PRegisterM& pg,
+            const ZRegister& zm,
+            const ZRegister& za);
+
+  // Floating-point maximum with immediate (predicated).
+  void fmax(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
+
+  // Floating-point maximum (predicated).
+  void fmax(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point maximum number with immediate (predicated).
+  void fmaxnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              double imm);
+
+  // Floating-point maximum number (predicated).
+  void fmaxnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              const ZRegister& zm);
+
+  // Floating-point maximum number recursive reduction to scalar.
+  void fmaxnmv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Floating-point maximum recursive reduction to scalar.
+  void fmaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Floating-point minimum with immediate (predicated).
+  void fmin(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
+
+  // Floating-point minimum (predicated).
+  void fmin(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point minimum number with immediate (predicated).
+  void fminnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              double imm);
+
+  // Floating-point minimum number (predicated).
+  void fminnm(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              const ZRegister& zm);
+
+  // Floating-point minimum number recursive reduction to scalar.
+  void fminnmv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Floating-point minimum recursive reduction to scalar.
+  void fminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Floating-point fused multiply-add vectors (predicated), writing addend
+  // [Zda = Zda + Zn * Zm].
+  void fmla(const ZRegister& zda,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point fused multiply-add by indexed elements
+  // (Zda = Zda + Zn * Zm[indexed]).
+  void fmla(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
+
+  // Floating-point fused multiply-subtract vectors (predicated), writing
+  // addend [Zda = Zda + -Zn * Zm].
+  void fmls(const ZRegister& zda,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point fused multiply-subtract by indexed elements
+  // (Zda = Zda + -Zn * Zm[indexed]).
+  void fmls(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
+
+  // Move 8-bit floating-point immediate to vector elements (unpredicated).
+  void fmov(const ZRegister& zd, double imm);
+
+  // Move 8-bit floating-point immediate to vector elements (predicated).
+  void fmov(const ZRegister& zd, const PRegisterM& pg, double imm);
+
+  // Floating-point fused multiply-subtract vectors (predicated), writing
+  // multiplicand [Zdn = Za + -Zdn * Zm].
+  void fmsb(const ZRegister& zdn,
+            const PRegisterM& pg,
+            const ZRegister& zm,
+            const ZRegister& za);
+
+  // Floating-point multiply by immediate (predicated).
+  void fmul(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
+
+  // Floating-point multiply vectors (predicated).
+  void fmul(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point multiply by indexed elements.
+  void fmul(const ZRegister& zd,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            unsigned index);
+
+  // Floating-point multiply vectors (unpredicated).
+  void fmul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Floating-point multiply-extended vectors (predicated).
+  void fmulx(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point negate (predicated).
+  void fneg(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point negated fused multiply-add vectors (predicated), writing
+  // multiplicand [Zdn = -Za + -Zdn * Zm].
+  void fnmad(const ZRegister& zdn,
+             const PRegisterM& pg,
+             const ZRegister& zm,
+             const ZRegister& za);
+
+  // Floating-point negated fused multiply-add vectors (predicated), writing
+  // addend [Zda = -Zda + -Zn * Zm].
+  void fnmla(const ZRegister& zda,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point negated fused multiply-subtract vectors (predicated),
+  // writing addend [Zda = -Zda + Zn * Zm].
+  void fnmls(const ZRegister& zda,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point negated fused multiply-subtract vectors (predicated),
+  // writing multiplicand [Zdn = -Za + Zdn * Zm].
+  void fnmsb(const ZRegister& zdn,
+             const PRegisterM& pg,
+             const ZRegister& zm,
+             const ZRegister& za);
+
+  // Floating-point reciprocal estimate (unpredicated).
+  void frecpe(const ZRegister& zd, const ZRegister& zn);
+
+  // Floating-point reciprocal step (unpredicated).
+  void frecps(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Floating-point reciprocal exponent (predicated).
+  void frecpx(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frinta(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frinti(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frintm(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frintn(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frintp(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frintx(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point round to integral value (predicated).
+  void frintz(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point reciprocal square root estimate (unpredicated).
+  void frsqrte(const ZRegister& zd, const ZRegister& zn);
+
+  // Floating-point reciprocal square root step (unpredicated).
+  void frsqrts(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Floating-point adjust exponent by vector (predicated).
+  void fscale(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              const ZRegister& zm);
+
+  // Floating-point square root (predicated).
+  void fsqrt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Floating-point subtract immediate (predicated).
+  void fsub(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            double imm);
+
+  // Floating-point subtract vectors (predicated).
+  void fsub(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Floating-point subtract vectors (unpredicated).
+  void fsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Floating-point reversed subtract from immediate (predicated).
+  void fsubr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             double imm);
+
+  // Floating-point reversed subtract vectors (predicated).
+  void fsubr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Floating-point trigonometric multiply-add coefficient.
+  void ftmad(const ZRegister& zd,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int imm3);
+
+  // Floating-point trigonometric starting value.
+  void ftsmul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Floating-point trigonometric select coefficient.
+  void ftssel(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Increment scalar by multiple of predicate constraint element count.
+  void incb(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Increment scalar by multiple of predicate constraint element count.
+  void incd(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Increment vector by multiple of predicate constraint element count.
+  void incd(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Increment scalar by multiple of predicate constraint element count.
+  void inch(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Increment vector by multiple of predicate constraint element count.
+  void inch(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Increment scalar by active predicate element count.
+  void incp(const Register& rdn, const PRegisterWithLaneSize& pg);
+
+  // Increment vector by active predicate element count.
+  void incp(const ZRegister& zdn, const PRegister& pg);
+
+  // Increment scalar by multiple of predicate constraint element count.
+  void incw(const Register& xdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Increment vector by multiple of predicate constraint element count.
+  void incw(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Create index starting from and incremented by immediate.
+  void index(const ZRegister& zd, int start, int step);
+
+  // Create index starting from and incremented by general-purpose register.
+  void index(const ZRegister& zd, const Register& rn, const Register& rm);
+
+  // Create index starting from general-purpose register and incremented by
+  // immediate.
+  void index(const ZRegister& zd, const Register& rn, int imm5);
+
+  // Create index starting from immediate and incremented by general-purpose
+  // register.
+  void index(const ZRegister& zd, int imm5, const Register& rm);
+
+  // Insert general-purpose register in shifted vector.
+  void insr(const ZRegister& zdn, const Register& rm);
+
+  // Insert SIMD&FP scalar register in shifted vector.
+  void insr(const ZRegister& zdn, const VRegister& vm);
+
+  // Extract element after last to general-purpose register.
+  void lasta(const Register& rd, const PRegister& pg, const ZRegister& zn);
+
+  // Extract element after last to SIMD&FP scalar register.
+  void lasta(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Extract last element to general-purpose register.
+  void lastb(const Register& rd, const PRegister& pg, const ZRegister& zn);
+
+  // Extract last element to SIMD&FP scalar register.
+  void lastb(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Contiguous/gather load bytes to vector.
+  void ld1b(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/gather load halfwords to vector.
+  void ld1h(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/gather load words to vector.
+  void ld1w(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/gather load doublewords to vector.
+  void ld1d(const ZRegister& zt,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // TODO: Merge other loads into the SVEMemOperand versions.
+
+  // Load and broadcast unsigned byte to vector.
+  void ld1rb(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Load and broadcast unsigned halfword to vector.
+  void ld1rh(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Load and broadcast unsigned word to vector.
+  void ld1rw(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Load and broadcast doubleword to vector.
+  void ld1rd(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Contiguous load and replicate sixteen bytes.
+  void ld1rqb(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load and replicate eight halfwords.
+  void ld1rqh(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load and replicate four words.
+  void ld1rqw(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load and replicate two doublewords.
+  void ld1rqd(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Load and broadcast signed byte to vector.
+  void ld1rsb(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Load and broadcast signed halfword to vector.
+  void ld1rsh(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Load and broadcast signed word to vector.
+  void ld1rsw(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous/gather load signed bytes to vector.
+  void ld1sb(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Contiguous/gather load signed halfwords to vector.
+  void ld1sh(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // Contiguous/gather load signed words to vector.
+  void ld1sw(const ZRegister& zt,
+             const PRegisterZ& pg,
+             const SVEMemOperand& addr);
+
+  // TODO: Merge other loads into the SVEMemOperand versions.
+
+  // Contiguous load two-byte structures to two vectors.
+  void ld2b(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load two-halfword structures to two vectors.
+  void ld2h(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load two-word structures to two vectors.
+  void ld2w(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load two-doubleword structures to two vectors.
+  void ld2d(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load three-byte structures to three vectors.
+  void ld3b(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load three-halfword structures to three vectors.
+  void ld3h(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load three-word structures to three vectors.
+  void ld3w(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load three-doubleword structures to three vectors.
+  void ld3d(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load four-byte structures to four vectors.
+  void ld4b(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load four-halfword structures to four vectors.
+  void ld4h(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load four-word structures to four vectors.
+  void ld4w(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load four-doubleword structures to four vectors.
+  void ld4d(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegisterZ& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous load first-fault unsigned bytes to vector.
+  void ldff1b(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault unsigned halfwords to vector.
+  void ldff1h(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault unsigned words to vector.
+  void ldff1w(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault doublewords to vector.
+  void ldff1d(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load first-fault signed bytes to vector.
+  void ldff1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load first-fault signed halfwords to vector.
+  void ldff1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load first-fault signed words to vector.
+  void ldff1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Gather load first-fault unsigned bytes to vector.
+  void ldff1b(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const Register& xn,
+              const ZRegister& zm);
+
+  // Gather load first-fault unsigned bytes to vector (immediate index).
+  void ldff1b(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const ZRegister& zn,
+              int imm5);
+
+  // Gather load first-fault doublewords to vector (vector index).
+  void ldff1d(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const Register& xn,
+              const ZRegister& zm);
+
+  // Gather load first-fault doublewords to vector (immediate index).
+  void ldff1d(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const ZRegister& zn,
+              int imm5);
+
+  // Gather load first-fault unsigned halfwords to vector (vector index).
+  void ldff1h(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const Register& xn,
+              const ZRegister& zm);
+
+  // Gather load first-fault unsigned halfwords to vector (immediate index).
+  void ldff1h(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const ZRegister& zn,
+              int imm5);
+
+  // Gather load first-fault signed bytes to vector (vector index).
+  void ldff1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const Register& xn,
+               const ZRegister& zm);
+
+  // Gather load first-fault signed bytes to vector (immediate index).
+  void ldff1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const ZRegister& zn,
+               int imm5);
+
+  // Gather load first-fault signed halfwords to vector (vector index).
+  void ldff1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const Register& xn,
+               const ZRegister& zm);
+
+  // Gather load first-fault signed halfwords to vector (immediate index).
+  void ldff1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const ZRegister& zn,
+               int imm5);
+
+  // Gather load first-fault signed words to vector (vector index).
+  void ldff1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const Register& xn,
+               const ZRegister& zm);
+
+  // Gather load first-fault signed words to vector (immediate index).
+  void ldff1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const ZRegister& zn,
+               int imm5);
+
+  // Gather load first-fault unsigned words to vector (vector index).
+  void ldff1w(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const Register& xn,
+              const ZRegister& zm);
+
+  // Gather load first-fault unsigned words to vector (immediate index).
+  void ldff1w(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const ZRegister& zn,
+              int imm5);
+
+  // Contiguous load non-fault unsigned bytes to vector (immediate index).
+  void ldnf1b(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-fault doublewords to vector (immediate index).
+  void ldnf1d(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-fault unsigned halfwords to vector (immediate
+  // index).
+  void ldnf1h(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-fault signed bytes to vector (immediate index).
+  void ldnf1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load non-fault signed halfwords to vector (immediate index).
+  void ldnf1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load non-fault signed words to vector (immediate index).
+  void ldnf1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
+
+  // Contiguous load non-fault unsigned words to vector (immediate index).
+  void ldnf1w(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-temporal bytes to vector.
+  void ldnt1b(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-temporal halfwords to vector.
+  void ldnt1h(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-temporal words to vector.
+  void ldnt1w(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load non-temporal doublewords to vector.
+  void ldnt1d(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Load SVE predicate/vector register.
+  void ldr(const CPURegister& rt, const SVEMemOperand& addr);
+
+  // Logical shift left by immediate (predicated).
+  void lsl(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift);
+
+  // Logical shift left by 64-bit wide elements (predicated).
+  void lsl(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Logical shift left by immediate (unpredicated).
+  void lsl(const ZRegister& zd, const ZRegister& zn, int shift);
+
+  // Logical shift left by 64-bit wide elements (unpredicated).
+  void lsl(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Reversed logical shift left by vector (predicated).
+  void lslr(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Logical shift right by immediate (predicated).
+  void lsr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           int shift);
+
+  // Logical shift right by 64-bit wide elements (predicated).
+  void lsr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Logical shift right by immediate (unpredicated).
+  void lsr(const ZRegister& zd, const ZRegister& zn, int shift);
+
+  // Logical shift right by 64-bit wide elements (unpredicated).
+  void lsr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Reversed logical shift right by vector (predicated).
+  void lsrr(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Bitwise invert predicate.
+  void not_(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn);
+
+  // Bitwise invert predicate, setting the condition flags.
+  void nots(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn);
+
+  // Multiply-add vectors (predicated), writing multiplicand
+  // [Zdn = Za + Zdn * Zm].
+  void mad(const ZRegister& zdn,
+           const PRegisterM& pg,
+           const ZRegister& zm,
+           const ZRegister& za);
+
+  // Multiply-add vectors (predicated), writing addend
+  // [Zda = Zda + Zn * Zm].
+  void mla(const ZRegister& zda,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Multiply-subtract vectors (predicated), writing addend
+  // [Zda = Zda - Zn * Zm].
+  void mls(const ZRegister& zda,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Move predicates (unpredicated)
+  void mov(const PRegister& pd, const PRegister& pn);
+
+  // Move predicates (merging)
+  void mov(const PRegisterWithLaneSize& pd,
+           const PRegisterM& pg,
+           const PRegisterWithLaneSize& pn);
+
+  // Move predicates (zeroing)
+  void mov(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn);
+
+  // Move general-purpose register to vector elements (unpredicated)
+  void mov(const ZRegister& zd, const Register& xn);
+
+  // Move SIMD&FP scalar register to vector elements (unpredicated)
+  void mov(const ZRegister& zd, const VRegister& vn);
+
+  // Move vector register (unpredicated)
+  void mov(const ZRegister& zd, const ZRegister& zn);
+
+  // Move indexed element to vector elements (unpredicated)
+  void mov(const ZRegister& zd, const ZRegister& zn, unsigned index);
+
+  // Move general-purpose register to vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegisterM& pg, const Register& rn);
+
+  // Move SIMD&FP scalar register to vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegisterM& pg, const VRegister& vn);
+
+  // Move vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Move signed integer immediate to vector elements (predicated)
+  void mov(const ZRegister& zd, const PRegister& pg, int imm8, int shift = -1);
+
+  // Move signed immediate to vector elements (unpredicated).
+  void mov(const ZRegister& zd, int imm8, int shift);
+
+  // Move logical bitmask immediate to vector (unpredicated).
+  void mov(const ZRegister& zd, uint64_t imm);
+
+  // Move predicate (unpredicated), setting the condition flags
+  void movs(const PRegister& pd, const PRegister& pn);
+
+  // Move predicates (zeroing), setting the condition flags
+  void movs(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn);
+
+  // Move prefix (predicated).
+  void movprfx(const ZRegister& zd, const PRegister& pg, const ZRegister& zn);
+
+  // Move prefix (unpredicated).
+  void movprfx(const ZRegister& zd, const ZRegister& zn);
+
+  // Multiply-subtract vectors (predicated), writing multiplicand
+  // [Zdn = Za - Zdn * Zm].
+  void msb(const ZRegister& zdn,
+           const PRegisterM& pg,
+           const ZRegister& zm,
+           const ZRegister& za);
+
+  // Multiply vectors (predicated).
+  void mul(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Multiply by immediate (unpredicated).
+  void mul(const ZRegister& zd, const ZRegister& zn, int imm8);
+
+  // Bitwise NAND predicates.
+  void nand(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise NAND predicates.
+  void nands(const PRegisterWithLaneSize& pd,
+             const PRegisterZ& pg,
+             const PRegisterWithLaneSize& pn,
+             const PRegisterWithLaneSize& pm);
+
+  // Negate (predicated).
+  void neg(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Bitwise NOR predicates.
+  void nor(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn,
+           const PRegisterWithLaneSize& pm);
+
+  // Bitwise NOR predicates.
+  void nors(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise invert vector (predicated).
+  void not_(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Bitwise OR inverted predicate.
+  void orn(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn,
+           const PRegisterWithLaneSize& pm);
+
+  // Bitwise OR inverted predicate.
+  void orns(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise OR with inverted immediate (unpredicated).
+  void orn(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
+  // Bitwise OR predicate.
+  void orr(const PRegisterWithLaneSize& pd,
+           const PRegisterZ& pg,
+           const PRegisterWithLaneSize& pn,
+           const PRegisterWithLaneSize& pm);
+
+  // Bitwise OR vectors (predicated).
+  void orr(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Bitwise OR with immediate (unpredicated).
+  void orr(const ZRegister& zd, const ZRegister& zn, uint64_t imm);
+
+  // Bitwise OR vectors (unpredicated).
+  void orr(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Bitwise OR predicate.
+  void orrs(const PRegisterWithLaneSize& pd,
+            const PRegisterZ& pg,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Bitwise OR reduction to scalar.
+  void orv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Set all predicate elements to false.
+  void pfalse(const PRegisterWithLaneSize& pd);
+
+  // Set the first active predicate element to true.
+  void pfirst(const PRegisterWithLaneSize& pd,
+              const PRegister& pg,
+              const PRegisterWithLaneSize& pn);
+
+  // Find next active predicate.
+  void pnext(const PRegisterWithLaneSize& pd,
+             const PRegister& pg,
+             const PRegisterWithLaneSize& pn);
+
+  // Prefetch bytes.
+  void prfb(PrefetchOperation prfop,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Prefetch halfwords.
+  void prfh(PrefetchOperation prfop,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Prefetch words.
+  void prfw(PrefetchOperation prfop,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Prefetch doublewords.
+  void prfd(PrefetchOperation prfop,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Set condition flags for predicate.
+  void ptest(const PRegister& pg, const PRegisterWithLaneSize& pn);
+
+  // Initialise predicate from named constraint.
+  void ptrue(const PRegisterWithLaneSize& pd, int pattern = SVE_ALL);
+
+  // Initialise predicate from named constraint.
+  void ptrues(const PRegisterWithLaneSize& pd, int pattern = SVE_ALL);
+
+  // Unpack and widen half of predicate.
+  void punpkhi(const PRegisterWithLaneSize& pd,
+               const PRegisterWithLaneSize& pn);
+
+  // Unpack and widen half of predicate.
+  void punpklo(const PRegisterWithLaneSize& pd,
+               const PRegisterWithLaneSize& pn);
+
+  // Reverse bits (predicated).
+  void rbit(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Read the first-fault register.
+  void rdffr(const PRegisterWithLaneSize& pd);
+
+  // Return predicate of succesfully loaded elements.
+  void rdffr(const PRegisterWithLaneSize& pd, const PRegisterZ& pg);
+
+  // Return predicate of succesfully loaded elements.
+  void rdffrs(const PRegisterWithLaneSize& pd, const PRegisterZ& pg);
+
+  // Read multiple of vector register size to scalar register.
+  void rdvl(const Register& xd, int imm6);
+
+  // Reverse all elements in a predicate.
+  void rev(const PRegisterWithLaneSize& pd, const PRegisterWithLaneSize& pn);
+
+  // Reverse all elements in a vector (unpredicated).
+  void rev(const ZRegister& zd, const ZRegister& zn);
+
+  // Reverse bytes / halfwords / words within elements (predicated).
+  void revb(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Reverse bytes / halfwords / words within elements (predicated).
+  void revh(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Reverse bytes / halfwords / words within elements (predicated).
+  void revw(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Signed absolute difference (predicated).
+  void sabd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Signed add reduction to scalar.
+  void saddv(const VRegister& dd, const PRegister& pg, const ZRegister& zn);
+
+  // Signed integer convert to floating-point (predicated).
+  void scvtf(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Signed divide (predicated).
+  void sdiv(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Signed reversed divide (predicated).
+  void sdivr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Signed dot product by indexed quadtuplet.
+  void sdot(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
+
+  // Signed dot product.
+  void sdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
+  // Conditionally select elements from two predicates.
+  void sel(const PRegisterWithLaneSize& pd,
+           const PRegister& pg,
+           const PRegisterWithLaneSize& pn,
+           const PRegisterWithLaneSize& pm);
+
+  // Conditionally select elements from two vectors.
+  void sel(const ZRegister& zd,
+           const PRegister& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Initialise the first-fault register to all true.
+  void setffr();
+
+  // Signed maximum vectors (predicated).
+  void smax(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Signed maximum with immediate (unpredicated).
+  void smax(const ZRegister& zd, const ZRegister& zn, int imm8);
+
+  // Signed maximum reduction to scalar.
+  void smaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Signed minimum vectors (predicated).
+  void smin(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Signed minimum with immediate (unpredicated).
+  void smin(const ZRegister& zd, const ZRegister& zn, int imm8);
+
+  // Signed minimum reduction to scalar.
+  void sminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Signed multiply returning high half (predicated).
+  void smulh(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Splice two vectors under predicate control.
+  void splice(const ZRegister& zd,
+              const PRegister& pg,
+              const ZRegister& zn,
+              const ZRegister& zm);
+
+  // Signed saturating add vectors (unpredicated).
+  void sqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Signed saturating add immediate (unpredicated).
+  void sqadd(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
+
+  // Signed saturating decrement scalar by multiple of 8-bit predicate
+  // constraint element count.
+  void sqdecb(const Register& xd,
+              const Register& wn,
+              int pattern,
+              int multiplier);
+
+  // Signed saturating decrement scalar by multiple of 8-bit predicate
+  // constraint element count.
+  void sqdecb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating decrement scalar by multiple of 64-bit predicate
+  // constraint element count.
+  void sqdecd(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
+
+  // Signed saturating decrement scalar by multiple of 64-bit predicate
+  // constraint element count.
+  void sqdecd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating decrement vector by multiple of 64-bit predicate
+  // constraint element count.
+  void sqdecd(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating decrement scalar by multiple of 16-bit predicate
+  // constraint element count.
+  void sqdech(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
+
+  // Signed saturating decrement scalar by multiple of 16-bit predicate
+  // constraint element count.
+  void sqdech(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating decrement vector by multiple of 16-bit predicate
+  // constraint element count.
+  void sqdech(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating decrement scalar by active predicate element count.
+  void sqdecp(const Register& xd,
+              const PRegisterWithLaneSize& pg,
+              const Register& wn);
+
+  // Signed saturating decrement scalar by active predicate element count.
+  void sqdecp(const Register& xdn, const PRegisterWithLaneSize& pg);
+
+  // Signed saturating decrement vector by active predicate element count.
+  void sqdecp(const ZRegister& zdn, const PRegister& pg);
+
+  // Signed saturating decrement scalar by multiple of 32-bit predicate
+  // constraint element count.
+  void sqdecw(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
+
+  // Signed saturating decrement scalar by multiple of 32-bit predicate
+  // constraint element count.
+  void sqdecw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating decrement vector by multiple of 32-bit predicate
+  // constraint element count.
+  void sqdecw(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment scalar by multiple of 8-bit predicate
+  // constraint element count.
+  void sqincb(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
+
+  // Signed saturating increment scalar by multiple of 8-bit predicate
+  // constraint element count.
+  void sqincb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment scalar by multiple of 64-bit predicate
+  // constraint element count.
+  void sqincd(const Register& xd,
+              const Register& wn,
+              int pattern,
+              int multiplier);
+
+  // Signed saturating increment scalar by multiple of 64-bit predicate
+  // constraint element count.
+  void sqincd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment vector by multiple of 64-bit predicate
+  // constraint element count.
+  void sqincd(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment scalar by multiple of 16-bit predicate
+  // constraint element count.
+  void sqinch(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
+
+  // Signed saturating increment scalar by multiple of 16-bit predicate
+  // constraint element count.
+  void sqinch(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment vector by multiple of 16-bit predicate
+  // constraint element count.
+  void sqinch(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment scalar by active predicate element count.
+  void sqincp(const Register& xd,
+              const PRegisterWithLaneSize& pg,
+              const Register& wn);
+
+  // Signed saturating increment scalar by active predicate element count.
+  void sqincp(const Register& xdn, const PRegisterWithLaneSize& pg);
+
+  // Signed saturating increment vector by active predicate element count.
+  void sqincp(const ZRegister& zdn, const PRegister& pg);
+
+  // Signed saturating increment scalar by multiple of 32-bit predicate
+  // constraint element count.
+  void sqincw(const Register& xd,
+              const Register& wn,
+              int pattern = SVE_ALL,
+              int multiplier = 1);
+
+  // Signed saturating increment scalar by multiple of 32-bit predicate
+  // constraint element count.
+  void sqincw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating increment vector by multiple of 32-bit predicate
+  // constraint element count.
+  void sqincw(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Signed saturating subtract vectors (unpredicated).
+  void sqsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Signed saturating subtract immediate (unpredicated).
+  void sqsub(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
+
+  // Contiguous/scatter store bytes from vector.
+  void st1b(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/scatter store halfwords from vector.
+  void st1h(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/scatter store words from vector.
+  void st1w(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous/scatter store doublewords from vector.
+  void st1d(const ZRegister& zt,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store two-byte structures from two vectors.
+  void st2b(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store two-halfword structures from two vectors.
+  void st2h(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store two-word structures from two vectors.
+  void st2w(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store two-doubleword structures from two vectors,
+  void st2d(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store three-byte structures from three vectors.
+  void st3b(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store three-halfword structures from three vectors.
+  void st3h(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store three-word structures from three vectors.
+  void st3w(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store three-doubleword structures from three vectors.
+  void st3d(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store four-byte structures from four vectors.
+  void st4b(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store four-halfword structures from four vectors.
+  void st4h(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store four-word structures from four vectors.
+  void st4w(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store four-doubleword structures from four vectors.
+  void st4d(const ZRegister& zt1,
+            const ZRegister& zt2,
+            const ZRegister& zt3,
+            const ZRegister& zt4,
+            const PRegister& pg,
+            const SVEMemOperand& addr);
+
+  // Contiguous store non-temporal bytes from vector.
+  void stnt1b(const ZRegister& zt,
+              const PRegister& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous store non-temporal halfwords from vector.
+  void stnt1h(const ZRegister& zt,
+              const PRegister& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous store non-temporal words from vector.
+  void stnt1w(const ZRegister& zt,
+              const PRegister& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous store non-temporal doublewords from vector.
+  void stnt1d(const ZRegister& zt,
+              const PRegister& pg,
+              const SVEMemOperand& addr);
+
+  // Store SVE predicate/vector register.
+  void str(const CPURegister& rt, const SVEMemOperand& addr);
+
+  // Subtract vectors (predicated).
+  void sub(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
+
+  // Subtract vectors (unpredicated).
+  void sub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Subtract immediate (unpredicated).
+  void sub(const ZRegister& zd, const ZRegister& zn, int imm8, int shift = -1);
+
+  // Reversed subtract vectors (predicated).
+  void subr(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Reversed subtract from immediate (unpredicated).
+  void subr(const ZRegister& zd, const ZRegister& zn, int imm8, int shift = -1);
+
+  // Signed unpack and extend half of vector.
+  void sunpkhi(const ZRegister& zd, const ZRegister& zn);
+
+  // Signed unpack and extend half of vector.
+  void sunpklo(const ZRegister& zd, const ZRegister& zn);
+
+  // Signed byte extend (predicated).
+  void sxtb(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Signed halfword extend (predicated).
+  void sxth(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Signed word extend (predicated).
+  void sxtw(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Programmable table lookup/permute using vector of indices into a
+  // vector.
+  void tbl(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Interleave even or odd elements from two predicates.
+  void trn1(const PRegisterWithLaneSize& pd,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Interleave even or odd elements from two vectors.
+  void trn1(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Interleave even or odd elements from two predicates.
+  void trn2(const PRegisterWithLaneSize& pd,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Interleave even or odd elements from two vectors.
+  void trn2(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned absolute difference (predicated).
+  void uabd(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Unsigned add reduction to scalar.
+  void uaddv(const VRegister& dd, const PRegister& pg, const ZRegister& zn);
+
+  // Unsigned integer convert to floating-point (predicated).
+  void ucvtf(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Unsigned divide (predicated).
+  void udiv(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Unsigned reversed divide (predicated).
+  void udivr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Unsigned dot product by indexed quadtuplet.
+  void udot(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index);
+
+  // Unsigned dot product.
+  void udot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned maximum vectors (predicated).
+  void umax(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Unsigned maximum with immediate (unpredicated).
+  void umax(const ZRegister& zd, const ZRegister& zn, int imm8);
+
+  // Unsigned maximum reduction to scalar.
+  void umaxv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Unsigned minimum vectors (predicated).
+  void umin(const ZRegister& zd,
+            const PRegisterM& pg,
+            const ZRegister& zn,
+            const ZRegister& zm);
+
+  // Unsigned minimum with immediate (unpredicated).
+  void umin(const ZRegister& zd, const ZRegister& zn, int imm8);
+
+  // Unsigned minimum reduction to scalar.
+  void uminv(const VRegister& vd, const PRegister& pg, const ZRegister& zn);
+
+  // Unsigned multiply returning high half (predicated).
+  void umulh(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             const ZRegister& zm);
+
+  // Unsigned saturating add vectors (unpredicated).
+  void uqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned saturating add immediate (unpredicated).
+  void uqadd(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
+
+  // Unsigned saturating decrement scalar by multiple of 8-bit predicate
+  // constraint element count.
+  void uqdecb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating decrement scalar by multiple of 64-bit predicate
+  // constraint element count.
+  void uqdecd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating decrement vector by multiple of 64-bit predicate
+  // constraint element count.
+  void uqdecd(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating decrement scalar by multiple of 16-bit predicate
+  // constraint element count.
+  void uqdech(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating decrement vector by multiple of 16-bit predicate
+  // constraint element count.
+  void uqdech(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating decrement scalar by active predicate element count.
+  void uqdecp(const Register& rdn, const PRegisterWithLaneSize& pg);
+
+  // Unsigned saturating decrement vector by active predicate element count.
+  void uqdecp(const ZRegister& zdn, const PRegister& pg);
+
+  // Unsigned saturating decrement scalar by multiple of 32-bit predicate
+  // constraint element count.
+  void uqdecw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating decrement vector by multiple of 32-bit predicate
+  // constraint element count.
+  void uqdecw(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment scalar by multiple of 8-bit predicate
+  // constraint element count.
+  void uqincb(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment scalar by multiple of 64-bit predicate
+  // constraint element count.
+  void uqincd(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment vector by multiple of 64-bit predicate
+  // constraint element count.
+  void uqincd(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment scalar by multiple of 16-bit predicate
+  // constraint element count.
+  void uqinch(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment vector by multiple of 16-bit predicate
+  // constraint element count.
+  void uqinch(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment scalar by active predicate element count.
+  void uqincp(const Register& rdn, const PRegisterWithLaneSize& pg);
+
+  // Unsigned saturating increment vector by active predicate element count.
+  void uqincp(const ZRegister& zdn, const PRegister& pg);
+
+  // Unsigned saturating increment scalar by multiple of 32-bit predicate
+  // constraint element count.
+  void uqincw(const Register& rdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating increment vector by multiple of 32-bit predicate
+  // constraint element count.
+  void uqincw(const ZRegister& zdn, int pattern = SVE_ALL, int multiplier = 1);
+
+  // Unsigned saturating subtract vectors (unpredicated).
+  void uqsub(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned saturating subtract immediate (unpredicated).
+  void uqsub(const ZRegister& zd,
+             const ZRegister& zn,
+             int imm8,
+             int shift = -1);
+
+  // Unsigned unpack and extend half of vector.
+  void uunpkhi(const ZRegister& zd, const ZRegister& zn);
+
+  // Unsigned unpack and extend half of vector.
+  void uunpklo(const ZRegister& zd, const ZRegister& zn);
+
+  // Unsigned byte extend (predicated).
+  void uxtb(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Unsigned halfword extend (predicated).
+  void uxth(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Unsigned word extend (predicated).
+  void uxtw(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+
+  // Concatenate even or odd elements from two predicates.
+  void uzp1(const PRegisterWithLaneSize& pd,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Concatenate even or odd elements from two vectors.
+  void uzp1(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Concatenate even or odd elements from two predicates.
+  void uzp2(const PRegisterWithLaneSize& pd,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Concatenate even or odd elements from two vectors.
+  void uzp2(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // While incrementing signed scalar less than or equal to scalar.
+  void whilele(const PRegisterWithLaneSize& pd,
+               const Register& rn,
+               const Register& rm);
+
+  // While incrementing unsigned scalar lower than scalar.
+  void whilelo(const PRegisterWithLaneSize& pd,
+               const Register& rn,
+               const Register& rm);
+
+  // While incrementing unsigned scalar lower or same as scalar.
+  void whilels(const PRegisterWithLaneSize& pd,
+               const Register& rn,
+               const Register& rm);
+
+  // While incrementing signed scalar less than scalar.
+  void whilelt(const PRegisterWithLaneSize& pd,
+               const Register& rn,
+               const Register& rm);
+
+  // Write the first-fault register.
+  void wrffr(const PRegisterWithLaneSize& pn);
+
+  // Interleave elements from two half predicates.
+  void zip1(const PRegisterWithLaneSize& pd,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Interleave elements from two half vectors.
+  void zip1(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
+  // Interleave elements from two half predicates.
+  void zip2(const PRegisterWithLaneSize& pd,
+            const PRegisterWithLaneSize& pn,
+            const PRegisterWithLaneSize& pm);
+
+  // Interleave elements from two half vectors.
+  void zip2(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.
@@ -3602,45 +5846,25 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Code generation helpers.
 
   // Register encoding.
-  static Instr Rd(CPURegister rd) {
-    VIXL_ASSERT(rd.GetCode() != kSPRegInternalCode);
-    return rd.GetCode() << Rd_offset;
+  template <int hibit, int lobit>
+  static Instr Rx(CPURegister rx) {
+    VIXL_ASSERT(rx.GetCode() != kSPRegInternalCode);
+    return ImmUnsignedField<hibit, lobit>(rx.GetCode());
   }
 
-  static Instr Rn(CPURegister rn) {
-    VIXL_ASSERT(rn.GetCode() != kSPRegInternalCode);
-    return rn.GetCode() << Rn_offset;
+#define CPU_REGISTER_FIELD_NAMES(V) V(d) V(n) V(m) V(a) V(t) V(t2) V(s)
+#define REGISTER_ENCODER(N)                                           \
+  static Instr R##N(CPURegister r##N) {                               \
+    return Rx<R##N##_offset + R##N##_width - 1, R##N##_offset>(r##N); \
   }
-
-  static Instr Rm(CPURegister rm) {
-    VIXL_ASSERT(rm.GetCode() != kSPRegInternalCode);
-    return rm.GetCode() << Rm_offset;
-  }
+  CPU_REGISTER_FIELD_NAMES(REGISTER_ENCODER)
+#undef REGISTER_ENCODER
+#undef CPU_REGISTER_FIELD_NAMES
 
   static Instr RmNot31(CPURegister rm) {
     VIXL_ASSERT(rm.GetCode() != kSPRegInternalCode);
     VIXL_ASSERT(!rm.IsZero());
     return Rm(rm);
-  }
-
-  static Instr Ra(CPURegister ra) {
-    VIXL_ASSERT(ra.GetCode() != kSPRegInternalCode);
-    return ra.GetCode() << Ra_offset;
-  }
-
-  static Instr Rt(CPURegister rt) {
-    VIXL_ASSERT(rt.GetCode() != kSPRegInternalCode);
-    return rt.GetCode() << Rt_offset;
-  }
-
-  static Instr Rt2(CPURegister rt2) {
-    VIXL_ASSERT(rt2.GetCode() != kSPRegInternalCode);
-    return rt2.GetCode() << Rt2_offset;
-  }
-
-  static Instr Rs(CPURegister rs) {
-    VIXL_ASSERT(rs.GetCode() != kSPRegInternalCode);
-    return rs.GetCode() << Rs_offset;
   }
 
   // These encoding functions allow the stack pointer to be encoded, and
@@ -3660,6 +5884,25 @@ class Assembler : public vixl::internal::AssemblerBase {
     return (rm.GetCode() & kRegCodeMask) << Rm_offset;
   }
 
+  static Instr Pd(PRegister pd) {
+    return Rx<Pd_offset + Pd_width - 1, Pd_offset>(pd);
+  }
+
+  static Instr Pm(PRegister pm) {
+    return Rx<Pm_offset + Pm_width - 1, Pm_offset>(pm);
+  }
+
+  static Instr Pn(PRegister pn) {
+    return Rx<Pn_offset + Pn_width - 1, Pn_offset>(pn);
+  }
+
+  static Instr PgLow8(PRegister pg) {
+    // Governing predicates can be merging, zeroing, or unqualified. They should
+    // never have a lane size.
+    VIXL_ASSERT(!pg.HasLaneSize());
+    return Rx<PgLow8_offset + PgLow8_width - 1, PgLow8_offset>(pg);
+  }
+
   // Flags encoding.
   static Instr Flags(FlagsUpdate S) {
     if (S == SetFlags) {
@@ -3672,6 +5915,26 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   static Instr Cond(Condition cond) { return cond << Condition_offset; }
+
+  // Generic immediate encoding.
+  template <int hibit, int lobit>
+  static Instr ImmField(int64_t imm) {
+    VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
+    VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
+    int fieldsize = hibit - lobit + 1;
+    VIXL_ASSERT(IsIntN(fieldsize, imm));
+    return static_cast<Instr>(TruncateToUintN(fieldsize, imm) << lobit);
+  }
+
+  // For unsigned immediate encoding.
+  // TODO: Handle signed and unsigned immediate in satisfactory way.
+  template <int hibit, int lobit>
+  static Instr ImmUnsignedField(uint64_t imm) {
+    VIXL_STATIC_ASSERT((hibit >= lobit) && (lobit >= 0));
+    VIXL_STATIC_ASSERT(hibit < (sizeof(Instr) * kBitsPerByte));
+    VIXL_ASSERT(IsUintN(hibit - lobit + 1, imm));
+    return static_cast<Instr>(imm << lobit);
+  }
 
   // PC-relative address encoding.
   static Instr ImmPCRelAddress(int64_t imm21) {
@@ -3726,6 +5989,55 @@ class Assembler : public vixl::internal::AssemblerBase {
       imm = ((imm >> 12) << ImmAddSub_offset) | (1 << ImmAddSubShift_offset);
     }
     return imm;
+  }
+
+  static Instr SVEImmSetBits(unsigned imms, unsigned lane_size) {
+    VIXL_ASSERT(IsUint6(imms));
+    VIXL_ASSERT((lane_size == kDRegSize) || IsUint6(imms + 3));
+    USE(lane_size);
+    return imms << SVEImmSetBits_offset;
+  }
+
+  static Instr SVEImmRotate(unsigned immr, unsigned lane_size) {
+    VIXL_ASSERT(IsUintN(WhichPowerOf2(lane_size), immr));
+    USE(lane_size);
+    return immr << SVEImmRotate_offset;
+  }
+
+  static Instr SVEBitN(unsigned bitn) {
+    VIXL_ASSERT(IsUint1(bitn));
+    return bitn << SVEBitN_offset;
+  }
+
+  static Instr SVEDtype(unsigned msize_in_bytes_log2,
+                        unsigned esize_in_bytes_log2,
+                        bool is_signed,
+                        int dtype_h_lsb = 23,
+                        int dtype_l_lsb = 21) {
+    VIXL_ASSERT(msize_in_bytes_log2 <= kDRegSizeInBytesLog2);
+    VIXL_ASSERT(esize_in_bytes_log2 <= kDRegSizeInBytesLog2);
+    Instr dtype_h = msize_in_bytes_log2;
+    Instr dtype_l = esize_in_bytes_log2;
+    // Signed forms use the encodings where msize would be greater than esize.
+    if (is_signed) {
+      dtype_h = dtype_h ^ 0x3;
+      dtype_l = dtype_l ^ 0x3;
+    }
+    VIXL_ASSERT(IsUint2(dtype_h));
+    VIXL_ASSERT(IsUint2(dtype_l));
+    VIXL_ASSERT((dtype_h > dtype_l) == is_signed);
+
+    return (dtype_h << dtype_h_lsb) | (dtype_l << dtype_l_lsb);
+  }
+
+  static Instr SVEDtypeSplit(unsigned msize_in_bytes_log2,
+                             unsigned esize_in_bytes_log2,
+                             bool is_signed) {
+    return SVEDtype(msize_in_bytes_log2,
+                    esize_in_bytes_log2,
+                    is_signed,
+                    23,
+                    13);
   }
 
   static Instr ImmS(unsigned imms, unsigned reg_size) {
@@ -4078,6 +6390,30 @@ class Assembler : public vixl::internal::AssemblerBase {
     }
   }
 
+  template <typename T>
+  static Instr SVESize(const T& rd) {
+    VIXL_ASSERT(rd.IsZRegister() || rd.IsPRegister());
+    VIXL_ASSERT(rd.HasLaneSize());
+    switch (rd.GetLaneSizeInBytes()) {
+      case 1:
+        return SVE_B;
+      case 2:
+        return SVE_H;
+      case 4:
+        return SVE_S;
+      case 8:
+        return SVE_D;
+      default:
+        return 0xffffffff;
+    }
+  }
+
+  static Instr ImmSVEPredicateConstraint(int pattern) {
+    VIXL_ASSERT(IsUint5(pattern));
+    return (pattern << ImmSVEPredicateConstraint_offset) &
+           ImmSVEPredicateConstraint_mask;
+  }
+
   static Instr ImmNEONHLM(int index, int num_bits) {
     int h, l, m;
     if (num_bits == 3) {
@@ -4229,7 +6565,91 @@ class Assembler : public vixl::internal::AssemblerBase {
                              const MemOperand& addr,
                              Instr op);
 
+  // Set `is_load` to false in default as it's only used in the
+  // scalar-plus-vector form.
+  Instr SVEMemOperandHelper(unsigned msize_in_bytes_log2,
+                            int num_regs,
+                            const SVEMemOperand& addr,
+                            bool is_load = false);
+
+  // E.g. st1b, st1h, ...
+  // This supports both contiguous and scatter stores.
+  void SVESt1Helper(unsigned msize_in_bytes_log2,
+                    const ZRegister& zt,
+                    const PRegister& pg,
+                    const SVEMemOperand& addr);
+
+  // E.g. ld1b, ld1h, ...
+  // This supports both contiguous and gather loads.
+  void SVELd1Helper(unsigned msize_in_bytes_log2,
+                    const ZRegister& zt,
+                    const PRegisterZ& pg,
+                    const SVEMemOperand& addr,
+                    bool is_signed);
+
+  // E.g. ld1rb, ld1rh, ...
+  void SVELd1BroadcastHelper(unsigned msize_in_bytes_log2,
+                             const ZRegister& zt,
+                             const PRegisterZ& pg,
+                             const SVEMemOperand& addr,
+                             bool is_signed);
+
+  // E.g. ldff1b, ldff1h, ...
+  // This supports both contiguous and gather loads.
+  void SVELdff1Helper(unsigned msize_in_bytes_log2,
+                      const ZRegister& zt,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr,
+                      bool is_signed);
+
+  // Common code for the helpers above.
+  void SVELdSt1Helper(unsigned msize_in_bytes_log2,
+                      const ZRegister& zt,
+                      const PRegister& pg,
+                      const SVEMemOperand& addr,
+                      bool is_signed,
+                      Instr op);
+
+  // Common code for the helpers above.
+  void SVEScatterGatherHelper(unsigned msize_in_bytes_log2,
+                              const ZRegister& zt,
+                              const PRegister& pg,
+                              const SVEMemOperand& addr,
+                              bool is_load,
+                              bool is_signed,
+                              bool is_first_fault);
+
+  // E.g. st2b, st3h, ...
+  void SVESt234Helper(int num_regs,
+                      const ZRegister& zt1,
+                      const PRegister& pg,
+                      const SVEMemOperand& addr);
+
+  // E.g. ld2b, ld3h, ...
+  void SVELd234Helper(int num_regs,
+                      const ZRegister& zt1,
+                      const PRegisterZ& pg,
+                      const SVEMemOperand& addr);
+
+  // Common code for the helpers above.
+  void SVELdSt234Helper(int num_regs,
+                        const ZRegister& zt1,
+                        const PRegister& pg,
+                        const SVEMemOperand& addr,
+                        Instr op);
+
+  // E.g. ld1qb, ld1qh, ldnt1b, ...
+  void SVELd1St1ScaImmHelper(const ZRegister& zt,
+                             const PRegister& pg,
+                             const SVEMemOperand& addr,
+                             Instr regoffset_op,
+                             Instr immoffset_op,
+                             int imm_divisor = 1);
+
   void Prefetch(PrefetchOperation op,
+                const MemOperand& addr,
+                LoadStoreScalingOption option = PreferScaledOffset);
+  void Prefetch(int op,
                 const MemOperand& addr,
                 LoadStoreScalingOption option = PreferScaledOffset);
 
@@ -4239,6 +6659,9 @@ class Assembler : public vixl::internal::AssemblerBase {
                const Register& rn,
                const Operand operand,
                LogicalOp op);
+
+  void SVELogicalImmediate(const ZRegister& zd, uint64_t imm, Instr op);
+
   void LogicalImmediate(const Register& rd,
                         const Register& rn,
                         unsigned n,
@@ -4258,6 +6681,92 @@ class Assembler : public vixl::internal::AssemblerBase {
                        FlagsUpdate S,
                        AddSubWithCarryOp op);
 
+  void CompareVectors(const PRegisterWithLaneSize& pd,
+                      const PRegisterZ& pg,
+                      const ZRegister& zn,
+                      const ZRegister& zm,
+                      SVEIntCompareVectorsOp op);
+
+  void CompareVectors(const PRegisterWithLaneSize& pd,
+                      const PRegisterZ& pg,
+                      const ZRegister& zn,
+                      int imm,
+                      SVEIntCompareSignedImmOp op);
+
+  void CompareVectors(const PRegisterWithLaneSize& pd,
+                      const PRegisterZ& pg,
+                      const ZRegister& zn,
+                      unsigned imm,
+                      SVEIntCompareUnsignedImmOp op);
+
+  void SVEIntAddSubtractImmUnpredicatedHelper(
+      SVEIntAddSubtractImm_UnpredicatedOp op,
+      const ZRegister& zd,
+      int imm8,
+      int shift);
+
+  void SVEElementCountToRegisterHelper(Instr op,
+                                       const Register& rd,
+                                       int pattern,
+                                       int multiplier);
+
+  Instr EncodeSVEShiftImmediate(Shift shift_op,
+                                int shift,
+                                int lane_size_in_bits);
+
+  void SVEBitwiseShiftImmediate(const ZRegister& zd,
+                                const ZRegister& zn,
+                                Instr encoded_imm,
+                                SVEBitwiseShiftUnpredicatedOp op);
+
+  void SVEBitwiseShiftImmediatePred(const ZRegister& zdn,
+                                    const PRegisterM& pg,
+                                    Instr encoded_imm,
+                                    SVEBitwiseShiftByImm_PredicatedOp op);
+
+  Instr SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
+                            const ZRegister& zm,
+                            int index,
+                            Instr op_h,
+                            Instr op_s,
+                            Instr op_d);
+
+
+  void SVEContiguousPrefetchScalarPlusScalarHelper(PrefetchOperation prfop,
+                                                   const PRegister& pg,
+                                                   const SVEMemOperand& addr,
+                                                   int prefetch_size);
+
+  void SVEContiguousPrefetchScalarPlusVectorHelper(PrefetchOperation prfop,
+                                                   const PRegister& pg,
+                                                   const SVEMemOperand& addr,
+                                                   int prefetch_size);
+
+  void SVEGatherPrefetchVectorPlusImmediateHelper(PrefetchOperation prfop,
+                                                  const PRegister& pg,
+                                                  const SVEMemOperand& addr,
+                                                  int prefetch_size);
+
+  void SVEGatherPrefetchScalarPlusImmediateHelper(PrefetchOperation prfop,
+                                                  const PRegister& pg,
+                                                  const SVEMemOperand& addr,
+                                                  int prefetch_size);
+
+  void SVEPrefetchHelper(PrefetchOperation prfop,
+                         const PRegister& pg,
+                         const SVEMemOperand& addr,
+                         int prefetch_size);
+
+  static Instr SVEImmPrefetchOperation(PrefetchOperation prfop) {
+    // SVE only supports PLD and PST, not PLI.
+    VIXL_ASSERT(((prfop >= PLDL1KEEP) && (prfop <= PLDL3STRM)) ||
+                ((prfop >= PSTL1KEEP) && (prfop <= PSTL3STRM)));
+    // Check that we can simply map bits.
+    VIXL_STATIC_ASSERT(PLDL1KEEP == 0b00000);
+    VIXL_STATIC_ASSERT(PSTL1KEEP == 0b10000);
+    // Remaining operations map directly.
+    return ((prfop & 0b10000) >> 1) | (prfop & 0b00111);
+  }
 
   // Functions for emulating operands not directly supported by the instruction
   // set.
@@ -4458,6 +6967,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                            int shift,
                            NEONShiftImmediateOp op);
   void NEONXtn(const VRegister& vd, const VRegister& vn, NEON2RegMiscOp vop);
+
+  // If *shift is -1, find values of *imm8 and *shift such that IsInt8(*imm8)
+  // and *shift is either 0 or 8. Otherwise, leave the values unchanged.
+  void ResolveSVEImm8Shift(int* imm8, int* shift);
 
   Instr LoadStoreStructAddrModeField(const MemOperand& addr);
 

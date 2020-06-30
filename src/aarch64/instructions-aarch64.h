@@ -81,6 +81,7 @@ const uint64_t kXRegMask = UINT64_C(0xffffffffffffffff);
 const uint64_t kHRegMask = UINT64_C(0xffff);
 const uint64_t kSRegMask = UINT64_C(0xffffffff);
 const uint64_t kDRegMask = UINT64_C(0xffffffffffffffff);
+const uint64_t kHSignMask = UINT64_C(0x8000);
 const uint64_t kSSignMask = UINT64_C(0x80000000);
 const uint64_t kDSignMask = UINT64_C(0x8000000000000000);
 const uint64_t kWSignMask = UINT64_C(0x80000000);
@@ -116,6 +117,30 @@ VIXL_STATIC_ASSERT(kAddressTagMask == UINT64_C(0xff00000000000000));
 
 const uint64_t kTTBRMask = UINT64_C(1) << 55;
 
+// We can't define a static kZRegSize because the size depends on the
+// implementation. However, it is sometimes useful to know the minimum and
+// maxmimum possible sizes.
+const unsigned kZRegMinSize = 128;
+const unsigned kZRegMinSizeLog2 = 7;
+const unsigned kZRegMinSizeInBytes = kZRegMinSize / 8;
+const unsigned kZRegMinSizeInBytesLog2 = kZRegMinSizeLog2 - 3;
+const unsigned kZRegMaxSize = 2048;
+const unsigned kZRegMaxSizeLog2 = 11;
+const unsigned kZRegMaxSizeInBytes = kZRegMaxSize / 8;
+const unsigned kZRegMaxSizeInBytesLog2 = kZRegMaxSizeLog2 - 3;
+
+// The P register size depends on the Z register size.
+const unsigned kZRegBitsPerPRegBit = kBitsPerByte;
+const unsigned kZRegBitsPerPRegBitLog2 = 3;
+const unsigned kPRegMinSize = kZRegMinSize / kZRegBitsPerPRegBit;
+const unsigned kPRegMinSizeLog2 = kZRegMinSizeLog2 - 3;
+const unsigned kPRegMinSizeInBytes = kPRegMinSize / 8;
+const unsigned kPRegMinSizeInBytesLog2 = kPRegMinSizeLog2 - 3;
+const unsigned kPRegMaxSize = kZRegMaxSize / kZRegBitsPerPRegBit;
+const unsigned kPRegMaxSizeLog2 = kZRegMaxSizeLog2 - 3;
+const unsigned kPRegMaxSizeInBytes = kPRegMaxSize / 8;
+const unsigned kPRegMaxSizeInBytesLog2 = kPRegMaxSizeLog2 - 3;
+
 // Make these moved float constants backwards compatible
 // with explicit vixl::aarch64:: namespace references.
 using vixl::kDoubleMantissaBits;
@@ -150,6 +175,44 @@ enum ImmBranchType {
 enum AddrMode { Offset, PreIndex, PostIndex };
 
 enum Reg31Mode { Reg31IsStackPointer, Reg31IsZeroRegister };
+
+enum VectorFormat {
+  kFormatUndefined = 0xffffffff,
+  kFormat8B = NEON_8B,
+  kFormat16B = NEON_16B,
+  kFormat4H = NEON_4H,
+  kFormat8H = NEON_8H,
+  kFormat2S = NEON_2S,
+  kFormat4S = NEON_4S,
+  kFormat1D = NEON_1D,
+  kFormat2D = NEON_2D,
+
+  // Scalar formats. We add the scalar bit to distinguish between scalar and
+  // vector enumerations; the bit is always set in the encoding of scalar ops
+  // and always clear for vector ops. Although kFormatD and kFormat1D appear
+  // to be the same, their meaning is subtly different. The first is a scalar
+  // operation, the second a vector operation that only affects one lane.
+  kFormatB = NEON_B | NEONScalar,
+  kFormatH = NEON_H | NEONScalar,
+  kFormatS = NEON_S | NEONScalar,
+  kFormatD = NEON_D | NEONScalar,
+
+  // An artificial value, used to distinguish from NEON format category.
+  kFormatSVE = 0x0000fffd,
+  // An artificial value. Q lane size isn't encoded in the usual size field.
+  kFormatSVEQ = 0x000f0000,
+  // Vector element width of SVE register with the unknown lane count since
+  // the vector length is implementation dependent.
+  kFormatVnB = SVE_B | kFormatSVE,
+  kFormatVnH = SVE_H | kFormatSVE,
+  kFormatVnS = SVE_S | kFormatSVE,
+  kFormatVnD = SVE_D | kFormatSVE,
+  kFormatVnQ = kFormatSVEQ | kFormatSVE,
+
+  // An artificial value, used by simulator trace tests and a few oddball
+  // instructions (such as FMLAL).
+  kFormat2H = 0xfffffffe
+};
 
 // Instructions. ---------------------------------------------------------------
 
@@ -229,6 +292,21 @@ class Instruction {
   INSTRUCTION_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
+  VectorFormat GetSVEVectorFormat() const {
+    switch (Mask(SVESizeFieldMask)) {
+      case SVE_B:
+        return kFormatVnB;
+      case SVE_H:
+        return kFormatVnH;
+      case SVE_S:
+        return kFormatVnS;
+      case SVE_D:
+        return kFormatVnD;
+    }
+    VIXL_UNREACHABLE();
+    return kFormatUndefined;
+  }
+
   // ImmPCRel is a compound field (not present in INSTRUCTION_FIELDS_LIST),
   // formed from ImmPCRelLo and ImmPCRelHi.
   int GetImmPCRel() const {
@@ -254,6 +332,20 @@ class Instruction {
   VIXL_DEPRECATED("GetImmLogical", uint64_t ImmLogical() const) {
     return GetImmLogical();
   }
+  uint64_t GetSVEImmLogical() const;
+  int GetSVEBitwiseImmLaneSizeInBytesLog2() const;
+  uint64_t DecodeImmBitMask(int32_t n,
+                            int32_t imm_s,
+                            int32_t imm_r,
+                            int32_t size) const;
+
+  std::pair<int, int> GetSVEPermuteIndexAndLaneSizeLog2() const;
+
+  std::pair<int, int> GetSVEImmShiftAndLaneSizeLog2(bool is_predicated) const;
+
+  int GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb = 23) const;
+
+  int GetSVEEsizeFromDtype(bool is_signed, int dtype_l_lsb = 21) const;
 
   unsigned GetImmNEONabcdefgh() const;
   VIXL_DEPRECATED("GetImmNEONabcdefgh", unsigned ImmNEONabcdefgh() const) {
@@ -279,6 +371,16 @@ class Instruction {
   VIXL_DEPRECATED("GetImmNEONFP64", double ImmNEONFP64() const) {
     return GetImmNEONFP64();
   }
+
+  Float16 GetSVEImmFP16() const { return Imm8ToFloat16(ExtractBits(12, 5)); }
+
+  float GetSVEImmFP32() const { return Imm8ToFP32(ExtractBits(12, 5)); }
+
+  double GetSVEImmFP64() const { return Imm8ToFP64(ExtractBits(12, 5)); }
+
+  static Float16 Imm8ToFloat16(uint32_t imm8);
+  static float Imm8ToFP32(uint32_t imm8);
+  static double Imm8ToFP64(uint32_t imm8);
 
   unsigned GetSizeLS() const {
     return CalcLSDataSize(static_cast<LoadStoreOp>(Mask(LoadStoreMask)));
@@ -341,6 +443,9 @@ class Instruction {
   bool IsLoadOrStore() const {
     return Mask(LoadStoreAnyFMask) == LoadStoreAnyFixed;
   }
+
+  // True if `this` is valid immediately after the provided movprfx instruction.
+  bool CanTakeSVEMovprfx(Instruction const* movprfx) const;
 
   bool IsLoad() const;
   bool IsStore() const;
@@ -557,41 +662,12 @@ class Instruction {
  private:
   int GetImmBranch() const;
 
-  static Float16 Imm8ToFloat16(uint32_t imm8);
-  static float Imm8ToFP32(uint32_t imm8);
-  static double Imm8ToFP64(uint32_t imm8);
-
   void SetPCRelImmTarget(const Instruction* target);
   void SetBranchImmTarget(const Instruction* target);
 };
 
 
-// Functions for handling NEON vector format information.
-enum VectorFormat {
-  kFormatUndefined = 0xffffffff,
-  kFormat8B = NEON_8B,
-  kFormat16B = NEON_16B,
-  kFormat4H = NEON_4H,
-  kFormat8H = NEON_8H,
-  kFormat2S = NEON_2S,
-  kFormat4S = NEON_4S,
-  kFormat1D = NEON_1D,
-  kFormat2D = NEON_2D,
-
-  // Scalar formats. We add the scalar bit to distinguish between scalar and
-  // vector enumerations; the bit is always set in the encoding of scalar ops
-  // and always clear for vector ops. Although kFormatD and kFormat1D appear
-  // to be the same, their meaning is subtly different. The first is a scalar
-  // operation, the second a vector operation that only affects one lane.
-  kFormatB = NEON_B | NEONScalar,
-  kFormatH = NEON_H | NEONScalar,
-  kFormatS = NEON_S | NEONScalar,
-  kFormatD = NEON_D | NEONScalar,
-
-  // An artificial value, used by simulator trace tests and a few oddball
-  // instructions (such as FMLAL).
-  kFormat2H = 0xfffffffe
-};
+// Functions for handling NEON and SVE vector format information.
 
 const int kMaxLanesPerVector = 16;
 
@@ -599,12 +675,16 @@ VectorFormat VectorFormatHalfWidth(VectorFormat vform);
 VectorFormat VectorFormatDoubleWidth(VectorFormat vform);
 VectorFormat VectorFormatDoubleLanes(VectorFormat vform);
 VectorFormat VectorFormatHalfLanes(VectorFormat vform);
-VectorFormat ScalarFormatFromLaneSize(int lanesize);
+VectorFormat ScalarFormatFromLaneSize(int lane_size_in_bits);
 VectorFormat VectorFormatHalfWidthDoubleLanes(VectorFormat vform);
 VectorFormat VectorFormatFillQ(VectorFormat vform);
 VectorFormat ScalarFormatFromFormat(VectorFormat vform);
+VectorFormat SVEFormatFromLaneSizeInBits(int lane_size_in_bits);
+VectorFormat SVEFormatFromLaneSizeInBytes(int lane_size_in_bytes);
+VectorFormat SVEFormatFromLaneSizeInBytesLog2(int lane_size_in_bytes_log_2);
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform);
 unsigned RegisterSizeInBytesFromFormat(VectorFormat vform);
+bool IsSVEFormat(VectorFormat vform);
 // TODO: Make the return types of these functions consistent.
 unsigned LaneSizeInBitsFromFormat(VectorFormat vform);
 int LaneSizeInBytesFromFormat(VectorFormat vform);

@@ -9482,7 +9482,7 @@ TEST(neon_byelement_fhm) {
   __ Movi(v31.V8H(), 0x3bff3c013bff3c01, 0x3bff3c013bff3c01);
   // Set up [v8,v15] as vm inputs.
   for (int i = 0; i <= 7; i++) {
-    VRegister vm = VRegister::GetVRegFromCode(i + 8);
+    VRegister vm(i + 8);
     __ Mov(vm, poison);
     __ Ins(vm.V8H(), i, v31.V8H(), i);
   }

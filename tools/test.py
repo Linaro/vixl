@@ -377,6 +377,7 @@ if __name__ == '__main__':
     list_options += ListCombinations(
         compiler = args.compiler,
         negative_testing = 'on',
+        std = args.std,
         mode = 'debug',
         target = 'a64,a32,t32')
 
@@ -388,21 +389,13 @@ if __name__ == '__main__':
         mode = 'release',
         target = 'a64,a32,t32')
 
-    # c++98 builds for Thumb32 target only.
+    # Debug builds for individual targets.
     list_options += ListCombinations(
-        compiler = args.compiler,
+        compiler = args.compiler[0],
         negative_testing = 'off',
-        std = 'c++98',
-        mode = args.mode,
-        target = 't32')
-
-    # c++11 builds for Aarch64 target only.
-    list_options += ListCombinations(
-        compiler = args.compiler,
-        negative_testing = 'off',
-        std = 'c++11',
-        mode = args.mode,
-        target = 'a64')
+        std = args.std,
+        mode = 'debug',
+        target = ['a32', 't32', 'a64'])
   else:
     list_options = ListCombinations(
         compiler = args.compiler,

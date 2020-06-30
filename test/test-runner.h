@@ -28,19 +28,47 @@
 #define TEST_TEST_H_
 
 #include "utils-vixl.h"
+#include "aarch64/instructions-aarch64.h"
 
 namespace vixl {
 
 // Each actual test is represented by a Test instance.
 // Tests are appended to a static linked list upon creation.
 class Test {
-  typedef void(TestFunction)();
-
  public:
-  Test(const char* name, TestFunction* callback);
+  // Most tests require no per-test configuration, and so take no arguments. A
+  // few tests require dynamic configuration, and are passed a `Test` object.
+  template <typename Fn>
+  Test(const char* name, Fn* callback) : name_(name), sve_vl_(0), next_(NULL) {
+    set_callback(callback);
+    // Append this test to the linked list.
+    if (first_ == NULL) {
+      VIXL_ASSERT(last_ == NULL);
+      first_ = this;
+    } else {
+      last_->next_ = this;
+    }
+    last_ = this;
+  }
 
   const char* name() { return name_; }
-  TestFunction* callback() { return callback_; }
+  void run();
+
+  // The SVE vector length can be configured by each test, based on either
+  // hardware feature detection (in the test itself) or Simulator configuration.
+  int sve_vl_in_bits() const { return sve_vl_; }
+  void set_sve_vl_in_bits(unsigned sve_vl) {
+    // Note that we allow `set_sve_vl_in_bits(0)` here when SVE is not used.
+    VIXL_ASSERT(sve_vl <= aarch64::kZRegMaxSize);
+    VIXL_ASSERT((sve_vl % aarch64::kZRegMinSize) == 0);
+    sve_vl_ = sve_vl;
+  }
+
+  int sve_vl_in_bytes() const {
+    VIXL_ASSERT((sve_vl_ % kBitsPerByte) == 0);
+    return sve_vl_ / kBitsPerByte;
+  }
+
   static Test* first() { return first_; }
   static Test* last() { return last_; }
   Test* next() { return next_; }
@@ -69,9 +97,19 @@ class Test {
     generate_test_trace_ = value;
   }
 
+  typedef void(TestFunction)();
+  typedef void(TestFunctionWithConfig)(Test* config);
+
  private:
   const char* name_;
+
   TestFunction* callback_;
+  TestFunctionWithConfig* callback_with_config_;
+
+  void set_callback(TestFunction* callback);
+  void set_callback(TestFunctionWithConfig* callback);
+
+  int sve_vl_;
 
   static Test* first_;
   static Test* last_;

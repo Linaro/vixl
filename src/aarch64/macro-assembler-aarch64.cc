@@ -321,11 +321,13 @@ MacroAssembler::MacroAssembler(PositionIndependentCodeOption pic)
       generate_simulator_code_(VIXL_AARCH64_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
-      fptmp_list_(d31),
+      v_tmp_list_(d31),
+      p_tmp_list_(CPURegList::Empty(CPURegister::kPRegister)),
       current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
-      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+      recommended_checkpoint_(Pool::kNoCheckpointRequired),
+      fp_nan_propagation_(NoFPMacroNaNPropagationSelected) {
   checkpoint_ = GetNextCheckPoint();
 #ifndef VIXL_DEBUG
   USE(allow_macro_instructions_);
@@ -342,11 +344,13 @@ MacroAssembler::MacroAssembler(size_t capacity,
       generate_simulator_code_(VIXL_AARCH64_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
-      fptmp_list_(d31),
+      v_tmp_list_(d31),
+      p_tmp_list_(CPURegList::Empty(CPURegister::kPRegister)),
       current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
-      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+      recommended_checkpoint_(Pool::kNoCheckpointRequired),
+      fp_nan_propagation_(NoFPMacroNaNPropagationSelected) {
   checkpoint_ = GetNextCheckPoint();
 }
 
@@ -361,11 +365,13 @@ MacroAssembler::MacroAssembler(byte* buffer,
       generate_simulator_code_(VIXL_AARCH64_GENERATE_SIMULATOR_CODE),
       sp_(sp),
       tmp_list_(ip0, ip1),
-      fptmp_list_(d31),
+      v_tmp_list_(d31),
+      p_tmp_list_(CPURegList::Empty(CPURegister::kPRegister)),
       current_scratch_scope_(NULL),
       literal_pool_(this),
       veneer_pool_(this),
-      recommended_checkpoint_(Pool::kNoCheckpointRequired) {
+      recommended_checkpoint_(Pool::kNoCheckpointRequired),
+      fp_nan_propagation_(NoFPMacroNaNPropagationSelected) {
   checkpoint_ = GetNextCheckPoint();
 }
 
@@ -2397,7 +2403,8 @@ void MacroAssembler::LoadStoreCPURegListHelper(LoadStoreCPURegListAction op,
   // We do not handle pre-indexing or post-indexing.
   VIXL_ASSERT(!(mem.IsPreIndex() || mem.IsPostIndex()));
   VIXL_ASSERT(!registers.Overlaps(tmp_list_));
-  VIXL_ASSERT(!registers.Overlaps(fptmp_list_));
+  VIXL_ASSERT(!registers.Overlaps(v_tmp_list_));
+  VIXL_ASSERT(!registers.Overlaps(p_tmp_list_));
   VIXL_ASSERT(!registers.IncludesAliasOf(sp));
 
   UseScratchRegisterScope temps(this);
@@ -2481,7 +2488,7 @@ void MacroAssembler::BumpSystemStackPointer(const Operand& space) {
 }
 
 
-// TODO(all): Fix printf for NEON registers.
+// TODO(all): Fix printf for NEON and SVE registers.
 
 // This is the main Printf implementation. All callee-saved registers are
 // preserved, but NZCV and the caller-saved registers may be clobbered.
@@ -2844,10 +2851,13 @@ void UseScratchRegisterScope::Open(MacroAssembler* masm) {
 
   CPURegList* available = masm->GetScratchRegisterList();
   CPURegList* available_v = masm->GetScratchVRegisterList();
+  CPURegList* available_p = masm->GetScratchPRegisterList();
   old_available_ = available->GetList();
   old_available_v_ = available_v->GetList();
+  old_available_p_ = available_p->GetList();
   VIXL_ASSERT(available->GetType() == CPURegister::kRegister);
   VIXL_ASSERT(available_v->GetType() == CPURegister::kVRegister);
+  VIXL_ASSERT(available_p->GetType() == CPURegister::kPRegister);
 
   parent_ = masm->GetCurrentScratchRegisterScope();
   masm->SetCurrentScratchRegisterScope(this);
@@ -2865,6 +2875,7 @@ void UseScratchRegisterScope::Close() {
 
     masm_->GetScratchRegisterList()->SetList(old_available_);
     masm_->GetScratchVRegisterList()->SetList(old_available_v_);
+    masm_->GetScratchPRegisterList()->SetList(old_available_p_);
 
     masm_ = NULL;
   }
@@ -2873,44 +2884,46 @@ void UseScratchRegisterScope::Close() {
 
 bool UseScratchRegisterScope::IsAvailable(const CPURegister& reg) const {
   return masm_->GetScratchRegisterList()->IncludesAliasOf(reg) ||
-         masm_->GetScratchVRegisterList()->IncludesAliasOf(reg);
+         masm_->GetScratchVRegisterList()->IncludesAliasOf(reg) ||
+         masm_->GetScratchPRegisterList()->IncludesAliasOf(reg);
 }
 
-
 Register UseScratchRegisterScope::AcquireRegisterOfSize(int size_in_bits) {
-  int code = AcquireNextAvailable(masm_->GetScratchRegisterList()).GetCode();
+  int code = AcquireFrom(masm_->GetScratchRegisterList()).GetCode();
   return Register(code, size_in_bits);
 }
 
 
 VRegister UseScratchRegisterScope::AcquireVRegisterOfSize(int size_in_bits) {
-  int code = AcquireNextAvailable(masm_->GetScratchVRegisterList()).GetCode();
+  int code = AcquireFrom(masm_->GetScratchVRegisterList()).GetCode();
   return VRegister(code, size_in_bits);
 }
 
 
 void UseScratchRegisterScope::Release(const CPURegister& reg) {
   VIXL_ASSERT(masm_ != NULL);
-  if (reg.IsRegister()) {
-    ReleaseByCode(masm_->GetScratchRegisterList(), reg.GetCode());
-  } else if (reg.IsVRegister()) {
-    ReleaseByCode(masm_->GetScratchVRegisterList(), reg.GetCode());
-  } else {
-    VIXL_ASSERT(reg.IsNone());
-  }
+
+  // Release(NoReg) has no effect.
+  if (reg.IsNone()) return;
+
+  ReleaseByCode(GetAvailableListFor(reg.GetBank()), reg.GetCode());
 }
 
 
 void UseScratchRegisterScope::Include(const CPURegList& list) {
   VIXL_ASSERT(masm_ != NULL);
+
+  // Including an empty list has no effect.
+  if (list.IsEmpty()) return;
+  VIXL_ASSERT(list.GetType() != CPURegister::kNoRegister);
+
+  RegList reg_list = list.GetList();
   if (list.GetType() == CPURegister::kRegister) {
     // Make sure that neither sp nor xzr are included the list.
-    IncludeByRegList(masm_->GetScratchRegisterList(),
-                     list.GetList() & ~(xzr.GetBit() | sp.GetBit()));
-  } else {
-    VIXL_ASSERT(list.GetType() == CPURegister::kVRegister);
-    IncludeByRegList(masm_->GetScratchVRegisterList(), list.GetList());
+    reg_list &= ~(xzr.GetBit() | sp.GetBit());
   }
+
+  IncludeByRegList(GetAvailableListFor(list.GetBank()), reg_list);
 }
 
 
@@ -2938,13 +2951,43 @@ void UseScratchRegisterScope::Include(const VRegister& reg1,
 }
 
 
-void UseScratchRegisterScope::Exclude(const CPURegList& list) {
-  if (list.GetType() == CPURegister::kRegister) {
-    ExcludeByRegList(masm_->GetScratchRegisterList(), list.GetList());
-  } else {
-    VIXL_ASSERT(list.GetType() == CPURegister::kVRegister);
-    ExcludeByRegList(masm_->GetScratchVRegisterList(), list.GetList());
+void UseScratchRegisterScope::Include(const CPURegister& reg1,
+                                      const CPURegister& reg2,
+                                      const CPURegister& reg3,
+                                      const CPURegister& reg4) {
+  RegList include = 0;
+  RegList include_v = 0;
+  RegList include_p = 0;
+
+  const CPURegister regs[] = {reg1, reg2, reg3, reg4};
+
+  for (size_t i = 0; i < ArrayLength(regs); i++) {
+    RegList bit = regs[i].GetBit();
+    switch (regs[i].GetBank()) {
+      case CPURegister::kNoRegisterBank:
+        // Include(NoReg) has no effect.
+        VIXL_ASSERT(regs[i].IsNone());
+        break;
+      case CPURegister::kRRegisterBank:
+        include |= bit;
+        break;
+      case CPURegister::kVRegisterBank:
+        include_v |= bit;
+        break;
+      case CPURegister::kPRegisterBank:
+        include_p |= bit;
+        break;
+    }
   }
+
+  IncludeByRegList(masm_->GetScratchRegisterList(), include);
+  IncludeByRegList(masm_->GetScratchVRegisterList(), include_v);
+  IncludeByRegList(masm_->GetScratchPRegisterList(), include_p);
+}
+
+
+void UseScratchRegisterScope::Exclude(const CPURegList& list) {
+  ExcludeByRegList(GetAvailableListFor(list.GetBank()), list.GetList());
 }
 
 
@@ -2962,9 +3005,9 @@ void UseScratchRegisterScope::Exclude(const VRegister& reg1,
                                       const VRegister& reg2,
                                       const VRegister& reg3,
                                       const VRegister& reg4) {
-  RegList excludefp =
+  RegList exclude_v =
       reg1.GetBit() | reg2.GetBit() | reg3.GetBit() | reg4.GetBit();
-  ExcludeByRegList(masm_->GetScratchVRegisterList(), excludefp);
+  ExcludeByRegList(masm_->GetScratchVRegisterList(), exclude_v);
 }
 
 
@@ -2973,22 +3016,33 @@ void UseScratchRegisterScope::Exclude(const CPURegister& reg1,
                                       const CPURegister& reg3,
                                       const CPURegister& reg4) {
   RegList exclude = 0;
-  RegList excludefp = 0;
+  RegList exclude_v = 0;
+  RegList exclude_p = 0;
 
   const CPURegister regs[] = {reg1, reg2, reg3, reg4};
 
   for (size_t i = 0; i < ArrayLength(regs); i++) {
-    if (regs[i].IsRegister()) {
-      exclude |= regs[i].GetBit();
-    } else if (regs[i].IsVRegister()) {
-      excludefp |= regs[i].GetBit();
-    } else {
-      VIXL_ASSERT(regs[i].IsNone());
+    RegList bit = regs[i].GetBit();
+    switch (regs[i].GetBank()) {
+      case CPURegister::kNoRegisterBank:
+        // Exclude(NoReg) has no effect.
+        VIXL_ASSERT(regs[i].IsNone());
+        break;
+      case CPURegister::kRRegisterBank:
+        exclude |= bit;
+        break;
+      case CPURegister::kVRegisterBank:
+        exclude_v |= bit;
+        break;
+      case CPURegister::kPRegisterBank:
+        exclude_p |= bit;
+        break;
     }
   }
 
   ExcludeByRegList(masm_->GetScratchRegisterList(), exclude);
-  ExcludeByRegList(masm_->GetScratchVRegisterList(), excludefp);
+  ExcludeByRegList(masm_->GetScratchVRegisterList(), exclude_v);
+  ExcludeByRegList(masm_->GetScratchPRegisterList(), exclude_p);
 }
 
 
@@ -2997,13 +3051,15 @@ void UseScratchRegisterScope::ExcludeAll() {
                    masm_->GetScratchRegisterList()->GetList());
   ExcludeByRegList(masm_->GetScratchVRegisterList(),
                    masm_->GetScratchVRegisterList()->GetList());
+  ExcludeByRegList(masm_->GetScratchPRegisterList(),
+                   masm_->GetScratchPRegisterList()->GetList());
 }
 
 
-CPURegister UseScratchRegisterScope::AcquireNextAvailable(
-    CPURegList* available) {
-  VIXL_CHECK(!available->IsEmpty());
-  CPURegister result = available->PopLowestIndex();
+CPURegister UseScratchRegisterScope::AcquireFrom(CPURegList* available,
+                                                 RegList mask) {
+  VIXL_CHECK((available->GetList() & mask) != 0);
+  CPURegister result = available->PopLowestIndex(mask);
   VIXL_ASSERT(!AreAliased(result, xzr, sp));
   return result;
 }
@@ -3029,6 +3085,23 @@ void UseScratchRegisterScope::IncludeByRegList(CPURegList* available,
 void UseScratchRegisterScope::ExcludeByRegList(CPURegList* available,
                                                RegList exclude) {
   available->SetList(available->GetList() & ~exclude);
+}
+
+CPURegList* UseScratchRegisterScope::GetAvailableListFor(
+    CPURegister::RegisterBank bank) {
+  switch (bank) {
+    case CPURegister::kNoRegisterBank:
+      return NULL;
+    case CPURegister::kRRegisterBank:
+      return masm_->GetScratchRegisterList();
+    case CPURegister::kVRegisterBank:
+      return masm_->GetScratchVRegisterList();
+    case CPURegister::kPRegisterBank:
+      return masm_->GetScratchPRegisterList();
+      return NULL;
+  }
+  VIXL_UNREACHABLE();
+  return NULL;
 }
 
 }  // namespace aarch64

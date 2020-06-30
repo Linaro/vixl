@@ -870,7 +870,6 @@ void CPUFeaturesAuditor::VisitNEONModifiedImmediate(const Instruction* instr) {
     scope.Record(CPUFeatures::kFP);
     if (instr->ExtractBit(11)) scope.Record(CPUFeatures::kNEONHalf);
   }
-  USE(instr);
 }
 
 void CPUFeaturesAuditor::VisitNEONPerm(const Instruction* instr) {
@@ -1067,6 +1066,165 @@ void CPUFeaturesAuditor::VisitPCRelAddressing(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   USE(instr);
 }
+
+// Most SVE visitors require only SVE.
+#define VIXL_SIMPLE_SVE_VISITOR_LIST(V)                          \
+  V(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets)           \
+  V(SVE32BitGatherLoad_VectorPlusImm)                            \
+  V(SVE32BitGatherLoadHalfwords_ScalarPlus32BitScaledOffsets)    \
+  V(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets)        \
+  V(SVE32BitGatherPrefetch_ScalarPlus32BitScaledOffsets)         \
+  V(SVE32BitGatherPrefetch_VectorPlusImm)                        \
+  V(SVE32BitScatterStore_ScalarPlus32BitScaledOffsets)           \
+  V(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets)         \
+  V(SVE32BitScatterStore_VectorPlusImm)                          \
+  V(SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets)     \
+  V(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsets)             \
+  V(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets)           \
+  V(SVE64BitGatherLoad_ScalarPlusUnpacked32BitUnscaledOffsets)   \
+  V(SVE64BitGatherLoad_VectorPlusImm)                            \
+  V(SVE64BitGatherPrefetch_ScalarPlus64BitScaledOffsets)         \
+  V(SVE64BitGatherPrefetch_ScalarPlusUnpacked32BitScaledOffsets) \
+  V(SVE64BitGatherPrefetch_VectorPlusImm)                        \
+  V(SVE64BitScatterStore_ScalarPlus64BitScaledOffsets)           \
+  V(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets)         \
+  V(SVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets)   \
+  V(SVE64BitScatterStore_ScalarPlusUnpacked32BitUnscaledOffsets) \
+  V(SVE64BitScatterStore_VectorPlusImm)                          \
+  V(SVEAddressGeneration)                                        \
+  V(SVEBitwiseLogicalUnpredicated)                               \
+  V(SVEBitwiseShiftUnpredicated)                                 \
+  V(SVEFFRInitialise)                                            \
+  V(SVEFFRWriteFromPredicate)                                    \
+  V(SVEFPAccumulatingReduction)                                  \
+  V(SVEFPArithmeticUnpredicated)                                 \
+  V(SVEFPCompareVectors)                                         \
+  V(SVEFPCompareWithZero)                                        \
+  V(SVEFPComplexAddition)                                        \
+  V(SVEFPComplexMulAdd)                                          \
+  V(SVEFPComplexMulAddIndex)                                     \
+  V(SVEFPFastReduction)                                          \
+  V(SVEFPMulIndex)                                               \
+  V(SVEFPMulAdd)                                                 \
+  V(SVEFPMulAddIndex)                                            \
+  V(SVEFPUnaryOpUnpredicated)                                    \
+  V(SVEIncDecByPredicateCount)                                   \
+  V(SVEIndexGeneration)                                          \
+  V(SVEIntArithmeticUnpredicated)                                \
+  V(SVEIntCompareSignedImm)                                      \
+  V(SVEIntCompareUnsignedImm)                                    \
+  V(SVEIntCompareVectors)                                        \
+  V(SVEIntMulAddPredicated)                                      \
+  V(SVEIntMulAddUnpredicated)                                    \
+  V(SVEIntReduction)                                             \
+  V(SVEIntUnaryArithmeticPredicated)                             \
+  V(SVEMovprfx)                                                  \
+  V(SVEMulIndex)                                                 \
+  V(SVEPermuteVectorExtract)                                     \
+  V(SVEPermuteVectorInterleaving)                                \
+  V(SVEPredicateCount)                                           \
+  V(SVEPredicateLogical)                                         \
+  V(SVEPropagateBreak)                                           \
+  V(SVEStackFrameAdjustment)                                     \
+  V(SVEStackFrameSize)                                           \
+  V(SVEVectorSelect)                                             \
+  V(SVEBitwiseLogical_Predicated)                                \
+  V(SVEBitwiseLogicalWithImm_Unpredicated)                       \
+  V(SVEBitwiseShiftByImm_Predicated)                             \
+  V(SVEBitwiseShiftByVector_Predicated)                          \
+  V(SVEBitwiseShiftByWideElements_Predicated)                    \
+  V(SVEBroadcastBitmaskImm)                                      \
+  V(SVEBroadcastFPImm_Unpredicated)                              \
+  V(SVEBroadcastGeneralRegister)                                 \
+  V(SVEBroadcastIndexElement)                                    \
+  V(SVEBroadcastIntImm_Unpredicated)                             \
+  V(SVECompressActiveElements)                                   \
+  V(SVEConditionallyBroadcastElementToVector)                    \
+  V(SVEConditionallyExtractElementToSIMDFPScalar)                \
+  V(SVEConditionallyExtractElementToGeneralRegister)             \
+  V(SVEConditionallyTerminateScalars)                            \
+  V(SVEConstructivePrefix_Unpredicated)                          \
+  V(SVEContiguousFirstFaultLoad_ScalarPlusScalar)                \
+  V(SVEContiguousLoad_ScalarPlusImm)                             \
+  V(SVEContiguousLoad_ScalarPlusScalar)                          \
+  V(SVEContiguousNonFaultLoad_ScalarPlusImm)                     \
+  V(SVEContiguousNonTemporalLoad_ScalarPlusImm)                  \
+  V(SVEContiguousNonTemporalLoad_ScalarPlusScalar)               \
+  V(SVEContiguousNonTemporalStore_ScalarPlusImm)                 \
+  V(SVEContiguousNonTemporalStore_ScalarPlusScalar)              \
+  V(SVEContiguousPrefetch_ScalarPlusImm)                         \
+  V(SVEContiguousPrefetch_ScalarPlusScalar)                      \
+  V(SVEContiguousStore_ScalarPlusImm)                            \
+  V(SVEContiguousStore_ScalarPlusScalar)                         \
+  V(SVECopySIMDFPScalarRegisterToVector_Predicated)              \
+  V(SVECopyFPImm_Predicated)                                     \
+  V(SVECopyGeneralRegisterToVector_Predicated)                   \
+  V(SVECopyIntImm_Predicated)                                    \
+  V(SVEElementCount)                                             \
+  V(SVEExtractElementToSIMDFPScalarRegister)                     \
+  V(SVEExtractElementToGeneralRegister)                          \
+  V(SVEFPArithmetic_Predicated)                                  \
+  V(SVEFPArithmeticWithImm_Predicated)                           \
+  V(SVEFPConvertPrecision)                                       \
+  V(SVEFPConvertToInt)                                           \
+  V(SVEFPExponentialAccelerator)                                 \
+  V(SVEFPRoundToIntegralValue)                                   \
+  V(SVEFPTrigMulAddCoefficient)                                  \
+  V(SVEFPTrigSelectCoefficient)                                  \
+  V(SVEFPUnaryOp)                                                \
+  V(SVEIncDecRegisterByElementCount)                             \
+  V(SVEIncDecVectorByElementCount)                               \
+  V(SVEInsertSIMDFPScalarRegister)                               \
+  V(SVEInsertGeneralRegister)                                    \
+  V(SVEIntAddSubtractImm_Unpredicated)                           \
+  V(SVEIntAddSubtractVectors_Predicated)                         \
+  V(SVEIntCompareScalarCountAndLimit)                            \
+  V(SVEIntConvertToFP)                                           \
+  V(SVEIntDivideVectors_Predicated)                              \
+  V(SVEIntMinMaxImm_Unpredicated)                                \
+  V(SVEIntMinMaxDifference_Predicated)                           \
+  V(SVEIntMulImm_Unpredicated)                                   \
+  V(SVEIntMulVectors_Predicated)                                 \
+  V(SVELoadAndBroadcastElement)                                  \
+  V(SVELoadAndBroadcastQuadword_ScalarPlusImm)                   \
+  V(SVELoadAndBroadcastQuadword_ScalarPlusScalar)                \
+  V(SVELoadMultipleStructures_ScalarPlusImm)                     \
+  V(SVELoadMultipleStructures_ScalarPlusScalar)                  \
+  V(SVELoadPredicateRegister)                                    \
+  V(SVELoadVectorRegister)                                       \
+  V(SVEPartitionBreakCondition)                                  \
+  V(SVEPermutePredicateElements)                                 \
+  V(SVEPredicateFirstActive)                                     \
+  V(SVEPredicateInitialize)                                      \
+  V(SVEPredicateNextActive)                                      \
+  V(SVEPredicateReadFromFFR_Predicated)                          \
+  V(SVEPredicateReadFromFFR_Unpredicated)                        \
+  V(SVEPredicateTest)                                            \
+  V(SVEPredicateZero)                                            \
+  V(SVEPropagateBreakToNextPartition)                            \
+  V(SVEReversePredicateElements)                                 \
+  V(SVEReverseVectorElements)                                    \
+  V(SVEReverseWithinElements)                                    \
+  V(SVESaturatingIncDecRegisterByElementCount)                   \
+  V(SVESaturatingIncDecVectorByElementCount)                     \
+  V(SVEStoreMultipleStructures_ScalarPlusImm)                    \
+  V(SVEStoreMultipleStructures_ScalarPlusScalar)                 \
+  V(SVEStorePredicateRegister)                                   \
+  V(SVEStoreVectorRegister)                                      \
+  V(SVETableLookup)                                              \
+  V(SVEUnpackPredicateElements)                                  \
+  V(SVEUnpackVectorElements)                                     \
+  V(SVEVectorSplice_Destructive)
+
+#define VIXL_DEFINE_SIMPLE_SVE_VISITOR(NAME)                       \
+  void CPUFeaturesAuditor::Visit##NAME(const Instruction* instr) { \
+    RecordInstructionFeaturesScope scope(this);                    \
+    scope.Record(CPUFeatures::kSVE);                               \
+    USE(instr);                                                    \
+  }
+VIXL_SIMPLE_SVE_VISITOR_LIST(VIXL_DEFINE_SIMPLE_SVE_VISITOR)
+#undef VIXL_DEFINE_SIMPLE_SVE_VISITOR
+#undef VIXL_SIMPLE_SVE_VISITOR_LIST
 
 void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);

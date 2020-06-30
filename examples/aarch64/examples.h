@@ -49,9 +49,9 @@ void GenerateFactorialRec(vixl::aarch64::MacroAssembler* masm);
 void GenerateNEONMatrixMultiply(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
-//   void add2_vectors(int8_t *vecA, const int8_t *vecB, unsigned size)
+//   void add2_vectors(int8_t *vec_a, const int8_t *vec_b, unsigned size)
 //
-// Demonstrate how to add two vectors using NEON. The result is stored in vecA.
+// Demonstrate how to add two vectors using NEON. The result is stored in vec_a.
 void GenerateAdd2Vectors(vixl::aarch64::MacroAssembler* masm);
 
 // Generate a function with the following prototype:
@@ -118,5 +118,11 @@ int64_t LiteralExample(int64_t a, int64_t b);
 
 // Generate a few examples of runtime calls.
 void GenerateRuntimeCallExamples(vixl::aarch64::MacroAssembler* masm);
+
+// Generate a function with the following prototype:
+//    size_t sve_strlen(const char* str);
+//
+// The function implements the standard `strlen` using SVE.
+void GenerateSVEStrlen(vixl::aarch64::MacroAssembler* masm);
 
 #endif  // VIXL_EXAMPLE_EXAMPLES_H_

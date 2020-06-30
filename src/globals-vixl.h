@@ -27,6 +27,10 @@
 #ifndef VIXL_GLOBALS_H
 #define VIXL_GLOBALS_H
 
+#if __cplusplus < 201402L
+#error VIXL requires C++14
+#endif
+
 // Get standard C99 macros for integer types.
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS
@@ -66,7 +70,8 @@ typedef uint8_t byte;
 const int KBytes = 1024;
 const int MBytes = 1024 * KBytes;
 
-const int kBitsPerByte = 8;
+const int kBitsPerByteLog2 = 3;
+const int kBitsPerByte = 1 << kBitsPerByteLog2;
 
 template <int SizeInBits>
 struct Unsigned;
@@ -223,8 +228,11 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
 
 #if __cplusplus >= 201103L
 #define VIXL_OVERRIDE override
+#define VIXL_CONSTEXPR constexpr
+#define VIXL_HAS_CONSTEXPR 1
 #else
 #define VIXL_OVERRIDE
+#define VIXL_CONSTEXPR
 #endif
 
 // With VIXL_NEGATIVE_TESTING on, VIXL_ASSERT and VIXL_CHECK will throw

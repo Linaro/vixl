@@ -8288,13 +8288,13 @@ void Disassembler::DecodeT32(uint32_t instr) {
                             UnallocatedT32(instr);
                             return;
                           }
-                          unsigned firstcond = (instr >> 20) & 0xf;
+                          unsigned first_cond = (instr >> 20) & 0xf;
                           unsigned mask = (instr >> 16) & 0xf;
-                          bool wasInITBlock = InITBlock();
-                          SetIT(Condition(firstcond), mask);
-                          it(Condition(firstcond), mask);
-                          if (wasInITBlock || (firstcond == 15) ||
-                              ((firstcond == al) &&
+                          bool was_in_it_block = InITBlock();
+                          SetIT(Condition(first_cond), mask);
+                          it(Condition(first_cond), mask);
+                          if (was_in_it_block || (first_cond == 15) ||
+                              ((first_cond == al) &&
                                (BitCount(Uint32(mask)) != 1))) {
                             UnpredictableT32(instr);
                           }

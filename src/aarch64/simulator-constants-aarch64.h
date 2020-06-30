@@ -121,7 +121,7 @@ const unsigned kTraceLength = 3 * kInstructionSize;
 enum TraceParameters {
   LOG_DISASM = 1 << 0,   // Log disassembly.
   LOG_REGS = 1 << 1,     // Log general purpose registers.
-  LOG_VREGS = 1 << 2,    // Log NEON and floating-point registers.
+  LOG_VREGS = 1 << 2,    // Log SVE, NEON and floating-point registers.
   LOG_SYSREGS = 1 << 3,  // Log the flags and system registers.
   LOG_WRITE = 1 << 4,    // Log writes to memory.
   LOG_BRANCH = 1 << 5,   // Log taken branches.

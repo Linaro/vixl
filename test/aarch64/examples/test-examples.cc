@@ -617,4 +617,36 @@ TEST(runtime_calls) {
 
 #endif  // VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 
+TEST(sve_strlen) {
+  START();
+
+  CPUFeatures cpu_features(CPUFeatures::kSVE);
+  masm.SetCPUFeatures(cpu_features);
+
+  Label sve_strlen;
+  masm.Bind(&sve_strlen);
+  GenerateSVEStrlen(&masm);
+  masm.FinalizeCode();
+
+  if (CanRun(cpu_features)) {
+    const char* inputs[] =
+        {"Exactly 15 chrs",
+         "Exactly 16 chars",
+         "Exactly 17 chars.",
+
+         "This string is very long and will require multiple iterations, even "
+         "with the maximum VL (256 bytes). This string is very long and will "
+         "require multiple iterations, even with the maximum VL (256 bytes). "
+         "This string is very long and will require multiple iterations, even "
+         "with the maximum VL (256 bytes)."};
+
+    for (size_t i = 0; i < ArrayLength(inputs); i++) {
+      simulator.ResetState();
+      simulator.WriteXRegister(0, reinterpret_cast<uintptr_t>(inputs[i]));
+      TEST_FUNCTION(sve_strlen);
+      VIXL_CHECK(static_cast<size_t>(regs.xreg(0)) == strlen(inputs[i]));
+    }
+  }
+}
+
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64

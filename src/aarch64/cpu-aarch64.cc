@@ -297,6 +297,27 @@ uint32_t CPU::GetCacheType() {
 }
 
 
+// Query the SVE vector length. This requires CPUFeatures::kSVE.
+int CPU::ReadSVEVectorLengthInBits() {
+#ifdef __aarch64__
+  uint64_t vl;
+  // To support compilers that don't understand `rdvl`, encode the value
+  // directly and move it manually.
+  __asm__(
+      "   .word 0x04bf5100\n"  // rdvl x0, #8
+      "   mov %[vl], x0\n"
+      : [vl] "=r"(vl)
+      :
+      : "x0");
+  VIXL_ASSERT(vl <= INT_MAX);
+  return static_cast<int>(vl);
+#else
+  VIXL_UNREACHABLE();
+  return 0;
+#endif
+}
+
+
 void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
 #ifdef __aarch64__
   // Implement the cache synchronisation for all targets where AArch64 is the

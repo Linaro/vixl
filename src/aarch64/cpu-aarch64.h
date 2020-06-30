@@ -193,6 +193,9 @@ class CPU {
       CPUFeatures::QueryIDRegistersOption option =
           CPUFeatures::kQueryIDRegistersIfAvailable);
 
+  // Query the SVE vector length. This requires CPUFeatures::kSVE.
+  static int ReadSVEVectorLengthInBits();
+
   // Handle tagged pointers.
   template <typename T>
   static T SetPointerTag(T pointer, uint64_t tag) {

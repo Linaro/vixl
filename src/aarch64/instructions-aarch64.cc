@@ -35,12 +35,347 @@ static uint64_t RepeatBitsAcrossReg(unsigned reg_size,
                                     unsigned width) {
   VIXL_ASSERT((width == 2) || (width == 4) || (width == 8) || (width == 16) ||
               (width == 32));
-  VIXL_ASSERT((reg_size == kWRegSize) || (reg_size == kXRegSize));
+  VIXL_ASSERT((reg_size == kBRegSize) || (reg_size == kHRegSize) ||
+              (reg_size == kSRegSize) || (reg_size == kDRegSize));
   uint64_t result = value & ((UINT64_C(1) << width) - 1);
   for (unsigned i = width; i < reg_size; i *= 2) {
     result |= (result << i);
   }
   return result;
+}
+
+
+bool Instruction::CanTakeSVEMovprfx(Instruction const* movprfx) const {
+  USE(movprfx);
+  // TODO: This code depends on some instruction enumerations that are no
+  // longer defined. Fix and re-enable tests.
+
+  /*
+    bool movprfx_is_predicated = (movprfx->Mask(SVEMovprfxMask) ==
+  MOVPRFX_z_p_z);
+    bool movprfx_is_unpredicated =
+        (movprfx->Mask(SVEIntMiscUnpredicatedMask) == MOVPRFX_z_z);
+
+    VIXL_ASSERT(movprfx_is_predicated != movprfx_is_unpredicated);
+
+    int32_t zd = movprfx->GetRd();
+    int32_t pg = movprfx_is_predicated ? movprfx->GetPgLow8() : -1;
+    VectorFormat vector_format =
+        movprfx_is_predicated ? movprfx->GetSVEVectorFormat() :
+    kFormatUndefined;
+
+    bool pg_19_16_mismatch = (static_cast<uint32_t>(pg) != ExtractBits(19, 16));
+    bool pg_mismatch = (pg != GetPgLow8());
+    bool zd_is_not_zm = (zd != GetRm());
+    bool zd_is_not_zm_18_16 = (static_cast<uint32_t>(zd) != ExtractBits(18,
+    16));
+    bool zd_is_not_zm_19_16 = (static_cast<uint32_t>(zd) != ExtractBits(19,
+    16));
+    bool zd_is_not_zn = (zd != GetRn());
+    bool zd_matches = (zd == GetRd());
+
+    if (IsMaskedValue<SVEBitwiseImmFMask, SVEBitwiseImmFixed>() ||
+        IsMaskedValue<SVEElementCountFMask, SVEElementCountFixed>() ||
+        IsMaskedValue<SVEIncDecByPredicateCountFMask,
+                      SVEIncDecByPredicateCountFixed>() ||
+        IsMaskedValue<SVEIntWideImmUnpredicatedFMask,
+                      SVEIntWideImmUnpredicatedFixed>()) {
+      return movprfx_is_unpredicated && zd_matches;
+    }
+
+    if (IsMaskedValue<SVEFPComplexMulAddFMask, SVEFPComplexMulAddFixed>() ||
+        IsMaskedValue<SVEFPMulAddFMask, SVEFPMulAddFixed>() ||
+        IsMaskedValue<SVEIntMulAddPredicatedFMask,
+                      SVEIntMulAddPredicatedFixed>()) {
+      if (movprfx_is_predicated) {
+        if (pg_mismatch) return false;
+        if (vector_format != GetSVEVectorFormat()) return false;
+      }
+      return zd_matches && zd_is_not_zn && zd_is_not_zm;
+    }
+
+  if (IsMaskedValue<SVEFPComplexAdditionFMask, SVEFPComplexAdditionFixed>() ||
+      IsMaskedValue<SVEIntBinaryArithmeticPredicatedFMask,
+                    SVEIntBinaryArithmeticPredicatedFixed>() ||
+      IsMaskedValue<SVEIntUnaryArithmeticPredicatedFMask,
+                    SVEIntUnaryArithmeticPredicatedFixed>()) {
+    if (movprfx_is_predicated) {
+      if (pg_mismatch) return false;
+      switch (Mask(SVEIntBinaryArithmeticPredicatedMask)) {
+        case SDIVR_z_p_zz:
+        case SDIV_z_p_zz:
+        case UDIVR_z_p_zz:
+        case UDIV_z_p_zz: {
+          VectorFormat instr_vector_format =
+              (ExtractBit(22) == 0) ? kFormatVnS : kFormatVnD;
+          if (vector_format != instr_vector_format) return false;
+          break;
+        }
+        default:
+          if (vector_format != GetSVEVectorFormat()) return false;
+          break;
+      }
+    }
+
+    if (IsMaskedValue<SVEIntWideImmPredicatedFMask,
+                      SVEIntWideImmPredicatedFixed>()) {
+      // Exclude zeroing unary operations (CPY <Zd>.<T>, <Pg>/Z, <imm>).
+      if (!ExtractBit(14)) return false;
+      if (movprfx_is_predicated) {
+        if (pg_19_16_mismatch) return false;
+        if (vector_format != GetSVEVectorFormat()) return false;
+      }
+      return zd_matches;
+    }
+
+    if (IsMaskedValue<SVEIntMulAddUnpredicatedFMask,
+                      SVEIntMulAddUnpredicatedFixed>()) {
+      return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+             zd_is_not_zm;
+    }
+
+    if (IsMaskedValue<SVEPermuteVectorExtractFMask,
+                      SVEPermuteVectorExtractFixed>()) {
+      return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+    }
+
+    if (IsMaskedValue<SVEBitwiseShiftPredicatedFMask,
+                      SVEBitwiseShiftPredicatedFixed>()) {
+      switch (Mask(SVEBitwiseShiftPredicatedMask)) {
+        case ASR_z_p_zw:
+        case ASR_z_p_zz:
+        case ASRR_z_p_zz:
+        case LSL_z_p_zw:
+        case LSL_z_p_zz:
+        case LSLR_z_p_zz:
+        case LSR_z_p_zw:
+        case LSR_z_p_zz:
+        case LSRR_z_p_zz:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case ASR_z_p_zi:
+        case ASRD_z_p_zi:
+        case LSL_z_p_zi:
+        case LSR_z_p_zi:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            uint32_t tsz = ExtractBits<0x00c00300>();
+            VectorFormat instr_vector_format =
+                SVEFormatFromLaneSizeInBytesLog2(HighestSetBitPosition(tsz));
+            if (vector_format != instr_vector_format) return false;
+          }
+          return zd_matches;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEFPArithmeticPredicatedFMask,
+                      SVEFPArithmeticPredicatedFixed>()) {
+      switch (Mask(SVEFPArithmeticPredicatedMask)) {
+        case FABD_z_p_zz:
+        case FADD_z_p_zz:
+        case FDIV_z_p_zz:
+        case FDIVR_z_p_zz:
+        case FMAX_z_p_zz:
+        case FMAXNM_z_p_zz:
+        case FMIN_z_p_zz:
+        case FMINNM_z_p_zz:
+        case FMUL_z_p_zz:
+        case FMULX_z_p_zz:
+        case FSCALE_z_p_zz:
+        case FSUB_z_p_zz:
+        case FSUBR_z_p_zz:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case FADD_z_p_zs:
+        case FMAX_z_p_zs:
+        case FMAXNM_z_p_zs:
+        case FMIN_z_p_zs:
+        case FMINNM_z_p_zs:
+        case FMUL_z_p_zs:
+        case FSUB_z_p_zs:
+        case FSUBR_z_p_zs:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches;
+        case FTMAD_z_zzi:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEFPComplexMulAddIndexFMask,
+                      SVEFPComplexMulAddIndexFixed>()) {
+      switch (Mask(SVEFPComplexMulAddIndexMask)) {
+        case FCMLA_z_zzzi_h:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_18_16;
+        case FCMLA_z_zzzi_s:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_19_16;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEFPMulAddIndexFMask, SVEFPMulAddIndexFixed>()) {
+      switch (Mask(SVEFPMulAddIndexMask)) {
+        case FMLA_z_zzzi_h:
+        case FMLA_z_zzzi_s:
+        case FMLS_z_zzzi_h:
+        case FMLS_z_zzzi_s:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_18_16;
+        case FMLA_z_zzzi_d:
+        case FMLS_z_zzzi_d:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_19_16;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEFPUnaryOpPredicatedFMask,
+                      SVEFPUnaryOpPredicatedFixed>()) {
+      switch (Mask(SVEFPUnaryOpPredicatedMask)) {
+        case FCVT_z_p_z_d2h:
+        case FCVT_z_p_z_d2s:
+        case FCVT_z_p_z_h2d:
+        case FCVT_z_p_z_h2s:
+        case FCVT_z_p_z_s2d:
+        case FCVT_z_p_z_s2h:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            // For movprfx, we only care about the maximum encoded element size,
+            // which is encoded in the same way as the conventional SVE vector
+            // format.
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case FCVTZS_z_p_z_d2w:
+        case FCVTZS_z_p_z_d2x:
+        case FCVTZS_z_p_z_fp162h:
+        case FCVTZS_z_p_z_fp162w:
+        case FCVTZS_z_p_z_fp162x:
+        case FCVTZS_z_p_z_s2w:
+        case FCVTZS_z_p_z_s2x:
+        case FCVTZU_z_p_z_d2w:
+        case FCVTZU_z_p_z_d2x:
+        case FCVTZU_z_p_z_fp162h:
+        case FCVTZU_z_p_z_fp162w:
+        case FCVTZU_z_p_z_fp162x:
+        case FCVTZU_z_p_z_s2w:
+        case FCVTZU_z_p_z_s2x:
+        case SCVTF_z_p_z_h2fp16:
+        case SCVTF_z_p_z_w2d:
+        case SCVTF_z_p_z_w2fp16:
+        case SCVTF_z_p_z_w2s:
+        case SCVTF_z_p_z_x2d:
+        case SCVTF_z_p_z_x2fp16:
+        case SCVTF_z_p_z_x2s:
+        case UCVTF_z_p_z_h2fp16:
+        case UCVTF_z_p_z_w2d:
+        case UCVTF_z_p_z_w2fp16:
+        case UCVTF_z_p_z_w2s:
+        case UCVTF_z_p_z_x2d:
+        case UCVTF_z_p_z_x2fp16:
+        case UCVTF_z_p_z_x2s:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            // For movprfx, we only care about the maximum encoded element size.
+            // We have to partially decode the opc and opc2 fields to find this.
+            int opc = ExtractBits(23, 22);
+            int opc2 = ExtractBits(18, 17);
+            VectorFormat instr_vector_format =
+                SVEFormatFromLaneSizeInBytesLog2(std::max(opc, opc2));
+            if (vector_format != instr_vector_format) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case FRECPX_z_p_z:
+        case FRINTA_z_p_z:
+        case FRINTI_z_p_z:
+        case FRINTM_z_p_z:
+        case FRINTN_z_p_z:
+        case FRINTP_z_p_z:
+        case FRINTX_z_p_z:
+        case FRINTZ_z_p_z:
+        case FSQRT_z_p_z:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEMulIndexFMask, SVEMulIndexFixed>()) {
+      switch (Mask(SVEMulIndexMask)) {
+        case SDOT_z_zzzi_s:
+        case UDOT_z_zzzi_s:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_18_16;
+        case SDOT_z_zzzi_d:
+        case UDOT_z_zzzi_d:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn &&
+                 zd_is_not_zm_19_16;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEPermuteVectorPredicatedFMask,
+                      SVEPermuteVectorPredicatedFixed>()) {
+      switch (Mask(SVEPermuteVectorPredicatedMask)) {
+        case CLASTA_z_p_zz:
+        case CLASTB_z_p_zz:
+        case CPY_z_p_v:
+        case RBIT_z_p_z:
+        case SPLICE_z_p_zz_des:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches && zd_is_not_zn;
+        case CPY_z_p_r:
+          if (movprfx_is_predicated) {
+            if (pg_mismatch) return false;
+            if (vector_format != GetSVEVectorFormat()) return false;
+          }
+          return zd_matches;
+        case REVB_z_z:
+        case REVH_z_z:
+        case REVW_z_z:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+        default:
+          return false;
+      }
+    }
+
+    if (IsMaskedValue<SVEPermuteVectorUnpredicatedFMask,
+                      SVEPermuteVectorUnpredicatedFixed>()) {
+      switch (Mask(SVEPermuteVectorUnpredicatedMask)) {
+        case INSR_z_v:
+          return movprfx_is_unpredicated && zd_matches && zd_is_not_zn;
+        case INSR_z_r:
+          return movprfx_is_unpredicated && zd_matches;
+        default:
+          return false;
+      }
+    }
+  */
+  return true;
 }
 
 
@@ -103,6 +438,16 @@ bool Instruction::IsStore() const {
 }
 
 
+std::pair<int, int> Instruction::GetSVEPermuteIndexAndLaneSizeLog2() const {
+  uint32_t imm_2 = ExtractBits<0x00C00000>();
+  uint32_t tsz_5 = ExtractBits<0x001F0000>();
+  uint32_t imm_7 = (imm_2 << 5) | tsz_5;
+  int lane_size_in_byte_log_2 = std::min(CountTrailingZeros(tsz_5), 5);
+  int index = ExtractUnsignedBitfield32(6, lane_size_in_byte_log_2 + 1, imm_7);
+  return std::make_pair(index, lane_size_in_byte_log_2);
+}
+
+
 // Logical immediates can't encode zero, so a return value of zero is used to
 // indicate a failure case. Specifically, where the constraints on imm_s are
 // not met.
@@ -111,7 +456,108 @@ uint64_t Instruction::GetImmLogical() const {
   int32_t n = GetBitN();
   int32_t imm_s = GetImmSetBits();
   int32_t imm_r = GetImmRotate();
+  return DecodeImmBitMask(n, imm_s, imm_r, reg_size);
+}
 
+// Logical immediates can't encode zero, so a return value of zero is used to
+// indicate a failure case. Specifically, where the constraints on imm_s are
+// not met.
+uint64_t Instruction::GetSVEImmLogical() const {
+  int n = GetSVEBitN();
+  int imm_s = GetSVEImmSetBits();
+  int imm_r = GetSVEImmRotate();
+  int lane_size_in_bytes_log2 = GetSVEBitwiseImmLaneSizeInBytesLog2();
+  switch (lane_size_in_bytes_log2) {
+    case kDRegSizeInBytesLog2:
+    case kSRegSizeInBytesLog2:
+    case kHRegSizeInBytesLog2:
+    case kBRegSizeInBytesLog2: {
+      int lane_size_in_bits = 1 << (lane_size_in_bytes_log2 + 3);
+      return DecodeImmBitMask(n, imm_s, imm_r, lane_size_in_bits);
+    }
+    default:
+      return 0;
+  }
+}
+
+std::pair<int, int> Instruction::GetSVEImmShiftAndLaneSizeLog2(
+    bool is_predicated) const {
+  Instr tsize =
+      is_predicated ? ExtractBits<0x00C00300>() : ExtractBits<0x00D80000>();
+  Instr imm_3 =
+      is_predicated ? ExtractBits<0x000000E0>() : ExtractBits<0x00070000>();
+  if (tsize == 0) {
+    // The bit field `tsize` means undefined if it is zero, so return a
+    // convenience value kWMinInt to indicate a failure case.
+    return std::make_pair(kWMinInt, kWMinInt);
+  }
+
+  int lane_size_in_bytes_log_2 = 32 - CountLeadingZeros(tsize, 32) - 1;
+  int esize = (1 << lane_size_in_bytes_log_2) * kBitsPerByte;
+  int shift = (2 * esize) - ((tsize << 3) | imm_3);
+  return std::make_pair(shift, lane_size_in_bytes_log_2);
+}
+
+int Instruction::GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb) const {
+  Instr dtype_h = ExtractBits(dtype_h_lsb + 1, dtype_h_lsb);
+  if (is_signed) {
+    dtype_h = dtype_h ^ 0x3;
+  }
+  return dtype_h;
+}
+
+int Instruction::GetSVEEsizeFromDtype(bool is_signed, int dtype_l_lsb) const {
+  Instr dtype_l = ExtractBits(dtype_l_lsb + 1, dtype_l_lsb);
+  if (is_signed) {
+    dtype_l = dtype_l ^ 0x3;
+  }
+  return dtype_l;
+}
+
+int Instruction::GetSVEBitwiseImmLaneSizeInBytesLog2() const {
+  int n = GetSVEBitN();
+  int imm_s = GetSVEImmSetBits();
+  unsigned type_bitset =
+      (n << SVEImmSetBits_width) | (~imm_s & GetUintMask(SVEImmSetBits_width));
+
+  // An lane size is constructed from the n and imm_s bits according to
+  // the following table:
+  //
+  // N   imms   size
+  // 0  0xxxxx   32
+  // 0  10xxxx   16
+  // 0  110xxx    8
+  // 0  1110xx    8
+  // 0  11110x    8
+  // 1  xxxxxx   64
+
+  if (type_bitset == 0) {
+    // Bail out early since `HighestSetBitPosition` doesn't accept zero
+    // value input.
+    return -1;
+  }
+
+  switch (HighestSetBitPosition(type_bitset)) {
+    case 6:
+      return kDRegSizeInBytesLog2;
+    case 5:
+      return kSRegSizeInBytesLog2;
+    case 4:
+      return kHRegSizeInBytesLog2;
+    case 3:
+    case 2:
+    case 1:
+      return kBRegSizeInBytesLog2;
+    default:
+      // RESERVED encoding.
+      return -1;
+  }
+}
+
+uint64_t Instruction::DecodeImmBitMask(int32_t n,
+                                       int32_t imm_s,
+                                       int32_t imm_r,
+                                       int32_t size) const {
   // An integer is constructed from the n, imm_s and imm_r bits according to
   // the following table:
   //
@@ -146,7 +592,7 @@ uint64_t Instruction::GetImmLogical() const {
           return 0;
         }
         uint64_t bits = (UINT64_C(1) << ((imm_s & mask) + 1)) - 1;
-        return RepeatBitsAcrossReg(reg_size,
+        return RepeatBitsAcrossReg(size,
                                    RotateRight(bits, imm_r & mask, width),
                                    width);
       }
@@ -397,8 +843,6 @@ void Instruction::SetImmLLiteral(const Instruction* source) {
 
 
 VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
-  VIXL_ASSERT(vform == kFormat8H || vform == kFormat4S || vform == kFormat2D ||
-              vform == kFormatH || vform == kFormatS || vform == kFormatD);
   switch (vform) {
     case kFormat8H:
       return kFormat8B;
@@ -412,6 +856,13 @@ VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
       return kFormatH;
     case kFormatD:
       return kFormatS;
+    case kFormatVnH:
+      return kFormatVnB;
+    case kFormatVnS:
+      return kFormatVnH;
+    case kFormatVnD:
+      return kFormatVnS;
+      break;
     default:
       VIXL_UNREACHABLE();
       return kFormatUndefined;
@@ -480,6 +931,12 @@ VectorFormat VectorFormatHalfWidthDoubleLanes(VectorFormat vform) {
       return kFormat2S;
     case kFormat2D:
       return kFormat4S;
+    case kFormatVnH:
+      return kFormatVnB;
+    case kFormatVnS:
+      return kFormatVnH;
+    case kFormatVnD:
+      return kFormatVnS;
     default:
       VIXL_UNREACHABLE();
       return kFormatUndefined;
@@ -518,8 +975,8 @@ VectorFormat VectorFormatHalfLanes(VectorFormat vform) {
 }
 
 
-VectorFormat ScalarFormatFromLaneSize(int laneSize) {
-  switch (laneSize) {
+VectorFormat ScalarFormatFromLaneSize(int lane_size_in_bits) {
+  switch (lane_size_in_bits) {
     case 8:
       return kFormatB;
     case 16:
@@ -535,6 +992,69 @@ VectorFormat ScalarFormatFromLaneSize(int laneSize) {
 }
 
 
+bool IsSVEFormat(VectorFormat vform) {
+  switch (vform) {
+    case kFormatVnB:
+    case kFormatVnH:
+    case kFormatVnS:
+    case kFormatVnD:
+    case kFormatVnQ:
+      return true;
+    default:
+      return false;
+  }
+}
+
+
+VectorFormat SVEFormatFromLaneSizeInBytes(int lane_size_in_bytes) {
+  switch (lane_size_in_bytes) {
+    case 1:
+      return kFormatVnB;
+    case 2:
+      return kFormatVnH;
+    case 4:
+      return kFormatVnS;
+    case 8:
+      return kFormatVnD;
+    case 16:
+      return kFormatVnQ;
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
+  }
+}
+
+
+VectorFormat SVEFormatFromLaneSizeInBits(int lane_size_in_bits) {
+  switch (lane_size_in_bits) {
+    case 8:
+    case 16:
+    case 32:
+    case 64:
+    case 128:
+      return SVEFormatFromLaneSizeInBytes(lane_size_in_bits / kBitsPerByte);
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
+  }
+}
+
+
+VectorFormat SVEFormatFromLaneSizeInBytesLog2(int lane_size_in_bytes_log2) {
+  switch (lane_size_in_bytes_log2) {
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+      return SVEFormatFromLaneSizeInBytes(1 << lane_size_in_bytes_log2);
+    default:
+      VIXL_UNREACHABLE();
+      return kFormatUndefined;
+  }
+}
+
+
 VectorFormat ScalarFormatFromFormat(VectorFormat vform) {
   return ScalarFormatFromLaneSize(LaneSizeInBitsFromFormat(vform));
 }
@@ -542,6 +1062,7 @@ VectorFormat ScalarFormatFromFormat(VectorFormat vform) {
 
 unsigned RegisterSizeInBitsFromFormat(VectorFormat vform) {
   VIXL_ASSERT(vform != kFormatUndefined);
+  VIXL_ASSERT(!IsSVEFormat(vform));
   switch (vform) {
     case kFormatB:
       return kBRegSize;
@@ -551,14 +1072,19 @@ unsigned RegisterSizeInBitsFromFormat(VectorFormat vform) {
     case kFormat2H:
       return kSRegSize;
     case kFormatD:
-      return kDRegSize;
     case kFormat8B:
     case kFormat4H:
     case kFormat2S:
     case kFormat1D:
       return kDRegSize;
-    default:
+    case kFormat16B:
+    case kFormat8H:
+    case kFormat4S:
+    case kFormat2D:
       return kQRegSize;
+    default:
+      VIXL_UNREACHABLE();
+      return 0;
   }
 }
 
@@ -574,20 +1100,26 @@ unsigned LaneSizeInBitsFromFormat(VectorFormat vform) {
     case kFormatB:
     case kFormat8B:
     case kFormat16B:
+    case kFormatVnB:
       return 8;
     case kFormatH:
     case kFormat2H:
     case kFormat4H:
     case kFormat8H:
+    case kFormatVnH:
       return 16;
     case kFormatS:
     case kFormat2S:
     case kFormat4S:
+    case kFormatVnS:
       return 32;
     case kFormatD:
     case kFormat1D:
     case kFormat2D:
+    case kFormatVnD:
       return 64;
+    case kFormatVnQ:
+      return 128;
     default:
       VIXL_UNREACHABLE();
       return 0;
@@ -606,20 +1138,26 @@ int LaneSizeInBytesLog2FromFormat(VectorFormat vform) {
     case kFormatB:
     case kFormat8B:
     case kFormat16B:
+    case kFormatVnB:
       return 0;
     case kFormatH:
     case kFormat2H:
     case kFormat4H:
     case kFormat8H:
+    case kFormatVnH:
       return 1;
     case kFormatS:
     case kFormat2S:
     case kFormat4S:
+    case kFormatVnS:
       return 2;
     case kFormatD:
     case kFormat1D:
     case kFormat2D:
+    case kFormatVnD:
       return 3;
+    case kFormatVnQ:
+      return 4;
     default:
       VIXL_UNREACHABLE();
       return 0;
@@ -697,17 +1235,19 @@ bool IsVectorFormat(VectorFormat vform) {
 
 
 int64_t MaxIntFromFormat(VectorFormat vform) {
-  return INT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
+  int lane_size = LaneSizeInBitsFromFormat(vform);
+  return static_cast<int64_t>(GetUintMask(lane_size) >> 1);
 }
 
 
 int64_t MinIntFromFormat(VectorFormat vform) {
-  return INT64_MIN >> (64 - LaneSizeInBitsFromFormat(vform));
+  return -MaxIntFromFormat(vform) - 1;
 }
 
 
 uint64_t MaxUintFromFormat(VectorFormat vform) {
-  return UINT64_MAX >> (64 - LaneSizeInBitsFromFormat(vform));
+  return GetUintMask(LaneSizeInBitsFromFormat(vform));
 }
+
 }  // namespace aarch64
 }  // namespace vixl

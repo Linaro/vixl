@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cmath>
+#include <queue>
 
 #include "test-runner.h"
 #include "test-utils-aarch64.h"
@@ -40,15 +41,15 @@ namespace vixl {
 namespace aarch64 {
 
 
-// This value is a signalling NaN as both a double and as a float (taking the
-// least-significant word).
-const double kFP64SignallingNaN = RawbitsToDouble(UINT64_C(0x7ff000007f800001));
-const float kFP32SignallingNaN = RawbitsToFloat(0x7f800001);
+// This value is a signalling NaN as FP64, and also as FP32 or FP16 (taking the
+// least-significant bits).
+const double kFP64SignallingNaN = RawbitsToDouble(UINT64_C(0x7ff000007f807c01));
+const float kFP32SignallingNaN = RawbitsToFloat(0x7f807c01);
 const Float16 kFP16SignallingNaN = RawbitsToFloat16(0x7c01);
 
 // A similar value, but as a quiet NaN.
-const double kFP64QuietNaN = RawbitsToDouble(UINT64_C(0x7ff800007fc00001));
-const float kFP32QuietNaN = RawbitsToFloat(0x7fc00001);
+const double kFP64QuietNaN = RawbitsToDouble(UINT64_C(0x7ff800007fc07e01));
+const float kFP32QuietNaN = RawbitsToFloat(0x7fc07e01);
 const Float16 kFP16QuietNaN = RawbitsToFloat16(0x7e01);
 
 
@@ -86,18 +87,20 @@ bool Equal64(uint64_t reference,
 }
 
 
-bool Equal128(vec128_t expected, const RegisterDump*, vec128_t result) {
-  if ((result.h != expected.h) || (result.l != expected.l)) {
+bool Equal128(QRegisterValue expected,
+              const RegisterDump*,
+              QRegisterValue result) {
+  if (!expected.Equals(result)) {
     printf("Expected 0x%016" PRIx64 "%016" PRIx64
            "\t "
            "Found 0x%016" PRIx64 "%016" PRIx64 "\n",
-           expected.h,
-           expected.l,
-           result.h,
-           result.l);
+           expected.GetLane<uint64_t>(1),
+           expected.GetLane<uint64_t>(0),
+           result.GetLane<uint64_t>(1),
+           result.GetLane<uint64_t>(0));
   }
 
-  return ((expected.h == result.h) && (expected.l == result.l));
+  return expected.Equals(result);
 }
 
 
@@ -209,8 +212,10 @@ bool Equal128(uint64_t expected_h,
               const RegisterDump* core,
               const VRegister& vreg) {
   VIXL_ASSERT(vreg.Is128Bits());
-  vec128_t expected = {expected_l, expected_h};
-  vec128_t result = core->qreg(vreg.GetCode());
+  QRegisterValue expected;
+  expected.SetLane(0, expected_l);
+  expected.SetLane(1, expected_h);
+  QRegisterValue result = core->qreg(vreg.GetCode());
   return Equal128(expected, core, result);
 }
 
@@ -348,7 +353,137 @@ bool EqualRegisters(const RegisterDump* a, const RegisterDump* b) {
   return true;
 }
 
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const ZRegister& reg,
+                  int lane) {
+  unsigned lane_size = reg.GetLaneSizeInBits();
+  // For convenience in the tests, we allow negative values to be passed into
+  // `expected`, but truncate them to an appropriately-sized unsigned value for
+  // the check. For example, in `EqualSVELane(-1, core, z0.VnB())`, the expected
+  // value is truncated from 0xffffffffffffffff to 0xff before the comparison.
+  VIXL_ASSERT(IsUintN(lane_size, expected) ||
+              IsIntN(lane_size, RawbitsToInt64(expected)));
+  expected &= GetUintMask(lane_size);
 
+  uint64_t result = core->zreg_lane(reg.GetCode(), lane_size, lane);
+  if (expected != result) {
+    unsigned lane_size_in_hex_chars = lane_size / 4;
+    std::string reg_name = reg.GetArchitecturalName();
+    printf("%s[%d]\t Expected 0x%0*" PRIx64 "\t Found 0x%0*" PRIx64 "\n",
+           reg_name.c_str(),
+           lane,
+           lane_size_in_hex_chars,
+           expected,
+           lane_size_in_hex_chars,
+           result);
+    return false;
+  }
+  return true;
+}
+
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const PRegister& reg,
+                  int lane) {
+  VIXL_ASSERT(reg.HasLaneSize());
+  VIXL_ASSERT((reg.GetLaneSizeInBits() % kZRegBitsPerPRegBit) == 0);
+  unsigned p_bits_per_lane = reg.GetLaneSizeInBits() / kZRegBitsPerPRegBit;
+  VIXL_ASSERT(IsUintN(p_bits_per_lane, expected));
+  expected &= GetUintMask(p_bits_per_lane);
+
+  uint64_t result = core->preg_lane(reg.GetCode(), p_bits_per_lane, lane);
+  if (expected != result) {
+    unsigned lane_size_in_hex_chars = (p_bits_per_lane + 3) / 4;
+    std::string reg_name = reg.GetArchitecturalName();
+    printf("%s[%d]\t Expected 0x%0*" PRIx64 "\t Found 0x%0*" PRIx64 "\n",
+           reg_name.c_str(),
+           lane,
+           lane_size_in_hex_chars,
+           expected,
+           lane_size_in_hex_chars,
+           result);
+    return false;
+  }
+  return true;
+}
+
+struct EqualMemoryChunk {
+  typedef uint64_t RawChunk;
+
+  uintptr_t address;
+  RawChunk expected;
+  RawChunk result;
+
+  bool IsEqual() const { return expected == result; }
+};
+
+bool EqualMemory(const void* expected,
+                 const void* result,
+                 size_t size_in_bytes,
+                 size_t zero_offset) {
+  if (memcmp(expected, result, size_in_bytes) == 0) return true;
+
+  // Read 64-bit chunks, and print them side-by-side if they don't match.
+
+  // Remember the last few chunks, even if they matched, so we can print some
+  // context. We don't want to print the whole buffer, because it could be huge.
+  static const size_t kContextLines = 1;
+  std::queue<EqualMemoryChunk> context;
+  static const size_t kChunkSize = sizeof(EqualMemoryChunk::RawChunk);
+
+  // This assumption keeps the logic simple, and is acceptable for our tests.
+  VIXL_ASSERT((size_in_bytes % kChunkSize) == 0);
+
+  const char* expected_it = reinterpret_cast<const char*>(expected);
+  const char* result_it = reinterpret_cast<const char*>(result);
+
+  // This is the first error, so print a header row.
+  printf("  Address (of result)                  Expected           Result\n");
+
+  // Always print some context at the start of the buffer.
+  uintptr_t print_context_to =
+      reinterpret_cast<uintptr_t>(result) + (kContextLines + 1) * kChunkSize;
+  for (size_t i = 0; i < size_in_bytes; i += kChunkSize) {
+    EqualMemoryChunk chunk;
+    chunk.address = reinterpret_cast<uintptr_t>(result_it);
+    memcpy(&chunk.expected, expected_it, kChunkSize);
+    memcpy(&chunk.result, result_it, kChunkSize);
+
+    while (context.size() > kContextLines) context.pop();
+    context.push(chunk);
+
+    // Print context after an error, and at the end of the buffer.
+    if (!chunk.IsEqual() || ((i + kChunkSize) >= size_in_bytes)) {
+      if (chunk.address > print_context_to) {
+        // We aren't currently printing context, so separate this context from
+        // the previous block.
+        printf("...\n");
+      }
+      print_context_to = chunk.address + (kContextLines + 1) * kChunkSize;
+    }
+
+    // Print context (including the current line).
+    while (!context.empty() && (context.front().address < print_context_to)) {
+      uintptr_t address = context.front().address;
+      uint64_t offset = address - reinterpret_cast<uintptr_t>(result);
+      bool is_negative = (offset < zero_offset);
+      printf("0x%016" PRIxPTR " (result %c %5" PRIu64 "): 0x%016" PRIx64
+             " 0x%016" PRIx64 "\n",
+             address,
+             (is_negative ? '-' : '+'),
+             (is_negative ? (zero_offset - offset) : (offset - zero_offset)),
+             context.front().expected,
+             context.front().result);
+      context.pop();
+    }
+
+    expected_it += kChunkSize;
+    result_it += kChunkSize;
+  }
+
+  return false;
+}
 RegList PopulateRegisterArray(Register* w,
                               Register* x,
                               Register* r,
@@ -461,25 +596,57 @@ void Clobber(MacroAssembler* masm, CPURegList reg_list) {
     // This will always clobber D registers.
     ClobberFP(masm, reg_list.GetList());
   } else {
-    VIXL_UNREACHABLE();
+    VIXL_UNIMPLEMENTED();
   }
 }
 
+// TODO: Once registers have sufficiently compatible interfaces, merge the two
+// DumpRegisters templates.
+template <typename T>
+static void DumpRegisters(MacroAssembler* masm,
+                          Register dump_base,
+                          int offset) {
+  UseScratchRegisterScope temps(masm);
+  Register dump = temps.AcquireX();
+  __ Add(dump, dump_base, offset);
+  for (unsigned i = 0; i <= T::GetMaxCode(); i++) {
+    T reg(i);
+    __ Str(reg, SVEMemOperand(dump));
+    __ Add(dump, dump, reg.GetMaxSizeInBytes());
+  }
+}
+
+template <typename T>
+static void DumpRegisters(MacroAssembler* masm,
+                          Register dump_base,
+                          int offset,
+                          int reg_size_in_bytes) {
+  UseScratchRegisterScope temps(masm);
+  Register dump = temps.AcquireX();
+  __ Add(dump, dump_base, offset);
+  for (unsigned i = 0; i <= T::GetMaxCode(); i++) {
+    T reg(i, reg_size_in_bytes * kBitsPerByte);
+    __ Str(reg, MemOperand(dump));
+    __ Add(dump, dump, reg_size_in_bytes);
+  }
+}
 
 void RegisterDump::Dump(MacroAssembler* masm) {
   VIXL_ASSERT(__ StackPointer().Is(sp));
 
-  // Ensure that we don't unintentionally clobber any registers.
+  dump_cpu_features_ = *masm->GetCPUFeatures();
+
+  // We need some scratch registers, but we also need to dump them, so we have
+  // to control exactly which registers are used, and dump them separately.
+  CPURegList scratch_registers(x0, x1, x2, x3);
+
   UseScratchRegisterScope temps(masm);
   temps.ExcludeAll();
+  __ PushCPURegList(scratch_registers);
+  temps.Include(scratch_registers);
 
-  // Preserve some temporary registers.
-  Register dump_base = x0;
-  Register dump = x1;
-  Register tmp = x2;
-  Register dump_base_w = dump_base.W();
-  Register dump_w = dump.W();
-  Register tmp_w = tmp.W();
+  Register dump_base = temps.AcquireX();
+  Register tmp = temps.AcquireX();
 
   // Offsets into the dump_ structure.
   const int x_offset = offsetof(dump_t, x_);
@@ -488,11 +655,12 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   const int s_offset = offsetof(dump_t, s_);
   const int h_offset = offsetof(dump_t, h_);
   const int q_offset = offsetof(dump_t, q_);
+  const int z_offset = offsetof(dump_t, z_);
+  const int p_offset = offsetof(dump_t, p_);
   const int sp_offset = offsetof(dump_t, sp_);
   const int wsp_offset = offsetof(dump_t, wsp_);
   const int flags_offset = offsetof(dump_t, flags_);
-
-  __ Push(xzr, dump_base, dump, tmp);
+  const int vl_offset = offsetof(dump_t, vl_);
 
   // Load the address where we will dump the state.
   __ Mov(dump_base, reinterpret_cast<uintptr_t>(&dump_));
@@ -503,93 +671,111 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   // compensate here.
   __ Add(tmp, sp, 4 * kXRegSizeInBytes);
   __ Str(tmp, MemOperand(dump_base, sp_offset));
-  __ Add(tmp_w, wsp, 4 * kXRegSizeInBytes);
-  __ Str(tmp_w, MemOperand(dump_base, wsp_offset));
+  __ Add(tmp.W(), wsp, 4 * kXRegSizeInBytes);
+  __ Str(tmp.W(), MemOperand(dump_base, wsp_offset));
 
-  // Dump X registers.
-  __ Add(dump, dump_base, x_offset);
-  for (unsigned i = 0; i < kNumberOfRegisters; i += 2) {
-    __ Stp(Register::GetXRegFromCode(i),
-           Register::GetXRegFromCode(i + 1),
-           MemOperand(dump, i * kXRegSizeInBytes));
-  }
+  // Dump core registers.
+  DumpRegisters<Register>(masm, dump_base, x_offset, kXRegSizeInBytes);
+  DumpRegisters<Register>(masm, dump_base, w_offset, kWRegSizeInBytes);
 
-  // Dump W registers.
-  __ Add(dump, dump_base, w_offset);
-  for (unsigned i = 0; i < kNumberOfRegisters; i += 2) {
-    __ Stp(Register::GetWRegFromCode(i),
-           Register::GetWRegFromCode(i + 1),
-           MemOperand(dump, i * kWRegSizeInBytes));
-  }
+  // Dump NEON and FP registers.
+  DumpRegisters<VRegister>(masm, dump_base, q_offset, kQRegSizeInBytes);
+  DumpRegisters<VRegister>(masm, dump_base, d_offset, kDRegSizeInBytes);
+  DumpRegisters<VRegister>(masm, dump_base, s_offset, kSRegSizeInBytes);
+  DumpRegisters<VRegister>(masm, dump_base, h_offset, kHRegSizeInBytes);
 
-  // Dump D registers.
-  __ Add(dump, dump_base, d_offset);
-  for (unsigned i = 0; i < kNumberOfVRegisters; i += 2) {
-    __ Stp(VRegister::GetDRegFromCode(i),
-           VRegister::GetDRegFromCode(i + 1),
-           MemOperand(dump, i * kDRegSizeInBytes));
-  }
+  // Dump SVE registers.
+  if (CPUHas(CPUFeatures::kSVE)) {
+    DumpRegisters<ZRegister>(masm, dump_base, z_offset);
+    DumpRegisters<PRegister>(masm, dump_base, p_offset);
 
-  // Dump S registers.
-  __ Add(dump, dump_base, s_offset);
-  for (unsigned i = 0; i < kNumberOfVRegisters; i += 2) {
-    __ Stp(VRegister::GetSRegFromCode(i),
-           VRegister::GetSRegFromCode(i + 1),
-           MemOperand(dump, i * kSRegSizeInBytes));
-  }
-
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-  // Dump H registers. Note: Stp does not support 16 bits.
-  __ Add(dump, dump_base, h_offset);
-  for (unsigned i = 0; i < kNumberOfVRegisters; i++) {
-    __ Str(VRegister::GetHRegFromCode(i),
-           MemOperand(dump, i * kHRegSizeInBytes));
-  }
-#else
-  USE(h_offset);
-#endif
-
-  // Dump Q registers.
-  __ Add(dump, dump_base, q_offset);
-  for (unsigned i = 0; i < kNumberOfVRegisters; i += 2) {
-    __ Stp(VRegister::GetQRegFromCode(i),
-           VRegister::GetQRegFromCode(i + 1),
-           MemOperand(dump, i * kQRegSizeInBytes));
+    // Record the vector length.
+    __ Rdvl(tmp, kBitsPerByte);
+    __ Str(tmp, MemOperand(dump_base, vl_offset));
   }
 
   // Dump the flags.
   __ Mrs(tmp, NZCV);
   __ Str(tmp, MemOperand(dump_base, flags_offset));
 
-  // To dump the values that were in tmp amd dump, we need a new scratch
+  // To dump the values we used as scratch registers, we need a new scratch
   // register. We can use any of the already dumped registers since we can
   // easily restore them.
   Register dump2_base = x10;
-  Register dump2 = x11;
-  VIXL_ASSERT(!AreAliased(dump_base, dump, tmp, dump2_base, dump2));
+  VIXL_ASSERT(!scratch_registers.IncludesAliasOf(dump2_base));
+
+  VIXL_ASSERT(scratch_registers.IncludesAliasOf(dump_base));
+
+  // Ensure that we don't try to use the scratch registers again.
+  temps.ExcludeAll();
 
   // Don't lose the dump_ address.
   __ Mov(dump2_base, dump_base);
 
-  __ Pop(tmp, dump, dump_base, xzr);
+  __ PopCPURegList(scratch_registers);
 
-  __ Add(dump2, dump2_base, w_offset);
-  __ Str(dump_base_w,
-         MemOperand(dump2, dump_base.GetCode() * kWRegSizeInBytes));
-  __ Str(dump_w, MemOperand(dump2, dump.GetCode() * kWRegSizeInBytes));
-  __ Str(tmp_w, MemOperand(dump2, tmp.GetCode() * kWRegSizeInBytes));
+  while (!scratch_registers.IsEmpty()) {
+    CPURegister reg = scratch_registers.PopLowestIndex();
+    Register x = reg.X();
+    Register w = reg.W();
+    unsigned code = reg.GetCode();
+    __ Str(x, MemOperand(dump2_base, x_offset + (code * kXRegSizeInBytes)));
+    __ Str(w, MemOperand(dump2_base, w_offset + (code * kWRegSizeInBytes)));
+  }
 
-  __ Add(dump2, dump2_base, x_offset);
-  __ Str(dump_base, MemOperand(dump2, dump_base.GetCode() * kXRegSizeInBytes));
-  __ Str(dump, MemOperand(dump2, dump.GetCode() * kXRegSizeInBytes));
-  __ Str(tmp, MemOperand(dump2, tmp.GetCode() * kXRegSizeInBytes));
-
-  // Finally, restore dump2_base and dump2.
+  // Finally, restore dump2_base.
   __ Ldr(dump2_base,
-         MemOperand(dump2, dump2_base.GetCode() * kXRegSizeInBytes));
-  __ Ldr(dump2, MemOperand(dump2, dump2.GetCode() * kXRegSizeInBytes));
+         MemOperand(dump2_base,
+                    x_offset + (dump2_base.GetCode() * kXRegSizeInBytes)));
 
   completed_ = true;
+}
+
+uint64_t GetSignallingNan(int size_in_bits) {
+  switch (size_in_bits) {
+    case kHRegSize:
+      return Float16ToRawbits(kFP16SignallingNaN);
+    case kSRegSize:
+      return FloatToRawbits(kFP32SignallingNaN);
+    case kDRegSize:
+      return DoubleToRawbits(kFP64SignallingNaN);
+    default:
+      VIXL_UNIMPLEMENTED();
+      return 0;
+  }
+}
+
+bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
+  bool log_if_missing = true;
+  if (queried_can_run != NULL) {
+    log_if_missing = !*queried_can_run;
+    *queried_can_run = true;
+  }
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  // The Simulator can run any test that VIXL can assemble.
+  USE(required);
+  USE(log_if_missing);
+  return true;
+#else
+  CPUFeatures cpu = CPUFeatures::InferFromOS();
+  // If InferFromOS fails, assume that basic features are present.
+  if (cpu.HasNoFeatures()) cpu = CPUFeatures::AArch64LegacyBaseline();
+  VIXL_ASSERT(cpu.Has(kInfrastructureCPUFeatures));
+
+  if (cpu.Has(required)) return true;
+
+  if (log_if_missing) {
+    CPUFeatures missing = required.Without(cpu);
+    // Note: This message needs to match REGEXP_MISSING_FEATURES from
+    // tools/threaded_test.py.
+    std::cout << "SKIPPED: Missing features: { " << missing << " }\n";
+    std::cout << "This test requires the following features to run its "
+                 "generated code on this CPU: "
+              << required << "\n";
+  }
+  return false;
+#endif
 }
 
 }  // namespace aarch64

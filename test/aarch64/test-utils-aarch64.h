@@ -52,11 +52,42 @@ extern const float kFP32QuietNaN;
 extern const Float16 kFP16SignallingNaN;
 extern const Float16 kFP16QuietNaN;
 
-// Structure representing Q registers in a RegisterDump.
-struct vec128_t {
-  uint64_t l;
-  uint64_t h;
+// Vector registers don't naturally fit any C++ native type, so define a class
+// with convenient accessors.
+// Note that this has to be a POD type so that we can use 'offsetof' with it.
+template <int kSizeInBytes>
+struct VectorValue {
+  template <typename T>
+  T GetLane(int lane) const {
+    size_t lane_size = sizeof(T);
+    VIXL_CHECK(lane >= 0);
+    VIXL_CHECK(kSizeInBytes >= ((lane + 1) * lane_size));
+    T result;
+    memcpy(&result, bytes + (lane * lane_size), lane_size);
+    return result;
+  }
+
+  template <typename T>
+  void SetLane(int lane, T value) {
+    size_t lane_size = sizeof(value);
+    VIXL_CHECK(kSizeInBytes >= ((lane + 1) * lane_size));
+    memcpy(bytes + (lane * lane_size), &value, lane_size);
+  }
+
+  bool Equals(const VectorValue<kSizeInBytes>& other) const {
+    return memcmp(bytes, other.bytes, kSizeInBytes) == 0;
+  }
+
+  uint8_t bytes[kSizeInBytes];
 };
+
+// It would be convenient to make these subclasses, so we can provide convenient
+// constructors and utility methods specific to each register type, but we can't
+// do that because it makes the result a non-POD type, and then we can't use
+// 'offsetof' in RegisterDump::Dump.
+typedef VectorValue<kQRegSizeInBytes> QRegisterValue;
+typedef VectorValue<kZRegMaxSizeInBytes> ZRegisterValue;
+typedef VectorValue<kPRegMaxSizeInBytes> PRegisterValue;
 
 // RegisterDump: Object allowing integer, floating point and flags registers
 // to be saved to itself for future reference.
@@ -101,12 +132,12 @@ class RegisterDump {
 
   // VRegister accessors.
   inline uint16_t hreg_bits(unsigned code) const {
-    VIXL_ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(VRegAliasesMatch(code));
     return dump_.h_[code];
   }
 
   inline uint32_t sreg_bits(unsigned code) const {
-    VIXL_ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(VRegAliasesMatch(code));
     return dump_.s_[code];
   }
 
@@ -119,7 +150,7 @@ class RegisterDump {
   }
 
   inline uint64_t dreg_bits(unsigned code) const {
-    VIXL_ASSERT(FPRegAliasesMatch(code));
+    VIXL_ASSERT(VRegAliasesMatch(code));
     return dump_.d_[code];
   }
 
@@ -127,7 +158,78 @@ class RegisterDump {
     return RawbitsToDouble(dreg_bits(code));
   }
 
-  inline vec128_t qreg(unsigned code) const { return dump_.q_[code]; }
+  inline QRegisterValue qreg(unsigned code) const { return dump_.q_[code]; }
+
+  template <typename T>
+  inline T zreg_lane(unsigned code, int lane) const {
+    VIXL_ASSERT(VRegAliasesMatch(code));
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+    VIXL_ASSERT(lane < GetSVELaneCount(sizeof(T) * kBitsPerByte));
+    return dump_.z_[code].GetLane<T>(lane);
+  }
+
+  inline uint64_t zreg_lane(unsigned code,
+                            unsigned size_in_bits,
+                            int lane) const {
+    switch (size_in_bits) {
+      case kBRegSize:
+        return zreg_lane<uint8_t>(code, lane);
+      case kHRegSize:
+        return zreg_lane<uint16_t>(code, lane);
+      case kSRegSize:
+        return zreg_lane<uint32_t>(code, lane);
+      case kDRegSize:
+        return zreg_lane<uint64_t>(code, lane);
+    }
+    VIXL_UNREACHABLE();
+    return 0;
+  }
+
+  inline uint64_t preg_lane(unsigned code,
+                            unsigned p_bits_per_lane,
+                            int lane) const {
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+    VIXL_ASSERT(lane < GetSVELaneCount(p_bits_per_lane * kZRegBitsPerPRegBit));
+    // Load a chunk and extract the necessary bits. The chunk size is arbitrary.
+    typedef uint64_t Chunk;
+    const size_t kChunkSizeInBits = sizeof(Chunk) * kBitsPerByte;
+    VIXL_ASSERT(IsPowerOf2(p_bits_per_lane));
+    VIXL_ASSERT(p_bits_per_lane <= kChunkSizeInBits);
+
+    int chunk_index = (lane * p_bits_per_lane) / kChunkSizeInBits;
+    int bit_index = (lane * p_bits_per_lane) % kChunkSizeInBits;
+    Chunk chunk = dump_.p_[code].GetLane<Chunk>(chunk_index);
+    return (chunk >> bit_index) & GetUintMask(p_bits_per_lane);
+  }
+
+  inline int GetSVELaneCount(int lane_size_in_bits) const {
+    VIXL_ASSERT(lane_size_in_bits > 0);
+    VIXL_ASSERT((dump_.vl_ % lane_size_in_bits) == 0);
+    uint64_t count = dump_.vl_ / lane_size_in_bits;
+    VIXL_ASSERT(count <= INT_MAX);
+    return static_cast<int>(count);
+  }
+
+  template <typename T>
+  inline bool HasSVELane(T reg, int lane) const {
+    VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
+    return lane < GetSVELaneCount(reg.GetLaneSizeInBits());
+  }
+
+  template <typename T>
+  inline uint64_t GetSVELane(T reg, int lane) const {
+    VIXL_ASSERT(HasSVELane(reg, lane));
+    if (reg.IsZRegister()) {
+      return zreg_lane(reg.GetCode(), reg.GetLaneSizeInBits(), lane);
+    } else if (reg.IsPRegister()) {
+      VIXL_ASSERT((reg.GetLaneSizeInBits() % kZRegBitsPerPRegBit) == 0);
+      return preg_lane(reg.GetCode(),
+                       reg.GetLaneSizeInBits() / kZRegBitsPerPRegBit,
+                       lane);
+    } else {
+      VIXL_ABORT();
+    }
+  }
 
   // Stack pointer accessors.
   inline int64_t spreg() const {
@@ -168,12 +270,30 @@ class RegisterDump {
     return ((dump_.sp_ & kWRegMask) == dump_.wsp_);
   }
 
-  // As RegAliasesMatch, but for floating-point registers.
-  bool FPRegAliasesMatch(unsigned code) const {
+  // As RegAliasesMatch, but for Z and V registers.
+  bool VRegAliasesMatch(unsigned code) const {
     VIXL_ASSERT(IsComplete());
     VIXL_ASSERT(code < kNumberOfVRegisters);
-    return (((dump_.d_[code] & kSRegMask) == dump_.s_[code]) ||
-            ((dump_.s_[code] & kHRegMask) == dump_.h_[code]));
+    bool match = ((dump_.q_[code].GetLane<uint64_t>(0) == dump_.d_[code]) &&
+                  ((dump_.d_[code] & kSRegMask) == dump_.s_[code]) &&
+                  ((dump_.s_[code] & kHRegMask) == dump_.h_[code]));
+    if (CPUHas(CPUFeatures::kSVE)) {
+      bool z_match =
+          memcmp(&dump_.q_[code], &dump_.z_[code], kQRegSizeInBytes) == 0;
+      match = match && z_match;
+    }
+    return match;
+  }
+
+  // Record the CPUFeatures enabled when Dump was called.
+  CPUFeatures dump_cpu_features_;
+
+  // Convenience pass-through for CPU feature checks.
+  bool CPUHas(CPUFeatures::Feature feature0,
+              CPUFeatures::Feature feature1 = CPUFeatures::kNone,
+              CPUFeatures::Feature feature2 = CPUFeatures::kNone,
+              CPUFeatures::Feature feature3 = CPUFeatures::kNone) const {
+    return dump_cpu_features_.Has(feature0, feature1, feature2, feature3);
   }
 
   // Store all the dumped elements in a simple struct so the implementation can
@@ -189,7 +309,10 @@ class RegisterDump {
     uint16_t h_[kNumberOfVRegisters];
 
     // Vector registers.
-    vec128_t q_[kNumberOfVRegisters];
+    QRegisterValue q_[kNumberOfVRegisters];
+    ZRegisterValue z_[kNumberOfZRegisters];
+
+    PRegisterValue p_[kNumberOfPRegisters];
 
     // The stack pointer.
     uint64_t sp_;
@@ -201,6 +324,9 @@ class RegisterDump {
     // bit[29] : Carry
     // bit[28] : oVerflow
     uint64_t flags_;
+
+    // The SVE "VL" (vector length) in bits.
+    uint64_t vl_;
   } dump_;
 };
 
@@ -219,6 +345,9 @@ bool Equal64(uint64_t reference,
              const RegisterDump*,
              uint64_t result,
              ExpectedResult option = kExpectEqual);
+bool Equal128(QRegisterValue expected,
+              const RegisterDump*,
+              QRegisterValue result);
 
 bool EqualFP16(Float16 expected, const RegisterDump*, uint16_t result);
 bool EqualFP32(float expected, const RegisterDump*, float result);
@@ -260,6 +389,92 @@ template <typename T0, typename T1>
 bool NotEqual64(T0 reference, const RegisterDump* core, T1 result) {
   return !Equal64(reference, core, result, kExpectNotEqual);
 }
+
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const ZRegister& reg,
+                  int lane);
+
+bool EqualSVELane(uint64_t expected,
+                  const RegisterDump* core,
+                  const PRegister& reg,
+                  int lane);
+
+// Check that each SVE lane matches the corresponding expected[] value. The
+// highest-indexed array element maps to the lowest-numbered lane.
+template <typename T, int N, typename R>
+bool EqualSVE(const T (&expected)[N],
+              const RegisterDump* core,
+              const R& reg,
+              bool* printed_warning) {
+  VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
+  VIXL_ASSERT(reg.HasLaneSize());
+  // Evaluate and report errors on every lane, rather than just the first.
+  bool equal = true;
+  for (int lane = 0; lane < N; ++lane) {
+    if (!core->HasSVELane(reg, lane)) {
+      if (*printed_warning == false) {
+        *printed_warning = true;
+        printf(
+            "Warning: Ignoring SVE lanes beyond VL (%d bytes) "
+            "because the CPU does not implement them.\n",
+            core->GetSVELaneCount(kBRegSize));
+      }
+      break;
+    }
+    // Map the highest-indexed array element to the lowest-numbered lane.
+    equal = EqualSVELane(expected[N - lane - 1], core, reg, lane) && equal;
+  }
+  return equal;
+}
+
+// Check that each SVE lanes matches the `expected` value.
+template <typename R>
+bool EqualSVE(uint64_t expected,
+              const RegisterDump* core,
+              const R& reg,
+              bool* printed_warning) {
+  VIXL_ASSERT(reg.IsZRegister() || reg.IsPRegister());
+  VIXL_ASSERT(reg.HasLaneSize());
+  USE(printed_warning);
+  // Evaluate and report errors on every lane, rather than just the first.
+  bool equal = true;
+  for (int lane = 0; lane < core->GetSVELaneCount(reg.GetLaneSizeInBits());
+       ++lane) {
+    equal = EqualSVELane(expected, core, reg, lane) && equal;
+  }
+  return equal;
+}
+
+// Check that two Z or P registers are equal.
+template <typename R>
+bool EqualSVE(const R& expected,
+              const RegisterDump* core,
+              const R& result,
+              bool* printed_warning) {
+  VIXL_ASSERT(result.IsZRegister() || result.IsPRegister());
+  VIXL_ASSERT(AreSameFormat(expected, result));
+  USE(printed_warning);
+
+  // If the lane size is omitted, pick a default.
+  if (!result.HasLaneSize()) {
+    return EqualSVE(expected.VnB(), core, result.VnB(), printed_warning);
+  }
+
+  // Evaluate and report errors on every lane, rather than just the first.
+  bool equal = true;
+  int lane_size = result.GetLaneSizeInBits();
+  for (int lane = 0; lane < core->GetSVELaneCount(lane_size); ++lane) {
+    uint64_t expected_lane = core->GetSVELane(expected, lane);
+    equal = equal && EqualSVELane(expected_lane, core, result, lane);
+  }
+  return equal;
+}
+
+bool EqualMemory(const void* expected,
+                 const void* result,
+                 size_t size_in_bytes,
+                 size_t zero_offset = 0);
 
 // Populate the w, x and r arrays with registers from the 'allowed' mask. The
 // r array will be populated with <reg_size>-sized registers,
@@ -307,6 +522,66 @@ void ClobberFP(MacroAssembler* masm,
 // using this method, the clobber value is always the default for the basic
 // Clobber or ClobberFP functions.
 void Clobber(MacroAssembler* masm, CPURegList reg_list);
+
+uint64_t GetSignallingNan(int size_in_bits);
+
+// This class acts as a drop-in replacement for VIXL's MacroAssembler, giving
+// CalculateSVEAddress public visibility.
+//
+// CalculateSVEAddress normally has protected visibility, but it's useful to
+// test it in isolation because it is the basis of all SVE non-scatter-gather
+// load and store fall-backs.
+class CalculateSVEAddressMacroAssembler : public vixl::aarch64::MacroAssembler {
+ public:
+  void CalculateSVEAddress(const Register& xd,
+                           const SVEMemOperand& addr,
+                           int vl_divisor_log2) {
+    MacroAssembler::CalculateSVEAddress(xd, addr, vl_divisor_log2);
+  }
+
+  void CalculateSVEAddress(const Register& xd, const SVEMemOperand& addr) {
+    MacroAssembler::CalculateSVEAddress(xd, addr);
+  }
+};
+
+// This class acts as a drop-in replacement for VIXL's MacroAssembler, with
+// fast NaN proparation mode switched on.
+class FastNaNPropagationMacroAssembler : public MacroAssembler {
+ public:
+  FastNaNPropagationMacroAssembler() {
+    SetFPNaNPropagationOption(FastNaNPropagation);
+  }
+};
+
+// This class acts as a drop-in replacement for VIXL's MacroAssembler, with
+// strict NaN proparation mode switched on.
+class StrictNaNPropagationMacroAssembler : public MacroAssembler {
+ public:
+  StrictNaNPropagationMacroAssembler() {
+    SetFPNaNPropagationOption(StrictNaNPropagation);
+  }
+};
+
+// If the required features are available, return true.
+// Otherwise:
+//  - Print a warning message, unless *queried_can_run indicates that we've
+//    already done so.
+//  - Return false.
+//
+// If *queried_can_run is NULL, it is treated as false. Otherwise, it is set to
+// true, regardless of the return value.
+//
+// The warning message printed on failure is used by tools/threaded_tests.py to
+// count skipped tests. A test must not print more than one such warning
+// message. It is safe to call CanRun multiple times per test, as long as
+// queried_can_run is propagated correctly between calls, and the first call to
+// CanRun requires every feature that is required by subsequent calls. If
+// queried_can_run is NULL, CanRun must not be called more than once per test.
+bool CanRun(const CPUFeatures& required, bool* queried_can_run = NULL);
+
+// PushCalleeSavedRegisters(), PopCalleeSavedRegisters() and Dump() use NEON, so
+// we need to enable it in the infrastructure code for each test.
+static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 
 }  // namespace aarch64
 }  // namespace vixl
