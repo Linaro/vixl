@@ -292,6 +292,14 @@ class Instruction {
   INSTRUCTION_FIELDS_LIST(DEFINE_GETTER)
 #undef DEFINE_GETTER
 
+  template <int msb, int lsb>
+  int32_t GetRx() const {
+    // We don't have any register fields wider than five bits, so the result
+    // will always fit into an int32_t.
+    VIXL_ASSERT((msb - lsb + 1) <= 5);
+    return this->ExtractBits(msb, lsb);
+  }
+
   VectorFormat GetSVEVectorFormat() const {
     switch (Mask(SVESizeFieldMask)) {
       case SVE_B:
