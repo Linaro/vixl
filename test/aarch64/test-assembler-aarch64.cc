@@ -6734,12 +6734,10 @@ TEST(axflag_xaflag) {
 
 TEST(system_msr) {
   // All FPCR fields that must be implemented: AHP, DN, FZ, RMode
-  const uint64_t fpcr_core = 0x07c00000;
-
-  // All FPCR fields (including fields which may be read-as-zero):
-  //  Stride, Len
-  //  IDE, IXE, UFE, OFE, DZE, IOE
-  const uint64_t fpcr_all = fpcr_core | 0x00379f00;
+  const uint64_t fpcr_core = (0b1 << 26) |  // AHP
+                             (0b1 << 25) |  // DN
+                             (0b1 << 24) |  // FZ
+                             (0b11 << 22);  // RMode
 
   SETUP();
 
@@ -6772,6 +6770,18 @@ TEST(system_msr) {
   __ Msr(FPCR, x8);
   __ Mrs(x8, FPCR);
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  // All FPCR fields that aren't `RES0`:
+  const uint64_t fpcr_all = fpcr_core | (0b11 << 20) |  // Stride
+                            (0b1 << 19) |               // FZ16
+                            (0b111 << 16) |             // Len
+                            (0b1 << 15) |               // IDE
+                            (0b1 << 12) |               // IXE
+                            (0b1 << 11) |               // UFE
+                            (0b1 << 10) |               // OFE
+                            (0b1 << 9) |                // DZE
+                            (0b1 << 8);                 // IOE
+
   // All FPCR fields, including optional ones. This part of the test doesn't
   // achieve much other than ensuring that supported fields can be cleared by
   // the next test.
@@ -6787,6 +6797,7 @@ TEST(system_msr) {
   __ Mov(x10, ~fpcr_all);
   __ Msr(FPCR, x10);
   __ Mrs(x10, FPCR);
+#endif
 
   END();
 
@@ -6797,8 +6808,11 @@ TEST(system_msr) {
     ASSERT_EQUAL_64(8, x7);
 
     ASSERT_EQUAL_64(fpcr_core, x8);
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(fpcr_core, x9);
     ASSERT_EQUAL_64(0, x10);
+#endif
   }
 }
 
