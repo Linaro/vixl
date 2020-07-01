@@ -2758,24 +2758,61 @@ TEST(add_sub_macro) {
   SETUP();
 
   // Add and Sub use their destination register as a scratch if they can.
-  COMPARE_MACRO(Add(x0, x1, 0x4242),
+  COMPARE_MACRO(Add(x0, x1, 0x42424242),
                 "mov x0, #0x4242\n"
+                "movk x0, #0x4242, lsl #16\n"
                 "add x0, x1, x0");
-  COMPARE_MACRO(Add(x0, x0, 0x4242),
+  COMPARE_MACRO(Add(x0, x0, 0x42424242),
                 "mov x16, #0x4242\n"
+                "movk x16, #0x4242, lsl #16\n"
                 "add x0, x0, x16");
+  COMPARE_MACRO(Adds(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "adds x0, x1, x0");
+  COMPARE_MACRO(Adds(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "adds x0, x0, x16");
   COMPARE_MACRO(Adds(x0, xzr, Operand(w1, SXTW)),
                 "sxtw x0, w1\n"
                 "adds x0, xzr, x0");
-  COMPARE_MACRO(Sub(x0, x1, 0x4242),
+  COMPARE_MACRO(Subs(x0, x1, 0x42424242),
                 "mov x0, #0x4242\n"
-                "sub x0, x1, x0");
-  COMPARE_MACRO(Sub(x0, x0, 0x4242),
+                "movk x0, #0x4242, lsl #16\n"
+                "subs x0, x1, x0");
+  COMPARE_MACRO(Subs(x0, x0, 0x42424242),
                 "mov x16, #0x4242\n"
-                "sub x0, x0, x16");
+                "movk x16, #0x4242, lsl #16\n"
+                "subs x0, x0, x16");
+  COMPARE_MACRO(Subs(x0, x1, 0x4242),
+                "mov x0, #0x4242\n"
+                "subs x0, x1, x0");
+  COMPARE_MACRO(Subs(x0, x0, 0x4242),
+                "mov x16, #0x4242\n"
+                "subs x0, x0, x16");
   COMPARE_MACRO(Subs(x0, xzr, Operand(w1, SXTW)),
                 "sxtw x0, w1\n"
                 "negs x0, x0");
+
+  // Add and Sub for immediates between 12 and 24 bits emits a pair of
+  // instructions.
+  COMPARE_MACRO(Add(x0, x0, 0x4242),
+                "add x0, x0, #0x242 (578)\n"
+                "add x0, x0, #0x4000 (16384)");
+  COMPARE_MACRO(Add(x0, x1, 0x4242),
+                "add x0, x1, #0x242 (578)\n"
+                "add x0, x0, #0x4000 (16384)");
+  COMPARE_MACRO(Add(x0, x0, 0xffffff),
+                "add x0, x0, #0xfff (4095)\n"
+                "add x0, x0, #0xfff000 (16773120)");
+  COMPARE_MACRO(Sub(x0, x0, 0x4242),
+                "sub x0, x0, #0x242 (578)\n"
+                "sub x0, x0, #0x4000 (16384)");
+  COMPARE_MACRO(Sub(x0, x1, 0x4242),
+                "sub x0, x1, #0x242 (578)\n"
+                "sub x0, x0, #0x4000 (16384)");
+  COMPARE_MACRO(Sub(x0, x0, 0xffffff),
+                "sub x0, x0, #0xfff (4095)\n"
+                "sub x0, x0, #0xfff000 (16773120)");
 }
 
 TEST(adc_sbc_macro) {

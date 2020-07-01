@@ -1427,8 +1427,7 @@ void MacroAssembler::Add(const Register& rd,
                          const Operand& operand,
                          FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.GetImmediate() < 0) &&
-      IsImmAddSub(-operand.GetImmediate())) {
+  if (operand.IsImmediate() && (operand.GetImmediate() < 0)) {
     AddSubMacro(rd, rn, -operand.GetImmediate(), S, SUB);
   } else {
     AddSubMacro(rd, rn, operand, S, ADD);
@@ -1448,8 +1447,7 @@ void MacroAssembler::Sub(const Register& rd,
                          const Operand& operand,
                          FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.GetImmediate() < 0) &&
-      IsImmAddSub(-operand.GetImmediate())) {
+  if (operand.IsImmediate() && (operand.GetImmediate() < 0)) {
     AddSubMacro(rd, rn, -operand.GetImmediate(), S, ADD);
   } else {
     AddSubMacro(rd, rn, operand, S, SUB);
@@ -1774,22 +1772,30 @@ void MacroAssembler::AddSubMacro(const Register& rd,
     // `rd`) because we don't need it after it is evaluated.
     Register temp = temps.AcquireSameSizeAs(rn);
     if (operand.IsImmediate()) {
-      PreShiftImmMode mode = kAnyShift;
+      int64_t imm = operand.GetImmediate();
+      int64_t divisor = 1 << ImmAddSub_width;
+      if ((S == LeaveFlags) && IsUint12(imm / divisor)) {
+        // Unsigned immediates requiring up to 24 bits are emitted as two adds
+        // or subs.
+        AddSub(rd, rn, imm % divisor, S, op);
+        AddSub(rd, rd, (imm / divisor) << ImmAddSub_width, S, op);
+      } else {
+        PreShiftImmMode mode = kAnyShift;
 
-      // If the destination or source register is the stack pointer, we can
-      // only pre-shift the immediate right by values supported in the add/sub
-      // extend encoding.
-      if (rd.IsSP()) {
-        // If the destination is SP and flags will be set, we can't pre-shift
-        // the immediate at all.
-        mode = (S == SetFlags) ? kNoShift : kLimitShiftForSP;
-      } else if (rn.IsSP()) {
-        mode = kLimitShiftForSP;
+        // If the destination or source register is the stack pointer, we can
+        // only pre-shift the immediate right by values supported in the add/sub
+        // extend encoding.
+        if (rd.IsSP()) {
+          // If the destination is SP and flags will be set, we can't pre-shift
+          // the immediate at all.
+          mode = (S == SetFlags) ? kNoShift : kLimitShiftForSP;
+        } else if (rn.IsSP()) {
+          mode = kLimitShiftForSP;
+        }
+
+        Operand imm_operand = MoveImmediateForShiftedOp(temp, imm, mode);
+        AddSub(rd, rn, imm_operand, S, op);
       }
-
-      Operand imm_operand =
-          MoveImmediateForShiftedOp(temp, operand.GetImmediate(), mode);
-      AddSub(rd, rn, imm_operand, S, op);
     } else {
       Mov(temp, operand);
       AddSub(rd, rn, temp, S, op);
