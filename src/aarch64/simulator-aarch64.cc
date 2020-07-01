@@ -10802,7 +10802,8 @@ void Simulator::VisitSVEPropagateBreakToNextPartition(
 
   // Set flag if needed.
   if (instr->ExtractBit(22) == 1) {
-    PredTest(kFormatVnB, pg, pdm);
+    // Note that this ignores `pg`.
+    PredTest(kFormatVnB, GetPTrue(), pdm);
   }
 }
 

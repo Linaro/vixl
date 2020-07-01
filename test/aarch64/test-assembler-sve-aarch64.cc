@@ -14349,8 +14349,6 @@ enum BrknDstPredicateState { kAllFalse, kUnchanged };
 
 template <typename T, size_t N>
 static void BrknHelper(Test* config,
-                       BrknFn macro,
-                       BrknsFn macro_set_flags,
                        const T (&pd_inputs)[N],
                        const T (&pg_inputs)[N],
                        const T (&pn_inputs)[N],
@@ -14376,10 +14374,10 @@ static void BrknHelper(Test* config,
   __ Mov(x10, NZCVFlag);
   __ Msr(NZCV, x10);
 
-  (masm.*macro)(pdm.VnB(), pg.Zeroing(), pn.VnB(), pdm.VnB());
+  __ Brkn(pdm.VnB(), pg.Zeroing(), pn.VnB(), pdm.VnB());
   // !pd.Aliases(pm).
-  (masm.*macro)(pd.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
-  (masm.*macro_set_flags)(pd_s.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
+  __ Brkn(pd.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
+  __ Brkns(pd_s.VnB(), pg.Zeroing(), pn.VnB(), pm.VnB());
   __ Mrs(x0, NZCV);
 
   END();
@@ -14395,11 +14393,16 @@ static void BrknHelper(Test* config,
     }
     ASSERT_EQUAL_SVE(pm_inputs, pm.VnB());
 
+    T all_true[N];
+    for (size_t i = 0; i < ArrayLength(all_true); i++) {
+      all_true[i] = 1;
+    }
+
     // Check that the flags were properly set.
     StatusFlags nzcv_expected =
         GetPredTestFlags((expected_pd_state == kAllFalse) ? all_false
                                                           : pm_inputs,
-                         pg_inputs,
+                         all_true,
                          core.GetSVELaneCount(kBRegSize));
     ASSERT_EQUAL_64(nzcv_expected, x0);
     ASSERT_EQUAL_SVE(pd.VnB(), pdm.VnB());
@@ -14408,30 +14411,28 @@ static void BrknHelper(Test* config,
 }
 
 TEST_SVE(sve_brkn) {
-  // clang-format off
-  int pd[] =   {1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
-  int pm[] =   {0, 1, 1, 1, 1, 0, 0, 1, 0, 1};
+  int pd[] = {1, 0, 0, 1, 0, 1, 1, 0, 1, 0};
+  int pm[] = {0, 1, 1, 1, 1, 0, 0, 1, 0, 1};
 
-  int pg_1[] =  {1, 1, 0, 0, 1, 0, 1, 1, 0, 0};
-  int pg_2[] =  {0, 0, 0, 1, 1, 1, 0, 0, 1, 1};
-  int pg_3[] =  {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};  // all-false
+  int pg_1[] = {1, 1, 0, 0, 1, 0, 1, 1, 0, 0};
+  int pg_2[] = {0, 0, 0, 1, 1, 1, 0, 0, 1, 1};
+  int pg_3[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-  int pn_1[] =  {1, 0, 0, 0, 0, 1, 1, 0, 0, 0};
-  int pn_2[] =  {0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
-  int pn_3[] =  {0, 0, 0, 0, 1, 1, 0, 0, 1, 1};
+  int pn_1[] = {1, 0, 0, 0, 0, 1, 1, 0, 0, 0};
+  int pn_2[] = {0, 1, 0, 1, 0, 0, 0, 0, 0, 0};
+  int pn_3[] = {0, 0, 0, 0, 1, 1, 0, 0, 1, 1};
 
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_1, pn_1, pm, kUnchanged);
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_1, pn_2, pm, kAllFalse);
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_1, pn_3, pm, kAllFalse);
+  BrknHelper(config, pd, pg_1, pn_1, pm, kUnchanged);
+  BrknHelper(config, pd, pg_1, pn_2, pm, kAllFalse);
+  BrknHelper(config, pd, pg_1, pn_3, pm, kAllFalse);
 
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_2, pn_1, pm, kAllFalse);
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_2, pn_2, pm, kUnchanged);
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_2, pn_3, pm, kAllFalse);
+  BrknHelper(config, pd, pg_2, pn_1, pm, kAllFalse);
+  BrknHelper(config, pd, pg_2, pn_2, pm, kUnchanged);
+  BrknHelper(config, pd, pg_2, pn_3, pm, kAllFalse);
 
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_3, pn_1, pm, kAllFalse);
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_3, pn_2, pm, kAllFalse);
-  BrknHelper(config, &MacroAssembler::Brkn, &MacroAssembler::Brkns, pd, pg_3, pn_3, pm, kAllFalse);
-  // clang-format on
+  BrknHelper(config, pd, pg_3, pn_1, pm, kAllFalse);
+  BrknHelper(config, pd, pg_3, pn_2, pm, kAllFalse);
+  BrknHelper(config, pd, pg_3, pn_3, pm, kAllFalse);
 }
 
 TEST_SVE(sve_trn) {
