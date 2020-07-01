@@ -17073,9 +17073,10 @@ static void FPMulAccIdxHelper(Test* config,
   __ Dup(z0.VnD(), z30.VnD(), 1);
   FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
   (masm.*macro)(z24.VnD(), p0.Merging(), z2.VnD(), z1.VnD(), z0.VnD(), option);
-  __ Dup(z0.VnD(), z30.VnD(), 1);
-  FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z0.VnD());
-  (masm.*macro)(z25.VnD(), p0.Merging(), z2.VnD(), z30.VnD(), z0.VnD(), option);
+  FPSegmentPatternHelper(&masm, z0.VnD(), p0.Merging(), z30.VnD());
+  __ Dup(z29.VnD(), z30.VnD(), 1);
+  FPSegmentPatternHelper(&masm, z29.VnD(), p0.Merging(), z29.VnD());
+  (masm.*macro)(z25.VnD(), p0.Merging(), z2.VnD(), z0.VnD(), z29.VnD(), option);
 
   END();
 
