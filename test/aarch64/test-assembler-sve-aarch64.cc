@@ -14106,12 +14106,17 @@ TEST_SVE(sve_punpk) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
+  auto get_64_bits_at = [](int byte_index) -> uint64_t {
+    // Each 8-bit chunk has the value 0x50 + the byte index of the chunk.
+    return 0x5756555453525150 + (0x0101010101010101 * byte_index);
+  };
+
   Initialise(&masm,
              p0.VnB(),
-             0xf0a0f0a0f0a0f0a0,
-             0xf0a0f0a0f0a0f0a0,
-             0xa0f0a0f0a0f0a0f0,
-             0xa0f0a0f0a0f0a0f0);
+             get_64_bits_at(24),
+             get_64_bits_at(16),
+             get_64_bits_at(8),
+             get_64_bits_at(0));
   __ Punpklo(p1.VnH(), p0.VnB());
   __ Punpkhi(p2.VnH(), p0.VnB());
 
@@ -14120,10 +14125,19 @@ TEST_SVE(sve_punpk) {
   if (CAN_RUN()) {
     RUN();
 
-    int p1_expected[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0};
-    int p2_expected[] = {0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-    ASSERT_EQUAL_SVE(p1_expected, p1.VnB());
-    ASSERT_EQUAL_SVE(p2_expected, p2.VnB());
+    int pl = config->sve_vl_in_bits() / kZRegBitsPerPRegBit;
+    // For simplicity, just test the bottom 64 H-sized lanes.
+    uint64_t p1_h_bits = get_64_bits_at(0);
+    uint64_t p2_h_bits = get_64_bits_at(pl / (2 * 8));
+    int p1_expected[64];
+    int p2_expected[64];
+    for (size_t i = 0; i < 64; i++) {
+      p1_expected[63 - i] = (p1_h_bits >> i) & 1;
+      p2_expected[63 - i] = (p2_h_bits >> i) & 1;
+    }
+    // Testing `VnH` ensures that odd-numbered B lanes are zero.
+    ASSERT_EQUAL_SVE(p1_expected, p1.VnH());
+    ASSERT_EQUAL_SVE(p2_expected, p2.VnH());
   }
 }
 
