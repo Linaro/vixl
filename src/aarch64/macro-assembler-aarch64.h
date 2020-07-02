@@ -4184,10 +4184,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              int rot);
   void Fcmeq(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn) {
+             const ZRegister& zn,
+             double zero) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmeq(pd, pg, zn);
+    if (zero == 0.0) {
+      fcmeq(pd, pg, zn, zero);
+    } else {
+      // TODO: Synthesise other immediates.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Fcmeq(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -4199,10 +4205,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Fcmge(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn) {
+             const ZRegister& zn,
+             double zero) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmge(pd, pg, zn);
+    if (zero == 0.0) {
+      fcmge(pd, pg, zn, zero);
+    } else {
+      // TODO: Synthesise other immediates.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Fcmge(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -4214,10 +4226,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Fcmgt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn) {
+             const ZRegister& zn,
+             double zero) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmgt(pd, pg, zn);
+    if (zero == 0.0) {
+      fcmgt(pd, pg, zn, zero);
+    } else {
+      // TODO: Synthesise other immediates.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Fcmgt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -4247,10 +4265,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Fcmle(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn) {
+             const ZRegister& zn,
+             double zero) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmle(pd, pg, zn);
+    if (zero == 0.0) {
+      fcmle(pd, pg, zn, zero);
+    } else {
+      // TODO: Synthesise other immediates.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Fcmle(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -4262,10 +4286,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Fcmlt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn) {
+             const ZRegister& zn,
+             double zero) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmlt(pd, pg, zn);
+    if (zero == 0.0) {
+      fcmlt(pd, pg, zn, zero);
+    } else {
+      // TODO: Synthesise other immediates.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Fcmlt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
@@ -4277,10 +4307,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
   void Fcmne(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn) {
+             const ZRegister& zn,
+             double zero) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    fcmne(pd, pg, zn);
+    if (zero == 0.0) {
+      fcmne(pd, pg, zn, zero);
+    } else {
+      // TODO: Synthesise other immediates.
+      VIXL_UNIMPLEMENTED();
+    }
   }
   void Fcmne(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,

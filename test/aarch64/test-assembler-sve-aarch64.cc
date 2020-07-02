@@ -17737,7 +17737,8 @@ typedef void (MacroAssembler::*FCmpFn)(const PRegisterWithLaneSize& pd,
 
 typedef void (MacroAssembler::*FCmpZeroFn)(const PRegisterWithLaneSize& pd,
                                            const PRegisterZ& pg,
-                                           const ZRegister& zn);
+                                           const ZRegister& zn,
+                                           double zero);
 
 typedef void (MacroAssembler::*CmpFn)(const PRegisterWithLaneSize& pd,
                                       const PRegisterZ& pg,
@@ -17967,7 +17968,7 @@ static void TestFpCompareZeroHelper(Test* config,
   InsrHelper(&masm, zn, zn_rawbits);
 
   __ Ptrue(p0.VnB());
-  (masm.*GetFpCompareZeroFn(cond))(pd, p0.Zeroing(), zn);
+  (masm.*GetFpCompareZeroFn(cond))(pd, p0.Zeroing(), zn, 0.0);
 
   END();
 

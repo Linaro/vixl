@@ -1165,7 +1165,8 @@ void Assembler::fcmuo(const PRegisterWithLaneSize& pd,
 
 void Assembler::fcmeq(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double zero) {
   // FCMEQ <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0
   //  0110 0101 ..01 0010 001. .... ...0 ....
   //  size<23:22> | eq<17> = 1 | lt<16> = 0 | Pg<12:10> | Zn<9:5> | ne<4> = 0 |
@@ -1173,13 +1174,16 @@ void Assembler::fcmeq(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zero == 0.0);
+  USE(zero);
 
   Emit(FCMEQ_p_p_z0 | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
 void Assembler::fcmge(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double zero) {
   // FCMGE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0
   //  0110 0101 ..01 0000 001. .... ...0 ....
   //  size<23:22> | eq<17> = 0 | lt<16> = 0 | Pg<12:10> | Zn<9:5> | ne<4> = 0 |
@@ -1187,13 +1191,16 @@ void Assembler::fcmge(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zero == 0.0);
+  USE(zero);
 
   Emit(FCMGE_p_p_z0 | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
 void Assembler::fcmgt(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double zero) {
   // FCMGT <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0
   //  0110 0101 ..01 0000 001. .... ...1 ....
   //  size<23:22> | eq<17> = 0 | lt<16> = 0 | Pg<12:10> | Zn<9:5> | ne<4> = 1 |
@@ -1201,13 +1208,16 @@ void Assembler::fcmgt(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zero == 0.0);
+  USE(zero);
 
   Emit(FCMGT_p_p_z0 | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
 void Assembler::fcmle(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double zero) {
   // FCMLE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0
   //  0110 0101 ..01 0001 001. .... ...1 ....
   //  size<23:22> | eq<17> = 0 | lt<16> = 1 | Pg<12:10> | Zn<9:5> | ne<4> = 1 |
@@ -1215,13 +1225,16 @@ void Assembler::fcmle(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zero == 0.0);
+  USE(zero);
 
   Emit(FCMLE_p_p_z0 | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
 void Assembler::fcmlt(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double zero) {
   // FCMLT <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0
   //  0110 0101 ..01 0001 001. .... ...0 ....
   //  size<23:22> | eq<17> = 0 | lt<16> = 1 | Pg<12:10> | Zn<9:5> | ne<4> = 0 |
@@ -1229,13 +1242,16 @@ void Assembler::fcmlt(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zero == 0.0);
+  USE(zero);
 
   Emit(FCMLT_p_p_z0 | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn));
 }
 
 void Assembler::fcmne(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,
-                      const ZRegister& zn) {
+                      const ZRegister& zn,
+                      double zero) {
   // FCMNE <Pd>.<T>, <Pg>/Z, <Zn>.<T>, #0.0
   //  0110 0101 ..01 0011 001. .... ...0 ....
   //  size<23:22> | eq<17> = 1 | lt<16> = 1 | Pg<12:10> | Zn<9:5> | ne<4> = 0 |
@@ -1243,6 +1259,8 @@ void Assembler::fcmne(const PRegisterWithLaneSize& pd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(zero == 0.0);
+  USE(zero);
 
   Emit(FCMNE_p_p_z0 | SVESize(zn) | Pd(pd) | Rx<12, 10>(pg) | Rn(zn));
 }

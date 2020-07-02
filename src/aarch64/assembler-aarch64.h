@@ -4093,7 +4093,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Floating-point compare vector with zero.
   void fcmeq(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn);
+             const ZRegister& zn,
+             double zero);
 
   // Floating-point compare vectors.
   void fcmeq(const PRegisterWithLaneSize& pd,
@@ -4104,7 +4105,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Floating-point compare vector with zero.
   void fcmge(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn);
+             const ZRegister& zn,
+             double zero);
 
   // Floating-point compare vectors.
   void fcmge(const PRegisterWithLaneSize& pd,
@@ -4115,7 +4117,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Floating-point compare vector with zero.
   void fcmgt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn);
+             const ZRegister& zn,
+             double zero);
 
   // Floating-point compare vectors.
   void fcmgt(const PRegisterWithLaneSize& pd,
@@ -4140,17 +4143,20 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Floating-point compare vector with zero.
   void fcmle(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn);
+             const ZRegister& zn,
+             double zero);
 
   // Floating-point compare vector with zero.
   void fcmlt(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn);
+             const ZRegister& zn,
+             double zero);
 
   // Floating-point compare vector with zero.
   void fcmne(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
-             const ZRegister& zn);
+             const ZRegister& zn,
+             double zero);
 
   // Floating-point compare vectors.
   void fcmne(const PRegisterWithLaneSize& pd,
