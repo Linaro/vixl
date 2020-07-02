@@ -6280,18 +6280,17 @@ LogicVRegister Simulator::ftsmul(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister neg_src1;
-  mov(vform, neg_src1, src1);
+  SimVRegister maybe_neg_src1;
 
-  // The bottom bit of src2 controls the sign of the result. Set the sign of
-  // neg_src1 by shifting and inserting the bit into the top of src1.
-  int lane_bits = LaneSizeInBitsFromFormat(vform);
-  sli(vform, neg_src1, src2, lane_bits - 1);
+  // The bottom bit of src2 controls the sign of the result. Use it to
+  // conditionally invert the sign of one `fmul` operand.
+  shl(vform, maybe_neg_src1, src2, LaneSizeInBitsFromFormat(vform) - 1);
+  eor(vform, maybe_neg_src1, maybe_neg_src1, src1);
 
   // Multiply src1 by the modified neg_src1, which is potentially its negation.
   // In the case of NaNs, NaN * -NaN will return the first NaN intact, so src1,
   // rather than neg_src1, must be the first source argument.
-  fmul(vform, dst, src1, neg_src1);
+  fmul(vform, dst, src1, maybe_neg_src1);
 
   return dst;
 }

@@ -16648,7 +16648,7 @@ TEST_SVE(sve_ftsmul) {
     uint64_t z4_expected[] = {0x7e007e007e007e00, 0x7e007e007e007e00};
     ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
 
-    uint64_t z5_expected[] = {0x41800000c1c80000, 0x42100000c2440000};
+    uint64_t z5_expected[] = {0xc180000041c80000, 0xc210000042440000};
     ASSERT_EQUAL_SVE(z5_expected, z5.VnD());
     uint64_t z6_expected[] = {0x7fc000007fc00000, 0x7fc000007fc00000};
     ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
