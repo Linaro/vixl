@@ -35,12 +35,12 @@ namespace aarch64 {
 std::string CPURegister::GetArchitecturalName() const {
   std::ostringstream name;
   if (IsZRegister()) {
-    name << 'z' << code_;
+    name << 'z' << GetCode();
     if (HasLaneSize()) {
       name << '.' << GetLaneSizeSymbol();
     }
   } else if (IsPRegister()) {
-    name << 'p' << code_;
+    name << 'p' << GetCode();
     if (HasLaneSize()) {
       name << '.' << GetLaneSizeSymbol();
     }
