@@ -3725,7 +3725,7 @@ TEST(sve_mem_prefetch) {
   VIXL_STATIC_ASSERT(ArrayLength(expected) == ArrayLength(kSVEPrfOperations));
 
 
-#define VIXL_DISAM_PREFETCH_TEST(INSN, NAME)                                   \
+#define VIXL_DISAM_PREFETCH_TEST(INSN, NAME, SH)                               \
   do {                                                                         \
     for (size_t i = 0; i < ArrayLength(kSVEPrfOperations); i++) {              \
       PrefetchOperation op = kSVEPrfOperations[i];                             \
@@ -3740,21 +3740,23 @@ TEST(sve_mem_prefetch) {
       COMPARE_PREFIX(INSN(op, p4, SVEMemOperand(sp, 31, SVE_MUL_VL)),          \
                      str.c_str());                                             \
       /* Scalar plus vector */                                                 \
-      COMPARE_PREFIX(INSN(op, p3, SVEMemOperand(x24, z22.VnS(), UXTW)),        \
+      COMPARE_PREFIX(INSN(op, p3, SVEMemOperand(x24, z22.VnS(), UXTW, SH)),    \
                      str.c_str());                                             \
-      COMPARE_PREFIX(INSN(op, p2, SVEMemOperand(x24, z22.VnD(), SXTW)),        \
+      COMPARE_PREFIX(INSN(op, p2, SVEMemOperand(x24, z22.VnD(), SXTW, SH)),    \
                      str.c_str());                                             \
-      COMPARE_PREFIX(INSN(op, p1, SVEMemOperand(x4, z2.VnD())), str.c_str());  \
+      COMPARE_PREFIX(INSN(op, p1, SVEMemOperand(x4, z2.VnD(), LSL, SH)),       \
+                     str.c_str());                                             \
       /* Scalar plus scalar */                                                 \
-      COMPARE_PREFIX(INSN(op, p1, SVEMemOperand(x8, x29)), str.c_str());       \
-      COMPARE_PREFIX(INSN(op, p0, SVEMemOperand(sp, x6)), str.c_str());        \
+      COMPARE_PREFIX(INSN(op, p1, SVEMemOperand(x8, x29, LSL, SH)),            \
+                     str.c_str());                                             \
+      COMPARE_PREFIX(INSN(op, p0, SVEMemOperand(sp, x6, LSL, SH)),             \
+                     str.c_str());                                             \
     }                                                                          \
   } while (0)
 
-  VIXL_DISAM_PREFETCH_TEST(prfb, "prfb");
-  VIXL_DISAM_PREFETCH_TEST(prfh, "prfh");
-  VIXL_DISAM_PREFETCH_TEST(prfw, "prfw");
-  VIXL_DISAM_PREFETCH_TEST(prfd, "prfd");
+  VIXL_DISAM_PREFETCH_TEST(prfh, "prfh", 1);
+  VIXL_DISAM_PREFETCH_TEST(prfw, "prfw", 2);
+  VIXL_DISAM_PREFETCH_TEST(prfd, "prfd", 3);
 #undef VIXL_DISAM_PREFETCH_TEST
 
   COMPARE_PREFIX(prfb(PLDL1KEEP, p5, SVEMemOperand(z30.VnS(), 0)),
@@ -3763,31 +3765,33 @@ TEST(sve_mem_prefetch) {
                  "prfb pldl1strm, p5, [x28, #-11, mul vl]");
   COMPARE_PREFIX(prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x29)),
                  "prfb pldl2keep, p6, [x30, x29]");
+  COMPARE_PREFIX(prfb(PLDL2STRM, p6, SVEMemOperand(x7, z12.VnD())),
+                 "prfb pldl2strm, p6, [x7, z12.d]");
   COMPARE_PREFIX(prfb(PLDL2STRM, p6, SVEMemOperand(x7, z12.VnS(), UXTW)),
                  "prfb pldl2strm, p6, [x7, z12.s, uxtw]");
   COMPARE_PREFIX(prfd(PLDL3KEEP, p5, SVEMemOperand(z11.VnD(), 9)),
                  "prfd pldl3keep, p5, [z11.d, #9]");
   COMPARE_PREFIX(prfd(PLDL3STRM, p3, SVEMemOperand(x0, 0, SVE_MUL_VL)),
                  "prfd pldl3strm, p3, [x0]");
-  COMPARE_PREFIX(prfd(PSTL1KEEP, p7, SVEMemOperand(x5, x5)),
+  COMPARE_PREFIX(prfd(PSTL1KEEP, p7, SVEMemOperand(x5, x5, LSL, 3)),
                  "prfd pstl1keep, p7, [x5, x5, lsl #3]");
-  COMPARE_PREFIX(prfd(PSTL1STRM, p1, SVEMemOperand(x19, z18.VnS(), SXTW)),
+  COMPARE_PREFIX(prfd(PSTL1STRM, p1, SVEMemOperand(x19, z18.VnS(), SXTW, 3)),
                  "prfd pstl1strm, p1, [x19, z18.s, sxtw #3]");
   COMPARE_PREFIX(prfh(PSTL2KEEP, p6, SVEMemOperand(z0.VnS(), 31)),
                  "prfh pstl2keep, p6, [z0.s, #31]");
   COMPARE_PREFIX(prfh(PSTL2STRM, p4, SVEMemOperand(x17, -3, SVE_MUL_VL)),
                  "prfh pstl2strm, p4, [x17, #-3, mul vl]");
-  COMPARE_PREFIX(prfh(PSTL3KEEP, p3, SVEMemOperand(x0, x0)),
+  COMPARE_PREFIX(prfh(PSTL3KEEP, p3, SVEMemOperand(x0, x0, LSL, 1)),
                  "prfh pstl3keep, p3, [x0, x0, lsl #1]");
-  COMPARE_PREFIX(prfh(PSTL3STRM, p4, SVEMemOperand(x20, z0.VnD())),
+  COMPARE_PREFIX(prfh(PSTL3STRM, p4, SVEMemOperand(x20, z0.VnD(), LSL, 1)),
                  "prfh pstl3strm, p4, [x20, z0.d, lsl #1]");
   COMPARE_PREFIX(prfw(PLDL1KEEP, p3, SVEMemOperand(z23.VnD(), 5)),
                  "prfw pldl1keep, p3, [z23.d, #5]");
   COMPARE_PREFIX(prfw(PLDL1STRM, p1, SVEMemOperand(x4, 31, SVE_MUL_VL)),
                  "prfw pldl1strm, p1, [x4, #31, mul vl]");
-  COMPARE_PREFIX(prfw(PLDL2KEEP, p2, SVEMemOperand(x22, x22)),
+  COMPARE_PREFIX(prfw(PLDL2KEEP, p2, SVEMemOperand(x22, x22, LSL, 2)),
                  "prfw pldl2keep, p2, [x22, x22, lsl #2]");
-  COMPARE_PREFIX(prfw(PLDL2STRM, p1, SVEMemOperand(x2, z6.VnS(), SXTW)),
+  COMPARE_PREFIX(prfw(PLDL2STRM, p1, SVEMemOperand(x2, z6.VnS(), SXTW, 2)),
                  "prfw pldl2strm, p1, [x2, z6.s, sxtw #2]");
 
   CLEANUP();

@@ -4544,17 +4544,25 @@ void Assembler::SVEContiguousPrefetchScalarPlusScalarHelper(
     int prefetch_size) {
   VIXL_ASSERT(addr.IsScalarPlusScalar());
   Instr op = 0xffffffff;
+
   switch (prefetch_size) {
     case kBRegSize:
+      VIXL_ASSERT(addr.GetOffsetModifier() == NO_SVE_OFFSET_MODIFIER);
       op = PRFB_i_p_br_s;
       break;
     case kHRegSize:
+      VIXL_ASSERT(addr.GetOffsetModifier() == SVE_LSL);
+      VIXL_ASSERT(addr.GetShiftAmount() == kHRegSizeInBytesLog2);
       op = PRFH_i_p_br_s;
       break;
     case kSRegSize:
+      VIXL_ASSERT(addr.GetOffsetModifier() == SVE_LSL);
+      VIXL_ASSERT(addr.GetShiftAmount() == kSRegSizeInBytesLog2);
       op = PRFW_i_p_br_s;
       break;
     case kDRegSize:
+      VIXL_ASSERT(addr.GetOffsetModifier() == SVE_LSL);
+      VIXL_ASSERT(addr.GetShiftAmount() == kDRegSizeInBytesLog2);
       op = PRFD_i_p_br_s;
       break;
     default:
@@ -4576,22 +4584,46 @@ void Assembler::SVEContiguousPrefetchScalarPlusVectorHelper(
   ZRegister zm = addr.GetVectorOffset();
   SVEOffsetModifier mod = addr.GetOffsetModifier();
 
+  // All prefetch scalar-plus-vector addressing modes use a shift corresponding
+  // to the element size.
+  switch (prefetch_size) {
+    case kBRegSize:
+      VIXL_ASSERT(addr.GetShiftAmount() == kBRegSizeInBytesLog2);
+      break;
+    case kHRegSize:
+      VIXL_ASSERT(addr.GetShiftAmount() == kHRegSizeInBytesLog2);
+      break;
+    case kSRegSize:
+      VIXL_ASSERT(addr.GetShiftAmount() == kSRegSizeInBytesLog2);
+      break;
+    case kDRegSize:
+      VIXL_ASSERT(addr.GetShiftAmount() == kDRegSizeInBytesLog2);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
   Instr sx = 0;
   Instr op = 0xffffffff;
-  if (mod == NO_SVE_OFFSET_MODIFIER) {
+  if ((mod == NO_SVE_OFFSET_MODIFIER) || (mod == SVE_LSL)) {
     VIXL_ASSERT(zm.IsLaneSizeD());
 
     switch (prefetch_size) {
       case kBRegSize:
+        VIXL_ASSERT(mod == NO_SVE_OFFSET_MODIFIER);
         op = PRFB_i_p_bz_d_64_scaled;
         break;
       case kHRegSize:
+        VIXL_ASSERT(mod == SVE_LSL);
         op = PRFH_i_p_bz_d_64_scaled;
         break;
       case kSRegSize:
+        VIXL_ASSERT(mod == SVE_LSL);
         op = PRFW_i_p_bz_d_64_scaled;
         break;
       case kDRegSize:
+        VIXL_ASSERT(mod == SVE_LSL);
         op = PRFD_i_p_bz_d_64_scaled;
         break;
       default:
@@ -4644,7 +4676,7 @@ void Assembler::SVEPrefetchHelper(PrefetchOperation prfop,
 
   } else if (addr.IsScalarPlusImmediate()) {
     // For example:
-    //   [x0, #42, MUL VL]
+    //   [x0, #42, mul vl]
     SVEGatherPrefetchScalarPlusImmediateHelper(prfop, pg, addr, prefetch_size);
 
   } else if (addr.IsScalarPlusVector()) {
