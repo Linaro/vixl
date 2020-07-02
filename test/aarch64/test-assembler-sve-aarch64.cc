@@ -14825,6 +14825,22 @@ TEST_SVE(sve_fcmla) {
   }
 }
 
+// Create a pattern in dst where the value of each element in src is incremented
+// by the segment number. This allows varying a short input by a predictable
+// pattern for each segment.
+static void FPSegmentPatternHelper(MacroAssembler* masm,
+                                   const ZRegister& dst,
+                                   const PRegisterM& ptrue,
+                                   const ZRegister& src) {
+  VIXL_ASSERT(AreSameLaneSize(dst, src));
+  UseScratchRegisterScope temps(masm);
+  ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(dst);
+  masm->Index(ztmp, 0, 1);
+  masm->Asr(ztmp, ztmp, kQRegSizeInBytesLog2 - dst.GetLaneSizeInBytesLog2());
+  masm->Scvtf(ztmp, ptrue, ztmp);
+  masm->Fadd(dst, src, ztmp);
+}
+
 TEST_SVE(sve_fpmul_index) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
@@ -14832,9 +14848,14 @@ TEST_SVE(sve_fpmul_index) {
   uint64_t in0[] = {0x3ff000003f803c00, 0xbff00000bf80bc00};
   uint64_t in1[] = {0x3ff012343ff03c76, 0xbff01234bff0bc76};
 
-  InsrHelper(&masm, z0.VnD(), in0);
+  __ Ptrue(p0.VnB());
+  // Repeat indexed vector across up to 2048-bit VL.
+  for (size_t i = 0; i < (kZRegMaxSize / kDRegSize); i++) {
+    InsrHelper(&masm, z25.VnD(), in0);
+  }
   InsrHelper(&masm, z1.VnD(), in1);
 
+  FPSegmentPatternHelper(&masm, z0.VnH(), p0.Merging(), z25.VnH());
   __ Fmul(z2.VnH(), z1.VnH(), z0.VnH(), 0);
   __ Fmul(z3.VnH(), z1.VnH(), z0.VnH(), 1);
   __ Fmul(z4.VnH(), z1.VnH(), z0.VnH(), 4);
@@ -14849,27 +14870,37 @@ TEST_SVE(sve_fpmul_index) {
   __ Fmul(z11.VnD(), z1.VnD(), z0.VnD(), 1);
 
   // Compute the results using other instructions.
-  __ Dup(z12.VnH(), z0.VnH(), 0);
+  __ Dup(z12.VnH(), z25.VnH(), 0);
+  FPSegmentPatternHelper(&masm, z12.VnH(), p0.Merging(), z12.VnH());
   __ Fmul(z12.VnH(), z1.VnH(), z12.VnH());
-  __ Dup(z13.VnH(), z0.VnH(), 1);
+  __ Dup(z13.VnH(), z25.VnH(), 1);
+  FPSegmentPatternHelper(&masm, z13.VnH(), p0.Merging(), z13.VnH());
   __ Fmul(z13.VnH(), z1.VnH(), z13.VnH());
-  __ Dup(z14.VnH(), z0.VnH(), 4);
+  __ Dup(z14.VnH(), z25.VnH(), 4);
+  FPSegmentPatternHelper(&masm, z14.VnH(), p0.Merging(), z14.VnH());
   __ Fmul(z14.VnH(), z1.VnH(), z14.VnH());
-  __ Dup(z15.VnH(), z0.VnH(), 7);
+  __ Dup(z15.VnH(), z25.VnH(), 7);
+  FPSegmentPatternHelper(&masm, z15.VnH(), p0.Merging(), z15.VnH());
   __ Fmul(z15.VnH(), z1.VnH(), z15.VnH());
 
-  __ Dup(z16.VnS(), z0.VnS(), 0);
+  __ Dup(z16.VnS(), z25.VnS(), 0);
+  FPSegmentPatternHelper(&masm, z16.VnH(), p0.Merging(), z16.VnH());
   __ Fmul(z16.VnS(), z1.VnS(), z16.VnS());
-  __ Dup(z17.VnS(), z0.VnS(), 1);
+  __ Dup(z17.VnS(), z25.VnS(), 1);
+  FPSegmentPatternHelper(&masm, z17.VnH(), p0.Merging(), z17.VnH());
   __ Fmul(z17.VnS(), z1.VnS(), z17.VnS());
-  __ Dup(z18.VnS(), z0.VnS(), 2);
+  __ Dup(z18.VnS(), z25.VnS(), 2);
+  FPSegmentPatternHelper(&masm, z18.VnH(), p0.Merging(), z18.VnH());
   __ Fmul(z18.VnS(), z1.VnS(), z18.VnS());
-  __ Dup(z19.VnS(), z0.VnS(), 3);
+  __ Dup(z19.VnS(), z25.VnS(), 3);
+  FPSegmentPatternHelper(&masm, z19.VnH(), p0.Merging(), z19.VnH());
   __ Fmul(z19.VnS(), z1.VnS(), z19.VnS());
 
-  __ Dup(z20.VnD(), z0.VnD(), 0);
+  __ Dup(z20.VnD(), z25.VnD(), 0);
+  FPSegmentPatternHelper(&masm, z20.VnH(), p0.Merging(), z20.VnH());
   __ Fmul(z20.VnD(), z1.VnD(), z20.VnD());
-  __ Dup(z21.VnD(), z0.VnD(), 1);
+  __ Dup(z21.VnD(), z25.VnD(), 1);
+  FPSegmentPatternHelper(&masm, z21.VnH(), p0.Merging(), z21.VnH());
   __ Fmul(z21.VnD(), z1.VnD(), z21.VnD());
 
   END();
@@ -16960,22 +16991,6 @@ TEST_SVE(sve_fnmls_fnmsb) {
                  zn_inputs,
                  zm_inputs,
                  fnmls_result_d);
-}
-
-// Create a pattern in dst where the value of each element in src is incremented
-// by the segment number. This allows varying a short input by a predictable
-// pattern for each segment.
-static void FPSegmentPatternHelper(MacroAssembler* masm,
-                                   const ZRegister& dst,
-                                   const PRegisterM& ptrue,
-                                   const ZRegister& src) {
-  VIXL_ASSERT(AreSameLaneSize(dst, src));
-  UseScratchRegisterScope temps(masm);
-  ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(dst);
-  masm->Index(ztmp, 0, 1);
-  masm->Asr(ztmp, ztmp, kQRegSizeInBytesLog2 - dst.GetLaneSizeInBytesLog2());
-  masm->Scvtf(ztmp, ptrue, ztmp);
-  masm->Fadd(dst, src, ztmp);
 }
 
 typedef void (MacroAssembler::*FPMulAccIdxFn)(const ZRegister& zd,

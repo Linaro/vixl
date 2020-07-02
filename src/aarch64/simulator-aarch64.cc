@@ -8252,7 +8252,7 @@ void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister temp;
 
-  dup_element(vform, temp, ReadVRegister(zm_code), index);
+  dup_elements_to_segments(vform, temp, ReadVRegister(zm_code), index);
   fmul(vform, zd, zn, temp);
 }
 
