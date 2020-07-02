@@ -17923,7 +17923,7 @@ TEST_SVE(sve_fp_compare_vectors) {
   int pd_fcm_ge[] = {1, 1, 1, 1, 1, 0, 0, 0};
   int pd_fcm_le[] = {1, 1, 0, 0, 0, 0, 0, 0};
   int pd_fcm_eq[] = {1, 1, 0, 0, 0, 0, 0, 0};
-  int pd_fcm_ne[] = {0, 0, 1, 1, 1, 0, 0, 0};
+  int pd_fcm_ne[] = {0, 0, 1, 1, 1, 1, 1, 1};
   int pd_fcm_uo[] = {0, 0, 0, 0, 0, 1, 1, 1};
   int pd_fac_gt[] = {0, 0, 0, 1, 0, 0, 0, 0};
   int pd_fac_lt[] = {0, 0, 1, 0, 0, 0, 0, 0};
@@ -18016,7 +18016,7 @@ TEST_SVE(sve_fp_compare_vector_zero) {
   int pd_expected_ge[] = {1, 1, 1, 0, 0, 0, 0};
   int pd_expected_le[] = {1, 1, 0, 1, 0, 0, 0};
   int pd_expected_eq[] = {1, 1, 0, 0, 0, 0, 0};
-  int pd_expected_ne[] = {0, 0, 1, 1, 0, 0, 0};
+  int pd_expected_ne[] = {0, 0, 1, 1, 1, 1, 1};
 
   TestFpCompareZeroHelper(config, kDRegSize, gt, zn_inputs_d, pd_expected_gt);
   TestFpCompareZeroHelper(config, kDRegSize, lt, zn_inputs_d, pd_expected_lt);

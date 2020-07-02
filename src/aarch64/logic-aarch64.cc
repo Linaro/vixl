@@ -4915,41 +4915,41 @@ LogicVRegister Simulator::fcmp(VectorFormat vform,
     bool result = false;
     T op1 = src1.Float<T>(i);
     T op2 = src2.Float<T>(i);
-    T nan_result = FPProcessNaNs(op1, op2);
+    bool unordered = IsNaN(FPProcessNaNs(op1, op2));
 
-    if (cond == uo) {
-      result = IsNaN(nan_result);
+    switch (cond) {
+      case eq:
+        result = (op1 == op2);
+        break;
+      case ge:
+        result = (op1 >= op2);
+        break;
+      case gt:
+        result = (op1 > op2);
+        break;
+      case le:
+        result = (op1 <= op2);
+        break;
+      case lt:
+        result = (op1 < op2);
+        break;
+      case ne:
+        result = (op1 != op2);
+        break;
+      case uo:
+        result = unordered;
+        break;
+      default:
+        // Other conditions are defined in terms of those above.
+        VIXL_UNREACHABLE();
+        break;
     }
 
-    if (!IsNaN(nan_result)) {
-      switch (cond) {
-        case eq:
-          result = (op1 == op2);
-          break;
-        case ge:
-          result = (op1 >= op2);
-          break;
-        case gt:
-          result = (op1 > op2);
-          break;
-        case le:
-          result = (op1 <= op2);
-          break;
-        case lt:
-          result = (op1 < op2);
-          break;
-        case ne:
-          result = (op1 != op2);
-          break;
-        case uo:
-          // do nothing.
-          VIXL_ASSERT(result == false);
-          break;
-        default:
-          VIXL_UNREACHABLE();
-          break;
-      }
+    if (result && unordered) {
+      // Only `uo` and `ne` can be true for unordered comparisons.
+      VIXL_ASSERT((cond == uo) || (cond == ne));
     }
+
     dst.SetUint(vform, i, result ? MaxUintFromFormat(vform) : 0);
   }
   return dst;
