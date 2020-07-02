@@ -6367,25 +6367,27 @@ void Disassembler::VisitSVEContiguousPrefetch_ScalarPlusScalar(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEContiguousPrefetch_ScalarPlusScalar)";
 
-  switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
-    case PRFB_i_p_br_s:
-      mnemonic = "prfb";
-      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm]";
-      break;
-    case PRFD_i_p_br_s:
-      mnemonic = "prfd";
-      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #3]";
-      break;
-    case PRFH_i_p_br_s:
-      mnemonic = "prfh";
-      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #1]";
-      break;
-    case PRFW_i_p_br_s:
-      mnemonic = "prfw";
-      form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #2]";
-      break;
-    default:
-      break;
+  if (instr->GetRm() != kZeroRegCode) {
+    switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
+      case PRFB_i_p_br_s:
+        mnemonic = "prfb";
+        form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm]";
+        break;
+      case PRFD_i_p_br_s:
+        mnemonic = "prfd";
+        form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #3]";
+        break;
+      case PRFH_i_p_br_s:
+        mnemonic = "prfh";
+        form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #1]";
+        break;
+      case PRFW_i_p_br_s:
+        mnemonic = "prfw";
+        form = "'prefSVEOp, 'Pgl, ['Xns, 'Rm, lsl #2]";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }

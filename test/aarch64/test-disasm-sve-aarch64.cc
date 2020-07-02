@@ -3777,8 +3777,8 @@ TEST(sve_mem_prefetch) {
                  "prfb pldl1keep, p5, [z30.s]");
   COMPARE_PREFIX(prfb(PLDL1STRM, p5, SVEMemOperand(x28, -11, SVE_MUL_VL)),
                  "prfb pldl1strm, p5, [x28, #-11, mul vl]");
-  COMPARE_PREFIX(prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x31)),
-                 "prfb pldl2keep, p6, [x30, xzr]");
+  COMPARE_PREFIX(prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x29)),
+                 "prfb pldl2keep, p6, [x30, x29]");
   COMPARE_PREFIX(prfb(PLDL2STRM, p6, SVEMemOperand(x7, z12.VnS(), UXTW)),
                  "prfb pldl2strm, p6, [x7, z12.s, uxtw]");
   COMPARE_PREFIX(prfd(PLDL3KEEP, p5, SVEMemOperand(z11.VnD(), 9)),

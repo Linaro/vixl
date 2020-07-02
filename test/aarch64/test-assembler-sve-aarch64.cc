@@ -18678,7 +18678,7 @@ TEST_SVE(sve_prefetch_offset) {
 
   __ Prfb(PLDL1KEEP, p5, SVEMemOperand(z30.VnS(), 0));
   __ Prfb(PLDL1STRM, p5, SVEMemOperand(x28, -11, SVE_MUL_VL));
-  __ Prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x31));
+  __ Prfb(PLDL2KEEP, p6, SVEMemOperand(x30, x29));
   __ Prfb(PLDL2STRM, p6, SVEMemOperand(x7, z12.VnS(), UXTW));
   __ Prfh(PSTL2KEEP, p6, SVEMemOperand(z0.VnS(), 28));
   __ Prfh(PSTL2STRM, p4, SVEMemOperand(x17, -3, SVE_MUL_VL));

@@ -9657,13 +9657,15 @@ void Simulator::VisitSVEContiguousPrefetch_ScalarPlusImm(
 
 void Simulator::VisitSVEContiguousPrefetch_ScalarPlusScalar(
     const Instruction* instr) {
-  USE(instr);
   switch (instr->Mask(SVEContiguousPrefetch_ScalarPlusScalarMask)) {
     // Ignore prefetch hint instructions.
     case PRFB_i_p_br_s:
     case PRFD_i_p_br_s:
     case PRFH_i_p_br_s:
     case PRFW_i_p_br_s:
+      if (instr->GetRm() == kZeroRegCode) {
+        VIXL_UNIMPLEMENTED();
+      }
       break;
     default:
       VIXL_UNIMPLEMENTED();

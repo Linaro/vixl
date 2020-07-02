@@ -4577,6 +4577,7 @@ void Assembler::SVEContiguousPrefetchScalarPlusScalarHelper(
       break;
   }
 
+  VIXL_ASSERT(!addr.GetScalarOffset().IsZero());
   Emit(op | SVEImmPrefetchOperation(prfop) | PgLow8(pg) |
        RnSP(addr.GetScalarBase()) | Rm(addr.GetScalarOffset()));
 }
