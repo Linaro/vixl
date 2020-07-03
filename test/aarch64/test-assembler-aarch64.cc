@@ -9813,47 +9813,38 @@ TEST(ldaxr_stlxr_fail) {
 #endif
 
 TEST(cas_casa_casl_casal_w) {
-  uint64_t data1[] = {0x01234567, 0};
-  uint64_t data2[] = {0x01234567, 0};
-  uint64_t data3[] = {0x01234567, 0};
-  uint64_t data4[] = {0x01234567, 0};
-  uint64_t data5[] = {0x01234567, 0};
-  uint64_t data6[] = {0x01234567, 0};
-  uint64_t data7[] = {0x01234567, 0};
-  uint64_t data8[] = {0x01234567, 0};
-
-  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
-  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
-  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
-  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
-  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
-  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
-  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
-  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+  uint64_t data1 = 0x0123456789abcdef;
+  uint64_t data2 = 0x0123456789abcdef;
+  uint64_t data3 = 0x0123456789abcdef;
+  uint64_t data4 = 0x0123456789abcdef;
+  uint64_t data5 = 0x0123456789abcdef;
+  uint64_t data6 = 0x0123456789abcdef;
+  uint64_t data7 = 0x0123456789abcdef;
+  uint64_t data8 = 0x0123456789abcdef;
 
   SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
 
   START();
 
-  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
-  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
-  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
-  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
-  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
-  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
-  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
-  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(&data1) + 0);
+  __ Mov(x22, reinterpret_cast<uintptr_t>(&data2) + 0);
+  __ Mov(x23, reinterpret_cast<uintptr_t>(&data3) + 4);
+  __ Mov(x24, reinterpret_cast<uintptr_t>(&data4) + 4);
+  __ Mov(x25, reinterpret_cast<uintptr_t>(&data5) + 0);
+  __ Mov(x26, reinterpret_cast<uintptr_t>(&data6) + 0);
+  __ Mov(x27, reinterpret_cast<uintptr_t>(&data7) + 4);
+  __ Mov(x28, reinterpret_cast<uintptr_t>(&data8) + 4);
 
   __ Mov(x0, 0xffffffff);
 
-  __ Mov(x1, 0x76543210);
-  __ Mov(x2, 0x01234567);
-  __ Mov(x3, 0x76543210);
-  __ Mov(x4, 0x01234567);
-  __ Mov(x5, 0x76543210);
-  __ Mov(x6, 0x01234567);
-  __ Mov(x7, 0x76543210);
-  __ Mov(x8, 0x01234567);
+  __ Mov(x1, 0xfedcba9876543210);
+  __ Mov(x2, 0x0123456789abcdef);
+  __ Mov(x3, 0xfedcba9876543210);
+  __ Mov(x4, 0x89abcdef01234567);
+  __ Mov(x5, 0xfedcba9876543210);
+  __ Mov(x6, 0x0123456789abcdef);
+  __ Mov(x7, 0xfedcba9876543210);
+  __ Mov(x8, 0x89abcdef01234567);
 
   __ Cas(w1, w0, MemOperand(x21));
   __ Cas(w2, w0, MemOperand(x22));
@@ -9869,57 +9860,48 @@ TEST(cas_casa_casl_casal_w) {
   if (CAN_RUN()) {
     RUN();
 
-    ASSERT_EQUAL_64(0x01234567, x1);
-    ASSERT_EQUAL_64(0x01234567, x2);
+    ASSERT_EQUAL_64(0x89abcdef, x1);
+    ASSERT_EQUAL_64(0x89abcdef, x2);
     ASSERT_EQUAL_64(0x01234567, x3);
     ASSERT_EQUAL_64(0x01234567, x4);
-    ASSERT_EQUAL_64(0x01234567, x5);
-    ASSERT_EQUAL_64(0x01234567, x6);
+    ASSERT_EQUAL_64(0x89abcdef, x5);
+    ASSERT_EQUAL_64(0x89abcdef, x6);
     ASSERT_EQUAL_64(0x01234567, x7);
     ASSERT_EQUAL_64(0x01234567, x8);
 
-    ASSERT_EQUAL_64(0x01234567, data1[0]);
-    ASSERT_EQUAL_64(0xffffffff, data2[0]);
-    ASSERT_EQUAL_64(0x01234567, data3[0]);
-    ASSERT_EQUAL_64(0xffffffff, data4[0]);
-    ASSERT_EQUAL_64(0x01234567, data5[0]);
-    ASSERT_EQUAL_64(0xffffffff, data6[0]);
-    ASSERT_EQUAL_64(0x01234567, data7[0]);
-    ASSERT_EQUAL_64(0xffffffff, data8[0]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data1);
+    ASSERT_EQUAL_64(0x01234567ffffffff, data2);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data3);
+    ASSERT_EQUAL_64(0xffffffff89abcdef, data4);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data5);
+    ASSERT_EQUAL_64(0x01234567ffffffff, data6);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data7);
+    ASSERT_EQUAL_64(0xffffffff89abcdef, data8);
   }
 }
 
 TEST(cas_casa_casl_casal_x) {
-  uint64_t data1[] = {0x0123456789abcdef, 0};
-  uint64_t data2[] = {0x0123456789abcdef, 0};
-  uint64_t data3[] = {0x0123456789abcdef, 0};
-  uint64_t data4[] = {0x0123456789abcdef, 0};
-  uint64_t data5[] = {0x0123456789abcdef, 0};
-  uint64_t data6[] = {0x0123456789abcdef, 0};
-  uint64_t data7[] = {0x0123456789abcdef, 0};
-  uint64_t data8[] = {0x0123456789abcdef, 0};
-
-  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
-  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
-  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
-  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
-  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
-  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
-  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
-  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+  uint64_t data1 = 0x0123456789abcdef;
+  uint64_t data2 = 0x0123456789abcdef;
+  uint64_t data3 = 0x0123456789abcdef;
+  uint64_t data4 = 0x0123456789abcdef;
+  uint64_t data5 = 0x0123456789abcdef;
+  uint64_t data6 = 0x0123456789abcdef;
+  uint64_t data7 = 0x0123456789abcdef;
+  uint64_t data8 = 0x0123456789abcdef;
 
   SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
 
   START();
 
-  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
-  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
-  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
-  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
-  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
-  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
-  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
-  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(&data1));
+  __ Mov(x22, reinterpret_cast<uintptr_t>(&data2));
+  __ Mov(x23, reinterpret_cast<uintptr_t>(&data3));
+  __ Mov(x24, reinterpret_cast<uintptr_t>(&data4));
+  __ Mov(x25, reinterpret_cast<uintptr_t>(&data5));
+  __ Mov(x26, reinterpret_cast<uintptr_t>(&data6));
+  __ Mov(x27, reinterpret_cast<uintptr_t>(&data7));
+  __ Mov(x28, reinterpret_cast<uintptr_t>(&data8));
 
   __ Mov(x0, 0xffffffffffffffff);
 
@@ -9955,59 +9937,50 @@ TEST(cas_casa_casl_casal_x) {
     ASSERT_EQUAL_64(0x0123456789abcdef, x7);
     ASSERT_EQUAL_64(0x0123456789abcdef, x8);
 
-    ASSERT_EQUAL_64(0x0123456789abcdef, data1[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data2[0]);
-    ASSERT_EQUAL_64(0x0123456789abcdef, data3[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data4[0]);
-    ASSERT_EQUAL_64(0x0123456789abcdef, data5[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data6[0]);
-    ASSERT_EQUAL_64(0x0123456789abcdef, data7[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data8[0]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data1);
+    ASSERT_EQUAL_64(0xffffffffffffffff, data2);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data3);
+    ASSERT_EQUAL_64(0xffffffffffffffff, data4);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data5);
+    ASSERT_EQUAL_64(0xffffffffffffffff, data6);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data7);
+    ASSERT_EQUAL_64(0xffffffffffffffff, data8);
   }
 }
 
 TEST(casb_casab_caslb_casalb) {
-  uint64_t data1[] = {0x01234567, 0};
-  uint64_t data2[] = {0x01234567, 0};
-  uint64_t data3[] = {0x01234567, 0};
-  uint64_t data4[] = {0x01234567, 0};
-  uint64_t data5[] = {0x01234567, 0};
-  uint64_t data6[] = {0x01234567, 0};
-  uint64_t data7[] = {0x01234567, 0};
-  uint64_t data8[] = {0x01234567, 0};
-
-  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
-  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
-  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
-  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
-  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
-  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
-  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
-  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+  uint32_t data1 = 0x01234567;
+  uint32_t data2 = 0x01234567;
+  uint32_t data3 = 0x01234567;
+  uint32_t data4 = 0x01234567;
+  uint32_t data5 = 0x01234567;
+  uint32_t data6 = 0x01234567;
+  uint32_t data7 = 0x01234567;
+  uint32_t data8 = 0x01234567;
 
   SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
 
   START();
 
-  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
-  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
-  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
-  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
-  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
-  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
-  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
-  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(&data1) + 0);
+  __ Mov(x22, reinterpret_cast<uintptr_t>(&data2) + 0);
+  __ Mov(x23, reinterpret_cast<uintptr_t>(&data3) + 1);
+  __ Mov(x24, reinterpret_cast<uintptr_t>(&data4) + 1);
+  __ Mov(x25, reinterpret_cast<uintptr_t>(&data5) + 2);
+  __ Mov(x26, reinterpret_cast<uintptr_t>(&data6) + 2);
+  __ Mov(x27, reinterpret_cast<uintptr_t>(&data7) + 3);
+  __ Mov(x28, reinterpret_cast<uintptr_t>(&data8) + 3);
 
-  __ Mov(x0, 0xffffffff);
+  __ Mov(x0, 0xff);
 
   __ Mov(x1, 0x76543210);
   __ Mov(x2, 0x01234567);
   __ Mov(x3, 0x76543210);
-  __ Mov(x4, 0x01234567);
+  __ Mov(x4, 0x67012345);
   __ Mov(x5, 0x76543210);
-  __ Mov(x6, 0x01234567);
+  __ Mov(x6, 0x45670123);
   __ Mov(x7, 0x76543210);
-  __ Mov(x8, 0x01234567);
+  __ Mov(x8, 0x23456701);
 
   __ Casb(w1, w0, MemOperand(x21));
   __ Casb(w2, w0, MemOperand(x22));
@@ -10025,66 +9998,57 @@ TEST(casb_casab_caslb_casalb) {
 
     ASSERT_EQUAL_64(0x00000067, x1);
     ASSERT_EQUAL_64(0x00000067, x2);
-    ASSERT_EQUAL_64(0x00000067, x3);
-    ASSERT_EQUAL_64(0x00000067, x4);
-    ASSERT_EQUAL_64(0x00000067, x5);
-    ASSERT_EQUAL_64(0x00000067, x6);
-    ASSERT_EQUAL_64(0x00000067, x7);
-    ASSERT_EQUAL_64(0x00000067, x8);
+    ASSERT_EQUAL_64(0x00000045, x3);
+    ASSERT_EQUAL_64(0x00000045, x4);
+    ASSERT_EQUAL_64(0x00000023, x5);
+    ASSERT_EQUAL_64(0x00000023, x6);
+    ASSERT_EQUAL_64(0x00000001, x7);
+    ASSERT_EQUAL_64(0x00000001, x8);
 
-    ASSERT_EQUAL_64(0x01234567, data1[0]);
-    ASSERT_EQUAL_64(0x012345ff, data2[0]);
-    ASSERT_EQUAL_64(0x01234567, data3[0]);
-    ASSERT_EQUAL_64(0x012345ff, data4[0]);
-    ASSERT_EQUAL_64(0x01234567, data5[0]);
-    ASSERT_EQUAL_64(0x012345ff, data6[0]);
-    ASSERT_EQUAL_64(0x01234567, data7[0]);
-    ASSERT_EQUAL_64(0x012345ff, data8[0]);
+    ASSERT_EQUAL_64(0x01234567, data1);
+    ASSERT_EQUAL_64(0x012345ff, data2);
+    ASSERT_EQUAL_64(0x01234567, data3);
+    ASSERT_EQUAL_64(0x0123ff67, data4);
+    ASSERT_EQUAL_64(0x01234567, data5);
+    ASSERT_EQUAL_64(0x01ff4567, data6);
+    ASSERT_EQUAL_64(0x01234567, data7);
+    ASSERT_EQUAL_64(0xff234567, data8);
   }
 }
 
 TEST(cash_casah_caslh_casalh) {
-  uint64_t data1[] = {0x01234567, 0};
-  uint64_t data2[] = {0x01234567, 0};
-  uint64_t data3[] = {0x01234567, 0};
-  uint64_t data4[] = {0x01234567, 0};
-  uint64_t data5[] = {0x01234567, 0};
-  uint64_t data6[] = {0x01234567, 0};
-  uint64_t data7[] = {0x01234567, 0};
-  uint64_t data8[] = {0x01234567, 0};
-
-  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
-  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
-  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
-  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
-  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
-  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
-  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
-  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+  uint64_t data1 = 0x0123456789abcdef;
+  uint64_t data2 = 0x0123456789abcdef;
+  uint64_t data3 = 0x0123456789abcdef;
+  uint64_t data4 = 0x0123456789abcdef;
+  uint64_t data5 = 0x0123456789abcdef;
+  uint64_t data6 = 0x0123456789abcdef;
+  uint64_t data7 = 0x0123456789abcdef;
+  uint64_t data8 = 0x0123456789abcdef;
 
   SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
 
   START();
 
-  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
-  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
-  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
-  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
-  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
-  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
-  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
-  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(&data1) + 0);
+  __ Mov(x22, reinterpret_cast<uintptr_t>(&data2) + 0);
+  __ Mov(x23, reinterpret_cast<uintptr_t>(&data3) + 2);
+  __ Mov(x24, reinterpret_cast<uintptr_t>(&data4) + 2);
+  __ Mov(x25, reinterpret_cast<uintptr_t>(&data5) + 4);
+  __ Mov(x26, reinterpret_cast<uintptr_t>(&data6) + 4);
+  __ Mov(x27, reinterpret_cast<uintptr_t>(&data7) + 6);
+  __ Mov(x28, reinterpret_cast<uintptr_t>(&data8) + 6);
 
-  __ Mov(x0, 0xffffffff);
+  __ Mov(x0, 0xffff);
 
-  __ Mov(x1, 0x76543210);
-  __ Mov(x2, 0x01234567);
-  __ Mov(x3, 0x76543210);
-  __ Mov(x4, 0x01234567);
-  __ Mov(x5, 0x76543210);
-  __ Mov(x6, 0x01234567);
-  __ Mov(x7, 0x76543210);
-  __ Mov(x8, 0x01234567);
+  __ Mov(x1, 0xfedcba9876543210);
+  __ Mov(x2, 0x0123456789abcdef);
+  __ Mov(x3, 0xfedcba9876543210);
+  __ Mov(x4, 0xcdef0123456789ab);
+  __ Mov(x5, 0xfedcba9876543210);
+  __ Mov(x6, 0x89abcdef01234567);
+  __ Mov(x7, 0xfedcba9876543210);
+  __ Mov(x8, 0x456789abcdef0123);
 
   __ Cash(w1, w0, MemOperand(x21));
   __ Cash(w2, w0, MemOperand(x22));
@@ -10100,80 +10064,71 @@ TEST(cash_casah_caslh_casalh) {
   if (CAN_RUN()) {
     RUN();
 
-    ASSERT_EQUAL_64(0x00004567, x1);
-    ASSERT_EQUAL_64(0x00004567, x2);
-    ASSERT_EQUAL_64(0x00004567, x3);
-    ASSERT_EQUAL_64(0x00004567, x4);
+    ASSERT_EQUAL_64(0x0000cdef, x1);
+    ASSERT_EQUAL_64(0x0000cdef, x2);
+    ASSERT_EQUAL_64(0x000089ab, x3);
+    ASSERT_EQUAL_64(0x000089ab, x4);
     ASSERT_EQUAL_64(0x00004567, x5);
     ASSERT_EQUAL_64(0x00004567, x6);
-    ASSERT_EQUAL_64(0x00004567, x7);
-    ASSERT_EQUAL_64(0x00004567, x8);
+    ASSERT_EQUAL_64(0x00000123, x7);
+    ASSERT_EQUAL_64(0x00000123, x8);
 
-    ASSERT_EQUAL_64(0x01234567, data1[0]);
-    ASSERT_EQUAL_64(0x0123ffff, data2[0]);
-    ASSERT_EQUAL_64(0x01234567, data3[0]);
-    ASSERT_EQUAL_64(0x0123ffff, data4[0]);
-    ASSERT_EQUAL_64(0x01234567, data5[0]);
-    ASSERT_EQUAL_64(0x0123ffff, data6[0]);
-    ASSERT_EQUAL_64(0x01234567, data7[0]);
-    ASSERT_EQUAL_64(0x0123ffff, data8[0]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data1);
+    ASSERT_EQUAL_64(0x0123456789abffff, data2);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data3);
+    ASSERT_EQUAL_64(0x01234567ffffcdef, data4);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data5);
+    ASSERT_EQUAL_64(0x0123ffff89abcdef, data6);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data7);
+    ASSERT_EQUAL_64(0xffff456789abcdef, data8);
   }
 }
 
-TEST(casp_caspa_caspl_caspal) {
-  uint64_t data1[] = {0x89abcdef01234567, 0};
-  uint64_t data2[] = {0x89abcdef01234567, 0};
-  uint64_t data3[] = {0x89abcdef01234567, 0};
-  uint64_t data4[] = {0x89abcdef01234567, 0};
-  uint64_t data5[] = {0x89abcdef01234567, 0};
-  uint64_t data6[] = {0x89abcdef01234567, 0};
-  uint64_t data7[] = {0x89abcdef01234567, 0};
-  uint64_t data8[] = {0x89abcdef01234567, 0};
-
-  uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
-  uint64_t* data2_aligned = AlignUp(data2, kXRegSizeInBytes * 2);
-  uint64_t* data3_aligned = AlignUp(data3, kXRegSizeInBytes * 2);
-  uint64_t* data4_aligned = AlignUp(data4, kXRegSizeInBytes * 2);
-  uint64_t* data5_aligned = AlignUp(data5, kXRegSizeInBytes * 2);
-  uint64_t* data6_aligned = AlignUp(data6, kXRegSizeInBytes * 2);
-  uint64_t* data7_aligned = AlignUp(data7, kXRegSizeInBytes * 2);
-  uint64_t* data8_aligned = AlignUp(data8, kXRegSizeInBytes * 2);
+TEST(casp_caspa_caspl_caspal_w) {
+  uint64_t data1[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data2[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data3[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data4[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data5[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data6[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data7[] = {0x7766554433221100, 0xffeeddccbbaa9988};
+  uint64_t data8[] = {0x7766554433221100, 0xffeeddccbbaa9988};
 
   SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
 
   START();
 
-  __ Mov(x21, reinterpret_cast<uintptr_t>(data1_aligned));
-  __ Mov(x22, reinterpret_cast<uintptr_t>(data2_aligned));
-  __ Mov(x23, reinterpret_cast<uintptr_t>(data3_aligned));
-  __ Mov(x24, reinterpret_cast<uintptr_t>(data4_aligned));
-  __ Mov(x25, reinterpret_cast<uintptr_t>(data5_aligned));
-  __ Mov(x26, reinterpret_cast<uintptr_t>(data6_aligned));
-  __ Mov(x27, reinterpret_cast<uintptr_t>(data7_aligned));
-  __ Mov(x28, reinterpret_cast<uintptr_t>(data8_aligned));
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1) + 0);
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2) + 0);
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3) + 8);
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4) + 8);
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5) + 8);
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6) + 8);
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7) + 0);
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8) + 0);
 
-  __ Mov(x0, 0xffffffff);
-  __ Mov(x1, 0xffffffff);
+  __ Mov(x0, 0xfff00fff);
+  __ Mov(x1, 0xfff11fff);
 
-  __ Mov(x2, 0x76543210);
-  __ Mov(x3, 0xfedcba98);
-  __ Mov(x4, 0x89abcdef);
-  __ Mov(x5, 0x01234567);
+  __ Mov(x2, 0x77665544);
+  __ Mov(x3, 0x33221100);
+  __ Mov(x4, 0x33221100);
+  __ Mov(x5, 0x77665544);
 
-  __ Mov(x6, 0x76543210);
-  __ Mov(x7, 0xfedcba98);
-  __ Mov(x8, 0x89abcdef);
-  __ Mov(x9, 0x01234567);
+  __ Mov(x6, 0xffeeddcc);
+  __ Mov(x7, 0xbbaa9988);
+  __ Mov(x8, 0xbbaa9988);
+  __ Mov(x9, 0xffeeddcc);
 
-  __ Mov(x10, 0x76543210);
-  __ Mov(x11, 0xfedcba98);
-  __ Mov(x12, 0x89abcdef);
-  __ Mov(x13, 0x01234567);
+  __ Mov(x10, 0xffeeddcc);
+  __ Mov(x11, 0xbbaa9988);
+  __ Mov(x12, 0xbbaa9988);
+  __ Mov(x13, 0xffeeddcc);
 
-  __ Mov(x14, 0x76543210);
-  __ Mov(x15, 0xfedcba98);
-  __ Mov(x16, 0x89abcdef);
-  __ Mov(x17, 0x01234567);
+  __ Mov(x14, 0x77665544);
+  __ Mov(x15, 0x33221100);
+  __ Mov(x16, 0x33221100);
+  __ Mov(x17, 0x77665544);
 
   __ Casp(w2, w3, w0, w1, MemOperand(x21));
   __ Casp(w4, w5, w0, w1, MemOperand(x22));
@@ -10189,31 +10144,185 @@ TEST(casp_caspa_caspl_caspal) {
   if (CAN_RUN()) {
     RUN();
 
-    ASSERT_EQUAL_64(0x89abcdef, x2);
-    ASSERT_EQUAL_64(0x01234567, x3);
-    ASSERT_EQUAL_64(0x89abcdef, x4);
-    ASSERT_EQUAL_64(0x01234567, x5);
-    ASSERT_EQUAL_64(0x89abcdef, x6);
-    ASSERT_EQUAL_64(0x01234567, x7);
-    ASSERT_EQUAL_64(0x89abcdef, x8);
-    ASSERT_EQUAL_64(0x01234567, x9);
-    ASSERT_EQUAL_64(0x89abcdef, x10);
-    ASSERT_EQUAL_64(0x01234567, x11);
-    ASSERT_EQUAL_64(0x89abcdef, x12);
-    ASSERT_EQUAL_64(0x01234567, x13);
-    ASSERT_EQUAL_64(0x89abcdef, x14);
-    ASSERT_EQUAL_64(0x01234567, x15);
-    ASSERT_EQUAL_64(0x89abcdef, x16);
-    ASSERT_EQUAL_64(0x01234567, x17);
+    ASSERT_EQUAL_64(0x33221100, x2);
+    ASSERT_EQUAL_64(0x77665544, x3);
+    ASSERT_EQUAL_64(0x33221100, x4);
+    ASSERT_EQUAL_64(0x77665544, x5);
+    ASSERT_EQUAL_64(0xbbaa9988, x6);
+    ASSERT_EQUAL_64(0xffeeddcc, x7);
+    ASSERT_EQUAL_64(0xbbaa9988, x8);
+    ASSERT_EQUAL_64(0xffeeddcc, x9);
+    ASSERT_EQUAL_64(0xbbaa9988, x10);
+    ASSERT_EQUAL_64(0xffeeddcc, x11);
+    ASSERT_EQUAL_64(0xbbaa9988, x12);
+    ASSERT_EQUAL_64(0xffeeddcc, x13);
+    ASSERT_EQUAL_64(0x33221100, x14);
+    ASSERT_EQUAL_64(0x77665544, x15);
+    ASSERT_EQUAL_64(0x33221100, x16);
+    ASSERT_EQUAL_64(0x77665544, x17);
 
-    ASSERT_EQUAL_64(0x89abcdef01234567, data1[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data2[0]);
-    ASSERT_EQUAL_64(0x89abcdef01234567, data3[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data4[0]);
-    ASSERT_EQUAL_64(0x89abcdef01234567, data5[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data6[0]);
-    ASSERT_EQUAL_64(0x89abcdef01234567, data7[0]);
-    ASSERT_EQUAL_64(0xffffffffffffffff, data8[0]);
+    ASSERT_EQUAL_64(0x7766554433221100, data1[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data1[1]);
+    ASSERT_EQUAL_64(0xfff11ffffff00fff, data2[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data2[1]);
+    ASSERT_EQUAL_64(0x7766554433221100, data3[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data3[1]);
+    ASSERT_EQUAL_64(0x7766554433221100, data4[0]);
+    ASSERT_EQUAL_64(0xfff11ffffff00fff, data4[1]);
+    ASSERT_EQUAL_64(0x7766554433221100, data5[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data5[1]);
+    ASSERT_EQUAL_64(0x7766554433221100, data6[0]);
+    ASSERT_EQUAL_64(0xfff11ffffff00fff, data6[1]);
+    ASSERT_EQUAL_64(0x7766554433221100, data7[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data7[1]);
+    ASSERT_EQUAL_64(0xfff11ffffff00fff, data8[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data8[1]);
+  }
+}
+
+TEST(casp_caspa_caspl_caspal_x) {
+  alignas(kXRegSizeInBytes * 2) uint64_t data1[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data2[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data3[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data4[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data5[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data6[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data7[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+  alignas(kXRegSizeInBytes * 2) uint64_t data8[] = {0x7766554433221100,
+                                                    0xffeeddccbbaa9988,
+                                                    0xfedcba9876543210,
+                                                    0x0123456789abcdef};
+
+  SETUP_WITH_FEATURES(CPUFeatures::kAtomics);
+
+  START();
+
+  __ Mov(x21, reinterpret_cast<uintptr_t>(data1) + 0);
+  __ Mov(x22, reinterpret_cast<uintptr_t>(data2) + 0);
+  __ Mov(x23, reinterpret_cast<uintptr_t>(data3) + 16);
+  __ Mov(x24, reinterpret_cast<uintptr_t>(data4) + 16);
+  __ Mov(x25, reinterpret_cast<uintptr_t>(data5) + 16);
+  __ Mov(x26, reinterpret_cast<uintptr_t>(data6) + 16);
+  __ Mov(x27, reinterpret_cast<uintptr_t>(data7) + 0);
+  __ Mov(x28, reinterpret_cast<uintptr_t>(data8) + 0);
+
+  __ Mov(x0, 0xfffffff00fffffff);
+  __ Mov(x1, 0xfffffff11fffffff);
+
+  __ Mov(x2, 0xffeeddccbbaa9988);
+  __ Mov(x3, 0x7766554433221100);
+  __ Mov(x4, 0x7766554433221100);
+  __ Mov(x5, 0xffeeddccbbaa9988);
+
+  __ Mov(x6, 0x0123456789abcdef);
+  __ Mov(x7, 0xfedcba9876543210);
+  __ Mov(x8, 0xfedcba9876543210);
+  __ Mov(x9, 0x0123456789abcdef);
+
+  __ Mov(x10, 0x0123456789abcdef);
+  __ Mov(x11, 0xfedcba9876543210);
+  __ Mov(x12, 0xfedcba9876543210);
+  __ Mov(x13, 0x0123456789abcdef);
+
+  __ Mov(x14, 0xffeeddccbbaa9988);
+  __ Mov(x15, 0x7766554433221100);
+  __ Mov(x16, 0x7766554433221100);
+  __ Mov(x17, 0xffeeddccbbaa9988);
+
+  __ Casp(x2, x3, x0, x1, MemOperand(x21));
+  __ Casp(x4, x5, x0, x1, MemOperand(x22));
+  __ Caspa(x6, x7, x0, x1, MemOperand(x23));
+  __ Caspa(x8, x9, x0, x1, MemOperand(x24));
+  __ Caspl(x10, x11, x0, x1, MemOperand(x25));
+  __ Caspl(x12, x13, x0, x1, MemOperand(x26));
+  __ Caspal(x14, x15, x0, x1, MemOperand(x27));
+  __ Caspal(x16, x17, x0, x1, MemOperand(x28));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0x7766554433221100, x2);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, x3);
+    ASSERT_EQUAL_64(0x7766554433221100, x4);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, x5);
+
+    ASSERT_EQUAL_64(0xfedcba9876543210, x6);
+    ASSERT_EQUAL_64(0x0123456789abcdef, x7);
+    ASSERT_EQUAL_64(0xfedcba9876543210, x8);
+    ASSERT_EQUAL_64(0x0123456789abcdef, x9);
+
+    ASSERT_EQUAL_64(0xfedcba9876543210, x10);
+    ASSERT_EQUAL_64(0x0123456789abcdef, x11);
+    ASSERT_EQUAL_64(0xfedcba9876543210, x12);
+    ASSERT_EQUAL_64(0x0123456789abcdef, x13);
+
+    ASSERT_EQUAL_64(0x7766554433221100, x14);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, x15);
+    ASSERT_EQUAL_64(0x7766554433221100, x16);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, x17);
+
+    ASSERT_EQUAL_64(0x7766554433221100, data1[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data1[1]);
+    ASSERT_EQUAL_64(0xfedcba9876543210, data1[2]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data1[3]);
+
+    ASSERT_EQUAL_64(0xfffffff00fffffff, data2[0]);
+    ASSERT_EQUAL_64(0xfffffff11fffffff, data2[1]);
+    ASSERT_EQUAL_64(0xfedcba9876543210, data2[2]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data2[3]);
+
+    ASSERT_EQUAL_64(0x7766554433221100, data3[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data3[1]);
+    ASSERT_EQUAL_64(0xfedcba9876543210, data3[2]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data3[3]);
+
+    ASSERT_EQUAL_64(0x7766554433221100, data4[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data4[1]);
+    ASSERT_EQUAL_64(0xfffffff00fffffff, data4[2]);
+    ASSERT_EQUAL_64(0xfffffff11fffffff, data4[3]);
+
+    ASSERT_EQUAL_64(0x7766554433221100, data5[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data5[1]);
+    ASSERT_EQUAL_64(0xfedcba9876543210, data5[2]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data5[3]);
+
+    ASSERT_EQUAL_64(0x7766554433221100, data6[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data6[1]);
+    ASSERT_EQUAL_64(0xfffffff00fffffff, data6[2]);
+    ASSERT_EQUAL_64(0xfffffff11fffffff, data6[3]);
+
+    ASSERT_EQUAL_64(0x7766554433221100, data7[0]);
+    ASSERT_EQUAL_64(0xffeeddccbbaa9988, data7[1]);
+    ASSERT_EQUAL_64(0xfedcba9876543210, data7[2]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data7[3]);
+
+    ASSERT_EQUAL_64(0xfffffff00fffffff, data8[0]);
+    ASSERT_EQUAL_64(0xfffffff11fffffff, data8[1]);
+    ASSERT_EQUAL_64(0xfedcba9876543210, data8[2]);
+    ASSERT_EQUAL_64(0x0123456789abcdef, data8[3]);
   }
 }
 

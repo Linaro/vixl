@@ -2453,7 +2453,7 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
     Memory::Write<T>(address, newvalue);
     LogWrite(rt, GetPrintRegisterFormatForSize(element_size), address);
   }
-  WriteRegister<T>(rs, data);
+  WriteRegister<T>(rs, data, NoRegLog);
   LogRead(rs, GetPrintRegisterFormatForSize(element_size), address);
 }
 
@@ -2465,7 +2465,7 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   unsigned rt = instr->GetRt();
   unsigned rn = instr->GetRn();
 
-  VIXL_ASSERT((rs % 2 == 0) && (rs % 2 == 0));
+  VIXL_ASSERT((rs % 2 == 0) && (rt % 2 == 0));
 
   unsigned element_size = sizeof(T);
   uint64_t address = ReadRegister<uint64_t>(rn, Reg31IsStackPointer);
@@ -2486,8 +2486,8 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   // associated with that location, even if the compare subsequently fails.
   local_monitor_.Clear();
 
-  T data_high = Memory::Read<T>(address);
-  T data_low = Memory::Read<T>(address2);
+  T data_low = Memory::Read<T>(address);
+  T data_high = Memory::Read<T>(address2);
 
   if (is_acquire) {
     // Approximate load-acquire by issuing a full barrier after the load.
@@ -2502,20 +2502,20 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
       __sync_synchronize();
     }
 
-    Memory::Write<T>(address, newvalue_high);
-    Memory::Write<T>(address2, newvalue_low);
+    Memory::Write<T>(address, newvalue_low);
+    Memory::Write<T>(address2, newvalue_high);
   }
 
-  WriteRegister<T>(rs + 1, data_high);
-  WriteRegister<T>(rs, data_low);
+  WriteRegister<T>(rs + 1, data_high, NoRegLog);
+  WriteRegister<T>(rs, data_low, NoRegLog);
 
   PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
-  LogRead(rs + 1, format, address);
-  LogRead(rs, format, address2);
+  LogRead(rs, format, address);
+  LogRead(rs + 1, format, address2);
 
   if (same) {
-    LogWrite(rt + 1, format, address);
-    LogWrite(rt, format, address2);
+    LogWrite(rt, format, address);
+    LogWrite(rt + 1, format, address2);
   }
 }
 

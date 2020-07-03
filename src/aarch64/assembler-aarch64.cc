@@ -1653,6 +1653,7 @@ void Assembler::ldlar(const Register& rt, const MemOperand& src) {
                      const MemOperand& src) {                            \
     VIXL_ASSERT(CPUHas(CPUFeatures::kAtomics));                          \
     VIXL_ASSERT(src.IsImmediateOffset() && (src.GetOffset() == 0));      \
+    VIXL_ASSERT(AreSameFormat(rs, rt));                                  \
     LoadStoreExclusive op = rt.Is64Bits() ? OP##_x : OP##_w;             \
     Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
   }
@@ -1703,6 +1704,7 @@ COMPARE_AND_SWAP_W_LIST(VIXL_DEFINE_ASM_FUNC)
     VIXL_ASSERT(AreEven(rs, rt));                                        \
     VIXL_ASSERT(AreConsecutive(rs, rs1));                                \
     VIXL_ASSERT(AreConsecutive(rt, rt1));                                \
+    VIXL_ASSERT(AreSameFormat(rs, rs1, rt, rt1));                        \
     LoadStoreExclusive op = rt.Is64Bits() ? OP##_x : OP##_w;             \
     Emit(op | Rs(rs) | Rt(rt) | Rt2_mask | RnSP(src.GetBaseRegister())); \
   }
