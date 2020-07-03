@@ -1062,7 +1062,7 @@ void Assembler::facge(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FACGE_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FACGE_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::facgt(const PRegisterWithLaneSize& pd,
@@ -1078,7 +1078,7 @@ void Assembler::facgt(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FACGT_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FACGT_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fcmeq(const PRegisterWithLaneSize& pd,
@@ -1094,7 +1094,7 @@ void Assembler::fcmeq(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FCMEQ_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FCMEQ_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fcmge(const PRegisterWithLaneSize& pd,
@@ -1110,7 +1110,7 @@ void Assembler::fcmge(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FCMGE_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FCMGE_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fcmgt(const PRegisterWithLaneSize& pd,
@@ -1126,7 +1126,7 @@ void Assembler::fcmgt(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FCMGT_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FCMGT_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fcmne(const PRegisterWithLaneSize& pd,
@@ -1142,7 +1142,7 @@ void Assembler::fcmne(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FCMNE_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FCMNE_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::fcmuo(const PRegisterWithLaneSize& pd,
@@ -1158,7 +1158,7 @@ void Assembler::fcmuo(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(AreSameLaneSize(zn, zm));
   VIXL_ASSERT(zn.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FCMUO_p_p_zz | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(FCMUO_p_p_zz | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 // SVEFPCompareWithZero.
@@ -1177,7 +1177,7 @@ void Assembler::fcmeq(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(zero == 0.0);
   USE(zero);
 
-  Emit(FCMEQ_p_p_z0 | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FCMEQ_p_p_z0 | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcmge(const PRegisterWithLaneSize& pd,
@@ -1194,7 +1194,7 @@ void Assembler::fcmge(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(zero == 0.0);
   USE(zero);
 
-  Emit(FCMGE_p_p_z0 | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FCMGE_p_p_z0 | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcmgt(const PRegisterWithLaneSize& pd,
@@ -1211,7 +1211,7 @@ void Assembler::fcmgt(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(zero == 0.0);
   USE(zero);
 
-  Emit(FCMGT_p_p_z0 | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FCMGT_p_p_z0 | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcmle(const PRegisterWithLaneSize& pd,
@@ -1228,7 +1228,7 @@ void Assembler::fcmle(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(zero == 0.0);
   USE(zero);
 
-  Emit(FCMLE_p_p_z0 | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FCMLE_p_p_z0 | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcmlt(const PRegisterWithLaneSize& pd,
@@ -1245,7 +1245,7 @@ void Assembler::fcmlt(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(zero == 0.0);
   USE(zero);
 
-  Emit(FCMLT_p_p_z0 | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FCMLT_p_p_z0 | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcmne(const PRegisterWithLaneSize& pd,
@@ -1262,7 +1262,7 @@ void Assembler::fcmne(const PRegisterWithLaneSize& pd,
   VIXL_ASSERT(zero == 0.0);
   USE(zero);
 
-  Emit(FCMNE_p_p_z0 | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FCMNE_p_p_z0 | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn));
 }
 
 // SVEFPComplexAddition.
@@ -1794,7 +1794,7 @@ void Assembler::frecpx(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FRECPX_z_p_z | SVESize(zd) | Rd(zd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FRECPX_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::frinta(const ZRegister& zd,
@@ -1878,7 +1878,7 @@ void Assembler::fsqrt(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn));
   VIXL_ASSERT(zd.GetLaneSizeInBytes() != kBRegSizeInBytes);
 
-  Emit(FSQRT_z_p_z | SVESize(zd) | Rd(zd) | Pg<12, 10>(pg) | Rn(zn));
+  Emit(FSQRT_z_p_z | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::scvtf(const ZRegister& zd,
@@ -2726,7 +2726,7 @@ void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
                                const ZRegister& zn,
                                const ZRegister& zm,
                                SVEIntCompareVectorsOp op) {
-  Emit(op | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) | Rm(zm));
+  Emit(op | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
@@ -2734,8 +2734,7 @@ void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
                                const ZRegister& zn,
                                int imm,
                                SVEIntCompareSignedImmOp op) {
-  Emit(op | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm));
+  Emit(op | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) | ImmField<20, 16>(imm));
 }
 
 void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
@@ -2743,7 +2742,7 @@ void Assembler::CompareVectors(const PRegisterWithLaneSize& pd,
                                const ZRegister& zn,
                                unsigned imm,
                                SVEIntCompareUnsignedImmOp op) {
-  Emit(op | SVESize(zn) | Pd(pd) | Pg<12, 10>(pg) | Rn(zn) |
+  Emit(op | SVESize(zn) | Pd(pd) | PgLow8(pg) | Rn(zn) |
        ImmUnsignedField<20, 14>(imm));
 }
 
@@ -4239,8 +4238,7 @@ void Assembler::ldff1b(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1B_z_p_bz_d_64_unscaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) |
-       Rm(zm));
+  Emit(LDFF1B_z_p_bz_d_64_unscaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -4257,8 +4255,7 @@ void Assembler::ldff1b(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1B_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  Emit(LDFF1B_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) | ImmField<20, 16>(imm5));
 }
 
 // This prototype maps to 4 instruction encodings:
@@ -4277,7 +4274,7 @@ void Assembler::ldff1d(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1D_z_p_bz_d_64_scaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) | Rm(zm));
+  Emit(LDFF1D_z_p_bz_d_64_scaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 void Assembler::ldff1d(const ZRegister& zt,
@@ -4291,8 +4288,7 @@ void Assembler::ldff1d(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1D_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  Emit(LDFF1D_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) | ImmField<20, 16>(imm5));
 }
 
 // This prototype maps to 6 instruction encodings:
@@ -4311,7 +4307,7 @@ void Assembler::ldff1h(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1H_z_p_bz_d_64_scaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) | Rm(zm));
+  Emit(LDFF1H_z_p_bz_d_64_scaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -4328,8 +4324,7 @@ void Assembler::ldff1h(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1H_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  Emit(LDFF1H_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) | ImmField<20, 16>(imm5));
 }
 
 // This prototype maps to 3 instruction encodings:
@@ -4346,8 +4341,7 @@ void Assembler::ldff1sb(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1SB_z_p_bz_d_64_unscaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) |
-       Rm(zm));
+  Emit(LDFF1SB_z_p_bz_d_64_unscaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -4364,7 +4358,7 @@ void Assembler::ldff1sb(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1SB_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
+  Emit(LDFF1SB_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) |
        ImmField<20, 16>(imm5));
 }
 
@@ -4384,8 +4378,7 @@ void Assembler::ldff1sh(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1SH_z_p_bz_d_64_scaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) |
-       Rm(zm));
+  Emit(LDFF1SH_z_p_bz_d_64_scaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -4402,7 +4395,7 @@ void Assembler::ldff1sh(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1SH_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
+  Emit(LDFF1SH_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) |
        ImmField<20, 16>(imm5));
 }
 
@@ -4422,8 +4415,7 @@ void Assembler::ldff1sw(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1SW_z_p_bz_d_64_scaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) |
-       Rm(zm));
+  Emit(LDFF1SW_z_p_bz_d_64_scaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 void Assembler::ldff1sw(const ZRegister& zt,
@@ -4437,7 +4429,7 @@ void Assembler::ldff1sw(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1SW_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
+  Emit(LDFF1SW_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) |
        ImmField<20, 16>(imm5));
 }
 
@@ -4457,7 +4449,7 @@ void Assembler::ldff1w(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1W_z_p_bz_d_64_scaled | Rt(zt) | Pg<12, 10>(pg) | RnSP(xn) | Rm(zm));
+  Emit(LDFF1W_z_p_bz_d_64_scaled | Rt(zt) | PgLow8(pg) | RnSP(xn) | Rm(zm));
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -4474,8 +4466,7 @@ void Assembler::ldff1w(const ZRegister& zt,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
-  Emit(LDFF1W_z_p_ai_d | Rt(zt) | Pg<12, 10>(pg) | Rn(zn) |
-       ImmField<20, 16>(imm5));
+  Emit(LDFF1W_z_p_ai_d | Rt(zt) | PgLow8(pg) | Rn(zn) | ImmField<20, 16>(imm5));
 }
 
 void Assembler::SVEGatherPrefetchVectorPlusImmediateHelper(
