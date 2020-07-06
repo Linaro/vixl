@@ -377,24 +377,6 @@ TEST(CPUFeatures_format) {
   CPUFeaturesFormatHelper("FP, NEON, CRC32, Fcma", f);
   f.Combine(CPUFeatures::kSHA1);
   CPUFeaturesFormatHelper("FP, NEON, CRC32, SHA1, Fcma", f);
-
-  CPUFeaturesFormatHelper(
-      "ID register emulation, "
-      // Armv8.0
-      "FP, NEON, CRC32, "
-      "AES, SHA1, SHA2, Pmull1Q, "
-      // Armv8.1
-      "Atomics, LORegions, RDM, "
-      // Armv8.2
-      "SVE, DotProduct, FPHalf, NEONHalf, RAS, DCPoP, DCCVADP, SHA3, SHA512, "
-      "SM3, SM4, "
-      // Armv8.3
-      "PAuth, PAuthQARMA, PAuthGeneric, PAuthGenericQARMA, JSCVT, Fcma, RCpc, "
-      // Armv8.4
-      "RCpc (imm), FlagM, USCAT, FHM, DIT, "
-      // Armv8.5
-      "BTI, AXFlag, RNG, Frint (bounded)",
-      CPUFeatures::All());
 }
 
 

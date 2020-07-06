@@ -34,16 +34,65 @@
 namespace vixl {
 
 
+// VIXL aims to handle and detect all architectural features that are likely to
+// influence code-generation decisions at EL0 (user-space).
+//
+// - There may be multiple VIXL feature flags for a given architectural
+//   extension. This occurs where the extension allow components to be
+//   implemented independently, or where kernel support is needed, and is likely
+//   to be fragmented.
+//
+//   For example, Pointer Authentication (kPAuth*) has a separate feature flag
+//   for access to PACGA, and to indicate that the QARMA algorithm is
+//   implemented.
+//
+// - Conversely, some extensions have configuration options that do not affect
+//   EL0, so these are presented as a single VIXL feature.
+//
+//   For example, the RAS extension (kRAS) has several variants, but the only
+//   feature relevant to VIXL is the addition of the ESB instruction so we only
+//   need a single flag.
+//
+// - VIXL offers separate flags for separate features even if they're
+//   architecturally linked.
+//
+//   For example, the architecture requires kFPHalf and kNEONHalf to be equal,
+//   but they have separate hardware ID register fields so VIXL presents them as
+//   separate features.
+//
+// - VIXL can detect every feature for which it can generate code.
+//
+// - VIXL can detect some features for which it cannot generate code.
+//
+// The CPUFeatures::Feature enum — derived from the macro list below — is
+// frequently extended. New features may be added to the list at any point, and
+// no assumptions should be made about the numerical values assigned to each
+// enum constant. The symbolic names can be considered to be stable.
+//
+// The debug descriptions are used only for debug output. The 'cpuinfo' strings
+// are informative; VIXL does not use /proc/cpuinfo for feature detection.
+
 // clang-format off
 #define VIXL_CPU_FEATURE_LIST(V)                                               \
   /* If set, the OS traps and emulates MRS accesses to relevant (EL1) ID_*  */ \
   /* registers, so that the detailed feature registers can be read          */ \
   /* directly.                                                              */ \
+                                                                               \
+  /* Constant name        Debug description         Linux 'cpuinfo' string. */ \
   V(kIDRegisterEmulation, "ID register emulation",  "cpuid")                   \
                                                                                \
   V(kFP,                  "FP",                     "fp")                      \
   V(kNEON,                "NEON",                   "asimd")                   \
   V(kCRC32,               "CRC32",                  "crc32")                   \
+  V(kDGH,                 "DGH",                    "dgh")                     \
+  /* Speculation control features.                                          */ \
+  V(kCSV2,                "CSV2",                   NULL)                      \
+  V(kSCXTNUM,             "SCXTNUM",                NULL)                      \
+  V(kCSV3,                "CSV3",                   NULL)                      \
+  V(kSB,                  "SB",                     "sb")                      \
+  V(kSPECRES,             "SPECRES",                NULL)                      \
+  V(kSSBS,                "SSBS",                   NULL)                      \
+  V(kSSBSControl,         "SSBS (PSTATE control)",  "ssbs")                    \
   /* Cryptographic support instructions.                                    */ \
   V(kAES,                 "AES",                    "aes")                     \
   V(kSHA1,                "SHA1",                   "sha1")                    \
@@ -58,11 +107,19 @@ namespace vixl {
   V(kRDM,                 "RDM",                    "asimdrdm")                \
   /* Scalable Vector Extension.                                             */ \
   V(kSVE,                 "SVE",                    "sve")                     \
+  V(kSVEF64MM,            "SVE F64MM",              "svef64mm")                \
+  V(kSVEF32MM,            "SVE F32MM",              "svef32mm")                \
+  V(kSVEI8MM,             "SVE I8MM",               "svei8imm")                \
+  V(kSVEBF16,             "SVE BFloat16",           "svebf16")                 \
   /* SDOT and UDOT support (in NEON).                                       */ \
   V(kDotProduct,          "DotProduct",             "asimddp")                 \
+  /* Int8 matrix multiplication (in NEON).                                  */ \
+  V(kI8MM,                "NEON I8MM",              "i8mm")                    \
   /* Half-precision (FP16) support for FP and NEON, respectively.           */ \
   V(kFPHalf,              "FPHalf",                 "fphp")                    \
   V(kNEONHalf,            "NEONHalf",               "asimdhp")                 \
+  /* BFloat16 support (in both FP and NEON.)                                */ \
+  V(kBF16,                "FP/NEON BFloat 16",      "bf16")                    \
   /* The RAS extension, including the ESB instruction.                      */ \
   V(kRAS,                 "RAS",                    NULL)                      \
   /* Data cache clean to the point of persistence: DC CVAP.                 */ \
@@ -98,13 +155,21 @@ namespace vixl {
   /* Data-independent timing (for selected instructions).                   */ \
   V(kDIT,                 "DIT",                    "dit")                     \
   /* Branch target identification.                                          */ \
-  V(kBTI,                 "BTI",                    NULL)                      \
+  V(kBTI,                 "BTI",                    "bti")                     \
   /* Flag manipulation instructions: {AX,XA}FLAG                            */ \
-  V(kAXFlag,              "AXFlag",                 NULL)                      \
+  V(kAXFlag,              "AXFlag",                 "flagm2")                  \
   /* Random number generation extension,                                    */ \
-  V(kRNG,                 "RNG",                    NULL)                      \
+  V(kRNG,                 "RNG",                    "rng")                     \
   /* Floating-point round to {32,64}-bit integer.                           */ \
-  V(kFrintToFixedSizedInt,"Frint (bounded)",        NULL)
+  V(kFrintToFixedSizedInt,"Frint (bounded)",        "frint")                   \
+  /* Memory Tagging Extension.                                              */ \
+  V(kMTEInstructions,     "MTE (EL0 instructions)", NULL)                      \
+  V(kMTE,                 "MTE",                    NULL)                      \
+  /* PAuth extensions.                                                      */ \
+  V(kPAuthEnhancedPAC,    "PAuth EnhancedPAC",      NULL)                      \
+  V(kPAuthEnhancedPAC2,   "PAuth EnhancedPAC2",     NULL)                      \
+  V(kPAuthFPAC,           "PAuth FPAC",             NULL)                      \
+  V(kPAuthFPACCombined,   "PAuth FPACCombined",     NULL)
 // clang-format on
 
 

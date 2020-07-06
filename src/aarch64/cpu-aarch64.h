@@ -95,6 +95,8 @@ class AA64PFR0 : public IDRegister {
   static const Field kRAS;
   static const Field kSVE;
   static const Field kDIT;
+  static const Field kCSV2;
+  static const Field kCSV3;
 };
 
 class AA64PFR1 : public IDRegister {
@@ -105,6 +107,8 @@ class AA64PFR1 : public IDRegister {
 
  private:
   static const Field kBT;
+  static const Field kSSBS;
+  static const Field kMTE;
 };
 
 class AA64ISAR0 : public IDRegister {
@@ -126,6 +130,7 @@ class AA64ISAR0 : public IDRegister {
   static const Field kDP;
   static const Field kFHM;
   static const Field kTS;
+  static const Field kRNDR;
 };
 
 class AA64ISAR1 : public IDRegister {
@@ -144,6 +149,11 @@ class AA64ISAR1 : public IDRegister {
   static const Field kGPA;
   static const Field kGPI;
   static const Field kFRINTTS;
+  static const Field kSB;
+  static const Field kSPECRES;
+  static const Field kBF16;
+  static const Field kDGH;
+  static const Field kI8MM;
 };
 
 class AA64MMFR1 : public IDRegister {
@@ -164,6 +174,19 @@ class AA64MMFR2 : public IDRegister {
 
  private:
   static const Field kAT;
+};
+
+class AA64ZFR0 : public IDRegister {
+ public:
+  explicit AA64ZFR0(uint64_t value) : IDRegister(value) {}
+
+  CPUFeatures GetCPUFeatures() const;
+
+ private:
+  static const Field kBF16;
+  static const Field kI8MM;
+  static const Field kF32MM;
+  static const Field kF64MM;
 };
 
 class CPU {
@@ -223,15 +246,16 @@ class CPU {
   }
 
  private:
-#define VIXL_AARCH64_ID_REG_LIST(V)                                         \
-  V(AA64PFR0, "ID_AA64PFR0_EL1")                                            \
-  V(AA64PFR1, "ID_AA64PFR1_EL1")                                            \
-  V(AA64ISAR0, "ID_AA64ISAR0_EL1")                                          \
-  V(AA64ISAR1, "ID_AA64ISAR1_EL1")                                          \
-  V(AA64MMFR1, "ID_AA64MMFR1_EL1")                                          \
-  /* AA64MMFR2 is RES0 before Armv8.2. We can always safely read it, but */ \
-  /* some compilers don't accept its symbolic name for Arm8.0 targets. */   \
-  V(AA64MMFR2, "S3_0_C0_C7_2")
+#define VIXL_AARCH64_ID_REG_LIST(V)                                           \
+  V(AA64PFR0, "ID_AA64PFR0_EL1")                                              \
+  V(AA64PFR1, "ID_AA64PFR1_EL1")                                              \
+  V(AA64ISAR0, "ID_AA64ISAR0_EL1")                                            \
+  V(AA64ISAR1, "ID_AA64ISAR1_EL1")                                            \
+  V(AA64MMFR1, "ID_AA64MMFR1_EL1")                                            \
+  /* These registers are RES0 in the baseline Arm8.0. We can always safely */ \
+  /* read them, but some compilers don't accept the symbolic names. */        \
+  V(AA64MMFR2, "S3_0_C0_C7_2")                                                \
+  V(AA64ZFR0, "S3_0_C0_C4_4")
 
 #define VIXL_READ_ID_REG(NAME, MRS_ARG) static NAME Read##NAME();
   // On native AArch64 platforms, read the named CPU ID registers. These require
