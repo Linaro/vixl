@@ -187,7 +187,12 @@ class AA64ZFR0 : public IDRegister {
   CPUFeatures GetCPUFeatures() const;
 
  private:
+  static const Field kSVEver;
+  static const Field kAES;
+  static const Field kBitPerm;
   static const Field kBF16;
+  static const Field kSHA3;
+  static const Field kSM4;
   static const Field kI8MM;
   static const Field kF32MM;
   static const Field kF64MM;
