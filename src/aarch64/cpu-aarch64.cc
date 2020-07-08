@@ -259,17 +259,37 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kSSBSControl,
        CPUFeatures::kSB,
        CPUFeatures::kPAuth,
-       CPUFeatures::kPAuthGeneric};
-  static const size_t kFeatureBitCount =
-      sizeof(kFeatureBits) / sizeof(kFeatureBits[0]);
+       CPUFeatures::kPAuthGeneric,
+       // Bits 32-39
+       CPUFeatures::kDCCVADP,
+       CPUFeatures::kNone,  // "sve2"
+       CPUFeatures::kNone,  // "sveaes"
+       CPUFeatures::kNone,  // "svepmull"
+       CPUFeatures::kNone,  // "svebitperm"
+       CPUFeatures::kNone,  // "svesha3"
+       CPUFeatures::kNone,  // "svesm4"
+       CPUFeatures::kFrintToFixedSizedInt,
+       // Bits 40-47
+       CPUFeatures::kSVEI8MM,
+       CPUFeatures::kSVEF32MM,
+       CPUFeatures::kSVEF64MM,
+       CPUFeatures::kSVEBF16,
+       CPUFeatures::kI8MM,
+       CPUFeatures::kBF16,
+       CPUFeatures::kDGH,
+       CPUFeatures::kRNG,
+       // Bits 48+
+       CPUFeatures::kBTI};
 
-  unsigned long auxv = getauxval(AT_HWCAP);  // NOLINT(runtime/int)
+  uint64_t hwcap_low32 = getauxval(AT_HWCAP);
+  uint64_t hwcap_high32 = getauxval(AT_HWCAP2);
+  VIXL_ASSERT(IsUint32(hwcap_low32));
+  VIXL_ASSERT(IsUint32(hwcap_high32));
+  uint64_t hwcap = hwcap_low32 | (hwcap_high32 << 32);
 
-  // TODO: Also examine AT_HWCAP2.
-
-  VIXL_STATIC_ASSERT(kFeatureBitCount < (sizeof(auxv) * kBitsPerByte));
-  for (size_t i = 0; i < kFeatureBitCount; i++) {
-    if (auxv & (1UL << i)) features.Combine(kFeatureBits[i]);
+  VIXL_STATIC_ASSERT(ArrayLength(kFeatureBits) < 64);
+  for (size_t i = 0; i < ArrayLength(kFeatureBits); i++) {
+    if (hwcap & (UINT64_C(1) << i)) features.Combine(kFeatureBits[i]);
   }
 #endif  // VIXL_USE_LINUX_HWCAP
 
