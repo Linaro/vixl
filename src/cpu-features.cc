@@ -37,31 +37,9 @@
 
 namespace vixl {
 
-static uint64_t MakeFeatureMask(CPUFeatures::Feature feature) {
-  if (feature == CPUFeatures::kNone) {
-    return 0;
-  } else {
-    // Check that the shift is well-defined, and that the feature is valid.
-    VIXL_STATIC_ASSERT(CPUFeatures::kNumberOfFeatures <=
-                       (sizeof(uint64_t) * 8));
-    VIXL_ASSERT(feature < CPUFeatures::kNumberOfFeatures);
-    return UINT64_C(1) << feature;
-  }
-}
-
-CPUFeatures::CPUFeatures(Feature feature0,
-                         Feature feature1,
-                         Feature feature2,
-                         Feature feature3)
-    : features_(0) {
-  Combine(feature0, feature1, feature2, feature3);
-}
-
 CPUFeatures CPUFeatures::All() {
   CPUFeatures all;
-  // Check that the shift is well-defined.
-  VIXL_STATIC_ASSERT(CPUFeatures::kNumberOfFeatures < (sizeof(uint64_t) * 8));
-  all.features_ = (UINT64_C(1) << kNumberOfFeatures) - 1;
+  all.features_.set();
   return all;
 }
 
@@ -89,74 +67,27 @@ void CPUFeatures::Combine(const CPUFeatures& other) {
   features_ |= other.features_;
 }
 
-void CPUFeatures::Combine(Feature feature0,
-                          Feature feature1,
-                          Feature feature2,
-                          Feature feature3) {
-  features_ |= MakeFeatureMask(feature0);
-  features_ |= MakeFeatureMask(feature1);
-  features_ |= MakeFeatureMask(feature2);
-  features_ |= MakeFeatureMask(feature3);
+void CPUFeatures::Combine(Feature feature) {
+  if (feature != CPUFeatures::kNone) features_.set(feature);
 }
 
 void CPUFeatures::Remove(const CPUFeatures& other) {
   features_ &= ~other.features_;
 }
 
-void CPUFeatures::Remove(Feature feature0,
-                         Feature feature1,
-                         Feature feature2,
-                         Feature feature3) {
-  features_ &= ~MakeFeatureMask(feature0);
-  features_ &= ~MakeFeatureMask(feature1);
-  features_ &= ~MakeFeatureMask(feature2);
-  features_ &= ~MakeFeatureMask(feature3);
-}
-
-CPUFeatures CPUFeatures::With(const CPUFeatures& other) const {
-  CPUFeatures f(*this);
-  f.Combine(other);
-  return f;
-}
-
-CPUFeatures CPUFeatures::With(Feature feature0,
-                              Feature feature1,
-                              Feature feature2,
-                              Feature feature3) const {
-  CPUFeatures f(*this);
-  f.Combine(feature0, feature1, feature2, feature3);
-  return f;
-}
-
-CPUFeatures CPUFeatures::Without(const CPUFeatures& other) const {
-  CPUFeatures f(*this);
-  f.Remove(other);
-  return f;
-}
-
-CPUFeatures CPUFeatures::Without(Feature feature0,
-                                 Feature feature1,
-                                 Feature feature2,
-                                 Feature feature3) const {
-  CPUFeatures f(*this);
-  f.Remove(feature0, feature1, feature2, feature3);
-  return f;
+void CPUFeatures::Remove(Feature feature) {
+  if (feature != CPUFeatures::kNone) features_.reset(feature);
 }
 
 bool CPUFeatures::Has(const CPUFeatures& other) const {
   return (features_ & other.features_) == other.features_;
 }
 
-bool CPUFeatures::Has(Feature feature0,
-                      Feature feature1,
-                      Feature feature2,
-                      Feature feature3) const {
-  uint64_t mask = MakeFeatureMask(feature0) | MakeFeatureMask(feature1) |
-                  MakeFeatureMask(feature2) | MakeFeatureMask(feature3);
-  return (features_ & mask) == mask;
+bool CPUFeatures::Has(Feature feature) const {
+  return (feature == CPUFeatures::kNone) || features_[feature];
 }
 
-size_t CPUFeatures::Count() const { return CountSetBits(features_); }
+size_t CPUFeatures::Count() const { return features_.count(); }
 
 std::ostream& operator<<(std::ostream& os, CPUFeatures::Feature feature) {
   // clang-format off

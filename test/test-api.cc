@@ -485,7 +485,10 @@ TEST(CPUFeaturesScope) {
       CPUFeatures auth(CPUFeatures::kPAuth,
                        CPUFeatures::kPAuthQARMA,
                        CPUFeatures::kPAuthGeneric,
-                       CPUFeatures::kPAuthGenericQARMA);
+                       CPUFeatures::kPAuthGenericQARMA,
+                       CPUFeatures::kPAuthEnhancedPAC2,
+                       CPUFeatures::kPAuthFPAC,
+                       CPUFeatures::kPAuthFPACCombined);
 
       CPUFeaturesScope inner(&outer, auth);
       VIXL_CHECK(inner.GetCPUFeatures() == &cpu);
@@ -496,6 +499,11 @@ TEST(CPUFeaturesScope) {
     // Check for equivalence.
     VIXL_CHECK(cpu.Has(original_inner));
     VIXL_CHECK(original_inner.Has(cpu));
+  }
+
+  {
+    // Scopes can be initialised with no features.
+    CPUFeaturesScope scope(&top_level);
   }
 
   // Check for equivalence.

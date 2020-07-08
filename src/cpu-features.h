@@ -27,6 +27,7 @@
 #ifndef VIXL_CPU_FEATURES_H
 #define VIXL_CPU_FEATURES_H
 
+#include <bitset>
 #include <ostream>
 
 #include "globals-vixl.h"
@@ -262,13 +263,13 @@ class CPUFeatures {
   // clang-format on
 
   // By default, construct with no features enabled.
-  CPUFeatures() : features_(0) {}
+  CPUFeatures() : features_{} {}
 
   // Construct with some features already enabled.
-  CPUFeatures(Feature feature0,
-              Feature feature1 = kNone,
-              Feature feature2 = kNone,
-              Feature feature3 = kNone);
+  template <typename T, typename... U>
+  CPUFeatures(T first, U... others) : features_{} {
+    Combine(first, others...);
+  }
 
   // Construct with all features enabled. This can be used to disable feature
   // checking: `Has(...)` returns true regardless of the argument.
@@ -301,41 +302,59 @@ class CPUFeatures {
   // exist in this set are left unchanged.
   void Combine(const CPUFeatures& other);
 
-  // Combine specific features into this set. Features that already exist in
-  // this set are left unchanged.
-  void Combine(Feature feature0,
-               Feature feature1 = kNone,
-               Feature feature2 = kNone,
-               Feature feature3 = kNone);
+  // Combine a specific feature into this set. If it already exists in the set,
+  // the set is left unchanged.
+  void Combine(Feature feature);
+
+  // Combine multiple features (or feature sets) into this set.
+  template <typename T, typename... U>
+  void Combine(T first, U... others) {
+    Combine(first);
+    Combine(others...);
+  }
 
   // Remove features in another CPUFeatures object from this one.
   void Remove(const CPUFeatures& other);
 
-  // Remove specific features from this set.
-  void Remove(Feature feature0,
-              Feature feature1 = kNone,
-              Feature feature2 = kNone,
-              Feature feature3 = kNone);
+  // Remove a specific feature from this set. This has no effect if the feature
+  // doesn't exist in the set.
+  void Remove(Feature feature0);
 
-  // Chaining helpers for convenient construction.
-  CPUFeatures With(const CPUFeatures& other) const;
-  CPUFeatures With(Feature feature0,
-                   Feature feature1 = kNone,
-                   Feature feature2 = kNone,
-                   Feature feature3 = kNone) const;
-  CPUFeatures Without(const CPUFeatures& other) const;
-  CPUFeatures Without(Feature feature0,
-                      Feature feature1 = kNone,
-                      Feature feature2 = kNone,
-                      Feature feature3 = kNone) const;
+  // Remove multiple features (or feature sets) from this set.
+  template <typename T, typename... U>
+  void Remove(T first, U... others) {
+    Remove(first);
+    Remove(others...);
+  }
 
-  // Query features.
-  // Note that an empty query (like `Has(kNone)`) always returns true.
+  // Chaining helpers for convenient construction by combining other CPUFeatures
+  // or individual Features.
+  template <typename... T>
+  CPUFeatures With(T... others) const {
+    CPUFeatures f(*this);
+    f.Combine(others...);
+    return f;
+  }
+
+  template <typename... T>
+  CPUFeatures Without(T... others) const {
+    CPUFeatures f(*this);
+    f.Remove(others...);
+    return f;
+  }
+
+  // Test whether the `other` feature set is equal to or a subset of this one.
   bool Has(const CPUFeatures& other) const;
-  bool Has(Feature feature0,
-           Feature feature1 = kNone,
-           Feature feature2 = kNone,
-           Feature feature3 = kNone) const;
+
+  // Test whether a single feature exists in this set.
+  // Note that `Has(kNone)` always returns true.
+  bool Has(Feature feature) const;
+
+  // Test whether all of the specified features exist in this set.
+  template <typename T, typename... U>
+  bool Has(T first, U... others) const {
+    return Has(first) && Has(others...);
+  }
 
   // Return the number of enabled features.
   size_t Count() const;
@@ -353,9 +372,8 @@ class CPUFeatures {
   const_iterator end() const;
 
  private:
-  // Each bit represents a feature. This field will be replaced as needed if
-  // features are added.
-  uint64_t features_;
+  // Each bit represents a feature. This set will be extended as needed.
+  std::bitset<kNumberOfFeatures> features_;
 
   friend std::ostream& operator<<(std::ostream& os,
                                   const vixl::CPUFeatures& features);
@@ -424,21 +442,17 @@ class CPUFeaturesScope {
   // Start a CPUFeaturesScope on any object that implements
   // `CPUFeatures* GetCPUFeatures()`.
   template <typename T>
-  explicit CPUFeaturesScope(T* cpu_features_wrapper,
-                            CPUFeatures::Feature feature0 = CPUFeatures::kNone,
-                            CPUFeatures::Feature feature1 = CPUFeatures::kNone,
-                            CPUFeatures::Feature feature2 = CPUFeatures::kNone,
-                            CPUFeatures::Feature feature3 = CPUFeatures::kNone)
+  explicit CPUFeaturesScope(T* cpu_features_wrapper)
       : cpu_features_(cpu_features_wrapper->GetCPUFeatures()),
-        old_features_(*cpu_features_) {
-    cpu_features_->Combine(feature0, feature1, feature2, feature3);
-  }
+        old_features_(*cpu_features_) {}
 
-  template <typename T>
-  CPUFeaturesScope(T* cpu_features_wrapper, const CPUFeatures& other)
+  // Start a CPUFeaturesScope on any object that implements
+  // `CPUFeatures* GetCPUFeatures()`, with the specified features enabled.
+  template <typename T, typename U, typename... V>
+  CPUFeaturesScope(T* cpu_features_wrapper, U first, V... features)
       : cpu_features_(cpu_features_wrapper->GetCPUFeatures()),
         old_features_(*cpu_features_) {
-    cpu_features_->Combine(other);
+    cpu_features_->Combine(first, features...);
   }
 
   ~CPUFeaturesScope() { *cpu_features_ = old_features_; }

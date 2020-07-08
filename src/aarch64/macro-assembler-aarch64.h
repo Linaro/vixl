@@ -7245,23 +7245,11 @@ class UseScratchRegisterScope {
 // features needs a corresponding macro instruction.
 class SimulationCPUFeaturesScope {
  public:
-  explicit SimulationCPUFeaturesScope(
-      MacroAssembler* masm,
-      CPUFeatures::Feature feature0 = CPUFeatures::kNone,
-      CPUFeatures::Feature feature1 = CPUFeatures::kNone,
-      CPUFeatures::Feature feature2 = CPUFeatures::kNone,
-      CPUFeatures::Feature feature3 = CPUFeatures::kNone)
-      : masm_(masm),
-        cpu_features_scope_(masm, feature0, feature1, feature2, feature3) {
+  template <typename... T>
+  explicit SimulationCPUFeaturesScope(MacroAssembler* masm, T... features)
+      : masm_(masm), cpu_features_scope_(masm, features...) {
     masm_->SaveSimulatorCPUFeatures();
-    masm_->EnableSimulatorCPUFeatures(
-        CPUFeatures(feature0, feature1, feature2, feature3));
-  }
-
-  SimulationCPUFeaturesScope(MacroAssembler* masm, const CPUFeatures& other)
-      : masm_(masm), cpu_features_scope_(masm, other) {
-    masm_->SaveSimulatorCPUFeatures();
-    masm_->EnableSimulatorCPUFeatures(other);
+    masm_->EnableSimulatorCPUFeatures(CPUFeatures(features...));
   }
 
   ~SimulationCPUFeaturesScope() { masm_->RestoreSimulatorCPUFeatures(); }
