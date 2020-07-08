@@ -177,12 +177,9 @@ VIXL_CPU_FEATURE_LIST(VIXL_FORMAT_FEATURE)
 }
 
 CPUFeatures::const_iterator CPUFeatures::begin() const {
-  if (features_ == 0) return const_iterator(this, kNone);
-
-  int feature_number = CountTrailingZeros(features_);
-  vixl::CPUFeatures::Feature feature =
-      static_cast<CPUFeatures::Feature>(feature_number);
-  return const_iterator(this, feature);
+  // For iterators in general, it's undefined to increment `end()`, but here we
+  // control the implementation and it is safe to do this.
+  return ++end();
 }
 
 CPUFeatures::const_iterator CPUFeatures::end() const {
@@ -190,11 +187,11 @@ CPUFeatures::const_iterator CPUFeatures::end() const {
 }
 
 std::ostream& operator<<(std::ostream& os, const CPUFeatures& features) {
-  CPUFeatures::const_iterator it = features.begin();
-  while (it != features.end()) {
-    os << *it;
-    ++it;
-    if (it != features.end()) os << ", ";
+  bool need_separator = false;
+  for (CPUFeatures::Feature feature : features) {
+    if (need_separator) os << ", ";
+    need_separator = true;
+    os << feature;
   }
   return os;
 }
@@ -205,7 +202,7 @@ bool CPUFeaturesConstIterator::operator==(
   return (cpu_features_ == other.cpu_features_) && (feature_ == other.feature_);
 }
 
-CPUFeatures::Feature CPUFeaturesConstIterator::operator++() {  // Prefix
+CPUFeaturesConstIterator& CPUFeaturesConstIterator::operator++() {  // Prefix
   VIXL_ASSERT(IsValid());
   do {
     // Find the next feature. The order is unspecified.
@@ -219,11 +216,11 @@ CPUFeatures::Feature CPUFeaturesConstIterator::operator++() {  // Prefix
     // cpu_features_->Has(kNone) is always true, so this will terminate even if
     // the features list is empty.
   } while (!cpu_features_->Has(feature_));
-  return feature_;
+  return *this;
 }
 
-CPUFeatures::Feature CPUFeaturesConstIterator::operator++(int) {  // Postfix
-  CPUFeatures::Feature result = feature_;
+CPUFeaturesConstIterator CPUFeaturesConstIterator::operator++(int) {  // Postfix
+  CPUFeaturesConstIterator result = *this;
   ++(*this);
   return result;
 }

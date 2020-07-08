@@ -378,8 +378,8 @@ class CPUFeaturesConstIterator {
   bool operator!=(const CPUFeaturesConstIterator& other) const {
     return !(*this == other);
   }
-  CPUFeatures::Feature operator++();
-  CPUFeatures::Feature operator++(int);
+  CPUFeaturesConstIterator& operator++();
+  CPUFeaturesConstIterator operator++(int);
 
   CPUFeatures::Feature operator*() const {
     VIXL_ASSERT(IsValid());
