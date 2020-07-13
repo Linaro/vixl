@@ -6364,10 +6364,20 @@ void Assembler::orn(const ZRegister& zd, const ZRegister& zn, uint64_t imm) {
 
 
 void Assembler::fmov(const ZRegister& zd, const PRegisterM& pg, double imm) {
-  fcpy(zd, pg, imm);
+  if (IsPositiveZero(imm)) {
+    cpy(zd, pg, 0);
+  } else {
+    fcpy(zd, pg, imm);
+  }
 }
 
-void Assembler::fmov(const ZRegister& zd, double imm) { fdup(zd, imm); }
+void Assembler::fmov(const ZRegister& zd, double imm) {
+  if (IsPositiveZero(imm)) {
+    dup(zd, imm);
+  } else {
+    fdup(zd, imm);
+  }
+}
 
 void Assembler::mov(const PRegister& pd, const PRegister& pn) {
   // If the inputs carry a lane size, they must match.

@@ -3014,6 +3014,32 @@ TEST(sve_cpy_fcpy_imm) {
   CLEANUP();
 }
 
+TEST(sve_fmov_zero) {
+  SETUP();
+
+  // Predicated `fmov` is an alias for either `fcpy` or `cpy`.
+  COMPARE_PREFIX(fmov(z13.VnS(), p0.Merging(), 1.0),
+                 "fmov z13.s, p0/m, #0x70 (1.0000)");
+  COMPARE_PREFIX(fmov(z13.VnS(), p0.Merging(), 0.0), "mov z13.s, p0/m, #0");
+  COMPARE_MACRO(Fmov(z13.VnD(), p0.Merging(), 1.0),
+                "fmov z13.d, p0/m, #0x70 (1.0000)");
+  COMPARE_MACRO(Fmov(z13.VnD(), p0.Merging(), 0.0), "mov z13.d, p0/m, #0");
+
+  // Unpredicated `fmov` is an alias for either `fdup` or `dup`.
+  COMPARE_PREFIX(fmov(z13.VnS(), 1.0), "fmov z13.s, #0x70 (1.0000)");
+  COMPARE_PREFIX(fmov(z13.VnS(), 0.0), "mov z13.s, #0");
+  COMPARE_MACRO(Fmov(z13.VnD(), 1.0), "fmov z13.d, #0x70 (1.0000)");
+  COMPARE_MACRO(Fmov(z13.VnD(), 0.0), "mov z13.d, #0");
+
+  // -0.0 cannot be encoded by this alias, but is handled by the MacroAssembler.
+  COMPARE_MACRO(Fmov(z13.VnD(), p0.Merging(), -0.0),
+                "mov x16, #0x8000000000000000\n"
+                "mov z13.d, p0/m, x16");
+  COMPARE_MACRO(Fmov(z13.VnD(), -0.0), "mov z13.d, #0x8000000000000000");
+
+  CLEANUP();
+}
+
 TEST(sve_int_wide_imm_unpredicated) {
   SETUP();
 

@@ -389,6 +389,10 @@ VIXL_DEPRECATED("Float16Classify", inline int float16classify(uint16_t value)) {
 
 bool IsZero(Float16 value);
 
+inline bool IsPositiveZero(double value) {
+  return (value == 0.0) && (copysign(1.0, value) > 0.0);
+}
+
 inline bool IsNaN(float value) { return std::isnan(value); }
 
 inline bool IsNaN(double value) { return std::isnan(value); }

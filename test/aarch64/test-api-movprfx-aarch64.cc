@@ -926,9 +926,8 @@ TEST(movprfx_negative_lane_size_fp) {
     __ movprfx(z15.VnS(), p1.Zeroing(), z20.VnS());
     __ fmls(z15.VnH(), p1.Merging(), z28.VnH(), z20.VnH());
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z19.VnD(), p3.Zeroing(), z31.VnD());
-    // __ fmov(z19.VnH(), p3.Merging(), 0.0);
+    __ movprfx(z19.VnD(), p3.Zeroing(), z31.VnD());
+    __ fmov(z19.VnH(), p3.Merging(), 0.0);
 
     __ movprfx(z16.VnS(), p7.Merging(), z30.VnS());
     __ fmov(z16.VnH(), p7.Merging(), 2.5);
@@ -1746,9 +1745,8 @@ TEST(movprfx_positive_fp) {
     __ movprfx(z0, z26);
     __ fmls(z0.VnS(), z17.VnS(), z4.VnS(), 3);
 
-    // TODO: Enable once implemented.
-    // __ movprfx(z19.VnS(), p7.Zeroing(), z6.VnS());
-    // __ fmov(z19.VnS(), p7.Merging(), 0.0);
+    __ movprfx(z19.VnS(), p7.Zeroing(), z6.VnS());
+    __ fmov(z19.VnS(), p7.Merging(), 0.0);
 
     __ movprfx(z21, z15);
     __ fmov(z21.VnH(), p7.Merging(), 2.5);
