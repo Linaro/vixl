@@ -33,6 +33,8 @@
 namespace vixl {
 namespace aarch64 {
 
+Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ =
+    DEFAULT_FORM_TO_VISITOR_MAP(Disassembler);
 
 Disassembler::Disassembler() {
   buffer_size_ = 256;
@@ -9507,7 +9509,6 @@ void Disassembler::VisitReserved(const Instruction *instr) {
   Format(instr, "udf", "'IUdf");
 }
 
-
 void Disassembler::VisitUnimplemented(const Instruction *instr) {
   Format(instr, "unimplemented", "(Unimplemented)");
 }
@@ -9517,6 +9518,15 @@ void Disassembler::VisitUnallocated(const Instruction *instr) {
   Format(instr, "unallocated", "(Unallocated)");
 }
 
+void Disassembler::Visit(Metadata *metadata, const Instruction *instr) {
+  VIXL_ASSERT(metadata->count("form") > 0);
+  const std::string &form = (*metadata)["form"];
+  if ((form_to_visitor_.count(form) > 0) && form_to_visitor_[form]) {
+    form_to_visitor_[form](this, instr);
+  } else {
+    VisitUnimplemented(instr);
+  }
+}
 
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {
   // The base disasm does nothing more than disassembling into a buffer.

@@ -27,6 +27,7 @@
 #ifndef VIXL_AARCH64_DISASM_AARCH64_H
 #define VIXL_AARCH64_DISASM_AARCH64_H
 
+#include <functional>
 #include <utility>
 
 #include "../globals-vixl.h"
@@ -34,6 +35,7 @@
 
 #include "cpu-features-auditor-aarch64.h"
 #include "decoder-aarch64.h"
+#include "decoder-visitor-map-aarch64.h"
 #include "instructions-aarch64.h"
 #include "operands-aarch64.h"
 
@@ -52,6 +54,8 @@ class Disassembler : public DecoderVisitor {
   virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST(DECLARE)
 #undef DECLARE
+  virtual void Visit(Metadata* metadata,
+                     const Instruction* instr) VIXL_OVERRIDE;
 
  protected:
   virtual void ProcessOutput(const Instruction* instr);
@@ -112,6 +116,11 @@ class Disassembler : public DecoderVisitor {
   int64_t CodeRelativeAddress(const void* instr);
 
  private:
+  using FormToVisitorFnMap =
+      std::map<const std::string,
+               const std::function<void(Disassembler*, const Instruction*)>>;
+  static FormToVisitorFnMap form_to_visitor_;
+
   void Format(const Instruction* instr,
               const char* mnemonic,
               const char* format0,

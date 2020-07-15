@@ -34,6 +34,9 @@
 namespace vixl {
 namespace aarch64 {
 
+CPUFeaturesAuditor::FormToVisitorFnMap CPUFeaturesAuditor::form_to_visitor_ =
+    DEFAULT_FORM_TO_VISITOR_MAP(CPUFeaturesAuditor);
+
 // Every instruction must update last_instruction_, even if only to clear it,
 // and every instruction must also update seen_ once it has been fully handled.
 // This scope makes that simple, and allows early returns in the decode logic.
@@ -1352,6 +1355,15 @@ void CPUFeaturesAuditor::VisitUnimplemented(const Instruction* instr) {
   USE(instr);
 }
 
+void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
+  VIXL_ASSERT(metadata->count("form") > 0);
+  const std::string& form = (*metadata)["form"];
+  if ((form_to_visitor_.count(form) > 0) && form_to_visitor_[form]) {
+    form_to_visitor_[form](this, instr);
+  } else {
+    VisitUnimplemented(instr);
+  }
+}
 
 }  // namespace aarch64
 }  // namespace vixl

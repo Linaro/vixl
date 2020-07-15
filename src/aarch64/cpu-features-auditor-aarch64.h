@@ -27,10 +27,12 @@
 #ifndef VIXL_AARCH64_CPU_FEATURES_AUDITOR_AARCH64_H_
 #define VIXL_AARCH64_CPU_FEATURES_AUDITOR_AARCH64_H_
 
+#include <functional>
 #include <iostream>
 
 #include "cpu-features.h"
 #include "decoder-aarch64.h"
+#include "decoder-visitor-map-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -105,6 +107,8 @@ class CPUFeaturesAuditor : public DecoderVisitor {
   virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST(DECLARE)
 #undef DECLARE
+  virtual void Visit(Metadata* metadata,
+                     const Instruction* instr) VIXL_OVERRIDE;
 
  private:
   class RecordInstructionFeaturesScope;
@@ -117,6 +121,11 @@ class CPUFeaturesAuditor : public DecoderVisitor {
   CPUFeatures available_;
 
   Decoder* decoder_;
+
+  using FormToVisitorFnMap = std::map<
+      const std::string,
+      const std::function<void(CPUFeaturesAuditor*, const Instruction*)>>;
+  static FormToVisitorFnMap form_to_visitor_;
 };
 
 }  // namespace aarch64

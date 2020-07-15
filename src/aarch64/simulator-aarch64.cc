@@ -67,6 +67,9 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 }
 
 
+Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ =
+    DEFAULT_FORM_TO_VISITOR_MAP(Simulator);
+
 Simulator::Simulator(Decoder* decoder, FILE* stream)
     : movprfx_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {
   // Ensure that shift operations act as the simulator expects.
@@ -1577,6 +1580,16 @@ void Simulator::PrintTakenBranch(const Instruction* target) {
 
 // Visitors---------------------------------------------------------------------
 
+
+void Simulator::Visit(Metadata* metadata, const Instruction* instr) {
+  VIXL_ASSERT(metadata->count("form") > 0);
+  const std::string& form = (*metadata)["form"];
+  if ((form_to_visitor_.count(form) > 0) && form_to_visitor_[form]) {
+    form_to_visitor_[form](this, instr);
+  } else {
+    VisitUnimplemented(instr);
+  }
+}
 
 void Simulator::VisitReserved(const Instruction* instr) {
   // UDF is the only instruction in this group, and the Decoder is precise here.

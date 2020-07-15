@@ -1151,7 +1151,8 @@ class Simulator : public DecoderVisitor {
   virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST_THAT_RETURN(DECLARE)
 #undef DECLARE
-
+  virtual void Visit(Metadata* metadata,
+                     const Instruction* instr) VIXL_OVERRIDE;
 
 #define DECLARE(A) \
   VIXL_NO_RETURN virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
@@ -4541,6 +4542,11 @@ class Simulator : public DecoderVisitor {
   static const char* preg_names[];
 
  private:
+  using FormToVisitorFnMap =
+      std::map<const std::string,
+               const std::function<void(Simulator*, const Instruction*)>>;
+  static FormToVisitorFnMap form_to_visitor_;
+
   static const PACKey kPACKeyIA;
   static const PACKey kPACKeyIB;
   static const PACKey kPACKeyDA;

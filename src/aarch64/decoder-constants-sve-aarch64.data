@@ -1,0 +1,3377 @@
+{
+    "Decode_pttmm",
+    {23, 22, 12, 11, 10},
+    {
+        {"xx000", "Visit_saddlbt_z_zz"},
+        {"xx010", "Visit_ssublbt_z_zz"},
+        {"xx011", "Visit_ssubltb_z_zz"},
+        {"xx100", "Visit_eorbt_z_zz"},
+        {"xx101", "Visit_eortb_z_zz"},
+        {"00110", "Visit_smmla_z_zzz"},
+        {"10110", "Visit_usmmla_z_zzz"},
+        {"11110", "Visit_ummla_z_zzz"},
+    },
+},
+
+    {
+        "Decode_irvnr",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_add_z_zi"},
+            {"00001", "Visit_sub_z_zi"},
+            {"00011", "Visit_subr_z_zi"},
+            {"00100", "Visit_sqadd_z_zi"},
+            {"00101", "Visit_uqadd_z_zi"},
+            {"00110", "Visit_sqsub_z_zi"},
+            {"00111", "Visit_uqsub_z_zi"},
+            {"01000", "Visit_smax_z_zi"},
+            {"01001", "Visit_umax_z_zi"},
+            {"01010", "Visit_smin_z_zi"},
+            {"01011", "Visit_umin_z_zi"},
+            {"10000", "Visit_mul_z_zi"},
+            {"11000", "Visit_dup_z_i"},
+            {"11001", "Visit_fdup_z_i"},
+        },
+    },
+
+    {
+        "Decode_vrgui",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1sw_z_p_ar_d_64_unscaled"},
+            {"01", "Visit_ld1sw_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_nktui",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1b_z_p_br_contiguous"},
+            {"01", "Visit_ld3b_z_p_br_contiguous"},
+            {"10", "Visit_ldnt1h_z_p_br_contiguous"},
+            {"11", "Visit_ld3h_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_qllvl",
+        {23, 22, 4},
+        {
+            {"000", "Visit_prfw_i_p_ai_s"},
+            {"01x", "Visit_ld1rw_z_p_bi_u64"},
+            {"100", "Visit_prfd_i_p_ai_s"},
+            {"11x", "Visit_ld1rd_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_glrnk",
+        {23, 22, 20, 19, 18},
+        {
+            {"xx1xx", "Visit_cpy_z_p_i"},
+            {"00000", "Visit_orr_z_zi"},
+            {"01000", "Visit_eor_z_zi"},
+            {"10000", "Visit_and_z_zi"},
+            {"11000", "Visit_dupm_z_i"},
+        },
+    },
+
+    {
+        "Decode_kggtn",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1sh_z_p_br_s64"},
+            {"01", "Visit_ldff1w_z_p_br_u32"},
+            {"10", "Visit_ldff1sb_z_p_br_s64"},
+            {"11", "Visit_ldff1sb_z_p_br_s16"},
+        },
+    },
+
+    {
+        "Decode_pjohj",
+        {23},
+        {
+            {"0", "Visit_ld1b_z_p_bz_d_x32_unscaled"},
+            {"1", "Visit_ld1h_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_lrovn",
+        {23},
+        {
+            {"0", "Visit_ld1w_z_p_bz_d_x32_scaled"},
+            {"1", "Visit_ld1d_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_ispkm",
+        {12, 11, 10},
+        {
+            {"000", "Visit_smlalb_z_zzz"},
+            {"001", "Visit_smlalt_z_zzz"},
+            {"010", "Visit_umlalb_z_zzz"},
+            {"011", "Visit_umlalt_z_zzz"},
+            {"100", "Visit_smlslb_z_zzz"},
+            {"101", "Visit_smlslt_z_zzz"},
+            {"110", "Visit_umlslb_z_zzz"},
+            {"111", "Visit_umlslt_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_ukrtn",
+        {12, 11, 10},
+        {
+            {"100", "Visit_frsqrte_z_z"},
+        },
+    },
+
+    {
+        "Decode_rhrtt",
+        {12, 11, 10},
+        {
+            {"100", "Visit_frecpe_z_z"},
+        },
+    },
+
+    {
+        "Decode_skprp",
+        {20, 19, 18, 17, 16, 4},
+        {
+            {"00000x", "Visit_faddv_v_p_z"},
+            {"00100x", "Visit_fmaxnmv_v_p_z"},
+            {"00101x", "Visit_fminnmv_v_p_z"},
+            {"00110x", "Visit_fmaxv_v_p_z"},
+            {"00111x", "Visit_fminv_v_p_z"},
+            {"01110x", "Decode_rhrtt"},
+            {"01111x", "Decode_ukrtn"},
+            {"100000", "Visit_fcmge_p_p_z0"},
+            {"100001", "Visit_fcmgt_p_p_z0"},
+            {"100010", "Visit_fcmlt_p_p_z0"},
+            {"100011", "Visit_fcmle_p_p_z0"},
+            {"100100", "Visit_fcmeq_p_p_z0"},
+            {"100110", "Visit_fcmne_p_p_z0"},
+            {"11000x", "Visit_fadda_v_p_z"},
+        },
+    },
+
+    {
+        "Decode_mtglk",
+        {23},
+        {
+            {"0", "Visit_ldff1b_z_p_bz_d_x32_unscaled"},
+            {"1", "Visit_ldff1h_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_iqnvl",
+        {23, 18, 17, 16, 12, 11, 10},
+        {
+            {"0000000", "Visit_sqxtnb_z_zz"},
+            {"0000001", "Visit_sqxtnt_z_zz"},
+            {"0000010", "Visit_uqxtnb_z_zz"},
+            {"0000011", "Visit_uqxtnt_z_zz"},
+            {"0000100", "Visit_sqxtunb_z_zz"},
+            {"0000101", "Visit_sqxtunt_z_zz"},
+        },
+    },
+
+    {
+        "Decode_htqiu",
+        {23, 22, 12, 11, 10},
+        {
+            {"xx000", "Visit_mul_z_zz"},
+            {"xx010", "Visit_smulh_z_zz"},
+            {"xx011", "Visit_umulh_z_zz"},
+            {"xx100", "Visit_sqdmulh_z_zz"},
+            {"xx101", "Visit_sqrdmulh_z_zz"},
+            {"00001", "Visit_pmul_z_zz"},
+        },
+    },
+
+    {
+        "Decode_mnrnt",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fminnm_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_qpuus",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fmax_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_ghhnh",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fmul_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_jjukl",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fadd_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_mgjss",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fmaxnm_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_vkoul",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fsubr_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_hnkmu",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fsub_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_oglsj",
+        {9, 8, 7, 6},
+        {
+            {"0000", "Visit_fmin_z_p_zs"},
+        },
+    },
+
+    {
+        "Decode_kthkj",
+        {12, 11, 10},
+        {
+            {"000", "Visit_ftmad_z_zzi"},
+        },
+    },
+
+    {
+        "Decode_jmnhk",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_fadd_z_p_zz"},   {"00001", "Visit_fsub_z_p_zz"},
+            {"00010", "Visit_fmul_z_p_zz"},   {"00011", "Visit_fsubr_z_p_zz"},
+            {"00100", "Visit_fmaxnm_z_p_zz"}, {"00101", "Visit_fminnm_z_p_zz"},
+            {"00110", "Visit_fmax_z_p_zz"},   {"00111", "Visit_fmin_z_p_zz"},
+            {"01000", "Visit_fabd_z_p_zz"},   {"01001", "Visit_fscale_z_p_zz"},
+            {"01010", "Visit_fmulx_z_p_zz"},  {"01100", "Visit_fdivr_z_p_zz"},
+            {"01101", "Visit_fdiv_z_p_zz"},   {"10xxx", "Decode_kthkj"},
+            {"11000", "Decode_jjukl"},        {"11001", "Decode_hnkmu"},
+            {"11010", "Decode_ghhnh"},        {"11011", "Decode_vkoul"},
+            {"11100", "Decode_mgjss"},        {"11101", "Decode_mnrnt"},
+            {"11110", "Decode_qpuus"},        {"11111", "Decode_oglsj"},
+        },
+    },
+
+    {
+        "Decode_mqqun",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1b_z_p_ai_s"},
+            {"01", "Visit_ld1rb_z_p_bi_u64"},
+            {"10", "Visit_ldff1h_z_p_ai_s"},
+            {"11", "Visit_ld1rh_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_tqrvi",
+        {12, 11, 10},
+        {
+            {"000", "Visit_saddlb_z_zz"},
+            {"001", "Visit_saddlt_z_zz"},
+            {"010", "Visit_uaddlb_z_zz"},
+            {"011", "Visit_uaddlt_z_zz"},
+            {"100", "Visit_ssublb_z_zz"},
+            {"101", "Visit_ssublt_z_zz"},
+            {"110", "Visit_usublb_z_zz"},
+            {"111", "Visit_usublt_z_zz"},
+        },
+    },
+
+    {
+        "Decode_voklv",
+        {23, 22, 4},
+        {
+            {"000", "Visit_prfb_i_p_br_s"},
+            {"01x", "Visit_ld1rb_z_p_bi_u32"},
+            {"100", "Visit_prfh_i_p_br_s"},
+            {"11x", "Visit_ld1rh_z_p_bi_u32"},
+        },
+    },
+
+    {
+        "Decode_rjmtp",
+        {23, 9},
+        {
+            {"00", "Visit_brkpbs_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_nvtjn",
+        {23, 18, 17, 12, 11, 10, 9},
+        {
+            {"0000000", "Visit_pfirst_p_p_p"},
+        },
+    },
+
+    {
+        "Decode_tsjqk",
+        {23, 18, 17, 9, 3, 2, 1, 0},
+        {
+            {"00000000", "Visit_ptest_p_p"},
+        },
+    },
+
+    {
+        "Decode_ltglt",
+        {18, 17, 12, 11, 10, 9},
+        {
+            {"000010", "Visit_pnext_p_p_p"},
+        },
+    },
+
+    {
+        "Decode_iqpvj",
+        {23, 9},
+        {
+            {"00", "Visit_brkpas_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_ukkpu",
+        {23, 9},
+        {
+            {"00", "Visit_brkpb_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_httju",
+        {23, 9},
+        {
+            {"00", "Visit_brkpa_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_vivii",
+        {22, 20, 19, 16, 4},
+        {
+            {"x1110", "Decode_ltglt"},
+            {"00xx0", "Decode_httju"},
+            {"00xx1", "Decode_ukkpu"},
+            {"10xx0", "Decode_iqpvj"},
+            {"10xx1", "Decode_rjmtp"},
+            {"11000", "Decode_tsjqk"},
+            {"11100", "Decode_nvtjn"},
+        },
+    },
+
+    {
+        "Decode_mtijo",
+        {23, 22, 12, 11, 10},
+        {
+            {"0x000", "Visit_fmla_z_zzzi_h"},
+            {"0x001", "Visit_fmls_z_zzzi_h"},
+            {"10000", "Visit_fmla_z_zzzi_s"},
+            {"10001", "Visit_fmls_z_zzzi_s"},
+            {"101xx", "Visit_fcmla_z_zzzi_h"},
+            {"11000", "Visit_fmla_z_zzzi_d"},
+            {"11001", "Visit_fmls_z_zzzi_d"},
+            {"111xx", "Visit_fcmla_z_zzzi_s"},
+        },
+    },
+
+    {
+        "Decode_nrgsg",
+        {4},
+        {
+            {"0", "Visit_cmpeq_p_p_zw"}, {"1", "Visit_cmpne_p_p_zw"},
+        },
+    },
+
+    {
+        "Decode_simpg",
+        {23, 4},
+        {
+            {"00", "Visit_prfb_i_p_bz_d_x32_scaled"},
+            {"1x", "Visit_ld1sh_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_knunk",
+        {23, 4},
+        {
+            {"00", "Visit_prfd_i_p_bz_d_x32_scaled"},
+            {"1x", "Visit_ldff1h_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_jtnnt",
+        {18, 17, 16},
+        {
+            {"000", "Visit_brkb_p_p_p"},
+        },
+    },
+
+    {
+        "Decode_rlhii",
+        {18, 17, 16},
+        {
+            {"000", "Visit_brka_p_p_p"},
+        },
+    },
+
+    {
+        "Decode_ujngr",
+        {18, 17, 16},
+        {
+            {"000", "Visit_brkns_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_pkmip",
+        {18, 17, 16},
+        {
+            {"000", "Visit_brkas_p_p_p_z"},
+        },
+    },
+
+    {
+        "Decode_snppk",
+        {18, 17, 16},
+        {
+            {"000", "Visit_brkn_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_lqqru",
+        {18, 17, 16},
+        {
+            {"000", "Visit_brkbs_p_p_p_z"},
+        },
+    },
+
+    {
+        "Decode_mmsgs",
+        {23, 22, 20, 19, 9, 4},
+        {
+            {"000x00", "Visit_and_p_p_pp_z"},
+            {"000x01", "Visit_bic_p_p_pp_z"},
+            {"000x10", "Visit_eor_p_p_pp_z"},
+            {"000x11", "Visit_sel_p_p_pp"},
+            {"00100x", "Decode_rlhii"},
+            {"001100", "Decode_snppk"},
+            {"010x00", "Visit_ands_p_p_pp_z"},
+            {"010x01", "Visit_bics_p_p_pp_z"},
+            {"010x10", "Visit_eors_p_p_pp_z"},
+            {"011000", "Decode_pkmip"},
+            {"011100", "Decode_ujngr"},
+            {"100x00", "Visit_orr_p_p_pp_z"},
+            {"100x01", "Visit_orn_p_p_pp_z"},
+            {"100x10", "Visit_nor_p_p_pp_z"},
+            {"100x11", "Visit_nand_p_p_pp_z"},
+            {"10100x", "Decode_jtnnt"},
+            {"110x00", "Visit_orrs_p_p_pp_z"},
+            {"110x01", "Visit_orns_p_p_pp_z"},
+            {"110x10", "Visit_nors_p_p_pp_z"},
+            {"110x11", "Visit_nands_p_p_pp_z"},
+            {"111000", "Decode_lqqru"},
+        },
+    },
+
+    {
+        "Decode_ttghv",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1sh_z_p_br_s32"},
+            {"01", "Visit_ldff1w_z_p_br_u64"},
+            {"10", "Visit_ldff1sb_z_p_br_s32"},
+            {"11", "Visit_ldff1d_z_p_br_u64"},
+        },
+    },
+
+    {
+        "Decode_jghrh",
+        {23, 22},
+        {
+            {"00", "Visit_ld1w_z_p_ai_d"},
+            {"01", "Visit_ld1w_z_p_bz_d_64_scaled"},
+            {"10", "Visit_ld1d_z_p_ai_d"},
+            {"11", "Visit_ld1d_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_sjttj",
+        {23, 22, 4},
+        {
+            {"0xx", "Visit_ldff1w_z_p_bz_s_x32_scaled"},
+            {"110", "Visit_prfd_i_p_bi_s"},
+        },
+    },
+
+    {
+        "Decode_qrnmj",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1rqb_z_p_bi_u8"},
+            {"100", "Visit_ld1rqh_z_p_bi_u16"},
+        },
+    },
+
+    {
+        "Decode_iqrjp",
+        {23, 22},
+        {
+            {"0x", "Visit_st1w_z_p_br"},
+            {"10", "Visit_str_z_bi"},
+            {"11", "Visit_st1d_z_p_br"},
+        },
+    },
+
+    {
+        "Decode_khpsh",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1b_z_p_ar_d_64_unscaled"},
+            {"01", "Visit_ld1b_z_p_bz_d_64_unscaled"},
+            {"10", "Visit_ldnt1h_z_p_ar_d_64_unscaled"},
+            {"11", "Visit_ld1h_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_uotrs",
+        {23, 4},
+        {
+            {"00", "Visit_prfd_i_p_bz_s_x32_scaled"},
+            {"1x", "Visit_ldff1h_z_p_bz_s_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_hrilq",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1w_z_p_ar_d_64_unscaled"},
+            {"01", "Visit_ld1w_z_p_bz_d_64_unscaled"},
+            {"10", "Visit_ldnt1d_z_p_ar_d_64_unscaled"},
+            {"11", "Visit_ld1d_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_msgul",
+        {23},
+        {
+            {"0", "Visit_ld1sb_z_p_bz_s_x32_unscaled"},
+            {"1", "Visit_ld1sh_z_p_bz_s_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_jqoup",
+        {12, 11, 10},
+        {
+            {"100", "Visit_sabdlb_z_zz"},
+            {"101", "Visit_sabdlt_z_zz"},
+            {"110", "Visit_uabdlb_z_zz"},
+            {"111", "Visit_uabdlt_z_zz"},
+        },
+    },
+
+    {
+        "Decode_igsqt",
+        {23, 22, 20, 19, 18},
+        {
+            {"00000", "Visit_orr_z_zi"},
+            {"01000", "Visit_eor_z_zi"},
+            {"10000", "Visit_and_z_zi"},
+            {"11000", "Visit_dupm_z_i"},
+        },
+    },
+
+    {
+        "Decode_rvjmj",
+        {4},
+        {
+            {"0", "Visit_cmplt_p_p_zw"}, {"1", "Visit_cmple_p_p_zw"},
+        },
+    },
+
+    {
+        "Decode_nhkon",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1w_z_p_br_contiguous"},
+            {"01", "Visit_ld3w_z_p_br_contiguous"},
+            {"10", "Visit_ldnt1d_z_p_br_contiguous"},
+            {"11", "Visit_ld3d_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_svisr",
+        {23, 22, 12, 11, 10},
+        {
+            {"01001", "Visit_bfmmla_z_zzz"},
+            {"10001", "Visit_fmmla_z_zzz_s"},
+            {"11001", "Visit_fmmla_z_zzz_d"},
+        },
+    },
+
+    {
+        "Decode_igltm",
+        {10},
+        {
+            {"0", "Visit_insr_z_v"},
+        },
+    },
+
+    {
+        "Decode_hsjqt",
+        {10},
+        {
+            {"0", "Visit_insr_z_r"},
+        },
+    },
+
+    {
+        "Decode_vlrot",
+        {10},
+        {
+            {"0", "Visit_dup_z_r"},
+        },
+    },
+
+    {
+        "Decode_pvmhp",
+        {10},
+        {
+            {"0", "Visit_tbl_z_zz_1"},
+        },
+    },
+
+    {
+        "Decode_tjtim",
+        {10},
+        {
+            {"0", "Visit_tbl_z_zz_2"}, {"1", "Visit_tbx_z_zz"},
+        },
+    },
+
+    {
+        "Decode_lvhok",
+        {10},
+        {
+            {"0", "Visit_uunpkhi_z_z"},
+        },
+    },
+
+    {
+        "Decode_sqsnr",
+        {10},
+        {
+            {"0", "Visit_dup_z_zi"},
+        },
+    },
+
+    {
+        "Decode_hsskr",
+        {10},
+        {
+            {"0", "Visit_rev_z_z"},
+        },
+    },
+
+    {
+        "Decode_qqslu",
+        {10},
+        {
+            {"0", "Visit_sunpkhi_z_z"},
+        },
+    },
+
+    {
+        "Decode_hhugm",
+        {10},
+        {
+            {"0", "Visit_sunpklo_z_z"},
+        },
+    },
+
+    {
+        "Decode_okggm",
+        {10},
+        {
+            {"0", "Visit_uunpklo_z_z"},
+        },
+    },
+
+    {
+        "Decode_pgkqt",
+        {20, 19, 18, 17, 16, 12, 11},
+        {
+            {"xxxxx00", "Decode_sqsnr"},
+            {"xxxxx01", "Decode_tjtim"},
+            {"xxxxx10", "Decode_pvmhp"},
+            {"0000011", "Decode_vlrot"},
+            {"0010011", "Decode_hsjqt"},
+            {"1000011", "Decode_hhugm"},
+            {"1000111", "Decode_qqslu"},
+            {"1001011", "Decode_okggm"},
+            {"1001111", "Decode_lvhok"},
+            {"1010011", "Decode_igltm"},
+            {"1100011", "Decode_hsskr"},
+        },
+    },
+
+    {
+        "Decode_sgrmi",
+        {23, 22, 20, 19, 18, 17, 16},
+        {
+            {"0001010", "Visit_fcvtxnt_z_p_z_d2s"},
+            {"1001000", "Visit_fcvtnt_z_p_z_s2h"},
+            {"1001001", "Visit_fcvtlt_z_p_z_h2s"},
+            {"1001010", "Visit_bfcvtnt_z_p_z_s2bf"},
+            {"1101010", "Visit_fcvtnt_z_p_z_d2s"},
+            {"1101011", "Visit_fcvtlt_z_p_z_s2d"},
+        },
+    },
+
+    {
+        "Decode_hrnkq",
+        {4},
+        {
+            {"0", "Visit_cmpeq_p_p_zz"}, {"1", "Visit_cmpne_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_ukkjh",
+        {23, 22},
+        {
+            {"00", "Visit_stnt1b_z_p_br_contiguous"},
+            {"01", "Visit_st3b_z_p_br_contiguous"},
+            {"10", "Visit_stnt1h_z_p_br_contiguous"},
+            {"11", "Visit_st3h_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_msvqv",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1sb_z_p_ar_d_64_unscaled"},
+            {"01", "Visit_ld1sb_z_p_bz_d_64_unscaled"},
+            {"10", "Visit_ldnt1sh_z_p_ar_d_64_unscaled"},
+            {"11", "Visit_ld1sh_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_hujhl",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_saddv_r_p_z"},
+            {"00001", "Visit_uaddv_r_p_z"},
+            {"01000", "Visit_smaxv_r_p_z"},
+            {"01001", "Visit_umaxv_r_p_z"},
+            {"01010", "Visit_sminv_r_p_z"},
+            {"01011", "Visit_uminv_r_p_z"},
+            {"1000x", "Visit_movprfx_z_p_z"},
+            {"11000", "Visit_orv_r_p_z"},
+            {"11001", "Visit_eorv_r_p_z"},
+            {"11010", "Visit_andv_r_p_z"},
+        },
+    },
+
+    {
+        "Decode_mrslg",
+        {23, 22},
+        {
+            {"00", "Visit_st2w_z_p_br_contiguous"},
+            {"01", "Visit_st4w_z_p_br_contiguous"},
+            {"10", "Visit_st2d_z_p_br_contiguous"},
+            {"11", "Visit_st4d_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_kjlko",
+        {23, 22},
+        {
+            {"00", "Visit_ld1row_z_p_br_contiguous"},
+            {"10", "Visit_ld1rod_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_tmlig",
+        {23},
+        {
+            {"0", "Visit_ldff1b_z_p_bz_s_x32_unscaled"},
+            {"1", "Visit_ldff1h_z_p_bz_s_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_gvvgn",
+        {23, 22},
+        {
+            {"00", "Visit_ld2w_z_p_br_contiguous"},
+            {"01", "Visit_ld4w_z_p_br_contiguous"},
+            {"10", "Visit_ld2d_z_p_br_contiguous"},
+            {"11", "Visit_ld4d_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_ksmol",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1b_z_p_bi_u8"},
+            {"001", "Visit_ldnf1b_z_p_bi_u8"},
+            {"010", "Visit_ld1b_z_p_bi_u32"},
+            {"011", "Visit_ldnf1b_z_p_bi_u32"},
+            {"100", "Visit_ld1sw_z_p_bi_s64"},
+            {"101", "Visit_ldnf1sw_z_p_bi_s64"},
+            {"110", "Visit_ld1h_z_p_bi_u32"},
+            {"111", "Visit_ldnf1h_z_p_bi_u32"},
+        },
+    },
+
+    {
+        "Decode_huorp",
+        {23, 22},
+        {
+            {"00", "Visit_ld1rqw_z_p_br_contiguous"},
+            {"10", "Visit_ld1rqd_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_kjphr",
+        {20, 9},
+        {
+            {"00", "Visit_decp_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_timgg",
+        {23, 22, 20, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0},
+        {
+            {"0000000000000", "Visit_setffr_f"},
+        },
+    },
+
+    {
+        "Decode_hjsms",
+        {20, 9},
+        {
+            {"00", "Visit_uqincp_r_p_r_uw"},
+        },
+    },
+
+    {
+        "Decode_kpjqm",
+        {20, 9},
+        {
+            {"00", "Visit_sqdecp_r_p_r_sx"},
+        },
+    },
+
+    {
+        "Decode_ojssi",
+        {20, 9},
+        {
+            {"00", "Visit_sqdecp_r_p_r_x"},
+        },
+    },
+
+    {
+        "Decode_rinkr",
+        {20, 9},
+        {
+            {"00", "Visit_uqdecp_r_p_r_uw"},
+        },
+    },
+
+    {
+        "Decode_ojgjh",
+        {20, 9},
+        {
+            {"00", "Visit_incp_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_vsknh",
+        {20, 9},
+        {
+            {"00", "Visit_uqdecp_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_rkosm",
+        {20, 9},
+        {
+            {"00", "Visit_uqdecp_r_p_r_x"},
+        },
+    },
+
+    {
+        "Decode_qsuoo",
+        {20, 9},
+        {
+            {"00", "Visit_cntp_r_p_p"},
+        },
+    },
+
+    {
+        "Decode_hsmiu",
+        {20, 9},
+        {
+            {"00", "Visit_uqincp_r_p_r_x"},
+        },
+    },
+
+    {
+        "Decode_rjmir",
+        {20, 9},
+        {
+            {"00", "Visit_sqdecp_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_ggnpl",
+        {23, 22, 20, 9, 4, 3, 2, 1, 0},
+        {
+            {"000000000", "Visit_wrffr_f_p"},
+        },
+    },
+
+    {
+        "Decode_nmlnv",
+        {20, 9},
+        {
+            {"00", "Visit_incp_r_p_r"},
+        },
+    },
+
+    {
+        "Decode_vgphr",
+        {20, 9},
+        {
+            {"00", "Visit_sqincp_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_nsgsv",
+        {20, 9},
+        {
+            {"00", "Visit_sqincp_r_p_r_x"},
+        },
+    },
+
+    {
+        "Decode_qnlsp",
+        {20, 9},
+        {
+            {"00", "Visit_decp_r_p_r"},
+        },
+    },
+
+    {
+        "Decode_ggnqj",
+        {20, 9},
+        {
+            {"00", "Visit_uqincp_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_sgrok",
+        {20, 9},
+        {
+            {"00", "Visit_sqincp_r_p_r_sx"},
+        },
+    },
+
+    {
+        "Decode_omtkh",
+        {19, 18, 17, 16, 12, 11, 10},
+        {
+            {"0000xxx", "Decode_qsuoo"}, {"1000000", "Decode_vgphr"},
+            {"1000010", "Decode_sgrok"}, {"1000011", "Decode_nsgsv"},
+            {"1000100", "Decode_ggnpl"}, {"1001000", "Decode_ggnqj"},
+            {"1001010", "Decode_hjsms"}, {"1001011", "Decode_hsmiu"},
+            {"1010000", "Decode_rjmir"}, {"1010010", "Decode_kpjqm"},
+            {"1010011", "Decode_ojssi"}, {"1011000", "Decode_vsknh"},
+            {"1011010", "Decode_rinkr"}, {"1011011", "Decode_rkosm"},
+            {"1100000", "Decode_ojgjh"}, {"1100010", "Decode_nmlnv"},
+            {"1100100", "Decode_timgg"}, {"1101000", "Decode_kjphr"},
+            {"1101010", "Decode_qnlsp"},
+        },
+    },
+
+    {
+        "Decode_qgqsu",
+        {23, 4},
+        {
+            {"00", "Visit_prfw_i_p_bz_d_x32_scaled"},
+            {"1x", "Visit_ld1h_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_qvtuh",
+        {23},
+        {
+            {"0", "Visit_ldff1w_z_p_bz_d_x32_unscaled"},
+            {"1", "Visit_ldff1d_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_hphoo",
+        {23},
+        {
+            {"0", "Visit_ld1b_z_p_bz_s_x32_unscaled"},
+            {"1", "Visit_ld1h_z_p_bz_s_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_ihoks",
+        {23, 4},
+        {
+            {"00", "Visit_prfh_i_p_bz_s_x32_scaled"},
+            {"1x", "Visit_ldff1sh_z_p_bz_s_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_qgqgi",
+        {4},
+        {
+            {"0", "Visit_cmphs_p_p_zz"}, {"1", "Visit_cmphi_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_qtmqm",
+        {23, 22, 4},
+        {
+            {"0xx", "Visit_ld1w_z_p_bz_s_x32_scaled"},
+            {"10x", "Visit_ldr_z_bi"},
+            {"110", "Visit_prfw_i_p_bi_s"},
+        },
+    },
+
+    {
+        "Decode_hmnuv",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1sb_z_p_ai_s"},
+            {"01", "Visit_ld1rb_z_p_bi_u16"},
+            {"10", "Visit_ldff1sh_z_p_ai_s"},
+            {"11", "Visit_ld1rh_z_p_bi_u16"},
+        },
+    },
+
+    {
+        "Decode_ivjoh",
+        {23, 22, 12, 11, 10},
+        {
+            {"10000", "Visit_fmlslb_z_zzz"}, {"10001", "Visit_fmlslt_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_gkpqi",
+        {23, 22, 20},
+        {
+            {"0x0", "Visit_st1w_z_p_bi"},
+            {"001", "Visit_st2w_z_p_bi_contiguous"},
+            {"011", "Visit_st4w_z_p_bi_contiguous"},
+            {"1x0", "Visit_st1d_z_p_bi"},
+            {"101", "Visit_st2d_z_p_bi_contiguous"},
+            {"111", "Visit_st4d_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_rvvqq",
+        {12, 11, 10},
+        {
+            {"000", "Visit_histseg_z_zz"},
+        },
+    },
+
+    {
+        "Decode_mulmi",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_add_z_zi"},
+            {"00001", "Visit_sub_z_zi"},
+            {"00011", "Visit_subr_z_zi"},
+            {"00100", "Visit_sqadd_z_zi"},
+            {"00101", "Visit_uqadd_z_zi"},
+            {"00110", "Visit_sqsub_z_zi"},
+            {"00111", "Visit_uqsub_z_zi"},
+            {"11000", "Visit_dup_z_i"},
+        },
+    },
+
+    {
+        "Decode_iulmj",
+        {23, 22, 12, 11, 10},
+        {
+            {"01000", "Visit_bfdot_z_zzzi"},
+            {"100x0", "Visit_fmlalb_z_zzzi_s"},
+            {"100x1", "Visit_fmlalt_z_zzzi_s"},
+            {"110x0", "Visit_bfmlalb_z_zzzi"},
+            {"110x1", "Visit_bfmlalt_z_zzzi"},
+        },
+    },
+
+    {
+        "Decode_rlilh",
+        {12, 11, 10},
+        {
+            {"000", "Visit_addhnb_z_zz"},
+            {"001", "Visit_addhnt_z_zz"},
+            {"010", "Visit_raddhnb_z_zz"},
+            {"011", "Visit_raddhnt_z_zz"},
+            {"100", "Visit_subhnb_z_zz"},
+            {"101", "Visit_subhnt_z_zz"},
+            {"110", "Visit_rsubhnb_z_zz"},
+            {"111", "Visit_rsubhnt_z_zz"},
+        },
+    },
+
+    {
+        "Decode_tnqlt",
+        {23, 22},
+        {
+            {"01", "Visit_ld1rsh_z_p_bi_s32"},
+            {"11", "Visit_ld1rsb_z_p_bi_s32"},
+        },
+    },
+
+    {
+        "Decode_ikppk",
+        {11, 10, 4},
+        {
+            {"000", "Visit_whilege_p_p_rr"},
+            {"001", "Visit_whilegt_p_p_rr"},
+            {"010", "Visit_whilelt_p_p_rr"},
+            {"011", "Visit_whilele_p_p_rr"},
+            {"100", "Visit_whilehs_p_p_rr"},
+            {"101", "Visit_whilehi_p_p_rr"},
+            {"110", "Visit_whilelo_p_p_rr"},
+            {"111", "Visit_whilels_p_p_rr"},
+        },
+    },
+
+    {
+        "Decode_pvltu",
+        {23, 22, 12, 10},
+        {
+            {"1000", "Visit_smlslb_z_zzzi_s"},
+            {"1001", "Visit_smlslt_z_zzzi_s"},
+            {"1010", "Visit_umlslb_z_zzzi_s"},
+            {"1011", "Visit_umlslt_z_zzzi_s"},
+            {"1100", "Visit_smlslb_z_zzzi_d"},
+            {"1101", "Visit_smlslt_z_zzzi_d"},
+            {"1110", "Visit_umlslb_z_zzzi_d"},
+            {"1111", "Visit_umlslt_z_zzzi_d"},
+        },
+    },
+
+    {
+        "Decode_vnqon",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1b_z_p_ar_s_x32_unscaled"},
+            {"01", "Visit_ld1rb_z_p_bi_u16"},
+            {"10", "Visit_ldnt1h_z_p_ar_s_x32_unscaled"},
+            {"11", "Visit_ld1rh_z_p_bi_u16"},
+        },
+    },
+
+    {
+        "Decode_jkigh",
+        {23, 22, 12, 10},
+        {
+            {"1000", "Visit_smlalb_z_zzzi_s"},
+            {"1001", "Visit_smlalt_z_zzzi_s"},
+            {"1010", "Visit_umlalb_z_zzzi_s"},
+            {"1011", "Visit_umlalt_z_zzzi_s"},
+            {"1100", "Visit_smlalb_z_zzzi_d"},
+            {"1101", "Visit_smlalt_z_zzzi_d"},
+            {"1110", "Visit_umlalb_z_zzzi_d"},
+            {"1111", "Visit_umlalt_z_zzzi_d"},
+        },
+    },
+
+    {
+        "Decode_ljqlo",
+        {23, 22, 4},
+        {
+            {"000", "Visit_prfw_i_p_ai_d"},
+            {"01x", "Visit_ldff1w_z_p_bz_d_64_unscaled"},
+            {"100", "Visit_prfd_i_p_ai_d"},
+            {"11x", "Visit_ldff1d_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_tivgo",
+        {23, 22, 4},
+        {
+            {"110", "Visit_prfh_i_p_bi_s"},
+        },
+    },
+
+    {
+        "Decode_sthgv",
+        {23, 22, 12, 11, 10},
+        {
+            {"00xxx", "Visit_ext_z_zi_des"},
+            {"01xxx", "Visit_ext_z_zi_con"},
+            {"10000", "Visit_zip1_z_zz_q"},
+            {"10001", "Visit_zip2_z_zz_q"},
+            {"10010", "Visit_uzp1_z_zz_q"},
+            {"10011", "Visit_uzp2_z_zz_q"},
+            {"10110", "Visit_trn1_z_zz_q"},
+            {"10111", "Visit_trn2_z_zz_q"},
+        },
+    },
+
+    {
+        "Decode_vjslo",
+        {23, 22, 4},
+        {
+            {"00x", "Visit_ldff1sb_z_p_ai_d"},
+            {"010", "Visit_prfh_i_p_bz_d_64_scaled"},
+            {"10x", "Visit_ldff1sh_z_p_ai_d"},
+            {"11x", "Visit_ldff1sh_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_vivls",
+        {23, 22, 20, 19, 18, 17, 16},
+        {
+            {"xx00000", "Visit_frintn_z_p_z"},
+            {"xx00001", "Visit_frintp_z_p_z"},
+            {"xx00010", "Visit_frintm_z_p_z"},
+            {"xx00011", "Visit_frintz_z_p_z"},
+            {"xx00100", "Visit_frinta_z_p_z"},
+            {"xx00110", "Visit_frintx_z_p_z"},
+            {"xx00111", "Visit_frinti_z_p_z"},
+            {"xx01100", "Visit_frecpx_z_p_z"},
+            {"xx01101", "Visit_fsqrt_z_p_z"},
+            {"0001010", "Visit_fcvtx_z_p_z_d2s"},
+            {"0011xx0", "Visit_flogb_z_p_z"},
+            {"0110010", "Visit_scvtf_z_p_z_h2fp16"},
+            {"0110011", "Visit_ucvtf_z_p_z_h2fp16"},
+            {"0110100", "Visit_scvtf_z_p_z_w2fp16"},
+            {"0110101", "Visit_ucvtf_z_p_z_w2fp16"},
+            {"0110110", "Visit_scvtf_z_p_z_x2fp16"},
+            {"0110111", "Visit_ucvtf_z_p_z_x2fp16"},
+            {"0111010", "Visit_fcvtzs_z_p_z_fp162h"},
+            {"0111011", "Visit_fcvtzu_z_p_z_fp162h"},
+            {"0111100", "Visit_fcvtzs_z_p_z_fp162w"},
+            {"0111101", "Visit_fcvtzu_z_p_z_fp162w"},
+            {"0111110", "Visit_fcvtzs_z_p_z_fp162x"},
+            {"0111111", "Visit_fcvtzu_z_p_z_fp162x"},
+            {"1001000", "Visit_fcvt_z_p_z_s2h"},
+            {"1001001", "Visit_fcvt_z_p_z_h2s"},
+            {"1001010", "Visit_bfcvt_z_p_z_s2bf"},
+            {"1010100", "Visit_scvtf_z_p_z_w2s"},
+            {"1010101", "Visit_ucvtf_z_p_z_w2s"},
+            {"1011100", "Visit_fcvtzs_z_p_z_s2w"},
+            {"1011101", "Visit_fcvtzu_z_p_z_s2w"},
+            {"1101000", "Visit_fcvt_z_p_z_d2h"},
+            {"1101001", "Visit_fcvt_z_p_z_h2d"},
+            {"1101010", "Visit_fcvt_z_p_z_d2s"},
+            {"1101011", "Visit_fcvt_z_p_z_s2d"},
+            {"1110000", "Visit_scvtf_z_p_z_w2d"},
+            {"1110001", "Visit_ucvtf_z_p_z_w2d"},
+            {"1110100", "Visit_scvtf_z_p_z_x2s"},
+            {"1110101", "Visit_ucvtf_z_p_z_x2s"},
+            {"1110110", "Visit_scvtf_z_p_z_x2d"},
+            {"1110111", "Visit_ucvtf_z_p_z_x2d"},
+            {"1111000", "Visit_fcvtzs_z_p_z_d2w"},
+            {"1111001", "Visit_fcvtzu_z_p_z_d2w"},
+            {"1111100", "Visit_fcvtzs_z_p_z_s2x"},
+            {"1111101", "Visit_fcvtzu_z_p_z_s2x"},
+            {"1111110", "Visit_fcvtzs_z_p_z_d2x"},
+            {"1111111", "Visit_fcvtzu_z_p_z_d2x"},
+        },
+    },
+
+    {
+        "Decode_ktqmj",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1sh_z_p_bi_s32"},
+            {"001", "Visit_ldnf1sh_z_p_bi_s32"},
+            {"010", "Visit_ld1w_z_p_bi_u64"},
+            {"011", "Visit_ldnf1w_z_p_bi_u64"},
+            {"100", "Visit_ld1sb_z_p_bi_s32"},
+            {"101", "Visit_ldnf1sb_z_p_bi_s32"},
+            {"110", "Visit_ld1d_z_p_bi_u64"},
+            {"111", "Visit_ldnf1d_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_iujhl",
+        {23, 4},
+        {
+            {"00", "Visit_prfw_i_p_bz_s_x32_scaled"},
+            {"1x", "Visit_ld1h_z_p_bz_s_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_iglkn",
+        {4},
+        {
+            {"0", "Visit_match_p_p_zz"}, {"1", "Visit_nmatch_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_tunpt",
+        {23, 22},
+        {
+            {"00", "Visit_ld1sw_z_p_ai_d"},
+            {"01", "Visit_ld1sw_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_ghhul",
+        {23, 22},
+        {
+            {"00", "Visit_ld1b_z_p_br_u16"},
+            {"01", "Visit_ld1b_z_p_br_u64"},
+            {"10", "Visit_ld1h_z_p_br_u16"},
+            {"11", "Visit_ld1h_z_p_br_u64"},
+        },
+    },
+
+    {
+        "Decode_onkht",
+        {23, 22},
+        {
+            {"00", "Visit_st1w_z_p_bz_d_64_unscaled"},
+            {"01", "Visit_st1w_z_p_ai_d"},
+            {"10", "Visit_st1d_z_p_bz_d_64_unscaled"},
+            {"11", "Visit_st1d_z_p_ai_d"},
+        },
+    },
+
+    {
+        "Decode_ussgj",
+        {23, 22, 12, 11, 10},
+        {
+            {"xx101", "Visit_xar_z_zzi"},
+            {"00100", "Visit_and_z_zz"},
+            {"00110", "Visit_eor3_z_zzz"},
+            {"00111", "Visit_bsl_z_zzz"},
+            {"01100", "Visit_orr_z_zz"},
+            {"01110", "Visit_bcax_z_zzz"},
+            {"01111", "Visit_bsl1n_z_zzz"},
+            {"10100", "Visit_eor_z_zz"},
+            {"10111", "Visit_bsl2n_z_zzz"},
+            {"11100", "Visit_bic_z_zz"},
+            {"11111", "Visit_nbsl_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_uhnin",
+        {12, 11, 10},
+        {
+            {"000", "Visit_sqdmullb_z_zz"},
+            {"001", "Visit_sqdmullt_z_zz"},
+            {"010", "Visit_pmullb_z_zz"},
+            {"011", "Visit_pmullt_z_zz"},
+            {"100", "Visit_smullb_z_zz"},
+            {"101", "Visit_smullt_z_zz"},
+            {"110", "Visit_umullb_z_zz"},
+            {"111", "Visit_umullt_z_zz"},
+        },
+    },
+
+    {
+        "Decode_jqugv",
+        {4},
+        {
+            {"0", "Visit_cmplo_p_p_zw"}, {"1", "Visit_cmpls_p_p_zw"},
+        },
+    },
+
+    {
+        "Decode_jqhol",
+        {23, 22, 4},
+        {
+            {"0xx", "Visit_ldff1w_z_p_bz_s_x32_unscaled"},
+            {"110", "Visit_prfd_i_p_bi_s"},
+        },
+    },
+
+    {
+        "Decode_lnlrn",
+        {23, 22, 20, 12, 11, 10},
+        {
+            {"010000", "Visit_sqinch_z_zs"},
+            {"010001", "Visit_uqinch_z_zs"},
+            {"010010", "Visit_sqdech_z_zs"},
+            {"010011", "Visit_uqdech_z_zs"},
+            {"011000", "Visit_inch_z_zs"},
+            {"011001", "Visit_dech_z_zs"},
+            {"100000", "Visit_sqincw_z_zs"},
+            {"100001", "Visit_uqincw_z_zs"},
+            {"100010", "Visit_sqdecw_z_zs"},
+            {"100011", "Visit_uqdecw_z_zs"},
+            {"101000", "Visit_incw_z_zs"},
+            {"101001", "Visit_decw_z_zs"},
+            {"110000", "Visit_sqincd_z_zs"},
+            {"110001", "Visit_uqincd_z_zs"},
+            {"110010", "Visit_sqdecd_z_zs"},
+            {"110011", "Visit_uqdecd_z_zs"},
+            {"111000", "Visit_incd_z_zs"},
+            {"111001", "Visit_decd_z_zs"},
+        },
+    },
+
+    {
+        "Decode_uqviq",
+        {12, 11, 10},
+        {
+            {"000", "Visit_sdot_z_zzz"},
+            {"001", "Visit_udot_z_zzz"},
+            {"010", "Visit_sqdmlalbt_z_zzz"},
+            {"011", "Visit_sqdmlslbt_z_zzz"},
+            {"1xx", "Visit_cdot_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_lvhqp",
+        {4},
+        {
+            {"0", "Visit_cmplt_p_p_zi"}, {"1", "Visit_cmple_p_p_zi"},
+        },
+    },
+
+    {
+        "Decode_ihkkl",
+        {4},
+        {
+            {"0", "Visit_cmpge_p_p_zz"}, {"1", "Visit_cmpgt_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_tvmls",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1b_z_p_br_u16"},
+            {"01", "Visit_ldff1b_z_p_br_u64"},
+            {"10", "Visit_ldff1h_z_p_br_u16"},
+            {"11", "Visit_ldff1h_z_p_br_u64"},
+        },
+    },
+
+    {
+        "Decode_qkiil",
+        {4},
+        {
+            {"0", "Visit_cmpge_p_p_zw"}, {"1", "Visit_cmpgt_p_p_zw"},
+        },
+    },
+
+    {
+        "Decode_mmsum",
+        {23, 22, 20},
+        {
+            {"0x0", "Visit_st1w_z_p_bi"},
+            {"001", "Visit_stnt1w_z_p_bi_contiguous"},
+            {"011", "Visit_st3w_z_p_bi_contiguous"},
+            {"1x0", "Visit_st1d_z_p_bi"},
+            {"101", "Visit_stnt1d_z_p_bi_contiguous"},
+            {"111", "Visit_st3d_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_sqhuh",
+        {23, 22},
+        {
+            {"01", "Visit_ld1rsh_z_p_bi_s64"},
+            {"11", "Visit_ld1rsb_z_p_bi_s64"},
+        },
+    },
+
+    {
+        "Decode_loulp",
+        {23, 22},
+        {
+            {"00", "Visit_ld1b_z_p_br_u8"},
+            {"01", "Visit_ld1b_z_p_br_u32"},
+            {"10", "Visit_ld1sw_z_p_br_s64"},
+            {"11", "Visit_ld1h_z_p_br_u32"},
+        },
+    },
+
+    {
+        "Decode_tgqrj",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_asr_z_p_zi"},
+            {"00001", "Visit_lsr_z_p_zi"},
+            {"00011", "Visit_lsl_z_p_zi"},
+            {"00100", "Visit_asrd_z_p_zi"},
+            {"00110", "Visit_sqshl_z_p_zi"},
+            {"00111", "Visit_uqshl_z_p_zi"},
+            {"01100", "Visit_srshr_z_p_zi"},
+            {"01101", "Visit_urshr_z_p_zi"},
+            {"01111", "Visit_sqshlu_z_p_zi"},
+            {"10000", "Visit_asr_z_p_zz"},
+            {"10001", "Visit_lsr_z_p_zz"},
+            {"10011", "Visit_lsl_z_p_zz"},
+            {"10100", "Visit_asrr_z_p_zz"},
+            {"10101", "Visit_lsrr_z_p_zz"},
+            {"10111", "Visit_lslr_z_p_zz"},
+            {"11000", "Visit_asr_z_p_zw"},
+            {"11001", "Visit_lsr_z_p_zw"},
+            {"11011", "Visit_lsl_z_p_zw"},
+        },
+    },
+
+    {
+        "Decode_pjknr",
+        {23},
+        {
+            {"0", "Visit_ldff1w_z_p_bz_d_x32_scaled"},
+            {"1", "Visit_ldff1d_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_tvhvi",
+        {23, 22},
+        {
+            {"01", "Visit_ldff1sw_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_nnqkp",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1w_z_p_ar_s_x32_unscaled"},
+            {"01", "Visit_ld1rsh_z_p_bi_s32"},
+            {"11", "Visit_ld1rsb_z_p_bi_s32"},
+        },
+    },
+
+    {
+        "Decode_jrgll",
+        {23, 22},
+        {
+            {"00", "Visit_stnt1w_z_p_br_contiguous"},
+            {"01", "Visit_st3w_z_p_br_contiguous"},
+            {"10", "Visit_stnt1d_z_p_br_contiguous"},
+            {"11", "Visit_st3d_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_uppkj",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1rqw_z_p_bi_u32"},
+            {"100", "Visit_ld1rqd_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_rovro",
+        {23, 22},
+        {
+            {"00", "Visit_stnt1w_z_p_ar_d_64_unscaled"},
+            {"01", "Visit_stnt1w_z_p_ar_s_x32_unscaled"},
+            {"10", "Visit_stnt1d_z_p_ar_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_usnrs",
+        {23, 12, 11, 10},
+        {
+            {"0000", "Visit_sqshrnb_z_zi"},
+            {"0001", "Visit_sqshrnt_z_zi"},
+            {"0010", "Visit_sqrshrnb_z_zi"},
+            {"0011", "Visit_sqrshrnt_z_zi"},
+            {"0100", "Visit_uqshrnb_z_zi"},
+            {"0101", "Visit_uqshrnt_z_zi"},
+            {"0110", "Visit_uqrshrnb_z_zi"},
+            {"0111", "Visit_uqrshrnt_z_zi"},
+        },
+    },
+
+    {
+        "Decode_pvmts",
+        {23},
+        {
+            {"0", "Visit_ldff1sw_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_trtvt",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld2b_z_p_bi_contiguous"},
+            {"010", "Visit_ld4b_z_p_bi_contiguous"},
+            {"100", "Visit_ld2h_z_p_bi_contiguous"},
+            {"110", "Visit_ld4h_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_prpkr",
+        {23, 22, 12, 11, 10},
+        {
+            {"01000", "Visit_bfdot_z_zzz"},
+            {"10000", "Visit_fmlalb_z_zzz"},
+            {"10001", "Visit_fmlalt_z_zzz"},
+            {"11000", "Visit_bfmlalb_z_zzz"},
+            {"11001", "Visit_bfmlalt_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_gjjrs",
+        {23, 22},
+        {
+            {"10", "Visit_st1h_z_p_bz_d_x32_scaled"},
+            {"11", "Visit_st1h_z_p_bz_s_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_hhjor",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_lasta_r_p_z"},
+            {"00001", "Visit_lastb_r_p_z"},
+            {"01000", "Visit_cpy_z_p_r"},
+            {"10000", "Visit_clasta_r_p_z"},
+            {"10001", "Visit_clastb_r_p_z"},
+        },
+    },
+
+    {
+        "Decode_tvvss",
+        {23, 12, 11, 10},
+        {
+            {"x100", "Visit_bext_z_zz"},
+            {"x101", "Visit_bdep_z_zz"},
+            {"x110", "Visit_bgrp_z_zz"},
+            {"0000", "Visit_sshllb_z_zi"},
+            {"0001", "Visit_sshllt_z_zi"},
+            {"0010", "Visit_ushllb_z_zi"},
+            {"0011", "Visit_ushllt_z_zi"},
+        },
+    },
+
+    {
+        "Decode_qgjqu",
+        {12, 11, 10},
+        {
+            {"000", "Visit_add_z_zz"},
+            {"001", "Visit_sub_z_zz"},
+            {"100", "Visit_sqadd_z_zz"},
+            {"101", "Visit_uqadd_z_zz"},
+            {"110", "Visit_sqsub_z_zz"},
+            {"111", "Visit_uqsub_z_zz"},
+        },
+    },
+
+    {
+        "Decode_uhkmr",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_fexpa_z_z"},
+        },
+    },
+
+    {
+        "Decode_mmtnk",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_movprfx_z_z"},
+        },
+    },
+
+    {
+        "Decode_luggl",
+        {23, 22, 12, 11, 10},
+        {
+            {"xx100", "Visit_ftssel_z_zz"},
+            {"xx110", "Decode_uhkmr"},
+            {"000xx", "Visit_adr_z_az_d_s32_scaled"},
+            {"00111", "Decode_mmtnk"},
+            {"010xx", "Visit_adr_z_az_d_u32_scaled"},
+            {"1x0xx", "Visit_adr_z_az_sd_same_scaled"},
+        },
+    },
+
+    {
+        "Decode_irkrh",
+        {4},
+        {
+            {"0", "Visit_cmphs_p_p_zw"}, {"1", "Visit_cmphi_p_p_zw"},
+        },
+    },
+
+    {
+        "Decode_hljmr",
+        {23, 22, 4},
+        {
+            {"00x", "Visit_ld1sb_z_p_ai_d"},
+            {"010", "Visit_prfb_i_p_bz_d_64_scaled"},
+            {"10x", "Visit_ld1sh_z_p_ai_d"},
+            {"11x", "Visit_ld1sh_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_piupm",
+        {4},
+        {
+            {"0", "Visit_cmpge_p_p_zi"}, {"1", "Visit_cmpgt_p_p_zi"},
+        },
+    },
+
+    {
+        "Decode_qrsiv",
+        {23, 22},
+        {
+            {"01", "Visit_ldff1sb_z_p_bz_d_64_unscaled"},
+            {"11", "Visit_ldff1sh_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_qjiut",
+        {23, 22, 12, 11, 10},
+        {
+            {"0x100", "Visit_sqdmulh_z_zzi_h"},
+            {"0x101", "Visit_sqrdmulh_z_zzi_h"},
+            {"0x110", "Visit_mul_z_zzi_h"},
+            {"100x0", "Visit_sqdmullb_z_zzi_s"},
+            {"100x1", "Visit_sqdmullt_z_zzi_s"},
+            {"10100", "Visit_sqdmulh_z_zzi_s"},
+            {"10101", "Visit_sqrdmulh_z_zzi_s"},
+            {"10110", "Visit_mul_z_zzi_s"},
+            {"110x0", "Visit_sqdmullb_z_zzi_d"},
+            {"110x1", "Visit_sqdmullt_z_zzi_d"},
+            {"11100", "Visit_sqdmulh_z_zzi_d"},
+            {"11101", "Visit_sqrdmulh_z_zzi_d"},
+            {"11110", "Visit_mul_z_zzi_d"},
+        },
+    },
+
+    {
+        "Decode_pppmi",
+        {23},
+        {
+            {"0", "Visit_ldff1sb_z_p_bz_s_x32_unscaled"},
+            {"1", "Visit_ldff1sh_z_p_bz_s_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_timui",
+        {23, 22, 12, 11, 10},
+        {
+            {"xx000", "Visit_sqdmlalb_z_zzz"},
+            {"xx001", "Visit_sqdmlalt_z_zzz"},
+            {"xx010", "Visit_sqdmlslb_z_zzz"},
+            {"xx011", "Visit_sqdmlslt_z_zzz"},
+            {"xx100", "Visit_sqrdmlah_z_zzz"},
+            {"xx101", "Visit_sqrdmlsh_z_zzz"},
+            {"10110", "Visit_usdot_z_zzz_s"},
+        },
+    },
+
+    {
+        "Decode_nkgpo",
+        {20, 19, 18, 17, 16, 9},
+        {
+            {"000000", "Visit_cntp_r_p_p"},
+        },
+    },
+
+    {
+        "Decode_okmvu",
+        {23, 22},
+        {
+            {"00", "Visit_st1b_z_p_bz_d_x32_unscaled"},
+            {"01", "Visit_st1b_z_p_bz_s_x32_unscaled"},
+            {"10", "Visit_st1h_z_p_bz_d_x32_unscaled"},
+            {"11", "Visit_st1h_z_p_bz_s_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_rtkqu",
+        {23, 22},
+        {
+            {"00", "Visit_st1w_z_p_bz_d_64_scaled"},
+            {"01", "Visit_st1w_z_p_ai_s"},
+            {"10", "Visit_st1d_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_mqnpj",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1sh_z_p_bi_s64"},
+            {"001", "Visit_ldnf1sh_z_p_bi_s64"},
+            {"010", "Visit_ld1w_z_p_bi_u32"},
+            {"011", "Visit_ldnf1w_z_p_bi_u32"},
+            {"100", "Visit_ld1sb_z_p_bi_s64"},
+            {"101", "Visit_ldnf1sb_z_p_bi_s64"},
+            {"110", "Visit_ld1sb_z_p_bi_s16"},
+            {"111", "Visit_ldnf1sb_z_p_bi_s16"},
+        },
+    },
+
+    {
+        "Decode_pqusm",
+        {23, 22, 4},
+        {
+            {"00x", "Visit_ldff1b_z_p_ai_d"},
+            {"010", "Visit_prfd_i_p_bz_d_64_scaled"},
+            {"10x", "Visit_ldff1h_z_p_ai_d"},
+            {"11x", "Visit_ldff1h_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_lqinr",
+        {23},
+        {
+            {"0", "Visit_ldff1sb_z_p_bz_d_x32_unscaled"},
+            {"1", "Visit_ldff1sh_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_qhlkm",
+        {20, 19, 18, 17, 16},
+        {
+            {"11111", "Visit_rdvl_r_i"},
+        },
+    },
+
+    {
+        "Decode_sqqko",
+        {23, 22, 12, 11, 10},
+        {
+            {"xx000", "Visit_index_z_ii"},
+            {"xx001", "Visit_index_z_ri"},
+            {"xx010", "Visit_index_z_ir"},
+            {"xx011", "Visit_index_z_rr"},
+            {"0010x", "Visit_addvl_r_ri"},
+            {"0110x", "Visit_addpl_r_ri"},
+            {"1010x", "Decode_qhlkm"},
+        },
+    },
+
+    {
+        "Decode_msutl",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_add_z_p_zz"},   {"00001", "Visit_sub_z_p_zz"},
+            {"00011", "Visit_subr_z_p_zz"},  {"01000", "Visit_smax_z_p_zz"},
+            {"01001", "Visit_umax_z_p_zz"},  {"01010", "Visit_smin_z_p_zz"},
+            {"01011", "Visit_umin_z_p_zz"},  {"01100", "Visit_sabd_z_p_zz"},
+            {"01101", "Visit_uabd_z_p_zz"},  {"10000", "Visit_mul_z_p_zz"},
+            {"10010", "Visit_smulh_z_p_zz"}, {"10011", "Visit_umulh_z_p_zz"},
+            {"10100", "Visit_sdiv_z_p_zz"},  {"10101", "Visit_udiv_z_p_zz"},
+            {"10110", "Visit_sdivr_z_p_zz"}, {"10111", "Visit_udivr_z_p_zz"},
+            {"11000", "Visit_orr_z_p_zz"},   {"11001", "Visit_eor_z_p_zz"},
+            {"11010", "Visit_and_z_p_zz"},   {"11011", "Visit_bic_z_p_zz"},
+        },
+    },
+
+    {
+        "Decode_vkhtl",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1b_z_p_br_u8"},
+            {"01", "Visit_ldff1b_z_p_br_u32"},
+            {"10", "Visit_ldff1sw_z_p_br_s64"},
+            {"11", "Visit_ldff1h_z_p_br_u32"},
+        },
+    },
+
+    {
+        "Decode_limon",
+        {23, 22, 20, 12, 11, 10},
+        {
+            {"000000", "Visit_cntb_r_s"},
+            {"000100", "Visit_sqincb_r_rs_sx"},
+            {"000101", "Visit_uqincb_r_rs_uw"},
+            {"000110", "Visit_sqdecb_r_rs_sx"},
+            {"000111", "Visit_uqdecb_r_rs_uw"},
+            {"001000", "Visit_incb_r_rs"},
+            {"001001", "Visit_decb_r_rs"},
+            {"001100", "Visit_sqincb_r_rs_x"},
+            {"001101", "Visit_uqincb_r_rs_x"},
+            {"001110", "Visit_sqdecb_r_rs_x"},
+            {"001111", "Visit_uqdecb_r_rs_x"},
+            {"010000", "Visit_cnth_r_s"},
+            {"010100", "Visit_sqinch_r_rs_sx"},
+            {"010101", "Visit_uqinch_r_rs_uw"},
+            {"010110", "Visit_sqdech_r_rs_sx"},
+            {"010111", "Visit_uqdech_r_rs_uw"},
+            {"011000", "Visit_inch_r_rs"},
+            {"011001", "Visit_dech_r_rs"},
+            {"011100", "Visit_sqinch_r_rs_x"},
+            {"011101", "Visit_uqinch_r_rs_x"},
+            {"011110", "Visit_sqdech_r_rs_x"},
+            {"011111", "Visit_uqdech_r_rs_x"},
+            {"100000", "Visit_cntw_r_s"},
+            {"100100", "Visit_sqincw_r_rs_sx"},
+            {"100101", "Visit_uqincw_r_rs_uw"},
+            {"100110", "Visit_sqdecw_r_rs_sx"},
+            {"100111", "Visit_uqdecw_r_rs_uw"},
+            {"101000", "Visit_incw_r_rs"},
+            {"101001", "Visit_decw_r_rs"},
+            {"101100", "Visit_sqincw_r_rs_x"},
+            {"101101", "Visit_uqincw_r_rs_x"},
+            {"101110", "Visit_sqdecw_r_rs_x"},
+            {"101111", "Visit_uqdecw_r_rs_x"},
+            {"110000", "Visit_cntd_r_s"},
+            {"110100", "Visit_sqincd_r_rs_sx"},
+            {"110101", "Visit_uqincd_r_rs_uw"},
+            {"110110", "Visit_sqdecd_r_rs_sx"},
+            {"110111", "Visit_uqdecd_r_rs_uw"},
+            {"111000", "Visit_incd_r_rs"},
+            {"111001", "Visit_decd_r_rs"},
+            {"111100", "Visit_sqincd_r_rs_x"},
+            {"111101", "Visit_uqincd_r_rs_x"},
+            {"111110", "Visit_sqdecd_r_rs_x"},
+            {"111111", "Visit_uqdecd_r_rs_x"},
+        },
+    },
+
+    {
+        "Decode_vrupm",
+        {23, 22, 4},
+        {
+            {"100", "Visit_str_p_bi"},
+        },
+    },
+
+    {
+        "Decode_sklrn",
+        {23, 22},
+        {
+            {"00", "Visit_ld1b_z_p_ai_s"},
+            {"01", "Visit_ld1rb_z_p_bi_u32"},
+            {"10", "Visit_ld1h_z_p_ai_s"},
+            {"11", "Visit_ld1rh_z_p_bi_u32"},
+        },
+    },
+
+    {
+        "Decode_siuru",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld2w_z_p_bi_contiguous"},
+            {"010", "Visit_ld4w_z_p_bi_contiguous"},
+            {"100", "Visit_ld2d_z_p_bi_contiguous"},
+            {"110", "Visit_ld4d_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_mkluq",
+        {23, 22},
+        {
+            {"00", "Visit_ld2b_z_p_br_contiguous"},
+            {"01", "Visit_ld4b_z_p_br_contiguous"},
+            {"10", "Visit_ld2h_z_p_br_contiguous"},
+            {"11", "Visit_ld4h_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_ujnsk",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ldnt1w_z_p_bi_contiguous"},
+            {"010", "Visit_ld3w_z_p_bi_contiguous"},
+            {"100", "Visit_ldnt1d_z_p_bi_contiguous"},
+            {"110", "Visit_ld3d_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_vkgkj",
+        {23},
+        {
+            {"0", "Visit_ld1w_z_p_bz_d_x32_unscaled"},
+            {"1", "Visit_ld1d_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_rippm",
+        {12, 11, 10},
+        {
+            {"000", "Visit_zip1_z_zz"},
+            {"001", "Visit_zip2_z_zz"},
+            {"010", "Visit_uzp1_z_zz"},
+            {"011", "Visit_uzp2_z_zz"},
+            {"100", "Visit_trn1_z_zz"},
+            {"101", "Visit_trn2_z_zz"},
+        },
+    },
+
+    {
+        "Decode_piitg",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1b_z_p_bi_u16"},
+            {"001", "Visit_ldnf1b_z_p_bi_u16"},
+            {"010", "Visit_ld1b_z_p_bi_u64"},
+            {"011", "Visit_ldnf1b_z_p_bi_u64"},
+            {"100", "Visit_ld1h_z_p_bi_u16"},
+            {"101", "Visit_ldnf1h_z_p_bi_u16"},
+            {"110", "Visit_ld1h_z_p_bi_u64"},
+            {"111", "Visit_ldnf1h_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_jhjui",
+        {23, 22},
+        {
+            {"00", "Visit_st2b_z_p_br_contiguous"},
+            {"01", "Visit_st4b_z_p_br_contiguous"},
+            {"10", "Visit_st2h_z_p_br_contiguous"},
+            {"11", "Visit_st4h_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_opooh",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_urecpe_z_p_z"},
+            {"00001", "Visit_ursqrte_z_p_z"},
+            {"00100", "Visit_sadalp_z_p_z"},
+            {"00101", "Visit_uadalp_z_p_z"},
+            {"01000", "Visit_sqabs_z_p_z"},
+            {"01001", "Visit_sqneg_z_p_z"},
+            {"10001", "Visit_addp_z_p_zz"},
+            {"10100", "Visit_smaxp_z_p_zz"},
+            {"10101", "Visit_umaxp_z_p_zz"},
+            {"10110", "Visit_sminp_z_p_zz"},
+            {"10111", "Visit_uminp_z_p_zz"},
+        },
+    },
+
+    {
+        "Decode_tnlrk",
+        {23},
+        {
+            {"0", "Visit_st1b_z_p_br"}, {"1", "Visit_st1h_z_p_br"},
+        },
+    },
+
+    {
+        "Decode_jsghh",
+        {23, 22},
+        {
+            {"0x", "Visit_st1w_z_p_br"}, {"10", "Visit_str_z_bi"},
+        },
+    },
+
+    {
+        "Decode_tumgk",
+        {12, 11, 10},
+        {
+            {"000", "Visit_saddwb_z_zz"},
+            {"001", "Visit_saddwt_z_zz"},
+            {"010", "Visit_uaddwb_z_zz"},
+            {"011", "Visit_uaddwt_z_zz"},
+            {"100", "Visit_ssubwb_z_zz"},
+            {"101", "Visit_ssubwt_z_zz"},
+            {"110", "Visit_usubwb_z_zz"},
+            {"111", "Visit_usubwt_z_zz"},
+        },
+    },
+
+    {
+        "Decode_stgno",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1sw_z_p_ai_d"},
+            {"01", "Visit_ldff1sw_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_muhuh",
+        {4},
+        {
+            {"0", "Visit_fcmeq_p_p_zz"}, {"1", "Visit_fcmne_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_gppvq",
+        {23, 11, 10, 3, 2, 1, 0},
+        {
+            {"1000000", "Visit_ctermeq_rr"},
+        },
+    },
+
+    {
+        "Decode_hsisp",
+        {11, 10},
+        {
+            {"00", "Visit_whilewr_p_rr"},
+        },
+    },
+
+    {
+        "Decode_qmono",
+        {23, 11, 10, 3, 2, 1, 0},
+        {
+            {"1000000", "Visit_ctermne_rr"},
+        },
+    },
+
+    {
+        "Decode_itgls",
+        {11, 10},
+        {
+            {"00", "Visit_whilerw_p_rr"},
+        },
+    },
+
+    {
+        "Decode_vrsvn",
+        {12, 4},
+        {
+            {"00", "Decode_gppvq"},
+            {"01", "Decode_qmono"},
+            {"10", "Decode_hsisp"},
+            {"11", "Decode_itgls"},
+        },
+    },
+
+    {
+        "Decode_ujlqv",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1rob_z_p_bi_u8"},
+            {"100", "Visit_ld1roh_z_p_bi_u16"},
+        },
+    },
+
+    {
+        "Decode_gqumh",
+        {23, 22},
+        {
+            {"00", "Visit_st1w_z_p_bz_d_x32_unscaled"},
+            {"01", "Visit_st1w_z_p_bz_s_x32_unscaled"},
+            {"10", "Visit_st1d_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_girhj",
+        {23, 22},
+        {
+            {"00", "Visit_st1b_z_p_bz_d_64_unscaled"},
+            {"01", "Visit_st1b_z_p_ai_d"},
+            {"10", "Visit_st1h_z_p_bz_d_64_unscaled"},
+            {"11", "Visit_st1h_z_p_ai_d"},
+        },
+    },
+
+    {
+        "Decode_slkqm",
+        {23, 22},
+        {
+            {"00", "Visit_stnt1b_z_p_ar_d_64_unscaled"},
+            {"01", "Visit_stnt1b_z_p_ar_s_x32_unscaled"},
+            {"10", "Visit_stnt1h_z_p_ar_d_64_unscaled"},
+            {"11", "Visit_stnt1h_z_p_ar_s_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_ushoh",
+        {23, 22, 12, 10},
+        {
+            {"1000", "Visit_smullb_z_zzi_s"},
+            {"1001", "Visit_smullt_z_zzi_s"},
+            {"1010", "Visit_umullb_z_zzi_s"},
+            {"1011", "Visit_umullt_z_zzi_s"},
+            {"1100", "Visit_smullb_z_zzi_d"},
+            {"1101", "Visit_smullt_z_zzi_d"},
+            {"1110", "Visit_umullb_z_zzi_d"},
+            {"1111", "Visit_umullt_z_zzi_d"},
+        },
+    },
+
+    {
+        "Decode_usuhk",
+        {23, 22, 12, 11, 10},
+        {
+            {"0x000", "Visit_fmul_z_zzi_h"},
+            {"10000", "Visit_fmul_z_zzi_s"},
+            {"11000", "Visit_fmul_z_zzi_d"},
+        },
+    },
+
+    {
+        "Decode_plttt",
+        {23, 4},
+        {
+            {"00", "Visit_prfb_i_p_bz_s_x32_scaled"},
+            {"1x", "Visit_ld1sh_z_p_bz_s_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_vusmk",
+        {23, 22},
+        {
+            {"00", "Visit_ld1rob_z_p_br_contiguous"},
+            {"10", "Visit_ld1roh_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_lohtn",
+        {23, 22, 20, 19, 18},
+        {
+            {"xx1xx", "Visit_fcpy_z_p_i"},
+            {"00000", "Visit_orr_z_zi"},
+            {"01000", "Visit_eor_z_zi"},
+            {"10000", "Visit_and_z_zi"},
+            {"11000", "Visit_dupm_z_i"},
+        },
+    },
+
+    {
+        "Decode_gkulr",
+        {20, 19, 18, 17},
+        {
+            {"0000", "Visit_cadd_z_zz"},
+        },
+    },
+
+    {
+        "Decode_hkmop",
+        {20, 19, 18, 17},
+        {
+            {"0000", "Visit_sqcadd_z_zz"},
+        },
+    },
+
+    {
+        "Decode_hjhkg",
+        {23, 16, 12, 11, 10},
+        {
+            {"xx000", "Visit_sabalb_z_zzz"},
+            {"xx001", "Visit_sabalt_z_zzz"},
+            {"xx010", "Visit_uabalb_z_zzz"},
+            {"xx011", "Visit_uabalt_z_zzz"},
+            {"x011x", "Decode_gkulr"},
+            {"x111x", "Decode_hkmop"},
+            {"0x100", "Visit_adclb_z_zzz"},
+            {"0x101", "Visit_adclt_z_zzz"},
+            {"1x100", "Visit_sbclb_z_zzz"},
+            {"1x101", "Visit_sbclt_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_pvrsm",
+        {20, 19, 18, 17, 16},
+        {
+            {"0000x", "Visit_fcadd_z_p_zz"},
+            {"10000", "Visit_faddp_z_p_zz"},
+            {"10100", "Visit_fmaxnmp_z_p_zz"},
+            {"10101", "Visit_fminnmp_z_p_zz"},
+            {"10110", "Visit_fmaxp_z_p_zz"},
+            {"10111", "Visit_fminp_z_p_zz"},
+        },
+    },
+
+    {
+        "Decode_hlrim",
+        {4},
+        {
+            {"0", "Visit_cmphs_p_p_zi"}, {"1", "Visit_cmphi_p_p_zi"},
+        },
+    },
+
+    {
+        "Decode_jmout",
+        {23, 22},
+        {
+            {"01", "Visit_st1b_z_p_ai_s"},
+            {"10", "Visit_st1h_z_p_bz_d_64_scaled"},
+            {"11", "Visit_st1h_z_p_ai_s"},
+        },
+    },
+
+    {
+        "Decode_lnnsv",
+        {23, 22},
+        {
+            {"00", "Visit_st1w_z_p_bz_d_x32_scaled"},
+            {"01", "Visit_st1w_z_p_bz_s_x32_scaled"},
+            {"10", "Visit_st1d_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_gupip",
+        {20, 19, 18, 17, 16},
+        {
+            {"00000", "Visit_cpy_z_p_v"},
+            {"00001", "Visit_compact_z_p_z"},
+            {"00010", "Visit_lasta_v_p_z"},
+            {"00011", "Visit_lastb_v_p_z"},
+            {"00100", "Visit_revb_z_z"},
+            {"00101", "Visit_revh_z_z"},
+            {"00110", "Visit_revw_z_z"},
+            {"00111", "Visit_rbit_z_p_z"},
+            {"01000", "Visit_clasta_z_p_zz"},
+            {"01001", "Visit_clastb_z_p_zz"},
+            {"01010", "Visit_clasta_v_p_z"},
+            {"01011", "Visit_clastb_v_p_z"},
+            {"01100", "Visit_splice_z_p_zz_des"},
+            {"01101", "Visit_splice_z_p_zz_con"},
+        },
+    },
+
+    {
+        "Decode_vgsnn",
+        {23},
+        {
+            {"0", "Visit_ldff1sw_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_llhqo",
+        {4},
+        {
+            {"1", "Visit_facgt_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_gjmpp",
+        {23, 22, 4},
+        {
+            {"00x", "Visit_ld1b_z_p_ai_d"},
+            {"010", "Visit_prfw_i_p_bz_d_64_scaled"},
+            {"10x", "Visit_ld1h_z_p_ai_d"},
+            {"11x", "Visit_ld1h_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_mqhoi",
+        {23, 22, 20, 19, 18},
+        {
+            {"xx1xx", "Visit_cpy_z_o_i"},
+            {"00000", "Visit_orr_z_zi"},
+            {"01000", "Visit_eor_z_zi"},
+            {"10000", "Visit_and_z_zi"},
+            {"11000", "Visit_dupm_z_i"},
+        },
+    },
+
+    {
+        "Decode_uvqpn",
+        {23, 22},
+        {
+            {"00", "Visit_ld1rqb_z_p_br_contiguous"},
+            {"10", "Visit_ld1rqh_z_p_br_contiguous"},
+        },
+    },
+
+    {
+        "Decode_gtuhg",
+        {23, 22},
+        {
+            {"00", "Visit_ld1sh_z_p_br_s32"},
+            {"01", "Visit_ld1w_z_p_br_u64"},
+            {"10", "Visit_ld1sb_z_p_br_s32"},
+            {"11", "Visit_ld1d_z_p_br_u64"},
+        },
+    },
+
+    {
+        "Decode_lmjjj",
+        {4},
+        {
+            {"0", "Visit_cmplo_p_p_zi"}, {"1", "Visit_cmpls_p_p_zi"},
+        },
+    },
+
+    {
+        "Decode_trvkv",
+        {12, 11, 10},
+        {
+            {"000", "Visit_fadd_z_zz"},
+            {"001", "Visit_fsub_z_zz"},
+            {"010", "Visit_fmul_z_zz"},
+            {"011", "Visit_ftsmul_z_zz"},
+            {"110", "Visit_frecps_z_zz"},
+            {"111", "Visit_frsqrts_z_zz"},
+        },
+    },
+
+    {
+        "Decode_qqjug",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ldnt1b_z_p_bi_contiguous"},
+            {"010", "Visit_ld3b_z_p_bi_contiguous"},
+            {"100", "Visit_ldnt1h_z_p_bi_contiguous"},
+            {"110", "Visit_ld3h_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_rgpgv",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1w_z_p_ai_d"},
+            {"01", "Visit_ldff1w_z_p_bz_d_64_scaled"},
+            {"10", "Visit_ldff1d_z_p_ai_d"},
+            {"11", "Visit_ldff1d_z_p_bz_d_64_scaled"},
+        },
+    },
+
+    {
+        "Decode_spgho",
+        {23},
+        {
+            {"0", "Visit_ld1sw_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_nropk",
+        {23, 22, 12},
+        {
+            {"100", "Visit_cdot_z_zzzi_s"}, {"110", "Visit_cdot_z_zzzi_d"},
+        },
+    },
+
+    {
+        "Decode_lpgrt",
+        {23, 22, 12, 11, 10},
+        {
+            {"0x010", "Visit_mla_z_zzzi_h"},
+            {"0x011", "Visit_mls_z_zzzi_h"},
+            {"0x100", "Visit_sqrdmlah_z_zzzi_h"},
+            {"0x101", "Visit_sqrdmlsh_z_zzzi_h"},
+            {"10000", "Visit_sdot_z_zzzi_s"},
+            {"10001", "Visit_udot_z_zzzi_s"},
+            {"10010", "Visit_mla_z_zzzi_s"},
+            {"10011", "Visit_mls_z_zzzi_s"},
+            {"10100", "Visit_sqrdmlah_z_zzzi_s"},
+            {"10101", "Visit_sqrdmlsh_z_zzzi_s"},
+            {"10110", "Visit_usdot_z_zzzi_s"},
+            {"10111", "Visit_sudot_z_zzzi_s"},
+            {"11000", "Visit_sdot_z_zzzi_d"},
+            {"11001", "Visit_udot_z_zzzi_d"},
+            {"11010", "Visit_mla_z_zzzi_d"},
+            {"11011", "Visit_mls_z_zzzi_d"},
+            {"11100", "Visit_sqrdmlah_z_zzzi_d"},
+            {"11101", "Visit_sqrdmlsh_z_zzzi_d"},
+        },
+    },
+
+    {
+        "Decode_lirnl",
+        {23, 22, 4},
+        {
+            {"100", "Visit_ldr_p_bi"}, {"110", "Visit_prfb_i_p_bi_s"},
+        },
+    },
+
+    {
+        "Decode_pkusn",
+        {23, 12, 11, 10},
+        {
+            {"0000", "Visit_sqshrunb_z_zi"},
+            {"0001", "Visit_sqshrunt_z_zi"},
+            {"0010", "Visit_sqrshrunb_z_zi"},
+            {"0011", "Visit_sqrshrunt_z_zi"},
+            {"0100", "Visit_shrnb_z_zi"},
+            {"0101", "Visit_shrnt_z_zi"},
+            {"0110", "Visit_rshrnb_z_zi"},
+            {"0111", "Visit_rshrnt_z_zi"},
+        },
+    },
+
+    {
+        "Decode_tnogk",
+        {4},
+        {
+            {"0", "Visit_cmpeq_p_p_zi"}, {"1", "Visit_cmpne_p_p_zi"},
+        },
+    },
+
+    {
+        "Decode_lvsiq",
+        {23},
+        {
+            {"0", "Visit_ld1sb_z_p_bz_d_x32_unscaled"},
+            {"1", "Visit_ld1sh_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_ipmtv",
+        {12},
+        {
+            {"0", "Visit_cmla_z_zzz"}, {"1", "Visit_sqrdcmlah_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_glmnk",
+        {23, 22, 4},
+        {
+            {"000", "Visit_prfb_i_p_ai_s"},
+            {"01x", "Visit_ld1rb_z_p_bi_u64"},
+            {"100", "Visit_prfh_i_p_ai_s"},
+            {"11x", "Visit_ld1rh_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_kivuo",
+        {23, 22, 12, 10},
+        {
+            {"1000", "Visit_sqdmlalb_z_zzzi_s"},
+            {"1001", "Visit_sqdmlalt_z_zzzi_s"},
+            {"1010", "Visit_sqdmlslb_z_zzzi_s"},
+            {"1011", "Visit_sqdmlslt_z_zzzi_s"},
+            {"1100", "Visit_sqdmlalb_z_zzzi_d"},
+            {"1101", "Visit_sqdmlalt_z_zzzi_d"},
+            {"1110", "Visit_sqdmlslb_z_zzzi_d"},
+            {"1111", "Visit_sqdmlslt_z_zzzi_d"},
+        },
+    },
+
+    {
+        "Decode_mnnir",
+        {23, 22, 4},
+        {
+            {"000", "Visit_prfw_i_p_br_s"},
+            {"01x", "Visit_ld1rw_z_p_bi_u32"},
+            {"100", "Visit_prfd_i_p_br_s"},
+            {"11x", "Visit_ld1rsb_z_p_bi_s16"},
+        },
+    },
+
+    {
+        "Decode_uqmmu",
+        {23, 4},
+        {
+            {"00", "Visit_prfh_i_p_bz_d_x32_scaled"},
+            {"1x", "Visit_ldff1sh_z_p_bz_d_x32_scaled"},
+        },
+    },
+
+    {
+        "Decode_noiiq",
+        {23, 22, 12, 10},
+        {
+            {"1000", "Visit_fmlslb_z_zzzi_s"},
+            {"1001", "Visit_fmlslt_z_zzzi_s"},
+        },
+    },
+
+    {
+        "Decode_imggk",
+        {23, 22, 4},
+        {
+            {"000", "Visit_prfb_i_p_ai_d"},
+            {"01x", "Visit_ldff1b_z_p_bz_d_64_unscaled"},
+            {"100", "Visit_prfh_i_p_ai_d"},
+            {"11x", "Visit_ldff1h_z_p_bz_d_64_unscaled"},
+        },
+    },
+
+    {
+        "Decode_nintk",
+        {23, 22, 20},
+        {
+            {"000", "Visit_ld1row_z_p_bi_u32"},
+            {"100", "Visit_ld1rod_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_umiii",
+        {23, 22},
+        {
+            {"00", "Visit_ld1sb_z_p_ai_s"},
+            {"01", "Visit_ld1rb_z_p_bi_u8"},
+            {"10", "Visit_ld1sh_z_p_ai_s"},
+            {"11", "Visit_ld1rsw_z_p_bi_s64"},
+        },
+    },
+
+    {
+        "Decode_jshus",
+        {12, 11, 10},
+        {
+            {"000", "Visit_asr_z_zw"},
+            {"001", "Visit_lsr_z_zw"},
+            {"011", "Visit_lsl_z_zw"},
+            {"100", "Visit_asr_z_zi"},
+            {"101", "Visit_lsr_z_zi"},
+            {"111", "Visit_lsl_z_zi"},
+        },
+    },
+
+    {
+        "Decode_kqvqj",
+        {23, 22},
+        {
+            {"00", "Visit_ldnt1sb_z_p_ar_s_x32_unscaled"},
+            {"01", "Visit_ld1rb_z_p_bi_u8"},
+            {"10", "Visit_ldnt1sh_z_p_ar_s_x32_unscaled"},
+            {"11", "Visit_ld1rsw_z_p_bi_s64"},
+        },
+    },
+
+    {
+        "Decode_mjjst",
+        {23, 22},
+        {
+            {"00", "Visit_ld1w_z_p_ai_s"},
+            {"01", "Visit_ld1rw_z_p_bi_u32"},
+            {"11", "Visit_ld1rsb_z_p_bi_s16"},
+        },
+    },
+
+    {
+        "Decode_vhkqs",
+        {4},
+        {
+            {"0", "Visit_fcmge_p_p_zz"}, {"1", "Visit_fcmgt_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_gonoj",
+        {4},
+        {
+            {"0", "Visit_fcmuo_p_p_zz"}, {"1", "Visit_facge_p_p_zz"},
+        },
+    },
+
+    {
+        "Decode_jnsit",
+        {23, 22, 19, 17, 9, 4},
+        {
+            {"000000", "Visit_punpklo_p_p"},
+        },
+    },
+
+    {
+        "Decode_lnrqq",
+        {9, 4},
+        {
+            {"00", "Visit_trn2_p_pp"},
+        },
+    },
+
+    {
+        "Decode_riutg",
+        {19, 17, 9, 4},
+        {
+            {"0000", "Visit_rev_p_p"},
+        },
+    },
+
+    {
+        "Decode_npoqu",
+        {9, 4},
+        {
+            {"00", "Visit_uzp2_p_pp"},
+        },
+    },
+
+    {
+        "Decode_kskio",
+        {9, 4},
+        {
+            {"00", "Visit_trn1_p_pp"},
+        },
+    },
+
+    {
+        "Decode_vlhvj",
+        {23, 22, 19, 17, 9, 4},
+        {
+            {"000000", "Visit_punpkhi_p_p"},
+        },
+    },
+
+    {
+        "Decode_iontn",
+        {9, 4},
+        {
+            {"00", "Visit_zip1_p_pp"},
+        },
+    },
+
+    {
+        "Decode_mtnpp",
+        {9, 4},
+        {
+            {"00", "Visit_uzp1_p_pp"},
+        },
+    },
+
+    {
+        "Decode_plhlm",
+        {9, 4},
+        {
+            {"00", "Visit_zip2_p_pp"},
+        },
+    },
+
+    {
+        "Decode_pgpiq",
+        {20, 18, 16, 12, 11, 10},
+        {
+            {"0xx000", "Decode_iontn"},
+            {"0xx001", "Decode_plhlm"},
+            {"0xx010", "Decode_mtnpp"},
+            {"0xx011", "Decode_npoqu"},
+            {"0xx100", "Decode_kskio"},
+            {"0xx101", "Decode_lnrqq"},
+            {"100000", "Decode_jnsit"},
+            {"101000", "Decode_vlhvj"},
+            {"110000", "Decode_riutg"},
+        },
+    },
+
+    {
+        "Decode_vnukj",
+        {23, 22, 4},
+        {
+            {"0xx", "Visit_ld1w_z_p_bz_s_x32_unscaled"},
+            {"10x", "Visit_ldr_z_bi"},
+            {"110", "Visit_prfw_i_p_bi_s"},
+        },
+    },
+
+    {
+        "Decode_nhssj",
+        {20, 19, 18, 17, 16},
+        {
+            {"10000", "Visit_sxtb_z_p_z"},
+            {"10001", "Visit_uxtb_z_p_z"},
+            {"10010", "Visit_sxth_z_p_z"},
+            {"10011", "Visit_uxth_z_p_z"},
+            {"10100", "Visit_sxtw_z_p_z"},
+            {"10101", "Visit_uxtw_z_p_z"},
+            {"10110", "Visit_abs_z_p_z"},
+            {"10111", "Visit_neg_z_p_z"},
+            {"11000", "Visit_cls_z_p_z"},
+            {"11001", "Visit_clz_z_p_z"},
+            {"11010", "Visit_cnt_z_p_z"},
+            {"11011", "Visit_cnot_z_p_z"},
+            {"11100", "Visit_fabs_z_p_z"},
+            {"11101", "Visit_fneg_z_p_z"},
+            {"11110", "Visit_not_z_p_z"},
+        },
+    },
+
+    {
+        "Decode_hihin",
+        {23, 22},
+        {
+            {"00", "Visit_ld1sh_z_p_br_s64"},
+            {"01", "Visit_ld1w_z_p_br_u32"},
+            {"10", "Visit_ld1sb_z_p_br_s64"},
+            {"11", "Visit_ld1sb_z_p_br_s16"},
+        },
+    },
+
+    {
+        "Decode_gmjnu",
+        {23},
+        {
+            {"0", "Visit_ld1sw_z_p_bz_d_x32_unscaled"},
+        },
+    },
+
+    {
+        "Decode_uonhr",
+        {20, 19, 18, 17, 16},
+        {
+            {"00010", "Visit_srshl_z_p_zz"},
+            {"00011", "Visit_urshl_z_p_zz"},
+            {"00110", "Visit_srshlr_z_p_zz"},
+            {"00111", "Visit_urshlr_z_p_zz"},
+            {"01000", "Visit_sqshl_z_p_zz"},
+            {"01001", "Visit_uqshl_z_p_zz"},
+            {"01010", "Visit_sqrshl_z_p_zz"},
+            {"01011", "Visit_uqrshl_z_p_zz"},
+            {"01100", "Visit_sqshlr_z_p_zz"},
+            {"01101", "Visit_uqshlr_z_p_zz"},
+            {"01110", "Visit_sqrshlr_z_p_zz"},
+            {"01111", "Visit_uqrshlr_z_p_zz"},
+            {"10000", "Visit_shadd_z_p_zz"},
+            {"10001", "Visit_uhadd_z_p_zz"},
+            {"10010", "Visit_shsub_z_p_zz"},
+            {"10011", "Visit_uhsub_z_p_zz"},
+            {"10100", "Visit_srhadd_z_p_zz"},
+            {"10101", "Visit_urhadd_z_p_zz"},
+            {"10110", "Visit_shsubr_z_p_zz"},
+            {"10111", "Visit_uhsubr_z_p_zz"},
+            {"11000", "Visit_sqadd_z_p_zz"},
+            {"11001", "Visit_uqadd_z_p_zz"},
+            {"11010", "Visit_sqsub_z_p_zz"},
+            {"11011", "Visit_uqsub_z_p_zz"},
+            {"11100", "Visit_suqadd_z_p_zz"},
+            {"11101", "Visit_usqadd_z_p_zz"},
+            {"11110", "Visit_sqsubr_z_p_zz"},
+            {"11111", "Visit_uqsubr_z_p_zz"},
+        },
+    },
+
+    {
+        "Decode_uqjru",
+        {12, 11, 10},
+        {
+            {"000", "Visit_ssra_z_zi"},
+            {"001", "Visit_usra_z_zi"},
+            {"010", "Visit_srsra_z_zi"},
+            {"011", "Visit_ursra_z_zi"},
+            {"100", "Visit_sri_z_zzi"},
+            {"101", "Visit_sli_z_zzi"},
+            {"110", "Visit_saba_z_zzz"},
+            {"111", "Visit_uaba_z_zzz"},
+        },
+    },
+
+    {
+        "Decode_jikmh",
+        {23, 22, 20},
+        {
+            {"0x0", "Visit_st1b_z_p_bi"},
+            {"001", "Visit_st2b_z_p_bi_contiguous"},
+            {"011", "Visit_st4b_z_p_bi_contiguous"},
+            {"1x0", "Visit_st1h_z_p_bi"},
+            {"101", "Visit_st2h_z_p_bi_contiguous"},
+            {"111", "Visit_st4h_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_hhtgr",
+        {23, 22, 20},
+        {
+            {"0x0", "Visit_st1b_z_p_bi"},
+            {"001", "Visit_stnt1b_z_p_bi_contiguous"},
+            {"011", "Visit_st3b_z_p_bi_contiguous"},
+            {"1x0", "Visit_st1h_z_p_bi"},
+            {"101", "Visit_stnt1h_z_p_bi_contiguous"},
+            {"111", "Visit_st3h_z_p_bi_contiguous"},
+        },
+    },
+
+    {
+        "Decode_kovjm",
+        {23, 18, 17, 11, 9, 8, 7, 6, 5},
+        {
+            {"000000000", "Visit_pfalse_p"},
+        },
+    },
+
+    {
+        "Decode_iqpvj",
+        {23, 9},
+        {
+            {"00", "Visit_brkpas_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_tqrvr",
+        {18, 17, 11},
+        {
+            {"000", "Visit_ptrues_p_s"},
+        },
+    },
+
+    {
+        "Decode_ukkpu",
+        {23, 9},
+        {
+            {"00", "Visit_brkpb_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_httju",
+        {23, 9},
+        {
+            {"00", "Visit_brkpa_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_implh",
+        {23, 18, 17, 11, 9},
+        {
+            {"00000", "Visit_rdffrs_p_p_f"},
+        },
+    },
+
+    {
+        "Decode_ojqmo",
+        {23, 18, 17, 11, 9},
+        {
+            {"00000", "Visit_rdffr_p_p_f"},
+        },
+    },
+
+    {
+        "Decode_rjmtp",
+        {23, 9},
+        {
+            {"00", "Visit_brkpbs_p_p_pp"},
+        },
+    },
+
+    {
+        "Decode_prqht",
+        {18, 17, 11},
+        {
+            {"000", "Visit_ptrue_p_s"},
+        },
+    },
+
+    {
+        "Decode_tsjqk",
+        {23, 18, 17, 9, 3, 2, 1, 0},
+        {
+            {"00000000", "Visit_ptest_p_p"},
+        },
+    },
+
+    {
+        "Decode_omumi",
+        {23, 18, 17, 11, 9, 8, 7, 6, 5},
+        {
+            {"000000000", "Visit_rdffr_p_f"},
+        },
+    },
+
+    {
+        "Decode_nrgno",
+        {22, 20, 19, 16, 12, 10, 4},
+        {
+            {"x110000", "Decode_prqht"},
+            {"x111000", "Decode_tqrvr"},
+            {"00xxxx0", "Decode_httju"},
+            {"00xxxx1", "Decode_ukkpu"},
+            {"0110010", "Decode_kovjm"},
+            {"0110100", "Decode_ojqmo"},
+            {"0111100", "Decode_omumi"},
+            {"10xxxx0", "Decode_iqpvj"},
+            {"10xxxx1", "Decode_rjmtp"},
+            {"1100xx0", "Decode_tsjqk"},
+            {"1110100", "Decode_implh"},
+        },
+    },
+
+    {
+        "Decode_poptn",
+        {23, 22},
+        {
+            {"00", "Visit_ldff1w_z_p_ai_s"},
+            {"01", "Visit_ld1rw_z_p_bi_u64"},
+            {"11", "Visit_ld1rd_z_p_bi_u64"},
+        },
+    },
+
+    {
+        "Decode_rlskm",
+        {23, 22, 12},
+        {
+            {"100", "Visit_cmla_z_zzzi_h"},
+            {"101", "Visit_sqrdcmlah_z_zzzi_h"},
+            {"110", "Visit_cmla_z_zzzi_s"},
+            {"111", "Visit_sqrdcmlah_z_zzzi_s"},
+        },
+    },
+
+    {
+        "Decode_nnrvq",
+        {23, 22, 20, 19, 18, 11, 9, 8, 7, 6, 5},
+        {
+            {"00000000000", "Visit_aesimc_z_z"},
+        },
+    },
+
+    {
+        "Decode_nsjgq",
+        {23, 22, 20, 19, 18, 11},
+        {
+            {"000000", "Visit_sm4e_z_zz"},
+        },
+    },
+
+    {
+        "Decode_jnpii",
+        {23, 22, 20, 19, 18, 11, 9, 8, 7, 6, 5},
+        {
+            {"00000000000", "Visit_aesmc_z_z"},
+        },
+    },
+
+    {
+        "Decode_jvigm",
+        {23, 22, 20, 19, 18, 11},
+        {
+            {"000000", "Visit_aese_z_zz"},
+        },
+    },
+
+    {
+        "Decode_urotj",
+        {23, 22, 20, 19, 18, 11},
+        {
+            {"000000", "Visit_aesd_z_zz"},
+        },
+    },
+
+    {
+        "Decode_plqjm",
+        {23, 22, 11},
+        {
+            {"000", "Visit_sm4ekey_z_zz"},
+        },
+    },
+
+    {
+        "Decode_msqqv",
+        {23, 22, 11},
+        {
+            {"000", "Visit_rax1_z_zz"},
+        },
+    },
+
+    {
+        "Decode_hgirj",
+        {17, 16, 12, 10},
+        {
+            {"xx10", "Decode_plqjm"},
+            {"xx11", "Decode_msqqv"},
+            {"0000", "Decode_jnpii"},
+            {"0001", "Decode_nnrvq"},
+            {"1000", "Decode_jvigm"},
+            {"1001", "Decode_urotj"},
+            {"1100", "Decode_nsjgq"},
+        },
+    },
+
+    {
+        "DecodeSVE",
+        {31, 30, 29, 24, 21, 15, 14, 13},
+        {
+            {"00000000", "Decode_msutl"},
+            {"00000001", "Decode_hujhl"},
+            {"00000010", "Visit_mla_z_p_zzz"},
+            {"00000011", "Visit_mls_z_p_zzz"},
+            {"00000100", "Decode_tgqrj"},
+            {"00000101", "Decode_nhssj"},
+            {"00000110", "Visit_mad_z_p_zzz"},
+            {"00000111", "Visit_msb_z_p_zzz"},
+            {"00001000", "Decode_qgjqu"},
+            {"00001001", "Decode_ussgj"},
+            {"00001010", "Decode_sqqko"},
+            {"00001011", "Decode_htqiu"},
+            {"00001100", "Decode_jshus"},
+            {"00001101", "Decode_luggl"},
+            {"00001110", "Decode_lnlrn"},
+            {"00001111", "Decode_limon"},
+            {"0001000x", "Decode_mqhoi"},
+            {"0001001x", "Decode_glrnk"},
+            {"0001010x", "Decode_igsqt"},
+            {"00010110", "Decode_lohtn"},
+            {"00010111", "Decode_igsqt"},
+            {"00011000", "Decode_sthgv"},
+            {"00011001", "Decode_pgkqt"},
+            {"00011010", "Decode_pgpiq"},
+            {"00011011", "Decode_rippm"},
+            {"00011100", "Decode_gupip"},
+            {"00011101", "Decode_hhjor"},
+            {"0001111x", "Visit_sel_z_p_zz"},
+            {"00100000", "Decode_qgqgi"},
+            {"00100001", "Decode_nrgsg"},
+            {"00100010", "Decode_qkiil"},
+            {"00100011", "Decode_rvjmj"},
+            {"00100100", "Decode_ihkkl"},
+            {"00100101", "Decode_hrnkq"},
+            {"00100110", "Decode_irkrh"},
+            {"00100111", "Decode_jqugv"},
+            {"00101xx0", "Decode_hlrim"},
+            {"00101xx1", "Decode_lmjjj"},
+            {"00110000", "Decode_piupm"},
+            {"00110001", "Decode_lvhqp"},
+            {"0011001x", "Decode_mmsgs"},
+            {"00110100", "Decode_tnogk"},
+            {"00110110", "Decode_vivii"},
+            {"00110111", "Decode_nrgno"},
+            {"00111000", "Decode_ikppk"},
+            {"00111001", "Decode_vrsvn"},
+            {"00111100", "Decode_omtkh"},
+            {"00111101", "Decode_nkgpo"},
+            {"00111110", "Decode_irvnr"},
+            {"00111111", "Decode_mulmi"},
+            {"01000000", "Decode_uqviq"},
+            {"01000001", "Decode_ipmtv"},
+            {"01000010", "Decode_ispkm"},
+            {"01000011", "Decode_timui"},
+            {"01000100", "Decode_uonhr"},
+            {"01000101", "Decode_opooh"},
+            {"01001000", "Decode_lpgrt"},
+            {"01001001", "Decode_kivuo"},
+            {"01001010", "Decode_nropk"},
+            {"01001011", "Decode_rlskm"},
+            {"01001100", "Decode_jkigh"},
+            {"01001101", "Decode_pvltu"},
+            {"01001110", "Decode_ushoh"},
+            {"01001111", "Decode_qjiut"},
+            {"01010000", "Decode_tqrvi"},
+            {"01010001", "Decode_jqoup"},
+            {"01010010", "Decode_tumgk"},
+            {"01010011", "Decode_uhnin"},
+            {"01010100", "Decode_pttmm"},
+            {"01010101", "Decode_tvvss"},
+            {"01010110", "Decode_hjhkg"},
+            {"01010111", "Decode_uqjru"},
+            {"01011000", "Decode_pkusn"},
+            {"01011001", "Decode_usnrs"},
+            {"01011010", "Decode_iqnvl"},
+            {"01011011", "Decode_rlilh"},
+            {"01011100", "Decode_iglkn"},
+            {"01011101", "Decode_rvvqq"},
+            {"01011110", "Visit_histcnt_z_p_zz"},
+            {"01011111", "Decode_hgirj"},
+            {"011000xx", "Visit_fcmla_z_p_zzz"},
+            {"01100100", "Decode_pvrsm"},
+            {"01100101", "Decode_sgrmi"},
+            {"01101000", "Decode_mtijo"},
+            {"01101001", "Decode_usuhk"},
+            {"01101010", "Decode_iulmj"},
+            {"01101011", "Decode_noiiq"},
+            {"01101100", "Decode_prpkr"},
+            {"01101101", "Decode_ivjoh"},
+            {"01101111", "Decode_svisr"},
+            {"01110000", "Decode_trvkv"},
+            {"01110001", "Decode_skprp"},
+            {"01110010", "Decode_vhkqs"},
+            {"01110011", "Decode_muhuh"},
+            {"01110100", "Decode_jmnhk"},
+            {"01110101", "Decode_vivls"},
+            {"01110110", "Decode_gonoj"},
+            {"01110111", "Decode_llhqo"},
+            {"01111000", "Visit_fmla_z_p_zzz"},
+            {"01111001", "Visit_fmls_z_p_zzz"},
+            {"01111010", "Visit_fnmla_z_p_zzz"},
+            {"01111011", "Visit_fnmls_z_p_zzz"},
+            {"01111100", "Visit_fmad_z_p_zzz"},
+            {"01111101", "Visit_fmsb_z_p_zzz"},
+            {"01111110", "Visit_fnmad_z_p_zzz"},
+            {"01111111", "Visit_fnmsb_z_p_zzz"},
+            {"10000000", "Decode_msgul"},
+            {"10000001", "Decode_pppmi"},
+            {"10000010", "Decode_hphoo"},
+            {"10000011", "Decode_tmlig"},
+            {"10000100", "Decode_kqvqj"},
+            {"10000101", "Decode_vnqon"},
+            {"10000110", "Decode_voklv"},
+            {"10000111", "Decode_glmnk"},
+            {"10001000", "Decode_plttt"},
+            {"10001001", "Decode_ihoks"},
+            {"10001010", "Decode_iujhl"},
+            {"10001011", "Decode_uotrs"},
+            {"10001100", "Decode_umiii"},
+            {"10001101", "Decode_hmnuv"},
+            {"10001110", "Decode_sklrn"},
+            {"10001111", "Decode_mqqun"},
+            {"1001x000", "Decode_lirnl"},
+            {"1001x001", "Decode_tivgo"},
+            {"1001x100", "Decode_sqhuh"},
+            {"10010010", "Decode_vnukj"},
+            {"10010011", "Decode_jqhol"},
+            {"10010101", "Decode_nnqkp"},
+            {"10010110", "Decode_mnnir"},
+            {"10010111", "Decode_qllvl"},
+            {"10011010", "Decode_qtmqm"},
+            {"10011011", "Decode_sjttj"},
+            {"10011101", "Decode_tnqlt"},
+            {"10011110", "Decode_mjjst"},
+            {"10011111", "Decode_poptn"},
+            {"10100000", "Decode_uvqpn"},
+            {"10100001", "Decode_qrnmj"},
+            {"10100010", "Decode_loulp"},
+            {"10100011", "Decode_vkhtl"},
+            {"10100101", "Decode_ksmol"},
+            {"10100110", "Decode_nktui"},
+            {"10100111", "Decode_qqjug"},
+            {"10101000", "Decode_vusmk"},
+            {"10101001", "Decode_ujlqv"},
+            {"10101010", "Decode_ghhul"},
+            {"10101011", "Decode_tvmls"},
+            {"10101101", "Decode_piitg"},
+            {"10101110", "Decode_mkluq"},
+            {"10101111", "Decode_trtvt"},
+            {"10110000", "Decode_huorp"},
+            {"10110001", "Decode_uppkj"},
+            {"10110010", "Decode_hihin"},
+            {"10110011", "Decode_kggtn"},
+            {"10110101", "Decode_mqnpj"},
+            {"10110110", "Decode_nhkon"},
+            {"10110111", "Decode_ujnsk"},
+            {"10111000", "Decode_kjlko"},
+            {"10111001", "Decode_nintk"},
+            {"10111010", "Decode_gtuhg"},
+            {"10111011", "Decode_ttghv"},
+            {"10111101", "Decode_ktqmj"},
+            {"10111110", "Decode_gvvgn"},
+            {"10111111", "Decode_siuru"},
+            {"11000000", "Decode_lvsiq"},
+            {"11000001", "Decode_lqinr"},
+            {"11000010", "Decode_pjohj"},
+            {"11000011", "Decode_mtglk"},
+            {"11000100", "Decode_msvqv"},
+            {"11000101", "Decode_qrsiv"},
+            {"11000110", "Decode_khpsh"},
+            {"11000111", "Decode_imggk"},
+            {"11001000", "Decode_simpg"},
+            {"11001001", "Decode_uqmmu"},
+            {"11001010", "Decode_qgqsu"},
+            {"11001011", "Decode_knunk"},
+            {"11001100", "Decode_hljmr"},
+            {"11001101", "Decode_vjslo"},
+            {"11001110", "Decode_gjmpp"},
+            {"11001111", "Decode_pqusm"},
+            {"11010000", "Decode_gmjnu"},
+            {"11010001", "Decode_pvmts"},
+            {"11010010", "Decode_vkgkj"},
+            {"11010011", "Decode_qvtuh"},
+            {"11010100", "Decode_vrgui"},
+            {"11010101", "Decode_tvhvi"},
+            {"11010110", "Decode_hrilq"},
+            {"11010111", "Decode_ljqlo"},
+            {"11011000", "Decode_spgho"},
+            {"11011001", "Decode_vgsnn"},
+            {"11011010", "Decode_lrovn"},
+            {"11011011", "Decode_pjknr"},
+            {"11011100", "Decode_tunpt"},
+            {"11011101", "Decode_stgno"},
+            {"11011110", "Decode_jghrh"},
+            {"11011111", "Decode_rgpgv"},
+            {"1110x010", "Decode_tnlrk"},
+            {"11100001", "Decode_slkqm"},
+            {"11100011", "Decode_ukkjh"},
+            {"111001x0", "Decode_okmvu"},
+            {"11100101", "Decode_girhj"},
+            {"11100111", "Decode_hhtgr"},
+            {"11101011", "Decode_jhjui"},
+            {"111011x0", "Decode_gjjrs"},
+            {"11101101", "Decode_jmout"},
+            {"11101111", "Decode_jikmh"},
+            {"1111x000", "Decode_vrupm"},
+            {"11110001", "Decode_rovro"},
+            {"11110010", "Decode_jsghh"},
+            {"11110011", "Decode_jrgll"},
+            {"111101x0", "Decode_gqumh"},
+            {"11110101", "Decode_onkht"},
+            {"11110111", "Decode_mmsum"},
+            {"11111010", "Decode_iqrjp"},
+            {"11111011", "Decode_mrslg"},
+            {"111111x0", "Decode_lnnsv"},
+            {"11111101", "Decode_rtkqu"},
+            {"11111111", "Decode_gkpqi"},
+        },
+    },
