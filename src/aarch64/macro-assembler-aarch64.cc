@@ -1427,11 +1427,16 @@ void MacroAssembler::Add(const Register& rd,
                          const Operand& operand,
                          FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.GetImmediate() < 0)) {
-    AddSubMacro(rd, rn, -operand.GetImmediate(), S, SUB);
-  } else {
-    AddSubMacro(rd, rn, operand, S, ADD);
+  if (operand.IsImmediate()) {
+    int64_t min = rd.IsX() ? std::numeric_limits<int64_t>::min()
+                           : std::numeric_limits<int32_t>::min();
+    int64_t imm = operand.GetImmediate();
+    if ((imm < 0) && (imm > min)) {
+      AddSubMacro(rd, rn, -imm, S, SUB);
+      return;
+    }
   }
+  AddSubMacro(rd, rn, operand, S, ADD);
 }
 
 
@@ -1447,11 +1452,16 @@ void MacroAssembler::Sub(const Register& rd,
                          const Operand& operand,
                          FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.GetImmediate() < 0)) {
-    AddSubMacro(rd, rn, -operand.GetImmediate(), S, ADD);
-  } else {
-    AddSubMacro(rd, rn, operand, S, SUB);
+  if (operand.IsImmediate()) {
+    int64_t min = rd.IsX() ? std::numeric_limits<int64_t>::min()
+                           : std::numeric_limits<int32_t>::min();
+    int64_t imm = operand.GetImmediate();
+    if ((imm < 0) && (imm > min)) {
+      AddSubMacro(rd, rn, -imm, S, ADD);
+      return;
+    }
   }
+  AddSubMacro(rd, rn, operand, S, SUB);
 }
 
 

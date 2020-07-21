@@ -2746,6 +2746,25 @@ TEST(add_sub_negative) {
   COMPARE_MACRO(Cmp(w2, -4095), "cmn w2, #0xfff (4095)");
   COMPARE_MACRO(Cmp(x3, -4095), "cmn x3, #0xfff (4095)");
 
+  int32_t temp32 = std::numeric_limits<int32_t>::min();
+  COMPARE_MACRO(Cmp(w0, temp32),
+                "mov w16, #0x80000000\n"
+                "cmp w0, w16");
+  COMPARE_MACRO(Cmp(w0, temp32 + 1),
+                "mov w16, #0x7fffffff\n"
+                "cmn w0, w16");
+  COMPARE_MACRO(Cmp(x0, temp32),
+                "mov x16, #0x80000000\n"
+                "cmn x0, x16");
+
+  int64_t temp64 = std::numeric_limits<int64_t>::min();
+  COMPARE_MACRO(Cmp(x0, temp64),
+                "mov x16, #0x8000000000000000\n"
+                "cmp x0, x16");
+  COMPARE_MACRO(Cmp(x0, temp64 + 1),
+                "mov x16, #0x7fffffffffffffff\n"
+                "cmn x0, x16");
+
   COMPARE_MACRO(Cmn(w0, -1), "cmp w0, #0x1 (1)");
   COMPARE_MACRO(Cmn(x1, -1), "cmp x1, #0x1 (1)");
   COMPARE_MACRO(Cmn(w2, -4095), "cmp w2, #0xfff (4095)");
