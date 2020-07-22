@@ -56,7 +56,11 @@ class IDRegister {
    public:
     enum Type { kUnsigned, kSigned };
 
-    explicit Field(int lsb, Type type = kUnsigned) : lsb_(lsb), type_(type) {}
+    // This needs to be constexpr so that fields have "constant initialisation".
+    // This avoids initialisation order problems when these values are used to
+    // (dynamically) initialise static variables, etc.
+    explicit constexpr Field(int lsb, Type type = kUnsigned)
+        : lsb_(lsb), type_(type) {}
 
     static const int kMaxWidthInBits = 4;
 
