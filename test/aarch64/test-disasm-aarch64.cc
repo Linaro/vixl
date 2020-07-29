@@ -2746,25 +2746,6 @@ TEST(add_sub_negative) {
   COMPARE_MACRO(Cmp(w2, -4095), "cmn w2, #0xfff (4095)");
   COMPARE_MACRO(Cmp(x3, -4095), "cmn x3, #0xfff (4095)");
 
-  int32_t temp32 = std::numeric_limits<int32_t>::min();
-  COMPARE_MACRO(Cmp(w0, temp32),
-                "mov w16, #0x80000000\n"
-                "cmp w0, w16");
-  COMPARE_MACRO(Cmp(w0, temp32 + 1),
-                "mov w16, #0x7fffffff\n"
-                "cmn w0, w16");
-  COMPARE_MACRO(Cmp(x0, temp32),
-                "mov x16, #0x80000000\n"
-                "cmn x0, x16");
-
-  int64_t temp64 = std::numeric_limits<int64_t>::min();
-  COMPARE_MACRO(Cmp(x0, temp64),
-                "mov x16, #0x8000000000000000\n"
-                "cmp x0, x16");
-  COMPARE_MACRO(Cmp(x0, temp64 + 1),
-                "mov x16, #0x7fffffffffffffff\n"
-                "cmn x0, x16");
-
   COMPARE_MACRO(Cmn(w0, -1), "cmp w0, #0x1 (1)");
   COMPARE_MACRO(Cmn(x1, -1), "cmp x1, #0x1 (1)");
   COMPARE_MACRO(Cmn(w2, -4095), "cmp w2, #0xfff (4095)");
@@ -2777,61 +2758,24 @@ TEST(add_sub_macro) {
   SETUP();
 
   // Add and Sub use their destination register as a scratch if they can.
-  COMPARE_MACRO(Add(x0, x1, 0x42424242),
+  COMPARE_MACRO(Add(x0, x1, 0x4242),
                 "mov x0, #0x4242\n"
-                "movk x0, #0x4242, lsl #16\n"
                 "add x0, x1, x0");
-  COMPARE_MACRO(Add(x0, x0, 0x42424242),
+  COMPARE_MACRO(Add(x0, x0, 0x4242),
                 "mov x16, #0x4242\n"
-                "movk x16, #0x4242, lsl #16\n"
                 "add x0, x0, x16");
-  COMPARE_MACRO(Adds(x0, x1, 0x4242),
-                "mov x0, #0x4242\n"
-                "adds x0, x1, x0");
-  COMPARE_MACRO(Adds(x0, x0, 0x4242),
-                "mov x16, #0x4242\n"
-                "adds x0, x0, x16");
   COMPARE_MACRO(Adds(x0, xzr, Operand(w1, SXTW)),
                 "sxtw x0, w1\n"
                 "adds x0, xzr, x0");
-  COMPARE_MACRO(Subs(x0, x1, 0x42424242),
+  COMPARE_MACRO(Sub(x0, x1, 0x4242),
                 "mov x0, #0x4242\n"
-                "movk x0, #0x4242, lsl #16\n"
-                "subs x0, x1, x0");
-  COMPARE_MACRO(Subs(x0, x0, 0x42424242),
+                "sub x0, x1, x0");
+  COMPARE_MACRO(Sub(x0, x0, 0x4242),
                 "mov x16, #0x4242\n"
-                "movk x16, #0x4242, lsl #16\n"
-                "subs x0, x0, x16");
-  COMPARE_MACRO(Subs(x0, x1, 0x4242),
-                "mov x0, #0x4242\n"
-                "subs x0, x1, x0");
-  COMPARE_MACRO(Subs(x0, x0, 0x4242),
-                "mov x16, #0x4242\n"
-                "subs x0, x0, x16");
+                "sub x0, x0, x16");
   COMPARE_MACRO(Subs(x0, xzr, Operand(w1, SXTW)),
                 "sxtw x0, w1\n"
                 "negs x0, x0");
-
-  // Add and Sub for immediates between 12 and 24 bits emits a pair of
-  // instructions.
-  COMPARE_MACRO(Add(x0, x0, 0x4242),
-                "add x0, x0, #0x242 (578)\n"
-                "add x0, x0, #0x4000 (16384)");
-  COMPARE_MACRO(Add(x0, x1, 0x4242),
-                "add x0, x1, #0x242 (578)\n"
-                "add x0, x0, #0x4000 (16384)");
-  COMPARE_MACRO(Add(x0, x0, 0xffffff),
-                "add x0, x0, #0xfff (4095)\n"
-                "add x0, x0, #0xfff000 (16773120)");
-  COMPARE_MACRO(Sub(x0, x0, 0x4242),
-                "sub x0, x0, #0x242 (578)\n"
-                "sub x0, x0, #0x4000 (16384)");
-  COMPARE_MACRO(Sub(x0, x1, 0x4242),
-                "sub x0, x1, #0x242 (578)\n"
-                "sub x0, x0, #0x4000 (16384)");
-  COMPARE_MACRO(Sub(x0, x0, 0xffffff),
-                "sub x0, x0, #0xfff (4095)\n"
-                "sub x0, x0, #0xfff000 (16773120)");
 }
 
 TEST(adc_sbc_macro) {

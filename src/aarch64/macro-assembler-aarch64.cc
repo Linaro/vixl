@@ -1427,16 +1427,12 @@ void MacroAssembler::Add(const Register& rd,
                          const Operand& operand,
                          FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate()) {
-    int64_t min = rd.IsX() ? std::numeric_limits<int64_t>::min()
-                           : std::numeric_limits<int32_t>::min();
-    int64_t imm = operand.GetImmediate();
-    if ((imm < 0) && (imm > min)) {
-      AddSubMacro(rd, rn, -imm, S, SUB);
-      return;
-    }
+  if (operand.IsImmediate() && (operand.GetImmediate() < 0) &&
+      IsImmAddSub(-operand.GetImmediate())) {
+    AddSubMacro(rd, rn, -operand.GetImmediate(), S, SUB);
+  } else {
+    AddSubMacro(rd, rn, operand, S, ADD);
   }
-  AddSubMacro(rd, rn, operand, S, ADD);
 }
 
 
@@ -1452,16 +1448,12 @@ void MacroAssembler::Sub(const Register& rd,
                          const Operand& operand,
                          FlagsUpdate S) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate()) {
-    int64_t min = rd.IsX() ? std::numeric_limits<int64_t>::min()
-                           : std::numeric_limits<int32_t>::min();
-    int64_t imm = operand.GetImmediate();
-    if ((imm < 0) && (imm > min)) {
-      AddSubMacro(rd, rn, -imm, S, ADD);
-      return;
-    }
+  if (operand.IsImmediate() && (operand.GetImmediate() < 0) &&
+      IsImmAddSub(-operand.GetImmediate())) {
+    AddSubMacro(rd, rn, -operand.GetImmediate(), S, ADD);
+  } else {
+    AddSubMacro(rd, rn, operand, S, SUB);
   }
-  AddSubMacro(rd, rn, operand, S, SUB);
 }
 
 
@@ -1782,30 +1774,22 @@ void MacroAssembler::AddSubMacro(const Register& rd,
     // `rd`) because we don't need it after it is evaluated.
     Register temp = temps.AcquireSameSizeAs(rn);
     if (operand.IsImmediate()) {
-      int64_t imm = operand.GetImmediate();
-      int64_t divisor = 1 << ImmAddSub_width;
-      if ((S == LeaveFlags) && IsUint12(imm / divisor)) {
-        // Unsigned immediates requiring up to 24 bits are emitted as two adds
-        // or subs.
-        AddSub(rd, rn, imm % divisor, S, op);
-        AddSub(rd, rd, (imm / divisor) << ImmAddSub_width, S, op);
-      } else {
-        PreShiftImmMode mode = kAnyShift;
+      PreShiftImmMode mode = kAnyShift;
 
-        // If the destination or source register is the stack pointer, we can
-        // only pre-shift the immediate right by values supported in the add/sub
-        // extend encoding.
-        if (rd.IsSP()) {
-          // If the destination is SP and flags will be set, we can't pre-shift
-          // the immediate at all.
-          mode = (S == SetFlags) ? kNoShift : kLimitShiftForSP;
-        } else if (rn.IsSP()) {
-          mode = kLimitShiftForSP;
-        }
-
-        Operand imm_operand = MoveImmediateForShiftedOp(temp, imm, mode);
-        AddSub(rd, rn, imm_operand, S, op);
+      // If the destination or source register is the stack pointer, we can
+      // only pre-shift the immediate right by values supported in the add/sub
+      // extend encoding.
+      if (rd.IsSP()) {
+        // If the destination is SP and flags will be set, we can't pre-shift
+        // the immediate at all.
+        mode = (S == SetFlags) ? kNoShift : kLimitShiftForSP;
+      } else if (rn.IsSP()) {
+        mode = kLimitShiftForSP;
       }
+
+      Operand imm_operand =
+          MoveImmediateForShiftedOp(temp, operand.GetImmediate(), mode);
+      AddSub(rd, rn, imm_operand, S, op);
     } else {
       Mov(temp, operand);
       AddSub(rd, rn, temp, S, op);
