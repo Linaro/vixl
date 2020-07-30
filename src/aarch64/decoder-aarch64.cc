@@ -183,35 +183,21 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask) {
     bit_extract_fn = &Instruction::ExtractBits<M>; \
     break;
     INSTANTIATE_TEMPLATE(0x000001e0);
-    INSTANTIATE_TEMPLATE(0x00000210);
-    INSTANTIATE_TEMPLATE(0x000003c0);
     INSTANTIATE_TEMPLATE(0x00000400);
     INSTANTIATE_TEMPLATE(0x00000800);
     INSTANTIATE_TEMPLATE(0x00000c00);
     INSTANTIATE_TEMPLATE(0x00001000);
     INSTANTIATE_TEMPLATE(0x00001800);
     INSTANTIATE_TEMPLATE(0x00001c00);
-    INSTANTIATE_TEMPLATE(0x00001c0f);
     INSTANTIATE_TEMPLATE(0x00004000);
     INSTANTIATE_TEMPLATE(0x00008000);
-    INSTANTIATE_TEMPLATE(0x0000e000);
     INSTANTIATE_TEMPLATE(0x0000f000);
     INSTANTIATE_TEMPLATE(0x0000fc00);
-    INSTANTIATE_TEMPLATE(0x00030400);
     INSTANTIATE_TEMPLATE(0x00060010);
-    INSTANTIATE_TEMPLATE(0x00060210);
-    INSTANTIATE_TEMPLATE(0x00060810);
-    INSTANTIATE_TEMPLATE(0x00060a10);
-    INSTANTIATE_TEMPLATE(0x00060bf0);
-    INSTANTIATE_TEMPLATE(0x00061e10);
-    INSTANTIATE_TEMPLATE(0x00070200);
     INSTANTIATE_TEMPLATE(0x00093e00);
-    INSTANTIATE_TEMPLATE(0x000b1e10);
     INSTANTIATE_TEMPLATE(0x000c1000);
     INSTANTIATE_TEMPLATE(0x00100000);
     INSTANTIATE_TEMPLATE(0x00101800);
-    INSTANTIATE_TEMPLATE(0x00130e1f);
-    INSTANTIATE_TEMPLATE(0x00130fff);
     INSTANTIATE_TEMPLATE(0x00140000);
     INSTANTIATE_TEMPLATE(0x00180000);
     INSTANTIATE_TEMPLATE(0x00181000);
@@ -219,7 +205,6 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask) {
     INSTANTIATE_TEMPLATE(0x00191400);
     INSTANTIATE_TEMPLATE(0x001c0000);
     INSTANTIATE_TEMPLATE(0x001c1800);
-    INSTANTIATE_TEMPLATE(0x001e0000);
     INSTANTIATE_TEMPLATE(0x001f0000);
     INSTANTIATE_TEMPLATE(0x0020fc00);
     INSTANTIATE_TEMPLATE(0x0038f000);
@@ -227,15 +212,12 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask) {
     INSTANTIATE_TEMPLATE(0x00400010);
     INSTANTIATE_TEMPLATE(0x0040f000);
     INSTANTIATE_TEMPLATE(0x00500000);
-    INSTANTIATE_TEMPLATE(0x005f0000);
     INSTANTIATE_TEMPLATE(0x00800000);
     INSTANTIATE_TEMPLATE(0x00800010);
     INSTANTIATE_TEMPLATE(0x00801800);
-    INSTANTIATE_TEMPLATE(0x00870210);
     INSTANTIATE_TEMPLATE(0x009f0000);
     INSTANTIATE_TEMPLATE(0x00c00000);
     INSTANTIATE_TEMPLATE(0x00c00010);
-    INSTANTIATE_TEMPLATE(0x00ca1e10);
     INSTANTIATE_TEMPLATE(0x00cf8000);
     INSTANTIATE_TEMPLATE(0x00db0000);
     INSTANTIATE_TEMPLATE(0x00dc0000);
@@ -301,22 +283,44 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask, uint32_t value) {
     instantiated = true;                                \
   }
   INSTANTIATE_TEMPLATE(0x0000001c, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00000210, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x000003c0, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00001c00, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00001c0f, 0x00000000);
   INSTANTIATE_TEMPLATE(0x00003000, 0x00000000);
   INSTANTIATE_TEMPLATE(0x00007800, 0x00000000);
   INSTANTIATE_TEMPLATE(0x0000e000, 0x0000a000);
   INSTANTIATE_TEMPLATE(0x0000f000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00030400, 0x00000000);
   INSTANTIATE_TEMPLATE(0x0003801f, 0x0000000d);
+  INSTANTIATE_TEMPLATE(0x00060210, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00060810, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00060a10, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00060bf0, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00061e10, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00061e10, 0x00000400);
+  INSTANTIATE_TEMPLATE(0x00070200, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x000b1e10, 0x00000000);
   INSTANTIATE_TEMPLATE(0x000f0000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00130e1f, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00130fff, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00180000, 0x00000000);
   INSTANTIATE_TEMPLATE(0x00180000, 0x00100000);
+  INSTANTIATE_TEMPLATE(0x001e0000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x001f0000, 0x00000000);
   INSTANTIATE_TEMPLATE(0x001f0000, 0x001f0000);
   INSTANTIATE_TEMPLATE(0x0038e000, 0x00000000);
   INSTANTIATE_TEMPLATE(0x0039e000, 0x00002000);
   INSTANTIATE_TEMPLATE(0x003ae000, 0x00002000);
   INSTANTIATE_TEMPLATE(0x003ce000, 0x00042000);
+  INSTANTIATE_TEMPLATE(0x005f0000, 0x001f0000);
   INSTANTIATE_TEMPLATE(0x00780000, 0x00000000);
+  INSTANTIATE_TEMPLATE(0x00870210, 0x00000000);
   INSTANTIATE_TEMPLATE(0x00c00000, 0x00000000);
   INSTANTIATE_TEMPLATE(0x00c00000, 0x00800000);
   INSTANTIATE_TEMPLATE(0x00c00000, 0x00c00000);
+  INSTANTIATE_TEMPLATE(0x00c00010, 0x00800000);
+  INSTANTIATE_TEMPLATE(0x00ca1e10, 0x00000000);
   INSTANTIATE_TEMPLATE(0x01000010, 0x00000000);
   INSTANTIATE_TEMPLATE(0x20000800, 0x00000000);
   INSTANTIATE_TEMPLATE(0x20008000, 0x00000000);
@@ -356,14 +360,16 @@ BitExtractFn DecodeNode::GetBitExtractFunction(uint32_t mask, uint32_t value) {
 bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
   // EitherOr optimisation: if there are only one or two patterns in the table,
   // try to optimise the node to exploit that.
-  if ((pattern_table_.size() == 2) && (GetSampledBitsCount() > 1)) {
+  size_t table_size = pattern_table_.size();
+  if ((table_size <= 2) && (GetSampledBitsCount() > 1)) {
     // TODO: support 'x' in this optimisation by dropping the sampled bit
     // positions before making the mask/value.
     if ((strchr(pattern_table_[0].pattern, 'x') == NULL) &&
-        (strcmp(pattern_table_[1].pattern, "otherwise") == 0)) {
+        ((table_size == 1) ||
+         (strcmp(pattern_table_[1].pattern, "otherwise") == 0))) {
       // A pattern table consisting of a fixed pattern with no x's, and an
-      // "otherwise" case. Optimise this into an instruction mask and value
-      // test.
+      // "otherwise" or absent case. Optimise this into an instruction mask and
+      // value test.
       uint32_t single_decode_mask = 0;
       uint32_t single_decode_value = 0;
       std::vector<uint8_t> bits = GetSampledBits();
@@ -376,7 +382,6 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
           single_decode_value |= 1U << bits[i];
         }
       }
-
       BitExtractFn bit_extract_fn =
           GetBitExtractFunction(single_decode_mask, single_decode_value);
 
@@ -386,7 +391,9 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
 
       // Set DecodeNode for when the instruction after masking doesn't match the
       // value.
-      CompileNodeForBits(decoder, pattern_table_[1].handler, 0);
+      const char* doesnt_match_handler =
+          (table_size == 1) ? "VisitUnallocated" : pattern_table_[1].handler;
+      CompileNodeForBits(decoder, doesnt_match_handler, 0);
 
       // Set DecodeNode for when it does match.
       CompileNodeForBits(decoder, pattern_table_[0].handler, 1);
