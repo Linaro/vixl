@@ -33,8 +33,298 @@
 namespace vixl {
 namespace aarch64 {
 
-Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ =
-    DEFAULT_FORM_TO_VISITOR_MAP(Disassembler);
+Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
+    DEFAULT_FORM_TO_VISITOR_MAP(Disassembler),
+    {"adclb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"adclt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"addhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"addhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"addp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"aesd_z_zz", &Disassembler::Disassemble_ZdnB_ZdnB_ZmB},
+    {"aese_z_zz", &Disassembler::Disassemble_ZdnB_ZdnB_ZmB},
+    {"aesimc_z_z", &Disassembler::Disassemble_ZdnB_ZdnB},
+    {"aesmc_z_z", &Disassembler::Disassemble_ZdnB_ZdnB},
+    {"bcax_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"bdep_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"bext_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"bgrp_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"bsl1n_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"bsl2n_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"bsl_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"cadd_z_zz", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
+    {"cdot_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb_const},
+    {"cdot_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnH_ZmH_imm_const},
+    {"cdot_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnB_ZmB_imm_const},
+    {"cmla_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT_const},
+    {"cmla_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm_const},
+    {"cmla_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm_const},
+    {"eor3_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"eorbt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"eortb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"ext_z_zi_con", &Disassembler::Disassemble_ZdB_Zn1B_Zn2B_imm},
+    {"faddp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"fcvtlt_z_p_z_h2s", &Disassembler::Disassemble_ZdS_PgM_ZnH},
+    {"fcvtlt_z_p_z_s2d", &Disassembler::Disassemble_ZdD_PgM_ZnS},
+    {"fcvtnt_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
+    {"fcvtnt_z_p_z_s2h", &Disassembler::Disassemble_ZdH_PgM_ZnS},
+    {"fcvtx_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
+    {"fcvtxnt_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
+    {"flogb_z_p_z", &Disassembler::Disassemble_ZdT_PgM_ZnT},
+    {"fmaxnmp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"fmaxp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"fminnmp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"fminp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"fmlalb_z_zzz", &Disassembler::Disassemble_ZdaS_ZnH_ZmH},
+    {"fmlalb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"fmlalt_z_zzz", &Disassembler::Disassemble_ZdaS_ZnH_ZmH},
+    {"fmlalt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"fmlslb_z_zzz", &Disassembler::Disassemble_ZdaS_ZnH_ZmH},
+    {"fmlslb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"fmlslt_z_zzz", &Disassembler::Disassemble_ZdaS_ZnH_ZmH},
+    {"fmlslt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"histcnt_z_p_zz", &Disassembler::Disassemble_ZdT_PgZ_ZnT_ZmT},
+    {"histseg_z_zz", &Disassembler::Disassemble_ZdB_ZnB_ZmB},
+    {"ldnt1b_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1b_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1d_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1h_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1h_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1sb_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1sb_z_p_ar_s_x32_unscaled",
+     &Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1sh_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1sh_z_p_ar_s_x32_unscaled",
+     &Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1sw_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1w_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1w_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm},
+    {"match_p_p_zz", &Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT},
+    {"mla_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnD_ZmD_imm},
+    {"mla_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm},
+    {"mla_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm},
+    {"mls_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnD_ZmD_imm},
+    {"mls_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm},
+    {"mls_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm},
+    {"mul_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"mul_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnD_ZmD_imm},
+    {"mul_z_zzi_h", &Disassembler::Disassemble_ZdH_ZnH_ZmH_imm},
+    {"mul_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnS_ZmS_imm},
+    {"nbsl_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"nmatch_p_p_zz", &Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT},
+    {"pmul_z_zz", &Disassembler::Disassemble_ZdB_ZnB_ZmB},
+    {"pmullb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"pmullt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"raddhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"raddhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"rax1_z_zz", &Disassembler::Disassemble_ZdD_ZnD_ZmD},
+    {"rshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"rshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"rsubhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"rsubhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"saba_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"sabalb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sabalt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sabdlb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"sabdlt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"sadalp_z_p_z", &Disassembler::Disassemble_ZdaT_PgM_ZnTb},
+    {"saddlb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"saddlbt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"saddlt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"saddwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"saddwt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"sbclb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"sbclt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"shadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"shrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"shrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"shsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"shsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sli_z_zzi", &Disassembler::Disassemble_ZdT_ZnT_const},
+    {"sm4e_z_zz", &Disassembler::Disassemble_ZdnS_ZdnS_ZmS},
+    {"sm4ekey_z_zz", &Disassembler::Disassemble_ZdS_ZnS_ZmS},
+    {"smaxp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sminp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"smlalb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"smlalb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"smlalb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"smlalt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"smlalt_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"smlalt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"smlslb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"smlslb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"smlslb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"smlslt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"smlslt_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"smlslt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"smulh_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"smullb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"smullb_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnS_ZmS_imm},
+    {"smullb_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnH_ZmH_imm},
+    {"smullt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"smullt_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnS_ZmS_imm},
+    {"smullt_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnH_ZmH_imm},
+    {"splice_z_p_zz_con", &Disassembler::Disassemble_ZdT_Pg_Zn1T_Zn2T},
+    {"sqabs_z_p_z", &Disassembler::Disassemble_ZdT_PgM_ZnT},
+    {"sqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqcadd_z_zz", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
+    {"sqdmlalb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sqdmlalb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlalb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"sqdmlalbt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sqdmlalt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sqdmlalt_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlalt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"sqdmlslb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sqdmlslb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlslb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"sqdmlslbt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sqdmlslt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"sqdmlslt_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlslt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"sqdmulh_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"sqdmulh_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnD_ZmD_imm},
+    {"sqdmulh_z_zzi_h", &Disassembler::Disassemble_ZdH_ZnH_ZmH_imm},
+    {"sqdmulh_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnS_ZmS_imm},
+    {"sqdmullb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"sqdmullb_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnS_ZmS_imm},
+    {"sqdmullb_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnH_ZmH_imm},
+    {"sqdmullt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"sqdmullt_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnS_ZmS_imm},
+    {"sqdmullt_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnH_ZmH_imm},
+    {"sqneg_z_p_z", &Disassembler::Disassemble_ZdT_PgM_ZnT},
+    {"sqrdcmlah_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT_const},
+    {"sqrdcmlah_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm_const},
+    {"sqrdcmlah_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm_const},
+    {"sqrdmlah_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"sqrdmlah_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnD_ZmD_imm},
+    {"sqrdmlah_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm},
+    {"sqrdmlah_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm},
+    {"sqrdmlsh_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"sqrdmlsh_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnD_ZmD_imm},
+    {"sqrdmlsh_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm},
+    {"sqrdmlsh_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm},
+    {"sqrdmulh_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"sqrdmulh_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnD_ZmD_imm},
+    {"sqrdmulh_z_zzi_h", &Disassembler::Disassemble_ZdH_ZnH_ZmH_imm},
+    {"sqrdmulh_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnS_ZmS_imm},
+    {"sqrshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqrshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqrshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqrshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqrshrunb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqrshrunt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqshl_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"sqshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqshlu_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"sqshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqshrunb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqshrunt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sqxtnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
+    {"sqxtnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
+    {"sqxtunb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
+    {"sqxtunt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
+    {"srhadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"sri_z_zzi", &Disassembler::Disassemble_ZdT_ZnT_const},
+    {"srshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"srshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"srshr_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"srsra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"sshllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sshllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"ssra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"ssublb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"ssublbt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"ssublt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"ssubltb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"ssubwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"ssubwt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"stnt1b_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_Pg_ZnD_Xm},
+    {"stnt1b_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_Pg_ZnS_Xm},
+    {"stnt1d_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_Pg_ZnD_Xm},
+    {"stnt1h_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_Pg_ZnD_Xm},
+    {"stnt1h_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_Pg_ZnS_Xm},
+    {"stnt1w_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_Pg_ZnD_Xm},
+    {"stnt1w_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_Pg_ZnS_Xm},
+    {"subhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"subhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"suqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"tbl_z_zz_2", &Disassembler::Disassemble_ZdT_Zn1T_Zn2T_ZmT},
+    {"tbx_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"uaba_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"uabalb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"uabalt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"uabdlb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"uabdlt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"uadalp_z_p_z", &Disassembler::Disassemble_ZdaT_PgM_ZnTb},
+    {"uaddlb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"uaddlt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"uaddwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"uaddwt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"uhadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uhsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uhsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"umaxp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uminp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"umlalb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"umlalb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"umlalb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"umlalt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"umlalt_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"umlalt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"umlslb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"umlslb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"umlslb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"umlslt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
+    {"umlslt_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
+    {"umlslt_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
+    {"umulh_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
+    {"umullb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"umullb_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnS_ZmS_imm},
+    {"umullb_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnH_ZmH_imm},
+    {"umullt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"umullt_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnS_ZmS_imm},
+    {"umullt_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnH_ZmH_imm},
+    {"uqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"uqrshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"uqshl_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"uqshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"uqshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"uqsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"uqxtnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
+    {"uqxtnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
+    {"urecpe_z_p_z", &Disassembler::Disassemble_ZdS_PgM_ZnS},
+    {"urhadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"urshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"urshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"urshr_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"ursqrte_z_p_z", &Disassembler::Disassemble_ZdS_PgM_ZnS},
+    {"ursra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"ushllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"ushllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"usqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"usra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"usublb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"usublt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"usubwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"usubwt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
+    {"whilege_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
+    {"whilegt_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
+    {"whilehi_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
+    {"whilehs_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
+    {"whilerw_p_rr", &Disassembler::Disassemble_PdT_Xn_Xm},
+    {"whilewr_p_rr", &Disassembler::Disassemble_PdT_Xn_Xm},
+    {"xar_z_zzi", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
+};
 
 Disassembler::Disassembler() {
   buffer_size_ = 256;
@@ -44,7 +334,6 @@ Disassembler::Disassembler() {
   code_address_offset_ = 0;
 }
 
-
 Disassembler::Disassembler(char *text_buffer, int buffer_size) {
   buffer_size_ = buffer_size;
   buffer_ = text_buffer;
@@ -53,16 +342,13 @@ Disassembler::Disassembler(char *text_buffer, int buffer_size) {
   code_address_offset_ = 0;
 }
 
-
 Disassembler::~Disassembler() {
   if (own_buffer_) {
     free(buffer_);
   }
 }
 
-
 char *Disassembler::GetOutput() { return buffer_; }
-
 
 void Disassembler::VisitAddSubImmediate(const Instruction *instr) {
   bool rd_is_zr = RdIsZROrSP(instr);
@@ -9522,10 +9808,285 @@ void Disassembler::Visit(Metadata *metadata, const Instruction *instr) {
   VIXL_ASSERT(metadata->count("form") > 0);
   const std::string &form = (*metadata)["form"];
   if ((form_to_visitor_.count(form) > 0) && form_to_visitor_[form]) {
+    SetMnemonicFromForm(form);
     form_to_visitor_[form](this, instr);
   } else {
     VisitUnimplemented(instr);
   }
+}
+
+void Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT(const Instruction *instr) {
+  const char *form = "'Pd.<T>, 'Pgl/z, 'Zn.<T>, 'Zm.<T>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_PdT_Rn_Rm(const Instruction *instr) {
+  const char *form = "'Pd.'t, 'Rn, 'Rm";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_PdT_Xn_Xm(const Instruction *instr) {
+  const char *form = "'Pd.'t, 'Rn, 'Rm";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdB_Zn1B_Zn2B_imm(const Instruction *instr) {
+  const char *form = "'Zd.b, { 'Zn.b, 'Zn2.b }, #<imm>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdB_ZnB_ZmB(const Instruction *instr) {
+  const char *form = "'Zd.b, 'Zn.b, 'Zm.b";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdD_PgM_ZnS(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Pgl/m, 'Zn.s";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdD_ZnD_ZmD(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zn.d, 'Zm.d";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdD_ZnD_ZmD_imm(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zn.d, <Zm>.d[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdD_ZnS_ZmS_imm(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zn.s, <Zm>.s[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdH_PgM_ZnS(const Instruction *instr) {
+  const char *form = "'Zd.h, 'Pgl/m, 'Zn.s";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdH_ZnH_ZmH_imm(const Instruction *instr) {
+  const char *form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdS_PgM_ZnD(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Pgl/m, 'Zn.d";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdS_PgM_ZnH(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Pgl/m, 'Zn.h";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdS_PgM_ZnS(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Pgl/m, 'Zn.s";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdS_ZnH_ZmH_imm(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.h, <Zm>.h[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdS_ZnS_ZmS(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.s, 'Zm.s";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdS_ZnS_ZmS_imm(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_PgM_ZnT(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Pgl/m, 'Zn.<T>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_PgZ_ZnT_ZmT(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Pgl/z, 'Zn.<T>, 'Zm.<T>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_Pg_Zn1T_Zn2T(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Pgl, { 'Zn.'t, 'Zn2.'t }";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_Zn1T_Zn2T_ZmT(const Instruction *instr) {
+  const char *form = "'Zd.'t, { 'Zn.'t, 'Zn2.'t }, 'Zm.'t";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_ZnT_ZmT(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_ZnT_ZmTb(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zn.'t, 'Zm";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_ZnT_const(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Zn.<T>, #<const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_ZnTb(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Zn";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zn, 'Zm";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdT_ZnTb_const(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Zn, #<const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaD_ZnD_ZmD_imm(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zn.d, <Zm>.d[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaD_ZnH_ZmH_imm_const(
+    const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zn.h, <Zm>.h[<imm>], <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zn.s, <Zm>.s[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm(const Instruction *instr) {
+  const char *form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm_const(
+    const Instruction *instr) {
+  const char *form = "'Zd.h, 'Zn.h, <Zm>.h[<imm>], <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaS_ZnB_ZmB_imm_const(
+    const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.b, <Zm>.b[<imm>], <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaS_ZnH_ZmH(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.h, 'Zm.h";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.h, <Zm>.h[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm_const(
+    const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.s, <Zm>.s[<imm>], <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaT_PgM_ZnTb(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Pgl/m, 'Zn";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaT_ZnT_ZmT(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Zn.<T>, 'Zm.<T>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaT_ZnT_ZmT_const(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t, <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaT_ZnT_const(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Zn.<T>, #<const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaT_ZnTb_ZmTb(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zn, 'Zm";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaT_ZnTb_ZmTb_const(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Zn, 'Zm, <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnB_ZdnB(const Instruction *instr) {
+  const char *form = "'Zd.b, 'Zd.b";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnB_ZdnB_ZmB(const Instruction *instr) {
+  const char *form = "'Zd.b, 'Zd.b, 'Zn.b";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zd.d, 'Zm.d, #'u0905";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnS_ZdnS_ZmS(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zd.s, 'Zn.s";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnT_PgM_ZdnT_const(const Instruction *instr) {
+  const char *form = "'Zd.<T>, 'Pgl/m, 'Zd.<T>, #<const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zd.'t, 'Zn.'t, <const>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm(const Instruction *instr) {
+  const char *form = "{ 'Zt.d }, 'Pgl/z, ['Zn.d{, 'Rm}]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZtD_Pg_ZnD_Xm(const Instruction *instr) {
+  const char *form = "{ 'Zt.d }, 'Pgl, ['Zn.d{, 'Rm}]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm(const Instruction *instr) {
+  const char *form = "{ 'Zt.s }, 'Pgl/z, ['Zn.s{, 'Rm}]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZtS_Pg_ZnS_Xm(const Instruction *instr) {
+  const char *form = "{ 'Zt.s }, 'Pgl, ['Zn.s{, 'Rm}]";
+  Format(instr, mnemonic_.c_str(), form);
 }
 
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {
@@ -9769,8 +10330,8 @@ std::pair<unsigned, unsigned> Disassembler::GetRegNumForField(
     case '2':
     case '3':
     case '4':
-      if ((reg_prefix == 'V') || (reg_prefix == 'Z')) {  // Vt2/3/4, Zt2/3/4
-        VIXL_ASSERT(field[0] == 't');
+      if ((reg_prefix == 'V') || (reg_prefix == 'Z')) {  // t2/3/4, n2/3/4
+        VIXL_ASSERT((field[0] == 't') || (field[0] == 'n'));
         reg_num = (reg_num + field[1] - '1') % 32;
         field_len++;
       } else {

@@ -67,8 +67,8 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 }
 
 
-Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ =
-    DEFAULT_FORM_TO_VISITOR_MAP(Simulator);
+Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
+    DEFAULT_FORM_TO_VISITOR_MAP(Simulator)};
 
 Simulator::Simulator(Decoder* decoder, FILE* stream)
     : movprfx_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {

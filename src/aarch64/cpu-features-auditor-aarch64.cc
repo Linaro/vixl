@@ -34,8 +34,8 @@
 namespace vixl {
 namespace aarch64 {
 
-CPUFeaturesAuditor::FormToVisitorFnMap CPUFeaturesAuditor::form_to_visitor_ =
-    DEFAULT_FORM_TO_VISITOR_MAP(CPUFeaturesAuditor);
+CPUFeaturesAuditor::FormToVisitorFnMap CPUFeaturesAuditor::form_to_visitor_ = {
+    DEFAULT_FORM_TO_VISITOR_MAP(CPUFeaturesAuditor)};
 
 // Every instruction must update last_instruction_, even if only to clear it,
 // and every instruction must also update seen_ once it has been fully handled.

@@ -120,6 +120,67 @@ class Disassembler : public DecoderVisitor {
       std::map<const std::string,
                const std::function<void(Disassembler*, const Instruction*)>>;
   static FormToVisitorFnMap form_to_visitor_;
+  std::string mnemonic_;
+
+  void SetMnemonicFromForm(const std::string& form) {
+    VIXL_ASSERT(form.find_first_of('_') != std::string::npos);
+    mnemonic_ = form.substr(0, form.find_first_of('_'));
+  }
+
+  void Disassemble_PdT_PgZ_ZnT_ZmT(const Instruction* instr);
+  void Disassemble_PdT_Rn_Rm(const Instruction* instr);
+  void Disassemble_PdT_Xn_Xm(const Instruction* instr);
+  void Disassemble_ZdB_Zn1B_Zn2B_imm(const Instruction* instr);
+  void Disassemble_ZdB_ZnB_ZmB(const Instruction* instr);
+  void Disassemble_ZdD_PgM_ZnS(const Instruction* instr);
+  void Disassemble_ZdD_ZnD_ZmD(const Instruction* instr);
+  void Disassemble_ZdD_ZnD_ZmD_imm(const Instruction* instr);
+  void Disassemble_ZdD_ZnS_ZmS_imm(const Instruction* instr);
+  void Disassemble_ZdH_PgM_ZnS(const Instruction* instr);
+  void Disassemble_ZdH_ZnH_ZmH_imm(const Instruction* instr);
+  void Disassemble_ZdS_PgM_ZnD(const Instruction* instr);
+  void Disassemble_ZdS_PgM_ZnH(const Instruction* instr);
+  void Disassemble_ZdS_PgM_ZnS(const Instruction* instr);
+  void Disassemble_ZdS_ZnH_ZmH_imm(const Instruction* instr);
+  void Disassemble_ZdS_ZnS_ZmS(const Instruction* instr);
+  void Disassemble_ZdS_ZnS_ZmS_imm(const Instruction* instr);
+  void Disassemble_ZdT_PgM_ZnT(const Instruction* instr);
+  void Disassemble_ZdT_PgZ_ZnT_ZmT(const Instruction* instr);
+  void Disassemble_ZdT_Pg_Zn1T_Zn2T(const Instruction* instr);
+  void Disassemble_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr);
+  void Disassemble_ZdT_ZnT_ZmT(const Instruction* instr);
+  void Disassemble_ZdT_ZnT_ZmTb(const Instruction* instr);
+  void Disassemble_ZdT_ZnT_const(const Instruction* instr);
+  void Disassemble_ZdT_ZnTb(const Instruction* instr);
+  void Disassemble_ZdT_ZnTb_ZmTb(const Instruction* instr);
+  void Disassemble_ZdT_ZnTb_const(const Instruction* instr);
+  void Disassemble_ZdaD_ZnD_ZmD_imm(const Instruction* instr);
+  void Disassemble_ZdaD_ZnH_ZmH_imm_const(const Instruction* instr);
+  void Disassemble_ZdaD_ZnS_ZmS_imm(const Instruction* instr);
+  void Disassemble_ZdaH_ZnH_ZmH_imm(const Instruction* instr);
+  void Disassemble_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr);
+  void Disassemble_ZdaS_ZnB_ZmB_imm_const(const Instruction* instr);
+  void Disassemble_ZdaS_ZnH_ZmH(const Instruction* instr);
+  void Disassemble_ZdaS_ZnH_ZmH_imm(const Instruction* instr);
+  void Disassemble_ZdaS_ZnS_ZmS_imm(const Instruction* instr);
+  void Disassemble_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr);
+  void Disassemble_ZdaT_PgM_ZnTb(const Instruction* instr);
+  void Disassemble_ZdaT_ZnT_ZmT(const Instruction* instr);
+  void Disassemble_ZdaT_ZnT_ZmT_const(const Instruction* instr);
+  void Disassemble_ZdaT_ZnT_const(const Instruction* instr);
+  void Disassemble_ZdaT_ZnTb_ZmTb(const Instruction* instr);
+  void Disassemble_ZdaT_ZnTb_ZmTb_const(const Instruction* instr);
+  void Disassemble_ZdnB_ZdnB(const Instruction* instr);
+  void Disassemble_ZdnB_ZdnB_ZmB(const Instruction* instr);
+  void Disassemble_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr);
+  void Disassemble_ZdnS_ZdnS_ZmS(const Instruction* instr);
+  void Disassemble_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr);
+  void Disassemble_ZdnT_PgM_ZdnT_const(const Instruction* instr);
+  void Disassemble_ZdnT_ZdnT_ZmT_const(const Instruction* instr);
+  void Disassemble_ZtD_PgZ_ZnD_Xm(const Instruction* instr);
+  void Disassemble_ZtD_Pg_ZnD_Xm(const Instruction* instr);
+  void Disassemble_ZtS_PgZ_ZnS_Xm(const Instruction* instr);
+  void Disassemble_ZtS_Pg_ZnS_Xm(const Instruction* instr);
 
   void Format(const Instruction* instr,
               const char* mnemonic,
