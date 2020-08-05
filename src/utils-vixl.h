@@ -1395,6 +1395,23 @@ T RawbitsWithSizeToFP(unsigned size_in_bits, uint64_t value) {
   return 0;
 }
 
+// Jenkins one-at-a-time hash, based on
+// https://en.wikipedia.org/wiki/Jenkins_hash_function citing
+// https://www.drdobbs.com/database/algorithm-alley/184410284.
+constexpr uint32_t Hash(const char* str, uint32_t hash = 0) {
+  if (*str == '\0') {
+    hash += hash << 3;
+    hash ^= hash >> 11;
+    hash += hash << 15;
+    return hash;
+  } else {
+    hash += *str;
+    hash += hash << 10;
+    hash ^= hash >> 6;
+    return Hash(str + 1, hash);
+  }
+}
+
 }  // namespace vixl
 
 #endif  // VIXL_UTILS_H

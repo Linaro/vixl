@@ -1151,6 +1151,7 @@ class Simulator : public DecoderVisitor {
   virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
   VISITOR_LIST_THAT_RETURN(DECLARE)
 #undef DECLARE
+
   virtual void Visit(Metadata* metadata,
                      const Instruction* instr) VIXL_OVERRIDE;
 
@@ -1159,6 +1160,55 @@ class Simulator : public DecoderVisitor {
   VISITOR_LIST_THAT_DONT_RETURN(DECLARE)
 #undef DECLARE
 
+  void Simulate_PdT_PgZ_ZnT_ZmT(const Instruction* instr);
+  void Simulate_PdT_Rn_Rm(const Instruction* instr);
+  void Simulate_PdT_Xn_Xm(const Instruction* instr);
+  void Simulate_ZdB_Zn1B_Zn2B_imm(const Instruction* instr);
+  void Simulate_ZdB_ZnB_ZmB(const Instruction* instr);
+  void Simulate_ZdD_PgM_ZnS(const Instruction* instr);
+  void Simulate_ZdD_ZnD_ZmD_imm(const Instruction* instr);
+  void Simulate_ZdD_ZnS_ZmS_imm(const Instruction* instr);
+  void Simulate_ZdH_PgM_ZnS(const Instruction* instr);
+  void Simulate_ZdH_ZnH_ZmH_imm(const Instruction* instr);
+  void Simulate_ZdS_PgM_ZnD(const Instruction* instr);
+  void Simulate_ZdS_PgM_ZnH(const Instruction* instr);
+  void Simulate_ZdS_PgM_ZnS(const Instruction* instr);
+  void Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr);
+  void Simulate_ZdS_ZnS_ZmS_imm(const Instruction* instr);
+  void Simulate_ZdT_PgM_ZnT(const Instruction* instr);
+  void Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr);
+  void Simulate_ZdT_Pg_Zn1T_Zn2T(const Instruction* instr);
+  void Simulate_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr);
+  void Simulate_ZdT_ZnT_ZmT(const Instruction* instr);
+  void Simulate_ZdT_ZnT_ZmTb(const Instruction* instr);
+  void Simulate_ZdT_ZnT_const(const Instruction* instr);
+  void Simulate_ZdT_ZnTb(const Instruction* instr);
+  void Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr);
+  void Simulate_ZdT_ZnTb_const(const Instruction* instr);
+  void Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr);
+  void Simulate_ZdaD_ZnH_ZmH_imm_const(const Instruction* instr);
+  void Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr);
+  void Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr);
+  void Simulate_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr);
+  void Simulate_ZdaS_ZnB_ZmB_imm_const(const Instruction* instr);
+  void Simulate_ZdaS_ZnH_ZmH(const Instruction* instr);
+  void Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr);
+  void Simulate_ZdaS_ZnS_ZmS_imm(const Instruction* instr);
+  void Simulate_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr);
+  void Simulate_ZdaT_PgM_ZnTb(const Instruction* instr);
+  void Simulate_ZdaT_ZnT_ZmT(const Instruction* instr);
+  void Simulate_ZdaT_ZnT_ZmT_const(const Instruction* instr);
+  void Simulate_ZdaT_ZnT_const(const Instruction* instr);
+  void Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr);
+  void Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr);
+  void Simulate_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr);
+  void Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr);
+  void Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr);
+  void Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr);
+  void Simulate_ZtD_PgZ_ZnD_Xm(const Instruction* instr);
+  void Simulate_ZtD_Pg_ZnD_Xm(const Instruction* instr);
+  void Simulate_ZtS_PgZ_ZnS_Xm(const Instruction* instr);
+  void Simulate_ZtS_Pg_ZnS_Xm(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -4546,6 +4596,7 @@ class Simulator : public DecoderVisitor {
       std::map<const std::string,
                const std::function<void(Simulator*, const Instruction*)>>;
   static FormToVisitorFnMap form_to_visitor_;
+  uint32_t form_hash_;
 
   static const PACKey kPACKeyIA;
   static const PACKey kPACKeyIB;

@@ -68,7 +68,288 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 
 
 Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
-    DEFAULT_FORM_TO_VISITOR_MAP(Simulator)};
+    DEFAULT_FORM_TO_VISITOR_MAP(Simulator),
+    {"adclb_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"adclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"addhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"addhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"addp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"bcax_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"bdep_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"bext_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"bgrp_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"bsl1n_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"bsl2n_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"bsl_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"cadd_z_zz", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
+    {"cdot_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb_const},
+    {"cdot_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnH_ZmH_imm_const},
+    {"cdot_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnB_ZmB_imm_const},
+    {"cmla_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
+    {"cmla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
+    {"cmla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
+    {"eor3_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"eorbt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"eortb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"ext_z_zi_con", &Simulator::Simulate_ZdB_Zn1B_Zn2B_imm},
+    {"faddp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"fcvtlt_z_p_z_h2s", &Simulator::Simulate_ZdS_PgM_ZnH},
+    {"fcvtlt_z_p_z_s2d", &Simulator::Simulate_ZdD_PgM_ZnS},
+    {"fcvtnt_z_p_z_d2s", &Simulator::Simulate_ZdS_PgM_ZnD},
+    {"fcvtnt_z_p_z_s2h", &Simulator::Simulate_ZdH_PgM_ZnS},
+    {"fcvtx_z_p_z_d2s", &Simulator::Simulate_ZdS_PgM_ZnD},
+    {"fcvtxnt_z_p_z_d2s", &Simulator::Simulate_ZdS_PgM_ZnD},
+    {"flogb_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
+    {"fmaxnmp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"fmaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"fminnmp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"fminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"fmlalb_z_zzz", &Simulator::Simulate_ZdaS_ZnH_ZmH},
+    {"fmlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"fmlalt_z_zzz", &Simulator::Simulate_ZdaS_ZnH_ZmH},
+    {"fmlalt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"fmlslb_z_zzz", &Simulator::Simulate_ZdaS_ZnH_ZmH},
+    {"fmlslb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"fmlslt_z_zzz", &Simulator::Simulate_ZdaS_ZnH_ZmH},
+    {"fmlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"histcnt_z_p_zz", &Simulator::Simulate_ZdT_PgZ_ZnT_ZmT},
+    {"histseg_z_zz", &Simulator::Simulate_ZdB_ZnB_ZmB},
+    {"ldnt1b_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1b_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1d_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1h_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1h_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1sb_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1sb_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1sh_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1sh_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_PgZ_ZnS_Xm},
+    {"ldnt1sw_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1w_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
+    {"ldnt1w_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_PgZ_ZnS_Xm},
+    {"match_p_p_zz", &Simulator::Simulate_PdT_PgZ_ZnT_ZmT},
+    {"mla_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
+    {"mla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
+    {"mla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
+    {"mls_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
+    {"mls_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
+    {"mls_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
+    {"mul_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"mul_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
+    {"mul_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
+    {"mul_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
+    {"nbsl_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"nmatch_p_p_zz", &Simulator::Simulate_PdT_PgZ_ZnT_ZmT},
+    {"pmul_z_zz", &Simulator::Simulate_ZdB_ZnB_ZmB},
+    {"pmullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"pmullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"raddhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"raddhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"rshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"rshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"rsubhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"rsubhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"saba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"sabalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sabalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sabdlb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"sabdlt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"sadalp_z_p_z", &Simulator::Simulate_ZdaT_PgM_ZnTb},
+    {"saddlb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"saddlbt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"saddlt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"saddwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"saddwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"sbclb_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"sbclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"shadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"shrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"shrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"shsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"shsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sli_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
+    {"smaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"smlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"smlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"smlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"smlalt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"smlalt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlslb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"smlslb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"smlslb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlslt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"smlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"smlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"smullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"smullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"smullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"smullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"smullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"smullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"splice_z_p_zz_con", &Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T},
+    {"sqabs_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
+    {"sqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqcadd_z_zz", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
+    {"sqdmlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sqdmlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"sqdmlalbt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sqdmlalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sqdmlalt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlalt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"sqdmlslb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sqdmlslb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlslb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"sqdmlslbt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sqdmlslt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sqdmlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"sqdmlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"sqdmulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"sqdmulh_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
+    {"sqdmulh_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
+    {"sqdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
+    {"sqdmullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"sqdmullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"sqdmullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"sqdmullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"sqdmullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"sqdmullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"sqneg_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
+    {"sqrdcmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
+    {"sqrdcmlah_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
+    {"sqrdcmlah_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
+    {"sqrdmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"sqrdmlah_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
+    {"sqrdmlah_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
+    {"sqrdmlah_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
+    {"sqrdmlsh_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"sqrdmlsh_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
+    {"sqrdmlsh_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
+    {"sqrdmlsh_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
+    {"sqrdmulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"sqrdmulh_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
+    {"sqrdmulh_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
+    {"sqrdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
+    {"sqrshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqrshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqrshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqrshrunb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqrshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqshl_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
+    {"sqshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqshlu_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
+    {"sqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqshrunb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"sqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"sqxtunb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"sqxtunt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"srhadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sri_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
+    {"srshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"srshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"srshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
+    {"srsra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
+    {"sshllb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sshllt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"ssra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
+    {"ssublb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"ssublbt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"ssublt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"ssubltb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"ssubwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"ssubwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"stnt1b_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_Pg_ZnD_Xm},
+    {"stnt1b_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_Pg_ZnS_Xm},
+    {"stnt1d_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_Pg_ZnD_Xm},
+    {"stnt1h_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_Pg_ZnD_Xm},
+    {"stnt1h_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_Pg_ZnS_Xm},
+    {"stnt1w_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_Pg_ZnD_Xm},
+    {"stnt1w_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_Pg_ZnS_Xm},
+    {"subhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"subhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"suqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"tbl_z_zz_2", &Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT},
+    {"tbx_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"uaba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"uabalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"uabalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"uabdlb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"uabdlt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"uadalp_z_p_z", &Simulator::Simulate_ZdaT_PgM_ZnTb},
+    {"uaddlb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"uaddlt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"uaddwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"uaddwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"uhadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uhsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uhsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"umaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"umlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"umlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"umlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"umlalt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"umlalt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlslb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"umlslb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"umlslb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlslt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"umlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
+    {"umlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"umullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"umullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"umullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"umullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"umullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"umullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"uqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"uqrshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"uqshl_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
+    {"uqshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"uqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"uqsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"uqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"urecpe_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
+    {"urhadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"urshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"urshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"urshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
+    {"ursqrte_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
+    {"ursra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
+    {"ushllb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"ushllt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"usqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"usra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
+    {"usublb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"usublt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"usubwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"usubwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
+    {"whilege_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
+    {"whilegt_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
+    {"whilehi_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
+    {"whilehs_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
+    {"whilerw_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
+    {"whilewr_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
+    {"xar_z_zzi", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
+};
 
 Simulator::Simulator(Decoder* decoder, FILE* stream)
     : movprfx_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {
@@ -1583,11 +1864,1492 @@ void Simulator::PrintTakenBranch(const Instruction* target) {
 
 void Simulator::Visit(Metadata* metadata, const Instruction* instr) {
   VIXL_ASSERT(metadata->count("form") > 0);
-  const std::string& form = (*metadata)["form"];
+  std::string form = (*metadata)["form"];
   if ((form_to_visitor_.count(form) > 0) && form_to_visitor_[form]) {
+    form_hash_ = Hash(form.c_str());
     form_to_visitor_[form](this, instr);
   } else {
     VisitUnimplemented(instr);
+  }
+}
+
+void Simulator::Simulate_PdT_PgZ_ZnT_ZmT(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  USE(pd);
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("match_p_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("nmatch_p_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_PdT_Rn_Rm(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  USE(pd);
+
+  switch (form_hash_) {
+    case Hash("whilege_p_p_rr"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("whilegt_p_p_rr"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("whilehi_p_p_rr"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("whilehs_p_p_rr"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_PdT_Xn_Xm(const Instruction* instr) {
+  SimPRegister& pd = ReadPRegister(instr->GetPd());
+  USE(pd);
+
+  switch (form_hash_) {
+    case Hash("whilerw_p_rr"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("whilewr_p_rr"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdB_Zn1B_Zn2B_imm(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn1 = ReadVRegister(instr->GetRn());
+  USE(zn1);
+
+  switch (form_hash_) {
+    case Hash("ext_z_zi_con"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdB_ZnB_ZmB(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("histseg_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("pmul_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdD_PgM_ZnS(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("fcvtlt_z_p_z_s2d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdD_ZnD_ZmD_imm(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("mul_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmulh_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmulh_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdD_ZnS_ZmS_imm(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("smullb_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smullt_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullb_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullt_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullb_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullt_z_zzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdH_PgM_ZnS(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("fcvtnt_z_p_z_s2h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdH_ZnH_ZmH_imm(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("mul_z_zzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmulh_z_zzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmulh_z_zzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdS_PgM_ZnD(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("fcvtnt_z_p_z_d2s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fcvtx_z_p_z_d2s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fcvtxnt_z_p_z_d2s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdS_PgM_ZnH(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("fcvtlt_z_p_z_h2s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdS_PgM_ZnS(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("urecpe_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ursqrte_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("smullb_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smullt_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullb_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullt_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullb_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullt_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdS_ZnS_ZmS_imm(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("mul_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmulh_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmulh_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_PgM_ZnT(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("flogb_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqabs_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqneg_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("histcnt_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn1 = ReadVRegister(instr->GetRn());
+  USE(zn1);
+
+  switch (form_hash_) {
+    case Hash("splice_z_p_zz_con"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn1 = ReadVRegister(instr->GetRn());
+  USE(zn1);
+
+  switch (form_hash_) {
+    case Hash("tbl_z_zz_2"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("bdep_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("bext_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("bgrp_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("eorbt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("eortb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("mul_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smulh_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmulh_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmulh_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("tbx_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umulh_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_ZnT_ZmTb(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("saddwb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("saddwt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssubwb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssubwt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uaddwb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uaddwt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("usubwb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("usubwt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_ZnT_const(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("sli_z_zzi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sri_z_zzi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_ZnTb(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("sqxtnb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqxtnt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqxtunb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqxtunt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqxtnb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqxtnt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("addhnb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("addhnt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("pmullb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("pmullt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("raddhnb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("raddhnt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("rsubhnb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("rsubhnt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sabdlb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sabdlt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("saddlb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("saddlbt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("saddlt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smullb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smullt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssublb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssublbt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssublt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssubltb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("subhnb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("subhnt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uabdlb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uabdlt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uaddlb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uaddlt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("usublb_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("usublt_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdT_ZnTb_const(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  USE(zd);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("rshrnb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("rshrnt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("shrnb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("shrnt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrshrnb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrshrnt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrshrunb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrshrunt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshrnb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshrnt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshrunb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshrunt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sshllb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sshllt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqrshrnb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqrshrnt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqshrnb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqshrnt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ushllb_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ushllt_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("mla_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("mls_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlah_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlsh_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaD_ZnH_ZmH_imm_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("cdot_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("smlalb_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlalt_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlslb_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlslt_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalb_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalt_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslb_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslt_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlalb_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlalt_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlslb_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlslt_z_zzzi_d"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("mla_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("mls_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlah_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlsh_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("cmla_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdcmlah_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaS_ZnB_ZmB_imm_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("cdot_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaS_ZnH_ZmH(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("fmlalb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmlalt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmlslb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmlslt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("fmlalb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmlalt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmlslb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmlslt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlalb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlalt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlslb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlslt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlalb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlalt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlslb_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlslt_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaS_ZnS_ZmS_imm(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("mla_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("mls_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlah_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlsh_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("cmla_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdcmlah_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaT_PgM_ZnTb(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("sadalp_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uadalp_z_p_z"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("adclb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("adclt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("saba_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sbclb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sbclt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlah_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdmlsh_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uaba_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaT_ZnT_ZmT_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("cmla_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrdcmlah_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaT_ZnT_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("srsra_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ssra_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ursra_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("usra_z_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("sabalb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sabalt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlalb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlalt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlslb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlslt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalbt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlalt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslbt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmlslt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uabalb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uabalt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlalb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlalt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlslb_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umlslt_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr) {
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  USE(zda);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+
+  switch (form_hash_) {
+    case Hash("cdot_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr) {
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  USE(zdn);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  USE(zm);
+
+  switch (form_hash_) {
+    case Hash("bcax_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("bsl1n_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("bsl2n_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("bsl_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("eor3_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("nbsl_z_zzz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  USE(zdn);
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  USE(zm);
+
+  switch (form_hash_) {
+    case Hash("addp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("faddp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmaxnmp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fmaxp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fminnmp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("fminp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("shadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("shsub_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("shsubr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smaxp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sminp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrshl_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqrshlr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshl_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshlr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqsub_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqsubr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("srhadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("srshl_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("srshlr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("suqadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uhadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uhsub_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uhsubr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umaxp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uminp_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqrshl_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqrshlr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqshl_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqshlr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqsub_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqsubr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("urhadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("urshl_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("urshlr_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("usqadd_z_p_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  USE(zdn);
+
+  switch (form_hash_) {
+    case Hash("sqshl_z_p_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqshlu_z_p_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("srshr_z_p_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("uqshl_z_p_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("urshr_z_p_zi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr) {
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  USE(zdn);
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  USE(zm);
+
+  switch (form_hash_) {
+    case Hash("cadd_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqcadd_z_zz"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("xar_z_zzi"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZtD_PgZ_ZnD_Xm(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  USE(zt);
+
+  switch (form_hash_) {
+    case Hash("ldnt1b_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1d_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1h_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1sb_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1sh_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1sw_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1w_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZtD_Pg_ZnD_Xm(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  USE(zt);
+
+  switch (form_hash_) {
+    case Hash("stnt1b_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("stnt1d_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("stnt1h_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("stnt1w_z_p_ar_d_64_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZtS_PgZ_ZnS_Xm(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  USE(zt);
+
+  switch (form_hash_) {
+    case Hash("ldnt1b_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1h_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1sb_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1sh_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("ldnt1w_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_ZtS_Pg_ZnS_Xm(const Instruction* instr) {
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  USE(pg);
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  USE(zn);
+  SimVRegister& zt = ReadVRegister(instr->GetRt());
+  USE(zt);
+
+  switch (form_hash_) {
+    case Hash("stnt1b_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("stnt1h_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("stnt1w_z_p_ar_s_x32_unscaled"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
   }
 }
 
