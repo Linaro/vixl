@@ -79,7 +79,7 @@ Test* MakeSVETest(int vl, const char* name, Test::TestFunctionWithConfig* fn) {
 static const int kSVEVectorLengthInBits =
     CPUFeatures::InferFromOS().Has(CPUFeatures::kSVE)
         ? CPU::ReadSVEVectorLengthInBits()
-        : 0;
+        : kZRegMinSize;
 
 #define TEST_SVE(name)                                                     \
   void Test##name(Test* config);                                           \
