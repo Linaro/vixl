@@ -5996,6 +5996,11 @@ void Disassembler::VisitSVEBroadcastIntImm_Unpredicated(
 
   switch (instr->Mask(SVEBroadcastIntImm_UnpredicatedMask)) {
     case DUP_z_i:
+      // The encoding of byte-sized lanes with lsl #8 is undefined.
+      if ((instr->GetSVEVectorFormat() == kFormatVnB) &&
+          (instr->ExtractBit(13) == 1))
+        break;
+
       // The preferred disassembly for dup is "mov".
       mnemonic = "mov";
       form = (instr->ExtractBit(13) == 0) ? "'Zd.'t, #'s1205"
