@@ -3615,6 +3615,7 @@ void Assembler::dup(const ZRegister& zd, int imm8, int shift) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
 
   ResolveSVEImm8Shift(&imm8, &shift);
+  VIXL_ASSERT((shift < 8) || !zd.IsLaneSizeB());
 
   Instr shift_bit = (shift > 0) ? (1 << 13) : 0;
   Emit(DUP_z_i | SVESize(zd) | Rd(zd) | shift_bit | ImmField<12, 5>(imm8));

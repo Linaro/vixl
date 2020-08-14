@@ -39,7 +39,8 @@ class Test {
   // Most tests require no per-test configuration, and so take no arguments. A
   // few tests require dynamic configuration, and are passed a `Test` object.
   template <typename Fn>
-  Test(const char* name, Fn* callback) : name_(name), sve_vl_(0), next_(NULL) {
+  Test(const char* name, Fn* callback)
+      : name_(name), sve_vl_(aarch64::kZRegMinSize), next_(NULL) {
     set_callback(callback);
     // Append this test to the linked list.
     if (first_ == NULL) {
@@ -58,7 +59,7 @@ class Test {
   // hardware feature detection (in the test itself) or Simulator configuration.
   int sve_vl_in_bits() const { return sve_vl_; }
   void set_sve_vl_in_bits(unsigned sve_vl) {
-    // Note that we allow `set_sve_vl_in_bits(0)` here when SVE is not used.
+    VIXL_ASSERT(sve_vl >= aarch64::kZRegMinSize);
     VIXL_ASSERT(sve_vl <= aarch64::kZRegMaxSize);
     VIXL_ASSERT((sve_vl % aarch64::kZRegMinSize) == 0);
     sve_vl_ = sve_vl;

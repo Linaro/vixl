@@ -9474,12 +9474,19 @@ void Simulator::VisitSVEIntAddSubtractImm_Unpredicated(
 void Simulator::VisitSVEBroadcastIntImm_Unpredicated(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
 
+  VectorFormat format = instr->GetSVEVectorFormat();
   int64_t imm = instr->GetImmSVEIntWideSigned();
-  imm <<= instr->ExtractBit(13) * 8;
+  int shift = instr->ExtractBit(13) * 8;
+  imm *= 1 << shift;
 
   switch (instr->Mask(SVEBroadcastIntImm_UnpredicatedMask)) {
     case DUP_z_i:
-      dup_immediate(instr->GetSVEVectorFormat(), zd, imm);
+      // The encoding of byte-sized lanes with lsl #8 is undefined.
+      if ((format == kFormatVnB) && (shift == 8)) {
+        VIXL_UNIMPLEMENTED();
+      } else {
+        dup_immediate(format, zd, imm);
+      }
       break;
     default:
       VIXL_UNIMPLEMENTED();
