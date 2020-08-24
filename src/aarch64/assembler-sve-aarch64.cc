@@ -7111,8 +7111,10 @@ void Assembler::match(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Zm<20:16> | Pg<12:10> | Zn<9:5> | op<4> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn, zm));
+  VIXL_ASSERT(zm.IsLaneSizeB() || zm.IsLaneSizeH());
 
-  Emit(0x45208000 | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
+  Emit(0x45208000 | SVESize(zm) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 // This prototype maps to 3 instruction encodings:
@@ -7194,8 +7196,10 @@ void Assembler::nmatch(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Zm<20:16> | Pg<12:10> | Zn<9:5> | op<4> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(pd, zn, zm));
+  VIXL_ASSERT(zm.IsLaneSizeB() || zm.IsLaneSizeH());
 
-  Emit(0x45208010 | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
+  Emit(0x45208010 | SVESize(zm) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::pmul(const ZRegister& zd,

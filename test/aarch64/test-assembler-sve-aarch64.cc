@@ -18714,5 +18714,60 @@ TEST_SVE(sve_prefetch_offset) {
   }
 }
 
+TEST_SVE(sve2_match_nmatch) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+
+  START();
+
+  __ Ptrue(p0.VnB());
+  __ Ptrue(p1.VnH());
+  __ Ptrue(p2.VnS());
+
+  // Vector to search is bytes 0 - 7, repeating every eight bytes.
+  __ Index(z0.VnB(), 0, 1);
+  __ Dup(z0.VnD(), z0.VnD(), 0);
+
+  // Elements to find are (repeated) bytes 0 - 3 in the first segment, 4 - 7
+  // in the second, 8 - 11 in the third, etc.
+  __ Index(z1.VnB(), 0, 1);
+  __ Lsr(z1.VnB(), z1.VnB(), 2);
+
+  __ Match(p3.VnB(), p0.Zeroing(), z0.VnB(), z1.VnB());
+  __ Match(p4.VnB(), p1.Zeroing(), z0.VnB(), z1.VnB());
+  __ Nmatch(p0.VnB(), p0.Zeroing(), z0.VnB(), z1.VnB());
+
+  __ Uunpklo(z0.VnH(), z0.VnB());
+  __ Uunpklo(z1.VnH(), z1.VnB());
+
+  __ Match(p5.VnH(), p1.Zeroing(), z0.VnH(), z1.VnH());
+  __ Match(p6.VnH(), p2.Zeroing(), z0.VnH(), z1.VnH());
+  __ Nmatch(p1.VnH(), p1.Zeroing(), z0.VnH(), z1.VnH());
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    int p3_exp[] = {1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+                    0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p3_exp, p3.VnB());
+    int p4_exp[] = {0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1};
+    ASSERT_EQUAL_SVE(p4_exp, p4.VnB());
+    int p0_exp[] = {0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1,
+                    1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p0_exp, p0.VnB());
+
+    int p5_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1};
+    ASSERT_EQUAL_SVE(p5_exp, p5.VnB());
+    int p6_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+    ASSERT_EQUAL_SVE(p6_exp, p6.VnB());
+    int p1_exp[] = {0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1,
+                    0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0};
+    ASSERT_EQUAL_SVE(p1_exp, p1.VnB());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

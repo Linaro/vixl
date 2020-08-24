@@ -7364,8 +7364,37 @@ int Simulator::GetPredicateConstraintLaneCount(VectorFormat vform,
     case SVE_ALL:
       return all;
   }
-  // Unnamed cases archicturally return 0.
+  // Unnamed cases architecturally return 0.
   return 0;
+}
+
+LogicPRegister Simulator::match(VectorFormat vform,
+                                LogicPRegister dst,
+                                const LogicVRegister& haystack,
+                                const LogicVRegister& needles,
+                                bool negate_match) {
+  SimVRegister ztemp;
+  SimPRegister ptemp;
+
+  pfalse(dst);
+  int lanes_per_segment = kQRegSize / LaneSizeInBitsFromFormat(vform);
+  for (int i = 0; i < lanes_per_segment; i++) {
+    dup_elements_to_segments(vform, ztemp, needles, i);
+    SVEIntCompareVectorsHelper(eq,
+                               vform,
+                               ptemp,
+                               GetPTrue(),
+                               haystack,
+                               ztemp,
+                               false,
+                               LeaveFlags);
+    SVEPredicateLogicalHelper(ORR_p_p_pp_z, dst, dst, ptemp);
+  }
+  if (negate_match) {
+    ptrue(vform, ptemp, SVE_ALL);
+    SVEPredicateLogicalHelper(EOR_p_p_pp_z, dst, dst, ptemp);
+  }
+  return dst;
 }
 
 uint64_t LogicSVEAddressVector::GetStructAddress(int lane) const {

@@ -9870,8 +9870,14 @@ void Disassembler::Visit(Metadata *metadata, const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT(const Instruction *instr) {
-  const char *form = "'Pd.<T>, 'Pgl/z, 'Zn.<T>, 'Zm.<T>";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Pd.'t, 'Pgl/z, 'Zn.'t, 'Zm.'t";
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  if ((vform == kFormatVnS) || (vform == kFormatVnD)) {
+    Format(instr, "unimplemented", "(PdT_PgZ_ZnT_ZmT)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
 }
 
 void Disassembler::Disassemble_PdT_Rn_Rm(const Instruction *instr) {

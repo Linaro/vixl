@@ -6475,6 +6475,21 @@ TEST(sve_write_ffr) {
   CLEANUP();
 }
 
+TEST(sve2_match_nmatch) {
+  SETUP();
+
+  COMPARE_PREFIX(match(p15.VnB(), p1.Zeroing(), z18.VnB(), z5.VnB()),
+                 "match p15.b, p1/z, z18.b, z5.b");
+  COMPARE_PREFIX(match(p15.VnH(), p1.Zeroing(), z18.VnH(), z5.VnH()),
+                 "match p15.h, p1/z, z18.h, z5.h");
+  COMPARE_PREFIX(nmatch(p1.VnB(), p1.Zeroing(), z20.VnB(), z17.VnB()),
+                 "nmatch p1.b, p1/z, z20.b, z17.b");
+  COMPARE_PREFIX(nmatch(p1.VnH(), p1.Zeroing(), z20.VnH(), z17.VnH()),
+                 "nmatch p1.h, p1/z, z20.h, z17.h");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -6669,8 +6684,6 @@ TEST(sve2_all_instructions) {
   // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
   // COMPARE_PREFIX(ldnt1w(z18.VnS(), p5.Zeroing(), z9.VnS(), x17), "ldnt1w {
   // <Zt>.S }, <Pg>/Z, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(match(p15.Vn?(), p1.Zeroing(), z18.Vn?(), z5.Vn?()), "match
-  // <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.<T>");
   // COMPARE_PREFIX(mla(z1.VnH(), z9.VnH()), "mla z1.d, z9.d, <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mla(z10.VnS(), z22.VnS()), "mla z10.d, z22.d,
   // <Zm>.d[<imm>]");
@@ -6696,8 +6709,6 @@ TEST(sve2_all_instructions) {
   // z18.s");
   // COMPARE_PREFIX(nbsl(z17.VnD(), z17.VnD(), z21.VnD(), int Zk.VnD()), "nbsl
   // <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D");
-  // COMPARE_PREFIX(nmatch(p1.Vn?(), p1.Zeroing(), z20.Vn?(), z17.Vn?()),
-  // "nmatch <Pd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.<T>");
   // COMPARE_PREFIX(pmul(z0.VnB(), z5.VnB(), z5.VnB()), "pmul z0.b, z5.b,
   // z5.b");
   // COMPARE_PREFIX(pmullb(z12.Vn?(), z21, z12), "pmullb <Zd>.<T>, <Zn>.<Tb>,

@@ -1874,25 +1874,24 @@ void Simulator::Visit(Metadata* metadata, const Instruction* instr) {
 }
 
 void Simulator::Simulate_PdT_PgZ_ZnT_ZmT(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pd = ReadPRegister(instr->GetPd());
-  USE(pd);
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
 
   switch (form_hash_) {
     case Hash("match_p_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      match(vform, pd, zn, zm, /* negate_match = */ false);
       break;
     case Hash("nmatch_p_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      match(vform, pd, zn, zm, /* negate_match = */ true);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_zeroing(pd, pg, pd);
+  PredTest(vform, pg, pd);
 }
 
 void Simulator::Simulate_PdT_Rn_Rm(const Instruction* instr) {

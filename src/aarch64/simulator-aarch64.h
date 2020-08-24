@@ -3372,6 +3372,11 @@ class Simulator : public DecoderVisitor {
                                   const LogicPRegister& pg,
                                   const LogicVRegister& src2,
                                   int offset_from_last_active);
+  LogicPRegister match(VectorFormat vform,
+                       LogicPRegister dst,
+                       const LogicVRegister& haystack,
+                       const LogicVRegister& needles,
+                       bool negate_match);
   LogicVRegister compact(VectorFormat vform,
                          LogicVRegister dst,
                          const LogicPRegister& pg,
