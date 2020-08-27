@@ -32,9 +32,12 @@
 
 namespace vixl {
 
-// Each actual test is represented by a Test instance.
+// Each test is represented by a Test instance.
 // Tests are appended to a static linked list upon creation.
 class Test {
+  typedef void(TestFunction)();
+  typedef void(TestFunctionWithConfig)(Test* config);
+
  public:
   // Most tests require no per-test configuration, and so take no arguments. A
   // few tests require dynamic configuration, and are passed a `Test` object.
@@ -50,6 +53,17 @@ class Test {
       last_->next_ = this;
     }
     last_ = this;
+  }
+
+  static Test* MakeSVETest(int vl,
+                           const char* name,
+                           TestFunctionWithConfig* fn) {
+    // We never free this memory, but we need it to live for as long as the
+    // static
+    // linked list of tests, and this is the easiest way to do it.
+    Test* test = new Test(name, fn);
+    test->set_sve_vl_in_bits(vl);
+    return test;
   }
 
   const char* name() { return name_; }
@@ -97,9 +111,6 @@ class Test {
   static void set_generate_test_trace(bool value) {
     generate_test_trace_ = value;
   }
-
-  typedef void(TestFunction)();
-  typedef void(TestFunctionWithConfig)(Test* config);
 
  private:
   const char* name_;

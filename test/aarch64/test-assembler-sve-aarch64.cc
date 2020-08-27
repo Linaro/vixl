@@ -44,55 +44,10 @@
 #include "aarch64/simulator-aarch64.h"
 #include "test-assembler-aarch64.h"
 
+#define TEST_SVE(name) TEST_SVE_INNER("ASM", name)
+
 namespace vixl {
 namespace aarch64 {
-
-Test* MakeSVETest(int vl, const char* name, Test::TestFunctionWithConfig* fn) {
-  // We never free this memory, but we need it to live for as long as the static
-  // linked list of tests, and this is the easiest way to do it.
-  Test* test = new Test(name, fn);
-  test->set_sve_vl_in_bits(vl);
-  return test;
-}
-
-// The TEST_SVE macro works just like the usual TEST macro, but the resulting
-// function receives a `const Test& config` argument, to allow it to query the
-// vector length.
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-// On the Simulator, run SVE tests with several vector lengths, including the
-// extreme values and an intermediate value that isn't a power of two.
-
-#define TEST_SVE(name)                                                  \
-  void Test##name(Test* config);                                        \
-  Test* test_##name##_list[] =                                          \
-      {MakeSVETest(128, "AARCH64_ASM_" #name "_vl128", &Test##name),    \
-       MakeSVETest(384, "AARCH64_ASM_" #name "_vl384", &Test##name),    \
-       MakeSVETest(2048, "AARCH64_ASM_" #name "_vl2048", &Test##name)}; \
-  void Test##name(Test* config)
-
-#define SVE_SETUP_WITH_FEATURES(...) \
-  SETUP_WITH_FEATURES(__VA_ARGS__);  \
-  simulator.SetVectorLengthInBits(config->sve_vl_in_bits())
-
-#else
-// Otherwise, just use whatever the hardware provides.
-static const int kSVEVectorLengthInBits =
-    CPUFeatures::InferFromOS().Has(CPUFeatures::kSVE)
-        ? CPU::ReadSVEVectorLengthInBits()
-        : kZRegMinSize;
-
-#define TEST_SVE(name)                                                     \
-  void Test##name(Test* config);                                           \
-  Test* test_##name##_vlauto = MakeSVETest(kSVEVectorLengthInBits,         \
-                                           "AARCH64_ASM_" #name "_vlauto", \
-                                           &Test##name);                   \
-  void Test##name(Test* config)
-
-#define SVE_SETUP_WITH_FEATURES(...) \
-  SETUP_WITH_FEATURES(__VA_ARGS__);  \
-  USE(config)
-
-#endif
 
 // Call masm->Insr repeatedly to allow test inputs to be set up concisely. This
 // is optimised for call-site clarity, not generated code quality, so it doesn't
