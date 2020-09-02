@@ -2,3 +2,4 @@
 host=review.linaro.org
 port=29418
 project=arm/vixl
+defaultbranch=sve2
