@@ -1210,6 +1210,8 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZtS_PgZ_ZnS_Xm(const Instruction* instr);
   void Simulate_ZtS_Pg_ZnS_Xm(const Instruction* instr);
 
+  void SimulateSVEHalvingAddSub(const Instruction* instr);
+
   // Integer register accessors.
 
   // Basic accessor: Read the register as the specified type.

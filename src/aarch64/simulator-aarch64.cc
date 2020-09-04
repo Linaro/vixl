@@ -161,11 +161,11 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"saddwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
     {"sbclb_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
     {"sbclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"shadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"shadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"shrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"shrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"shsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"shsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"shsub_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
+    {"shsubr_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sli_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
     {"smaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
     {"sminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
@@ -252,7 +252,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"sqxtunb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"sqxtunt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
-    {"srhadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"srhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sri_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
     {"srshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
     {"srshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
@@ -289,9 +289,9 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uaddlt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"uaddwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
     {"uaddwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
-    {"uhadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uhsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uhsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
+    {"uhsub_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
+    {"uhsubr_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"umaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
     {"uminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
     {"umlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
@@ -328,7 +328,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"uqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"urecpe_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
-    {"urhadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"urhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"urshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
     {"urshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
     {"urshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
@@ -3061,6 +3061,44 @@ void Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr) {
   }
 }
 
+void Simulator::SimulateSVEHalvingAddSub(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimVRegister result;
+
+  switch (form_hash_) {
+    case Hash("shadd_z_p_zz"):
+      add(vform, result, zdn, zm).Halve(vform);
+      break;
+    case Hash("shsub_z_p_zz"):
+      sub(vform, result, zdn, zm).Halve(vform);
+      break;
+    case Hash("shsubr_z_p_zz"):
+      sub(vform, result, zm, zdn).Halve(vform);
+      break;
+    case Hash("srhadd_z_p_zz"):
+      add(vform, result, zdn, zm).Halve(vform).Round(vform);
+      break;
+    case Hash("uhadd_z_p_zz"):
+      add(vform, result, zdn, zm).Uhalve(vform);
+      break;
+    case Hash("uhsub_z_p_zz"):
+      sub(vform, result, zdn, zm).Uhalve(vform);
+      break;
+    case Hash("uhsubr_z_p_zz"):
+      sub(vform, result, zm, zdn).Uhalve(vform);
+      break;
+    case Hash("urhadd_z_p_zz"):
+      add(vform, result, zdn, zm).Uhalve(vform).Round(vform);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
 void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   USE(pg);
@@ -3086,15 +3124,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("fminp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("shadd_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("shsub_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("shsubr_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("smaxp_z_p_zz"):
@@ -3124,9 +3153,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
     case Hash("sqsubr_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
-    case Hash("srhadd_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("srshl_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
@@ -3134,15 +3160,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("suqadd_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uhadd_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uhsub_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uhsubr_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("umaxp_z_p_zz"):
@@ -3170,9 +3187,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("uqsubr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("urhadd_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("urshl_z_p_zz"):

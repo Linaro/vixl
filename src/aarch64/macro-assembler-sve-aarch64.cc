@@ -1037,6 +1037,21 @@ void MacroAssembler::Sdiv(const ZRegister& zd,
                                      &Assembler::sdivr));
 }
 
+void MacroAssembler::Shsub(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& zn,
+                           const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::shsub),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::shsubr));
+}
+
 void MacroAssembler::Sub(const ZRegister& zd,
                          IntegerOperand imm,
                          const ZRegister& zm) {
@@ -1086,6 +1101,21 @@ void MacroAssembler::Udiv(const ZRegister& zd,
                                      &Assembler::udiv),
                                  static_cast<SVEArithPredicatedFn>(
                                      &Assembler::udivr));
+}
+
+void MacroAssembler::Uhsub(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& zn,
+                           const ZRegister& zm) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  NoncommutativeArithmeticHelper(zd,
+                                 pg,
+                                 zn,
+                                 zm,
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::uhsub),
+                                 static_cast<SVEArithPredicatedFn>(
+                                     &Assembler::uhsubr));
 }
 
 void MacroAssembler::SVELoadBroadcastImmHelper(const ZRegister& zt,
