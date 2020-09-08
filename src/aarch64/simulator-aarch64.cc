@@ -9628,6 +9628,8 @@ void Simulator::VisitSVEFPAccumulatingReduction(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
 
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
+
   switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
     case FADDA_v_p_z:
       fadda(vform, vdn, pg, zm);
@@ -9644,8 +9646,9 @@ void Simulator::VisitSVEFPArithmetic_Predicated(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
 
-  SimVRegister result;
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
 
+  SimVRegister result;
   switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
     case FABD_z_p_zz:
       fabd(vform, result, zdn, zm);
@@ -9750,6 +9753,8 @@ void Simulator::VisitSVEFPTrigMulAddCoefficient(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zm = ReadVRegister(instr->GetRn());
 
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
+
   switch (instr->Mask(SVEFPTrigMulAddCoefficientMask)) {
     case FTMAD_z_zzi:
       ftmad(vform, zd, zd, zm, instr->ExtractBits(18, 16));
@@ -9765,6 +9770,8 @@ void Simulator::VisitSVEFPArithmeticUnpredicated(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
 
   switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
     case FADD_z_zz:
@@ -9798,6 +9805,8 @@ void Simulator::VisitSVEFPCompareVectors(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister result;
+
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
 
   switch (instr->Mask(SVEFPCompareVectorsMask)) {
     case FACGE_p_p_zz:
@@ -9835,8 +9844,10 @@ void Simulator::VisitSVEFPCompareWithZero(const Instruction* instr) {
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   VectorFormat vform = instr->GetSVEVectorFormat();
-  SimVRegister result;
 
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
+
+  SimVRegister result;
   SimVRegister zeros;
   dup_immediate(kFormatVnD, zeros, 0);
 
@@ -9966,6 +9977,8 @@ void Simulator::VisitSVEFPFastReduction(const Instruction* instr) {
   uint64_t inactive_value = 0;
   FastReduceFn fn = nullptr;
 
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
+
   switch (instr->Mask(SVEFPFastReductionMask)) {
     case FADDV_v_p_z:
       fn = &Simulator::faddv;
@@ -10033,10 +10046,11 @@ void Simulator::VisitSVEFPMulIndex(const Instruction* instr) {
 
 void Simulator::VisitSVEFPMulAdd(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
-
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   SimVRegister result;
+
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
 
   if (instr->ExtractBit(15) == 0) {
     // Floating-point multiply-accumulate writing addend.
@@ -10276,6 +10290,8 @@ void Simulator::VisitSVEFPRoundToIntegralValue(const Instruction* instr) {
   FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
   bool exact_exception = false;
 
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
+
   switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
     case FRINTA_z_p_z:
       fpcr_rounding = FPTieAway;
@@ -10373,6 +10389,8 @@ void Simulator::VisitSVEFPUnaryOpUnpredicated(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   FPRounding fpcr_rounding = static_cast<FPRounding>(ReadFpcr().GetRMode());
+
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
 
   switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
     case FRECPE_z_z:
@@ -11192,6 +11210,8 @@ void Simulator::VisitSVECopyFPImm_Predicated(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->ExtractBits(19, 16));
   SimVRegister& zd = ReadVRegister(instr->GetRd());
+
+  if (vform == kFormatVnB) VIXL_UNIMPLEMENTED();
 
   SimVRegister result;
   switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {

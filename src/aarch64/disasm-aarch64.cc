@@ -6217,14 +6217,16 @@ void Disassembler::VisitSVEBroadcastFPImm_Unpredicated(
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEBroadcastFPImm_Unpredicated)";
 
-  switch (instr->Mask(SVEBroadcastFPImm_UnpredicatedMask)) {
-    case FDUP_z_i:
-      // The preferred disassembly for fdup is "fmov".
-      mnemonic = "fmov";
-      form = "'Zd.'t, 'IFPSve";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() != kFormatVnB) {
+    switch (instr->Mask(SVEBroadcastFPImm_UnpredicatedMask)) {
+      case FDUP_z_i:
+        // The preferred disassembly for fdup is "fmov".
+        mnemonic = "fmov";
+        form = "'Zd.'t, 'IFPSve";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -6744,14 +6746,16 @@ void Disassembler::VisitSVECopyFPImm_Predicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVECopyFPImm_Predicated)";
 
-  switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {
-    case FCPY_z_p_i:
-      // The preferred disassembly for fcpy is "fmov".
-      mnemonic = "fmov";
-      form = "'Zd.'t, 'Pm/m, 'IFPSve";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() != kFormatVnB) {
+    switch (instr->Mask(SVECopyFPImm_PredicatedMask)) {
+      case FCPY_z_p_i:
+        // The preferred disassembly for fcpy is "fmov".
+        mnemonic = "fmov";
+        form = "'Zd.'t, 'Pm/m, 'IFPSve";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -6892,38 +6896,42 @@ void Disassembler::VisitSVEFPArithmeticWithImm_Predicated(
   int i1 = instr->ExtractBit(5);
   const char *form = i1 ? form10 : form00;
 
-  switch (instr->Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
-    case FADD_z_p_zs:
-      mnemonic = "fadd";
-      form = i1 ? form10 : form05;
-      break;
-    case FMAXNM_z_p_zs:
-      mnemonic = "fmaxnm";
-      break;
-    case FMAX_z_p_zs:
-      mnemonic = "fmax";
-      break;
-    case FMINNM_z_p_zs:
-      mnemonic = "fminnm";
-      break;
-    case FMIN_z_p_zs:
-      mnemonic = "fmin";
-      break;
-    case FMUL_z_p_zs:
-      mnemonic = "fmul";
-      form = i1 ? form20 : form05;
-      break;
-    case FSUBR_z_p_zs:
-      mnemonic = "fsubr";
-      form = i1 ? form10 : form05;
-      break;
-    case FSUB_z_p_zs:
-      mnemonic = "fsub";
-      form = i1 ? form10 : form05;
-      break;
-    default:
-      form = "(SVEFPArithmeticWithImm_Predicated)";
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPArithmeticWithImm_Predicated)";
+  } else {
+    switch (instr->Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
+      case FADD_z_p_zs:
+        mnemonic = "fadd";
+        form = i1 ? form10 : form05;
+        break;
+      case FMAXNM_z_p_zs:
+        mnemonic = "fmaxnm";
+        break;
+      case FMAX_z_p_zs:
+        mnemonic = "fmax";
+        break;
+      case FMINNM_z_p_zs:
+        mnemonic = "fminnm";
+        break;
+      case FMIN_z_p_zs:
+        mnemonic = "fmin";
+        break;
+      case FMUL_z_p_zs:
+        mnemonic = "fmul";
+        form = i1 ? form20 : form05;
+        break;
+      case FSUBR_z_p_zs:
+        mnemonic = "fsubr";
+        form = i1 ? form10 : form05;
+        break;
+      case FSUB_z_p_zs:
+        mnemonic = "fsub";
+        form = i1 ? form10 : form05;
+        break;
+      default:
+        form = "(SVEFPArithmeticWithImm_Predicated)";
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -6932,48 +6940,52 @@ void Disassembler::VisitSVEFPArithmetic_Predicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
 
-  switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
-    case FABD_z_p_zz:
-      mnemonic = "fabd";
-      break;
-    case FADD_z_p_zz:
-      mnemonic = "fadd";
-      break;
-    case FDIVR_z_p_zz:
-      mnemonic = "fdivr";
-      break;
-    case FDIV_z_p_zz:
-      mnemonic = "fdiv";
-      break;
-    case FMAXNM_z_p_zz:
-      mnemonic = "fmaxnm";
-      break;
-    case FMAX_z_p_zz:
-      mnemonic = "fmax";
-      break;
-    case FMINNM_z_p_zz:
-      mnemonic = "fminnm";
-      break;
-    case FMIN_z_p_zz:
-      mnemonic = "fmin";
-      break;
-    case FMULX_z_p_zz:
-      mnemonic = "fmulx";
-      break;
-    case FMUL_z_p_zz:
-      mnemonic = "fmul";
-      break;
-    case FSCALE_z_p_zz:
-      mnemonic = "fscale";
-      break;
-    case FSUBR_z_p_zz:
-      mnemonic = "fsubr";
-      break;
-    case FSUB_z_p_zz:
-      mnemonic = "fsub";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPArithmetic_Predicated)";
+  } else {
+    switch (instr->Mask(SVEFPArithmetic_PredicatedMask)) {
+      case FABD_z_p_zz:
+        mnemonic = "fabd";
+        break;
+      case FADD_z_p_zz:
+        mnemonic = "fadd";
+        break;
+      case FDIVR_z_p_zz:
+        mnemonic = "fdivr";
+        break;
+      case FDIV_z_p_zz:
+        mnemonic = "fdiv";
+        break;
+      case FMAXNM_z_p_zz:
+        mnemonic = "fmaxnm";
+        break;
+      case FMAX_z_p_zz:
+        mnemonic = "fmax";
+        break;
+      case FMINNM_z_p_zz:
+        mnemonic = "fminnm";
+        break;
+      case FMIN_z_p_zz:
+        mnemonic = "fmin";
+        break;
+      case FMULX_z_p_zz:
+        mnemonic = "fmulx";
+        break;
+      case FMUL_z_p_zz:
+        mnemonic = "fmul";
+        break;
+      case FSCALE_z_p_zz:
+        mnemonic = "fscale";
+        break;
+      case FSUBR_z_p_zz:
+        mnemonic = "fsubr";
+        break;
+      case FSUB_z_p_zz:
+        mnemonic = "fsub";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -7103,30 +7115,34 @@ void Disassembler::VisitSVEFPRoundToIntegralValue(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'t";
 
-  switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
-    case FRINTA_z_p_z:
-      mnemonic = "frinta";
-      break;
-    case FRINTI_z_p_z:
-      mnemonic = "frinti";
-      break;
-    case FRINTM_z_p_z:
-      mnemonic = "frintm";
-      break;
-    case FRINTN_z_p_z:
-      mnemonic = "frintn";
-      break;
-    case FRINTP_z_p_z:
-      mnemonic = "frintp";
-      break;
-    case FRINTX_z_p_z:
-      mnemonic = "frintx";
-      break;
-    case FRINTZ_z_p_z:
-      mnemonic = "frintz";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPRoundToIntegralValue)";
+  } else {
+    switch (instr->Mask(SVEFPRoundToIntegralValueMask)) {
+      case FRINTA_z_p_z:
+        mnemonic = "frinta";
+        break;
+      case FRINTI_z_p_z:
+        mnemonic = "frinti";
+        break;
+      case FRINTM_z_p_z:
+        mnemonic = "frintm";
+        break;
+      case FRINTN_z_p_z:
+        mnemonic = "frintn";
+        break;
+      case FRINTP_z_p_z:
+        mnemonic = "frintp";
+        break;
+      case FRINTX_z_p_z:
+        mnemonic = "frintx";
+        break;
+      case FRINTZ_z_p_z:
+        mnemonic = "frintz";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8677,13 +8693,15 @@ void Disassembler::VisitSVEFPAccumulatingReduction(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPAccumulatingReduction)";
 
-  switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
-    case FADDA_v_p_z:
-      mnemonic = "fadda";
-      form = "'t'u0400, 'Pgl, 't'u0400, 'Zn.'t";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() != kFormatVnB) {
+    switch (instr->Mask(SVEFPAccumulatingReductionMask)) {
+      case FADDA_v_p_z:
+        mnemonic = "fadda";
+        form = "'t'u0400, 'Pgl, 't'u0400, 'Zn.'t";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8692,27 +8710,31 @@ void Disassembler::VisitSVEFPArithmeticUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
 
-  switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
-    case FADD_z_zz:
-      mnemonic = "fadd";
-      break;
-    case FMUL_z_zz:
-      mnemonic = "fmul";
-      break;
-    case FRECPS_z_zz:
-      mnemonic = "frecps";
-      break;
-    case FRSQRTS_z_zz:
-      mnemonic = "frsqrts";
-      break;
-    case FSUB_z_zz:
-      mnemonic = "fsub";
-      break;
-    case FTSMUL_z_zz:
-      mnemonic = "ftsmul";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = ("(SVEFPArithmeticUnpredicated)");
+  } else {
+    switch (instr->Mask(SVEFPArithmeticUnpredicatedMask)) {
+      case FADD_z_zz:
+        mnemonic = "fadd";
+        break;
+      case FMUL_z_zz:
+        mnemonic = "fmul";
+        break;
+      case FRECPS_z_zz:
+        mnemonic = "frecps";
+        break;
+      case FRSQRTS_z_zz:
+        mnemonic = "frsqrts";
+        break;
+      case FSUB_z_zz:
+        mnemonic = "fsub";
+        break;
+      case FTSMUL_z_zz:
+        mnemonic = "ftsmul";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8721,30 +8743,34 @@ void Disassembler::VisitSVEFPCompareVectors(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Pd.'t, 'Pgl/z, 'Zn.'t, 'Zm.'t";
 
-  switch (instr->Mask(SVEFPCompareVectorsMask)) {
-    case FACGE_p_p_zz:
-      mnemonic = "facge";
-      break;
-    case FACGT_p_p_zz:
-      mnemonic = "facgt";
-      break;
-    case FCMEQ_p_p_zz:
-      mnemonic = "fcmeq";
-      break;
-    case FCMGE_p_p_zz:
-      mnemonic = "fcmge";
-      break;
-    case FCMGT_p_p_zz:
-      mnemonic = "fcmgt";
-      break;
-    case FCMNE_p_p_zz:
-      mnemonic = "fcmne";
-      break;
-    case FCMUO_p_p_zz:
-      mnemonic = "fcmuo";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPCompareVectors)";
+  } else {
+    switch (instr->Mask(SVEFPCompareVectorsMask)) {
+      case FACGE_p_p_zz:
+        mnemonic = "facge";
+        break;
+      case FACGT_p_p_zz:
+        mnemonic = "facgt";
+        break;
+      case FCMEQ_p_p_zz:
+        mnemonic = "fcmeq";
+        break;
+      case FCMGE_p_p_zz:
+        mnemonic = "fcmge";
+        break;
+      case FCMGT_p_p_zz:
+        mnemonic = "fcmgt";
+        break;
+      case FCMNE_p_p_zz:
+        mnemonic = "fcmne";
+        break;
+      case FCMUO_p_p_zz:
+        mnemonic = "fcmuo";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8753,27 +8779,31 @@ void Disassembler::VisitSVEFPCompareWithZero(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Pd.'t, 'Pgl/z, 'Zn.'t, #0.0";
 
-  switch (instr->Mask(SVEFPCompareWithZeroMask)) {
-    case FCMEQ_p_p_z0:
-      mnemonic = "fcmeq";
-      break;
-    case FCMGE_p_p_z0:
-      mnemonic = "fcmge";
-      break;
-    case FCMGT_p_p_z0:
-      mnemonic = "fcmgt";
-      break;
-    case FCMLE_p_p_z0:
-      mnemonic = "fcmle";
-      break;
-    case FCMLT_p_p_z0:
-      mnemonic = "fcmlt";
-      break;
-    case FCMNE_p_p_z0:
-      mnemonic = "fcmne";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPCompareWithZero)";
+  } else {
+    switch (instr->Mask(SVEFPCompareWithZeroMask)) {
+      case FCMEQ_p_p_z0:
+        mnemonic = "fcmeq";
+        break;
+      case FCMGE_p_p_z0:
+        mnemonic = "fcmge";
+        break;
+      case FCMGT_p_p_z0:
+        mnemonic = "fcmgt";
+        break;
+      case FCMLE_p_p_z0:
+        mnemonic = "fcmle";
+        break;
+      case FCMLT_p_p_z0:
+        mnemonic = "fcmlt";
+        break;
+      case FCMNE_p_p_z0:
+        mnemonic = "fcmne";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8782,17 +8812,19 @@ void Disassembler::VisitSVEFPComplexAddition(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "(SVEFPComplexAddition)";
 
-  switch (instr->Mask(SVEFPComplexAdditionMask)) {
-    case FCADD_z_p_zz:
-      mnemonic = "fcadd";
-      if (instr->ExtractBit(16) == 0) {
-        form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, #90";
-      } else {
-        form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, #270";
-      }
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() != kFormatVnB) {
+    switch (instr->Mask(SVEFPComplexAdditionMask)) {
+      case FCADD_z_p_zz:
+        mnemonic = "fcadd";
+        if (instr->ExtractBit(16) == 0) {
+          form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, #90";
+        } else {
+          form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t, #270";
+        }
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8804,14 +8836,16 @@ void Disassembler::VisitSVEFPComplexMulAdd(const Instruction *instr) {
 
   const char *fcmla_constants[] = {"0", "90", "180", "270"};
 
-  switch (instr->Mask(SVEFPComplexMulAddMask)) {
-    case FCMLA_z_p_zzz:
-      mnemonic = "fcmla";
-      form = "'Zd.'t, 'Pgl/m, 'Zn.'t, 'Zm.'t, #";
-      suffix = fcmla_constants[instr->ExtractBits(14, 13)];
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() != kFormatVnB) {
+    switch (instr->Mask(SVEFPComplexMulAddMask)) {
+      case FCMLA_z_p_zzz:
+        mnemonic = "fcmla";
+        form = "'Zd.'t, 'Pgl/m, 'Zn.'t, 'Zm.'t, #";
+        suffix = fcmla_constants[instr->ExtractBits(14, 13)];
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form, suffix);
 }
@@ -8843,24 +8877,28 @@ void Disassembler::VisitSVEFPFastReduction(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'t'u0400, 'Pgl, 'Zn.'t";
 
-  switch (instr->Mask(SVEFPFastReductionMask)) {
-    case FADDV_v_p_z:
-      mnemonic = "faddv";
-      break;
-    case FMAXNMV_v_p_z:
-      mnemonic = "fmaxnmv";
-      break;
-    case FMAXV_v_p_z:
-      mnemonic = "fmaxv";
-      break;
-    case FMINNMV_v_p_z:
-      mnemonic = "fminnmv";
-      break;
-    case FMINV_v_p_z:
-      mnemonic = "fminv";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPFastReduction)";
+  } else {
+    switch (instr->Mask(SVEFPFastReductionMask)) {
+      case FADDV_v_p_z:
+        mnemonic = "faddv";
+        break;
+      case FMAXNMV_v_p_z:
+        mnemonic = "fmaxnmv";
+        break;
+      case FMAXV_v_p_z:
+        mnemonic = "fmaxv";
+        break;
+      case FMINNMV_v_p_z:
+        mnemonic = "fminnmv";
+        break;
+      case FMINV_v_p_z:
+        mnemonic = "fminv";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8893,33 +8931,37 @@ void Disassembler::VisitSVEFPMulAdd(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'t, 'Zm.'t";
 
-  switch (instr->Mask(SVEFPMulAddMask)) {
-    case FMAD_z_p_zzz:
-      mnemonic = "fmad";
-      break;
-    case FMLA_z_p_zzz:
-      mnemonic = "fmla";
-      break;
-    case FMLS_z_p_zzz:
-      mnemonic = "fmls";
-      break;
-    case FMSB_z_p_zzz:
-      mnemonic = "fmsb";
-      break;
-    case FNMAD_z_p_zzz:
-      mnemonic = "fnmad";
-      break;
-    case FNMLA_z_p_zzz:
-      mnemonic = "fnmla";
-      break;
-    case FNMLS_z_p_zzz:
-      mnemonic = "fnmls";
-      break;
-    case FNMSB_z_p_zzz:
-      mnemonic = "fnmsb";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPMulAdd)";
+  } else {
+    switch (instr->Mask(SVEFPMulAddMask)) {
+      case FMAD_z_p_zzz:
+        mnemonic = "fmad";
+        break;
+      case FMLA_z_p_zzz:
+        mnemonic = "fmla";
+        break;
+      case FMLS_z_p_zzz:
+        mnemonic = "fmls";
+        break;
+      case FMSB_z_p_zzz:
+        mnemonic = "fmsb";
+        break;
+      case FNMAD_z_p_zzz:
+        mnemonic = "fnmad";
+        break;
+      case FNMLA_z_p_zzz:
+        mnemonic = "fnmla";
+        break;
+      case FNMLS_z_p_zzz:
+        mnemonic = "fnmls";
+        break;
+      case FNMSB_z_p_zzz:
+        mnemonic = "fnmsb";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -8966,15 +9008,19 @@ void Disassembler::VisitSVEFPUnaryOpUnpredicated(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
   const char *form = "'Zd.'t, 'Zn.'t";
 
-  switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
-    case FRECPE_z_z:
-      mnemonic = "frecpe";
-      break;
-    case FRSQRTE_z_z:
-      mnemonic = "frsqrte";
-      break;
-    default:
-      break;
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    form = "(SVEFPUnaryOpUnpredicated)";
+  } else {
+    switch (instr->Mask(SVEFPUnaryOpUnpredicatedMask)) {
+      case FRECPE_z_z:
+        mnemonic = "frecpe";
+        break;
+      case FRSQRTE_z_z:
+        mnemonic = "frsqrte";
+        break;
+      default:
+        break;
+    }
   }
   Format(instr, mnemonic, form);
 }
@@ -9359,10 +9405,18 @@ void Disassembler::VisitSVEIntUnaryArithmeticPredicated(
       mnemonic = "cnt";
       break;
     case FABS_z_p_z:
-      mnemonic = "fabs";
+      if (instr->GetSVEVectorFormat() == kFormatVnB) {
+        form = "(SVEIntUnaryArithmeticPredicated)";
+      } else {
+        mnemonic = "fabs";
+      }
       break;
     case FNEG_z_p_z:
-      mnemonic = "fneg";
+      if (instr->GetSVEVectorFormat() == kFormatVnB) {
+        form = "(SVEIntUnaryArithmeticPredicated)";
+      } else {
+        mnemonic = "fneg";
+      }
       break;
     case NEG_z_p_z:
       mnemonic = "neg";
