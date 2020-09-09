@@ -2867,12 +2867,10 @@ void Simulator::Simulate_ZdaT_PgM_ZnTb(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
 
   switch (form_hash_) {
     case Hash("adclb_z_zzz"):
@@ -2882,7 +2880,7 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("saba_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      saba(vform, zda, zn, zm);
       break;
     case Hash("sbclb_z_zzz"):
       VIXL_UNIMPLEMENTED();
@@ -2897,7 +2895,7 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("uaba_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      uaba(vform, zda, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

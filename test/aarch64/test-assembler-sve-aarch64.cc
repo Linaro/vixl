@@ -18769,5 +18769,61 @@ TEST_SVE(sve2_match_nmatch) {
   }
 }
 
+TEST_SVE(sve2_saba_uaba) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+
+  START();
+
+  __ Index(z0.VnB(), 0, 1);
+  __ Dup(z1.VnB(), 0xff);
+  __ Dup(z2.VnB(), 1);
+  __ Uaba(z2.VnB(), z0.VnB(), z1.VnB(), z2.VnB());
+  __ Index(z0.VnB(), 0, -1);
+
+  __ Index(z3.VnH(), 0, 1);
+  __ Index(z4.VnH(), 1, 1);
+  __ Uaba(z3.VnH(), z3.VnH(), z4.VnH(), z3.VnH());
+
+  __ Index(z5.VnS(), 3, 6);
+  __ Index(z6.VnS(), 5, 6);
+  __ Uaba(z5.VnS(), z5.VnS(), z6.VnS(), z5.VnS());
+
+  __ Index(z7.VnD(), 424, 12);
+  __ Index(z8.VnD(), 4242, 12);
+  __ Uaba(z7.VnD(), z7.VnD(), z8.VnD(), z7.VnD());
+
+  __ Index(z9.VnH(), -1, -1);
+  __ Dup(z10.VnB(), 0);
+  __ Saba(z10.VnB(), z9.VnB(), z10.VnB(), z10.VnB());
+  __ Index(z11.VnH(), 0x0101, 1);
+
+  __ Index(z12.VnH(), 0, 1);
+  __ Index(z13.VnH(), 0, -1);
+  __ Saba(z13.VnH(), z12.VnH(), z13.VnH(), z13.VnH());
+
+  __ Index(z14.VnS(), 0, 2);
+  __ Index(z15.VnS(), 0, -2);
+  __ Saba(z15.VnS(), z14.VnS(), z15.VnS(), z15.VnS());
+
+  __ Index(z16.VnD(), 0, 42);
+  __ Index(z17.VnD(), 0, -42);
+  __ Saba(z17.VnD(), z16.VnD(), z17.VnD(), z17.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(z0, z2);
+    ASSERT_EQUAL_SVE(z3, z4);
+    ASSERT_EQUAL_SVE(z5, z6);
+    ASSERT_EQUAL_SVE(z7, z8);
+
+    ASSERT_EQUAL_SVE(z10, z11);
+    ASSERT_EQUAL_SVE(z12, z13);
+    ASSERT_EQUAL_SVE(z14, z15);
+    ASSERT_EQUAL_SVE(z16, z17);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

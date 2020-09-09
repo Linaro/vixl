@@ -1689,6 +1689,53 @@ void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
   }
 }
 
+void MacroAssembler::AbsoluteDifferenceAccumulate(IntArithFn fn,
+                                                  const ZRegister& zd,
+                                                  const ZRegister& zn,
+                                                  const ZRegister& zm,
+                                                  const ZRegister& za) {
+  if (zn.Aliases(zm)) {
+    // If zn == zm, the difference is zero.
+    if (!zd.Aliases(za)) {
+      Mov(zd, za);
+    }
+  } else if (zd.Aliases(za)) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zd, zn, zm);
+  } else if (zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister ztmp = temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits());
+    Mov(ztmp, zn);
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, ztmp, zm);
+  } else if (zd.Aliases(zm)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister ztmp = temps.AcquireZ().WithLaneSize(zn.GetLaneSizeInBits());
+    Mov(ztmp, zm);
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, ztmp);
+  } else {
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, zm);
+  }
+}
+
+void MacroAssembler::Saba(const ZRegister& zd,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          const ZRegister& za) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  AbsoluteDifferenceAccumulate(&Assembler::saba, zd, zn, zm, za);
+}
+
+void MacroAssembler::Uaba(const ZRegister& zd,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          const ZRegister& za) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  AbsoluteDifferenceAccumulate(&Assembler::uaba, zd, zn, zm, za);
+}
+
 void MacroAssembler::Fscale(const ZRegister& zd,
                             const PRegisterM& pg,
                             const ZRegister& zn,

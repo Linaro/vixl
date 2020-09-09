@@ -10070,7 +10070,7 @@ void Disassembler::Disassemble_ZdaT_PgM_ZnTb(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdaT_ZnT_ZmT(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Zn.<T>, 'Zm.<T>";
+  const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
   Format(instr, mnemonic_.c_str(), form);
 }
 
