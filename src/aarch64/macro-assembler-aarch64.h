@@ -6796,10 +6796,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const PRegisterM& pg,
              const ZRegister& zn,
              const ZRegister& zm);
-  void Sli(const ZRegister& zd, const ZRegister& zn) {
+  void Sli(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sli(zd, zn);
+    sli(zd, zn, shift);
   }
   void Smaxp(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7167,10 +7167,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqxtunt(zd, zn);
   }
-  void Sri(const ZRegister& zd, const ZRegister& zn) {
+  void Sri(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sri(zd, zn);
+    sri(zd, zn, shift);
   }
   void Srshl(const ZRegister& zd,
              const PRegisterM& pg,

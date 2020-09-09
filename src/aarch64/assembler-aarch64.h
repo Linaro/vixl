@@ -6115,7 +6115,7 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Shift left and insert (immediate).
-  void sli(const ZRegister& zd, const ZRegister& zn);
+  void sli(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed maximum pairwise.
   void smaxp(const ZRegister& zd,
@@ -6362,7 +6362,7 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Shift right and insert (immediate).
-  void sri(const ZRegister& zd, const ZRegister& zn);
+  void sri(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed rounding shift left by vector (predicated).
   void srshl(const ZRegister& zd,
@@ -7600,14 +7600,14 @@ class Assembler : public vixl::internal::AssemblerBase {
                                        int pattern,
                                        int multiplier);
 
-  Instr EncodeSVEShiftImmediate(Shift shift_op,
-                                int shift,
-                                int lane_size_in_bits);
+  Instr EncodeSVEShiftLeftImmediate(int shift, int lane_size_in_bits);
+
+  Instr EncodeSVEShiftRightImmediate(int shift, int lane_size_in_bits);
 
   void SVEBitwiseShiftImmediate(const ZRegister& zd,
                                 const ZRegister& zn,
                                 Instr encoded_imm,
-                                SVEBitwiseShiftUnpredicatedOp op);
+                                Instr op);
 
   void SVEBitwiseShiftImmediatePred(const ZRegister& zdn,
                                     const PRegisterM& pg,

@@ -139,7 +139,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"shrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"shsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"shsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"sli_z_zzi", &Disassembler::Disassemble_ZdT_ZnT_const},
+    {"sli_z_zzi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"sm4e_z_zz", &Disassembler::Disassemble_ZdnS_ZdnS_ZmS},
     {"sm4ekey_z_zz", &Disassembler::Disassemble_ZdS_ZnS_ZmS},
     {"smaxp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
@@ -228,7 +228,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sqxtunb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
     {"sqxtunt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
     {"srhadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"sri_z_zzi", &Disassembler::Disassemble_ZdT_ZnT_const},
+    {"sri_z_zzi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"srshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"srshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"srshr_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
@@ -8618,43 +8618,34 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
       (instr->ExtractBits(23, 22) << 2) | instr->ExtractBits(20, 19);
   unsigned lane_size = instr->GetSVESize();
 
-  switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
-    case ASR_z_zi:
+  const char *suffix = NULL;
+  const char *form_i = "'Zd.'tszs, 'Zn.'tszs, ";
+
+  switch (form_hash_) {
+    case Hash("asr_z_zi"):
+    case Hash("lsr_z_zi"):
+    case Hash("sri_z_zzi"):
       if (tsize != 0) {
         // The tsz field must not be zero.
-        mnemonic = "asr";
-        form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
+        mnemonic = mnemonic_.c_str();
+        form = form_i;
+        suffix = "'ITriSves";
       }
       break;
-    case ASR_z_zw:
-      if (lane_size <= kSRegSizeInBytesLog2) {
-        mnemonic = "asr";
-        form = "'Zd.'t, 'Zn.'t, 'Zm.d";
-      }
-      break;
-    case LSL_z_zi:
+    case Hash("lsl_z_zi"):
+    case Hash("sli_z_zzi"):
       if (tsize != 0) {
         // The tsz field must not be zero.
-        mnemonic = "lsl";
-        form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSver";
+        mnemonic = mnemonic_.c_str();
+        form = form_i;
+        suffix = "'ITriSver";
       }
       break;
-    case LSL_z_zw:
+    case Hash("asr_z_zw"):
+    case Hash("lsl_z_zw"):
+    case Hash("lsr_z_zw"):
       if (lane_size <= kSRegSizeInBytesLog2) {
-        mnemonic = "lsl";
-        form = "'Zd.'t, 'Zn.'t, 'Zm.d";
-      }
-      break;
-    case LSR_z_zi:
-      if (tsize != 0) {
-        // The tsz field must not be zero.
-        mnemonic = "lsr";
-        form = "'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
-      }
-      break;
-    case LSR_z_zw:
-      if (lane_size <= kSRegSizeInBytesLog2) {
-        mnemonic = "lsr";
+        mnemonic = mnemonic_.c_str();
         form = "'Zd.'t, 'Zn.'t, 'Zm.d";
       }
       break;
@@ -8662,7 +8653,7 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
       break;
   }
 
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEElementCount(const Instruction *instr) {
@@ -9862,6 +9853,7 @@ void Disassembler::Visit(Metadata *metadata, const Instruction *instr) {
   VIXL_ASSERT(metadata->count("form") > 0);
   const std::string &form = (*metadata)["form"];
   if ((form_to_visitor_.count(form) > 0) && form_to_visitor_[form]) {
+    form_hash_ = Hash(form.c_str());
     SetMnemonicFromForm(form);
     form_to_visitor_[form](this, instr);
   } else {
@@ -9987,11 +9979,6 @@ void Disassembler::Disassemble_ZdT_ZnT_ZmT(const Instruction *instr) {
 
 void Disassembler::Disassemble_ZdT_ZnT_ZmTb(const Instruction *instr) {
   const char *form = "'Zd.'t, 'Zn.'t, 'Zm";
-  Format(instr, mnemonic_.c_str(), form);
-}
-
-void Disassembler::Disassemble_ZdT_ZnT_const(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Zn.<T>, #<const>";
   Format(instr, mnemonic_.c_str(), form);
 }
 
@@ -10715,7 +10702,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             return 8;
           }
           case 'r': {
-            // SVE unpredicated shift immediate encoding, lsl.
+            // SVE unpredicated shift immediate encoding, left shifts.
             std::pair<int, int> shift_and_lane_size =
                 instr->GetSVEImmShiftAndLaneSizeLog2(
                     /* is_predicated = */ false);
@@ -10724,7 +10711,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             return 8;
           }
           case 's': {
-            // SVE unpredicated shift immediate encoding, asr and lsr.
+            // SVE unpredicated shift immediate encoding, right shifts.
             std::pair<int, int> shift_and_lane_size =
                 instr->GetSVEImmShiftAndLaneSizeLog2(
                     /* is_predicated = */ false);

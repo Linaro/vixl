@@ -6669,6 +6669,34 @@ TEST(sve2_halving_arithmetic) {
   CLEANUP();
 }
 
+TEST(sve2_sri_sli) {
+  SETUP();
+
+  COMPARE_PREFIX(sri(z6.VnB(), z9.VnB(), 1), "sri z6.b, z9.b, #1");
+  COMPARE_PREFIX(sri(z6.VnB(), z9.VnB(), 2), "sri z6.b, z9.b, #2");
+  COMPARE_PREFIX(sri(z6.VnB(), z9.VnB(), 5), "sri z6.b, z9.b, #5");
+  COMPARE_PREFIX(sri(z6.VnB(), z9.VnB(), 8), "sri z6.b, z9.b, #8");
+  COMPARE_PREFIX(sri(z6.VnH(), z9.VnH(), 1), "sri z6.h, z9.h, #1");
+  COMPARE_PREFIX(sri(z6.VnH(), z9.VnH(), 16), "sri z6.h, z9.h, #16");
+  COMPARE_PREFIX(sri(z6.VnS(), z9.VnS(), 1), "sri z6.s, z9.s, #1");
+  COMPARE_PREFIX(sri(z6.VnS(), z9.VnS(), 31), "sri z6.s, z9.s, #31");
+  COMPARE_PREFIX(sri(z6.VnD(), z9.VnD(), 1), "sri z6.d, z9.d, #1");
+  COMPARE_PREFIX(sri(z6.VnD(), z9.VnD(), 64), "sri z6.d, z9.d, #64");
+
+  COMPARE_PREFIX(sli(z29.VnB(), z7.VnB(), 0), "sli z29.b, z7.b, #0");
+  COMPARE_PREFIX(sli(z29.VnB(), z7.VnB(), 2), "sli z29.b, z7.b, #2");
+  COMPARE_PREFIX(sli(z29.VnB(), z7.VnB(), 5), "sli z29.b, z7.b, #5");
+  COMPARE_PREFIX(sli(z29.VnB(), z7.VnB(), 7), "sli z29.b, z7.b, #7");
+  COMPARE_PREFIX(sli(z29.VnH(), z7.VnH(), 0), "sli z29.h, z7.h, #0");
+  COMPARE_PREFIX(sli(z29.VnH(), z7.VnH(), 15), "sli z29.h, z7.h, #15");
+  COMPARE_PREFIX(sli(z29.VnS(), z7.VnS(), 0), "sli z29.s, z7.s, #0");
+  COMPARE_PREFIX(sli(z29.VnS(), z7.VnS(), 31), "sli z29.s, z7.s, #31");
+  COMPARE_PREFIX(sli(z29.VnD(), z7.VnD(), 0), "sli z29.d, z7.d, #0");
+  COMPARE_PREFIX(sli(z29.VnD(), z7.VnD(), 63), "sli z29.d, z7.d, #63");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -6961,8 +6989,6 @@ TEST(sve2_all_instructions) {
   // <Zn>.<T>, <Zm>.<T>");
   // COMPARE_PREFIX(shrnb(z7.Vn?(), z4), "shrnb <Zd>.<T>, <Zn>.<Tb>, #<const>");
   // COMPARE_PREFIX(shrnt(z21.Vn?(), z29), "shrnt <Zd>.<T>, <Zn>.<Tb>,
-  // #<const>");
-  // COMPARE_PREFIX(sli(z29.Vn?(), z7.Vn?()), "sli <Zd>.<T>, <Zn>.<T>,
   // #<const>");
   // COMPARE_PREFIX(smaxp(z5.VnB(), p4.Merging(), z5.VnB(), z10.VnB()), "smaxp
   // z5.b, p4/m, z5.b, z10.b");
@@ -7261,8 +7287,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(sqxtnt(z31.Vn?(), z18), "sqxtnt <Zd>.<T>, <Zn>.<Tb>");
   // COMPARE_PREFIX(sqxtunb(z28.Vn?(), z6), "sqxtunb <Zd>.<T>, <Zn>.<Tb>");
   // COMPARE_PREFIX(sqxtunt(z14.Vn?(), z31), "sqxtunt <Zd>.<T>, <Zn>.<Tb>");
-  // COMPARE_PREFIX(sri(z6.Vn?(), z9.Vn?()), "sri <Zd>.<T>, <Zn>.<T>,
-  // #<const>");
   // COMPARE_PREFIX(srshl(z31.VnB(), p7.Merging(), z31.VnB(), z3.VnB()), "srshl
   // z31.b, p7/m, z31.b, z3.b");
   // COMPARE_PREFIX(srshl(z31.VnD(), p7.Merging(), z31.VnD(), z3.VnD()), "srshl

@@ -2347,16 +2347,25 @@ void Simulator::Simulate_ZdT_ZnT_ZmTb(const Instruction* instr) {
 
 void Simulator::Simulate_ZdT_ZnT_const(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int lane_size = shift_and_lane_size.second;
+  VIXL_ASSERT((lane_size >= 0) &&
+              (static_cast<unsigned>(lane_size) <= kDRegSizeInBytesLog2));
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int shift_dist = shift_and_lane_size.first;
 
   switch (form_hash_) {
     case Hash("sli_z_zzi"):
-      VIXL_UNIMPLEMENTED();
+      // Shift distance is computed differently for left shifts. Convert the
+      // result.
+      shift_dist = (8 << lane_size) - shift_dist;
+      sli(vform, zd, zn, shift_dist);
       break;
     case Hash("sri_z_zzi"):
-      VIXL_UNIMPLEMENTED();
+      sri(vform, zd, zn, shift_dist);
       break;
     default:
       VIXL_UNIMPLEMENTED();

@@ -121,6 +121,7 @@ class Disassembler : public DecoderVisitor {
                const std::function<void(Disassembler*, const Instruction*)>>;
   static FormToVisitorFnMap form_to_visitor_;
   std::string mnemonic_;
+  uint32_t form_hash_;
 
   void SetMnemonicFromForm(const std::string& form) {
     VIXL_ASSERT(form.find_first_of('_') != std::string::npos);
@@ -150,7 +151,6 @@ class Disassembler : public DecoderVisitor {
   void Disassemble_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr);
   void Disassemble_ZdT_ZnT_ZmT(const Instruction* instr);
   void Disassemble_ZdT_ZnT_ZmTb(const Instruction* instr);
-  void Disassemble_ZdT_ZnT_const(const Instruction* instr);
   void Disassemble_ZdT_ZnTb(const Instruction* instr);
   void Disassemble_ZdT_ZnTb_ZmTb(const Instruction* instr);
   void Disassemble_ZdT_ZnTb_const(const Instruction* instr);
