@@ -232,15 +232,15 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqrdmulh_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
     {"sqrdmulh_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
     {"sqrdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
-    {"sqrshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"sqrshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
+    {"sqrshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"sqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqrshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqrshrunb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqrshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqshl_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
-    {"sqshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"sqshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
+    {"sqshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"sqshlu_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"sqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
@@ -254,8 +254,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqxtunt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"srhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sri_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
-    {"srshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"srshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"srshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
+    {"srshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"srshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"srsra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
     {"sshllb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
@@ -314,13 +314,13 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"umullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"umullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"uqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uqrshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uqrshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
+    {"uqrshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"uqrshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"uqshl_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
-    {"uqshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uqshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
+    {"uqshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"uqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"uqsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
@@ -329,8 +329,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"urecpe_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
     {"urhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
-    {"urshl_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"urshlr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"urshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
+    {"urshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"urshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"ursqrte_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
     {"ursra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
@@ -9301,46 +9301,78 @@ void Simulator::VisitSVEBitwiseShiftByVector_Predicated(
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
   SimVRegister& zm = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-
   SimVRegister result;
-  SimVRegister shiftand;  // Vector to be shifted.
-  SimVRegister shiftor;   // Vector shift amount.
 
-  Shift shift_op = ASR;
-  mov(vform, shiftand, zdn);
-  mov(vform, shiftor, zm);
+  // SVE uses the whole (saturated) lane for the shift amount.
+  bool shift_in_ls_byte = false;
 
-  switch (instr->Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
-    case ASRR_z_p_zz:
-      mov(vform, shiftand, zm);
-      mov(vform, shiftor, zdn);
-      VIXL_FALLTHROUGH();
-    case ASR_z_p_zz:
+  switch (form_hash_) {
+    case Hash("asrr_z_p_zz"):
+      sshr(vform, result, zm, zdn);
       break;
-    case LSLR_z_p_zz:
-      mov(vform, shiftand, zm);
-      mov(vform, shiftor, zdn);
-      VIXL_FALLTHROUGH();
-    case LSL_z_p_zz:
-      shift_op = LSL;
+    case Hash("asr_z_p_zz"):
+      sshr(vform, result, zdn, zm);
       break;
-    case LSRR_z_p_zz:
-      mov(vform, shiftand, zm);
-      mov(vform, shiftor, zdn);
-      VIXL_FALLTHROUGH();
-    case LSR_z_p_zz:
-      shift_op = LSR;
+    case Hash("lslr_z_p_zz"):
+      sshl(vform, result, zm, zdn, shift_in_ls_byte);
+      break;
+    case Hash("lsl_z_p_zz"):
+      sshl(vform, result, zdn, zm, shift_in_ls_byte);
+      break;
+    case Hash("lsrr_z_p_zz"):
+      ushr(vform, result, zm, zdn);
+      break;
+    case Hash("lsr_z_p_zz"):
+      ushr(vform, result, zdn, zm);
+      break;
+    case Hash("sqrshl_z_p_zz"):
+      sshl(vform, result, zdn, zm, shift_in_ls_byte)
+          .Round(vform)
+          .SignedSaturate(vform);
+      break;
+    case Hash("sqrshlr_z_p_zz"):
+      sshl(vform, result, zm, zdn, shift_in_ls_byte)
+          .Round(vform)
+          .SignedSaturate(vform);
+      break;
+    case Hash("sqshl_z_p_zz"):
+      sshl(vform, result, zdn, zm, shift_in_ls_byte).SignedSaturate(vform);
+      break;
+    case Hash("sqshlr_z_p_zz"):
+      sshl(vform, result, zm, zdn, shift_in_ls_byte).SignedSaturate(vform);
+      break;
+    case Hash("srshl_z_p_zz"):
+      sshl(vform, result, zdn, zm, shift_in_ls_byte).Round(vform);
+      break;
+    case Hash("srshlr_z_p_zz"):
+      sshl(vform, result, zm, zdn, shift_in_ls_byte).Round(vform);
+      break;
+    case Hash("uqrshl_z_p_zz"):
+      ushl(vform, result, zdn, zm, shift_in_ls_byte)
+          .Round(vform)
+          .UnsignedSaturate(vform);
+      break;
+    case Hash("uqrshlr_z_p_zz"):
+      ushl(vform, result, zm, zdn, shift_in_ls_byte)
+          .Round(vform)
+          .UnsignedSaturate(vform);
+      break;
+    case Hash("uqshl_z_p_zz"):
+      ushl(vform, result, zdn, zm, shift_in_ls_byte).UnsignedSaturate(vform);
+      break;
+    case Hash("uqshlr_z_p_zz"):
+      ushl(vform, result, zm, zdn, shift_in_ls_byte).UnsignedSaturate(vform);
+      break;
+    case Hash("urshl_z_p_zz"):
+      ushl(vform, result, zdn, zm, shift_in_ls_byte).Round(vform);
+      break;
+    case Hash("urshlr_z_p_zz"):
+      ushl(vform, result, zm, zdn, shift_in_ls_byte).Round(vform);
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
-  SVEBitwiseShiftHelper(shift_op,
-                        vform,
-                        result,
-                        shiftand,
-                        shiftor,
-                        /* is_wide_elements = */ false);
   mov_merging(vform, zdn, pg, result);
 }
 

@@ -2060,14 +2060,33 @@ LogicVRegister Simulator::cnt(VectorFormat vform,
   return dst;
 }
 
+static int64_t CalculateSignedShiftDistance(int64_t shift_val,
+                                            int esize,
+                                            bool shift_in_ls_byte) {
+  if (shift_in_ls_byte) {
+    // Neon uses the least-significant byte of the lane as the shift distance.
+    shift_val = ExtractSignedBitfield64(7, 0, shift_val);
+  } else {
+    // SVE uses a saturated shift distance in the range
+    //  -(esize + 1) ... (esize + 1).
+    if (shift_val > (esize + 1)) shift_val = esize + 1;
+    if (shift_val < -(esize + 1)) shift_val = -(esize + 1);
+  }
+  return shift_val;
+}
 
 LogicVRegister Simulator::sshl(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
-                               const LogicVRegister& src2) {
+                               const LogicVRegister& src2,
+                               bool shift_in_ls_byte) {
   dst.ClearForWrite(vform);
+  int esize = LaneSizeInBitsFromFormat(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    int8_t shift_val = src2.Int(vform, i);
+    int64_t shift_val = CalculateSignedShiftDistance(src2.Int(vform, i),
+                                                     esize,
+                                                     shift_in_ls_byte);
+
     int64_t lj_src_val = src1.IntLeftJustified(vform, i);
 
     // Set signed saturation state.
@@ -2124,10 +2143,15 @@ LogicVRegister Simulator::sshl(VectorFormat vform,
 LogicVRegister Simulator::ushl(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
-                               const LogicVRegister& src2) {
+                               const LogicVRegister& src2,
+                               bool shift_in_ls_byte) {
   dst.ClearForWrite(vform);
+  int esize = LaneSizeInBitsFromFormat(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    int8_t shift_val = src2.Int(vform, i);
+    int64_t shift_val = CalculateSignedShiftDistance(src2.Int(vform, i),
+                                                     esize,
+                                                     shift_in_ls_byte);
+
     uint64_t lj_src_val = src1.UintLeftJustified(vform, i);
 
     // Set saturation state.
@@ -2159,6 +2183,27 @@ LogicVRegister Simulator::ushl(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::sshr(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  SimVRegister temp;
+  // Saturate to sidestep the min-int problem.
+  neg(vform, temp, src2).SignedSaturate(vform);
+  sshl(vform, dst, src1, temp, false);
+  return dst;
+}
+
+LogicVRegister Simulator::ushr(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  SimVRegister temp;
+  // Saturate to sidestep the min-int problem.
+  neg(vform, temp, src2).SignedSaturate(vform);
+  ushl(vform, dst, src1, temp, false);
+  return dst;
+}
 
 LogicVRegister Simulator::neg(VectorFormat vform,
                               LogicVRegister dst,

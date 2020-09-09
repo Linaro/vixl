@@ -3361,8 +3361,18 @@ class Simulator : public DecoderVisitor {
   LogicVRegister sshl(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
-                      const LogicVRegister& src2);
+                      const LogicVRegister& src2,
+                      bool shift_is_8bit = true);
   LogicVRegister ushl(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      bool shift_is_8bit = true);
+  LogicVRegister sshr(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
+  LogicVRegister ushr(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);

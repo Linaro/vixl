@@ -562,80 +562,41 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
   }
 }
 
-void MacroAssembler::Asr(const ZRegister& zd,
-                         const PRegisterM& pg,
-                         const ZRegister& zn,
-                         const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::asr),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::asrr));
-}
+#define VIXL_SVE_NONCOMMUTATIVE_ARITH_ZPZZ_LIST(V) \
+  V(Asr, asr)                                      \
+  V(Fdiv, fdiv)                                    \
+  V(Fsub, fsub)                                    \
+  V(Lsl, lsl)                                      \
+  V(Lsr, lsr)                                      \
+  V(Sdiv, sdiv)                                    \
+  V(Shsub, shsub)                                  \
+  V(Sqrshl, sqrshl)                                \
+  V(Sqshl, sqshl)                                  \
+  V(Srshl, srshl)                                  \
+  V(Sub, sub)                                      \
+  V(Udiv, udiv)                                    \
+  V(Uhsub, uhsub)                                  \
+  V(Uqrshl, uqrshl)                                \
+  V(Uqshl, uqshl)                                  \
+  V(Urshl, urshl)
 
-void MacroAssembler::Lsl(const ZRegister& zd,
-                         const PRegisterM& pg,
-                         const ZRegister& zn,
-                         const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::lsl),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::lslr));
-}
-
-void MacroAssembler::Lsr(const ZRegister& zd,
-                         const PRegisterM& pg,
-                         const ZRegister& zn,
-                         const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::lsr),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::lsrr));
-}
-
-void MacroAssembler::Fdiv(const ZRegister& zd,
-                          const PRegisterM& pg,
-                          const ZRegister& zn,
-                          const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::fdiv),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::fdivr));
-}
-
-void MacroAssembler::Fsub(const ZRegister& zd,
-                          const PRegisterM& pg,
-                          const ZRegister& zn,
-                          const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::fsub),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::fsubr));
-}
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                          \
+  void MacroAssembler::MASMFN(const ZRegister& zd,                    \
+                              const PRegisterM& pg,                   \
+                              const ZRegister& zn,                    \
+                              const ZRegister& zm) {                  \
+    VIXL_ASSERT(allow_macro_instructions_);                           \
+    NoncommutativeArithmeticHelper(zd,                                \
+                                   pg,                                \
+                                   zn,                                \
+                                   zm,                                \
+                                   static_cast<SVEArithPredicatedFn>( \
+                                       &Assembler::ASMFN),            \
+                                   static_cast<SVEArithPredicatedFn>( \
+                                       &Assembler::ASMFN##r));        \
+  }
+VIXL_SVE_NONCOMMUTATIVE_ARITH_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
 
 void MacroAssembler::Fadd(const ZRegister& zd,
                           const PRegisterM& pg,
@@ -1022,36 +983,6 @@ void MacroAssembler::Ptrue(const PRegisterWithLaneSize& pd,
   VIXL_UNREACHABLE();
 }
 
-void MacroAssembler::Sdiv(const ZRegister& zd,
-                          const PRegisterM& pg,
-                          const ZRegister& zn,
-                          const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::sdiv),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::sdivr));
-}
-
-void MacroAssembler::Shsub(const ZRegister& zd,
-                           const PRegisterM& pg,
-                           const ZRegister& zn,
-                           const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::shsub),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::shsubr));
-}
-
 void MacroAssembler::Sub(const ZRegister& zd,
                          IntegerOperand imm,
                          const ZRegister& zm) {
@@ -1071,51 +1002,6 @@ void MacroAssembler::Sub(const ZRegister& zd,
     SingleEmissionCheckScope guard(this);
     sub(zd, scratch, zm);
   }
-}
-
-void MacroAssembler::Sub(const ZRegister& zd,
-                         const PRegisterM& pg,
-                         const ZRegister& zn,
-                         const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::sub),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::subr));
-}
-
-void MacroAssembler::Udiv(const ZRegister& zd,
-                          const PRegisterM& pg,
-                          const ZRegister& zn,
-                          const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::udiv),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::udivr));
-}
-
-void MacroAssembler::Uhsub(const ZRegister& zd,
-                           const PRegisterM& pg,
-                           const ZRegister& zn,
-                           const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  NoncommutativeArithmeticHelper(zd,
-                                 pg,
-                                 zn,
-                                 zm,
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::uhsub),
-                                 static_cast<SVEArithPredicatedFn>(
-                                     &Assembler::uhsubr));
 }
 
 void MacroAssembler::SVELoadBroadcastImmHelper(const ZRegister& zt,
