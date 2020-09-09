@@ -3214,29 +3214,36 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
 
 void Simulator::Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
-  USE(zdn);
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ true);
+  unsigned lane_size = shift_and_lane_size.second;
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int right_shift_dist = shift_and_lane_size.first;
+  int left_shift_dist = (8 << lane_size) - right_shift_dist;
+  SimVRegister result;
 
   switch (form_hash_) {
     case Hash("sqshl_z_p_zi"):
-      VIXL_UNIMPLEMENTED();
+      sqshl(vform, result, zdn, left_shift_dist);
       break;
     case Hash("sqshlu_z_p_zi"):
-      VIXL_UNIMPLEMENTED();
+      sqshlu(vform, result, zdn, left_shift_dist);
       break;
     case Hash("srshr_z_p_zi"):
-      VIXL_UNIMPLEMENTED();
+      sshr(vform, result, zdn, right_shift_dist).Round(vform);
       break;
     case Hash("uqshl_z_p_zi"):
-      VIXL_UNIMPLEMENTED();
+      uqshl(vform, result, zdn, left_shift_dist);
       break;
     case Hash("urshr_z_p_zi"):
-      VIXL_UNIMPLEMENTED();
+      ushr(vform, result, zdn, right_shift_dist).Round(vform);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr) {

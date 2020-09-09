@@ -7085,10 +7085,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqrshrunt(zd, zn);
   }
-  void Sqshl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Sqshl(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqshl(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    sqshl(zd, pg, zd, shift);
   }
   void Sqshl(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7106,10 +7109,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqshlr(zd, pg, zn, zm);
   }
-  void Sqshlu(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Sqshlu(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqshlu(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    sqshlu(zd, pg, zd, shift);
   }
   void Sqshrnb(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7188,10 +7194,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     srshlr(zd, pg, zn, zm);
   }
-  void Srshr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Srshr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    srshr(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    srshr(zd, pg, zd, shift);
   }
   void Srsra(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7464,10 +7473,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     uqrshrnt(zd, zn);
   }
-  void Uqshl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Uqshl(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqshl(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    uqshl(zd, pg, zd, shift);
   }
   void Uqshl(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7542,10 +7554,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     urshlr(zd, pg, zn, zm);
   }
-  void Urshr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Urshr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    urshr(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zn);
+    urshr(zd, pg, zd, shift);
   }
   void Ursqrte(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);

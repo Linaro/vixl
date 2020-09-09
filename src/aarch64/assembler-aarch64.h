@@ -6302,7 +6302,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqrshrunt(const ZRegister& zd, const ZRegister& zn);
 
   // Signed saturating shift left by immediate.
-  void sqshl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void sqshl(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift);
 
   // Signed saturating shift left by vector (predicated).
   void sqshl(const ZRegister& zd,
@@ -6317,7 +6320,10 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Signed saturating shift left unsigned by immediate.
-  void sqshlu(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void sqshlu(const ZRegister& zd,
+              const PRegisterM& pg,
+              const ZRegister& zn,
+              int shift);
 
   // Signed saturating shift right narrow by immediate (bottom).
   void sqshrnb(const ZRegister& zd, const ZRegister& zn);
@@ -6377,7 +6383,10 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Signed rounding shift right by immediate.
-  void srshr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void srshr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift);
 
   // Signed rounding shift right and accumulate (immediate).
   void srsra(const ZRegister& zda, const ZRegister& zn);
@@ -6568,7 +6577,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void uqrshrnt(const ZRegister& zd, const ZRegister& zn);
 
   // Unsigned saturating shift left by immediate.
-  void uqshl(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void uqshl(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift);
 
   // Unsigned saturating shift left by vector (predicated).
   void uqshl(const ZRegister& zd,
@@ -6628,7 +6640,10 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Unsigned rounding shift right by immediate.
-  void urshr(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
+  void urshr(const ZRegister& zd,
+             const PRegisterM& pg,
+             const ZRegister& zn,
+             int shift);
 
   // Unsigned reciprocal square root estimate (predicated).
   void ursqrte(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
@@ -7612,7 +7627,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void SVEBitwiseShiftImmediatePred(const ZRegister& zdn,
                                     const PRegisterM& pg,
                                     Instr encoded_imm,
-                                    SVEBitwiseShiftByImm_PredicatedOp op);
+                                    Instr op);
 
   Instr SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
                             const ZRegister& zm,

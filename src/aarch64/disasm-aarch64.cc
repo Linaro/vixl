@@ -213,10 +213,10 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sqrshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"sqrshrunb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"sqrshrunt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqshl_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"sqshl_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"sqshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sqshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"sqshlu_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"sqshlu_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"sqshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"sqshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"sqshrunb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
@@ -231,7 +231,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sri_z_zzi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"srshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"srshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"srshr_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"srshr_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"srsra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
     {"sshllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"sshllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
@@ -293,7 +293,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"uqrshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqrshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"uqrshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"uqshl_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"uqshl_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"uqshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
@@ -306,7 +306,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"urhadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"urshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"urshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"urshr_z_p_zi", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_const},
+    {"urshr_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"ursqrte_z_p_z", &Disassembler::Disassemble_ZdS_PgM_ZnS},
     {"ursra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
     {"ushllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
@@ -6026,32 +6026,36 @@ void Disassembler::VisitSVEBitwiseLogical_Predicated(const Instruction *instr) {
 
 void Disassembler::VisitSVEBitwiseShiftByImm_Predicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'tszp, 'Pgl/m, 'Zd.'tszp, 'ITriSveq";
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Zd.'tszp, 'Pgl/m, 'Zd.'tszp, ";
+  const char *suffix = NULL;
   unsigned tsize = (instr->ExtractBits(23, 22) << 2) | instr->ExtractBits(9, 8);
 
   if (tsize == 0) {
+    mnemonic = "unimplemented";
     form = "(SVEBitwiseShiftByImm_Predicated)";
   } else {
-    switch (instr->Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
-      case ASRD_z_p_zi:
-        mnemonic = "asrd";
+    switch (form_hash_) {
+      case Hash("lsl_z_p_zi"):
+      case Hash("sqshl_z_p_zi"):
+      case Hash("sqshlu_z_p_zi"):
+      case Hash("uqshl_z_p_zi"):
+        suffix = "'ITriSvep";
         break;
-      case ASR_z_p_zi:
-        mnemonic = "asr";
-        break;
-      case LSL_z_p_zi:
-        mnemonic = "lsl";
-        form = "'Zd.'tszp, p'u1210/m, 'Zd.'tszp, 'ITriSvep";
-        break;
-      case LSR_z_p_zi:
-        mnemonic = "lsr";
+      case Hash("asrd_z_p_zi"):
+      case Hash("asr_z_p_zi"):
+      case Hash("lsr_z_p_zi"):
+      case Hash("srshr_z_p_zi"):
+      case Hash("urshr_z_p_zi"):
+        suffix = "'ITriSveq";
         break;
       default:
+        mnemonic = "unimplemented";
+        form = "(SVEBitwiseShiftByImm_Predicated)";
         break;
     }
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVEBitwiseShiftByVector_Predicated(
@@ -10103,11 +10107,6 @@ void Disassembler::Disassemble_ZdnS_ZdnS_ZmS(const Instruction *instr) {
 
 void Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT(const Instruction *instr) {
   const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
-  Format(instr, mnemonic_.c_str(), form);
-}
-
-void Disassembler::Disassemble_ZdnT_PgM_ZdnT_const(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Pgl/m, 'Zd.<T>, #<const>";
   Format(instr, mnemonic_.c_str(), form);
 }
 
