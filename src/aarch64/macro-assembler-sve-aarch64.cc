@@ -89,7 +89,7 @@ bool MacroAssembler::TrySingleAddSub(AddSubHelperOption option,
   return false;
 }
 
-void MacroAssembler::IntWideImmHelper(IntWideImmFn imm_fn,
+void MacroAssembler::IntWideImmHelper(IntArithImmFn imm_fn,
                                       SVEArithPredicatedFn reg_macro,
                                       const ZRegister& zd,
                                       const ZRegister& zn,
@@ -130,7 +130,7 @@ void MacroAssembler::Mul(const ZRegister& zd,
                          const ZRegister& zn,
                          IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  IntWideImmFn imm_fn = &Assembler::mul;
+  IntArithImmFn imm_fn = &Assembler::mul;
   SVEArithPredicatedFn reg_fn = &MacroAssembler::Mul;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
 }
@@ -140,7 +140,7 @@ void MacroAssembler::Smin(const ZRegister& zd,
                           IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInSignedLane(zd));
-  IntWideImmFn imm_fn = &Assembler::smin;
+  IntArithImmFn imm_fn = &Assembler::smin;
   SVEArithPredicatedFn reg_fn = &MacroAssembler::Smin;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
 }
@@ -150,7 +150,7 @@ void MacroAssembler::Smax(const ZRegister& zd,
                           IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInSignedLane(zd));
-  IntWideImmFn imm_fn = &Assembler::smax;
+  IntArithImmFn imm_fn = &Assembler::smax;
   SVEArithPredicatedFn reg_fn = &MacroAssembler::Smax;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, true);
 }
@@ -160,7 +160,7 @@ void MacroAssembler::Umax(const ZRegister& zd,
                           IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInUnsignedLane(zd));
-  IntWideImmFn imm_fn = &Assembler::umax;
+  IntArithImmFn imm_fn = &Assembler::umax;
   SVEArithPredicatedFn reg_fn = &MacroAssembler::Umax;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, false);
 }
@@ -170,7 +170,7 @@ void MacroAssembler::Umin(const ZRegister& zd,
                           IntegerOperand imm) {
   VIXL_ASSERT(allow_macro_instructions_);
   VIXL_ASSERT(imm.FitsInUnsignedLane(zd));
-  IntWideImmFn imm_fn = &Assembler::umin;
+  IntArithImmFn imm_fn = &Assembler::umin;
   SVEArithPredicatedFn reg_fn = &MacroAssembler::Umin;
   IntWideImmHelper(imm_fn, reg_fn, zd, zn, imm, false);
 }
@@ -1984,6 +1984,57 @@ void MacroAssembler::Clastb(const ZRegister& zd,
     MovprfxHelperScope guard(this, zd, zn);
     clastb(zd, pg, zd, zm);
   }
+}
+
+void MacroAssembler::ShiftRightAccumulate(IntArithImmFn fn,
+                                          const ZRegister& zd,
+                                          const ZRegister& za,
+                                          const ZRegister& zn,
+                                          int shift) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (zd.Aliases(za)) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zd, zn, shift);
+  } else if (zd.Aliases(zn)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zn);
+    Mov(ztmp, zn);
+    {
+      MovprfxHelperScope guard(this, zd, za);
+      (this->*fn)(zd, ztmp, shift);
+    }
+  } else {
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, shift);
+  }
+}
+
+void MacroAssembler::Srsra(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           int shift) {
+  ShiftRightAccumulate(&Assembler::srsra, zd, za, zn, shift);
+}
+
+void MacroAssembler::Ssra(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          int shift) {
+  ShiftRightAccumulate(&Assembler::ssra, zd, za, zn, shift);
+}
+
+void MacroAssembler::Ursra(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           int shift) {
+  ShiftRightAccumulate(&Assembler::ursra, zd, za, zn, shift);
+}
+
+void MacroAssembler::Usra(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          int shift) {
+  ShiftRightAccumulate(&Assembler::usra, zd, za, zn, shift);
 }
 
 }  // namespace aarch64

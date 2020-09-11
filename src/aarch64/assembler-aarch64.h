@@ -6389,7 +6389,7 @@ class Assembler : public vixl::internal::AssemblerBase {
              int shift);
 
   // Signed rounding shift right and accumulate (immediate).
-  void srsra(const ZRegister& zda, const ZRegister& zn);
+  void srsra(const ZRegister& zda, const ZRegister& zn, int shift);
 
   // Signed shift left long by immediate (bottom).
   void sshllb(const ZRegister& zd, const ZRegister& zn);
@@ -6398,7 +6398,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sshllt(const ZRegister& zd, const ZRegister& zn);
 
   // Signed shift right and accumulate (immediate).
-  void ssra(const ZRegister& zda, const ZRegister& zn);
+  void ssra(const ZRegister& zda, const ZRegister& zn, int shift);
 
   // Signed subtract long (bottom).
   void ssublb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -6649,7 +6649,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ursqrte(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn);
 
   // Unsigned rounding shift right and accumulate (immediate).
-  void ursra(const ZRegister& zda, const ZRegister& zn);
+  void ursra(const ZRegister& zda, const ZRegister& zn, int shift);
 
   // Unsigned shift left long by immediate (bottom).
   void ushllb(const ZRegister& zd, const ZRegister& zn);
@@ -6664,7 +6664,7 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Unsigned shift right and accumulate (immediate).
-  void usra(const ZRegister& zda, const ZRegister& zn);
+  void usra(const ZRegister& zda, const ZRegister& zn, int shift);
 
   // Unsigned subtract long (bottom).
   void usublb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);

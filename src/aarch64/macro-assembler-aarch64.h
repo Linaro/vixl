@@ -7166,11 +7166,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     MovprfxHelperScope guard(this, zd, pg, zn);
     srshr(zd, pg, zd, shift);
   }
-  void Srsra(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    srsra(zda, zn);
-  }
+  void Srsra(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             int shift);
   void Sshllb(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7181,11 +7180,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sshllt(zd, zn);
   }
-  void Ssra(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ssra(zda, zn);
-  }
+  void Ssra(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            int shift);
   void Ssublb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7495,11 +7493,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ursqrte(zd, pg, zn);
   }
-  void Ursra(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ursra(zda, zn);
-  }
+  void Ursra(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             int shift);
   void Ushllb(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7518,11 +7515,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     usqadd(zd, pg, zn, zm);
   }
-  void Usra(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    usra(zda, zn);
-  }
+  void Usra(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            int shift);
   void Usublb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -8045,9 +8041,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                         const ZRegister& zn,
                                         const ZRegister& zm);
 
-  typedef void (Assembler::*IntWideImmFn)(const ZRegister& zd,
-                                          const ZRegister& zn,
-                                          int imm);
+  typedef void (Assembler::*IntArithImmFn)(const ZRegister& zd,
+                                           const ZRegister& zn,
+                                           int imm);
 
   typedef void (Assembler::*IntArithIndexFn)(const ZRegister& zd,
                                              const ZRegister& zn,
@@ -8059,7 +8055,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                                        const ZRegister& zn,
                                                        const ZRegister& zm);
 
-  void IntWideImmHelper(IntWideImmFn imm_fn,
+  void IntWideImmHelper(IntArithImmFn imm_fn,
                         SVEArithPredicatedFn reg_fn,
                         const ZRegister& zd,
                         const ZRegister& zn,
@@ -8152,6 +8148,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                            const ZRegister& zn,
                            const ZRegister& zm,
                            int index);
+
+  void ShiftRightAccumulate(IntArithImmFn fn,
+                            const ZRegister& zd,
+                            const ZRegister& za,
+                            const ZRegister& zn,
+                            int shift);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number

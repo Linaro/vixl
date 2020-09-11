@@ -6669,6 +6669,81 @@ TEST(sve2_halving_arithmetic) {
   CLEANUP();
 }
 
+TEST(sve2_sra) {
+  SETUP();
+
+  COMPARE(ssra(z0.VnB(), z8.VnB(), 1), "ssra z0.b, z8.b, #1");
+  COMPARE(ssra(z0.VnB(), z8.VnB(), 2), "ssra z0.b, z8.b, #2");
+  COMPARE(ssra(z0.VnB(), z8.VnB(), 5), "ssra z0.b, z8.b, #5");
+  COMPARE(ssra(z0.VnB(), z8.VnB(), 8), "ssra z0.b, z8.b, #8");
+  COMPARE(ssra(z0.VnH(), z8.VnH(), 1), "ssra z0.h, z8.h, #1");
+  COMPARE(ssra(z0.VnH(), z8.VnH(), 16), "ssra z0.h, z8.h, #16");
+  COMPARE(ssra(z0.VnS(), z8.VnS(), 1), "ssra z0.s, z8.s, #1");
+  COMPARE(ssra(z0.VnS(), z8.VnS(), 31), "ssra z0.s, z8.s, #31");
+  COMPARE(ssra(z0.VnD(), z8.VnD(), 1), "ssra z0.d, z8.d, #1");
+  COMPARE(ssra(z0.VnD(), z8.VnD(), 64), "ssra z0.d, z8.d, #64");
+
+  COMPARE(srsra(z0.VnB(), z8.VnB(), 1), "srsra z0.b, z8.b, #1");
+  COMPARE(srsra(z0.VnB(), z8.VnB(), 2), "srsra z0.b, z8.b, #2");
+  COMPARE(srsra(z0.VnB(), z8.VnB(), 5), "srsra z0.b, z8.b, #5");
+  COMPARE(srsra(z0.VnB(), z8.VnB(), 8), "srsra z0.b, z8.b, #8");
+  COMPARE(srsra(z0.VnH(), z8.VnH(), 1), "srsra z0.h, z8.h, #1");
+  COMPARE(srsra(z0.VnH(), z8.VnH(), 16), "srsra z0.h, z8.h, #16");
+  COMPARE(srsra(z0.VnS(), z8.VnS(), 1), "srsra z0.s, z8.s, #1");
+  COMPARE(srsra(z0.VnS(), z8.VnS(), 31), "srsra z0.s, z8.s, #31");
+  COMPARE(srsra(z0.VnD(), z8.VnD(), 1), "srsra z0.d, z8.d, #1");
+  COMPARE(srsra(z0.VnD(), z8.VnD(), 64), "srsra z0.d, z8.d, #64");
+
+  COMPARE(usra(z0.VnB(), z8.VnB(), 1), "usra z0.b, z8.b, #1");
+  COMPARE(usra(z0.VnB(), z8.VnB(), 2), "usra z0.b, z8.b, #2");
+  COMPARE(usra(z0.VnB(), z8.VnB(), 5), "usra z0.b, z8.b, #5");
+  COMPARE(usra(z0.VnB(), z8.VnB(), 8), "usra z0.b, z8.b, #8");
+  COMPARE(usra(z0.VnH(), z8.VnH(), 1), "usra z0.h, z8.h, #1");
+  COMPARE(usra(z0.VnH(), z8.VnH(), 16), "usra z0.h, z8.h, #16");
+  COMPARE(usra(z0.VnS(), z8.VnS(), 1), "usra z0.s, z8.s, #1");
+  COMPARE(usra(z0.VnS(), z8.VnS(), 31), "usra z0.s, z8.s, #31");
+  COMPARE(usra(z0.VnD(), z8.VnD(), 1), "usra z0.d, z8.d, #1");
+  COMPARE(usra(z0.VnD(), z8.VnD(), 64), "usra z0.d, z8.d, #64");
+
+  COMPARE(ursra(z0.VnB(), z8.VnB(), 1), "ursra z0.b, z8.b, #1");
+  COMPARE(ursra(z0.VnB(), z8.VnB(), 2), "ursra z0.b, z8.b, #2");
+  COMPARE(ursra(z0.VnB(), z8.VnB(), 5), "ursra z0.b, z8.b, #5");
+  COMPARE(ursra(z0.VnB(), z8.VnB(), 8), "ursra z0.b, z8.b, #8");
+  COMPARE(ursra(z0.VnH(), z8.VnH(), 1), "ursra z0.h, z8.h, #1");
+  COMPARE(ursra(z0.VnH(), z8.VnH(), 16), "ursra z0.h, z8.h, #16");
+  COMPARE(ursra(z0.VnS(), z8.VnS(), 1), "ursra z0.s, z8.s, #1");
+  COMPARE(ursra(z0.VnS(), z8.VnS(), 31), "ursra z0.s, z8.s, #31");
+  COMPARE(ursra(z0.VnD(), z8.VnD(), 1), "ursra z0.d, z8.d, #1");
+  COMPARE(ursra(z0.VnD(), z8.VnD(), 64), "ursra z0.d, z8.d, #64");
+
+  COMPARE_MACRO(Ssra(z0.VnB(), z1.VnB(), z2.VnB(), 2),
+                "movprfx z0, z1\n"
+                "ssra z0.b, z2.b, #2");
+  COMPARE_MACRO(Ssra(z0.VnB(), z0.VnB(), z2.VnB(), 2), "ssra z0.b, z2.b, #2");
+  COMPARE_MACRO(Ssra(z0.VnB(), z1.VnB(), z1.VnB(), 2),
+                "movprfx z0, z1\n"
+                "ssra z0.b, z1.b, #2");
+  COMPARE_MACRO(Ssra(z2.VnB(), z1.VnB(), z2.VnB(), 2),
+                "mov z31.d, z2.d\n"
+                "movprfx z2, z1\n"
+                "ssra z2.b, z31.b, #2");
+  COMPARE_MACRO(Ssra(z0.VnB(), z0.VnB(), z0.VnB(), 2), "ssra z0.b, z0.b, #2");
+
+  COMPARE_MACRO(Srsra(z2.VnB(), z1.VnB(), z2.VnB(), 2),
+                "mov z31.d, z2.d\n"
+                "movprfx z2, z1\n"
+                "srsra z2.b, z31.b, #2");
+  COMPARE_MACRO(Usra(z2.VnB(), z1.VnB(), z2.VnB(), 2),
+                "mov z31.d, z2.d\n"
+                "movprfx z2, z1\n"
+                "usra z2.b, z31.b, #2");
+  COMPARE_MACRO(Ursra(z2.VnB(), z1.VnB(), z2.VnB(), 2),
+                "mov z31.d, z2.d\n"
+                "movprfx z2, z1\n"
+                "ursra z2.b, z31.b, #2");
+  CLEANUP();
+}
+
 TEST(sve2_sri_sli) {
   SETUP();
 
@@ -7476,13 +7551,9 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(sqxtnt(z31.Vn?(), z18), "sqxtnt <Zd>.<T>, <Zn>.<Tb>");
   // COMPARE_PREFIX(sqxtunb(z28.Vn?(), z6), "sqxtunb <Zd>.<T>, <Zn>.<Tb>");
   // COMPARE_PREFIX(sqxtunt(z14.Vn?(), z31), "sqxtunt <Zd>.<T>, <Zn>.<Tb>");
-  // COMPARE_PREFIX(srsra(z6.Vn?(), z9.Vn?()), "srsra <Zda>.<T>, <Zn>.<T>,
-  // #<const>");
   // COMPARE_PREFIX(sshllb(z2.Vn?(), z20), "sshllb <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
   // COMPARE_PREFIX(sshllt(z27.Vn?(), z8), "sshllt <Zd>.<T>, <Zn>.<Tb>,
-  // #<const>");
-  // COMPARE_PREFIX(ssra(z0.Vn?(), z8.Vn?()), "ssra <Zda>.<T>, <Zn>.<T>,
   // #<const>");
   // COMPARE_PREFIX(ssublb(z4.VnD(), z23, z7), "ssublb z4.d, z23, z7");
   // COMPARE_PREFIX(ssublb(z4.VnH(), z23, z7), "ssublb z4.h, z23, z7");
@@ -7692,8 +7763,6 @@ TEST(sve2_all_instructions) {
   // p7/m, z2.s");
   // COMPARE_PREFIX(ursqrte(z4.VnS(), p3.Merging(), z3.VnS()), "ursqrte z4.s,
   // p3/m, z3.s");
-  // COMPARE_PREFIX(ursra(z10.Vn?(), z25.Vn?()), "ursra <Zda>.<T>, <Zn>.<T>,
-  // #<const>");
   // COMPARE_PREFIX(ushllb(z8.Vn?(), z31), "ushllb <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
   // COMPARE_PREFIX(ushllt(z3.Vn?(), z21), "ushllt <Zd>.<T>, <Zn>.<Tb>,
@@ -7706,8 +7775,6 @@ TEST(sve2_all_instructions) {
   // "usqadd z25.h, p4/m, z25.h, z6.h");
   // COMPARE_PREFIX(usqadd(z25.VnS(), p4.Merging(), z25.VnS(), z6.VnS()),
   // "usqadd z25.s, p4/m, z25.s, z6.s");
-  // COMPARE_PREFIX(usra(z2.Vn?(), z12.Vn?()), "usra <Zda>.<T>, <Zn>.<T>,
-  // #<const>");
   // COMPARE_PREFIX(usublb(z25.VnD(), z9, z17), "usublb z25.d, z9, z17");
   // COMPARE_PREFIX(usublb(z25.VnH(), z9, z17), "usublb z25.h, z9, z17");
   // COMPARE_PREFIX(usublb(z25.VnS(), z9, z17), "usublb z25.s, z9, z17");

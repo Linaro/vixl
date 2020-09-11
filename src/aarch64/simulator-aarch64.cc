@@ -2932,23 +2932,29 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT_const(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdaT_ZnT_const(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int lane_size = shift_and_lane_size.second;
+  VIXL_ASSERT((lane_size >= 0) &&
+              (static_cast<unsigned>(lane_size) <= kDRegSizeInBytesLog2));
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int shift_dist = shift_and_lane_size.first;
 
   switch (form_hash_) {
     case Hash("srsra_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      srsra(vform, zd, zn, shift_dist);
       break;
     case Hash("ssra_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      ssra(vform, zd, zn, shift_dist);
       break;
     case Hash("ursra_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      ursra(vform, zd, zn, shift_dist);
       break;
     case Hash("usra_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      usra(vform, zd, zn, shift_dist);
       break;
     default:
       VIXL_UNIMPLEMENTED();

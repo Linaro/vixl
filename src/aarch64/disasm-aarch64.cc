@@ -232,10 +232,10 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"srshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"srshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"srshr_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
-    {"srsra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"srsra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"sshllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"sshllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"ssra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"ssra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"ssublb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"ssublbt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"ssublt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
@@ -308,11 +308,11 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"urshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"urshr_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"ursqrte_z_p_z", &Disassembler::Disassemble_ZdS_PgM_ZnS},
-    {"ursra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"ursra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"ushllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"ushllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
     {"usqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"usra_z_zi", &Disassembler::Disassemble_ZdaT_ZnT_const},
+    {"usra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"usublb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"usublt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"usubwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
@@ -8629,6 +8629,10 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
     case Hash("asr_z_zi"):
     case Hash("lsr_z_zi"):
     case Hash("sri_z_zzi"):
+    case Hash("srsra_z_zi"):
+    case Hash("ssra_z_zi"):
+    case Hash("ursra_z_zi"):
+    case Hash("usra_z_zi"):
       if (tsize != 0) {
         // The tsz field must not be zero.
         mnemonic = mnemonic_.c_str();
@@ -10067,11 +10071,6 @@ void Disassembler::Disassemble_ZdaT_ZnT_ZmT(const Instruction *instr) {
 
 void Disassembler::Disassemble_ZdaT_ZnT_ZmT_const(const Instruction *instr) {
   const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t, <const>";
-  Format(instr, mnemonic_.c_str(), form);
-}
-
-void Disassembler::Disassemble_ZdaT_ZnT_const(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Zn.<T>, #<const>";
   Format(instr, mnemonic_.c_str(), form);
 }
 
