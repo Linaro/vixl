@@ -6202,6 +6202,10 @@ LoadLiteralOp Assembler::LoadLiteralOpFor(const CPURegister& rt) {
 bool Assembler::CPUHas(const CPURegister& rt) const {
   // Core registers are available without any particular CPU features.
   if (rt.IsRegister()) return true;
+
+  // Capability registers require Morello.
+  if (rt.IsCRegister()) return CPUHas(CPUFeatures::kMorello);
+
   VIXL_ASSERT(rt.IsVRegister());
   // The architecture does not allow FP and NEON to be implemented separately,
   // but we can crudely categorise them based on register size, since FP only
