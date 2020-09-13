@@ -10019,8 +10019,9 @@ void Disassembler::Disassemble_ZdT_ZnTb(const Instruction *instr) {
 void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
   const char *form = "'Zd.'t, 'Zn.'th, 'Zm.'th";
   if (instr->GetSVEVectorFormat() == kFormatVnB) {
-    // TODO: This is correct for saddlbt, ssublbt, subltb, but may need
-    // changes for other instructions reaching here.
+    // TODO: This is correct for saddlbt, ssublbt, subltb, which don't have
+    // b-lane sized form, and for pmull[b|t] as feature `SVEPmull128` isn't
+    // supported, but may need changes for other instructions reaching here.
     Format(instr, "unimplemented", "(ZdT_ZnTb_ZmTb)");
   } else {
     Format(instr, mnemonic_.c_str(), form);

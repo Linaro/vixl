@@ -7891,6 +7891,62 @@ TEST(sve2_bit_permute) {
   CLEANUP();
 }
 
+TEST(sve2_integer_multiply_long_vector) {
+  SETUP();
+
+  COMPARE_PREFIX(sqdmullb(z1.VnD(), z31.VnS(), z21.VnS()),
+                 "sqdmullb z1.d, z31.s, z21.s");
+  COMPARE_PREFIX(sqdmullb(z2.VnH(), z30.VnB(), z22.VnB()),
+                 "sqdmullb z2.h, z30.b, z22.b");
+  COMPARE_PREFIX(sqdmullb(z3.VnS(), z29.VnH(), z23.VnH()),
+                 "sqdmullb z3.s, z29.h, z23.h");
+
+  COMPARE_PREFIX(sqdmullt(z2.VnD(), z1.VnS(), z5.VnS()),
+                 "sqdmullt z2.d, z1.s, z5.s");
+  COMPARE_PREFIX(sqdmullt(z12.VnH(), z11.VnB(), z15.VnB()),
+                 "sqdmullt z12.h, z11.b, z15.b");
+  COMPARE_PREFIX(sqdmullt(z20.VnS(), z21.VnH(), z25.VnH()),
+                 "sqdmullt z20.s, z21.h, z25.h");
+
+  // Feature `SVEPmull128` is not supported.
+  // COMPARE_PREFIX(pmullb(z12.VnQ(), z21.VnD(), z12.VnD()),
+  //                "pmullb z12.q, z21.d, z12.d");
+  COMPARE_PREFIX(pmullb(z12.VnH(), z21.VnB(), z12.VnB()),
+                 "pmullb z12.h, z21.b, z12.b");
+  COMPARE_PREFIX(pmullt(z31.VnD(), z30.VnS(), z26.VnS()),
+                 "pmullt z31.d, z30.s, z26.s");
+
+  COMPARE_PREFIX(smullb(z10.VnD(), z4.VnS(), z4.VnS()),
+                 "smullb z10.d, z4.s, z4.s");
+  COMPARE_PREFIX(smullb(z11.VnH(), z14.VnB(), z14.VnB()),
+                 "smullb z11.h, z14.b, z14.b");
+  COMPARE_PREFIX(smullb(z12.VnS(), z24.VnH(), z24.VnH()),
+                 "smullb z12.s, z24.h, z24.h");
+
+  COMPARE_PREFIX(smullt(z31.VnD(), z26.VnS(), z5.VnS()),
+                 "smullt z31.d, z26.s, z5.s");
+  COMPARE_PREFIX(smullt(z21.VnH(), z16.VnB(), z5.VnB()),
+                 "smullt z21.h, z16.b, z5.b");
+  COMPARE_PREFIX(smullt(z11.VnS(), z6.VnH(), z5.VnH()),
+                 "smullt z11.s, z6.h, z5.h");
+
+  COMPARE_PREFIX(umullb(z12.VnD(), z5.VnS(), z2.VnS()),
+                 "umullb z12.d, z5.s, z2.s");
+  COMPARE_PREFIX(umullb(z12.VnH(), z15.VnB(), z12.VnB()),
+                 "umullb z12.h, z15.b, z12.b");
+  COMPARE_PREFIX(umullb(z12.VnS(), z25.VnH(), z22.VnH()),
+                 "umullb z12.s, z25.h, z22.h");
+
+  COMPARE_PREFIX(umullt(z24.VnD(), z6.VnS(), z6.VnS()),
+                 "umullt z24.d, z6.s, z6.s");
+  COMPARE_PREFIX(umullt(z24.VnH(), z7.VnB(), z16.VnB()),
+                 "umullt z24.h, z7.b, z16.b");
+  COMPARE_PREFIX(umullt(z24.VnS(), z8.VnH(), z26.VnH()),
+                 "umullt z24.s, z8.h, z26.h");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();

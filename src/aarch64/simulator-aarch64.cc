@@ -140,8 +140,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"nbsl_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
     {"nmatch_p_p_zz", &Simulator::Simulate_PdT_PgZ_ZnT_ZmT},
     {"pmul_z_zz", &Simulator::Simulate_ZdB_ZnB_ZmB},
-    {"pmullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
-    {"pmullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"pmullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
+    {"pmullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"raddhnb_z_zz", &Simulator::SimulateSVEAddSubHigh},
     {"raddhnt_z_zz", &Simulator::SimulateSVEAddSubHigh},
     {"rshrnb_z_zi", &Simulator::SimulateSVENarrow},
@@ -182,10 +182,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"smlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
     {"smlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
     {"smulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
-    {"smullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"smullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"smullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"smullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
-    {"smullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"smullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"smullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"smullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"splice_z_p_zz_con", &Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T},
@@ -210,10 +210,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqdmulh_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
     {"sqdmulh_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
     {"sqdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
-    {"sqdmullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"sqdmullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"sqdmullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"sqdmullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
-    {"sqdmullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"sqdmullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"sqdmullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"sqdmullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"sqneg_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
@@ -307,10 +307,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"umlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
     {"umlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
     {"umulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
-    {"umullb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"umullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"umullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"umullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
-    {"umullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
+    {"umullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"umullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"umullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"uqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
@@ -2333,8 +2333,9 @@ void Simulator::Simulate_ZdT_ZnT_ZmTb(const Instruction* instr) {
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
   SimVRegister zm_b, zm_t;
-  pack_even_elements(vform, zm_b, zm);
-  pack_odd_elements(vform, zm_t, zm);
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  pack_even_elements(vform_half, zm_b, zm);
+  pack_odd_elements(vform_half, zm_t, zm);
 
   switch (form_hash_) {
     case Hash("saddwb_z_zz"):
@@ -2499,10 +2500,11 @@ void Simulator::SimulateSVEInterleavedArithLong(const Instruction* instr) {
 
   // Construct temporary registers containing the even (bottom) and odd (top)
   // elements.
-  pack_even_elements(vform, zn_b, zn);
-  pack_even_elements(vform, zm_b, zm);
-  pack_odd_elements(vform, zn_t, zn);
-  pack_odd_elements(vform, zm_t, zm);
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  pack_even_elements(vform_half, zn_b, zn);
+  pack_even_elements(vform_half, zm_b, zm);
+  pack_odd_elements(vform_half, zn_t, zn);
+  pack_odd_elements(vform_half, zm_t, zm);
 
   switch (form_hash_) {
     case Hash("sabdlb_z_zz"):
@@ -2567,38 +2569,50 @@ void Simulator::SimulateSVEInterleavedArithLong(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
+void Simulator::SimulateSVEIntMulLongVec(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister temp, zn_b, zm_b, zn_t, zm_t;
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  pack_even_elements(vform_half, zn_b, zn);
+  pack_even_elements(vform_half, zm_b, zm);
+  pack_odd_elements(vform_half, zn_t, zn);
+  pack_odd_elements(vform_half, zm_t, zm);
 
   switch (form_hash_) {
     case Hash("pmullb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      // '00' is reserved for Q-sized lane.
+      if (vform == kFormatVnB) {
+        VIXL_UNIMPLEMENTED();
+      }
+      pmull(vform, zd, zn_b, zm_b);
       break;
     case Hash("pmullt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      // '00' is reserved for Q-sized lane.
+      if (vform == kFormatVnB) {
+        VIXL_UNIMPLEMENTED();
+      }
+      pmull(vform, zd, zn_t, zm_t);
       break;
     case Hash("smullb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      smull(vform, zd, zn_b, zm_b);
       break;
     case Hash("smullt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      smull(vform, zd, zn_t, zm_t);
       break;
     case Hash("sqdmullb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmull(vform, zd, zn_b, zm_b);
       break;
     case Hash("sqdmullt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmull(vform, zd, zn_t, zm_t);
       break;
     case Hash("umullb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      umull(vform, zd, zn_b, zm_b);
       break;
     case Hash("umullt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      umull(vform, zd, zn_t, zm_t);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2675,8 +2689,9 @@ void Simulator::SimulateSVEShiftLeftImm(const Instruction* instr) {
 
   // Construct temporary registers containing the even (bottom) and odd (top)
   // elements.
-  pack_even_elements(vform, zn_b, zn);
-  pack_odd_elements(vform, zn_t, zn);
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  pack_even_elements(vform_half, zn_b, zn);
+  pack_odd_elements(vform_half, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("sshllb_z_zi"):

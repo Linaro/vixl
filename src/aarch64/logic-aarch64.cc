@@ -1101,12 +1101,16 @@ LogicVRegister Simulator::sqrdmlsh(VectorFormat vform,
 }
 
 
-uint16_t Simulator::PolynomialMult(uint8_t op1, uint8_t op2) const {
-  uint16_t result = 0;
-  uint16_t extended_op2 = op2;
-  for (int i = 0; i < 8; ++i) {
+uint64_t Simulator::PolynomialMult(uint64_t op1,
+                                   uint64_t op2,
+                                   int lane_size_in_bits) const {
+  VIXL_ASSERT(static_cast<unsigned>(lane_size_in_bits) <= kSRegSize);
+  VIXL_ASSERT(IsUintN(lane_size_in_bits, op1));
+  VIXL_ASSERT(IsUintN(lane_size_in_bits, op2));
+  uint64_t result = 0;
+  for (int i = 0; i < lane_size_in_bits; ++i) {
     if ((op1 >> i) & 1) {
-      result = result ^ (extended_op2 << i);
+      result = result ^ (op2 << i);
     }
   }
   return result;
@@ -1121,7 +1125,9 @@ LogicVRegister Simulator::pmul(VectorFormat vform,
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     dst.SetUint(vform,
                 i,
-                PolynomialMult(src1.Uint(vform, i), src2.Uint(vform, i)));
+                PolynomialMult(src1.Uint(vform, i),
+                               src2.Uint(vform, i),
+                               LaneSizeInBitsFromFormat(vform)));
   }
   return dst;
 }
@@ -1131,14 +1137,17 @@ LogicVRegister Simulator::pmull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
-  VectorFormat vform_src = VectorFormatHalfWidth(vform);
   dst.ClearForWrite(vform);
+
+  VectorFormat vform_src = VectorFormatHalfWidth(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     dst.SetUint(vform,
                 i,
                 PolynomialMult(src1.Uint(vform_src, i),
-                               src2.Uint(vform_src, i)));
+                               src2.Uint(vform_src, i),
+                               LaneSizeInBitsFromFormat(vform_src)));
   }
+
   return dst;
 }
 
@@ -1154,7 +1163,8 @@ LogicVRegister Simulator::pmull2(VectorFormat vform,
     dst.SetUint(vform,
                 i,
                 PolynomialMult(src1.Uint(vform_src, lane_count + i),
-                               src2.Uint(vform_src, lane_count + i)));
+                               src2.Uint(vform_src, lane_count + i),
+                               LaneSizeInBitsFromFormat(vform_src)));
   }
   return dst;
 }
@@ -7593,9 +7603,7 @@ LogicVRegister Simulator::pack_odd_elements(VectorFormat vform,
                                             const LogicVRegister& src) {
   SimVRegister zero;
   zero.Clear();
-
-  VectorFormat vform_half = VectorFormatHalfWidth(vform);
-  return uzp2(vform_half, dst, src, zero);
+  return uzp2(vform, dst, src, zero);
 }
 
 LogicVRegister Simulator::pack_even_elements(VectorFormat vform,
@@ -7603,9 +7611,7 @@ LogicVRegister Simulator::pack_even_elements(VectorFormat vform,
                                              const LogicVRegister& src) {
   SimVRegister zero;
   zero.Clear();
-
-  VectorFormat vform_half = VectorFormatHalfWidth(vform);
-  return uzp1(vform_half, dst, src, zero);
+  return uzp1(vform, dst, src, zero);
 }
 
 LogicVRegister Simulator::adcl(VectorFormat vform,

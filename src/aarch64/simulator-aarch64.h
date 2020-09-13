@@ -1182,7 +1182,6 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdT_ZnT_ZmT(const Instruction* instr);
   void Simulate_ZdT_ZnT_ZmTb(const Instruction* instr);
   void Simulate_ZdT_ZnT_const(const Instruction* instr);
-  void Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr);
   void Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr);
   void Simulate_ZdaD_ZnH_ZmH_imm_const(const Instruction* instr);
   void Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr);
@@ -1216,6 +1215,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEShiftLeftImm(const Instruction* instr);
   void SimulateSVEAddSubCarry(const Instruction* instr);
   void SimulateSVEAddSubHigh(const Instruction* instr);
+  void SimulateSVEIntMulLongVec(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -2821,7 +2821,9 @@ class Simulator : public DecoderVisitor {
                       int64_t value,
                       Extend extend_type,
                       unsigned left_shift = 0) const;
-  uint16_t PolynomialMult(uint8_t op1, uint8_t op2) const;
+  uint64_t PolynomialMult(uint64_t op1,
+                          uint64_t op2,
+                          int lane_size_in_bits) const;
 
   void ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
   void ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);
@@ -4522,12 +4524,20 @@ class Simulator : public DecoderVisitor {
                                        const LogicVRegister& src2,
                                        bool is_wide_elements);
 
-  LogicVRegister pack_odd_elements(VectorFormat vform,
-                                   LogicVRegister dst,
-                                   const LogicVRegister& src);
+  // Pack all even- or odd-numbered elements of source vector side by side and
+  // place in elements of lower half the destination vector, and leave the upper
+  // half all zero.
+  //    [...| H | G | F | E | D | C | B | A ]
+  // => [...................| G | E | C | A ]
   LogicVRegister pack_even_elements(VectorFormat vform,
                                     LogicVRegister dst,
                                     const LogicVRegister& src);
+
+  //    [...| H | G | F | E | D | C | B | A ]
+  // => [...................| H | F | D | B ]
+  LogicVRegister pack_odd_elements(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src);
 
   LogicVRegister adcl(VectorFormat vform,
                       LogicVRegister dst,

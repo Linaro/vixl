@@ -18763,6 +18763,7 @@ TEST_SVE(sve2_saba_uaba) {
   __ Index(z16.VnD(), 0, 42);
   __ Index(z17.VnD(), 0, -42);
   __ Saba(z17.VnD(), z17.VnD(), z16.VnD(), z17.VnD());
+
   END();
 
   if (CAN_RUN()) {
@@ -18777,6 +18778,61 @@ TEST_SVE(sve2_saba_uaba) {
     ASSERT_EQUAL_SVE(z12, z13);
     ASSERT_EQUAL_SVE(z14, z15);
     ASSERT_EQUAL_SVE(z16, z17);
+  }
+}
+
+TEST_SVE(sve2_integer_multiply_long_vector) {
+  // The test just check Sqdmull[b|t] and Pmull[b|t], as the way how the element
+  // operating of the other instructions in the group are likewise.
+  int32_t zn_inputs_s[] =
+      {1, -2, 3, -4, 5, -6, 7, -8, INT32_MIN, INT32_MAX, INT32_MAX, INT32_MIN};
+
+  int32_t zm_inputs_s[] =
+      {1, 2, 3, 4, 5, 6, 7, 8, INT32_MAX, INT32_MIN, INT32_MAX, INT32_MIN};
+
+  int64_t sqdmullb_expected_d[] =
+      {-8, -32, -72, -128, static_cast<int64_t>(0x8000000100000000), INT64_MAX};
+
+  int64_t sqdmullt_expected_d[] = {2,
+                                   18,
+                                   50,
+                                   98,
+                                   static_cast<int64_t>(0x8000000100000000),
+                                   static_cast<int64_t>(0x7ffffffe00000002)};
+
+  int64_t pmullb_expected_d[] = {0x00000001fffffffc,
+                                 0x00000003fffffff0,
+                                 0x000000020000001c,
+                                 0x00000007ffffffc0,
+                                 0x3fffffff80000000,
+                                 0x4000000000000000};
+
+  int64_t pmullt_expected_d[] = {0x0000000000000005,
+                                 0x0000000000000011,
+                                 0x0000000000000015,
+                                 0x3fffffff80000000,
+                                 0x1555555555555555};
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  InsrHelper(&masm, z31.VnS(), zn_inputs_s);
+  InsrHelper(&masm, z30.VnS(), zm_inputs_s);
+
+  __ Sqdmullb(z1.VnD(), z31.VnS(), z30.VnS());
+  __ Sqdmullt(z2.VnD(), z31.VnS(), z30.VnS());
+  __ Pmullb(z3.VnD(), z31.VnS(), z30.VnS());
+  __ Pmullt(z4.VnD(), z31.VnS(), z30.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(sqdmullb_expected_d, z1.VnD());
+    ASSERT_EQUAL_SVE(sqdmullt_expected_d, z2.VnD());
+    ASSERT_EQUAL_SVE(pmullb_expected_d, z3.VnD());
+    ASSERT_EQUAL_SVE(pmullt_expected_d, z4.VnD());
   }
 }
 
