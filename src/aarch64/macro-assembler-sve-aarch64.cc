@@ -562,22 +562,53 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
   }
 }
 
-#define VIXL_SVE_NONCOMMUTATIVE_ARITH_ZPZZ_LIST(V) \
-  V(Asr, asr)                                      \
-  V(Fdiv, fdiv)                                    \
-  V(Fsub, fsub)                                    \
-  V(Lsl, lsl)                                      \
-  V(Lsr, lsr)                                      \
-  V(Sdiv, sdiv)                                    \
-  V(Shsub, shsub)                                  \
-  V(Sqrshl, sqrshl)                                \
-  V(Sqshl, sqshl)                                  \
-  V(Srshl, srshl)                                  \
-  V(Sub, sub)                                      \
-  V(Udiv, udiv)                                    \
-  V(Uhsub, uhsub)                                  \
-  V(Uqrshl, uqrshl)                                \
-  V(Uqshl, uqshl)                                  \
+// Instructions of the form "inst zda, pg, zda, zn", where they are
+// non-commutative and no reversed form is provided.
+#define VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(V) \
+  V(Fscale, fscale)                         \
+  V(Suqadd, suqadd)                         \
+  V(Usqadd, usqadd)
+
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                       \
+  void MacroAssembler::MASMFN(const ZRegister& zd,                 \
+                              const PRegisterM& pg,                \
+                              const ZRegister& zn,                 \
+                              const ZRegister& zm) {               \
+    VIXL_ASSERT(allow_macro_instructions_);                        \
+    if (zd.Aliases(zm) && !zd.Aliases(zn)) {                       \
+      UseScratchRegisterScope temps(this);                         \
+      ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zm); \
+      Mov(scratch, zm);                                            \
+      MovprfxHelperScope guard(this, zd, pg, zn);                  \
+      ASMFN(zd, pg, zd, scratch);                                  \
+    } else {                                                       \
+      MovprfxHelperScope guard(this, zd, pg, zn);                  \
+      ASMFN(zd, pg, zd, zm);                                       \
+    }                                                              \
+  }
+VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
+
+// Instructions of the form "inst zda, pg, zda, zn", where they are
+// non-commutative and a reversed form is provided.
+#define VIXL_SVE_NONCOMM_ARITH_REVERSE_ZPZZ_LIST(V) \
+  V(Asr, asr)                                       \
+  V(Fdiv, fdiv)                                     \
+  V(Fsub, fsub)                                     \
+  V(Lsl, lsl)                                       \
+  V(Lsr, lsr)                                       \
+  V(Sdiv, sdiv)                                     \
+  V(Shsub, shsub)                                   \
+  V(Sqrshl, sqrshl)                                 \
+  V(Sqshl, sqshl)                                   \
+  V(Sqsub, sqsub)                                   \
+  V(Srshl, srshl)                                   \
+  V(Sub, sub)                                       \
+  V(Udiv, udiv)                                     \
+  V(Uhsub, uhsub)                                   \
+  V(Uqrshl, uqrshl)                                 \
+  V(Uqshl, uqshl)                                   \
+  V(Uqsub, uqsub)                                   \
   V(Urshl, urshl)
 
 #define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                          \
@@ -595,7 +626,7 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
                                    static_cast<SVEArithPredicatedFn>( \
                                        &Assembler::ASMFN##r));        \
   }
-VIXL_SVE_NONCOMMUTATIVE_ARITH_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
+VIXL_SVE_NONCOMM_ARITH_REVERSE_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
 
 void MacroAssembler::Fadd(const ZRegister& zd,
@@ -1650,23 +1681,6 @@ void MacroAssembler::Uaba(const ZRegister& zd,
                           const ZRegister& za) {
   VIXL_ASSERT(allow_macro_instructions_);
   AbsoluteDifferenceAccumulate(&Assembler::uaba, zd, zn, zm, za);
-}
-
-void MacroAssembler::Fscale(const ZRegister& zd,
-                            const PRegisterM& pg,
-                            const ZRegister& zn,
-                            const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
-    UseScratchRegisterScope temps(this);
-    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zm);
-    Mov(scratch, zm);
-    MovprfxHelperScope guard(this, zd, pg, zn);
-    fscale(zd, pg, zd, scratch);
-  } else {
-    MovprfxHelperScope guard(this, zd, pg, zn);
-    fscale(zd, pg, zd, zm);
-  }
 }
 
 void MacroAssembler::Sdot(const ZRegister& zd,

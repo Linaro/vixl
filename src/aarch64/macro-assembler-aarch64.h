@@ -3058,14 +3058,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sabd, Sabd)                             \
   V(shadd, Shadd)                           \
   V(smax, Smax)                             \
-  V(smulh, Smulh)                           \
   V(smin, Smin)                             \
+  V(smulh, Smulh)                           \
+  V(sqadd, Sqadd)                           \
   V(srhadd, Srhadd)                         \
   V(uabd, Uabd)                             \
   V(uhadd, Uhadd)                           \
   V(umax, Umax)                             \
   V(umin, Umin)                             \
   V(umulh, Umulh)                           \
+  V(uqadd, Uqadd)                           \
   V(urhadd, Urhadd)
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)          \
@@ -6893,14 +6895,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqabs(zd, pg, zn);
   }
-  void Sqadd(const ZRegister& zd,
-             const PRegisterM& pg,
-             const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqadd(zd, pg, zn, zm);
-  }
   void Sqcadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7116,19 +7110,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Sqsub(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqsub(zd, pg, zn, zm);
-  }
-  void Sqsubr(const ZRegister& zd,
-              const PRegisterM& pg,
-              const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqsubr(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Sqxtnb(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7249,11 +7231,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Suqadd(const ZRegister& zd,
               const PRegisterM& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    suqadd(zd, pg, zn, zm);
-  }
+              const ZRegister& zm);
   void Tbl(const ZRegister& zd,
            const ZRegister& zn1,
            const ZRegister& zn2,
@@ -7401,14 +7379,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     umullt(zd, zn, zm);
   }
-  void Uqadd(const ZRegister& zd,
-             const PRegisterM& pg,
-             const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqadd(zd, pg, zn, zm);
-  }
   void Uqrshl(const ZRegister& zd,
               const PRegisterM& pg,
               const ZRegister& zn,
@@ -7448,19 +7418,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Uqsub(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqsub(zd, pg, zn, zm);
-  }
-  void Uqsubr(const ZRegister& zd,
-              const PRegisterM& pg,
-              const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uqsubr(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Uqxtnb(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7510,11 +7468,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Usqadd(const ZRegister& zd,
               const PRegisterM& pg,
               const ZRegister& zn,
-              const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    usqadd(zd, pg, zn, zm);
-  }
+              const ZRegister& zm);
   void Usra(const ZRegister& zd,
             const ZRegister& za,
             const ZRegister& zn,

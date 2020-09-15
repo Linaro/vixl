@@ -1211,6 +1211,7 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZtS_Pg_ZnS_Xm(const Instruction* instr);
 
   void SimulateSVEHalvingAddSub(const Instruction* instr);
+  void SimulateSVESaturatingArithmetic(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3743,10 +3744,12 @@ class Simulator : public DecoderVisitor {
                        int shift);
   LogicVRegister suqadd(VectorFormat vform,
                         LogicVRegister dst,
-                        const LogicVRegister& src);
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
   LogicVRegister usqadd(VectorFormat vform,
                         LogicVRegister dst,
-                        const LogicVRegister& src);
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2);
   LogicVRegister sqshl(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& src,

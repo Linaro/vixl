@@ -2223,11 +2223,12 @@ LogicVRegister Simulator::neg(VectorFormat vform,
 
 LogicVRegister Simulator::suqadd(VectorFormat vform,
                                  LogicVRegister dst,
-                                 const LogicVRegister& src) {
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    int64_t sa = dst.IntLeftJustified(vform, i);
-    uint64_t ub = src.UintLeftJustified(vform, i);
+    int64_t sa = src1.IntLeftJustified(vform, i);
+    uint64_t ub = src2.UintLeftJustified(vform, i);
     uint64_t ur = sa + ub;
 
     int64_t sr;
@@ -2235,7 +2236,7 @@ LogicVRegister Simulator::suqadd(VectorFormat vform,
     if (sr < sa) {  // Test for signed positive saturation.
       dst.SetInt(vform, i, MaxIntFromFormat(vform));
     } else {
-      dst.SetUint(vform, i, dst.Int(vform, i) + src.Uint(vform, i));
+      dst.SetUint(vform, i, src1.Int(vform, i) + src2.Uint(vform, i));
     }
   }
   return dst;
@@ -2244,11 +2245,12 @@ LogicVRegister Simulator::suqadd(VectorFormat vform,
 
 LogicVRegister Simulator::usqadd(VectorFormat vform,
                                  LogicVRegister dst,
-                                 const LogicVRegister& src) {
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    uint64_t ua = dst.UintLeftJustified(vform, i);
-    int64_t sb = src.IntLeftJustified(vform, i);
+    uint64_t ua = src1.UintLeftJustified(vform, i);
+    int64_t sb = src2.IntLeftJustified(vform, i);
     uint64_t ur = ua + sb;
 
     if ((sb > 0) && (ur <= ua)) {
@@ -2256,7 +2258,7 @@ LogicVRegister Simulator::usqadd(VectorFormat vform,
     } else if ((sb < 0) && (ur >= ua)) {
       dst.SetUint(vform, i, 0);  // Negative saturation.
     } else {
-      dst.SetUint(vform, i, dst.Uint(vform, i) + src.Int(vform, i));
+      dst.SetUint(vform, i, src1.Uint(vform, i) + src2.Int(vform, i));
     }
   }
   return dst;

@@ -190,7 +190,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"smullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"splice_z_p_zz_con", &Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T},
     {"sqabs_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
-    {"sqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"sqcadd_z_zz", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
     {"sqdmlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
     {"sqdmlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
@@ -246,8 +246,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqshrunb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"sqsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"sqsub_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
+    {"sqsubr_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"sqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"sqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"sqxtunb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
@@ -276,7 +276,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"stnt1w_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_Pg_ZnS_Xm},
     {"subhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"subhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
-    {"suqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"suqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"tbl_z_zz_2", &Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT},
     {"tbx_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"uaba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
@@ -313,7 +313,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"umullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"umullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
     {"umullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
-    {"uqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqrshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
@@ -323,8 +323,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uqshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"uqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"uqsub_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uqsubr_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"uqsub_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
+    {"uqsubr_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"uqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
     {"urecpe_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
@@ -336,7 +336,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"ursra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
     {"ushllb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"ushllt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"usqadd_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"usqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"usra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
     {"usublb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"usublt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
@@ -3110,6 +3110,46 @@ void Simulator::SimulateSVEHalvingAddSub(const Instruction* instr) {
       break;
     default:
       VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
+void Simulator::SimulateSVESaturatingArithmetic(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister result;
+
+  switch (form_hash_) {
+    case Hash("sqadd_z_p_zz"):
+      add(vform, result, zdn, zm).SignedSaturate(vform);
+      break;
+    case Hash("sqsub_z_p_zz"):
+      sub(vform, result, zdn, zm).SignedSaturate(vform);
+      break;
+    case Hash("sqsubr_z_p_zz"):
+      sub(vform, result, zm, zdn).SignedSaturate(vform);
+      break;
+    case Hash("suqadd_z_p_zz"):
+      suqadd(vform, result, zdn, zm);
+      break;
+    case Hash("uqadd_z_p_zz"):
+      add(vform, result, zdn, zm).UnsignedSaturate(vform);
+      break;
+    case Hash("uqsub_z_p_zz"):
+      sub(vform, result, zdn, zm).UnsignedSaturate(vform);
+      break;
+    case Hash("uqsubr_z_p_zz"):
+      sub(vform, result, zm, zdn).UnsignedSaturate(vform);
+      break;
+    case Hash("usqadd_z_p_zz"):
+      usqadd(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
   }
   mov_merging(vform, zdn, pg, result);
 }
@@ -3147,9 +3187,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
     case Hash("sminp_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
-    case Hash("sqadd_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("sqrshl_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
@@ -3162,28 +3199,16 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
     case Hash("sqshlr_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
-    case Hash("sqsub_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqsubr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("srshl_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("srshlr_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
-    case Hash("suqadd_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("umaxp_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("uminp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqadd_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("uqrshl_z_p_zz"):
@@ -3198,19 +3223,10 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
     case Hash("uqshlr_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
-    case Hash("uqsub_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqsubr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("urshl_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("urshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("usqadd_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     default:
@@ -6516,10 +6532,10 @@ void Simulator::VisitNEON2RegMisc(const Instruction* instr) {
         rev16(vf, rd, rn);
         break;
       case NEON_SUQADD:
-        suqadd(vf, rd, rn);
+        suqadd(vf, rd, rd, rn);
         break;
       case NEON_USQADD:
-        usqadd(vf, rd, rn);
+        usqadd(vf, rd, rd, rn);
         break;
       case NEON_CLS:
         cls(vf, rd, rn);
@@ -8300,10 +8316,10 @@ void Simulator::VisitNEONScalar2RegMisc(const Instruction* instr) {
         neg(vf, rd, rn).SignedSaturate(vf);
         break;
       case NEON_SUQADD_scalar:
-        suqadd(vf, rd, rn);
+        suqadd(vf, rd, rd, rn);
         break;
       case NEON_USQADD_scalar:
-        usqadd(vf, rd, rn);
+        usqadd(vf, rd, rd, rn);
         break;
       default:
         VIXL_UNIMPLEMENTED();
