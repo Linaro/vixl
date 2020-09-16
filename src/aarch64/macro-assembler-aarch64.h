@@ -6396,11 +6396,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Addp(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
-            const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    addp(zd, pg, zn, zm);
-  }
+            const ZRegister& zm);
   void Bcax(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
@@ -6806,19 +6802,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Smaxp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smaxp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Sminp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sminp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Smlalb(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7301,19 +7289,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Umaxp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umaxp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Uminp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uminp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Umlalb(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

@@ -1212,6 +1212,7 @@ class Simulator : public DecoderVisitor {
 
   void SimulateSVEHalvingAddSub(const Instruction* instr);
   void SimulateSVESaturatingArithmetic(const Instruction* instr);
+  void SimulateSVEIntArithPair(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -4251,6 +4252,10 @@ class Simulator : public DecoderVisitor {
                        LogicVRegister dst,
                        const LogicPRegister& pg,
                        const LogicVRegister& src);
+
+  LogicVRegister interleave_top_bottom(VectorFormat vform,
+                                       LogicVRegister dst,
+                                       const LogicVRegister& src);
 
   template <typename T>
   struct TFPPairOp {

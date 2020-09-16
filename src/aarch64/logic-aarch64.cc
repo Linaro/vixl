@@ -625,6 +625,9 @@ LogicVRegister Simulator::addp(VectorFormat vform,
   uzp1(vform, temp1, src1, src2);
   uzp2(vform, temp2, src1, src2);
   add(vform, dst, temp1, temp2);
+  if (IsSVEFormat(vform)) {
+    interleave_top_bottom(vform, dst, dst);
+  }
   return dst;
 }
 
@@ -1383,11 +1386,11 @@ LogicVRegister Simulator::sminmaxp(VectorFormat vform,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
                                    bool max) {
-  int lanes = LaneCountFromFormat(vform);
-  int64_t result[kMaxLanesPerVector];
+  unsigned lanes = LaneCountFromFormat(vform);
+  int64_t result[kZRegMaxSizeInBytes];
   const LogicVRegister* src = &src1;
-  for (int j = 0; j < 2; j++) {
-    for (int i = 0; i < lanes; i += 2) {
+  for (unsigned j = 0; j < 2; j++) {
+    for (unsigned i = 0; i < lanes; i += 2) {
       int64_t first_val = src->Int(vform, i);
       int64_t second_val = src->Int(vform, i + 1);
       int64_t dst_val;
@@ -1396,12 +1399,15 @@ LogicVRegister Simulator::sminmaxp(VectorFormat vform,
       } else {
         dst_val = (first_val < second_val) ? first_val : second_val;
       }
-      VIXL_ASSERT(((i >> 1) + (j * lanes / 2)) < kMaxLanesPerVector);
+      VIXL_ASSERT(((i >> 1) + (j * lanes / 2)) < ArrayLength(result));
       result[(i >> 1) + (j * lanes / 2)] = dst_val;
     }
     src = &src2;
   }
   dst.SetIntArray(vform, result);
+  if (IsSVEFormat(vform)) {
+    interleave_top_bottom(vform, dst, dst);
+  }
   return dst;
 }
 
@@ -1586,11 +1592,11 @@ LogicVRegister Simulator::uminmaxp(VectorFormat vform,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
                                    bool max) {
-  int lanes = LaneCountFromFormat(vform);
-  uint64_t result[kMaxLanesPerVector];
+  unsigned lanes = LaneCountFromFormat(vform);
+  uint64_t result[kZRegMaxSizeInBytes];
   const LogicVRegister* src = &src1;
-  for (int j = 0; j < 2; j++) {
-    for (int i = 0; i < LaneCountFromFormat(vform); i += 2) {
+  for (unsigned j = 0; j < 2; j++) {
+    for (unsigned i = 0; i < lanes; i += 2) {
       uint64_t first_val = src->Uint(vform, i);
       uint64_t second_val = src->Uint(vform, i + 1);
       uint64_t dst_val;
@@ -1599,12 +1605,15 @@ LogicVRegister Simulator::uminmaxp(VectorFormat vform,
       } else {
         dst_val = (first_val < second_val) ? first_val : second_val;
       }
-      VIXL_ASSERT(((i >> 1) + (j * lanes / 2)) < kMaxLanesPerVector);
+      VIXL_ASSERT(((i >> 1) + (j * lanes / 2)) < ArrayLength(result));
       result[(i >> 1) + (j * lanes / 2)] = dst_val;
     }
     src = &src2;
   }
   dst.SetUintArray(vform, result);
+  if (IsSVEFormat(vform)) {
+    interleave_top_bottom(vform, dst, dst);
+  }
   return dst;
 }
 
@@ -4330,6 +4339,27 @@ LogicVRegister Simulator::uzp2(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::interleave_top_bottom(VectorFormat vform,
+                                                LogicVRegister dst,
+                                                const LogicVRegister& src) {
+  // Interleave the top and bottom half of a vector, ie. for a vector:
+  //
+  //   [ ... | F | D | B | ... | E | C | A ]
+  //
+  // where B is the first element in the top half of the vector, produce a
+  // result vector:
+  //
+  //   [ ... | ... | F | E | D | C | B | A ]
+
+  uint64_t result[kZRegMaxSizeInBytes];
+  int lane_count = LaneCountFromFormat(vform);
+  for (int i = 0; i < lane_count; i += 2) {
+    result[i] = src.Uint(vform, i / 2);
+    result[i + 1] = src.Uint(vform, (lane_count / 2) + (i / 2));
+  }
+  dst.SetUintArray(vform, result);
+  return dst;
+}
 
 template <typename T>
 T Simulator::FPNeg(T op) {

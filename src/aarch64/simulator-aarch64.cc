@@ -73,7 +73,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"adclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
     {"addhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"addhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
-    {"addp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"addp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"bcax_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
     {"bdep_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"bext_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
@@ -167,8 +167,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"shsub_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"shsubr_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sli_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
-    {"smaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"sminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"smaxp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
+    {"sminp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"smlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
     {"smlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
     {"smlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
@@ -292,8 +292,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"uhsub_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"uhsubr_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
-    {"umaxp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"uminp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
+    {"umaxp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
+    {"uminp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"umlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
     {"umlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
     {"umlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
@@ -3154,6 +3154,36 @@ void Simulator::SimulateSVESaturatingArithmetic(const Instruction* instr) {
   mov_merging(vform, zdn, pg, result);
 }
 
+void Simulator::SimulateSVEIntArithPair(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimVRegister result;
+
+  switch (form_hash_) {
+    case Hash("addp_z_p_zz"):
+      addp(vform, result, zdn, zm);
+      break;
+    case Hash("smaxp_z_p_zz"):
+      smaxp(vform, result, zdn, zm);
+      break;
+    case Hash("sminp_z_p_zz"):
+      sminp(vform, result, zdn, zm);
+      break;
+    case Hash("umaxp_z_p_zz"):
+      umaxp(vform, result, zdn, zm);
+      break;
+    case Hash("uminp_z_p_zz"):
+      uminp(vform, result, zdn, zm);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  mov_merging(vform, zdn, pg, result);
+}
+
 void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   USE(pg);
@@ -3163,9 +3193,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
   USE(zm);
 
   switch (form_hash_) {
-    case Hash("addp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("faddp_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
@@ -3179,12 +3206,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("fminp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smaxp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sminp_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqrshl_z_p_zz"):
@@ -3203,12 +3224,6 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("srshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umaxp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uminp_z_p_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("uqrshl_z_p_zz"):

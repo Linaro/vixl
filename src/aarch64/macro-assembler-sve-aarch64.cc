@@ -565,8 +565,13 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
 // Instructions of the form "inst zda, pg, zda, zn", where they are
 // non-commutative and no reversed form is provided.
 #define VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(V) \
+  V(Addp, addp)                             \
   V(Fscale, fscale)                         \
+  V(Smaxp, smaxp)                           \
+  V(Sminp, sminp)                           \
   V(Suqadd, suqadd)                         \
+  V(Umaxp, umaxp)                           \
+  V(Uminp, uminp)                           \
   V(Usqadd, usqadd)
 
 #define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                       \
