@@ -2397,55 +2397,15 @@ LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
                                         const LogicVRegister& src,
                                         bool src_is_signed) {
   bool upperhalf = false;
-  VectorFormat srcform = kFormatUndefined;
-  int64_t ssrc[8];
-  uint64_t usrc[8];
-
-  switch (dstform) {
-    case kFormat8B:
-      upperhalf = false;
-      srcform = kFormat8H;
-      break;
-    case kFormat16B:
-      upperhalf = true;
-      srcform = kFormat8H;
-      break;
-    case kFormat4H:
-      upperhalf = false;
-      srcform = kFormat4S;
-      break;
-    case kFormat8H:
-      upperhalf = true;
-      srcform = kFormat4S;
-      break;
-    case kFormat2S:
-      upperhalf = false;
-      srcform = kFormat2D;
-      break;
-    case kFormat4S:
-      upperhalf = true;
-      srcform = kFormat2D;
-      break;
-    case kFormatB:
-      upperhalf = false;
-      srcform = kFormatH;
-      break;
-    case kFormatH:
-      upperhalf = false;
-      srcform = kFormatS;
-      break;
-    case kFormatS:
-      upperhalf = false;
-      srcform = kFormatD;
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
+  VectorFormat srcform = dstform;
+  if ((dstform == kFormat16B) || (dstform == kFormat8H) ||
+      (dstform == kFormat4S)) {
+    upperhalf = true;
+    srcform = VectorFormatHalfLanes(srcform);
   }
+  srcform = VectorFormatDoubleWidth(srcform);
 
-  for (int i = 0; i < LaneCountFromFormat(srcform); i++) {
-    ssrc[i] = src.Int(srcform, i);
-    usrc[i] = src.Uint(srcform, i);
-  }
+  LogicVRegister src_copy = src;
 
   int offset;
   if (upperhalf) {
@@ -2456,31 +2416,34 @@ LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
   }
 
   for (int i = 0; i < LaneCountFromFormat(srcform); i++) {
+    int64_t ssrc = src_copy.Int(srcform, i);
+    uint64_t usrc = src_copy.Uint(srcform, i);
+
     // Test for signed saturation
-    if (ssrc[i] > MaxIntFromFormat(dstform)) {
+    if (ssrc > MaxIntFromFormat(dstform)) {
       dst.SetSignedSat(offset + i, true);
-    } else if (ssrc[i] < MinIntFromFormat(dstform)) {
+    } else if (ssrc < MinIntFromFormat(dstform)) {
       dst.SetSignedSat(offset + i, false);
     }
 
     // Test for unsigned saturation
     if (src_is_signed) {
-      if (ssrc[i] > static_cast<int64_t>(MaxUintFromFormat(dstform))) {
+      if (ssrc > static_cast<int64_t>(MaxUintFromFormat(dstform))) {
         dst.SetUnsignedSat(offset + i, true);
-      } else if (ssrc[i] < 0) {
+      } else if (ssrc < 0) {
         dst.SetUnsignedSat(offset + i, false);
       }
     } else {
-      if (usrc[i] > MaxUintFromFormat(dstform)) {
+      if (usrc > MaxUintFromFormat(dstform)) {
         dst.SetUnsignedSat(offset + i, true);
       }
     }
 
     int64_t result;
     if (src_is_signed) {
-      result = ssrc[i] & MaxUintFromFormat(dstform);
+      result = ssrc & MaxUintFromFormat(dstform);
     } else {
-      result = usrc[i] & MaxUintFromFormat(dstform);
+      result = usrc & MaxUintFromFormat(dstform);
     }
 
     if (dst_is_signed) {

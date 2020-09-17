@@ -248,10 +248,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"sqsub_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"sqsubr_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
-    {"sqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
-    {"sqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
-    {"sqxtunb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
-    {"sqxtunt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"sqxtnb_z_zz", &Simulator::SimulateSVEExtractNarrow},
+    {"sqxtnt_z_zz", &Simulator::SimulateSVEExtractNarrow},
+    {"sqxtunb_z_zz", &Simulator::SimulateSVEExtractNarrow},
+    {"sqxtunt_z_zz", &Simulator::SimulateSVEExtractNarrow},
     {"srhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sri_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
     {"srshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
@@ -325,8 +325,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
     {"uqsub_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqsubr_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
-    {"uqxtnb_z_zz", &Simulator::Simulate_ZdT_ZnTb},
-    {"uqxtnt_z_zz", &Simulator::Simulate_ZdT_ZnTb},
+    {"uqxtnb_z_zz", &Simulator::SimulateSVEExtractNarrow},
+    {"uqxtnt_z_zz", &Simulator::SimulateSVEExtractNarrow},
     {"urecpe_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
     {"urhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"urshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
@@ -2372,33 +2372,51 @@ void Simulator::Simulate_ZdT_ZnT_const(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdT_ZnTb(const Instruction* instr) {
+void Simulator::SimulateSVEExtractNarrow(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result;
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int lane_size = shift_and_lane_size.second;
+  VIXL_ASSERT((lane_size >= static_cast<int>(kBRegSizeInBytesLog2)) &&
+              (lane_size <= static_cast<int>(kSRegSizeInBytesLog2)));
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  bool top = false;
 
   switch (form_hash_) {
-    case Hash("sqxtnb_z_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("sqxtnt_z_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqxtunb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqxtnb_z_zz"):
+      sqxtn(vform, result, zn);
       break;
     case Hash("sqxtunt_z_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqxtnb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqxtunb_z_zz"):
+      sqxtun(vform, result, zn);
       break;
     case Hash("uqxtnt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("uqxtnb_z_zz"):
+      uqxtn(vform, result, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
+  }
+
+  if (top) {
+    // Keep even elements, replace odd elements with the results.
+    xtn(vform, zd, zd);
+    zip1(vform, zd, zd, result);
+  } else {
+    // Zero odd elements, replace even elements with the results.
+    SimVRegister zero;
+    zero.Clear();
+    zip1(vform, zd, result, zero);
   }
 }
 

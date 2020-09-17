@@ -7189,6 +7189,31 @@ TEST(sve2_pair_arith) {
   CLEANUP();
 }
 
+TEST(sve2_extract_narrow) {
+  SETUP();
+
+  COMPARE(sqxtnb(z2.VnB(), z0.VnH()), "sqxtnb z2.b, z0.h");
+  COMPARE(sqxtnb(z2.VnH(), z0.VnS()), "sqxtnb z2.h, z0.s");
+  COMPARE(sqxtnb(z2.VnS(), z0.VnD()), "sqxtnb z2.s, z0.d");
+  COMPARE(sqxtnt(z31.VnB(), z18.VnH()), "sqxtnt z31.b, z18.h");
+  COMPARE(sqxtnt(z31.VnH(), z18.VnS()), "sqxtnt z31.h, z18.s");
+  COMPARE(sqxtnt(z31.VnS(), z18.VnD()), "sqxtnt z31.s, z18.d");
+  COMPARE(sqxtunb(z28.VnB(), z6.VnH()), "sqxtunb z28.b, z6.h");
+  COMPARE(sqxtunb(z28.VnH(), z6.VnS()), "sqxtunb z28.h, z6.s");
+  COMPARE(sqxtunb(z28.VnS(), z6.VnD()), "sqxtunb z28.s, z6.d");
+  COMPARE(sqxtunt(z14.VnB(), z31.VnH()), "sqxtunt z14.b, z31.h");
+  COMPARE(sqxtunt(z14.VnH(), z31.VnS()), "sqxtunt z14.h, z31.s");
+  COMPARE(sqxtunt(z14.VnS(), z31.VnD()), "sqxtunt z14.s, z31.d");
+  COMPARE(uqxtnb(z28.VnB(), z4.VnH()), "uqxtnb z28.b, z4.h");
+  COMPARE(uqxtnb(z28.VnH(), z4.VnS()), "uqxtnb z28.h, z4.s");
+  COMPARE(uqxtnb(z28.VnS(), z4.VnD()), "uqxtnb z28.s, z4.d");
+  COMPARE(uqxtnt(z19.VnB(), z7.VnH()), "uqxtnt z19.b, z7.h");
+  COMPARE(uqxtnt(z19.VnH(), z7.VnS()), "uqxtnt z19.h, z7.s");
+  COMPARE(uqxtnt(z19.VnS(), z7.VnD()), "uqxtnt z19.s, z7.d");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -7691,10 +7716,6 @@ TEST(sve2_all_instructions) {
   // #<const>");
   // COMPARE_PREFIX(sqshrunt(z20.Vn?(), z3), "sqshrunt <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
-  // COMPARE_PREFIX(sqxtnb(z2.Vn?(), z0), "sqxtnb <Zd>.<T>, <Zn>.<Tb>");
-  // COMPARE_PREFIX(sqxtnt(z31.Vn?(), z18), "sqxtnt <Zd>.<T>, <Zn>.<Tb>");
-  // COMPARE_PREFIX(sqxtunb(z28.Vn?(), z6), "sqxtunb <Zd>.<T>, <Zn>.<Tb>");
-  // COMPARE_PREFIX(sqxtunt(z14.Vn?(), z31), "sqxtunt <Zd>.<T>, <Zn>.<Tb>");
   // COMPARE_PREFIX(sshllb(z2.Vn?(), z20), "sshllb <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
   // COMPARE_PREFIX(sshllt(z27.Vn?(), z8), "sshllt <Zd>.<T>, <Zn>.<Tb>,
@@ -7853,8 +7874,6 @@ TEST(sve2_all_instructions) {
   // #<const>");
   // COMPARE_PREFIX(uqshrnt(z28.Vn?(), z18), "uqshrnt <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
-  // COMPARE_PREFIX(uqxtnb(z28.Vn?(), z4), "uqxtnb <Zd>.<T>, <Zn>.<Tb>");
-  // COMPARE_PREFIX(uqxtnt(z19.Vn?(), z7), "uqxtnt <Zd>.<T>, <Zn>.<Tb>");
   // COMPARE_PREFIX(urecpe(z25.VnS(), p7.Merging(), z2.VnS()), "urecpe z25.s,
   // p7/m, z2.s");
   // COMPARE_PREFIX(ursqrte(z4.VnS(), p3.Merging(), z3.VnS()), "ursqrte z4.s,

@@ -8413,8 +8413,12 @@ void Assembler::sqxtnb(const ZRegister& zd, const ZRegister& zn) {
   //  tszh<22> | tszl<20:19> | opc<12:11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeH() || zd.IsLaneSizeB());
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() / 2));
 
-  Emit(0x45204000 | Rd(zd) | Rn(zn));
+  // XTN instructions look like immediate shifts with zero shift distance.
+  Instr size = EncodeSVEShiftLeftImmediate(0, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zn, size, 0x45204000);
 }
 
 void Assembler::sqxtnt(const ZRegister& zd, const ZRegister& zn) {
@@ -8423,8 +8427,12 @@ void Assembler::sqxtnt(const ZRegister& zd, const ZRegister& zn) {
   //  tszh<22> | tszl<20:19> | opc<12:11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeH() || zd.IsLaneSizeB());
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() / 2));
 
-  Emit(0x45204400 | Rd(zd) | Rn(zn));
+  // XTN instructions look like immediate shifts with zero shift distance.
+  Instr size = EncodeSVEShiftLeftImmediate(0, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zn, size, 0x45204400);
 }
 
 void Assembler::sqxtunb(const ZRegister& zd, const ZRegister& zn) {
@@ -8433,8 +8441,12 @@ void Assembler::sqxtunb(const ZRegister& zd, const ZRegister& zn) {
   //  tszh<22> | tszl<20:19> | opc<12:11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeH() || zd.IsLaneSizeB());
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() / 2));
 
-  Emit(0x45205000 | Rd(zd) | Rn(zn));
+  // XTN instructions look like immediate shifts with zero shift distance.
+  Instr size = EncodeSVEShiftLeftImmediate(0, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zn, size, 0x45205000);
 }
 
 void Assembler::sqxtunt(const ZRegister& zd, const ZRegister& zn) {
@@ -8443,8 +8455,12 @@ void Assembler::sqxtunt(const ZRegister& zd, const ZRegister& zn) {
   //  tszh<22> | tszl<20:19> | opc<12:11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeH() || zd.IsLaneSizeB());
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() / 2));
 
-  Emit(0x45205400 | Rd(zd) | Rn(zn));
+  // XTN instructions look like immediate shifts with zero shift distance.
+  Instr size = EncodeSVEShiftLeftImmediate(0, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zn, size, 0x45205400);
 }
 
 void Assembler::srhadd(const ZRegister& zd,
@@ -9370,8 +9386,12 @@ void Assembler::uqxtnb(const ZRegister& zd, const ZRegister& zn) {
   //  tszh<22> | tszl<20:19> | opc<12:11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeH() || zd.IsLaneSizeB());
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() / 2));
 
-  Emit(0x45204800 | Rd(zd) | Rn(zn));
+  // XTN instructions look like immediate shifts with zero shift distance.
+  Instr size = EncodeSVEShiftLeftImmediate(0, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zn, size, 0x45204800);
 }
 
 void Assembler::uqxtnt(const ZRegister& zd, const ZRegister& zn) {
@@ -9380,8 +9400,12 @@ void Assembler::uqxtnt(const ZRegister& zd, const ZRegister& zn) {
   //  tszh<22> | tszl<20:19> | opc<12:11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeH() || zd.IsLaneSizeB());
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() / 2));
 
-  Emit(0x45204c00 | Rd(zd) | Rn(zn));
+  // XTN instructions look like immediate shifts with zero shift distance.
+  Instr size = EncodeSVEShiftLeftImmediate(0, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zn, size, 0x45204c00);
 }
 
 void Assembler::urecpe(const ZRegister& zd,

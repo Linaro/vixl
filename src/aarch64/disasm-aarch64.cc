@@ -6270,9 +6270,9 @@ void Disassembler::VisitSVEBroadcastIndexElement(const Instruction *instr) {
         if ((CountSetBits(imm2) + CountSetBits(tsz)) == 1) {
           // If imm2:tsz has one set bit, the index is zero. This is
           // disassembled as a mov from a b/h/s/d/q scalar register.
-          form = "'Zd.'tszx, 'tszx'u0905";
+          form = "'Zd.'ti, 'ti'u0905";
         } else {
-          form = "'Zd.'tszx, 'Zn.'tszx['IVInsSVEIndex]";
+          form = "'Zd.'ti, 'Zn.'ti['IVInsSVEIndex]";
         }
       }
       break;
@@ -9991,8 +9991,21 @@ void Disassembler::Disassemble_ZdT_ZnT_ZmTb(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdT_ZnTb(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Zn";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Zd.'tszs, 'Zn.'tszd";
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int shift_dist = shift_and_lane_size.first;
+  int lane_size = shift_and_lane_size.second;
+  // Convert shift_dist from a right to left shift. Valid xtn instructions
+  // must have a left shift_dist equivalent of zero.
+  shift_dist = (8 << lane_size) - shift_dist;
+  if ((lane_size >= static_cast<int>(kBRegSizeInBytesLog2)) &&
+      (lane_size <= static_cast<int>(kSRegSizeInBytesLog2)) &&
+      (shift_dist == 0)) {
+    Format(instr, mnemonic_.c_str(), form);
+  } else {
+    Format(instr, "unimplemented", "(ZdT_ZnTb)");
+  }
 }
 
 void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
@@ -11451,27 +11464,25 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
       placeholder_length += 3;
       size_in_bytes_log2 = instr->ExtractBits(24, 23);
       break;
+    case 'i': {  // 'ti: indices.
+      std::pair<int, int> index_and_lane_size =
+          instr->GetSVEPermuteIndexAndLaneSizeLog2();
+      placeholder_length++;
+      size_in_bytes_log2 = index_and_lane_size.second;
+      break;
+    }
     case 's':
       if (format[2] == 'z') {
-        VIXL_ASSERT((format[3] == 'x') || (format[3] == 's') ||
-                    (format[3] == 'p'));
-        if (format[3] == 'x') {
-          // 'tszx: Indexes.
-          std::pair<int, int> index_and_lane_size =
-              instr->GetSVEPermuteIndexAndLaneSizeLog2();
-          size_in_bytes_log2 = index_and_lane_size.second;
-        } else if (format[3] == 'p') {
-          // 'tszp: Predicated shifts.
-          std::pair<int, int> shift_and_lane_size =
-              instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ true);
-          size_in_bytes_log2 = shift_and_lane_size.second;
-        } else {
-          // 'tszs: Unpredicated shifts.
-          std::pair<int, int> shift_and_lane_size =
-              instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
-          size_in_bytes_log2 = shift_and_lane_size.second;
+        VIXL_ASSERT((format[3] == 'p') || (format[3] == 's') ||
+                    (format[3] == 'd'));
+        bool is_predicated = (format[3] == 'p');
+        std::pair<int, int> shift_and_lane_size =
+            instr->GetSVEImmShiftAndLaneSizeLog2(is_predicated);
+        size_in_bytes_log2 = shift_and_lane_size.second;
+        if (format[3] == 'd') {  // Double size lanes.
+          size_in_bytes_log2++;
         }
-        placeholder_length += 3;  // skip `sz[x|s]`
+        placeholder_length += 3;  // skip "sz(x|s|d)"
       }
       break;
     case 'h':

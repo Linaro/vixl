@@ -1034,8 +1034,6 @@ VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
 
 
 VectorFormat VectorFormatDoubleWidth(VectorFormat vform) {
-  VIXL_ASSERT(vform == kFormat8B || vform == kFormat4H || vform == kFormat2S ||
-              vform == kFormatB || vform == kFormatH || vform == kFormatS);
   switch (vform) {
     case kFormat8B:
       return kFormat8H;
@@ -1049,6 +1047,12 @@ VectorFormat VectorFormatDoubleWidth(VectorFormat vform) {
       return kFormatS;
     case kFormatS:
       return kFormatD;
+    case kFormatVnB:
+      return kFormatVnH;
+    case kFormatVnH:
+      return kFormatVnS;
+    case kFormatVnS:
+      return kFormatVnD;
     default:
       VIXL_UNREACHABLE();
       return kFormatUndefined;
