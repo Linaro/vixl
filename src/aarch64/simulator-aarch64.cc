@@ -2261,13 +2261,12 @@ void Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister result;
   USE(zn);
-
   switch (form_hash_) {
     case Hash("bdep_z_zz"):
       VIXL_UNIMPLEMENTED();
@@ -2279,10 +2278,14 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("eorbt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      rotate_elements_right(vform, result, zm, 1);
+      SVEBitwiseLogicalUnpredicatedHelper(EOR, kFormatVnD, result, zn, result);
+      mov_alternating(vform, zd, result, 0);
       break;
     case Hash("eortb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      rotate_elements_right(vform, result, zm, -1);
+      SVEBitwiseLogicalUnpredicatedHelper(EOR, kFormatVnD, result, zn, result);
+      mov_alternating(vform, zd, result, 1);
       break;
     case Hash("mul_z_zz"):
       VIXL_UNIMPLEMENTED();

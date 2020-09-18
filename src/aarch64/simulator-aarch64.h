@@ -3271,6 +3271,10 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& src1,
                      const LogicVRegister& src2,
                      int index);
+  LogicVRegister rotate_elements_right(VectorFormat vform,
+                                       LogicVRegister dst,
+                                       const LogicVRegister& src,
+                                       int index);
   template <typename T>
   LogicVRegister fcadd(VectorFormat vform,
                        LogicVRegister dst,
@@ -3348,6 +3352,10 @@ class Simulator : public DecoderVisitor {
                              LogicVRegister dst,
                              const SimPRegister& pg,
                              const LogicVRegister& src);
+  LogicVRegister mov_alternating(VectorFormat vform,
+                                 LogicVRegister dst,
+                                 const LogicVRegister& src,
+                                 int start_at);
   LogicPRegister mov_merging(LogicPRegister dst,
                              const LogicPRegister& pg,
                              const LogicPRegister& src);

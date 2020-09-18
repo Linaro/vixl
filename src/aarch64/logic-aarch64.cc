@@ -2702,6 +2702,17 @@ LogicVRegister Simulator::ext(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::rotate_elements_right(VectorFormat vform,
+                                                LogicVRegister dst,
+                                                const LogicVRegister& src,
+                                                int index) {
+  if (index < 0) index += LaneCountFromFormat(vform);
+  VIXL_ASSERT((index >= 0) && (index < LaneCountFromFormat(vform)));
+  index *= LaneSizeInBytesFromFormat(vform);
+  return ext(kFormatVnB, dst, src, src, index);
+}
+
+
 template <typename T>
 LogicVRegister Simulator::fadda(VectorFormat vform,
                                 LogicVRegister acc,
@@ -3027,7 +3038,6 @@ LogicVRegister Simulator::mov_merging(VectorFormat vform,
   return sel(vform, dst, pg, src, dst);
 }
 
-
 LogicVRegister Simulator::mov_zeroing(VectorFormat vform,
                                       LogicVRegister dst,
                                       const SimPRegister& pg,
@@ -3037,6 +3047,16 @@ LogicVRegister Simulator::mov_zeroing(VectorFormat vform,
   return sel(vform, dst, pg, src, zero);
 }
 
+LogicVRegister Simulator::mov_alternating(VectorFormat vform,
+                                          LogicVRegister dst,
+                                          const LogicVRegister& src,
+                                          int start_at) {
+  VIXL_ASSERT((start_at == 0) || (start_at == 1));
+  for (int i = start_at; i < LaneCountFromFormat(vform); i += 2) {
+    dst.SetUint(vform, i, src.Uint(vform, i));
+  }
+  return dst;
+}
 
 LogicPRegister Simulator::mov_merging(LogicPRegister dst,
                                       const LogicPRegister& pg,
@@ -3044,14 +3064,12 @@ LogicPRegister Simulator::mov_merging(LogicPRegister dst,
   return sel(dst, pg, src, dst);
 }
 
-
 LogicPRegister Simulator::mov_zeroing(LogicPRegister dst,
                                       const LogicPRegister& pg,
                                       const LogicPRegister& src) {
   SimPRegister all_false;
   return sel(dst, pg, src, pfalse(all_false));
 }
-
 
 LogicVRegister Simulator::movi(VectorFormat vform,
                                LogicVRegister dst,

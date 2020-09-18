@@ -7214,6 +7214,21 @@ TEST(sve2_extract_narrow) {
   CLEANUP();
 }
 
+TEST(sve2_eorbt_eortb) {
+  SETUP();
+
+  COMPARE(eorbt(z3.VnB(), z10.VnB(), z8.VnB()), "eorbt z3.b, z10.b, z8.b");
+  COMPARE(eorbt(z3.VnD(), z10.VnD(), z8.VnD()), "eorbt z3.d, z10.d, z8.d");
+  COMPARE(eorbt(z3.VnH(), z10.VnH(), z8.VnH()), "eorbt z3.h, z10.h, z8.h");
+  COMPARE(eorbt(z3.VnS(), z10.VnS(), z8.VnS()), "eorbt z3.s, z10.s, z8.s");
+  COMPARE(eortb(z21.VnB(), z21.VnB(), z15.VnB()), "eortb z21.b, z21.b, z15.b");
+  COMPARE(eortb(z21.VnD(), z21.VnD(), z15.VnD()), "eortb z21.d, z21.d, z15.d");
+  COMPARE(eortb(z21.VnH(), z21.VnH(), z15.VnH()), "eortb z21.h, z21.h, z15.h");
+  COMPARE(eortb(z21.VnS(), z21.VnS(), z15.VnS()), "eortb z21.s, z21.s, z15.s");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -7294,22 +7309,6 @@ TEST(sve2_all_instructions) {
   // z2.s, <const>");
   // COMPARE_PREFIX(eor3(z10.VnD(), z10.VnD(), z24.VnD(), int Zk.VnD()), "eor3
   // <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D");
-  // COMPARE_PREFIX(eorbt(z3.VnB(), z10.VnB(), z8.VnB()), "eorbt z3.b, z10.b,
-  // z8.b");
-  // COMPARE_PREFIX(eorbt(z3.VnD(), z10.VnD(), z8.VnD()), "eorbt z3.d, z10.d,
-  // z8.d");
-  // COMPARE_PREFIX(eorbt(z3.VnH(), z10.VnH(), z8.VnH()), "eorbt z3.h, z10.h,
-  // z8.h");
-  // COMPARE_PREFIX(eorbt(z3.VnS(), z10.VnS(), z8.VnS()), "eorbt z3.s, z10.s,
-  // z8.s");
-  // COMPARE_PREFIX(eortb(z21.VnB(), z21.VnB(), z15.VnB()), "eortb z21.b, z21.b,
-  // z15.b");
-  // COMPARE_PREFIX(eortb(z21.VnD(), z21.VnD(), z15.VnD()), "eortb z21.d, z21.d,
-  // z15.d");
-  // COMPARE_PREFIX(eortb(z21.VnH(), z21.VnH(), z15.VnH()), "eortb z21.h, z21.h,
-  // z15.h");
-  // COMPARE_PREFIX(eortb(z21.VnS(), z21.VnS(), z15.VnS()), "eortb z21.s, z21.s,
-  // z15.s");
   // COMPARE_PREFIX(ext(z13.VnB(), z11.VnB(), z12.VnB()), "ext z13.b, { z15.b,
   // z16.b }, #<imm>");
   // COMPARE_PREFIX(faddp(z14.VnD(), p1.Merging(), z14.VnD(), z26.VnD()), "faddp
