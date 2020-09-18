@@ -3266,6 +3266,9 @@ class Simulator : public DecoderVisitor {
   LogicVRegister uadalp(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src);
+  LogicVRegister ssublp(VectorFormat vform,
+                        LogicVRegister dst,
+                        const LogicVRegister& src);
   LogicVRegister ext(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src1,
@@ -3356,6 +3359,9 @@ class Simulator : public DecoderVisitor {
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int start_at);
+  LogicVRegister swap_tb(VectorFormat vform,
+                         LogicVRegister dst,
+                         const LogicVRegister& src);
   LogicPRegister mov_merging(LogicPRegister dst,
                              const LogicPRegister& pg,
                              const LogicPRegister& src);

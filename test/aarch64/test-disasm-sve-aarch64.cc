@@ -7232,14 +7232,22 @@ TEST(sve2_eorbt_eortb) {
 TEST(sve2_saturating_multiply_add_high_vector) {
   SETUP();
 
-  COMPARE_PREFIX(sqrdmlah(z27.VnB(), z28.VnB(), z19.VnB()), "sqrdmlah z27.b, z28.b, z19.b");
-  COMPARE_PREFIX(sqrdmlah(z27.VnD(), z28.VnD(), z19.VnD()), "sqrdmlah z27.d, z28.d, z19.d");
-  COMPARE_PREFIX(sqrdmlah(z27.VnH(), z28.VnH(), z19.VnH()), "sqrdmlah z27.h, z28.h, z19.h");
-  COMPARE_PREFIX(sqrdmlah(z27.VnS(), z28.VnS(), z19.VnS()), "sqrdmlah z27.s, z28.s, z19.s");
-  COMPARE_PREFIX(sqrdmlsh(z11.VnB(), z16.VnB(), z31.VnB()), "sqrdmlsh z11.b, z16.b, z31.b");
-  COMPARE_PREFIX(sqrdmlsh(z11.VnD(), z16.VnD(), z31.VnD()), "sqrdmlsh z11.d, z16.d, z31.d");
-  COMPARE_PREFIX(sqrdmlsh(z11.VnH(), z16.VnH(), z31.VnH()), "sqrdmlsh z11.h, z16.h, z31.h");
-  COMPARE_PREFIX(sqrdmlsh(z11.VnS(), z16.VnS(), z31.VnS()), "sqrdmlsh z11.s, z16.s, z31.s");
+  COMPARE_PREFIX(sqrdmlah(z27.VnB(), z28.VnB(), z19.VnB()),
+                 "sqrdmlah z27.b, z28.b, z19.b");
+  COMPARE_PREFIX(sqrdmlah(z27.VnD(), z28.VnD(), z19.VnD()),
+                 "sqrdmlah z27.d, z28.d, z19.d");
+  COMPARE_PREFIX(sqrdmlah(z27.VnH(), z28.VnH(), z19.VnH()),
+                 "sqrdmlah z27.h, z28.h, z19.h");
+  COMPARE_PREFIX(sqrdmlah(z27.VnS(), z28.VnS(), z19.VnS()),
+                 "sqrdmlah z27.s, z28.s, z19.s");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnB(), z16.VnB(), z31.VnB()),
+                 "sqrdmlsh z11.b, z16.b, z31.b");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnD(), z16.VnD(), z31.VnD()),
+                 "sqrdmlsh z11.d, z16.d, z31.d");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnH(), z16.VnH(), z31.VnH()),
+                 "sqrdmlsh z11.h, z16.h, z31.h");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnS(), z16.VnS(), z31.VnS()),
+                 "sqrdmlsh z11.s, z16.s, z31.s");
 
 
   CLEANUP();
@@ -7248,12 +7256,18 @@ TEST(sve2_saturating_multiply_add_high_vector) {
 TEST(sve2_integer_pairwise_add_accumulate_long) {
   SETUP();
 
-  COMPARE_PREFIX(sadalp(z19.VnD(), p5.Merging(), z9.VnS()), "sadalp z19.d, p5/m, z9.s");
-  COMPARE_PREFIX(sadalp(z19.VnH(), p5.Merging(), z9.VnB()), "sadalp z19.h, p5/m, z9.b");
-  COMPARE_PREFIX(sadalp(z19.VnS(), p5.Merging(), z9.VnH()), "sadalp z19.s, p5/m, z9.h");
-  COMPARE_PREFIX(uadalp(z20.VnD(), p4.Merging(), z5.VnS()), "uadalp z20.d, p4/m, z5.s");
-  COMPARE_PREFIX(uadalp(z20.VnH(), p4.Merging(), z5.VnB()), "uadalp z20.h, p4/m, z5.b");
-  COMPARE_PREFIX(uadalp(z20.VnS(), p4.Merging(), z5.VnH()), "uadalp z20.s, p4/m, z5.h");
+  COMPARE_PREFIX(sadalp(z19.VnD(), p5.Merging(), z9.VnS()),
+                 "sadalp z19.d, p5/m, z9.s");
+  COMPARE_PREFIX(sadalp(z19.VnH(), p5.Merging(), z9.VnB()),
+                 "sadalp z19.h, p5/m, z9.b");
+  COMPARE_PREFIX(sadalp(z19.VnS(), p5.Merging(), z9.VnH()),
+                 "sadalp z19.s, p5/m, z9.h");
+  COMPARE_PREFIX(uadalp(z20.VnD(), p4.Merging(), z5.VnS()),
+                 "uadalp z20.d, p4/m, z5.s");
+  COMPARE_PREFIX(uadalp(z20.VnH(), p4.Merging(), z5.VnB()),
+                 "uadalp z20.h, p4/m, z5.b");
+  COMPARE_PREFIX(uadalp(z20.VnS(), p4.Merging(), z5.VnH()),
+                 "uadalp z20.s, p4/m, z5.h");
 
   CLEANUP();
 }
@@ -7268,15 +7282,47 @@ TEST(sve2_integer_multiply_vectors_unpredicated) {
 
   COMPARE_PREFIX(pmul(z0.VnB(), z5.VnB(), z5.VnB()), "pmul z0.b, z5.b, z5.b");
 
-  COMPARE_PREFIX(smulh(z11.VnB(), z9.VnB(), z1.VnB()), "smulh z11.b, z9.b, z1.b");
-  COMPARE_PREFIX(smulh(z21.VnD(), z19.VnD(), z16.VnD()), "smulh z21.d, z19.d, z16.d");
-  COMPARE_PREFIX(smulh(z11.VnH(), z9.VnH(), z1.VnH()), "smulh z11.h, z9.h, z1.h");
-  COMPARE_PREFIX(smulh(z21.VnS(), z19.VnS(), z16.VnS()), "smulh z21.s, z19.s, z16.s");
+  COMPARE_PREFIX(smulh(z11.VnB(), z9.VnB(), z1.VnB()),
+                 "smulh z11.b, z9.b, z1.b");
+  COMPARE_PREFIX(smulh(z21.VnD(), z19.VnD(), z16.VnD()),
+                 "smulh z21.d, z19.d, z16.d");
+  COMPARE_PREFIX(smulh(z11.VnH(), z9.VnH(), z1.VnH()),
+                 "smulh z11.h, z9.h, z1.h");
+  COMPARE_PREFIX(smulh(z21.VnS(), z19.VnS(), z16.VnS()),
+                 "smulh z21.s, z19.s, z16.s");
 
   COMPARE_PREFIX(umulh(z5.VnB(), z9.VnB(), z5.VnB()), "umulh z5.b, z9.b, z5.b");
-  COMPARE_PREFIX(umulh(z18.VnD(), z9.VnD(), z5.VnD()), "umulh z18.d, z9.d, z5.d");
-  COMPARE_PREFIX(umulh(z18.VnH(), z9.VnH(), z9.VnH()), "umulh z18.h, z9.h, z9.h");
-  COMPARE_PREFIX(umulh(z18.VnS(), z9.VnS(), z18.VnS()), "umulh z18.s, z9.s, z18.s");
+  COMPARE_PREFIX(umulh(z18.VnD(), z9.VnD(), z5.VnD()),
+                 "umulh z18.d, z9.d, z5.d");
+  COMPARE_PREFIX(umulh(z18.VnH(), z9.VnH(), z9.VnH()),
+                 "umulh z18.h, z9.h, z9.h");
+  COMPARE_PREFIX(umulh(z18.VnS(), z9.VnS(), z18.VnS()),
+                 "umulh z18.s, z9.s, z18.s");
+
+  CLEANUP();
+}
+
+TEST(sve2_arith_interleaved_long) {
+  SETUP();
+
+  COMPARE(saddlbt(z15.VnD(), z6.VnS(), z18.VnS()),
+          "saddlbt z15.d, z6.s, z18.s");
+  COMPARE(saddlbt(z15.VnH(), z6.VnB(), z18.VnB()),
+          "saddlbt z15.h, z6.b, z18.b");
+  COMPARE(saddlbt(z15.VnS(), z6.VnH(), z18.VnH()),
+          "saddlbt z15.s, z6.h, z18.h");
+  COMPARE(ssublbt(z6.VnD(), z28.VnS(), z12.VnS()),
+          "ssublbt z6.d, z28.s, z12.s");
+  COMPARE(ssublbt(z6.VnH(), z28.VnB(), z12.VnB()),
+          "ssublbt z6.h, z28.b, z12.b");
+  COMPARE(ssublbt(z6.VnS(), z28.VnH(), z12.VnH()),
+          "ssublbt z6.s, z28.h, z12.h");
+  COMPARE(ssubltb(z11.VnD(), z18.VnS(), z19.VnS()),
+          "ssubltb z11.d, z18.s, z19.s");
+  COMPARE(ssubltb(z11.VnH(), z18.VnB(), z19.VnB()),
+          "ssubltb z11.h, z18.b, z19.b");
+  COMPARE(ssubltb(z11.VnS(), z18.VnH(), z19.VnH()),
+          "ssubltb z11.s, z18.h, z19.h");
 
   CLEANUP();
 }
@@ -7515,9 +7561,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(saddlb(z24.VnD(), z30, z16), "saddlb z24.d, z30, z16");
   // COMPARE_PREFIX(saddlb(z24.VnH(), z30, z16), "saddlb z24.h, z30, z16");
   // COMPARE_PREFIX(saddlb(z24.VnS(), z30, z16), "saddlb z24.s, z30, z16");
-  // COMPARE_PREFIX(saddlbt(z15.VnD(), z6, z18), "saddlbt z15.d, z6, z18");
-  // COMPARE_PREFIX(saddlbt(z15.VnH(), z6, z18), "saddlbt z15.h, z6, z18");
-  // COMPARE_PREFIX(saddlbt(z15.VnS(), z6, z18), "saddlbt z15.s, z6, z18");
   // COMPARE_PREFIX(saddlt(z21.VnD(), z29, z31), "saddlt z21.d, z29, z31");
   // COMPARE_PREFIX(saddlt(z21.VnH(), z29, z31), "saddlt z21.h, z29, z31");
   // COMPARE_PREFIX(saddlt(z21.VnS(), z29, z31), "saddlt z21.s, z29, z31");
@@ -7734,15 +7777,9 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(ssublb(z4.VnD(), z23, z7), "ssublb z4.d, z23, z7");
   // COMPARE_PREFIX(ssublb(z4.VnH(), z23, z7), "ssublb z4.h, z23, z7");
   // COMPARE_PREFIX(ssublb(z4.VnS(), z23, z7), "ssublb z4.s, z23, z7");
-  // COMPARE_PREFIX(ssublbt(z6.VnD(), z28, z12), "ssublbt z6.d, z28, z12");
-  // COMPARE_PREFIX(ssublbt(z6.VnH(), z28, z12), "ssublbt z6.h, z28, z12");
-  // COMPARE_PREFIX(ssublbt(z6.VnS(), z28, z12), "ssublbt z6.s, z28, z12");
   // COMPARE_PREFIX(ssublt(z12.VnD(), z13, z6), "ssublt z12.d, z13, z6");
   // COMPARE_PREFIX(ssublt(z12.VnH(), z13, z6), "ssublt z12.h, z13, z6");
   // COMPARE_PREFIX(ssublt(z12.VnS(), z13, z6), "ssublt z12.s, z13, z6");
-  // COMPARE_PREFIX(ssubltb(z11.VnD(), z18, z19), "ssubltb z11.d, z18, z19");
-  // COMPARE_PREFIX(ssubltb(z11.VnH(), z18, z19), "ssubltb z11.h, z18, z19");
-  // COMPARE_PREFIX(ssubltb(z11.VnS(), z18, z19), "ssubltb z11.s, z18, z19");
   // COMPARE_PREFIX(ssubwb(z7.VnD(), z28.VnD(), z11), "ssubwb z7.d, z28.d,
   // z11");
   // COMPARE_PREFIX(ssubwb(z7.VnH(), z28.VnH(), z11), "ssubwb z7.h, z28.h,

@@ -10009,8 +10009,14 @@ void Disassembler::Disassemble_ZdT_ZnTb(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
-  const char *form = "'Zd.'t, 'Zn, 'Zm";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Zd.'t, 'Zn.'th, 'Zm.'th";
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    // TODO: This is correct for saddlbt, ssublbt, subltb, but may need
+    // changes for other instructions reaching here.
+    Format(instr, "unimplemented", "(ZdT_ZnTb_ZmTb)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
 }
 
 void Disassembler::Disassemble_ZdT_ZnTb_const(const Instruction *instr) {

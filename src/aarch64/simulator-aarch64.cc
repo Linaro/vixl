@@ -2421,12 +2421,12 @@ void Simulator::SimulateSVEExtractNarrow(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister temp;
 
   switch (form_hash_) {
     case Hash("addhnb_z_zz"):
@@ -2463,7 +2463,9 @@ void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("saddlbt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      mov_alternating(vform_half, temp, zn, 0);
+      mov_alternating(vform_half, temp, zm, 1);
+      saddlp(vform, zd, temp);
       break;
     case Hash("saddlt_z_zz"):
       VIXL_UNIMPLEMENTED();
@@ -2484,13 +2486,18 @@ void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("ssublbt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      mov_alternating(vform_half, temp, zn, 0);
+      mov_alternating(vform_half, temp, zm, 1);
+      ssublp(vform, zd, temp);
       break;
     case Hash("ssublt_z_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("ssubltb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      mov_alternating(vform_half, temp, zn, 1);
+      mov_alternating(vform_half, temp, zm, 0);
+      swap_tb(vform, temp, temp);
+      ssublp(vform, zd, temp);
       break;
     case Hash("subhnb_z_zz"):
       VIXL_UNIMPLEMENTED();
