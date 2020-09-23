@@ -6878,10 +6878,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   //    SingleEmissionCheckScope guard(this);
   //    splice(zd, pg, zn1, zn2);
   //  }
-  void Sqabs(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Sqabs(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqabs(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zd);
+    sqabs(zd, pg.Merging(), zn);
   }
   void Sqcadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6980,10 +6980,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqdmullt(zd, zn, zm);
   }
-  void Sqneg(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Sqneg(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqneg(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zd);
+    sqneg(zd, pg.Merging(), zn);
   }
   void Sqrdcmlah(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7409,10 +7409,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     uqxtnt(zd, zn);
   }
-  void Urecpe(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Urecpe(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    urecpe(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zd);
+    urecpe(zd, pg.Merging(), zn);
   }
   void Urshl(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7426,10 +7426,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     MovprfxHelperScope guard(this, zd, pg, zn);
     urshr(zd, pg, zd, shift);
   }
-  void Ursqrte(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Ursqrte(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ursqrte(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zd);
+    ursqrte(zd, pg.Merging(), zn);
   }
   void Ursra(const ZRegister& zd,
              const ZRegister& za,

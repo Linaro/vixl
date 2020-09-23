@@ -9942,7 +9942,11 @@ void Disassembler::Disassemble_ZdS_PgM_ZnH(const Instruction *instr) {
 
 void Disassembler::Disassemble_ZdS_PgM_ZnS(const Instruction *instr) {
   const char *form = "'Zd.s, 'Pgl/m, 'Zn.s";
-  Format(instr, mnemonic_.c_str(), form);
+  if (instr->GetSVEVectorFormat() == kFormatVnS) {
+    Format(instr, mnemonic_.c_str(), form);
+  } else {
+    Format(instr, "unimplemented", "(ZdS_PgM_ZnS)");
+  }
 }
 
 void Disassembler::Disassemble_ZdS_ZnH_ZmH_imm(const Instruction *instr) {
@@ -9961,7 +9965,7 @@ void Disassembler::Disassemble_ZdS_ZnS_ZmS_imm(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdT_PgM_ZnT(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Pgl/m, 'Zn.<T>";
+  const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'t";
   Format(instr, mnemonic_.c_str(), form);
 }
 

@@ -9419,8 +9419,9 @@ void Assembler::urecpe(const ZRegister& zd,
   //  size<23:22> | Q<19> | opc<17:16> | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() && zn.IsLaneSizeS());
 
-  Emit(0x4400a000 | Rd(zd) | PgLow8(pg) | Rn(zn));
+  Emit(0x4400a000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::urhadd(const ZRegister& zd,
@@ -9498,8 +9499,9 @@ void Assembler::ursqrte(const ZRegister& zd,
   //  size<23:22> | Q<19> | opc<17:16> | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() && zn.IsLaneSizeS());
 
-  Emit(0x4401a000 | Rd(zd) | PgLow8(pg) | Rn(zn));
+  Emit(0x4401a000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::ursra(const ZRegister& zda, const ZRegister& zn, int shift) {

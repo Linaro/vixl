@@ -2111,23 +2111,27 @@ void Simulator::Simulate_ZdS_PgM_ZnH(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdS_PgM_ZnS(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result;
+
+  if (vform != kFormatVnS) {
+    VIXL_UNIMPLEMENTED();
+  }
 
   switch (form_hash_) {
     case Hash("urecpe_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      urecpe(vform, result, zn);
       break;
     case Hash("ursqrte_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      ursqrte(vform, result, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
@@ -2182,26 +2186,26 @@ void Simulator::Simulate_ZdS_ZnS_ZmS_imm(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdT_PgM_ZnT(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result;
 
   switch (form_hash_) {
     case Hash("flogb_z_p_z"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqabs_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      abs(vform, result, zn).SignedSaturate(vform);
       break;
     case Hash("sqneg_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      neg(vform, result, zn).SignedSaturate(vform);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(vform, zd, pg, result);
 }
 
 void Simulator::Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr) {
