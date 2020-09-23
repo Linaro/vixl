@@ -427,6 +427,9 @@ enum PrefetchOperation {
   PLDL3KEEP = 0x04,
   PLDL3STRM = 0x05,
 
+  PrfUnallocated06 = 0x06,
+  PrfUnallocated07 = 0x07,
+
   PLIL1KEEP = 0x08,
   PLIL1STRM = 0x09,
   PLIL2KEEP = 0x0a,
@@ -434,12 +437,26 @@ enum PrefetchOperation {
   PLIL3KEEP = 0x0c,
   PLIL3STRM = 0x0d,
 
+  PrfUnallocated0e = 0x0e,
+  PrfUnallocated0f = 0x0f,
+
   PSTL1KEEP = 0x10,
   PSTL1STRM = 0x11,
   PSTL2KEEP = 0x12,
   PSTL2STRM = 0x13,
   PSTL3KEEP = 0x14,
-  PSTL3STRM = 0x15
+  PSTL3STRM = 0x15,
+
+  PrfUnallocated16 = 0x16,
+  PrfUnallocated17 = 0x17,
+  PrfUnallocated18 = 0x18,
+  PrfUnallocated19 = 0x19,
+  PrfUnallocated1a = 0x1a,
+  PrfUnallocated1b = 0x1b,
+  PrfUnallocated1c = 0x1c,
+  PrfUnallocated1d = 0x1d,
+  PrfUnallocated1e = 0x1e,
+  PrfUnallocated1f = 0x1f,
 };
 
 constexpr bool IsNamedPrefetchOperation(int op) {
