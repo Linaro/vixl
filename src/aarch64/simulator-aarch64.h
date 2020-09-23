@@ -736,13 +736,15 @@ class LogicVRegister {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       int64_t val = Int(vform, i);
       SetRounding(i, (val & 1) == 1);
-      val >>= 1;
-      if (GetSignedSaturation(i) != kNotSaturated) {
+      val = ExtractSignedBitfield64(63, 1, val);  // >>= 1
+      if (GetSignedSaturation(i) == kNotSaturated) {
+        SetInt(vform, i, val);
+      } else {
         // If the operation causes signed saturation, the sign bit must be
         // inverted.
-        val ^= (MaxUintFromFormat(vform) >> 1) + 1;
+        uint64_t uval = static_cast<uint64_t>(val);
+        SetUint(vform, i, uval ^ ((MaxUintFromFormat(vform) >> 1) + 1));
       }
-      SetInt(vform, i, val);
     }
     return *this;
   }
