@@ -1894,7 +1894,11 @@ void Simulator::VisitLogicalShifted(const Instruction* instr) {
 
 
 void Simulator::VisitLogicalImmediate(const Instruction* instr) {
-  LogicalHelper(instr, instr->GetImmLogical());
+  if (instr->GetImmLogical() == 0) {
+    VIXL_UNIMPLEMENTED();
+  } else {
+    LogicalHelper(instr, instr->GetImmLogical());
+  }
 }
 
 
