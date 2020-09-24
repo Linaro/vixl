@@ -2621,20 +2621,6 @@ LogicVRegister Simulator::rev64(VectorFormat vform,
   return rev_byte(vform, dst, src, 8);
 }
 
-LogicVRegister Simulator::ssublp(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src) {
-  VectorFormat vform_src = VectorFormatHalfWidthDoubleLanes(vform);
-  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform_src) <= kSRegSize);
-
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.SetInt(vform,
-               i,
-               src.Int(vform_src, 2 * i) - src.Int(vform_src, 2 * i + 1));
-  }
-  return dst;
-}
-
 LogicVRegister Simulator::addlp(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src,
@@ -3066,19 +3052,6 @@ LogicVRegister Simulator::mov_alternating(VectorFormat vform,
   VIXL_ASSERT((start_at == 0) || (start_at == 1));
   for (int i = start_at; i < LaneCountFromFormat(vform); i += 2) {
     dst.SetUint(vform, i, src.Uint(vform, i));
-  }
-  return dst;
-}
-
-LogicVRegister Simulator::swap_tb(VectorFormat vform,
-                                  LogicVRegister dst,
-                                  const LogicVRegister& src) {
-  VectorFormat vform_half = VectorFormatHalfWidth(vform);
-  int tb_count = LaneCountFromFormat(vform_half);
-  for (int i = 0; i < tb_count; i += 2) {
-    uint64_t temp = src.Uint(vform_half, i);
-    dst.SetUint(vform_half, i, src.Uint(vform_half, i + 1));
-    dst.SetUint(vform_half, i + 1, temp);
   }
   return dst;
 }
@@ -7525,6 +7498,25 @@ uint64_t LogicSVEAddressVector::GetStructAddress(int lane) const {
   return base_ + (offset << vector_shift_);
 }
 
+LogicVRegister Simulator::pack_odd_elements(VectorFormat vform,
+                                            LogicVRegister dst,
+                                            const LogicVRegister& src) {
+  SimVRegister zero;
+  zero.Clear();
+
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  return uzp2(vform_half, dst, src, zero);
+}
+
+LogicVRegister Simulator::pack_even_elements(VectorFormat vform,
+                                             LogicVRegister dst,
+                                             const LogicVRegister& src) {
+  SimVRegister zero;
+  zero.Clear();
+
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  return uzp1(vform_half, dst, src, zero);
+}
 
 }  // namespace aarch64
 }  // namespace vixl

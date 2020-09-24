@@ -1213,6 +1213,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVESaturatingArithmetic(const Instruction* instr);
   void SimulateSVEIntArithPair(const Instruction* instr);
   void SimulateSVEExtractNarrow(const Instruction* instr);
+  void SimulateSVEInterleavedArithLong(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3266,9 +3267,6 @@ class Simulator : public DecoderVisitor {
   LogicVRegister uadalp(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src);
-  LogicVRegister ssublp(VectorFormat vform,
-                        LogicVRegister dst,
-                        const LogicVRegister& src);
   LogicVRegister ext(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src1,
@@ -3359,9 +3357,6 @@ class Simulator : public DecoderVisitor {
                                  LogicVRegister dst,
                                  const LogicVRegister& src,
                                  int start_at);
-  LogicVRegister swap_tb(VectorFormat vform,
-                         LogicVRegister dst,
-                         const LogicVRegister& src);
   LogicPRegister mov_merging(LogicPRegister dst,
                              const LogicPRegister& pg,
                              const LogicPRegister& src);
@@ -4505,6 +4500,13 @@ class Simulator : public DecoderVisitor {
                                        const LogicVRegister& src1,
                                        const LogicVRegister& src2,
                                        bool is_wide_elements);
+
+  LogicVRegister pack_odd_elements(VectorFormat vform,
+                                   LogicVRegister dst,
+                                   const LogicVRegister& src);
+  LogicVRegister pack_even_elements(VectorFormat vform,
+                                    LogicVRegister dst,
+                                    const LogicVRegister& src);
 
   template <typename T>
   LogicVRegister FTMaddHelper(VectorFormat vform,
