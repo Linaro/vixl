@@ -2312,37 +2312,39 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdT_ZnT_ZmTb(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  SimVRegister zm_b, zm_t;
+  pack_even_elements(vform, zm_b, zm);
+  pack_odd_elements(vform, zm_t, zm);
 
   switch (form_hash_) {
     case Hash("saddwb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      saddw(vform, zd, zn, zm_b);
       break;
     case Hash("saddwt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      saddw(vform, zd, zn, zm_t);
       break;
     case Hash("ssubwb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      ssubw(vform, zd, zn, zm_b);
       break;
     case Hash("ssubwt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      ssubw(vform, zd, zn, zm_t);
       break;
     case Hash("uaddwb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      uaddw(vform, zd, zn, zm_b);
       break;
     case Hash("uaddwt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      uaddw(vform, zd, zn, zm_t);
       break;
     case Hash("usubwb_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      usubw(vform, zd, zn, zm_b);
       break;
     case Hash("usubwt_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      usubw(vform, zd, zn, zm_t);
       break;
     default:
       VIXL_UNIMPLEMENTED();
