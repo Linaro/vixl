@@ -183,10 +183,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"smlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
     {"smulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"smullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
-    {"smullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"smullb_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"smullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
-    {"smullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"smullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"splice_z_p_zz_con", &Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T},
     {"sqabs_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
@@ -211,10 +211,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqdmulh_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
     {"sqdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
     {"sqdmullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
-    {"sqdmullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"sqdmullb_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"sqdmullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"sqdmullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
-    {"sqdmullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"sqdmullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"sqdmullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"sqneg_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
     {"sqrdcmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
@@ -308,10 +308,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"umlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
     {"umulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"umullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
-    {"umullb_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"umullb_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"umullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
-    {"umullt_z_zzi_d", &Simulator::Simulate_ZdD_ZnS_ZmS_imm},
+    {"umullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"uqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
@@ -2016,11 +2016,22 @@ void Simulator::Simulate_ZdD_ZnD_ZmD_imm(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdD_ZnS_ZmS_imm(const Instruction* instr) {
+void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->ExtractBits(19, 16));
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  SimVRegister temp, zm_idx, zn_b, zn_t;
+  // Instead of calling the indexed form of the instruction logic, we call the
+  // vector form, which can reuse existing function logics without modification.
+  // Select the specified elements based on the index input and than pack them to
+  // the corresponding position.
+  Instr index = (instr->ExtractBit(20) << 1) | instr->ExtractBit(11);
+  dup_elements_to_segments(kFormatVnS, temp, zm, index);
+  pack_even_elements(kFormatVnS, zm_idx, temp);
+
+  pack_even_elements(kFormatVnS, zn_b, zn);
+  pack_odd_elements(kFormatVnS, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("smullb_z_zzi_d"):
@@ -2030,10 +2041,10 @@ void Simulator::Simulate_ZdD_ZnS_ZmS_imm(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmullb_z_zzi_d"):
-      VIXL_UNIMPLEMENTED();
+      sqdmull(kFormatVnD, zd, zn_b, zm_idx);
       break;
     case Hash("sqdmullt_z_zzi_d"):
-      VIXL_UNIMPLEMENTED();
+      sqdmull(kFormatVnD, zd, zn_t, zm_idx);
       break;
     case Hash("umullb_z_zzi_d"):
       VIXL_UNIMPLEMENTED();
@@ -2150,9 +2161,20 @@ void Simulator::Simulate_ZdS_PgM_ZnS(const Instruction* instr) {
 
 void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
+  SimVRegister& zm = ReadVRegister(instr->ExtractBits(18, 16));
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  SimVRegister temp, zm_idx, zn_b, zn_t;
+  // Instead of calling the indexed form of the instruction logic, we call the
+  // vector form, which can reuse existing function logics without modification.
+  // Select the specified elements based on the index input and than pack them to
+  // the corresponding position.
+  Instr index = (instr->ExtractBits(20, 19) << 1) | instr->ExtractBit(11);
+  dup_elements_to_segments(kFormatVnH, temp, zm, index);
+  pack_even_elements(kFormatVnH, zm_idx, temp);
+
+  pack_even_elements(kFormatVnH, zn_b, zn);
+  pack_odd_elements(kFormatVnH, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("smullb_z_zzi_s"):
@@ -2162,10 +2184,10 @@ void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmullb_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
+      sqdmull(kFormatVnS, zd, zn_b, zm_idx);
       break;
     case Hash("sqdmullt_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
+      sqdmull(kFormatVnS, zd, zn_t, zm_idx);
       break;
     case Hash("umullb_z_zzi_s"):
       VIXL_UNIMPLEMENTED();

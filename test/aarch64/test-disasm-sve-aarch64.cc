@@ -7900,6 +7900,10 @@ TEST(sve2_integer_multiply_long_vector) {
                  "sqdmullb z2.h, z30.b, z22.b");
   COMPARE_PREFIX(sqdmullb(z3.VnS(), z29.VnH(), z23.VnH()),
                  "sqdmullb z3.s, z29.h, z23.h");
+  COMPARE_PREFIX(sqdmullb(z1.VnS(), z27.VnH(), z3.VnH(), 7),
+                 "sqdmullb z1.s, z27.h, z3.h[7]");
+  COMPARE_PREFIX(sqdmullb(z27.VnD(), z16.VnS(), z5.VnS(), 3),
+                 "sqdmullb z27.d, z16.s, z5.s[3]");
 
   COMPARE_PREFIX(sqdmullt(z2.VnD(), z1.VnS(), z5.VnS()),
                  "sqdmullt z2.d, z1.s, z5.s");
@@ -7907,6 +7911,10 @@ TEST(sve2_integer_multiply_long_vector) {
                  "sqdmullt z12.h, z11.b, z15.b");
   COMPARE_PREFIX(sqdmullt(z20.VnS(), z21.VnH(), z25.VnH()),
                  "sqdmullt z20.s, z21.h, z25.h");
+  COMPARE_PREFIX(sqdmullt(z23.VnS(), z28.VnH(), z2.VnH(), 0),
+                 "sqdmullt z23.s, z28.h, z2.h[0]");
+  COMPARE_PREFIX(sqdmullt(z7.VnD(), z4.VnS(), z0.VnS(), 0),
+                 "sqdmullt z7.d, z4.s, z0.s[0]");
 
   // Feature `SVEPmull128` is not supported.
   // COMPARE_PREFIX(pmullb(z12.VnQ(), z21.VnD(), z12.VnD()),

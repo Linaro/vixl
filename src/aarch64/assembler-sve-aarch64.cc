@@ -8041,17 +8041,35 @@ void Assembler::sqdmulh(const ZRegister& zd,
   Emit(0x04207000 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  sqdmullb_z_zzi_d
-//  sqdmullb_z_zzi_s
-void Assembler::sqdmullb(const ZRegister& zd, const ZRegister& zn) {
+void Assembler::sqdmullb(const ZRegister& zd,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
   // SQDMULLB <Zd>.D, <Zn>.S, <Zm>.S[<imm>]
   //  0100 0100 111. .... 1110 .0.. .... ....
   //  size<23:22> | opc<20:16> | il<11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zd.IsLaneSizeD() || zd.IsLaneSizeS());
 
-  Emit(0x44e0e000 | Rd(zd) | Rn(zn));
+  Instr imm_field;
+  Instr zm_id;
+  if (zd.IsLaneSizeS()) {
+    VIXL_ASSERT(IsUint7(index));
+    imm_field = ExtractUnsignedBitfield32(2, 1, index) << 19;
+    zm_id = Rx<18, 16>(zm);
+  } else {
+    VIXL_ASSERT(zd.IsLaneSizeD());
+    VIXL_ASSERT(IsUint3(index));
+    imm_field = ExtractBit(index, 1) << 20;
+    zm_id = Rx<19, 16>(zm);
+  }
+
+  // Synthesize the low part of immediate encoding.
+  imm_field |= ExtractBit(index, 0) << 11;
+
+  Emit(0x44a0e000 | SVESize(zd) | Rd(zd) | Rn(zn) | zm_id | imm_field);
 }
 
 void Assembler::sqdmullb(const ZRegister& zd,
@@ -8072,14 +8090,35 @@ void Assembler::sqdmullb(const ZRegister& zd,
 // This prototype maps to 2 instruction encodings:
 //  sqdmullt_z_zzi_d
 //  sqdmullt_z_zzi_s
-void Assembler::sqdmullt(const ZRegister& zd, const ZRegister& zn) {
+void Assembler::sqdmullt(const ZRegister& zd,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
   // SQDMULLT <Zd>.D, <Zn>.S, <Zm>.S[<imm>]
   //  0100 0100 111. .... 1110 .1.. .... ....
   //  size<23:22> | opc<20:16> | il<11> | T<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zd.GetLaneSizeInBytes() == zn.GetLaneSizeInBytes() * 2);
 
-  Emit(0x44e0e400 | Rd(zd) | Rn(zn));
+  Instr imm_field;
+  Instr zm_id;
+  if (zd.IsLaneSizeS()) {
+    VIXL_ASSERT(IsUint7(index));
+    imm_field = ExtractUnsignedBitfield32(2, 1, index) << 19;
+    zm_id = Rx<18, 16>(zm);
+  } else {
+    VIXL_ASSERT(zd.IsLaneSizeD());
+    VIXL_ASSERT(IsUint3(index));
+    imm_field = ExtractBit(index, 1) << 20;
+    zm_id = Rx<19, 16>(zm);
+  }
+
+  // Synthesize the low part of immediate encoding.
+  imm_field |= ExtractBit(index, 0) << 11;
+
+  Emit(0x44a0e400 | SVESize(zd) | Rd(zd) | Rn(zn) | zm_id | imm_field);
 }
 
 void Assembler::sqdmullt(const ZRegister& zd,

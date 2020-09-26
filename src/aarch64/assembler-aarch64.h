@@ -6235,13 +6235,19 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqdmulh(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating doubling multiply long (bottom, indexed).
-  void sqdmullb(const ZRegister& zd, const ZRegister& zn);
+  void sqdmullb(const ZRegister& zd,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating doubling multiply long (bottom).
   void sqdmullb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating doubling multiply long (top, indexed).
-  void sqdmullt(const ZRegister& zd, const ZRegister& zn);
+  void sqdmullt(const ZRegister& zd,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating doubling multiply long (top).
   void sqdmullt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);

@@ -18789,29 +18789,39 @@ TEST_SVE(sve2_integer_multiply_long_vector) {
 
   int32_t zm_inputs_s[] =
       {1, 2, 3, 4, 5, 6, 7, 8, INT32_MAX, INT32_MIN, INT32_MAX, INT32_MIN};
-
-  int64_t sqdmullb_expected_d[] =
+  int64_t sqdmullb_vec_expected_d[] =
       {-8, -32, -72, -128, static_cast<int64_t>(0x8000000100000000), INT64_MAX};
 
-  int64_t sqdmullt_expected_d[] = {2,
-                                   18,
-                                   50,
-                                   98,
-                                   static_cast<int64_t>(0x8000000100000000),
-                                   static_cast<int64_t>(0x7ffffffe00000002)};
+  uint64_t sqdmullt_vec_expected_d[] =
+      {2, 18, 50, 98, 0x8000000100000000, 0x7ffffffe00000002};
 
-  int64_t pmullb_expected_d[] = {0x00000001fffffffc,
-                                 0x00000003fffffff0,
-                                 0x000000020000001c,
-                                 0x00000007ffffffc0,
-                                 0x3fffffff80000000,
-                                 0x4000000000000000};
+  uint64_t pmullb_vec_expected_d[] = {0x00000001fffffffc,
+                                      0x00000003fffffff0,
+                                      0x000000020000001c,
+                                      0x00000007ffffffc0,
+                                      0x3fffffff80000000,
+                                      0x4000000000000000};
 
-  int64_t pmullt_expected_d[] = {0x0000000000000005,
-                                 0x0000000000000011,
-                                 0x0000000000000015,
-                                 0x3fffffff80000000,
-                                 0x1555555555555555};
+  uint64_t pmullt_vec_expected_d[] = {0x05,
+                                      0x11,
+                                      0x15,
+                                      0x3fffffff80000000,
+                                      0x1555555555555555};
+
+  uint64_t sqdmullb_idx_expected_d[] = {0xfffffffffffffff8,
+                                        0xfffffffffffffff0,
+                                        0xffffffffffffffb8,
+                                        0xffffffffffffffa0,
+                                        0x8000000100000000,
+                                        INT64_MAX};
+
+  uint64_t sqdmullt_idx_expected_d[] =
+      {8,                    // 2 * zn[11] * zm[8] = 2 * 4 * 1
+       24,                   // 2 * zn[9] * zm[8] = 2 * 4 * 3
+       80,                   // 2 * zn[7] * zm[4] = 2 * 8 * 5
+       112,                  // 2 * zn[5] * zm[4] = 2 * 8 * 7
+       0x7fffffffffffffff,   // 2 * zn[3] * zm[0]
+       0x8000000100000000};  // 2 * zn[1] * zm[0]
 
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
   START();
@@ -18821,18 +18831,26 @@ TEST_SVE(sve2_integer_multiply_long_vector) {
 
   __ Sqdmullb(z1.VnD(), z31.VnS(), z30.VnS());
   __ Sqdmullt(z2.VnD(), z31.VnS(), z30.VnS());
+
   __ Pmullb(z3.VnD(), z31.VnS(), z30.VnS());
   __ Pmullt(z4.VnD(), z31.VnS(), z30.VnS());
+
+  __ Mov(z7, z30);
+  __ Mov(z8, z31);
+  __ Sqdmullb(z5.VnD(), z8.VnS(), z7.VnS(), 2);
+  __ Sqdmullt(z6.VnD(), z8.VnS(), z7.VnS(), 0);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    ASSERT_EQUAL_SVE(sqdmullb_expected_d, z1.VnD());
-    ASSERT_EQUAL_SVE(sqdmullt_expected_d, z2.VnD());
-    ASSERT_EQUAL_SVE(pmullb_expected_d, z3.VnD());
-    ASSERT_EQUAL_SVE(pmullt_expected_d, z4.VnD());
+    ASSERT_EQUAL_SVE(sqdmullb_vec_expected_d, z1.VnD());
+    ASSERT_EQUAL_SVE(sqdmullt_vec_expected_d, z2.VnD());
+    ASSERT_EQUAL_SVE(pmullb_vec_expected_d, z3.VnD());
+    ASSERT_EQUAL_SVE(pmullt_vec_expected_d, z4.VnD());
+    ASSERT_EQUAL_SVE(sqdmullb_idx_expected_d, z5.VnD());
+    ASSERT_EQUAL_SVE(sqdmullt_idx_expected_d, z6.VnD());
   }
 }
 
