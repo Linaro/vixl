@@ -29,8 +29,10 @@ import itertools
 import os
 from os.path import join
 import platform
+import re
 import subprocess
 import sys
+import warnings
 from collections import OrderedDict
 
 root_dir = os.path.dirname(File('SConstruct').rfile().abspath)
@@ -52,15 +54,15 @@ class VIXLTargets:
   def __init__(self):
     self.targets = []
     self.help_messages = []
-  def Add(self, target, help_message):
-    self.targets.append(target)
+  def Add(self, target, help_message, cpp_version=14):
+    self.targets.append((target, cpp_version))
     self.help_messages.append(help_message)
   def Help(self):
     res = ""
     for i in range(len(self.targets)):
       res += '\t{0:<{1}}{2:<{3}}\n'.format(
-        'scons ' + self.targets[i],
-        len('scons ') + max(map(len, self.targets)),
+        'scons ' + self.targets[i][0],
+        len('scons ') + max({len(t[0]) for t in self.targets}),
         ' : ' + self.help_messages[i],
         len(' : ') + max(map(len, self.help_messages)))
     return res
@@ -483,6 +485,10 @@ top_level_targets.Add('', 'Build the VIXL library.')
 # Common test code.
 test_build_dir = PrepareVariantDir('test', TargetBuildDir(env))
 test_objects = [env.Object(Glob(join(test_build_dir, '*.cc')))]
+# Global variable holding cpp version as an integer.
+# Useful in optional linking with text assembler library.
+m = re.match('c\+\+(\d{2})', env['std'])
+cpp_version = 14 if m is None else int(m.group(1))
 
 # AArch32 support
 if CanTargetAArch32(env):
@@ -546,6 +552,42 @@ if CanTargetAArch64(env):
   env.Alias('aarch64_examples', aarch64_example_targets)
   top_level_targets.Add('aarch64_examples', 'Build the examples for AArch64.')
 
+  # The text assembler.
+  text_assembler_build_dir = PrepareVariantDir('src/tasm', TargetBuildDir(env))
+  tasm_obj = env.Object(
+      Glob(join(text_assembler_build_dir, '*.cc')),
+      CPPPATH = env['CPPPATH'] + [config.dir_src_tasm])
+
+  libtasm = env.Library(text_assembler_build_dir, tasm_obj, LIBS=[libvixl])
+  env.Alias('text_assembler', libtasm)
+
+  top_level_targets.Add('text_assembler', 'Build text assembler. Requires C++17.', 17)
+  if ('text_assembler' in COMMAND_LINE_TARGETS) and (cpp_version < 17):
+    warnings.warn('The text assembler requires C++17 or above.')
+
+  # The text assembler examples.
+  tasm_examples_names = util.ListCCFilesWithoutExt(config.dir_tasm_examples)
+  tasm_examples_build_dir = PrepareVariantDir('examples/aarch64/tasm', TargetBuildDir(env))
+  tasm_examples_targets = []
+  for example in tasm_examples_names:
+    example_obj = env.Object(
+      Glob(join(tasm_examples_build_dir, example + '.cc')),
+      CPPPATH = env['CPPPATH'] + [config.dir_src_tasm] + [config.dir_tasm_examples])
+    prog = env.Program(join(tasm_examples_build_dir, example), example_obj,
+                       LIBS=[libtasm, libvixl])
+    tasm_examples_targets.append(prog)
+
+  # Copy files with examples in assembly language to build output directory.
+  asm_src_dir = Glob(join(config.dir_tasm_examples, 'asm-src/*'))
+  copy_cmd = env.Install(join(tasm_examples_build_dir, 'asm-src'), asm_src_dir)
+  env.Alias('tasm_examples', tasm_examples_targets)
+  env.Depends('tasm_examples', copy_cmd)
+
+  top_level_targets.Add('tasm_examples',
+                        'Build the examples for text assembler. Requires C++17.', 17)
+  if ('tasm_examples' in COMMAND_LINE_TARGETS) and (cpp_version < 17):
+    warnings.warn('The text assembler requires C++17 or above.')
+
   # The tests.
   test_aarch64_build_dir = PrepareVariantDir(join('test', 'aarch64'), TargetBuildDir(env))
   test_objects.append(env.Object(
@@ -564,14 +606,15 @@ if CanTargetAArch64(env):
       CPPPATH = env['CPPPATH'] + [config.dir_aarch64_examples] + [config.dir_tests])
   test_objects.append(test_aarch64_examples_obj)
 
+libtasm_dep = [libtasm] if ((cpp_version >= 17) and ('a64' in env['target'])) else []
 test = env.Program(join(test_build_dir, 'test-runner'), test_objects,
-                   LIBS=[libvixl])
+                   LIBS=[libvixl] + libtasm_dep)
 env.Alias('tests', test)
 top_level_targets.Add('tests', 'Build the tests.')
 
-
-env.Alias('all', top_level_targets.targets)
-top_level_targets.Add('all', 'Build all the targets above.')
+all_targets = [t[0] for t in top_level_targets.targets if cpp_version >= t[1]]
+env.Alias('all', all_targets)
+top_level_targets.Add('all', 'Build all targets possible for the specified "std".')
 
 Help('\n\nAvailable top level targets:\n' + top_level_targets.Help())
 

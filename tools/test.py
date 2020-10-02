@@ -268,7 +268,8 @@ def RunClangFormat(clang_path, jobs):
                                        progress_prefix = 'clang-format: ')
 
 def RunClangTidy(clang_path, jobs):
-  return clang_tidy.ClangTidyFiles(util.get_source_files(),
+  return clang_tidy.ClangTidyFiles(util.get_source_files(
+                                       exclude_dirs=['.*', '*/traces/*', '*/tasm/*']),
                                    clang_path,
                                    jobs = jobs,
                                    progress_prefix = 'clang-tidy: ')
