@@ -7229,6 +7229,22 @@ TEST(sve2_eorbt_eortb) {
   CLEANUP();
 }
 
+TEST(sve2_saturating_multiply_add_high_vector) {
+  SETUP();
+
+  COMPARE_PREFIX(sqrdmlah(z27.VnB(), z28.VnB(), z19.VnB()), "sqrdmlah z27.b, z28.b, z19.b");
+  COMPARE_PREFIX(sqrdmlah(z27.VnD(), z28.VnD(), z19.VnD()), "sqrdmlah z27.d, z28.d, z19.d");
+  COMPARE_PREFIX(sqrdmlah(z27.VnH(), z28.VnH(), z19.VnH()), "sqrdmlah z27.h, z28.h, z19.h");
+  COMPARE_PREFIX(sqrdmlah(z27.VnS(), z28.VnS(), z19.VnS()), "sqrdmlah z27.s, z28.s, z19.s");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnB(), z16.VnB(), z31.VnB()), "sqrdmlsh z11.b, z16.b, z31.b");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnD(), z16.VnD(), z31.VnD()), "sqrdmlsh z11.d, z16.d, z31.d");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnH(), z16.VnH(), z31.VnH()), "sqrdmlsh z11.h, z16.h, z31.h");
+  COMPARE_PREFIX(sqrdmlsh(z11.VnS(), z16.VnS(), z31.VnS()), "sqrdmlsh z11.s, z16.s, z31.s");
+
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -7663,22 +7679,6 @@ TEST(sve2_all_instructions) {
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(sqrdmlah(z21.VnD(), z29.VnD()), "sqrdmlah z21.d, z29.d,
   // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(sqrdmlah(z27.VnB(), z28.VnB(), z19.VnB()), "sqrdmlah
-  // z27.<T>, z28.<T>, z19.<T>");
-  // COMPARE_PREFIX(sqrdmlah(z27.VnD(), z28.VnD(), z19.VnD()), "sqrdmlah
-  // z27.<T>, z28.<T>, z19.<T>");
-  // COMPARE_PREFIX(sqrdmlah(z27.VnH(), z28.VnH(), z19.VnH()), "sqrdmlah
-  // z27.<T>, z28.<T>, z19.<T>");
-  // COMPARE_PREFIX(sqrdmlah(z27.VnS(), z28.VnS(), z19.VnS()), "sqrdmlah
-  // z27.<T>, z28.<T>, z19.<T>");
-  // COMPARE_PREFIX(sqrdmlsh(z11.VnB(), z16.VnB(), z31.VnB()), "sqrdmlsh
-  // z11.<T>, z16.<T>, z31.<T>");
-  // COMPARE_PREFIX(sqrdmlsh(z11.VnD(), z16.VnD(), z31.VnD()), "sqrdmlsh
-  // z11.<T>, z16.<T>, z31.<T>");
-  // COMPARE_PREFIX(sqrdmlsh(z11.VnH(), z16.VnH(), z31.VnH()), "sqrdmlsh
-  // z11.<T>, z16.<T>, z31.<T>");
-  // COMPARE_PREFIX(sqrdmlsh(z11.VnS(), z16.VnS(), z31.VnS()), "sqrdmlsh
-  // z11.<T>, z16.<T>, z31.<T>");
   // COMPARE_PREFIX(sqrdmlsh(z2.VnH(), z16.VnH()), "sqrdmlsh z2.d, z16.d,
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(sqrdmlsh(z23.VnD(), z13.VnD()), "sqrdmlsh z23.d, z13.d,

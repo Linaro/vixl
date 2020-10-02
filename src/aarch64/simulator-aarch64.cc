@@ -2919,10 +2919,10 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqrdmlah_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqrdmlah(vform, zda, zn, zm);
       break;
     case Hash("sqrdmlsh_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqrdmlsh(vform, zda, zn, zm);
       break;
     case Hash("uaba_z_zzz"):
       uaba(vform, zda, zn, zm);
