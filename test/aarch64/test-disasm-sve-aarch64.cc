@@ -8588,6 +8588,29 @@ TEST(sve2_saturating_multiply_add_interleaved_long) {
   CLEANUP();
 }
 
+TEST(sve2_floating_multiply_add_long_vector) {
+  SETUP();
+
+  COMPARE_PREFIX(fmlalb(z16.VnS(), z18.VnH(), z29.VnH()),
+                 "fmlalb z16.s, z18.h, z29.h");
+  COMPARE_PREFIX(fmlalb(z3.VnS(), z8.VnH(), z7.VnH()),
+                 "fmlalb z3.s, z8.h, z7.h");
+  COMPARE_PREFIX(fmlalt(z18.VnS(), z13.VnH(), z5.VnH()),
+                 "fmlalt z18.s, z13.h, z5.h");
+  COMPARE_PREFIX(fmlalt(z18.VnS(), z7.VnH(), z16.VnH()),
+                 "fmlalt z18.s, z7.h, z16.h");
+  COMPARE_PREFIX(fmlslb(z16.VnS(), z10.VnH(), z1.VnH()),
+                 "fmlslb z16.s, z10.h, z1.h");
+  COMPARE_PREFIX(fmlslb(z25.VnS(), z11.VnH(), z0.VnH()),
+                 "fmlslb z25.s, z11.h, z0.h");
+  COMPARE_PREFIX(fmlslt(z3.VnS(), z17.VnH(), z14.VnH()),
+                 "fmlslt z3.s, z17.h, z14.h");
+  COMPARE_PREFIX(fmlslt(z5.VnS(), z1.VnH(), z7.VnH()),
+                 "fmlslt z5.s, z1.h, z7.h");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8650,22 +8673,6 @@ TEST(sve2_all_instructions) {
   // z16.h, p3/m, z16.h, z11.h");
   // COMPARE_PREFIX(fminp(z16.VnS(), p3.Merging(), z16.VnS(), z11.VnS()), "fminp
   // z16.s, p3/m, z16.s, z11.s");
-  // COMPARE_PREFIX(fmlalb(z16.VnS(), z18.VnH(), z29.VnH()), "fmlalb z16.s,
-  // z18.h, z29.h");
-  // COMPARE_PREFIX(fmlalb(z3.VnS(), z8.VnH(), z7.VnH()), "fmlalb z3.s, z8.h,
-  // z7.h");
-  // COMPARE_PREFIX(fmlalt(z18.VnS(), z13.VnH(), z5.VnH()), "fmlalt z18.s,
-  // z13.h, z5.h");
-  // COMPARE_PREFIX(fmlalt(z18.VnS(), z7.VnH(), z16.VnH()), "fmlalt z18.s, z7.h,
-  // z16.h");
-  // COMPARE_PREFIX(fmlslb(z16.VnS(), z10.VnH(), z1.VnH()), "fmlslb z16.s,
-  // z10.h, z1.h");
-  // COMPARE_PREFIX(fmlslb(z25.VnS(), z11.VnH(), z0.VnH()), "fmlslb z25.s,
-  // z11.h, z0.h");
-  // COMPARE_PREFIX(fmlslt(z3.VnS(), z17.VnH(), z14.VnH()), "fmlslt z3.s, z17.h,
-  // z14.h");
-  // COMPARE_PREFIX(fmlslt(z5.VnS(), z1.VnH(), z7.VnH()), "fmlslt z5.s, z1.h,
-  // z7.h");
   // COMPARE_PREFIX(mul(z13.VnH(), z14.VnH()), "mul z13.d, z14.d,
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mul(z14.VnD(), z26.VnD()), "mul z14.d, z26.d,

@@ -583,10 +583,16 @@ bool CanRun(const CPUFeatures& required, bool* queried_can_run = NULL);
 // we need to enable it in the infrastructure code for each test.
 static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 
+enum InputSet {
+  kIntInputSet = 0,
+  kFpInputSet,
+};
+
 // Initialise CPU registers to a predictable, non-zero set of values. This
 // sets core, vector, predicate and flag registers, though leaves the stack
 // pointer at its original value.
-void SetInitialMachineState(MacroAssembler* masm);
+void SetInitialMachineState(MacroAssembler* masm,
+                            InputSet input_set = kIntInputSet);
 
 // Compute a CRC32 hash of the machine state, and store it to dst. The hash
 // covers core (not sp), vector (lower 128 bits), predicate (lower 16 bits)
@@ -636,6 +642,26 @@ static const int kSVEVectorLengthInBits =
   USE(config)
 
 #endif
+
+// Call masm->Insr repeatedly to allow test inputs to be set up concisely. This
+// is optimised for call-site clarity, not generated code quality, so it doesn't
+// exist in the MacroAssembler itself.
+//
+// Usage:
+//
+//    int values[] = { 42, 43, 44 };
+//    InsrHelper(&masm, z0.VnS(), values);    // Sets z0.S = { ..., 42, 43, 44 }
+//
+// The rightmost (highest-indexed) array element maps to the lowest-numbered
+// lane.
+template <typename T, size_t N>
+void InsrHelper(MacroAssembler* masm,
+                const ZRegister& zdn,
+                const T (&values)[N]) {
+  for (size_t i = 0; i < N; i++) {
+    masm->Insr(zdn, values[i]);
+  }
+}
 
 }  // namespace aarch64
 }  // namespace vixl

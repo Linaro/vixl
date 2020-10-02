@@ -73,18 +73,22 @@ int main(void) {
 }
 #else
 int main(int argc, char **argv) {
-  if ((argc != 3) && (argc != 4)) {
+  if ((argc < 3) || (argc > 5)) {
     printf(
         "Usage: test-donkey <instruction form regex> <number of instructions "
-        "to emit in test> "
-        "[random_only|initial encoding as hex]\n"
+        "to emit in test> <encoding generation manner> <input data type>\n"
         "  regex - ECMAScript (C++11) regular expression to match instruction "
         "form\n"
-        "  random_only - use rng only to select new instructions\n"
+        "  encoding=random - use rng only to select new instructions\n"
         "    (can take longer, but gives better coverage for disparate "
         "encodings)\n"
-        "  initial encoding - encoding of first instruction in test, eg. "
-        "1234abcd\n");
+        "  encoding=`initial hex` - hex encoding of first instruction in test, "
+        "eg. 1234abcd\n"
+        "  input data type - used to specify the data type of generating "
+        "input, e.g. input=fp, default set to integer type\n"
+        "  command examples :\n"
+        "  ./test-donkey \"fml[as]l[bt]\" 50 encoding=random input=fp\n"
+        "  ./test-donkey \"fml[as]l[bt]\" 30 input=int\n");
     exit(1);
   }
 
@@ -94,12 +98,39 @@ int main(int argc, char **argv) {
   std::string target_re = argv[1];
   uint32_t count = static_cast<uint32_t>(strtoul(argv[2], NULL, 10));
   uint32_t cmdline_encoding = 0;
-  if (argc == 4) {
-    if (strcmp(argv[3], "random_only") == 0) {
-      random_only = true;
-    } else {
-      cmdline_encoding = static_cast<uint32_t>(strtoul(argv[3], NULL, 16));
+  InputSet input_set = kIntInputSet;
+  if (argc > 3) {
+    // The arguments of instruction pattern and the number of generating
+    // instructions are processed.
+    int32_t i = 3;
+    std::string argv_s(argv[i]);
+    if (argv_s.find("encoding=") != std::string::npos) {
+      char *c = argv[i];
+      c += 9;
+      if (strcmp(c, "random") == 0) {
+        random_only = true;
+      } else {
+        cmdline_encoding = static_cast<uint32_t>(strtoul(c, NULL, 16));
+      }
+      i++;
     }
+
+    if ((argc > 4) || (i == 3)) {
+      argv_s = std::string(argv[i]);
+      if (argv_s.find("input=") != std::string::npos) {
+        char *c = argv[i];
+        c += 6;
+        if (strcmp(c, "fp") == 0) {
+          input_set = kFpInputSet;
+        } else {
+          VIXL_ASSERT(strcmp(c, "int") == 0);
+        }
+        i++;
+      }
+    }
+
+    // Ensure all arguments have been processed.
+    VIXL_ASSERT(argc == i);
   }
 
   srand48(42);
@@ -139,7 +170,7 @@ int main(int argc, char **argv) {
   Label test;
   masm.Bind(&test);
   masm.PushCalleeSavedRegisters();
-  SetInitialMachineState(&masm);
+  SetInitialMachineState(&masm, input_set);
   ComputeMachineStateHash(&masm, &state_hash);
   masm.PopCalleeSavedRegisters();
   masm.Ret();
@@ -195,7 +226,7 @@ int main(int argc, char **argv) {
 
       // Initialise the machine to a known state.
       masm.PushCalleeSavedRegisters();
-      SetInitialMachineState(&masm);
+      SetInitialMachineState(&masm, input_set);
 
       {
         ExactAssemblyScope scope(&masm,
@@ -261,7 +292,9 @@ int main(int argc, char **argv) {
       "CPUFeatures::kNEON, "
       "CPUFeatures::kCRC32);\n");
   printf("  START();\n\n");
-  printf("  SetInitialMachineState(&masm);\n");
+  printf((input_set == kFpInputSet)
+             ? "  SetInitialMachineState(&masm, kFpInputSet);\n"
+             : "  SetInitialMachineState(&masm);\n");
   printf("  // state = 0x%08x\n\n", initial_state_vl[128]);
 
   printf("  {\n");

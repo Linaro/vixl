@@ -6535,26 +6535,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fminp(zd, pg, zn, zm);
   }
-  void Fmlalb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmlalb(zda, zn, zm);
-  }
-  void Fmlalt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmlalt(zda, zn, zm);
-  }
-  void Fmlslb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmlslb(zda, zn, zm);
-  }
-  void Fmlslt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmlslt(zda, zn, zm);
-  }
+  void Fmlalb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
+  void Fmlalt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
+  void Fmlslb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
+  void Fmlslt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
   void Histcnt(const ZRegister& zd,
                const PRegisterZ& pg,
                const ZRegister& zn,

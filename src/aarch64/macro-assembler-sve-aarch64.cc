@@ -1832,6 +1832,10 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
   V(Bsl2n, bsl2n, FourRegDestructiveHelper)         \
   V(Eor3, eor3, FourRegDestructiveHelper)           \
   V(Nbsl, nbsl, FourRegDestructiveHelper)           \
+  V(Fmlalb, fmlalb, FourRegDestructiveHelper)       \
+  V(Fmlalt, fmlalt, FourRegDestructiveHelper)       \
+  V(Fmlslb, fmlslb, FourRegDestructiveHelper)       \
+  V(Fmlslt, fmlslt, FourRegDestructiveHelper)       \
   V(Sqdmlalb, sqdmlalb, FourRegDestructiveHelper)   \
   V(Sqdmlalbt, sqdmlalbt, FourRegDestructiveHelper) \
   V(Sqdmlalt, sqdmlalt, FourRegDestructiveHelper)   \

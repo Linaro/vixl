@@ -2843,24 +2843,27 @@ void Simulator::Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr) {
 
 void Simulator::Simulate_ZdaS_ZnH_ZmH(const Instruction* instr) {
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  SimVRegister temp, zn_b, zm_b, zn_t, zm_t;
+  pack_even_elements(kFormatVnH, zn_b, zn);
+  pack_even_elements(kFormatVnH, zm_b, zm);
+  pack_odd_elements(kFormatVnH, zn_t, zn);
+  pack_odd_elements(kFormatVnH, zm_t, zm);
 
   switch (form_hash_) {
     case Hash("fmlalb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      fmlal(kFormatVnS, zda, zn_b, zm_b);
       break;
     case Hash("fmlalt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      fmlal(kFormatVnS, zda, zn_t, zm_t);
       break;
     case Hash("fmlslb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      fmlsl(kFormatVnS, zda, zn_b, zm_b);
       break;
     case Hash("fmlslt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      fmlsl(kFormatVnS, zda, zn_t, zm_t);
       break;
     default:
       VIXL_UNIMPLEMENTED();

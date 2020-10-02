@@ -49,26 +49,6 @@
 namespace vixl {
 namespace aarch64 {
 
-// Call masm->Insr repeatedly to allow test inputs to be set up concisely. This
-// is optimised for call-site clarity, not generated code quality, so it doesn't
-// exist in the MacroAssembler itself.
-//
-// Usage:
-//
-//    int values[] = { 42, 43, 44 };
-//    InsrHelper(&masm, z0.VnS(), values);    // Sets z0.S = { ..., 42, 43, 44 }
-//
-// The rightmost (highest-indexed) array element maps to the lowest-numbered
-// lane.
-template <typename T, size_t N>
-void InsrHelper(MacroAssembler* masm,
-                const ZRegister& zdn,
-                const T (&values)[N]) {
-  for (size_t i = 0; i < N; i++) {
-    masm->Insr(zdn, values[i]);
-  }
-}
-
 // Conveniently initialise P registers with scalar bit patterns. The destination
 // lane size is ignored. This is optimised for call-site clarity, not generated
 // code quality.
@@ -19377,6 +19357,93 @@ TEST_SVE(sve2_integer_saturating_multiply_add_long) {
 
     ASSERT_EQUAL_SVE(sqdmlalbt_expected, z1.VnD());
     ASSERT_EQUAL_SVE(sqdmlslbt_expected, z2.VnD());
+  }
+}
+
+TEST_SVE(sve2_floating_point_multiply_add_long_vector) {
+  uint16_t zn_inputs[] = {Float16ToRawbits(Float16(1000)),
+                          Float16ToRawbits(Float16(2000)),
+                          Float16ToRawbits(Float16(0.5)),
+                          Float16ToRawbits(Float16(-0.5)),
+                          Float16ToRawbits(Float16(14)),
+                          Float16ToRawbits(Float16(-14)),
+                          Float16ToRawbits(kFP16PositiveInfinity),
+                          Float16ToRawbits(kFP16NegativeInfinity)};
+
+  uint16_t zm_inputs[] = {Float16ToRawbits(Float16(10)),
+                          Float16ToRawbits(Float16(-10)),
+                          Float16ToRawbits(Float16(10)),
+                          Float16ToRawbits(Float16(-10)),
+                          Float16ToRawbits(Float16(10)),
+                          Float16ToRawbits(Float16(-10)),
+                          Float16ToRawbits(Float16(10)),
+                          Float16ToRawbits(Float16(-10))};
+
+  uint32_t za_inputs[] = {FloatToRawbits(1.0f),
+                          FloatToRawbits(-1.0f),
+                          FloatToRawbits(1.0f),
+                          FloatToRawbits(-1.0f)};
+
+  uint32_t fmlalb_zd_expected[] = {0xc69c3e00,  // -19999
+                                   0x40800000,  // 4
+                                   0x430d0000,  // 141
+                                   FloatToRawbits(kFP32PositiveInfinity)};
+
+  uint32_t fmlalt_zd_expected[] = {0x461c4400,  // 10001
+                                   0x40800000,  // 4
+                                   0x430d0000,  // 141
+                                   FloatToRawbits(kFP32PositiveInfinity)};
+
+  uint32_t fmlslb_zd_expected[] = {0x469c4200,  // 20001
+                                   0xc0c00000,  // -6
+                                   0xc30b0000,  // -139
+                                   FloatToRawbits(kFP32NegativeInfinity)};
+
+  uint32_t fmlslt_zd_expected[] = {0xc61c3c00,  // -9999
+                                   0xc0c00000,  // -6
+                                   0xc30b0000,  // -139
+                                   FloatToRawbits(kFP32NegativeInfinity)};
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  InsrHelper(&masm, z31.VnH(), zn_inputs);
+  InsrHelper(&masm, z30.VnH(), zm_inputs);
+  InsrHelper(&masm, z29.VnS(), za_inputs);
+
+  __ Mov(z0, z29);
+  __ Fmlalb(z0.VnS(), z0.VnS(), z31.VnH(), z30.VnH());
+
+  __ Mov(z1, z29);
+  __ Fmlalt(z1.VnS(), z1.VnS(), z31.VnH(), z30.VnH());
+
+  __ Mov(z2, z29);
+  __ Fmlslb(z2.VnS(), z2.VnS(), z31.VnH(), z30.VnH());
+
+  __ Mov(z3, z29);
+  __ Fmlslt(z3.VnS(), z3.VnS(), z31.VnH(), z30.VnH());
+
+  // TODO remove below comment once movprfx simulation is completed.
+  // With workaround the test has been checked locally.
+  // __ Fmlalb(z4.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  // __ Fmlalt(z5.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  // __ Fmlslb(z6.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  // __ Fmlslt(z7.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(fmlalb_zd_expected, z0.VnS());
+    ASSERT_EQUAL_SVE(fmlalt_zd_expected, z1.VnS());
+    ASSERT_EQUAL_SVE(fmlslb_zd_expected, z2.VnS());
+    ASSERT_EQUAL_SVE(fmlslt_zd_expected, z3.VnS());
+
+    // ASSERT_EQUAL_SVE(z4, z0);
+    // ASSERT_EQUAL_SVE(z5, z1);
+    // ASSERT_EQUAL_SVE(z6, z2);
+    // ASSERT_EQUAL_SVE(z7, z3);
   }
 }
 
