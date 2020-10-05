@@ -2628,10 +2628,9 @@ LogicVRegister Simulator::addlp(VectorFormat vform,
                                 bool is_signed,
                                 bool do_accumulate) {
   VectorFormat vformsrc = VectorFormatHalfWidthDoubleLanes(vform);
-  VIXL_ASSERT(LaneSizeInBitsFromFormat(vformsrc) <= 32);
-  VIXL_ASSERT(LaneCountFromFormat(vform) <= 8);
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vformsrc) <= kSRegSize);
 
-  uint64_t result[8];
+  uint64_t result[kZRegMaxSizeInBytes];
   int lane_count = LaneCountFromFormat(vform);
   for (int i = 0; i < lane_count; i++) {
     if (is_signed) {

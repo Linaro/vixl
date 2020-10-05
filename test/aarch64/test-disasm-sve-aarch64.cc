@@ -7245,6 +7245,19 @@ TEST(sve2_saturating_multiply_add_high_vector) {
   CLEANUP();
 }
 
+TEST(sve2_integer_pairwise_add_accumulate_long) {
+  SETUP();
+
+  COMPARE_PREFIX(sadalp(z19.VnD(), p5.Merging(), z9.VnS()), "sadalp z19.d, p5/m, z9.s");
+  COMPARE_PREFIX(sadalp(z19.VnH(), p5.Merging(), z9.VnB()), "sadalp z19.h, p5/m, z9.b");
+  COMPARE_PREFIX(sadalp(z19.VnS(), p5.Merging(), z9.VnH()), "sadalp z19.s, p5/m, z9.h");
+  COMPARE_PREFIX(uadalp(z20.VnD(), p4.Merging(), z5.VnS()), "uadalp z20.d, p4/m, z5.s");
+  COMPARE_PREFIX(uadalp(z20.VnH(), p4.Merging(), z5.VnB()), "uadalp z20.h, p4/m, z5.b");
+  COMPARE_PREFIX(uadalp(z20.VnS(), p4.Merging(), z5.VnH()), "uadalp z20.s, p4/m, z5.h");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -7486,12 +7499,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(sabdlt(z25.VnD(), z23, z17), "sabdlt z25.d, z23, z17");
   // COMPARE_PREFIX(sabdlt(z25.VnH(), z23, z17), "sabdlt z25.h, z23, z17");
   // COMPARE_PREFIX(sabdlt(z25.VnS(), z23, z17), "sabdlt z25.s, z23, z17");
-  // COMPARE_PREFIX(sadalp(z19.VnD(), p5.Merging(), z9), "sadalp z19.d, p5/m,
-  // z9");
-  // COMPARE_PREFIX(sadalp(z19.VnH(), p5.Merging(), z9), "sadalp z19.h, p5/m,
-  // z9");
-  // COMPARE_PREFIX(sadalp(z19.VnS(), p5.Merging(), z9), "sadalp z19.s, p5/m,
-  // z9");
   // COMPARE_PREFIX(saddlb(z24.VnD(), z30, z16), "saddlb z24.d, z30, z16");
   // COMPARE_PREFIX(saddlb(z24.VnH(), z30, z16), "saddlb z24.h, z30, z16");
   // COMPARE_PREFIX(saddlb(z24.VnS(), z30, z16), "saddlb z24.s, z30, z16");
@@ -7791,12 +7798,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(uabdlt(z25.VnD(), z29, z14), "uabdlt z25.d, z29, z14");
   // COMPARE_PREFIX(uabdlt(z25.VnH(), z29, z14), "uabdlt z25.h, z29, z14");
   // COMPARE_PREFIX(uabdlt(z25.VnS(), z29, z14), "uabdlt z25.s, z29, z14");
-  // COMPARE_PREFIX(uadalp(z20.VnD(), p4.Merging(), z5), "uadalp z20.d, p4/m,
-  // z5");
-  // COMPARE_PREFIX(uadalp(z20.VnH(), p4.Merging(), z5), "uadalp z20.h, p4/m,
-  // z5");
-  // COMPARE_PREFIX(uadalp(z20.VnS(), p4.Merging(), z5), "uadalp z20.s, p4/m,
-  // z5");
   // COMPARE_PREFIX(uaddlb(z3.VnD(), z5, z2), "uaddlb z3.d, z5, z2");
   // COMPARE_PREFIX(uaddlb(z3.VnH(), z5, z2), "uaddlb z3.h, z5, z2");
   // COMPARE_PREFIX(uaddlb(z3.VnS(), z5, z2), "uaddlb z3.s, z5, z2");

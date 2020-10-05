@@ -2877,23 +2877,23 @@ void Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdaT_PgM_ZnTb(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result;
 
   switch (form_hash_) {
     case Hash("sadalp_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      sadalp(vform, result, zn);
       break;
     case Hash("uadalp_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      uadalp(vform, result, zn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(vform, zda, pg, result);
 }
 
 void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {

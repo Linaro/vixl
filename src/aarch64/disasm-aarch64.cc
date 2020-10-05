@@ -10073,7 +10073,14 @@ void Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm_const(
 }
 
 void Disassembler::Disassemble_ZdaT_PgM_ZnTb(const Instruction *instr) {
-  const char *form = "'Zd.'t, 'Pgl/m, 'Zn";
+  const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'th";
+
+  if (instr->GetSVESize() == 0) {
+    // The lowest lane size of the destination vector is H-sized lane.
+    Format(instr, "unimplemented", "(Disassemble_ZdaT_PgM_ZnTb)");
+    return;
+  }
+
   Format(instr, mnemonic_.c_str(), form);
 }
 
