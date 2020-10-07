@@ -1949,18 +1949,15 @@ void Simulator::Simulate_ZdB_Zn1B_Zn2B_imm(const Instruction* instr) {
 
 void Simulator::Simulate_ZdB_ZnB_ZmB(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
 
   switch (form_hash_) {
     case Hash("histseg_z_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("pmul_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      pmul(kFormatVnB, zd, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2288,10 +2285,10 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
       mov_alternating(vform, zd, result, 1);
       break;
     case Hash("mul_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      mul(vform, zd, zn, zm);
       break;
     case Hash("smulh_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      smulh(vform, zd, zn, zm);
       break;
     case Hash("sqdmulh_z_zz"):
       VIXL_UNIMPLEMENTED();
@@ -2303,7 +2300,7 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("umulh_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      umulh(vform, zd, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
