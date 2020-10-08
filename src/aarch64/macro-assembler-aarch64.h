@@ -7140,15 +7140,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const ZRegister& za,
              const ZRegister& zn,
              int shift);
-  void Sshllb(const ZRegister& zd, const ZRegister& zn) {
+  void Sshllb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sshllb(zd, zn);
+    sshllb(zd, zn, shift);
   }
-  void Sshllt(const ZRegister& zd, const ZRegister& zn) {
+  void Sshllt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sshllt(zd, zn);
+    sshllt(zd, zn, shift);
   }
   void Ssra(const ZRegister& zd,
             const ZRegister& za,
@@ -7435,15 +7435,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const ZRegister& za,
              const ZRegister& zn,
              int shift);
-  void Ushllb(const ZRegister& zd, const ZRegister& zn) {
+  void Ushllb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ushllb(zd, zn);
+    ushllb(zd, zn, shift);
   }
-  void Ushllt(const ZRegister& zd, const ZRegister& zn) {
+  void Ushllt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ushllt(zd, zn);
+    ushllt(zd, zn, shift);
   }
   void Usqadd(const ZRegister& zd,
               const PRegisterM& pg,

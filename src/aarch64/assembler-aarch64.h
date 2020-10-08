@@ -6392,10 +6392,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void srsra(const ZRegister& zda, const ZRegister& zn, int shift);
 
   // Signed shift left long by immediate (bottom).
-  void sshllb(const ZRegister& zd, const ZRegister& zn);
+  void sshllb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed shift left long by immediate (top).
-  void sshllt(const ZRegister& zd, const ZRegister& zn);
+  void sshllt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed shift right and accumulate (immediate).
   void ssra(const ZRegister& zda, const ZRegister& zn, int shift);
@@ -6652,10 +6652,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void ursra(const ZRegister& zda, const ZRegister& zn, int shift);
 
   // Unsigned shift left long by immediate (bottom).
-  void ushllb(const ZRegister& zd, const ZRegister& zn);
+  void ushllb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Unsigned shift left long by immediate (top).
-  void ushllt(const ZRegister& zd, const ZRegister& zn);
+  void ushllt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Unsigned saturating addition of signed value.
   void usqadd(const ZRegister& zd,

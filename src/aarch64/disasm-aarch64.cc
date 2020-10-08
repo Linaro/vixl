@@ -10028,8 +10028,18 @@ void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdT_ZnTb_const(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Zn, #<const>";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Zd.'tszd, 'Zn.'tszs, 'ITriSver";
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int lane_size = shift_and_lane_size.second;
+  if ((lane_size >= static_cast<int>(kBRegSizeInBytesLog2)) &&
+      (lane_size <= static_cast<int>(kSRegSizeInBytesLog2))) {
+    // TODO: Correct for [su]shll[bt], but may need changes for other
+    // instructions reaching here.
+    Format(instr, mnemonic_.c_str(), form);
+  } else {
+    Format(instr, "unimplemented", "(ZdT_ZnTb_const)");
+  }
 }
 
 void Disassembler::Disassemble_ZdaD_ZnD_ZmD_imm(const Instruction *instr) {
@@ -11503,7 +11513,7 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
         if (format[3] == 'd') {  // Double size lanes.
           size_in_bytes_log2++;
         }
-        placeholder_length += 3;  // skip "sz(x|s|d)"
+        placeholder_length += 3;  // skip "sz(p|s|d)"
       }
       break;
     case 'h':

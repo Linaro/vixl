@@ -7500,6 +7500,39 @@ TEST(sve2_arith_wide) {
   CLEANUP();
 }
 
+TEST(sve2_shift_long) {
+  SETUP();
+
+  COMPARE_MACRO(Sshllb(z2.VnH(), z20.VnB(), 0), "sshllb z2.h, z20.b, #0");
+  COMPARE_MACRO(Sshllb(z2.VnH(), z20.VnB(), 1), "sshllb z2.h, z20.b, #1");
+  COMPARE_MACRO(Sshllb(z2.VnH(), z20.VnB(), 5), "sshllb z2.h, z20.b, #5");
+  COMPARE_MACRO(Sshllb(z2.VnH(), z20.VnB(), 7), "sshllb z2.h, z20.b, #7");
+  COMPARE_MACRO(Sshllb(z2.VnS(), z20.VnH(), 0), "sshllb z2.s, z20.h, #0");
+  COMPARE_MACRO(Sshllb(z2.VnS(), z20.VnH(), 15), "sshllb z2.s, z20.h, #15");
+  COMPARE_MACRO(Sshllb(z2.VnD(), z20.VnS(), 0), "sshllb z2.d, z20.s, #0");
+  COMPARE_MACRO(Sshllb(z2.VnD(), z20.VnS(), 31), "sshllb z2.d, z20.s, #31");
+  COMPARE_MACRO(Sshllt(z27.VnH(), z8.VnB(), 0), "sshllt z27.h, z8.b, #0");
+  COMPARE_MACRO(Sshllt(z27.VnH(), z8.VnB(), 7), "sshllt z27.h, z8.b, #7");
+  COMPARE_MACRO(Sshllt(z27.VnS(), z8.VnH(), 0), "sshllt z27.s, z8.h, #0");
+  COMPARE_MACRO(Sshllt(z27.VnS(), z8.VnH(), 15), "sshllt z27.s, z8.h, #15");
+  COMPARE_MACRO(Sshllt(z27.VnD(), z8.VnS(), 0), "sshllt z27.d, z8.s, #0");
+  COMPARE_MACRO(Sshllt(z27.VnD(), z8.VnS(), 31), "sshllt z27.d, z8.s, #31");
+  COMPARE_MACRO(Ushllb(z8.VnH(), z31.VnB(), 0), "ushllb z8.h, z31.b, #0");
+  COMPARE_MACRO(Ushllb(z8.VnH(), z31.VnB(), 7), "ushllb z8.h, z31.b, #7");
+  COMPARE_MACRO(Ushllb(z8.VnS(), z31.VnH(), 0), "ushllb z8.s, z31.h, #0");
+  COMPARE_MACRO(Ushllb(z8.VnS(), z31.VnH(), 15), "ushllb z8.s, z31.h, #15");
+  COMPARE_MACRO(Ushllb(z8.VnD(), z31.VnS(), 0), "ushllb z8.d, z31.s, #0");
+  COMPARE_MACRO(Ushllb(z8.VnD(), z31.VnS(), 31), "ushllb z8.d, z31.s, #31");
+  COMPARE_MACRO(Ushllt(z3.VnH(), z21.VnB(), 0), "ushllt z3.h, z21.b, #0");
+  COMPARE_MACRO(Ushllt(z3.VnH(), z21.VnB(), 7), "ushllt z3.h, z21.b, #7");
+  COMPARE_MACRO(Ushllt(z3.VnS(), z21.VnH(), 0), "ushllt z3.s, z21.h, #0");
+  COMPARE_MACRO(Ushllt(z3.VnS(), z21.VnH(), 15), "ushllt z3.s, z21.h, #15");
+  COMPARE_MACRO(Ushllt(z3.VnD(), z21.VnS(), 0), "ushllt z3.d, z21.s, #0");
+  COMPARE_MACRO(Ushllt(z3.VnD(), z21.VnS(), 31), "ushllt z3.d, z21.s, #31");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -7909,10 +7942,6 @@ TEST(sve2_all_instructions) {
   // #<const>");
   // COMPARE_PREFIX(sqshrunt(z20.Vn?(), z3), "sqshrunt <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
-  // COMPARE_PREFIX(sshllb(z2.Vn?(), z20), "sshllb <Zd>.<T>, <Zn>.<Tb>,
-  // #<const>");
-  // COMPARE_PREFIX(sshllt(z27.Vn?(), z8), "sshllt <Zd>.<T>, <Zn>.<Tb>,
-  // #<const>");
   // COMPARE_PREFIX(stnt1b(z29.VnD(), p7, z29.VnD(), x21), "stnt1b { <Zt>.D },
   // <Pg>, [<Zn>.D{, <Xm>}]");
   // COMPARE_PREFIX(stnt1b(z31.VnS(), p6, z12.VnS(), x7), "stnt1b { <Zt>.S },
@@ -8004,10 +8033,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(uqshrnb(z17.Vn?(), z4), "uqshrnb <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
   // COMPARE_PREFIX(uqshrnt(z28.Vn?(), z18), "uqshrnt <Zd>.<T>, <Zn>.<Tb>,
-  // #<const>");
-  // COMPARE_PREFIX(ushllb(z8.Vn?(), z31), "ushllb <Zd>.<T>, <Zn>.<Tb>,
-  // #<const>");
-  // COMPARE_PREFIX(ushllt(z3.Vn?(), z21), "ushllt <Zd>.<T>, <Zn>.<Tb>,
   // #<const>");
   // COMPARE_PREFIX(whilege(p0.VnB(), w20, w29), "whilege p0.b, w20, w29");
   // COMPARE_PREFIX(whilege(p0.VnD(), w20, w29), "whilege p0.b, w20, w29");

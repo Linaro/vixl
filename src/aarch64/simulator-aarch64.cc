@@ -2555,9 +2555,22 @@ void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
 
 void Simulator::Simulate_ZdT_ZnTb_const(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister zn_b, zn_t;
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int lane_size = shift_and_lane_size.second;
+  VIXL_ASSERT((lane_size >= 0) &&
+              (static_cast<unsigned>(lane_size) <= kDRegSizeInBytesLog2));
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size + 1);
+  int right_shift_dist = shift_and_lane_size.first;
+  int left_shift_dist = (8 << lane_size) - right_shift_dist;
+
+  // Construct temporary registers containing the even (bottom) and odd (top)
+  // elements.
+  pack_even_elements(vform, zn_b, zn);
+  pack_odd_elements(vform, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("rshrnb_z_zi"):
@@ -2597,10 +2610,10 @@ void Simulator::Simulate_ZdT_ZnTb_const(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sshllb_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      sshll(vform, zd, zn_b, left_shift_dist);
       break;
     case Hash("sshllt_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      sshll(vform, zd, zn_t, left_shift_dist);
       break;
     case Hash("uqrshrnb_z_zi"):
       VIXL_UNIMPLEMENTED();
@@ -2615,10 +2628,10 @@ void Simulator::Simulate_ZdT_ZnTb_const(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("ushllb_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      ushll(vform, zd, zn_b, left_shift_dist);
       break;
     case Hash("ushllt_z_zi"):
-      VIXL_UNIMPLEMENTED();
+      ushll(vform, zd, zn_t, left_shift_dist);
       break;
     default:
       VIXL_UNIMPLEMENTED();
