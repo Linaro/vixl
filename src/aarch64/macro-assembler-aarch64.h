@@ -6696,15 +6696,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     raddhnt(zd, zn, zm);
   }
-  void Rshrnb(const ZRegister& zd, const ZRegister& zn) {
+  void Rshrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    rshrnb(zd, zn);
+    rshrnb(zd, zn, shift);
   }
-  void Rshrnt(const ZRegister& zd, const ZRegister& zn) {
+  void Rshrnt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    rshrnt(zd, zn);
+    rshrnt(zd, zn, shift);
   }
   void Rsubhnb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -6780,15 +6780,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sbclt(zda, zn, zm);
   }
-  void Shrnb(const ZRegister& zd, const ZRegister& zn) {
+  void Shrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    shrnb(zd, zn);
+    shrnb(zd, zn, shift);
   }
-  void Shrnt(const ZRegister& zd, const ZRegister& zn) {
+  void Shrnt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    shrnt(zd, zn);
+    shrnt(zd, zn, shift);
   }
   void Shsub(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7035,25 +7035,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
               const PRegisterM& pg,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Sqrshrnb(const ZRegister& zd, const ZRegister& zn) {
+  void Sqrshrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqrshrnb(zd, zn);
+    sqrshrnb(zd, zn, shift);
   }
-  void Sqrshrnt(const ZRegister& zd, const ZRegister& zn) {
+  void Sqrshrnt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqrshrnt(zd, zn);
+    sqrshrnt(zd, zn, shift);
   }
-  void Sqrshrunb(const ZRegister& zd, const ZRegister& zn) {
+  void Sqrshrunb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqrshrunb(zd, zn);
+    sqrshrunb(zd, zn, shift);
   }
-  void Sqrshrunt(const ZRegister& zd, const ZRegister& zn) {
+  void Sqrshrunt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqrshrunt(zd, zn);
+    sqrshrunt(zd, zn, shift);
   }
   void Sqshl(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7075,25 +7075,25 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     MovprfxHelperScope guard(this, zd, pg, zn);
     sqshlu(zd, pg, zd, shift);
   }
-  void Sqshrnb(const ZRegister& zd, const ZRegister& zn) {
+  void Sqshrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqshrnb(zd, zn);
+    sqshrnb(zd, zn, shift);
   }
-  void Sqshrnt(const ZRegister& zd, const ZRegister& zn) {
+  void Sqshrnt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqshrnt(zd, zn);
+    sqshrnt(zd, zn, shift);
   }
-  void Sqshrunb(const ZRegister& zd, const ZRegister& zn) {
+  void Sqshrunb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqshrunb(zd, zn);
+    sqshrunb(zd, zn, shift);
   }
-  void Sqshrunt(const ZRegister& zd, const ZRegister& zn) {
+  void Sqshrunt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    sqshrunt(zd, zn);
+    sqshrunt(zd, zn, shift);
   }
   void Sqsub(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7363,15 +7363,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
               const PRegisterM& pg,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Uqrshrnb(const ZRegister& zd, const ZRegister& zn) {
+  void Uqrshrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    uqrshrnb(zd, zn);
+    uqrshrnb(zd, zn, shift);
   }
-  void Uqrshrnt(const ZRegister& zd, const ZRegister& zn) {
+  void Uqrshrnt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    uqrshrnt(zd, zn);
+    uqrshrnt(zd, zn, shift);
   }
   void Uqshl(const ZRegister& zd,
              const PRegisterM& pg,
@@ -7385,15 +7385,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const PRegisterM& pg,
              const ZRegister& zn,
              const ZRegister& zm);
-  void Uqshrnb(const ZRegister& zd, const ZRegister& zn) {
+  void Uqshrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    uqshrnb(zd, zn);
+    uqshrnb(zd, zn, shift);
   }
-  void Uqshrnt(const ZRegister& zd, const ZRegister& zn) {
+  void Uqshrnt(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    uqshrnt(zd, zn);
+    uqshrnt(zd, zn, shift);
   }
   void Uqsub(const ZRegister& zd,
              const PRegisterM& pg,

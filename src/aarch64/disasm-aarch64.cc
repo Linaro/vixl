@@ -117,8 +117,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"raddhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"raddhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"rax1_z_zz", &Disassembler::Disassemble_ZdD_ZnD_ZmD},
-    {"rshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"rshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"rshrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"rshrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"rsubhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"rsubhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"saba_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
@@ -135,8 +135,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sbclb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
     {"sbclt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
     {"shadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"shrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"shrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"shrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"shrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"shsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"shsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sli_z_zzi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
@@ -209,18 +209,18 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sqrdmulh_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnS_ZmS_imm},
     {"sqrshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sqrshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"sqrshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqrshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqrshrunb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqrshrunt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqrshrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"sqrshrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"sqrshrunb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"sqrshrunt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"sqshl_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"sqshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sqshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sqshlu_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
-    {"sqshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqshrunb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sqshrunt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sqshrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"sqshrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"sqshrunb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"sqshrunt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"sqsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sqsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"sqxtnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
@@ -233,8 +233,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"srshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"srshr_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"srsra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
-    {"sshllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"sshllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"sshllb_z_zi", &Disassembler::DisassembleSVEShiftLeftImm},
+    {"sshllt_z_zi", &Disassembler::DisassembleSVEShiftLeftImm},
     {"ssra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"ssublb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"ssublbt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
@@ -291,13 +291,13 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"uqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqrshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqrshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"uqrshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"uqrshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"uqrshrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"uqrshrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"uqshl_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"uqshl_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqshlr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"uqshrnb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"uqshrnt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"uqshrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
+    {"uqshrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"uqsub_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqsubr_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"uqxtnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb},
@@ -309,8 +309,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"urshr_z_p_zi", &Disassembler::VisitSVEBitwiseShiftByImm_Predicated},
     {"ursqrte_z_p_z", &Disassembler::Disassemble_ZdS_PgM_ZnS},
     {"ursra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
-    {"ushllb_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
-    {"ushllt_z_zi", &Disassembler::Disassemble_ZdT_ZnTb_const},
+    {"ushllb_z_zi", &Disassembler::DisassembleSVEShiftLeftImm},
+    {"ushllt_z_zi", &Disassembler::DisassembleSVEShiftLeftImm},
     {"usqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"usra_z_zi", &Disassembler::VisitSVEBitwiseShiftUnpredicated},
     {"usublb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
@@ -10027,18 +10027,29 @@ void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
   }
 }
 
-void Disassembler::Disassemble_ZdT_ZnTb_const(const Instruction *instr) {
+void Disassembler::DisassembleSVEShiftLeftImm(const Instruction *instr) {
   const char *form = "'Zd.'tszd, 'Zn.'tszs, 'ITriSver";
   std::pair<int, int> shift_and_lane_size =
       instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
   int lane_size = shift_and_lane_size.second;
   if ((lane_size >= static_cast<int>(kBRegSizeInBytesLog2)) &&
       (lane_size <= static_cast<int>(kSRegSizeInBytesLog2))) {
-    // TODO: Correct for [su]shll[bt], but may need changes for other
-    // instructions reaching here.
     Format(instr, mnemonic_.c_str(), form);
   } else {
-    Format(instr, "unimplemented", "(ZdT_ZnTb_const)");
+    Format(instr, "unimplemented", "(SVEShiftLeftImm)");
+  }
+}
+
+void Disassembler::DisassembleSVEShiftRightImm(const Instruction *instr) {
+  const char *form = "'Zd.'tszs, 'Zn.'tszd, 'ITriSves";
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  int lane_size = shift_and_lane_size.second;
+  if ((lane_size >= static_cast<int>(kBRegSizeInBytesLog2)) &&
+      (lane_size <= static_cast<int>(kSRegSizeInBytesLog2))) {
+    Format(instr, mnemonic_.c_str(), form);
+  } else {
+    Format(instr, "unimplemented", "(SVEShiftRightImm)");
   }
 }
 

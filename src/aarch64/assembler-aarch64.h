@@ -6040,10 +6040,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void raddhnt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Rounding shift right narrow by immediate (bottom).
-  void rshrnb(const ZRegister& zd, const ZRegister& zn);
+  void rshrnb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Rounding shift right narrow by immediate (top).
-  void rshrnt(const ZRegister& zd, const ZRegister& zn);
+  void rshrnt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Rounding subtract narrow high part (bottom).
   void rsubhnb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -6097,10 +6097,10 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Shift right narrow by immediate (bottom).
-  void shrnb(const ZRegister& zd, const ZRegister& zn);
+  void shrnb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Shift right narrow by immediate (top).
-  void shrnt(const ZRegister& zd, const ZRegister& zn);
+  void shrnt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed halving subtract.
   void shsub(const ZRegister& zd,
@@ -6288,18 +6288,18 @@ class Assembler : public vixl::internal::AssemblerBase {
                const ZRegister& zm);
 
   // Signed saturating rounding shift right narrow by immediate (bottom).
-  void sqrshrnb(const ZRegister& zd, const ZRegister& zn);
+  void sqrshrnb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating rounding shift right narrow by immediate (top).
-  void sqrshrnt(const ZRegister& zd, const ZRegister& zn);
+  void sqrshrnt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating rounding shift right unsigned narrow by immediate
   // (bottom).
-  void sqrshrunb(const ZRegister& zd, const ZRegister& zn);
+  void sqrshrunb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating rounding shift right unsigned narrow by immediate
   // (top).
-  void sqrshrunt(const ZRegister& zd, const ZRegister& zn);
+  void sqrshrunt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating shift left by immediate.
   void sqshl(const ZRegister& zd,
@@ -6326,16 +6326,16 @@ class Assembler : public vixl::internal::AssemblerBase {
               int shift);
 
   // Signed saturating shift right narrow by immediate (bottom).
-  void sqshrnb(const ZRegister& zd, const ZRegister& zn);
+  void sqshrnb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating shift right narrow by immediate (top).
-  void sqshrnt(const ZRegister& zd, const ZRegister& zn);
+  void sqshrnt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating shift right unsigned narrow by immediate (bottom).
-  void sqshrunb(const ZRegister& zd, const ZRegister& zn);
+  void sqshrunb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating shift right unsigned narrow by immediate (top).
-  void sqshrunt(const ZRegister& zd, const ZRegister& zn);
+  void sqshrunt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Signed saturating subtraction (predicated).
   void sqsub(const ZRegister& zd,
@@ -6571,10 +6571,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                const ZRegister& zm);
 
   // Unsigned saturating rounding shift right narrow by immediate (bottom).
-  void uqrshrnb(const ZRegister& zd, const ZRegister& zn);
+  void uqrshrnb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Unsigned saturating rounding shift right narrow by immediate (top).
-  void uqrshrnt(const ZRegister& zd, const ZRegister& zn);
+  void uqrshrnt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Unsigned saturating shift left by immediate.
   void uqshl(const ZRegister& zd,
@@ -6595,10 +6595,10 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zm);
 
   // Unsigned saturating shift right narrow by immediate (bottom).
-  void uqshrnb(const ZRegister& zd, const ZRegister& zn);
+  void uqshrnb(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Unsigned saturating shift right narrow by immediate (top).
-  void uqshrnt(const ZRegister& zd, const ZRegister& zn);
+  void uqshrnt(const ZRegister& zd, const ZRegister& zn, int shift);
 
   // Unsigned saturating subtraction (predicated).
   void uqsub(const ZRegister& zd,

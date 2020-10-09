@@ -144,8 +144,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"pmullt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"raddhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"raddhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
-    {"rshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"rshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"rshrnb_z_zi", &Simulator::SimulateSVENarrow},
+    {"rshrnt_z_zi", &Simulator::SimulateSVENarrow},
     {"rsubhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"rsubhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"saba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
@@ -162,8 +162,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sbclb_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
     {"sbclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
     {"shadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
-    {"shrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"shrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"shrnb_z_zi", &Simulator::SimulateSVENarrow},
+    {"shrnt_z_zi", &Simulator::SimulateSVENarrow},
     {"shsub_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"shsubr_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sli_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
@@ -234,32 +234,32 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqrdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
     {"sqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"sqrshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
-    {"sqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqrshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqrshrunb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqrshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqrshrnb_z_zi", &Simulator::SimulateSVENarrow},
+    {"sqrshrnt_z_zi", &Simulator::SimulateSVENarrow},
+    {"sqrshrunb_z_zi", &Simulator::SimulateSVENarrow},
+    {"sqrshrunt_z_zi", &Simulator::SimulateSVENarrow},
     {"sqshl_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"sqshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"sqshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"sqshlu_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
-    {"sqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqshrunb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sqshrunt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sqshrnb_z_zi", &Simulator::SimulateSVENarrow},
+    {"sqshrnt_z_zi", &Simulator::SimulateSVENarrow},
+    {"sqshrunb_z_zi", &Simulator::SimulateSVENarrow},
+    {"sqshrunt_z_zi", &Simulator::SimulateSVENarrow},
     {"sqsub_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"sqsubr_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
-    {"sqxtnb_z_zz", &Simulator::SimulateSVEExtractNarrow},
-    {"sqxtnt_z_zz", &Simulator::SimulateSVEExtractNarrow},
-    {"sqxtunb_z_zz", &Simulator::SimulateSVEExtractNarrow},
-    {"sqxtunt_z_zz", &Simulator::SimulateSVEExtractNarrow},
+    {"sqxtnb_z_zz", &Simulator::SimulateSVENarrow},
+    {"sqxtnt_z_zz", &Simulator::SimulateSVENarrow},
+    {"sqxtunb_z_zz", &Simulator::SimulateSVENarrow},
+    {"sqxtunt_z_zz", &Simulator::SimulateSVENarrow},
     {"srhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"sri_z_zzi", &Simulator::Simulate_ZdT_ZnT_const},
     {"srshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"srshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"srshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"srsra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
-    {"sshllb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"sshllt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"sshllb_z_zi", &Simulator::SimulateSVEShiftLeftImm},
+    {"sshllt_z_zi", &Simulator::SimulateSVEShiftLeftImm},
     {"ssra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
     {"ssublb_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"ssublbt_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
@@ -316,17 +316,17 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"uqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqrshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
-    {"uqrshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"uqrshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"uqrshrnb_z_zi", &Simulator::SimulateSVENarrow},
+    {"uqrshrnt_z_zi", &Simulator::SimulateSVENarrow},
     {"uqshl_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"uqshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
-    {"uqshrnb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"uqshrnt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"uqshrnb_z_zi", &Simulator::SimulateSVENarrow},
+    {"uqshrnt_z_zi", &Simulator::SimulateSVENarrow},
     {"uqsub_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqsubr_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
-    {"uqxtnb_z_zz", &Simulator::SimulateSVEExtractNarrow},
-    {"uqxtnt_z_zz", &Simulator::SimulateSVEExtractNarrow},
+    {"uqxtnb_z_zz", &Simulator::SimulateSVENarrow},
+    {"uqxtnt_z_zz", &Simulator::SimulateSVENarrow},
     {"urecpe_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
     {"urhadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"urshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
@@ -334,8 +334,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"urshr_z_p_zi", &Simulator::Simulate_ZdnT_PgM_ZdnT_const},
     {"ursqrte_z_p_z", &Simulator::Simulate_ZdS_PgM_ZnS},
     {"ursra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
-    {"ushllb_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
-    {"ushllt_z_zi", &Simulator::Simulate_ZdT_ZnTb_const},
+    {"ushllb_z_zi", &Simulator::SimulateSVEShiftLeftImm},
+    {"ushllt_z_zi", &Simulator::SimulateSVEShiftLeftImm},
     {"usqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"usra_z_zi", &Simulator::Simulate_ZdaT_ZnT_const},
     {"usublb_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
@@ -2378,7 +2378,7 @@ void Simulator::Simulate_ZdT_ZnT_const(const Instruction* instr) {
   }
 }
 
-void Simulator::SimulateSVEExtractNarrow(const Instruction* instr) {
+void Simulator::SimulateSVENarrow(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister result;
@@ -2389,6 +2389,7 @@ void Simulator::SimulateSVEExtractNarrow(const Instruction* instr) {
   VIXL_ASSERT((lane_size >= static_cast<int>(kBRegSizeInBytesLog2)) &&
               (lane_size <= static_cast<int>(kSRegSizeInBytesLog2)));
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int right_shift_dist = shift_and_lane_size.first;
   bool top = false;
 
   switch (form_hash_) {
@@ -2409,6 +2410,54 @@ void Simulator::SimulateSVEExtractNarrow(const Instruction* instr) {
       VIXL_FALLTHROUGH();
     case Hash("uqxtnb_z_zz"):
       uqxtn(vform, result, zn);
+      break;
+    case Hash("rshrnt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("rshrnb_z_zi"):
+      rshrn(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("shrnt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("shrnb_z_zi"):
+      shrn(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("sqrshrnt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqrshrnb_z_zi"):
+      sqrshrn(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("sqrshrunt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqrshrunb_z_zi"):
+      sqrshrun(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("sqshrnt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqshrnb_z_zi"):
+      sqshrn(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("sqshrunt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqshrunb_z_zi"):
+      sqshrun(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("uqrshrnt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("uqrshrnb_z_zi"):
+      uqrshrn(vform, result, zn, right_shift_dist);
+      break;
+    case Hash("uqshrnt_z_zi"):
+      top = true;
+      VIXL_FALLTHROUGH();
+    case Hash("uqshrnb_z_zi"):
+      uqshrn(vform, result, zn, right_shift_dist);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2553,7 +2602,7 @@ void Simulator::Simulate_ZdT_ZnTb_ZmTb(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdT_ZnTb_const(const Instruction* instr) {
+void Simulator::SimulateSVEShiftLeftImm(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister zn_b, zn_t;
@@ -2573,59 +2622,11 @@ void Simulator::Simulate_ZdT_ZnTb_const(const Instruction* instr) {
   pack_odd_elements(vform, zn_t, zn);
 
   switch (form_hash_) {
-    case Hash("rshrnb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("rshrnt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("shrnb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("shrnt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrshrnb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrshrnt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrshrunb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrshrunt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqshrnb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqshrnt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqshrunb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqshrunt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("sshllb_z_zi"):
       sshll(vform, zd, zn_b, left_shift_dist);
       break;
     case Hash("sshllt_z_zi"):
       sshll(vform, zd, zn_t, left_shift_dist);
-      break;
-    case Hash("uqrshrnb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqrshrnt_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqshrnb_z_zi"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqshrnt_z_zi"):
-      VIXL_UNIMPLEMENTED();
       break;
     case Hash("ushllb_z_zi"):
       ushll(vform, zd, zn_b, left_shift_dist);
