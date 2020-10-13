@@ -6717,19 +6717,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     rsubhnt(zd, zn, zm);
   }
   void Saba(const ZRegister& zd,
+            const ZRegister& za,
             const ZRegister& zn,
-            const ZRegister& zm,
-            const ZRegister& za);
-  void Sabalb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sabalb(zda, zn, zm);
-  }
-  void Sabalt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sabalt(zda, zn, zm);
-  }
+            const ZRegister& zm);
+  void Sabalb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
+  void Sabalt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
   void Sabdlb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7234,19 +7232,17 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     tbx(zd, zn, zm);
   }
   void Uaba(const ZRegister& zd,
+            const ZRegister& za,
             const ZRegister& zn,
-            const ZRegister& zm,
-            const ZRegister& za);
-  void Uabalb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uabalb(zda, zn, zm);
-  }
-  void Uabalt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    uabalt(zda, zn, zm);
-  }
+            const ZRegister& zm);
+  void Uabalb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
+  void Uabalt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
   void Uabdlb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -8017,9 +8013,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 
   void AbsoluteDifferenceAccumulate(IntArithFn fn,
                                     const ZRegister& zd,
+                                    const ZRegister& za,
                                     const ZRegister& zn,
-                                    const ZRegister& zm,
-                                    const ZRegister& za);
+                                    const ZRegister& zm);
 
   void SVESdotUdotHelper(IntArithFn fn,
                          const ZRegister& zd,

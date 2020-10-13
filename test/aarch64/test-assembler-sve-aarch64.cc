@@ -18732,37 +18732,37 @@ TEST_SVE(sve2_saba_uaba) {
   __ Index(z0.VnB(), 0, 1);
   __ Dup(z1.VnB(), 0xff);
   __ Dup(z2.VnB(), 1);
-  __ Uaba(z2.VnB(), z0.VnB(), z1.VnB(), z2.VnB());
+  __ Uaba(z2.VnB(), z2.VnB(), z0.VnB(), z1.VnB());
   __ Index(z0.VnB(), 0, -1);
 
   __ Index(z3.VnH(), 0, 1);
   __ Index(z4.VnH(), 1, 1);
-  __ Uaba(z3.VnH(), z3.VnH(), z4.VnH(), z3.VnH());
+  __ Uaba(z3.VnH(), z3.VnH(), z3.VnH(), z4.VnH());
 
   __ Index(z5.VnS(), 3, 6);
   __ Index(z6.VnS(), 5, 6);
-  __ Uaba(z5.VnS(), z5.VnS(), z6.VnS(), z5.VnS());
+  __ Uaba(z5.VnS(), z5.VnS(), z5.VnS(), z6.VnS());
 
   __ Index(z7.VnD(), 424, 12);
   __ Index(z8.VnD(), 4242, 12);
-  __ Uaba(z7.VnD(), z7.VnD(), z8.VnD(), z7.VnD());
+  __ Uaba(z7.VnD(), z7.VnD(), z7.VnD(), z8.VnD());
 
   __ Index(z9.VnH(), -1, -1);
   __ Dup(z10.VnB(), 0);
-  __ Saba(z10.VnB(), z9.VnB(), z10.VnB(), z10.VnB());
+  __ Saba(z10.VnB(), z10.VnB(), z9.VnB(), z10.VnB());
   __ Index(z11.VnH(), 0x0101, 1);
 
   __ Index(z12.VnH(), 0, 1);
   __ Index(z13.VnH(), 0, -1);
-  __ Saba(z13.VnH(), z12.VnH(), z13.VnH(), z13.VnH());
+  __ Saba(z13.VnH(), z13.VnH(), z12.VnH(), z13.VnH());
 
   __ Index(z14.VnS(), 0, 2);
   __ Index(z15.VnS(), 0, -2);
-  __ Saba(z15.VnS(), z14.VnS(), z15.VnS(), z15.VnS());
+  __ Saba(z15.VnS(), z15.VnS(), z14.VnS(), z15.VnS());
 
   __ Index(z16.VnD(), 0, 42);
   __ Index(z17.VnD(), 0, -42);
-  __ Saba(z17.VnD(), z16.VnD(), z17.VnD(), z17.VnD());
+  __ Saba(z17.VnD(), z17.VnD(), z16.VnD(), z17.VnD());
   END();
 
   if (CAN_RUN()) {

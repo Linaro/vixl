@@ -1643,9 +1643,9 @@ void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
 
 void MacroAssembler::AbsoluteDifferenceAccumulate(IntArithFn fn,
                                                   const ZRegister& zd,
+                                                  const ZRegister& za,
                                                   const ZRegister& zn,
-                                                  const ZRegister& zm,
-                                                  const ZRegister& za) {
+                                                  const ZRegister& zm) {
   if (zn.Aliases(zm)) {
     // If zn == zm, the difference is zero.
     if (!zd.Aliases(za)) {
@@ -1672,21 +1672,24 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(IntArithFn fn,
   }
 }
 
-void MacroAssembler::Saba(const ZRegister& zd,
-                          const ZRegister& zn,
-                          const ZRegister& zm,
-                          const ZRegister& za) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  AbsoluteDifferenceAccumulate(&Assembler::saba, zd, zn, zm, za);
-}
+#define VIXL_SVE_ABSDIFF_LIST(V) \
+  V(Saba, saba)                  \
+  V(Uaba, uaba)                  \
+  V(Sabalb, sabalb)              \
+  V(Sabalt, sabalt)              \
+  V(Uabalb, uabalb)              \
+  V(Uabalt, uabalt)
 
-void MacroAssembler::Uaba(const ZRegister& zd,
-                          const ZRegister& zn,
-                          const ZRegister& zm,
-                          const ZRegister& za) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  AbsoluteDifferenceAccumulate(&Assembler::uaba, zd, zn, zm, za);
-}
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                         \
+  void MacroAssembler::MASMFN(const ZRegister& zd,                   \
+                              const ZRegister& za,                   \
+                              const ZRegister& zn,                   \
+                              const ZRegister& zm) {                 \
+    VIXL_ASSERT(allow_macro_instructions_);                          \
+    AbsoluteDifferenceAccumulate(&Assembler::ASMFN, zd, za, zn, zm); \
+  }
+VIXL_SVE_ABSDIFF_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
 
 void MacroAssembler::Sdot(const ZRegister& zd,
                           const ZRegister& za,

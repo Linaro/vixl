@@ -149,8 +149,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"rsubhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"rsubhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"saba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"sabalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"sabalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"sabalb_z_zzz", &Simulator::SimulateSVEInterleavedArithLong},
+    {"sabalt_z_zzz", &Simulator::SimulateSVEInterleavedArithLong},
     {"sabdlb_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"sabdlt_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"sadalp_z_p_z", &Simulator::Simulate_ZdaT_PgM_ZnTb},
@@ -280,8 +280,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"tbl_z_zz_2", &Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT},
     {"tbx_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"uaba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"uabalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"uabalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
+    {"uabalb_z_zzz", &Simulator::SimulateSVEInterleavedArithLong},
+    {"uabalt_z_zzz", &Simulator::SimulateSVEInterleavedArithLong},
     {"uabdlb_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"uabdlt_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"uadalp_z_p_z", &Simulator::Simulate_ZdaT_PgM_ZnTb},
@@ -2535,6 +2535,18 @@ void Simulator::SimulateSVEInterleavedArithLong(const Instruction* instr) {
     case Hash("usublt_z_zz"):
       usubl(vform, zd, zn_t, zm_t);
       break;
+    case Hash("sabalb_z_zzz"):
+      sabal(vform, zd, zn_b, zm_b);
+      break;
+    case Hash("sabalt_z_zzz"):
+      sabal(vform, zd, zn_t, zm_t);
+      break;
+    case Hash("uabalb_z_zzz"):
+      uabal(vform, zd, zn_b, zm_b);
+      break;
+    case Hash("uabalt_z_zzz"):
+      uabal(vform, zd, zn_t, zm_t);
+      break;
     default:
       VIXL_UNIMPLEMENTED();
   }
@@ -3028,12 +3040,6 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
   USE(zn);
 
   switch (form_hash_) {
-    case Hash("sabalb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sabalt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("smlalb_z_zzz"):
       VIXL_UNIMPLEMENTED();
       break;
@@ -3062,12 +3068,6 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmlslt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uabalb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uabalt_z_zzz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("umlalb_z_zzz"):
