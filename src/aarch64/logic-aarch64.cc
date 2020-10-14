@@ -7518,6 +7518,31 @@ LogicVRegister Simulator::pack_even_elements(VectorFormat vform,
   return uzp1(vform_half, dst, src, zero);
 }
 
+LogicVRegister Simulator::adcl(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               bool top) {
+  unsigned reg_size = LaneSizeInBitsFromFormat(vform);
+  VIXL_ASSERT((reg_size == kSRegSize) || (reg_size == kDRegSize));
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i += 2) {
+    uint64_t left = src1.Uint(vform, i + (top ? 1 : 0));
+    uint64_t right = dst.Uint(vform, i);
+    unsigned carry_in = src2.Uint(vform, i + 1) & 1;
+    std::pair<uint64_t, uint8_t> val_and_flags =
+        AddWithCarry(reg_size, left, right, carry_in);
+
+    // Set even lanes to the result of the addition.
+    dst.SetUint(vform, i, val_and_flags.first);
+
+    // Set odd lanes to the carry flag from the addition.
+    uint64_t carry_out = (val_and_flags.second >> 1) & 1;
+    dst.SetUint(vform, i + 1, carry_out);
+  }
+  return dst;
+}
+
 }  // namespace aarch64
 }  // namespace vixl
 

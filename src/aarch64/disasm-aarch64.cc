@@ -35,8 +35,8 @@ namespace aarch64 {
 
 Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     DEFAULT_FORM_TO_VISITOR_MAP(Disassembler),
-    {"adclb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
-    {"adclt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
+    {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"addhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"addp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
@@ -132,8 +132,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"saddlt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"saddwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
     {"saddwt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
-    {"sbclb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
-    {"sbclt_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"sbclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
+    {"sbclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"shadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"shrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"shrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
@@ -10116,6 +10116,11 @@ void Disassembler::Disassemble_ZdaT_PgM_ZnTb(const Instruction *instr) {
     return;
   }
 
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleSVEAddSubCarry(const Instruction *instr) {
+  const char *form = "'Zd.'?22:ds, 'Zn.'?22:ds, 'Zm.'?22:ds";
   Format(instr, mnemonic_.c_str(), form);
 }
 

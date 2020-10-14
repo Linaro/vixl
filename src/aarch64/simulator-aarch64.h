@@ -1214,6 +1214,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVENarrow(const Instruction* instr);
   void SimulateSVEInterleavedArithLong(const Instruction* instr);
   void SimulateSVEShiftLeftImm(const Instruction* instr);
+  void SimulateSVEAddSubCarry(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -2771,6 +2772,10 @@ class Simulator : public DecoderVisitor {
                         uint64_t left,
                         uint64_t right,
                         int carry_in = 0);
+  std::pair<uint64_t, uint8_t> AddWithCarry(unsigned reg_size,
+                                            uint64_t left,
+                                            uint64_t right,
+                                            int carry_in);
   void LogicalHelper(const Instruction* instr, int64_t op2);
   void ConditionalCompareHelper(const Instruction* instr, int64_t op2);
   void LoadStoreHelper(const Instruction* instr,
@@ -4507,6 +4512,12 @@ class Simulator : public DecoderVisitor {
   LogicVRegister pack_even_elements(VectorFormat vform,
                                     LogicVRegister dst,
                                     const LogicVRegister& src);
+
+  LogicVRegister adcl(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      bool top);
 
   template <typename T>
   LogicVRegister FTMaddHelper(VectorFormat vform,

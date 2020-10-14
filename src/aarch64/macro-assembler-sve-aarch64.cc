@@ -1612,11 +1612,11 @@ void MacroAssembler::SVESdotUdotIndexHelper(IntArithIndexFn fn,
   }
 }
 
-void MacroAssembler::SVESdotUdotHelper(IntArithFn fn,
-                                       const ZRegister& zd,
-                                       const ZRegister& za,
-                                       const ZRegister& zn,
-                                       const ZRegister& zm) {
+void MacroAssembler::FourRegAccumulateHelper(IntArithFn fn,
+                                             const ZRegister& zd,
+                                             const ZRegister& za,
+                                             const ZRegister& zn,
+                                             const ZRegister& zm) {
   if (zd.Aliases(za)) {
     // zda = zda + (zn . zm)
     SingleEmissionCheckScope guard(this);
@@ -1696,7 +1696,7 @@ void MacroAssembler::Sdot(const ZRegister& zd,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVESdotUdotHelper(&Assembler::sdot, zd, za, zn, zm);
+  FourRegAccumulateHelper(&Assembler::sdot, zd, za, zn, zm);
 }
 
 void MacroAssembler::Sdot(const ZRegister& zd,
@@ -1713,7 +1713,7 @@ void MacroAssembler::Udot(const ZRegister& zd,
                           const ZRegister& zn,
                           const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVESdotUdotHelper(&Assembler::udot, zd, za, zn, zm);
+  FourRegAccumulateHelper(&Assembler::udot, zd, za, zn, zm);
 }
 
 void MacroAssembler::Udot(const ZRegister& zd,
@@ -2057,6 +2057,34 @@ void MacroAssembler::Usra(const ZRegister& zd,
                           const ZRegister& zn,
                           int shift) {
   ShiftRightAccumulate(&Assembler::usra, zd, za, zn, shift);
+}
+
+void MacroAssembler::Adclb(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm) {
+  FourRegAccumulateHelper(&Assembler::adclb, zd, za, zn, zm);
+}
+
+void MacroAssembler::Adclt(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm) {
+  FourRegAccumulateHelper(&Assembler::adclt, zd, za, zn, zm);
+}
+
+void MacroAssembler::Sbclb(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm) {
+  FourRegAccumulateHelper(&Assembler::sbclb, zd, za, zn, zm);
+}
+
+void MacroAssembler::Sbclt(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm) {
+  FourRegAccumulateHelper(&Assembler::sbclt, zd, za, zn, zm);
 }
 
 }  // namespace aarch64

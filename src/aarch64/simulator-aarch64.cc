@@ -69,8 +69,8 @@ SimSystemRegister SimSystemRegister::DefaultValueFor(SystemRegister id) {
 
 Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     DEFAULT_FORM_TO_VISITOR_MAP(Simulator),
-    {"adclb_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"adclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"adclb_z_zzz", &Simulator::SimulateSVEAddSubCarry},
+    {"adclt_z_zzz", &Simulator::SimulateSVEAddSubCarry},
     {"addhnb_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"addhnt_z_zz", &Simulator::Simulate_ZdT_ZnTb_ZmTb},
     {"addp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
@@ -159,8 +159,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"saddlt_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"saddwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
     {"saddwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
-    {"sbclb_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"sbclt_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
+    {"sbclb_z_zzz", &Simulator::SimulateSVEAddSubCarry},
+    {"sbclt_z_zzz", &Simulator::SimulateSVEAddSubCarry},
     {"shadd_z_p_zz", &Simulator::SimulateSVEHalvingAddSub},
     {"shrnb_z_zi", &Simulator::SimulateSVENarrow},
     {"shrnt_z_zi", &Simulator::SimulateSVENarrow},
@@ -740,6 +740,23 @@ uint64_t Simulator::AddWithCarry(unsigned reg_size,
                                  uint64_t left,
                                  uint64_t right,
                                  int carry_in) {
+  std::pair<uint64_t, uint8_t> result_and_flags =
+      AddWithCarry(reg_size, left, right, carry_in);
+  if (set_flags) {
+    uint8_t flags = result_and_flags.second;
+    ReadNzcv().SetN((flags >> 3) & 1);
+    ReadNzcv().SetZ((flags >> 2) & 1);
+    ReadNzcv().SetC((flags >> 1) & 1);
+    ReadNzcv().SetV((flags >> 0) & 1);
+    LogSystemRegister(NZCV);
+  }
+  return result_and_flags.first;
+}
+
+std::pair<uint64_t, uint8_t> Simulator::AddWithCarry(unsigned reg_size,
+                                                     uint64_t left,
+                                                     uint64_t right,
+                                                     int carry_in) {
   VIXL_ASSERT((carry_in == 0) || (carry_in == 1));
   VIXL_ASSERT((reg_size == kXRegSize) || (reg_size == kWRegSize));
 
@@ -751,28 +768,25 @@ uint64_t Simulator::AddWithCarry(unsigned reg_size,
   right &= reg_mask;
   uint64_t result = (left + right + carry_in) & reg_mask;
 
-  if (set_flags) {
-    ReadNzcv().SetN(CalcNFlag(result, reg_size));
-    ReadNzcv().SetZ(CalcZFlag(result));
+  // NZCV bits, ordered N in bit 3 to V in bit 0.
+  uint8_t nzcv = CalcNFlag(result, reg_size) ? 8 : 0;
+  nzcv |= CalcZFlag(result) ? 4 : 0;
 
-    // Compute the C flag by comparing the result to the max unsigned integer.
-    uint64_t max_uint_2op = max_uint - carry_in;
-    bool C = (left > max_uint_2op) || ((max_uint_2op - left) < right);
-    ReadNzcv().SetC(C ? 1 : 0);
+  // Compute the C flag by comparing the result to the max unsigned integer.
+  uint64_t max_uint_2op = max_uint - carry_in;
+  bool C = (left > max_uint_2op) || ((max_uint_2op - left) < right);
+  nzcv |= C ? 2 : 0;
 
-    // Overflow iff the sign bit is the same for the two inputs and different
-    // for the result.
-    uint64_t left_sign = left & sign_mask;
-    uint64_t right_sign = right & sign_mask;
-    uint64_t result_sign = result & sign_mask;
-    bool V = (left_sign == right_sign) && (left_sign != result_sign);
-    ReadNzcv().SetV(V ? 1 : 0);
+  // Overflow iff the sign bit is the same for the two inputs and different
+  // for the result.
+  uint64_t left_sign = left & sign_mask;
+  uint64_t right_sign = right & sign_mask;
+  uint64_t result_sign = result & sign_mask;
+  bool V = (left_sign == right_sign) && (left_sign != result_sign);
+  nzcv |= V ? 1 : 0;
 
-    LogSystemRegister(NZCV);
-  }
-  return result;
+  return std::make_pair(result, nzcv);
 }
-
 
 int64_t Simulator::ShiftOperand(unsigned reg_size,
                                 uint64_t uvalue,
@@ -2945,6 +2959,33 @@ void Simulator::Simulate_ZdaT_PgM_ZnTb(const Instruction* instr) {
   mov_merging(vform, zda, pg, result);
 }
 
+void Simulator::SimulateSVEAddSubCarry(const Instruction* instr) {
+  VectorFormat vform = (instr->ExtractBit(22) == 0) ? kFormatVnS : kFormatVnD;
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  SimVRegister not_zn;
+  not_(vform, not_zn, zn);
+
+  switch (form_hash_) {
+    case Hash("adclb_z_zzz"):
+      adcl(vform, zda, zn, zm, /* top = */ false);
+      break;
+    case Hash("adclt_z_zzz"):
+      adcl(vform, zda, zn, zm, /* top = */ true);
+      break;
+    case Hash("sbclb_z_zzz"):
+      adcl(vform, zda, not_zn, zm, /* top = */ false);
+      break;
+    case Hash("sbclt_z_zzz"):
+      adcl(vform, zda, not_zn, zm, /* top = */ true);
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
 void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
@@ -2952,20 +2993,8 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
   switch (form_hash_) {
-    case Hash("adclb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("adclt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("saba_z_zzz"):
       saba(vform, zda, zn, zm);
-      break;
-    case Hash("sbclb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sbclt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqrdmlah_z_zzz"):
       sqrdmlah(vform, zda, zn, zm);

@@ -183,6 +183,7 @@ class Disassembler : public DecoderVisitor {
 
   void DisassembleSVEShiftLeftImm(const Instruction* instr);
   void DisassembleSVEShiftRightImm(const Instruction* instr);
+  void DisassembleSVEAddSubCarry(const Instruction* instr);
 
   void Format(const Instruction* instr,
               const char* mnemonic,

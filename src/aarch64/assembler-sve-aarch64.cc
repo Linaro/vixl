@@ -6492,8 +6492,11 @@ void Assembler::adclb(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
 
-  Emit(0x4500d000 | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr sz = zda.IsLaneSizeD() ? (1 << 22) : 0;
+  Emit(0x4500d000 | sz | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::adclt(const ZRegister& zda,
@@ -6504,8 +6507,11 @@ void Assembler::adclt(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
 
-  Emit(0x4500d400 | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr sz = zda.IsLaneSizeD() ? (1 << 22) : 0;
+  Emit(0x4500d400 | sz | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::addhnb(const ZRegister& zd,
@@ -7495,8 +7501,11 @@ void Assembler::sbclb(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
 
-  Emit(0x4580d000 | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr sz = zda.IsLaneSizeD() ? (1 << 22) : 0;
+  Emit(0x4580d000 | sz | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::sbclt(const ZRegister& zda,
@@ -7507,8 +7516,11 @@ void Assembler::sbclt(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
 
-  Emit(0x4580d400 | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr sz = zda.IsLaneSizeD() ? (1 << 22) : 0;
+  Emit(0x4580d400 | sz | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::shadd(const ZRegister& zd,

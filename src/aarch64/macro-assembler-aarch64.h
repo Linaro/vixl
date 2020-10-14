@@ -6373,16 +6373,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   // SVE2
-  void Adclb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    adclb(zda, zn, zm);
-  }
-  void Adclt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    adclt(zda, zn, zm);
-  }
+  void Adclb(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
+  void Adclt(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
   void Addhnb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6768,16 +6766,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     saddwt(zd, zn, zm);
   }
-  void Sbclb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sbclb(zda, zn, zm);
-  }
-  void Sbclt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sbclt(zda, zn, zm);
-  }
+  void Sbclb(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
+  void Sbclt(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
   void Shrnb(const ZRegister& zd, const ZRegister& zn, int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -8017,11 +8013,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                     const ZRegister& zn,
                                     const ZRegister& zm);
 
-  void SVESdotUdotHelper(IntArithFn fn,
-                         const ZRegister& zd,
-                         const ZRegister& za,
-                         const ZRegister& zn,
-                         const ZRegister& zm);
+  void FourRegAccumulateHelper(IntArithFn fn,
+                               const ZRegister& zd,
+                               const ZRegister& za,
+                               const ZRegister& zn,
+                               const ZRegister& zm);
 
   void SVESdotUdotIndexHelper(IntArithIndexFn fn,
                               const ZRegister& zd,
