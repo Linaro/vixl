@@ -37,8 +37,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     DEFAULT_FORM_TO_VISITOR_MAP(Disassembler),
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
-    {"addhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
-    {"addhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
+    {"addhnt_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
     {"addp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"aesd_z_zz", &Disassembler::Disassemble_ZdnB_ZdnB_ZmB},
     {"aese_z_zz", &Disassembler::Disassemble_ZdnB_ZdnB_ZmB},
@@ -114,13 +114,13 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"pmul_z_zz", &Disassembler::Disassemble_ZdB_ZnB_ZmB},
     {"pmullb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"pmullt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
-    {"raddhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
-    {"raddhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"raddhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
+    {"raddhnt_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
     {"rax1_z_zz", &Disassembler::Disassemble_ZdD_ZnD_ZmD},
     {"rshrnb_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
     {"rshrnt_z_zi", &Disassembler::DisassembleSVEShiftRightImm},
-    {"rsubhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
-    {"rsubhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"rsubhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
+    {"rsubhnt_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
     {"saba_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
     {"sabalb_z_zzz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"sabalt_z_zzz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
@@ -249,8 +249,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"stnt1h_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_Pg_ZnS_Xm},
     {"stnt1w_z_p_ar_d_64_unscaled", &Disassembler::Disassemble_ZtD_Pg_ZnD_Xm},
     {"stnt1w_z_p_ar_s_x32_unscaled", &Disassembler::Disassemble_ZtS_Pg_ZnS_Xm},
-    {"subhnb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
-    {"subhnt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+    {"subhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
+    {"subhnt_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
     {"suqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"tbl_z_zz_2", &Disassembler::Disassemble_ZdT_Zn1T_Zn2T_ZmT},
     {"tbx_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
@@ -10022,6 +10022,15 @@ void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
     // TODO: This is correct for saddlbt, ssublbt, subltb, but may need
     // changes for other instructions reaching here.
     Format(instr, "unimplemented", "(ZdT_ZnTb_ZmTb)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
+}
+
+void Disassembler::DisassembleSVEAddSubHigh(const Instruction *instr) {
+  const char *form = "'Zd.'th, 'Zn.'t, 'Zm.'t";
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    Format(instr, "unimplemented", "(SVEAddSubHigh)");
   } else {
     Format(instr, mnemonic_.c_str(), form);
   }

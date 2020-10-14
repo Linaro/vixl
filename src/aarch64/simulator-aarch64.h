@@ -1215,6 +1215,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEInterleavedArithLong(const Instruction* instr);
   void SimulateSVEShiftLeftImm(const Instruction* instr);
   void SimulateSVEAddSubCarry(const Instruction* instr);
+  void SimulateSVEAddSubHigh(const Instruction* instr);
 
   // Integer register accessors.
 

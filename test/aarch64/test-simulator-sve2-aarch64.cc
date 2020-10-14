@@ -4013,5 +4013,149 @@ TEST_SVE(sve2_add_sub_carry) {
   }
 }
 
+TEST_SVE(sve2_add_sub_high) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                          CPUFeatures::kSVE2,
+                          CPUFeatures::kNEON,
+                          CPUFeatures::kCRC32);
+  START();
+
+  SetInitialMachineState(&masm);
+  // state = 0xe2bd2480
+
+  {
+    ExactAssemblyScope scope(&masm, 50 * kInstructionSize);
+    __ dci(0x45fd7464);  // subhnt z4.s, z3.d, z29.d
+    // vl128 state = 0x0eea0f4a
+    __ dci(0x45fc7c66);  // rsubhnt z6.s, z3.d, z28.d
+    // vl128 state = 0x4dc0d938
+    __ dci(0x45fc7c6e);  // rsubhnt z14.s, z3.d, z28.d
+    // vl128 state = 0x33de615e
+    __ dci(0x45f46c7e);  // raddhnt z30.s, z3.d, z20.d
+    // vl128 state = 0xa24af7ae
+    __ dci(0x45f06e7c);  // raddhnt z28.s, z19.d, z16.d
+    // vl128 state = 0x13883aa2
+    __ dci(0x45b06a6c);  // raddhnb z12.h, z19.s, z16.s
+    // vl128 state = 0x5bf75f05
+    __ dci(0x45b96a64);  // raddhnb z4.h, z19.s, z25.s
+    // vl128 state = 0x0e489878
+    __ dci(0x45b96820);  // raddhnb z0.h, z1.s, z25.s
+    // vl128 state = 0x86df8f5f
+    __ dci(0x45b96a01);  // raddhnb z1.h, z16.s, z25.s
+    // vl128 state = 0x0d1563f2
+    __ dci(0x45b96900);  // raddhnb z0.h, z8.s, z25.s
+    // vl128 state = 0xd66de87e
+    __ dci(0x45a97904);  // rsubhnb z4.h, z8.s, z9.s
+    // vl128 state = 0x0c34bd33
+    __ dci(0x45a9790c);  // rsubhnb z12.h, z8.s, z9.s
+    // vl128 state = 0x7892f2c5
+    __ dci(0x45e97988);  // rsubhnb z8.s, z12.d, z9.d
+    // vl128 state = 0x9709efbd
+    __ dci(0x45f97909);  // rsubhnb z9.s, z8.d, z25.d
+    // vl128 state = 0x029a3116
+    __ dci(0x45ff790d);  // rsubhnb z13.s, z8.d, z31.d
+    // vl128 state = 0x48cf21c1
+    __ dci(0x45ff6d05);  // raddhnt z5.s, z8.d, z31.d
+    // vl128 state = 0x44c94a11
+    __ dci(0x45ff6dc1);  // raddhnt z1.s, z14.d, z31.d
+    // vl128 state = 0x12fab619
+    __ dci(0x45ff79d1);  // rsubhnb z17.s, z14.d, z31.d
+    // vl128 state = 0x6f749933
+    __ dci(0x457f7dd0);  // rsubhnt z16.b, z14.h, z31.h
+    // vl128 state = 0x404889de
+    __ dci(0x457f75f1);  // subhnt z17.b, z15.h, z31.h
+    // vl128 state = 0x1dae2a16
+    __ dci(0x457f75f3);  // subhnt z19.b, z15.h, z31.h
+    // vl128 state = 0xc441a9f0
+    __ dci(0x456d75fb);  // subhnt z27.b, z15.h, z13.h
+    // vl128 state = 0xdd79f567
+    __ dci(0x45ed7dff);  // rsubhnt z31.s, z15.d, z13.d
+    // vl128 state = 0x49b27a1f
+    __ dci(0x45e17dfe);  // rsubhnt z30.s, z15.d, z1.d
+    // vl128 state = 0x19cddb35
+    __ dci(0x45e17df6);  // rsubhnt z22.s, z15.d, z1.d
+    // vl128 state = 0xea722faa
+    __ dci(0x45e37d72);  // rsubhnt z18.s, z11.d, z3.d
+    // vl128 state = 0x907267b3
+    __ dci(0x45737d62);  // rsubhnt z2.b, z11.h, z19.h
+    // vl128 state = 0x1e5409d8
+    __ dci(0x45726d6a);  // raddhnt z10.b, z11.h, z18.h
+    // vl128 state = 0xce3b87ca
+    __ dci(0x45726f5a);  // raddhnt z26.b, z26.h, z18.h
+    // vl128 state = 0x2f330789
+    __ dci(0x45706f18);  // raddhnt z24.b, z24.h, z16.h
+    // vl128 state = 0xff09606a
+    __ dci(0x45706f08);  // raddhnt z8.b, z24.h, z16.h
+    // vl128 state = 0x062ac37b
+    __ dci(0x45706f09);  // raddhnt z9.b, z24.h, z16.h
+    // vl128 state = 0xb12c9142
+    __ dci(0x45786b08);  // raddhnb z8.b, z24.h, z24.h
+    // vl128 state = 0x77e41545
+    __ dci(0x45786b0c);  // raddhnb z12.b, z24.h, z24.h
+    // vl128 state = 0x1f3a202d
+    __ dci(0x457a6308);  // addhnb z8.b, z24.h, z26.h
+    // vl128 state = 0xea51f4b9
+    __ dci(0x45fb6318);  // addhnb z24.s, z24.d, z27.d
+    // vl128 state = 0x5b98747e
+    __ dci(0x45b96319);  // addhnb z25.h, z24.s, z25.s
+    // vl128 state = 0xdcebf700
+    __ dci(0x45bb621d);  // addhnb z29.h, z16.s, z27.s
+    // vl128 state = 0x55a216b1
+    __ dci(0x45b3625f);  // addhnb z31.h, z18.s, z19.s
+    // vl128 state = 0x3e86d641
+    __ dci(0x45b3631b);  // addhnb z27.h, z24.s, z19.s
+    // vl128 state = 0x36d052e3
+    __ dci(0x45bb6213);  // addhnb z19.h, z16.s, z27.s
+    // vl128 state = 0xba012cb8
+    __ dci(0x45bf7217);  // subhnb z23.h, z16.s, z31.s
+    // vl128 state = 0xdef826a7
+    __ dci(0x45b67213);  // subhnb z19.h, z16.s, z22.s
+    // vl128 state = 0x5cd11781
+    __ dci(0x45b66223);  // addhnb z3.h, z17.s, z22.s
+    // vl128 state = 0x2f04c440
+    __ dci(0x45f66a27);  // raddhnb z7.s, z17.d, z22.d
+    // vl128 state = 0x486d0d03
+    __ dci(0x45f76825);  // raddhnb z5.s, z1.d, z23.d
+    // vl128 state = 0x8a94d5c9
+    __ dci(0x45f668a1);  // raddhnb z1.s, z5.d, z22.d
+    // vl128 state = 0x14e8e0e7
+    __ dci(0x45f469b1);  // raddhnb z17.s, z13.d, z20.d
+    // vl128 state = 0x19b96fb3
+    __ dci(0x45f469b3);  // raddhnb z19.s, z13.d, z20.d
+    // vl128 state = 0xc98e7d4e
+    __ dci(0x45f169b7);  // raddhnb z23.s, z13.d, z17.d
+    // vl128 state = 0x7ff24d47
+  }
+
+  uint32_t state;
+  ComputeMachineStateHash(&masm, &state);
+  __ Mov(x0, reinterpret_cast<uint64_t>(&state));
+  __ Ldr(w0, MemOperand(x0));
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+    uint32_t expected_hashes[] = {
+        0x7ff24d47,
+        0xc639a9b3,
+        0x0a1df4a5,
+        0x30db6e18,
+        0xf3e2f795,
+        0x36ff477d,
+        0x162f1ca5,
+        0x36da990b,
+        0x110b2c35,
+        0xaf1580f5,
+        0x14e39873,
+        0x7f5eb52c,
+        0x2ececb6f,
+        0x4e4d71f0,
+        0x800769d1,
+        0x1bcbe3a3,
+    };
+    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
