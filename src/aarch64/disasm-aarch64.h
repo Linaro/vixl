@@ -186,6 +186,7 @@ class PrintDisassembler : public Disassembler {
       : cpu_features_auditor_(NULL),
         cpu_features_prefix_("// Needs: "),
         cpu_features_suffix_(""),
+        signed_addresses_(false),
         stream_(stream) {}
 
   // Convenience helpers for quick disassembly, without having to manually
@@ -214,12 +215,23 @@ class PrintDisassembler : public Disassembler {
     cpu_features_suffix_ = suffix;
   }
 
+  // By default, addresses are printed as simple, unsigned 64-bit hex values.
+  //
+  // With `PrintSignedAddresses(true)`:
+  //  - negative addresses are printed as "-0x1234...",
+  //  - positive addresses have a leading space, like " 0x1234...", to maintain
+  //    alignment.
+  //
+  // This is most useful in combination with Disassembler::MapCodeAddress(...).
+  void PrintSignedAddresses(bool s) { signed_addresses_ = s; }
+
  protected:
   virtual void ProcessOutput(const Instruction* instr) VIXL_OVERRIDE;
 
   CPUFeaturesAuditor* cpu_features_auditor_;
   const char* cpu_features_prefix_;
   const char* cpu_features_suffix_;
+  bool signed_addresses_;
 
  private:
   FILE* stream_;

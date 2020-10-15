@@ -29,6 +29,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "code-buffer-vixl.h"
 #include "aarch64/decoder-aarch64.h"
 #include "aarch64/disasm-aarch64.h"
 
@@ -39,34 +40,33 @@ using namespace vixl;
 using namespace vixl::aarch64;
 
 void PrintUsage(char const* name) {
-  printf("Usage: %s [<address>:]<instruction> ...\n", name);
+  printf("Usage: %s [OPTION]... <INSTRUCTION>...\n", name);
   printf("\n");
   printf("Disassemble ad-hoc A64 instructions.\n");
   printf("\n");
   printf(
-      "<address>\n"
-      "  The address of the instruction. Any signed 64-bit value accepted by\n"
-      "  strtoll can be specified. The address is printed alongside each\n"
-      "  instruction, and it is also used to decode PC-relative offsets.\n"
+      "Options:\n"
+      "  --start-at <address>\n"
+      "    Start disassembling from <address> Any signed 64-bit value\n"
+      "    accepted by strtoll can be specified. The address is printed\n"
+      "    alongside each instruction, and it is also used to decode\n"
+      "    PC-relative offsets.\n"
       "\n"
-      "  If no address is specified, it is derived from the previously-\n"
-      "  disassembled instruction. The default address for the first\n"
-      "  instruction is 0.\n"
+      "    Defaults to 0.\n"
       "\n");
   printf(
       "<instruction>\n"
       "  A hexadecimal representation of an A64 instruction. The leading '0x'\n"
       "  (or '0X') is optional.\n"
       "\n"
-      "  Multiple instructions can be provided; unless qualified with an\n"
-      "  address, they will be disassembled as if they were read sequentially\n"
-      "  from memory.\n"
+      "  Multiple instructions can be provided; they will be disassembled as\n"
+      "  if they were read sequentially from memory.\n"
       "\n");
   printf("Examples:\n");
   printf("  $ %s d2824685\n", name);
   printf("   0x0000000000000000:  d2824685  movz x5, #0x1234\n");
   printf("\n");
-  printf("  $ %s -4:0x10fffe85 0xd61f00a0\n", name);
+  printf("  $ %s --start-at -4 0x10fffe85 0xd61f00a0\n", name);
   printf("  -0x0000000000000004:  10fffe85  adr x5, #-0x30 (addr -0x34)\n");
   printf("   0x0000000000000000:  d61f00a0  br x5\n");
 }
@@ -82,11 +82,6 @@ int64_t ParseInt64(char const* arg) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    PrintUsage(argv[0]);
-    return 1;
-  }
-
   for (int i = 1; i < argc; i++) {
     char const* arg = argv[i];
     if ((strcmp(arg, "--help") == 0) || (strcmp(arg, "-h") == 0)) {
@@ -96,48 +91,42 @@ int main(int argc, char* argv[]) {
   }
 
   // Assume an address of 0, unless otherwise specified.
-  int64_t address = 0;
+  int64_t start_address = 0;
+  // Allocate space for one instruction per argument.
+  CodeBuffer buffer((argc - 1) * kInstructionSize);
 
-  vixl::aarch64::Decoder decoder;
-  vixl::aarch64::Disassembler disasm;
-  decoder.AppendVisitor(&disasm);
-
+  bool expect_start_at = false;
   for (int i = 1; i < argc; i++) {
     char* arg = argv[i];
-
-    // If there is a ':' in the input, the first part indicates an address.
-    char* split = strchr(arg, ':');
-    if (split) {
-      *split = '\0';
-      int64_t new_address = ParseInt64(arg);
-      if ((new_address != address) && (i != 1)) {
-        // Print a short gap if the address range is broken.
-        printf("\n");
-      }
-      address = new_address;
-      arg = split + 1;
+    if (expect_start_at) {
+      start_address = ParseInt64(arg);
+      expect_start_at = false;
+    } else if (strcmp(arg, "--start-at") == 0) {
+      expect_start_at = true;
+    } else {
+      // Assume that everything else is an instruction.
+      buffer.Emit(ParseInstr(arg));
     }
-
-    // We always assume that this succeeds, but print the encoding with the
-    // output so the user can see if the instruction was misinterpreted.
-    Instr instruction_raw = ParseInstr(arg);
-    vixl::aarch64::Instruction* instruction =
-        reinterpret_cast<vixl::aarch64::Instruction*>(&instruction_raw);
-    disasm.MapCodeAddress(address, instruction);
-    decoder.Decode(instruction);
-
-    char sign_char = (address < 0) ? '-' : ' ';
-    uint64_t abs_address =
-        (address < 0) ? -static_cast<uint64_t>(address) : address;
-
-    printf("%c0x%016" PRIx64 ":\t%08" PRIx32 "\t%s\n",
-           sign_char,
-           abs_address,
-           instruction_raw,
-           disasm.GetOutput());
-
-    address += vixl::aarch64::kInstructionSize;
   }
+  buffer.SetClean();
+
+  if (expect_start_at) {
+    printf("No address given. Use: --start-at <address>\n");
+    return 1;
+  }
+
+  if (buffer.GetSizeInBytes() == 0) {
+    printf("Nothing to disassemble.\n");
+    return 0;
+  }
+
+  // Disassemble the buffer.
+  const Instruction* start = buffer.GetStartAddress<Instruction*>();
+  const Instruction* end = buffer.GetEndAddress<Instruction*>();
+  vixl::aarch64::PrintDisassembler disasm(stdout);
+  disasm.PrintSignedAddresses(true);
+  disasm.MapCodeAddress(start_address, start);
+  disasm.DisassembleBuffer(start, end);
 
   return 0;
 }
