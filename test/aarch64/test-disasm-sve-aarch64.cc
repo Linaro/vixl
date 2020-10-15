@@ -8212,6 +8212,17 @@ TEST(sve2_int_compare_scalars) {
   COMPARE_MACRO(Whilehs(p4.VnH(), w22, w9), "whilehs p4.h, w22, w9");
   COMPARE_MACRO(Whilehs(p4.VnS(), x22, x9), "whilehs p4.s, x22, x9");
 
+  COMPARE_MACRO(Whilerw(p7.VnB(), x25, x27), "whilerw p7.b, x25, x27");
+  COMPARE_MACRO(Whilerw(p7.VnD(), x25, x28), "whilerw p7.d, x25, x28");
+  COMPARE_MACRO(Whilerw(p7.VnH(), x25, x29), "whilerw p7.h, x25, x29");
+  COMPARE_MACRO(Whilerw(p7.VnS(), x25, x30), "whilerw p7.s, x25, x30");
+  COMPARE_MACRO(Whilerw(p7.VnS(), x25, xzr), "whilerw p7.s, x25, xzr");
+  COMPARE_MACRO(Whilewr(p8.VnB(), x14, x14), "whilewr p8.b, x14, x14");
+  COMPARE_MACRO(Whilewr(p8.VnD(), x14, x13), "whilewr p8.d, x14, x13");
+  COMPARE_MACRO(Whilewr(p8.VnH(), x14, x12), "whilewr p8.h, x14, x12");
+  COMPARE_MACRO(Whilewr(p8.VnS(), x14, x11), "whilewr p8.s, x14, x11");
+  COMPARE_MACRO(Whilewr(p8.VnS(), xzr, x11), "whilewr p8.s, xzr, x11");
+
   CLEANUP();
 }
 
@@ -8516,14 +8527,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(umullt(z24.VnD(), z6, z6), "umullt z24.d, z6, z6");
   // COMPARE_PREFIX(umullt(z24.VnH(), z6, z6), "umullt z24.h, z6, z6");
   // COMPARE_PREFIX(umullt(z24.VnS(), z6, z6), "umullt z24.s, z6, z6");
-  // COMPARE_PREFIX(whilerw(p7.VnB(), x25, x25), "whilerw p7.b, w25, w25");
-  // COMPARE_PREFIX(whilerw(p7.VnD(), x25, x25), "whilerw p7.b, w25, w25");
-  // COMPARE_PREFIX(whilerw(p7.VnH(), x25, x25), "whilerw p7.b, w25, w25");
-  // COMPARE_PREFIX(whilerw(p7.VnS(), x25, x25), "whilerw p7.b, w25, w25");
-  // COMPARE_PREFIX(whilewr(p8.VnB(), x14, x14), "whilewr p8.b, w14, w14");
-  // COMPARE_PREFIX(whilewr(p8.VnD(), x14, x14), "whilewr p8.b, w14, w14");
-  // COMPARE_PREFIX(whilewr(p8.VnH(), x14, x14), "whilewr p8.b, w14, w14");
-  // COMPARE_PREFIX(whilewr(p8.VnS(), x14, x14), "whilewr p8.b, w14, w14");
 
   CLEANUP();
 }

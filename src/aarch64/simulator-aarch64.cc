@@ -1909,19 +1909,34 @@ void Simulator::Simulate_PdT_PgZ_ZnT_ZmT(const Instruction* instr) {
 }
 
 void Simulator::Simulate_PdT_Xn_Xm(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pd = ReadPRegister(instr->GetPd());
-  USE(pd);
+  uint64_t src1 = ReadXRegister(instr->GetRn());
+  uint64_t src2 = ReadXRegister(instr->GetRm());
 
+  uint64_t absdiff = (src1 > src2) ? (src1 - src2) : (src2 - src1);
+  absdiff >>= LaneSizeInBytesLog2FromFormat(vform);
+
+  bool no_conflict = false;
   switch (form_hash_) {
     case Hash("whilerw_p_rr"):
-      VIXL_UNIMPLEMENTED();
+      no_conflict = (absdiff == 0);
       break;
     case Hash("whilewr_p_rr"):
-      VIXL_UNIMPLEMENTED();
+      no_conflict = (absdiff == 0) || (src2 <= src1);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+
+  LogicPRegister dst(pd);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    dst.SetActive(vform,
+                  i,
+                  no_conflict || (static_cast<uint64_t>(i) < absdiff));
+  }
+
+  PredTest(vform, GetPTrue(), pd);
 }
 
 void Simulator::Simulate_ZdB_Zn1B_Zn2B_imm(const Instruction* instr) {

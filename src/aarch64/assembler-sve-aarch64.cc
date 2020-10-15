@@ -9733,8 +9733,9 @@ void Assembler::whilerw(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Rm<20:16> | Rn<9:5> | rw<4> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(rn.IsX() && rm.IsX());
 
-  Emit(0x25203010 | Pd(pd) | Rn(rn) | Rm(rm));
+  Emit(0x25203010 | SVESize(pd) | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
 void Assembler::whilewr(const PRegisterWithLaneSize& pd,
@@ -9745,8 +9746,9 @@ void Assembler::whilewr(const PRegisterWithLaneSize& pd,
   //  size<23:22> | Rm<20:16> | Rn<9:5> | rw<4> | Pd<3:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(rn.IsX() && rm.IsX());
 
-  Emit(0x25203000 | Pd(pd) | Rn(rn) | Rm(rm));
+  Emit(0x25203000 | SVESize(pd) | Pd(pd) | Rn(rn) | Rm(rm));
 }
 
 void Assembler::xar(const ZRegister& zd,
