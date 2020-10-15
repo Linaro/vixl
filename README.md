@@ -7,6 +7,7 @@ Contents:
  * Licence
  * Requirements
  * Known limitations
+ * Bug reports
  * Usage
 
 
@@ -63,8 +64,8 @@ Note that in Ubuntu 18.04, clang-tidy-4.0 will only work if the clang-4.0
 package is also installed.
 
 
-Known Limitations for AArch64 code generation
-=============================================
+Known Limitations
+=================
 
 VIXL was developed for JavaScript engines so a number of features from A64 were
 deemed unnecessary:
@@ -82,11 +83,6 @@ The VIXL simulator was developed to run on 64-bit amd64 platforms. Whilst it
 builds and mostly works for 32-bit x86 platforms, there are a number of
 floating-point operations which do not work correctly, and a number of tests
 fail as a result.
-
-VIXL may not build using Clang 3.7, due to a compiler warning. A workaround is
-to disable conversion of warnings to errors, or to delete the offending
-`return` statement reported and rebuild. This problem will be fixed in the next
-release.
 
 Debug Builds
 ------------
@@ -161,6 +157,13 @@ approach is recommended even in cases where a compiler can model the
 instructions precisely, because, subject to the limitations described above, it
 offers an additional layer of protection against logic bugs in instruction
 selection.
+
+Bug reports
+===========
+
+Bug reports may be sent to vixl@arm.com. Please provide any steps required to
+recreate a bug, along with build environment and host system information.
+
 
 Usage
 =====
