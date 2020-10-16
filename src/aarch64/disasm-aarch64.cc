@@ -12481,9 +12481,28 @@ void PrintDisassembler::ProcessOutput(const Instruction *instr) {
     fprintf(stream_, "# ISA: %s\n", GetISAName(isa));
     last_printed_isa_ = isa;
   }
+
+  int64_t address = CodeRelativeAddress(instr);
+  uint64_t abs_address;
+  const char *sign;
+  if (signed_addresses_) {
+    if (address < 0) {
+      sign = "-";
+      abs_address = -static_cast<uint64_t>(address);
+    } else {
+      // Leave a leading space, to maintain alignment.
+      sign = " ";
+      abs_address = address;
+    }
+  } else {
+    sign = "";
+    abs_address = address;
+  }
+
   int bytes_printed = fprintf(stream_,
-                              "0x%016" PRIx64 "  %08" PRIx32 "\t\t%s",
-                              reinterpret_cast<uint64_t>(instr),
+                              "%s0x%016" PRIx64 "  %08" PRIx32 "\t\t%s",
+                              sign,
+                              abs_address,
                               instr->GetInstructionBits(),
                               GetOutput());
   if (cpu_features_auditor_ != NULL) {
