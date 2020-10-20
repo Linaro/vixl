@@ -2935,6 +2935,58 @@ LogicVRegister Simulator::cadd(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::bgrp(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               bool do_bext) {
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t value = src1.Uint(vform, i);
+    uint64_t mask = src2.Uint(vform, i);
+    int high_pos = 0;
+    int low_pos = 0;
+    uint64_t result_high = 0;
+    uint64_t result_low = 0;
+    for (unsigned j = 0; j < LaneSizeInBitsFromFormat(vform); j++) {
+      if ((mask & 1) == 0) {
+        result_high |= (value & 1) << high_pos;
+        high_pos++;
+      } else {
+        result_low |= (value & 1) << low_pos;
+        low_pos++;
+      }
+      mask >>= 1;
+      value >>= 1;
+    }
+
+    if (!do_bext) {
+      result_low |= result_high << low_pos;
+    }
+
+    dst.SetUint(vform, i, result_low);
+  }
+  return dst;
+}
+
+LogicVRegister Simulator::bdep(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2) {
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t value = src1.Uint(vform, i);
+    uint64_t mask = src2.Uint(vform, i);
+    uint64_t result = 0;
+    for (unsigned j = 0; j < LaneSizeInBitsFromFormat(vform); j++) {
+      if ((mask & 1) == 1) {
+        result |= (value & 1) << j;
+        value >>= 1;
+      }
+      mask >>= 1;
+    }
+    dst.SetUint(vform, i, result);
+  }
+  return dst;
+}
 
 LogicVRegister Simulator::dup_element(VectorFormat vform,
                                       LogicVRegister dst,

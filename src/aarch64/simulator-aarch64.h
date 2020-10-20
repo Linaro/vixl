@@ -3328,6 +3328,15 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src2,
                       int rot,
                       bool saturate = false);
+  LogicVRegister bgrp(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      bool do_bext = false);
+  LogicVRegister bdep(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2);
   LogicVRegister index(VectorFormat vform,
                        LogicVRegister dst,
                        uint64_t start,

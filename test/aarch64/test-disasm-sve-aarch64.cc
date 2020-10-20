@@ -7868,36 +7868,35 @@ TEST(sve2_complex_addition) {
   CLEANUP();
 }
 
+TEST(sve2_bit_permute) {
+  SETUP();
+
+  COMPARE_MACRO(Bdep(z18.VnB(), z10.VnB(), z0.VnB()),
+                "bdep z18.b, z10.b, z0.b");
+  COMPARE_MACRO(Bdep(z18.VnD(), z10.VnD(), z0.VnD()),
+                "bdep z18.d, z10.d, z0.d");
+  COMPARE_MACRO(Bdep(z18.VnH(), z10.VnH(), z0.VnH()),
+                "bdep z18.h, z10.h, z0.h");
+  COMPARE_MACRO(Bdep(z18.VnS(), z10.VnS(), z0.VnS()),
+                "bdep z18.s, z10.s, z0.s");
+  COMPARE_MACRO(Bext(z6.VnB(), z2.VnB(), z5.VnB()), "bext z6.b, z2.b, z5.b");
+  COMPARE_MACRO(Bext(z6.VnD(), z2.VnD(), z5.VnD()), "bext z6.d, z2.d, z5.d");
+  COMPARE_MACRO(Bext(z6.VnH(), z2.VnH(), z5.VnH()), "bext z6.h, z2.h, z5.h");
+  COMPARE_MACRO(Bext(z6.VnS(), z2.VnS(), z5.VnS()), "bext z6.s, z2.s, z5.s");
+  COMPARE_MACRO(Bgrp(z24.VnB(), z9.VnB(), z5.VnB()), "bgrp z24.b, z9.b, z5.b");
+  COMPARE_MACRO(Bgrp(z24.VnD(), z9.VnD(), z5.VnD()), "bgrp z24.d, z9.d, z5.d");
+  COMPARE_MACRO(Bgrp(z24.VnH(), z9.VnH(), z5.VnH()), "bgrp z24.h, z9.h, z5.h");
+  COMPARE_MACRO(Bgrp(z24.VnS(), z9.VnS(), z5.VnS()), "bgrp z24.s, z9.s, z5.s");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
 
   // COMPARE_PREFIX(bcax(z6.VnD(), z6.VnD(), z12.VnD(), int Zk.VnD()), "bcax
   // <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D");
-  // COMPARE_PREFIX(bdep(z18.VnB(), z10.VnB(), z0.VnB()), "bdep z18.b, z10.b,
-  // z0.b");
-  // COMPARE_PREFIX(bdep(z18.VnD(), z10.VnD(), z0.VnD()), "bdep z18.d, z10.d,
-  // z0.d");
-  // COMPARE_PREFIX(bdep(z18.VnH(), z10.VnH(), z0.VnH()), "bdep z18.h, z10.h,
-  // z0.h");
-  // COMPARE_PREFIX(bdep(z18.VnS(), z10.VnS(), z0.VnS()), "bdep z18.s, z10.s,
-  // z0.s");
-  // COMPARE_PREFIX(bext(z6.VnB(), z2.VnB(), z5.VnB()), "bext z6.b, z2.b,
-  // z5.b");
-  // COMPARE_PREFIX(bext(z6.VnD(), z2.VnD(), z5.VnD()), "bext z6.d, z2.d,
-  // z5.d");
-  // COMPARE_PREFIX(bext(z6.VnH(), z2.VnH(), z5.VnH()), "bext z6.h, z2.h,
-  // z5.h");
-  // COMPARE_PREFIX(bext(z6.VnS(), z2.VnS(), z5.VnS()), "bext z6.s, z2.s,
-  // z5.s");
-  // COMPARE_PREFIX(bgrp(z24.VnB(), z9.VnB(), z5.VnB()), "bgrp z24.b, z9.b,
-  // z5.b");
-  // COMPARE_PREFIX(bgrp(z24.VnD(), z9.VnD(), z5.VnD()), "bgrp z24.d, z9.d,
-  // z5.d");
-  // COMPARE_PREFIX(bgrp(z24.VnH(), z9.VnH(), z5.VnH()), "bgrp z24.h, z9.h,
-  // z5.h");
-  // COMPARE_PREFIX(bgrp(z24.VnS(), z9.VnS(), z5.VnS()), "bgrp z24.s, z9.s,
-  // z5.s");
   // COMPARE_PREFIX(bsl(z21.VnD(), z21.VnD(), z2.VnD(), int Zk.VnD()), "bsl
   // <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D");
   // COMPARE_PREFIX(bsl1n(z18.VnD(), z18.VnD(), z8.VnD(), int Zk.VnD()), "bsl1n

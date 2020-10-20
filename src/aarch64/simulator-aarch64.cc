@@ -2281,16 +2281,17 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRm());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister result;
-  USE(zn);
+  bool do_bext = false;
+
   switch (form_hash_) {
     case Hash("bdep_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      bdep(vform, zd, zn, zm);
       break;
     case Hash("bext_z_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
+      do_bext = true;
+      VIXL_FALLTHROUGH();
     case Hash("bgrp_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      bgrp(vform, zd, zn, zm, do_bext);
       break;
     case Hash("eorbt_z_zz"):
       rotate_elements_right(vform, result, zm, 1);
