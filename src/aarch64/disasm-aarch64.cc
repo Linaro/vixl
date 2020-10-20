@@ -51,7 +51,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"bsl1n_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
     {"bsl2n_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
     {"bsl_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
-    {"cadd_z_zz", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
+    {"cadd_z_zz", &Disassembler::DisassembleSVEComplexIntAddition},
     {"cdot_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb_const},
     {"cdot_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnH_ZmH_imm_const},
     {"cdot_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnB_ZmB_imm_const},
@@ -166,7 +166,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"splice_z_p_zz_con", &Disassembler::Disassemble_ZdT_Pg_Zn1T_Zn2T},
     {"sqabs_z_p_z", &Disassembler::Disassemble_ZdT_PgM_ZnT},
     {"sqadd_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"sqcadd_z_zz", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
+    {"sqcadd_z_zz", &Disassembler::DisassembleSVEComplexIntAddition},
     {"sqdmlalb_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb},
     {"sqdmlalb_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm},
     {"sqdmlalb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
@@ -10176,6 +10176,12 @@ void Disassembler::Disassemble_ZdnS_ZdnS_ZmS(const Instruction *instr) {
 void Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT(const Instruction *instr) {
   const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
   Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleSVEComplexIntAddition(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Zd.'t, 'Zn.'t, #";
+  const char *suffix = (instr->ExtractBit(10) == 0) ? "90" : "270";
+  Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
 void Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const(const Instruction *instr) {

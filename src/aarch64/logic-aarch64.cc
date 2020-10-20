@@ -2897,6 +2897,44 @@ LogicVRegister Simulator::fcmla(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::cadd(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               int rot,
+                               bool saturate) {
+  SimVRegister src1_r, src1_i;
+  SimVRegister src2_r, src2_i;
+  SimVRegister zero;
+  zero.Clear();
+  uzp1(vform, src1_r, src1, zero);
+  uzp2(vform, src1_i, src1, zero);
+  uzp1(vform, src2_r, src2, zero);
+  uzp2(vform, src2_i, src2, zero);
+
+  if (rot == 90) {
+    if (saturate) {
+      sub(vform, src1_r, src1_r, src2_i).SignedSaturate(vform);
+      add(vform, src1_i, src1_i, src2_r).SignedSaturate(vform);
+    } else {
+      sub(vform, src1_r, src1_r, src2_i);
+      add(vform, src1_i, src1_i, src2_r);
+    }
+  } else {
+    VIXL_ASSERT(rot == 270);
+    if (saturate) {
+      add(vform, src1_r, src1_r, src2_i).SignedSaturate(vform);
+      sub(vform, src1_i, src1_i, src2_r).SignedSaturate(vform);
+    } else {
+      add(vform, src1_r, src1_r, src2_i);
+      sub(vform, src1_i, src1_i, src2_r);
+    }
+  }
+
+  zip1(vform, dst, src1_r, src1_i);
+  return dst;
+}
+
 
 LogicVRegister Simulator::dup_element(VectorFormat vform,
                                       LogicVRegister dst,

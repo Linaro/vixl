@@ -5872,7 +5872,10 @@ class Assembler : public vixl::internal::AssemblerBase {
              int Zk);
 
   // Complex integer add with rotate.
-  void cadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+  void cadd(const ZRegister& zd,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int rot);
 
   // Complex integer dot product (indexed).
   void cdot(const ZRegister& zda, const ZRegister& zn);
@@ -6178,7 +6181,10 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Saturating complex integer add with rotate.
-  void sqcadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+  void sqcadd(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int rot);
 
   // Signed saturating doubling multiply-add long to accumulator (bottom,
   // indexed).

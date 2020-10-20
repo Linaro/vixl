@@ -1582,7 +1582,7 @@ void MacroAssembler::Stnt1w(const ZRegister& zt,
                               SVE_MUL_VL);
 }
 
-void MacroAssembler::SVESdotUdotIndexHelper(IntArithIndexFn fn,
+void MacroAssembler::SVESdotUdotIndexHelper(ZZZImmFn fn,
                                             const ZRegister& zd,
                                             const ZRegister& za,
                                             const ZRegister& zn,
@@ -2014,10 +2014,7 @@ void MacroAssembler::ShiftRightAccumulate(IntArithImmFn fn,
                                           const ZRegister& zn,
                                           int shift) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(za)) {
-    SingleEmissionCheckScope guard(this);
-    (this->*fn)(zd, zn, shift);
-  } else if (zd.Aliases(zn)) {
+  if (!zd.Aliases(za) && zd.Aliases(zn)) {
     UseScratchRegisterScope temps(this);
     ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zn);
     Mov(ztmp, zn);
@@ -2057,6 +2054,40 @@ void MacroAssembler::Usra(const ZRegister& zd,
                           const ZRegister& zn,
                           int shift) {
   ShiftRightAccumulate(&Assembler::usra, zd, za, zn, shift);
+}
+
+void MacroAssembler::ComplexAddition(ZZZImmFn fn,
+                                     const ZRegister& zd,
+                                     const ZRegister& zn,
+                                     const ZRegister& zm,
+                                     int rot) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if (!zd.Aliases(zn) && zd.Aliases(zm)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zm);
+    Mov(ztmp, zm);
+    {
+      MovprfxHelperScope guard(this, zd, zn);
+      (this->*fn)(zd, zd, ztmp, rot);
+    }
+  } else {
+    MovprfxHelperScope guard(this, zd, zn);
+    (this->*fn)(zd, zd, zm, rot);
+  }
+}
+
+void MacroAssembler::Cadd(const ZRegister& zd,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int rot) {
+  ComplexAddition(&Assembler::cadd, zd, zn, zm, rot);
+}
+
+void MacroAssembler::Sqcadd(const ZRegister& zd,
+                            const ZRegister& zn,
+                            const ZRegister& zm,
+                            int rot) {
+  ComplexAddition(&Assembler::sqcadd, zd, zn, zm, rot);
 }
 
 void MacroAssembler::Adclb(const ZRegister& zd,

@@ -6664,7 +6664,8 @@ void Assembler::bsl2n(const ZRegister& zd,
 
 void Assembler::cadd(const ZRegister& zd,
                      const ZRegister& zn,
-                     const ZRegister& zm) {
+                     const ZRegister& zm,
+                     int rot) {
   // CADD <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, <const>
   //  0100 0101 ..00 0000 1101 1... .... ....
   //  size<23:22> | op<16> | rot<10> | Zm<9:5> | Zdn<4:0>
@@ -6673,8 +6674,10 @@ void Assembler::cadd(const ZRegister& zd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
+  VIXL_ASSERT((rot == 90) || (rot == 270));
 
-  Emit(0x4500d800 | SVESize(zd) | Rd(zd) | Rn(zm));
+  Instr rotate_bit = (rot == 90) ? 0 : (1 << 10);
+  Emit(0x4500d800 | rotate_bit | SVESize(zd) | Rd(zd) | Rn(zm));
 }
 
 // This prototype maps to 2 instruction encodings:
@@ -7847,7 +7850,8 @@ void Assembler::sqadd(const ZRegister& zd,
 
 void Assembler::sqcadd(const ZRegister& zd,
                        const ZRegister& zn,
-                       const ZRegister& zm) {
+                       const ZRegister& zm,
+                       int rot) {
   // SQCADD <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, <const>
   //  0100 0101 ..00 0001 1101 1... .... ....
   //  size<23:22> | op<16> | rot<10> | Zm<9:5> | Zdn<4:0>
@@ -7856,8 +7860,10 @@ void Assembler::sqcadd(const ZRegister& zd,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
+  VIXL_ASSERT((rot == 90) || (rot == 270));
 
-  Emit(0x4501d800 | SVESize(zd) | Rd(zd) | Rn(zm));
+  Instr rotate_bit = (rot == 90) ? 0 : (1 << 10);
+  Emit(0x4501d800 | rotate_bit | SVESize(zd) | Rd(zd) | Rn(zm));
 }
 
 // This prototype maps to 2 instruction encodings:

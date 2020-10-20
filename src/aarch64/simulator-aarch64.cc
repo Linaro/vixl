@@ -3401,17 +3401,17 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
-  USE(zdn);
   SimVRegister& zm = ReadVRegister(instr->GetRn());
-  USE(zm);
+  int rot = (instr->ExtractBit(10) == 0) ? 90 : 270;
 
   switch (form_hash_) {
     case Hash("cadd_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      cadd(vform, zdn, zdn, zm, rot);
       break;
     case Hash("sqcadd_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      cadd(vform, zdn, zdn, zm, rot, /* saturate = */ true);
       break;
     case Hash("xar_z_zzi"):
       VIXL_UNIMPLEMENTED();

@@ -6442,11 +6442,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     bsl2n(zd, zn, zm, Zk);
   }
-  void Cadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cadd(zd, zn, zm);
-  }
+  void Cadd(const ZRegister& zd,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int rot);
   void Cdot(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6877,11 +6876,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     MovprfxHelperScope guard(this, zd, pg, zd);
     sqabs(zd, pg.Merging(), zn);
   }
-  void Sqcadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqcadd(zd, zn, zm);
-  }
+  void Sqcadd(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int rot);
   void Sqdmlalb(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -7971,10 +7969,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                            const ZRegister& zn,
                                            int imm);
 
-  typedef void (Assembler::*IntArithIndexFn)(const ZRegister& zd,
-                                             const ZRegister& zn,
-                                             const ZRegister& zm,
-                                             int index);
+  typedef void (Assembler::*ZZZImmFn)(const ZRegister& zd,
+                                      const ZRegister& zn,
+                                      const ZRegister& zm,
+                                      int imm);
 
   typedef void (MacroAssembler::*SVEArithPredicatedFn)(const ZRegister& zd,
                                                        const PRegisterM& pg,
@@ -8019,7 +8017,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                const ZRegister& zn,
                                const ZRegister& zm);
 
-  void SVESdotUdotIndexHelper(IntArithIndexFn fn,
+  void SVESdotUdotIndexHelper(ZZZImmFn fn,
                               const ZRegister& zd,
                               const ZRegister& za,
                               const ZRegister& zn,
@@ -8079,7 +8077,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                             const ZRegister& zd,
                             const ZRegister& za,
                             const ZRegister& zn,
-                            int shift);
+                            int imm);
+
+  void ComplexAddition(ZZZImmFn fn,
+                       const ZRegister& zd,
+                       const ZRegister& zn,
+                       const ZRegister& zm,
+                       int rot);
 
   // Tell whether any of the macro instruction can be used. When false the
   // MacroAssembler will assert if a method which can emit a variable number
