@@ -9970,8 +9970,13 @@ void Disassembler::Disassemble_ZdT_PgM_ZnT(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdT_PgZ_ZnT_ZmT(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Pgl/z, 'Zn.<T>, 'Zm.<T>";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Zd.'t, 'Pgl/z, 'Zn.'t, 'Zm.'t";
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  if ((vform == kFormatVnS) || (vform == kFormatVnD)) {
+    Format(instr, mnemonic_.c_str(), form);
+  } else {
+    Format(instr, "unimplemented", "(ZdT_PgZ_ZnT_ZmT)");
+  }
 }
 
 void Disassembler::Disassemble_ZdT_Pg_Zn1T_Zn2T(const Instruction *instr) {

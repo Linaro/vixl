@@ -3009,6 +3009,24 @@ LogicVRegister Simulator::bdep(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::histcnt(VectorFormat vform,
+                                  LogicVRegister dst,
+                                  const LogicPRegister& pg,
+                                  const LogicVRegister& src1,
+                                  const LogicVRegister& src2) {
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t count = 0;
+    uint64_t value = src1.Uint(vform, i);
+    for (int j = 0; j <= i; j++) {
+      if (pg.IsActive(vform, j) && (value == src2.Uint(vform, j))) {
+        count++;
+      }
+    }
+    dst.SetUint(vform, i, count);
+  }
+  return dst;
+}
+
 LogicVRegister Simulator::dup_element(VectorFormat vform,
                                       LogicVRegister dst,
                                       const LogicVRegister& src,

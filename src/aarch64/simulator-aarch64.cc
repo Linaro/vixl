@@ -2246,21 +2246,19 @@ void Simulator::Simulate_ZdT_PgM_ZnT(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result;
 
-  switch (form_hash_) {
-    case Hash("histcnt_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
+  VIXL_ASSERT(form_hash_ == Hash("histcnt_z_p_zz"));
+  if ((vform == kFormatVnS) || (vform == kFormatVnD)) {
+    histcnt(vform, result, pg, zn, zm);
+    mov_zeroing(vform, zd, pg, result);
+  } else {
+    VIXL_UNIMPLEMENTED();
   }
 }
 

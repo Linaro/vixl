@@ -7986,6 +7986,17 @@ TEST(sve2_xar) {
   CLEANUP();
 }
 
+TEST(sve2_histogram) {
+  SETUP();
+
+  COMPARE_MACRO(Histcnt(z24.VnS(), p6.Zeroing(), z3.VnS(), z10.VnS()),
+                "histcnt z24.s, p6/z, z3.s, z10.s");
+  COMPARE_MACRO(Histcnt(z24.VnD(), p6.Zeroing(), z3.VnD(), z10.VnD()),
+                "histcnt z24.d, p6/z, z3.d, z10.d");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8080,8 +8091,6 @@ TEST(sve2_all_instructions) {
   // z14.h");
   // COMPARE_PREFIX(fmlslt(z5.VnS(), z1.VnH(), z7.VnH()), "fmlslt z5.s, z1.h,
   // z7.h");
-  // COMPARE_PREFIX(histcnt(z24.Vn?(), p6.Zeroing(), z3.Vn?(), z10.Vn?()),
-  // "histcnt <Zd>.<T>, <Pg>/Z, <Zn>.<T>, <Zm>.<T>");
   // COMPARE_PREFIX(histseg(z22.VnB(), z14.VnB(), z8.VnB()), "histseg z22.b,
   // z14.b, z8.b");
   // COMPARE_PREFIX(ldnt1b(z24.VnS(), p4.Zeroing(), z18.VnS(), x13), "ldnt1b {

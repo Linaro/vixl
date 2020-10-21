@@ -7006,8 +7006,10 @@ void Assembler::histcnt(const ZRegister& zd,
   //  size<23:22> | Zm<20:16> | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
+  VIXL_ASSERT(zd.IsLaneSizeS() || zd.IsLaneSizeD());
 
-  Emit(0x4520c000 | Rd(zd) | PgLow8(pg) | Rn(zn) | Rm(zm));
+  Emit(0x4520c000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::histseg(const ZRegister& zd,
