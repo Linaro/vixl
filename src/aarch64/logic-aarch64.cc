@@ -3009,21 +3009,31 @@ LogicVRegister Simulator::bdep(VectorFormat vform,
   return dst;
 }
 
-LogicVRegister Simulator::histcnt(VectorFormat vform,
-                                  LogicVRegister dst,
-                                  const LogicPRegister& pg,
-                                  const LogicVRegister& src1,
-                                  const LogicVRegister& src2) {
+LogicVRegister Simulator::histogram(VectorFormat vform,
+                                    LogicVRegister dst,
+                                    const LogicPRegister& pg,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2,
+                                    bool do_segmented) {
+  int elements_per_segment = kQRegSize / LaneSizeInBitsFromFormat(vform);
+  uint64_t result[kZRegMaxSizeInBytes];
+
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     uint64_t count = 0;
     uint64_t value = src1.Uint(vform, i);
-    for (int j = 0; j <= i; j++) {
-      if (pg.IsActive(vform, j) && (value == src2.Uint(vform, j))) {
+
+    int segment = do_segmented ? (i / elements_per_segment) : 0;
+    int segment_offset = segment * elements_per_segment;
+    int hist_limit = do_segmented ? elements_per_segment : (i + 1);
+    for (int j = 0; j < hist_limit; j++) {
+      if (pg.IsActive(vform, j) &&
+          (value == src2.Uint(vform, j + segment_offset))) {
         count++;
       }
     }
-    dst.SetUint(vform, i, count);
+    result[i] = count;
   }
+  dst.SetUintArray(vform, result);
   return dst;
 }
 

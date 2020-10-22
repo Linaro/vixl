@@ -3344,11 +3344,12 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
-  LogicVRegister histcnt(VectorFormat vform,
-                         LogicVRegister dst,
-                         const LogicPRegister& pg,
-                         const LogicVRegister& src1,
-                         const LogicVRegister& src2);
+  LogicVRegister histogram(VectorFormat vform,
+                           LogicVRegister dst,
+                           const LogicPRegister& pg,
+                           const LogicVRegister& src1,
+                           const LogicVRegister& src2,
+                           bool do_segmented = false);
   LogicVRegister index(VectorFormat vform,
                        LogicVRegister dst,
                        uint64_t start,

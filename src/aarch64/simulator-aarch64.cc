@@ -1968,7 +1968,16 @@ void Simulator::Simulate_ZdB_ZnB_ZmB(const Instruction* instr) {
 
   switch (form_hash_) {
     case Hash("histseg_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      if (instr->GetSVEVectorFormat() == kFormatVnB) {
+        histogram(kFormatVnB,
+                  zd,
+                  GetPTrue(),
+                  zn,
+                  zm,
+                  /* do_segmented = */ true);
+      } else {
+        VIXL_UNIMPLEMENTED();
+      }
       break;
     case Hash("pmul_z_zz"):
       pmul(kFormatVnB, zd, zn, zm);
@@ -2255,7 +2264,7 @@ void Simulator::Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr) {
 
   VIXL_ASSERT(form_hash_ == Hash("histcnt_z_p_zz"));
   if ((vform == kFormatVnS) || (vform == kFormatVnD)) {
-    histcnt(vform, result, pg, zn, zm);
+    histogram(vform, result, pg, zn, zm);
     mov_zeroing(vform, zd, pg, result);
   } else {
     VIXL_UNIMPLEMENTED();

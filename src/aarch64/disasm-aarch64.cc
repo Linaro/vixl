@@ -9897,7 +9897,11 @@ void Disassembler::Disassemble_ZdB_Zn1B_Zn2B_imm(const Instruction *instr) {
 
 void Disassembler::Disassemble_ZdB_ZnB_ZmB(const Instruction *instr) {
   const char *form = "'Zd.b, 'Zn.b, 'Zm.b";
-  Format(instr, mnemonic_.c_str(), form);
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    Format(instr, mnemonic_.c_str(), form);
+  } else {
+    Format(instr, "unimplemented", "(ZdB_ZnB_ZmB)");
+  }
 }
 
 void Disassembler::Disassemble_ZdD_PgM_ZnS(const Instruction *instr) {
