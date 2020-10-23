@@ -6668,7 +6668,7 @@ void Assembler::addp(const ZRegister& zd,
 void Assembler::bcax(const ZRegister& zd,
                      const ZRegister& zn,
                      const ZRegister& zm,
-                     int Zk) {
+                     const ZRegister& zk) {
   // BCAX <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D
   //  0000 0100 011. .... 0011 10.. .... ....
   //  opc<23:22> | Zm<20:16> | o2<10> | Zk<9:5> | Zdn<4:0>
@@ -6676,8 +6676,10 @@ void Assembler::bcax(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm, zk));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(0x04603800 | Rd(zd) | Rm(zm) | ImmField<9, 5>(Zk));
+  Emit(0x04603800 | Rd(zd) | Rm(zm) | Rn(zk));
 }
 
 void Assembler::bdep(const ZRegister& zd,
@@ -6725,7 +6727,7 @@ void Assembler::bgrp(const ZRegister& zd,
 void Assembler::bsl(const ZRegister& zd,
                     const ZRegister& zn,
                     const ZRegister& zm,
-                    int Zk) {
+                    const ZRegister& zk) {
   // BSL <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D
   //  0000 0100 001. .... 0011 11.. .... ....
   //  opc<23:22> | Zm<20:16> | o2<10> | Zk<9:5> | Zdn<4:0>
@@ -6733,14 +6735,16 @@ void Assembler::bsl(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm, zk));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(0x04203c00 | Rd(zd) | Rm(zm) | ImmField<9, 5>(Zk));
+  Emit(0x04203c00 | Rd(zd) | Rm(zm) | Rn(zk));
 }
 
 void Assembler::bsl1n(const ZRegister& zd,
                       const ZRegister& zn,
                       const ZRegister& zm,
-                      int Zk) {
+                      const ZRegister& zk) {
   // BSL1N <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D
   //  0000 0100 011. .... 0011 11.. .... ....
   //  opc<23:22> | Zm<20:16> | o2<10> | Zk<9:5> | Zdn<4:0>
@@ -6748,14 +6752,16 @@ void Assembler::bsl1n(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm, zk));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(0x04603c00 | Rd(zd) | Rm(zm) | ImmField<9, 5>(Zk));
+  Emit(0x04603c00 | Rd(zd) | Rm(zm) | Rn(zk));
 }
 
 void Assembler::bsl2n(const ZRegister& zd,
                       const ZRegister& zn,
                       const ZRegister& zm,
-                      int Zk) {
+                      const ZRegister& zk) {
   // BSL2N <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D
   //  0000 0100 101. .... 0011 11.. .... ....
   //  opc<23:22> | Zm<20:16> | o2<10> | Zk<9:5> | Zdn<4:0>
@@ -6763,8 +6769,10 @@ void Assembler::bsl2n(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm, zk));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(0x04a03c00 | Rd(zd) | Rm(zm) | ImmField<9, 5>(Zk));
+  Emit(0x04a03c00 | Rd(zd) | Rm(zm) | Rn(zk));
 }
 
 void Assembler::cadd(const ZRegister& zd,
@@ -6846,7 +6854,7 @@ void Assembler::cmla(const ZRegister& zda,
 void Assembler::eor3(const ZRegister& zd,
                      const ZRegister& zn,
                      const ZRegister& zm,
-                     int Zk) {
+                     const ZRegister& zk) {
   // EOR3 <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D
   //  0000 0100 001. .... 0011 10.. .... ....
   //  opc<23:22> | Zm<20:16> | o2<10> | Zk<9:5> | Zdn<4:0>
@@ -6854,8 +6862,10 @@ void Assembler::eor3(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm, zk));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(0x04203800 | Rd(zd) | Rm(zm) | ImmField<9, 5>(Zk));
+  Emit(0x04203800 | Rd(zd) | Rm(zm) | Rn(zk));
 }
 
 void Assembler::eorbt(const ZRegister& zd,
@@ -7211,7 +7221,7 @@ void Assembler::mul(const ZRegister& zd,
 void Assembler::nbsl(const ZRegister& zd,
                      const ZRegister& zn,
                      const ZRegister& zm,
-                     int Zk) {
+                     const ZRegister& zk) {
   // NBSL <Zdn>.D, <Zdn>.D, <Zm>.D, <Zk>.D
   //  0000 0100 111. .... 0011 11.. .... ....
   //  opc<23:22> | Zm<20:16> | o2<10> | Zk<9:5> | Zdn<4:0>
@@ -7219,8 +7229,10 @@ void Assembler::nbsl(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm, zk));
+  VIXL_ASSERT(zd.IsLaneSizeD());
 
-  Emit(0x04e03c00 | Rd(zd) | Rm(zm) | ImmField<9, 5>(Zk));
+  Emit(0x04e03c00 | Rd(zd) | Rm(zm) | Rn(zk));
 }
 
 void Assembler::nmatch(const PRegisterWithLaneSize& pd,

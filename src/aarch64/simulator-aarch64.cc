@@ -74,13 +74,13 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"addhnb_z_zz", &Simulator::SimulateSVEAddSubHigh},
     {"addhnt_z_zz", &Simulator::SimulateSVEAddSubHigh},
     {"addp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
-    {"bcax_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"bcax_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"bdep_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"bext_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"bgrp_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
-    {"bsl1n_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
-    {"bsl2n_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
-    {"bsl_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"bsl1n_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
+    {"bsl2n_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
+    {"bsl_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"cadd_z_zz", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
     {"cdot_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb_const},
     {"cdot_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnH_ZmH_imm_const},
@@ -88,7 +88,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"cmla_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
     {"cmla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
     {"cmla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
-    {"eor3_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"eor3_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"eorbt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"eortb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"ext_z_zi_con", &Simulator::Simulate_ZdB_Zn1B_Zn2B_imm},
@@ -137,7 +137,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"mul_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
     {"mul_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
     {"mul_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
-    {"nbsl_z_zzz", &Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD},
+    {"nbsl_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"nmatch_p_p_zz", &Simulator::Simulate_PdT_PgZ_ZnT_ZmT},
     {"pmul_z_zz", &Simulator::Simulate_ZdB_ZnB_ZmB},
     {"pmullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
@@ -3188,30 +3188,36 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr) {
+void Simulator::SimulateSVEBitwiseTernary(const Instruction* instr) {
+  VectorFormat vform = kFormatVnD;
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
-  USE(zdn);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
+  SimVRegister& zk = ReadVRegister(instr->GetRn());
+  SimVRegister temp;
 
   switch (form_hash_) {
     case Hash("bcax_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      bic(vform, temp, zm, zk);
+      eor(vform, zdn, temp, zdn);
       break;
     case Hash("bsl1n_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      not_(vform, temp, zdn);
+      bsl(vform, zdn, zk, temp, zm);
       break;
     case Hash("bsl2n_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      not_(vform, temp, zm);
+      bsl(vform, zdn, zk, zdn, temp);
       break;
     case Hash("bsl_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      bsl(vform, zdn, zk, zdn, zm);
       break;
     case Hash("eor3_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      eor(vform, temp, zdn, zm);
+      eor(vform, zdn, temp, zk);
       break;
     case Hash("nbsl_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      bsl(vform, zdn, zk, zdn, zm);
+      not_(vform, zdn, zdn);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -3437,7 +3443,7 @@ void Simulator::SimulateSVEExclusiveOrRotate(const Instruction* instr) {
   VIXL_ASSERT(lane_size <= kDRegSizeInBytesLog2);
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
   int shift_dist = shift_and_lane_size.first;
-  SVEBitwiseLogicalUnpredicatedHelper(EOR, kFormatVnD, zdn, zdn, zm);
+  eor(vform, zdn, zdn, zm);
   ror(vform, zdn, zdn, shift_dist);
 }
 
@@ -7080,7 +7086,7 @@ void Simulator::VisitNEON3Same(const Instruction* instr) {
         bit(vf, rd, rn, rm);
         break;
       case NEON_BSL:
-        bsl(vf, rd, rn, rm);
+        bsl(vf, rd, rd, rn, rm);
         break;
       default:
         VIXL_UNIMPLEMENTED();

@@ -1340,12 +1340,13 @@ LogicVRegister Simulator::bit(VectorFormat vform,
 
 LogicVRegister Simulator::bsl(VectorFormat vform,
                               LogicVRegister dst,
+                              const LogicVRegister& src_mask,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     uint64_t operand1 = src2.Uint(vform, i);
-    uint64_t operand2 = dst.Uint(vform, i);
+    uint64_t operand2 = src_mask.Uint(vform, i);
     uint64_t operand3 = src1.Uint(vform, i);
     uint64_t result = operand1 ^ ((operand1 ^ operand3) & operand2);
     dst.SetUint(vform, i, result);

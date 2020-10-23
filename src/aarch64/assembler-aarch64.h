@@ -5842,7 +5842,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void bcax(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
-            int Zk);
+            const ZRegister& zk);
 
   // Scatter lower bits into positions selected by bitmask.
   void bdep(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -5857,19 +5857,19 @@ class Assembler : public vixl::internal::AssemblerBase {
   void bsl(const ZRegister& zd,
            const ZRegister& zn,
            const ZRegister& zm,
-           int Zk);
+           const ZRegister& zk);
 
   // Bitwise select with first input inverted.
   void bsl1n(const ZRegister& zd,
              const ZRegister& zn,
              const ZRegister& zm,
-             int Zk);
+             const ZRegister& zk);
 
   // Bitwise select with second input inverted.
   void bsl2n(const ZRegister& zd,
              const ZRegister& zn,
              const ZRegister& zm,
-             int Zk);
+             const ZRegister& zk);
 
   // Complex integer add with rotate.
   void cadd(const ZRegister& zd,
@@ -5896,7 +5896,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void eor3(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
-            int Zk);
+            const ZRegister& zk);
 
   // Interleaving exclusive OR (bottom, top).
   void eorbt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -6014,7 +6014,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   void nbsl(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
-            int Zk);
+            const ZRegister& zk);
 
   // Detect no matching elements, setting the condition flags.
   void nmatch(const PRegisterWithLaneSize& pd,

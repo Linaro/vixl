@@ -171,7 +171,6 @@ class Disassembler : public DecoderVisitor {
   void Disassemble_ZdaT_ZnTb_ZmTb_const(const Instruction* instr);
   void Disassemble_ZdnB_ZdnB(const Instruction* instr);
   void Disassemble_ZdnB_ZdnB_ZmB(const Instruction* instr);
-  void Disassemble_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr);
   void Disassemble_ZdnS_ZdnS_ZmS(const Instruction* instr);
   void Disassemble_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr);
   void Disassemble_ZdnT_PgM_ZdnT_const(const Instruction* instr);
@@ -186,6 +185,7 @@ class Disassembler : public DecoderVisitor {
   void DisassembleSVEAddSubCarry(const Instruction* instr);
   void DisassembleSVEAddSubHigh(const Instruction* instr);
   void DisassembleSVEComplexIntAddition(const Instruction* instr);
+  void DisassembleSVEBitwiseTernary(const Instruction* instr);
 
   void Format(const Instruction* instr,
               const char* mnemonic,

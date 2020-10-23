@@ -44,13 +44,13 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"aese_z_zz", &Disassembler::Disassemble_ZdnB_ZdnB_ZmB},
     {"aesimc_z_z", &Disassembler::Disassemble_ZdnB_ZdnB},
     {"aesmc_z_z", &Disassembler::Disassemble_ZdnB_ZdnB},
-    {"bcax_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"bcax_z_zzz", &Disassembler::DisassembleSVEBitwiseTernary},
     {"bdep_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
     {"bext_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
     {"bgrp_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
-    {"bsl1n_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
-    {"bsl2n_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
-    {"bsl_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"bsl1n_z_zzz", &Disassembler::DisassembleSVEBitwiseTernary},
+    {"bsl2n_z_zzz", &Disassembler::DisassembleSVEBitwiseTernary},
+    {"bsl_z_zzz", &Disassembler::DisassembleSVEBitwiseTernary},
     {"cadd_z_zz", &Disassembler::DisassembleSVEComplexIntAddition},
     {"cdot_z_zzz", &Disassembler::Disassemble_ZdaT_ZnTb_ZmTb_const},
     {"cdot_z_zzzi_d", &Disassembler::Disassemble_ZdaD_ZnH_ZmH_imm_const},
@@ -58,7 +58,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"cmla_z_zzz", &Disassembler::Disassemble_ZdaT_ZnT_ZmT_const},
     {"cmla_z_zzzi_h", &Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm_const},
     {"cmla_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnS_ZmS_imm_const},
-    {"eor3_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"eor3_z_zzz", &Disassembler::DisassembleSVEBitwiseTernary},
     {"eorbt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
     {"eortb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
     {"ext_z_zi_con", &Disassembler::Disassemble_ZdB_Zn1B_Zn2B_imm},
@@ -109,7 +109,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"mul_z_zzi_d", &Disassembler::Disassemble_ZdD_ZnD_ZmD_imm},
     {"mul_z_zzi_h", &Disassembler::Disassemble_ZdH_ZnH_ZmH_imm},
     {"mul_z_zzi_s", &Disassembler::Disassemble_ZdS_ZnS_ZmS_imm},
-    {"nbsl_z_zzz", &Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD},
+    {"nbsl_z_zzz", &Disassembler::DisassembleSVEBitwiseTernary},
     {"nmatch_p_p_zz", &Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT},
     {"pmul_z_zz", &Disassembler::Disassemble_ZdB_ZnB_ZmB},
     {"pmullb_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
@@ -10179,8 +10179,8 @@ void Disassembler::Disassemble_ZdnB_ZdnB_ZmB(const Instruction *instr) {
   Format(instr, mnemonic_.c_str(), form);
 }
 
-void Disassembler::Disassemble_ZdnD_ZdnD_ZmD_ZkD(const Instruction *instr) {
-  const char *form = "'Zd.d, 'Zd.d, 'Zm.d, #'u0905";
+void Disassembler::DisassembleSVEBitwiseTernary(const Instruction *instr) {
+  const char *form = "'Zd.d, 'Zd.d, 'Zm.d, 'Zn.d";
   Format(instr, mnemonic_.c_str(), form);
 }
 

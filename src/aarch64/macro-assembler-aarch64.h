@@ -6398,11 +6398,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Bcax(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
-            int Zk) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    bcax(zd, zn, zm, Zk);
-  }
+            const ZRegister& zk);
   void Bdep(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6421,27 +6417,15 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Bsl(const ZRegister& zd,
            const ZRegister& zn,
            const ZRegister& zm,
-           int Zk) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    bsl(zd, zn, zm, Zk);
-  }
+           const ZRegister& zk);
   void Bsl1n(const ZRegister& zd,
              const ZRegister& zn,
              const ZRegister& zm,
-             int Zk) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    bsl1n(zd, zn, zm, Zk);
-  }
+             const ZRegister& zk);
   void Bsl2n(const ZRegister& zd,
              const ZRegister& zn,
              const ZRegister& zm,
-             int Zk) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    bsl2n(zd, zn, zm, Zk);
-  }
+             const ZRegister& zk);
   void Cadd(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
@@ -6469,11 +6453,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Eor3(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
-            int Zk) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    eor3(zd, zn, zm, Zk);
-  }
+            const ZRegister& zk);
   void Eorbt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6639,11 +6619,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Nbsl(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
-            int Zk) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    nbsl(zd, zn, zm, Zk);
-  }
+            const ZRegister& zk);
   void Nmatch(const PRegisterWithLaneSize& pd,
               const PRegisterZ& pg,
               const ZRegister& zn,
@@ -7937,9 +7913,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                                int imm,
                                                int shift);
 
-  typedef void (Assembler::*IntArithFn)(const ZRegister& zd,
-                                        const ZRegister& zn,
-                                        const ZRegister& zm);
+  typedef void (Assembler::*Int3ArithFn)(const ZRegister& zd,
+                                         const ZRegister& zn,
+                                         const ZRegister& zm);
+
+  typedef void (Assembler::*Int4ArithFn)(const ZRegister& zd,
+                                         const ZRegister& za,
+                                         const ZRegister& zn,
+                                         const ZRegister& zm);
 
   typedef void (Assembler::*IntArithImmFn)(const ZRegister& zd,
                                            const ZRegister& zn,
@@ -7981,17 +7962,23 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                        const ZRegister& zn,
                        IntegerOperand imm);
 
-  void AbsoluteDifferenceAccumulate(IntArithFn fn,
+  void AbsoluteDifferenceAccumulate(Int3ArithFn fn,
                                     const ZRegister& zd,
                                     const ZRegister& za,
                                     const ZRegister& zn,
                                     const ZRegister& zm);
 
-  void FourRegAccumulateHelper(IntArithFn fn,
-                               const ZRegister& zd,
-                               const ZRegister& za,
-                               const ZRegister& zn,
-                               const ZRegister& zm);
+  void FourRegDestructiveHelper(Int3ArithFn fn,
+                                const ZRegister& zd,
+                                const ZRegister& za,
+                                const ZRegister& zn,
+                                const ZRegister& zm);
+
+  void FourRegDestructiveHelper(Int4ArithFn fn,
+                                const ZRegister& zd,
+                                const ZRegister& za,
+                                const ZRegister& zn,
+                                const ZRegister& zm);
 
   void SVESdotUdotIndexHelper(ZZZImmFn fn,
                               const ZRegister& zd,

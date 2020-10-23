@@ -1203,7 +1203,6 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdaT_ZnT_const(const Instruction* instr);
   void Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr);
   void Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr);
-  void Simulate_ZdnD_ZdnD_ZmD_ZkD(const Instruction* instr);
   void Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr);
   void Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr);
   void Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr);
@@ -1223,6 +1222,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEIntMulLongVec(const Instruction* instr);
   void SimulateSVESaturatingIntMulLongIdx(const Instruction* instr);
   void SimulateSVEExclusiveOrRotate(const Instruction* instr);
+  void SimulateSVEBitwiseTernary(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3229,6 +3229,7 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& src2);
   LogicVRegister bsl(VectorFormat vform,
                      LogicVRegister dst,
+                     const LogicVRegister& src_mask,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2);
   LogicVRegister cls(VectorFormat vform,

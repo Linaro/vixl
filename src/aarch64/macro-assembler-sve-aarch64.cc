@@ -1652,20 +1652,15 @@ void MacroAssembler::SVESdotUdotIndexHelper(ZZZImmFn fn,
   }
 }
 
-void MacroAssembler::FourRegAccumulateHelper(IntArithFn fn,
-                                             const ZRegister& zd,
-                                             const ZRegister& za,
-                                             const ZRegister& zn,
-                                             const ZRegister& zm) {
-  if (zd.Aliases(za)) {
-    // zda = zda + (zn . zm)
-    SingleEmissionCheckScope guard(this);
-    (this->*fn)(zd, zn, zm);
-
-  } else if (zd.Aliases(zn) || zd.Aliases(zm)) {
-    // zdn = za + (zdn . zm)
-    // zdm = za + (zn . zdm)
-    // zdnm = za + (zdnm . zdnm)
+void MacroAssembler::FourRegDestructiveHelper(Int3ArithFn fn,
+                                              const ZRegister& zd,
+                                              const ZRegister& za,
+                                              const ZRegister& zn,
+                                              const ZRegister& zm) {
+  if (!zd.Aliases(za) && (zd.Aliases(zn) || zd.Aliases(zm))) {
+    // zd = za . zd . zm
+    // zd = za . zn . zd
+    // zd = za . zd . zd
     UseScratchRegisterScope temps(this);
     ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
     {
@@ -1675,13 +1670,35 @@ void MacroAssembler::FourRegAccumulateHelper(IntArithFn fn,
 
     Mov(zd, scratch);
   } else {
-    // zd = za + (zn . zm)
     MovprfxHelperScope guard(this, zd, za);
     (this->*fn)(zd, zn, zm);
   }
 }
 
-void MacroAssembler::AbsoluteDifferenceAccumulate(IntArithFn fn,
+void MacroAssembler::FourRegDestructiveHelper(Int4ArithFn fn,
+                                              const ZRegister& zd,
+                                              const ZRegister& za,
+                                              const ZRegister& zn,
+                                              const ZRegister& zm) {
+  if (!zd.Aliases(za) && (zd.Aliases(zn) || zd.Aliases(zm))) {
+    // zd = za . zd . zm
+    // zd = za . zn . zd
+    // zd = za . zd . zd
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, za);
+      (this->*fn)(scratch, scratch, zn, zm);
+    }
+
+    Mov(zd, scratch);
+  } else {
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zd, zn, zm);
+  }
+}
+
+void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
                                                   const ZRegister& zd,
                                                   const ZRegister& za,
                                                   const ZRegister& zn,
@@ -1734,26 +1751,10 @@ VIXL_SVE_ABSDIFF_LIST(VIXL_DEFINE_MASM_FUNC)
 void MacroAssembler::Sdot(const ZRegister& zd,
                           const ZRegister& za,
                           const ZRegister& zn,
-                          const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  FourRegAccumulateHelper(&Assembler::sdot, zd, za, zn, zm);
-}
-
-void MacroAssembler::Sdot(const ZRegister& zd,
-                          const ZRegister& za,
-                          const ZRegister& zn,
                           const ZRegister& zm,
                           int index) {
   VIXL_ASSERT(allow_macro_instructions_);
   SVESdotUdotIndexHelper(&Assembler::sdot, zd, za, zn, zm, index);
-}
-
-void MacroAssembler::Udot(const ZRegister& zd,
-                          const ZRegister& za,
-                          const ZRegister& zn,
-                          const ZRegister& zm) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  FourRegAccumulateHelper(&Assembler::udot, zd, za, zn, zm);
 }
 
 void MacroAssembler::Udot(const ZRegister& zd,
@@ -2148,33 +2149,30 @@ void MacroAssembler::Sqcadd(const ZRegister& zd,
   ComplexAddition(&Assembler::sqcadd, zd, zn, zm, rot);
 }
 
-void MacroAssembler::Adclb(const ZRegister& zd,
-                           const ZRegister& za,
-                           const ZRegister& zn,
-                           const ZRegister& zm) {
-  FourRegAccumulateHelper(&Assembler::adclb, zd, za, zn, zm);
-}
+#define VIXL_SVE_FOUR_REG_DES_LIST(V) \
+  V(Adclb, adclb)                     \
+  V(Adclt, adclt)                     \
+  V(Sbclb, sbclb)                     \
+  V(Sbclt, sbclt)                     \
+  V(Sdot, sdot)                       \
+  V(Udot, udot)                       \
+  V(Bcax, bcax)                       \
+  V(Bsl, bsl)                         \
+  V(Bsl1n, bsl1n)                     \
+  V(Bsl2n, bsl2n)                     \
+  V(Eor3, eor3)                       \
+  V(Nbsl, nbsl)
 
-void MacroAssembler::Adclt(const ZRegister& zd,
-                           const ZRegister& za,
-                           const ZRegister& zn,
-                           const ZRegister& zm) {
-  FourRegAccumulateHelper(&Assembler::adclt, zd, za, zn, zm);
-}
-
-void MacroAssembler::Sbclb(const ZRegister& zd,
-                           const ZRegister& za,
-                           const ZRegister& zn,
-                           const ZRegister& zm) {
-  FourRegAccumulateHelper(&Assembler::sbclb, zd, za, zn, zm);
-}
-
-void MacroAssembler::Sbclt(const ZRegister& zd,
-                           const ZRegister& za,
-                           const ZRegister& zn,
-                           const ZRegister& zm) {
-  FourRegAccumulateHelper(&Assembler::sbclt, zd, za, zn, zm);
-}
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                     \
+  void MacroAssembler::MASMFN(const ZRegister& zd,               \
+                              const ZRegister& za,               \
+                              const ZRegister& zn,               \
+                              const ZRegister& zm) {             \
+    VIXL_ASSERT(allow_macro_instructions_);                      \
+    FourRegDestructiveHelper(&Assembler::ASMFN, zd, za, zn, zm); \
+  }
+VIXL_SVE_FOUR_REG_DES_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
 
 }  // namespace aarch64
 }  // namespace vixl
