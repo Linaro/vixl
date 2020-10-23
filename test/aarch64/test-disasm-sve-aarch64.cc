@@ -8147,6 +8147,33 @@ TEST(sve2_bitwise_ternary) {
   CLEANUP();
 }
 
+TEST(sve2_int_compare_scalars) {
+  SETUP();
+
+  COMPARE_MACRO(Whilege(p0.VnB(), w20, w29), "whilege p0.b, w20, w29");
+  COMPARE_MACRO(Whilege(p0.VnB(), x20, x29), "whilege p0.b, x20, x29");
+  COMPARE_MACRO(Whilege(p0.VnD(), w20, w29), "whilege p0.d, w20, w29");
+  COMPARE_MACRO(Whilege(p0.VnD(), x20, x29), "whilege p0.d, x20, x29");
+  COMPARE_MACRO(Whilege(p0.VnH(), w20, w29), "whilege p0.h, w20, w29");
+  COMPARE_MACRO(Whilege(p0.VnH(), x20, x29), "whilege p0.h, x20, x29");
+  COMPARE_MACRO(Whilege(p0.VnS(), w20, w29), "whilege p0.s, w20, w29");
+  COMPARE_MACRO(Whilege(p0.VnS(), x20, x29), "whilege p0.s, x20, x29");
+  COMPARE_MACRO(Whilegt(p11.VnB(), w24, w3), "whilegt p11.b, w24, w3");
+  COMPARE_MACRO(Whilegt(p11.VnD(), w24, w3), "whilegt p11.d, w24, w3");
+  COMPARE_MACRO(Whilegt(p11.VnH(), x24, x3), "whilegt p11.h, x24, x3");
+  COMPARE_MACRO(Whilegt(p11.VnS(), x24, x3), "whilegt p11.s, x24, x3");
+  COMPARE_MACRO(Whilehi(p2.VnB(), x20, x8), "whilehi p2.b, x20, x8");
+  COMPARE_MACRO(Whilehi(p2.VnD(), x20, x8), "whilehi p2.d, x20, x8");
+  COMPARE_MACRO(Whilehi(p2.VnH(), w20, w8), "whilehi p2.h, w20, w8");
+  COMPARE_MACRO(Whilehi(p2.VnS(), w20, w8), "whilehi p2.s, w20, w8");
+  COMPARE_MACRO(Whilehs(p4.VnB(), w22, w9), "whilehs p4.b, w22, w9");
+  COMPARE_MACRO(Whilehs(p4.VnD(), x22, x9), "whilehs p4.d, x22, x9");
+  COMPARE_MACRO(Whilehs(p4.VnH(), w22, w9), "whilehs p4.h, w22, w9");
+  COMPARE_MACRO(Whilehs(p4.VnS(), x22, x9), "whilehs p4.s, x22, x9");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8443,22 +8470,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(umullt(z24.VnD(), z6, z6), "umullt z24.d, z6, z6");
   // COMPARE_PREFIX(umullt(z24.VnH(), z6, z6), "umullt z24.h, z6, z6");
   // COMPARE_PREFIX(umullt(z24.VnS(), z6, z6), "umullt z24.s, z6, z6");
-  // COMPARE_PREFIX(whilege(p0.VnB(), w20, w29), "whilege p0.b, w20, w29");
-  // COMPARE_PREFIX(whilege(p0.VnD(), w20, w29), "whilege p0.b, w20, w29");
-  // COMPARE_PREFIX(whilege(p0.VnH(), x20, x29), "whilege p0.b, w20, w29");
-  // COMPARE_PREFIX(whilege(p0.VnS(), x20, x29), "whilege p0.b, w20, w29");
-  // COMPARE_PREFIX(whilegt(p11.VnB(), w24, w3), "whilegt p11.b, w24, w3");
-  // COMPARE_PREFIX(whilegt(p11.VnD(), w24, w3), "whilegt p11.b, w24, w3");
-  // COMPARE_PREFIX(whilegt(p11.VnH(), x24, x3), "whilegt p11.b, w24, w3");
-  // COMPARE_PREFIX(whilegt(p11.VnS(), x24, x3), "whilegt p11.b, w24, w3");
-  // COMPARE_PREFIX(whilehi(p2.VnB(), w20, w8), "whilehi p2.b, w20, w8");
-  // COMPARE_PREFIX(whilehi(p2.VnD(), w20, w8), "whilehi p2.b, w20, w8");
-  // COMPARE_PREFIX(whilehi(p2.VnH(), x20, x8), "whilehi p2.b, w20, w8");
-  // COMPARE_PREFIX(whilehi(p2.VnS(), x20, x8), "whilehi p2.b, w20, w8");
-  // COMPARE_PREFIX(whilehs(p4.VnB(), w22, w9), "whilehs p4.b, w22, w9");
-  // COMPARE_PREFIX(whilehs(p4.VnD(), w22, w9), "whilehs p4.b, w22, w9");
-  // COMPARE_PREFIX(whilehs(p4.VnH(), x22, x9), "whilehs p4.b, w22, w9");
-  // COMPARE_PREFIX(whilehs(p4.VnS(), x22, x9), "whilehs p4.b, w22, w9");
   // COMPARE_PREFIX(whilerw(p7.VnB(), x25, x25), "whilerw p7.b, w25, w25");
   // COMPARE_PREFIX(whilerw(p7.VnD(), x25, x25), "whilerw p7.b, w25, w25");
   // COMPARE_PREFIX(whilerw(p7.VnH(), x25, x25), "whilerw p7.b, w25, w25");

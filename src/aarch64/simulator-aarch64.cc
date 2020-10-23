@@ -342,10 +342,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"usublt_z_zz", &Simulator::SimulateSVEInterleavedArithLong},
     {"usubwb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
     {"usubwt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmTb},
-    {"whilege_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
-    {"whilegt_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
-    {"whilehi_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
-    {"whilehs_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
+    {"whilege_p_p_rr", &Simulator::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilegt_p_p_rr", &Simulator::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilehi_p_p_rr", &Simulator::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilehs_p_p_rr", &Simulator::VisitSVEIntCompareScalarCountAndLimit},
     {"whilerw_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"whilewr_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"xar_z_zzi", &Simulator::SimulateSVEExclusiveOrRotate},
@@ -1906,28 +1906,6 @@ void Simulator::Simulate_PdT_PgZ_ZnT_ZmT(const Instruction* instr) {
   }
   mov_zeroing(pd, pg, pd);
   PredTest(vform, pg, pd);
-}
-
-void Simulator::Simulate_PdT_Rn_Rm(const Instruction* instr) {
-  SimPRegister& pd = ReadPRegister(instr->GetPd());
-  USE(pd);
-
-  switch (form_hash_) {
-    case Hash("whilege_p_p_rr"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("whilegt_p_p_rr"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("whilehi_p_p_rr"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("whilehs_p_p_rr"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
 }
 
 void Simulator::Simulate_PdT_Xn_Xm(const Instruction* instr) {
@@ -11014,25 +10992,51 @@ void Simulator::VisitSVEIntCompareScalarCountAndLimit(
   unsigned rm_code = instr->GetRm();
   SimPRegister& pd = ReadPRegister(instr->GetPd());
   VectorFormat vform = instr->GetSVEVectorFormat();
-  bool is_64_bit = instr->ExtractBit(12) == 1;
-  int64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
-  int64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
 
+  bool is_64_bit = instr->ExtractBit(12) == 1;
+  int rsize = is_64_bit ? kXRegSize : kWRegSize;
+  uint64_t mask = is_64_bit ? kXRegMask : kWRegMask;
+
+  uint64_t usrc1 = ReadXRegister(rn_code);
+  int64_t ssrc2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+  uint64_t usrc2 = ssrc2 & mask;
+
+  bool reverse = (form_hash_ == Hash("whilege_p_p_rr")) ||
+                 (form_hash_ == Hash("whilegt_p_p_rr")) ||
+                 (form_hash_ == Hash("whilehi_p_p_rr")) ||
+                 (form_hash_ == Hash("whilehs_p_p_rr"));
+
+  int lane_count = LaneCountFromFormat(vform);
   bool last = true;
-  for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+  for (int i = 0; i < lane_count; i++) {
+    usrc1 &= mask;
+    int64_t ssrc1 = ExtractSignedBitfield64(rsize - 1, 0, usrc1);
+
     bool cond = false;
-    switch (instr->Mask(SVEIntCompareScalarCountAndLimitMask)) {
-      case WHILELE_p_p_rr:
-        cond = src1 <= src2;
+    switch (form_hash_) {
+      case Hash("whilele_p_p_rr"):
+        cond = ssrc1 <= ssrc2;
         break;
-      case WHILELO_p_p_rr:
-        cond = static_cast<uint64_t>(src1) < static_cast<uint64_t>(src2);
+      case Hash("whilelo_p_p_rr"):
+        cond = usrc1 < usrc2;
         break;
-      case WHILELS_p_p_rr:
-        cond = static_cast<uint64_t>(src1) <= static_cast<uint64_t>(src2);
+      case Hash("whilels_p_p_rr"):
+        cond = usrc1 <= usrc2;
         break;
-      case WHILELT_p_p_rr:
-        cond = src1 < src2;
+      case Hash("whilelt_p_p_rr"):
+        cond = ssrc1 < ssrc2;
+        break;
+      case Hash("whilege_p_p_rr"):
+        cond = ssrc1 >= ssrc2;
+        break;
+      case Hash("whilegt_p_p_rr"):
+        cond = ssrc1 > ssrc2;
+        break;
+      case Hash("whilehi_p_p_rr"):
+        cond = usrc1 > usrc2;
+        break;
+      case Hash("whilehs_p_p_rr"):
+        cond = usrc1 >= usrc2;
         break;
       default:
         VIXL_UNIMPLEMENTED();
@@ -11040,8 +11044,9 @@ void Simulator::VisitSVEIntCompareScalarCountAndLimit(
     }
     last = last && cond;
     LogicPRegister dst(pd);
+    int lane = reverse ? ((lane_count - 1) - i) : i;
     dst.SetActive(vform, lane, last);
-    src1 += 1;
+    usrc1 += reverse ? -1 : 1;
   }
 
   PredTest(vform, GetPTrue(), pd);

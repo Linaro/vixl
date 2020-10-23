@@ -18990,5 +18990,81 @@ TEST_SVE(sve2_stnt1) {
   }
 }
 
+TEST_SVE(sve2_while_simple) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+
+  START();
+  __ Mov(x0, 1);
+  __ Mov(x1, 0);
+  __ Mov(x2, 3);
+
+  __ Whilehi(p0.VnB(), x0, x1);
+  __ Whilehs(p1.VnB(), x0, x1);
+  __ Whilehi(p2.VnB(), x2, x1);
+  __ Whilehs(p3.VnB(), x2, x1);
+  __ Whilehi(p4.VnB(), x2, x0);
+  __ Whilehs(p5.VnB(), x2, x0);
+
+  __ Whilegt(p6.VnB(), x0, x1);
+  __ Whilege(p7.VnB(), x0, x1);
+  __ Whilegt(p8.VnB(), x2, x1);
+  __ Whilege(p9.VnB(), x2, x1);
+  __ Whilegt(p10.VnB(), x2, x0);
+  __ Whilege(p11.VnB(), x2, x0);
+
+  __ Mov(x4, 0x80000000);
+  __ Mov(x5, 0x80000001);
+  __ Whilege(p12.VnB(), w5, w4);
+  __ Whilegt(p13.VnB(), w5, w4);
+
+  __ Mov(x6, 0x8000000000000000);
+  __ Mov(x7, 0x8000000000000001);
+  __ Whilege(p14.VnB(), x7, x6);
+  __ Whilegt(p15.VnB(), x7, x6);
+
+  for (int i = 0; i < 16; i++) {
+    __ Rev(PRegister(i).VnB(), PRegister(i).VnB());
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    int p0_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+    int p1_exp[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int p2_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    int p3_exp[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int p4_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+    int p5_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    int p6_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+    int p7_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+    int p8_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    int p9_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1};
+    int p10_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1};
+    int p11_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1};
+    int p12_exp[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int p13_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+    int p14_exp[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    int p15_exp[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
+
+    ASSERT_EQUAL_SVE(p0_exp, p0.VnB());
+    ASSERT_EQUAL_SVE(p1_exp, p1.VnB());
+    ASSERT_EQUAL_SVE(p2_exp, p2.VnB());
+    ASSERT_EQUAL_SVE(p3_exp, p3.VnB());
+    ASSERT_EQUAL_SVE(p4_exp, p4.VnB());
+    ASSERT_EQUAL_SVE(p5_exp, p5.VnB());
+    ASSERT_EQUAL_SVE(p6_exp, p6.VnB());
+    ASSERT_EQUAL_SVE(p7_exp, p7.VnB());
+    ASSERT_EQUAL_SVE(p8_exp, p8.VnB());
+    ASSERT_EQUAL_SVE(p9_exp, p9.VnB());
+    ASSERT_EQUAL_SVE(p10_exp, p10.VnB());
+    ASSERT_EQUAL_SVE(p11_exp, p11.VnB());
+    ASSERT_EQUAL_SVE(p12_exp, p12.VnB());
+    ASSERT_EQUAL_SVE(p13_exp, p13.VnB());
+    ASSERT_EQUAL_SVE(p14_exp, p14.VnB());
+    ASSERT_EQUAL_SVE(p15_exp, p15.VnB());
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -317,12 +317,12 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"usublt_z_zz", &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
     {"usubwb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
     {"usubwt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmTb},
-    {"whilege_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
-    {"whilegt_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
-    {"whilehi_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
-    {"whilehs_p_p_rr", &Disassembler::Disassemble_PdT_Rn_Rm},
-    {"whilerw_p_rr", &Disassembler::Disassemble_PdT_Xn_Xm},
-    {"whilewr_p_rr", &Disassembler::Disassemble_PdT_Xn_Xm},
+    {"whilege_p_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilegt_p_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilehi_p_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilehs_p_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilerw_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
+    {"whilewr_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
     {"xar_z_zzi", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
 };
 
@@ -7393,27 +7393,9 @@ void Disassembler::VisitSVEIntAddSubtractVectors_Predicated(
 
 void Disassembler::VisitSVEIntCompareScalarCountAndLimit(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
   const char *form =
       (instr->ExtractBit(12) == 0) ? "'Pd.'t, 'Wn, 'Wm" : "'Pd.'t, 'Xn, 'Xm";
-
-  switch (instr->Mask(SVEIntCompareScalarCountAndLimitMask)) {
-    case WHILELE_p_p_rr:
-      mnemonic = "whilele";
-      break;
-    case WHILELO_p_p_rr:
-      mnemonic = "whilelo";
-      break;
-    case WHILELS_p_p_rr:
-      mnemonic = "whilels";
-      break;
-    case WHILELT_p_p_rr:
-      mnemonic = "whilelt";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic_.c_str(), form);
 }
 
 void Disassembler::VisitSVEIntConvertToFP(const Instruction *instr) {
@@ -9878,16 +9860,6 @@ void Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT(const Instruction *instr) {
   } else {
     Format(instr, mnemonic_.c_str(), form);
   }
-}
-
-void Disassembler::Disassemble_PdT_Rn_Rm(const Instruction *instr) {
-  const char *form = "'Pd.'t, 'Rn, 'Rm";
-  Format(instr, mnemonic_.c_str(), form);
-}
-
-void Disassembler::Disassemble_PdT_Xn_Xm(const Instruction *instr) {
-  const char *form = "'Pd.'t, 'Rn, 'Rm";
-  Format(instr, mnemonic_.c_str(), form);
 }
 
 void Disassembler::Disassemble_ZdB_Zn1B_Zn2B_imm(const Instruction *instr) {
