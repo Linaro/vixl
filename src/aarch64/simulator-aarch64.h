@@ -1216,6 +1216,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEAddSubHigh(const Instruction* instr);
   void SimulateSVEIntMulLongVec(const Instruction* instr);
   void SimulateSVESaturatingIntMulLongIdx(const Instruction* instr);
+  void SimulateSVEExclusiveOrRotate(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3275,6 +3276,10 @@ class Simulator : public DecoderVisitor {
   LogicVRegister uadalp(VectorFormat vform,
                         LogicVRegister dst,
                         const LogicVRegister& src);
+  LogicVRegister ror(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src,
+                     int rotation);
   LogicVRegister ext(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src1,

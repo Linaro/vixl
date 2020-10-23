@@ -348,7 +348,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"whilehs_p_p_rr", &Simulator::Simulate_PdT_Rn_Rm},
     {"whilerw_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"whilewr_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
-    {"xar_z_zzi", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
+    {"xar_z_zzi", &Simulator::SimulateSVEExclusiveOrRotate},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream)
@@ -2024,8 +2024,8 @@ void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
   SimVRegister temp, zm_idx, zn_b, zn_t;
   // Instead of calling the indexed form of the instruction logic, we call the
   // vector form, which can reuse existing function logics without modification.
-  // Select the specified elements based on the index input and than pack them to
-  // the corresponding position.
+  // Select the specified elements based on the index input and than pack them
+  // to the corresponding position.
   Instr index = (instr->ExtractBit(20) << 1) | instr->ExtractBit(11);
   dup_elements_to_segments(kFormatVnS, temp, zm, index);
   pack_even_elements(kFormatVnS, zm_idx, temp);
@@ -2167,7 +2167,8 @@ void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
   SimVRegister temp, zm_idx, zn_b, zn_t;
   // Instead of calling the indexed form of the instruction logic, we call the
   // vector form, which can reuse existing function logics without modification.
-  // Select the specified elements based on the index input and than pack them to
+  // Select the specified elements based on the index input and than pack them
+  // to
   // the corresponding position.
   Instr index = (instr->ExtractBits(20, 19) << 1) | instr->ExtractBit(11);
   dup_elements_to_segments(kFormatVnH, temp, zm, index);
@@ -3438,6 +3439,22 @@ void Simulator::Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr) {
   mov_merging(vform, zdn, pg, result);
 }
 
+void Simulator::SimulateSVEExclusiveOrRotate(const Instruction* instr) {
+  VIXL_ASSERT(form_hash_ == Hash("xar_z_zzi"));
+
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRn());
+
+  std::pair<int, int> shift_and_lane_size =
+      instr->GetSVEImmShiftAndLaneSizeLog2(/* is_predicated = */ false);
+  unsigned lane_size = shift_and_lane_size.second;
+  VIXL_ASSERT(lane_size <= kDRegSizeInBytesLog2);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(lane_size);
+  int shift_dist = shift_and_lane_size.first;
+  SVEBitwiseLogicalUnpredicatedHelper(EOR, kFormatVnD, zdn, zdn, zm);
+  ror(vform, zdn, zdn, shift_dist);
+}
+
 void Simulator::Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
@@ -3450,9 +3467,6 @@ void Simulator::Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr) {
       break;
     case Hash("sqcadd_z_zz"):
       cadd(vform, zdn, zdn, zm, rot, /* saturate = */ true);
-      break;
-    case Hash("xar_z_zzi"):
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();

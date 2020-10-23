@@ -7511,10 +7511,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     whilewr(pd, rn, rm);
   }
-  void Xar(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
+  void Xar(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int shift) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    xar(zd, zn, zm);
+    if (zd.Aliases(zm)) {
+      SingleEmissionCheckScope guard(this);
+      xar(zd, zm, zn, shift);
+    } else {
+      MovprfxHelperScope guard(this, zd, zn);
+      xar(zd, zd, zm, shift);
+    }
   }
 
   template <typename T>

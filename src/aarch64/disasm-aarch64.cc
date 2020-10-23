@@ -10186,8 +10186,15 @@ void Disassembler::DisassembleSVEComplexIntAddition(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const(const Instruction *instr) {
-  const char *form = "'Zd.'t, 'Zd.'t, 'Zn.'t, <const>";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Zd.'tszs, 'Zd.'tszs, 'Zn.'tszs, 'ITriSves";
+  unsigned tsize =
+      (instr->ExtractBits(23, 22) << 2) | instr->ExtractBits(20, 19);
+
+  if (tsize == 0) {
+    Format(instr, "unimplemented", "(ZdnT_ZdnT_ZmT_const)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
 }
 
 void Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm(const Instruction *instr) {

@@ -9679,7 +9679,8 @@ void Assembler::whilewr(const PRegisterWithLaneSize& pd,
 
 void Assembler::xar(const ZRegister& zd,
                     const ZRegister& zn,
-                    const ZRegister& zm) {
+                    const ZRegister& zm,
+                    int shift) {
   // XAR <Zdn>.<T>, <Zdn>.<T>, <Zm>.<T>, #<const>
   //  0000 0100 ..1. .... 0011 01.. .... ....
   //  tszh<23:22> | tszl<20:19> | imm3<18:16> | Zm<9:5> | Zdn<4:0>
@@ -9687,8 +9688,11 @@ void Assembler::xar(const ZRegister& zd,
   USE(zn);
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(zd.Is(zn));
+  VIXL_ASSERT(AreSameLaneSize(zd, zm));
 
-  Emit(0x04203400 | Rd(zd) | Rn(zm));
+  Instr encoded_imm =
+      EncodeSVEShiftRightImmediate(shift, zd.GetLaneSizeInBits());
+  SVEBitwiseShiftImmediate(zd, zm, encoded_imm, 0x04203400);
 }
 
 }  // namespace aarch64

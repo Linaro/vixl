@@ -7955,6 +7955,37 @@ TEST(sve2_integer_multiply_long_vector) {
   CLEANUP();
 }
 
+TEST(sve2_xar) {
+  SETUP();
+
+  COMPARE_MACRO(Xar(z16.VnB(), z16.VnB(), z13.VnB(), 1),
+                "xar z16.b, z16.b, z13.b, #1");
+  COMPARE_MACRO(Xar(z16.VnB(), z16.VnB(), z13.VnB(), 8),
+                "xar z16.b, z16.b, z13.b, #8");
+  COMPARE_MACRO(Xar(z16.VnH(), z16.VnH(), z13.VnH(), 1),
+                "xar z16.h, z16.h, z13.h, #1");
+  COMPARE_MACRO(Xar(z16.VnH(), z16.VnH(), z13.VnH(), 16),
+                "xar z16.h, z16.h, z13.h, #16");
+  COMPARE_MACRO(Xar(z16.VnS(), z16.VnS(), z13.VnS(), 1),
+                "xar z16.s, z16.s, z13.s, #1");
+  COMPARE_MACRO(Xar(z16.VnS(), z16.VnS(), z13.VnS(), 32),
+                "xar z16.s, z16.s, z13.s, #32");
+  COMPARE_MACRO(Xar(z16.VnD(), z16.VnD(), z13.VnD(), 1),
+                "xar z16.d, z16.d, z13.d, #1");
+  COMPARE_MACRO(Xar(z16.VnD(), z16.VnD(), z13.VnD(), 64),
+                "xar z16.d, z16.d, z13.d, #64");
+
+  COMPARE_MACRO(Xar(z16.VnD(), z13.VnD(), z16.VnD(), 64),
+                "xar z16.d, z16.d, z13.d, #64");
+  COMPARE_MACRO(Xar(z16.VnD(), z13.VnD(), z12.VnD(), 64),
+                "movprfx z16, z13\n"
+                "xar z16.d, z16.d, z12.d, #64");
+  COMPARE_MACRO(Xar(z16.VnD(), z16.VnD(), z16.VnD(), 64),
+                "xar z16.d, z16.d, z16.d, #64");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8347,8 +8378,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(whilewr(p8.VnD(), x14, x14), "whilewr p8.b, w14, w14");
   // COMPARE_PREFIX(whilewr(p8.VnH(), x14, x14), "whilewr p8.b, w14, w14");
   // COMPARE_PREFIX(whilewr(p8.VnS(), x14, x14), "whilewr p8.b, w14, w14");
-  // COMPARE_PREFIX(xar(z16.Vn?(), z16.Vn?(), z13.Vn?()), "xar <Zdn>.<T>,
-  // <Zdn>.<T>, <Zm>.<T>, #<const>");
 
   CLEANUP();
 }

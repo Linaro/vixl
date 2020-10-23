@@ -6721,7 +6721,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                const Register& rm);
 
   // Bitwise exclusive OR and rotate right by immediate.
-  void xar(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
+  void xar(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int shift);
 
   // Emit generic instructions.
 

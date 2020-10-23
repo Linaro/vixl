@@ -2689,6 +2689,17 @@ LogicVRegister Simulator::uadalp(VectorFormat vform,
   return addlp(vform, dst, src, false, true);
 }
 
+LogicVRegister Simulator::ror(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src,
+                              int rotation) {
+  int width = LaneSizeInBitsFromFormat(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    uint64_t value = src.Uint(vform, i);
+    dst.SetUint(vform, i, RotateRight(value, rotation, width));
+  }
+  return dst;
+}
 
 LogicVRegister Simulator::ext(VectorFormat vform,
                               LogicVRegister dst,
