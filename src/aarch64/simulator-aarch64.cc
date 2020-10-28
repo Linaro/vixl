@@ -8964,25 +8964,33 @@ void Simulator::VisitSVEIntCompareScalarCountAndLimit(
   unsigned rm_code = instr->GetRm();
   SimPRegister& pd = ReadPRegister(instr->GetPd());
   VectorFormat vform = instr->GetSVEVectorFormat();
+
   bool is_64_bit = instr->ExtractBit(12) == 1;
-  int64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
-  int64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+  int rsize = is_64_bit ? kXRegSize : kWRegSize;
+  uint64_t mask = is_64_bit ? kXRegMask : kWRegMask;
+
+  uint64_t usrc1 = ReadXRegister(rn_code);
+  int64_t ssrc2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
+  uint64_t usrc2 = ssrc2 & mask;
 
   bool last = true;
   for (int lane = 0; lane < LaneCountFromFormat(vform); lane++) {
+    usrc1 &= mask;
+    int64_t ssrc1 = ExtractSignedBitfield64(rsize - 1, 0, usrc1);
+
     bool cond = false;
     switch (instr->Mask(SVEIntCompareScalarCountAndLimitMask)) {
       case WHILELE_p_p_rr:
-        cond = src1 <= src2;
+        cond = ssrc1 <= ssrc2;
         break;
       case WHILELO_p_p_rr:
-        cond = static_cast<uint64_t>(src1) < static_cast<uint64_t>(src2);
+        cond = usrc1 < usrc2;
         break;
       case WHILELS_p_p_rr:
-        cond = static_cast<uint64_t>(src1) <= static_cast<uint64_t>(src2);
+        cond = usrc1 <= usrc2;
         break;
       case WHILELT_p_p_rr:
-        cond = src1 < src2;
+        cond = ssrc1 < ssrc2;
         break;
       default:
         VIXL_UNIMPLEMENTED();
@@ -8991,7 +8999,7 @@ void Simulator::VisitSVEIntCompareScalarCountAndLimit(
     last = last && cond;
     LogicPRegister dst(pd);
     dst.SetActive(vform, lane, last);
-    src1 += 1;
+    usrc1++;
   }
 
   PredTest(vform, GetPTrue(), pd);

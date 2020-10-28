@@ -2551,6 +2551,24 @@ TEST(sve_int_compare_count_and_limit_scalars) {
   }
 }
 
+TEST(sve_int_compare_count_and_limit_scalars_regression_test) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Mov(w0, 0x7ffffffd);
+  __ Mov(w1, 0x7fffffff);
+  __ Whilele(p0.VnB(), w0, w1);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p0_expected[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p0_expected, p0.VnB());
+  }
+}
+
 TEST(sve_int_compare_vectors_signed_imm) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
