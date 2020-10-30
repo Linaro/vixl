@@ -411,6 +411,13 @@ class LogicVRegister {
     return element;
   }
 
+  int UintArray(VectorFormat vform, uint64_t* dst) const {
+    for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+      dst[i] = Uint(vform, i);
+    }
+    return LaneCountFromFormat(vform);
+  }
+
   uint64_t UintLeftJustified(VectorFormat vform, int index) const {
     return Uint(vform, index) << (64 - LaneSizeInBitsFromFormat(vform));
   }
@@ -1177,7 +1184,6 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdT_PgM_ZnT(const Instruction* instr);
   void Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr);
   void Simulate_ZdT_Pg_Zn1T_Zn2T(const Instruction* instr);
-  void Simulate_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr);
   void Simulate_ZdT_ZnT_ZmT(const Instruction* instr);
   void Simulate_ZdT_ZnT_ZmTb(const Instruction* instr);
   void Simulate_ZdT_ZnT_const(const Instruction* instr);
@@ -3543,10 +3549,6 @@ class Simulator : public DecoderVisitor {
                      const LogicVRegister& tab3,
                      const LogicVRegister& tab4,
                      const LogicVRegister& ind);
-  LogicVRegister Table(VectorFormat vform,
-                       LogicVRegister dst,
-                       const LogicVRegister& src,
-                       const LogicVRegister& tab);
   LogicVRegister Table(VectorFormat vform,
                        LogicVRegister dst,
                        const LogicVRegister& ind,

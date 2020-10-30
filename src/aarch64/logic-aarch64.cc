@@ -3383,23 +3383,6 @@ LogicVRegister Simulator::rshrn2(VectorFormat vform,
 
 LogicVRegister Simulator::Table(VectorFormat vform,
                                 LogicVRegister dst,
-                                const LogicVRegister& tab,
-                                const LogicVRegister& ind) {
-  VIXL_ASSERT(IsSVEFormat(vform));
-  int lane_count = LaneCountFromFormat(vform);
-  for (int i = 0; i < lane_count; i++) {
-    uint64_t index = ind.Uint(vform, i);
-    uint64_t value = (index >= static_cast<uint64_t>(lane_count))
-                         ? 0
-                         : tab.Uint(vform, static_cast<int>(index));
-    dst.SetUint(vform, i, value);
-  }
-  return dst;
-}
-
-
-LogicVRegister Simulator::Table(VectorFormat vform,
-                                LogicVRegister dst,
                                 const LogicVRegister& ind,
                                 bool zero_out_of_bounds,
                                 const LogicVRegister* tab1,
@@ -3407,23 +3390,29 @@ LogicVRegister Simulator::Table(VectorFormat vform,
                                 const LogicVRegister* tab3,
                                 const LogicVRegister* tab4) {
   VIXL_ASSERT(tab1 != NULL);
-  const LogicVRegister* tab[4] = {tab1, tab2, tab3, tab4};
-  uint64_t result[kMaxLanesPerVector];
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    result[i] = zero_out_of_bounds ? 0 : dst.Uint(kFormat16B, i);
-  }
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    uint64_t j = ind.Uint(vform, i);
-    int tab_idx = static_cast<int>(j >> 4);
-    int j_idx = static_cast<int>(j & 15);
-    if ((tab_idx < 4) && (tab[tab_idx] != NULL)) {
-      result[i] = tab[tab_idx]->Uint(kFormat16B, j_idx);
-    }
+  int lane_count = LaneCountFromFormat(vform);
+  VIXL_ASSERT((tab3 == NULL) || (lane_count <= 16));
+  uint64_t table[kZRegMaxSizeInBytes * 2];
+  uint64_t result[kZRegMaxSizeInBytes];
+
+  // For Neon, the table source registers are always 16B, and Neon allows only
+  // 8B or 16B vform for the destination, so infer the table format from the
+  // destination.
+  VectorFormat vform_tab = (vform == kFormat8B) ? kFormat16B : vform;
+
+  uint64_t tab_size = tab1->UintArray(vform_tab, &table[0]);
+  if (tab2 != NULL) tab_size += tab2->UintArray(vform_tab, &table[tab_size]);
+  if (tab3 != NULL) tab_size += tab3->UintArray(vform_tab, &table[tab_size]);
+  if (tab4 != NULL) tab_size += tab4->UintArray(vform_tab, &table[tab_size]);
+
+  for (int i = 0; i < lane_count; i++) {
+    uint64_t index = ind.Uint(vform, i);
+    result[i] = zero_out_of_bounds ? 0 : dst.Uint(vform, i);
+    if (index < tab_size) result[i] = table[index];
   }
   dst.SetUintArray(vform, result);
   return dst;
 }
-
 
 LogicVRegister Simulator::tbl(VectorFormat vform,
                               LogicVRegister dst,

@@ -7999,6 +7999,29 @@ TEST(sve2_histogram) {
   CLEANUP();
 }
 
+TEST(sve2_table) {
+  SETUP();
+
+  COMPARE_MACRO(Tbl(z17.VnB(), z1.VnB(), z2.VnB(), z22.VnB()),
+                "tbl z17.b, {z3.b, z4.b}, z22.b");
+  COMPARE_MACRO(Tbl(z17.VnD(), z1.VnD(), z2.VnD(), z22.VnD()),
+                "tbl z17.d, {z3.d, z4.d}, z22.d");
+  COMPARE_MACRO(Tbl(z17.VnH(), z1.VnH(), z2.VnH(), z22.VnH()),
+                "tbl z17.h, {z3.h, z4.h}, z22.h");
+  COMPARE_MACRO(Tbl(z17.VnS(), z31.VnS(), z0.VnS(), z22.VnS()),
+                "tbl z17.s, {z31.s, z0.s}, z22.s");
+  COMPARE_MACRO(Tbx(z22.VnB(), z15.VnB(), z19.VnB()),
+                "tbx z22.b, z15.b, z19.b");
+  COMPARE_MACRO(Tbx(z22.VnD(), z15.VnD(), z19.VnD()),
+                "tbx z22.d, z15.d, z19.d");
+  COMPARE_MACRO(Tbx(z22.VnH(), z15.VnH(), z19.VnH()),
+                "tbx z22.h, z15.h, z19.h");
+  COMPARE_MACRO(Tbx(z22.VnS(), z15.VnS(), z19.VnS()),
+                "tbx z22.s, z15.s, z19.s");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8305,22 +8328,6 @@ TEST(sve2_all_instructions) {
   // <Pg>, [<Zn>.S{, <Xm>}]");
   // COMPARE_PREFIX(stnt1w(z7.VnD(), p0, z11.VnD(), x10), "stnt1w { <Zt>.D },
   // <Pg>, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(tbl(z17.VnB(), z1.VnB(), z2.VnB(), z22.VnB()), "tbl z17.b, {
-  // z3.b, z4.b }, z22.b");
-  // COMPARE_PREFIX(tbl(z17.VnD(), z1.VnD(), z2.VnD(), z22.VnD()), "tbl z17.d, {
-  // z3.d, z4.d }, z22.d");
-  // COMPARE_PREFIX(tbl(z17.VnH(), z1.VnH(), z2.VnH(), z22.VnH()), "tbl z17.h, {
-  // z3.h, z4.h }, z22.h");
-  // COMPARE_PREFIX(tbl(z17.VnS(), z1.VnS(), z2.VnS(), z22.VnS()), "tbl z17.s, {
-  // z3.s, z4.s }, z22.s");
-  // COMPARE_PREFIX(tbx(z22.VnB(), z15.VnB(), z19.VnB()), "tbx z22.b, z15.b,
-  // z19.b");
-  // COMPARE_PREFIX(tbx(z22.VnD(), z15.VnD(), z19.VnD()), "tbx z22.d, z15.d,
-  // z19.d");
-  // COMPARE_PREFIX(tbx(z22.VnH(), z15.VnH(), z19.VnH()), "tbx z22.h, z15.h,
-  // z19.h");
-  // COMPARE_PREFIX(tbx(z22.VnS(), z15.VnS(), z19.VnS()), "tbx z22.s, z15.s,
-  // z19.s");
   // COMPARE_PREFIX(umlalb(z31.VnD(), z9, z21), "umlalb z31.d, z9, z21");
   // COMPARE_PREFIX(umlalb(z31.VnH(), z9, z21), "umlalb z31.h, z9, z21");
   // COMPARE_PREFIX(umlalb(z31.VnS(), z9, z21), "umlalb z31.s, z9, z21");

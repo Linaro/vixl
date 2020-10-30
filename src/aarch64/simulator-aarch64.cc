@@ -277,8 +277,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"subhnb_z_zz", &Simulator::SimulateSVEAddSubHigh},
     {"subhnt_z_zz", &Simulator::SimulateSVEAddSubHigh},
     {"suqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
-    {"tbl_z_zz_2", &Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT},
-    {"tbx_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
+    {"tbl_z_zz_2", &Simulator::VisitSVETableLookup},
+    {"tbx_z_zz", &Simulator::VisitSVETableLookup},
     {"uaba_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
     {"uabalb_z_zzz", &Simulator::SimulateSVEInterleavedArithLong},
     {"uabalt_z_zzz", &Simulator::SimulateSVEInterleavedArithLong},
@@ -2288,23 +2288,6 @@ void Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdT_Zn1T_Zn2T_ZmT(const Instruction* instr) {
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
-  SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
-  SimVRegister& zn1 = ReadVRegister(instr->GetRn());
-  USE(zn1);
-
-  switch (form_hash_) {
-    case Hash("tbl_z_zz_2"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
@@ -2343,9 +2326,6 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqrdmulh_z_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("tbx_z_zz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("umulh_z_zz"):
@@ -13381,15 +13361,24 @@ void Simulator::VisitSVEUnpackVectorElements(const Instruction* instr) {
 }
 
 void Simulator::VisitSVETableLookup(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  switch (instr->Mask(SVETableLookupMask)) {
-    case TBL_z_zz_1:
-      Table(instr->GetSVEVectorFormat(),
-            zd,
-            ReadVRegister(instr->GetRn()),
-            ReadVRegister(instr->GetRm()));
-      return;
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zn2 = ReadVRegister((instr->GetRn() + 1) % kNumberOfZRegisters);
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  switch (form_hash_) {
+    case Hash("tbl_z_zz_1"):
+      tbl(vform, zd, zn, zm);
+      break;
+    case Hash("tbl_z_zz_2"):
+      tbl(vform, zd, zn, zn2, zm);
+      break;
+    case Hash("tbx_z_zz"):
+      tbx(vform, zd, zn, zm);
+      break;
     default:
+      VIXL_UNIMPLEMENTED();
       break;
   }
 }
