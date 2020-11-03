@@ -4176,6 +4176,33 @@ LogicVRegister Simulator::udot(VectorFormat vform,
   return dot(vform, dst, src1, src2, false);
 }
 
+LogicVRegister Simulator::cdot(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& acc,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               int rot) {
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
+  VectorFormat quarter_vform =
+      VectorFormatHalfWidthDoubleLanes(VectorFormatHalfWidthDoubleLanes(vform));
+
+  int sel_a = ((rot == 0) || (rot == 180)) ? 0 : 1;
+  int sel_b = 1 - sel_a;
+  int sub_i = ((rot == 90) || (rot == 180)) ? 1 : -1;
+
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    int64_t result = acc.Int(vform, i);
+    for (int j = 0; j < 2; j++) {
+      int64_t r1 = src1.Int(quarter_vform, (4 * i) + (2 * j) + 0);
+      int64_t i1 = src1.Int(quarter_vform, (4 * i) + (2 * j) + 1);
+      int64_t r2 = src2.Int(quarter_vform, (4 * i) + (2 * j) + sel_a);
+      int64_t i2 = src2.Int(quarter_vform, (4 * i) + (2 * j) + sel_b);
+      result += (r1 * r2) + (sub_i * i1 * i2);
+    }
+    dst.SetInt(vform, i, result);
+  }
+  return dst;
+}
 
 LogicVRegister Simulator::sqrdmlash(VectorFormat vform,
                                     LogicVRegister dst,

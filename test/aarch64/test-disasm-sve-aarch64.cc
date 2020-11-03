@@ -8022,6 +8022,45 @@ TEST(sve2_table) {
   CLEANUP();
 }
 
+TEST(sve2_cdot) {
+  SETUP();
+
+  COMPARE_MACRO(Cdot(z7.VnS(), z7.VnS(), z4.VnB(), z10.VnB(), 0),
+                "cdot z7.s, z4.b, z10.b, #0");
+  COMPARE_MACRO(Cdot(z7.VnD(), z7.VnD(), z4.VnH(), z10.VnH(), 0),
+                "cdot z7.d, z4.h, z10.h, #0");
+  COMPARE_MACRO(Cdot(z7.VnS(), z7.VnS(), z4.VnB(), z10.VnB(), 90),
+                "cdot z7.s, z4.b, z10.b, #90");
+  COMPARE_MACRO(Cdot(z7.VnD(), z7.VnD(), z4.VnH(), z10.VnH(), 90),
+                "cdot z7.d, z4.h, z10.h, #90");
+  COMPARE_MACRO(Cdot(z7.VnS(), z7.VnS(), z4.VnB(), z10.VnB(), 180),
+                "cdot z7.s, z4.b, z10.b, #180");
+  COMPARE_MACRO(Cdot(z7.VnD(), z7.VnD(), z4.VnH(), z10.VnH(), 180),
+                "cdot z7.d, z4.h, z10.h, #180");
+  COMPARE_MACRO(Cdot(z7.VnS(), z7.VnS(), z4.VnB(), z10.VnB(), 270),
+                "cdot z7.s, z4.b, z10.b, #270");
+  COMPARE_MACRO(Cdot(z7.VnD(), z7.VnD(), z4.VnH(), z10.VnH(), 270),
+                "cdot z7.d, z4.h, z10.h, #270");
+
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z2.VnB(), z3.VnB(), 0),
+                "movprfx z0, z1\n"
+                "cdot z0.s, z2.b, z3.b, #0");
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z0.VnB(), z3.VnB(), 0),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cdot z0.s, z31.b, z3.b, #0");
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z2.VnB(), z0.VnB(), 0),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cdot z0.s, z2.b, z31.b, #0");
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z0.VnB(), z0.VnB(), 0),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cdot z0.s, z31.b, z31.b, #0");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8038,8 +8077,6 @@ TEST(sve2_all_instructions) {
   // <Zm>.h[<imm>], <const>");
   // COMPARE_PREFIX(cdot(z5.VnD(), z7.VnH()), "cdot z5.d, z7.h, <Zm>.h[<imm>],
   // <const>");
-  // COMPARE_PREFIX(cdot(z7.Vn?(), z4, z10), "cdot <Zda>.<T>, <Zn>.<Tb>,
-  // <Zm>.<Tb>, <const>");
   // COMPARE_PREFIX(cmla(z17.VnS(), z29.VnS()), "cmla z17.h, z29.h,
   // <Zm>.h[<imm>], <const>");
   // COMPARE_PREFIX(cmla(z18.VnH(), z22.VnH()), "cmla z18.h, z22.h,

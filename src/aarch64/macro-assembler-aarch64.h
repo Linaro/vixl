@@ -6451,11 +6451,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     cdot(zda, zn);
   }
-  void Cdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cdot(zda, zn, zm);
-  }
+  void Cdot(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int rot);
   void Cmla(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

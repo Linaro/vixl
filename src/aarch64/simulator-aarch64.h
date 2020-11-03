@@ -3926,6 +3926,12 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  LogicVRegister cdot(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& acc,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      int rot);
   LogicVRegister sqrdmlash(VectorFormat vform,
                            LogicVRegister dst,
                            const LogicVRegister& src1,

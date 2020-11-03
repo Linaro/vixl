@@ -6695,14 +6695,21 @@ void Assembler::cdot(const ZRegister& zda, const ZRegister& zn) {
 
 void Assembler::cdot(const ZRegister& zda,
                      const ZRegister& zn,
-                     const ZRegister& zm) {
+                     const ZRegister& zm,
+                     int rot) {
   // CDOT <Zda>.<T>, <Zn>.<Tb>, <Zm>.<Tb>, <const>
   //  0100 0100 ..0. .... 0001 .... .... ....
   //  size<23:22> | Zm<20:16> | rot<11:10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
 
-  Emit(0x44001000 | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr rotate_bits = (rot / 90) << 10;
+
+  Emit(0x44001000 | rotate_bits | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 // This prototype maps to 2 instruction encodings:

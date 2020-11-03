@@ -10159,8 +10159,14 @@ void Disassembler::Disassemble_ZdaT_ZnTb_ZmTb(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdaT_ZnTb_ZmTb_const(const Instruction *instr) {
-  const char *form = "'Zd.<T>, 'Zn, 'Zm, <const>";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Zd.'t, 'Zn.'tq, 'Zm.'tq, #'u1110*90";
+  VectorFormat vform = instr->GetSVEVectorFormat();
+
+  if ((vform == kFormatVnB) || (vform == kFormatVnH)) {
+    Format(instr, "unimplemented", "(ZdaT_ZnTb_ZmTb_const)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
 }
 
 void Disassembler::Disassemble_ZdnB_ZdnB(const Instruction *instr) {

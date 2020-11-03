@@ -3173,16 +3173,15 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  int rot = instr->ExtractBits(11, 10) * 90;
 
   switch (form_hash_) {
     case Hash("cdot_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      cdot(vform, zda, zda, zn, zm, rot);
       break;
     default:
       VIXL_UNIMPLEMENTED();

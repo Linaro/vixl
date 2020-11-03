@@ -5881,7 +5881,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cdot(const ZRegister& zda, const ZRegister& zn);
 
   // Complex integer dot product.
-  void cdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+  void cdot(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int rot);
 
   // Complex integer multiply-add with rotate (indexed).
   void cmla(const ZRegister& zda, const ZRegister& zn);

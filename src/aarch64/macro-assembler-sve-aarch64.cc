@@ -1725,6 +1725,24 @@ void MacroAssembler::Udot(const ZRegister& zd,
   SVESdotUdotIndexHelper(&Assembler::udot, zd, za, zn, zm, index);
 }
 
+void MacroAssembler::Cdot(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int rot) {
+  if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) {
+    UseScratchRegisterScope temps(this);
+    VIXL_ASSERT(AreSameLaneSize(zn, zm));
+    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zn);
+    Mov(ztmp, zd.Aliases(zn) ? zn : zm);
+    MovprfxHelperScope guard(this, zd, za);
+    cdot(zd, (zd.Aliases(zn) ? ztmp : zn), (zd.Aliases(zm) ? ztmp : zm), rot);
+  } else {
+    MovprfxHelperScope guard(this, zd, za);
+    cdot(zd, zn, zm, rot);
+  }
+}
+
 void MacroAssembler::FPMulAddHelper(const ZRegister& zd,
                                     const PRegisterM& pg,
                                     const ZRegister& za,
