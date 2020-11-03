@@ -4387,11 +4387,11 @@ enum SVEVectorSelectOp {
   SEL_z_p_zz = SVEVectorSelectFixed
 };
 
-enum SVEVectorSplice_DestructiveOp {
-  SVEVectorSplice_DestructiveFixed = 0x052C8000,
-  SVEVectorSplice_DestructiveFMask = 0xFF3FE000,
-  SVEVectorSplice_DestructiveMask = 0xFF3FE000,
-  SPLICE_z_p_zz_des = SVEVectorSplice_DestructiveFixed
+enum SVEVectorSpliceOp {
+  SVEVectorSpliceFixed = 0x052C8000,
+  SVEVectorSpliceFMask = 0xFF3FE000,
+  SVEVectorSpliceMask = 0xFF3FE000,
+  SPLICE_z_p_zz_des = SVEVectorSpliceFixed
 };
 
 enum ReservedOp {

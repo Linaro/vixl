@@ -188,7 +188,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"smullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"smullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
-    {"splice_z_p_zz_con", &Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T},
+    {"splice_z_p_zz_con", &Simulator::VisitSVEVectorSplice},
     {"sqabs_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
     {"sqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"sqcadd_z_zz", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
@@ -2246,23 +2246,6 @@ void Simulator::Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr) {
     mov_zeroing(vform, zd, pg, result);
   } else {
     VIXL_UNIMPLEMENTED();
-  }
-}
-
-void Simulator::Simulate_ZdT_Pg_Zn1T_Zn2T(const Instruction* instr) {
-  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
-  SimVRegister& zn1 = ReadVRegister(instr->GetRn());
-  USE(zn1);
-
-  switch (form_hash_) {
-    case Hash("splice_z_p_zz_con"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
   }
 }
 
@@ -13232,15 +13215,19 @@ void Simulator::VisitSVEReverseWithinElements(const Instruction* instr) {
   mov_merging(chunk_form, zd, pg, result);
 }
 
-void Simulator::VisitSVEVectorSplice_Destructive(const Instruction* instr) {
+void Simulator::VisitSVEVectorSplice(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
-  SimVRegister& zdn = ReadVRegister(instr->GetRd());
-  SimVRegister& zm = ReadVRegister(instr->GetRn());
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zn2 = ReadVRegister((instr->GetRn() + 1) % kNumberOfZRegisters);
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
 
-  switch (instr->Mask(SVEVectorSplice_DestructiveMask)) {
-    case SPLICE_z_p_zz_des:
-      splice(vform, zdn, pg, zdn, zm);
+  switch (form_hash_) {
+    case Hash("splice_z_p_zz_des"):
+      splice(vform, zd, pg, zd, zn);
+      break;
+    case Hash("splice_z_p_zz_con"):
+      splice(vform, zd, pg, zn, zn2);
       break;
     default:
       VIXL_UNIMPLEMENTED();

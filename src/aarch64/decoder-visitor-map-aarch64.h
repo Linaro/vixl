@@ -846,7 +846,7 @@
       {"smin_z_p_zz", &VISITORCLASS::VisitSVEIntMinMaxDifference_Predicated},  \
       {"smin_z_zi", &VISITORCLASS::VisitSVEIntMinMaxImm_Unpredicated},         \
       {"smulh_z_p_zz", &VISITORCLASS::VisitSVEIntMulVectors_Predicated},       \
-      {"splice_z_p_zz_des", &VISITORCLASS::VisitSVEVectorSplice_Destructive},  \
+      {"splice_z_p_zz_des", &VISITORCLASS::VisitSVEVectorSplice},              \
       {"sqadd_z_zi", &VISITORCLASS::VisitSVEIntAddSubtractImm_Unpredicated},   \
       {"sqadd_z_zz", &VISITORCLASS::VisitSVEIntArithmeticUnpredicated},        \
       {"sqdecb_r_rs_sx",                                                       \

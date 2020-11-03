@@ -533,7 +533,7 @@ bool Instruction::CanTakeSVEMovprfx(const Instruction* movprfx) const {
     case UQINCW_z_zs:
       return movprfx_is_unpredicated && zd_matches;
   }
-  switch (Mask(SVEVectorSplice_DestructiveMask)) {
+  switch (Mask(SVEVectorSpliceMask)) {
     case SPLICE_z_p_zz_des:
       // The movprfx's `zd` must not alias any other inputs.
       if (movprfx_zd == GetRx<9, 5>()) return false;

@@ -1831,9 +1831,8 @@ LogicVRegister Simulator::splice(VectorFormat vform,
     result[i] = src2.Uint(vform, i - dst_idx);
   }
 
-  for (int i = 0; i < lane_count; i++) {
-    dst.SetUint(vform, i, result[i]);
-  }
+  dst.SetUintArray(vform, result);
+
   return dst;
 }
 

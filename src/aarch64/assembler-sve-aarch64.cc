@@ -5916,16 +5916,37 @@ void Assembler::splice(const ZRegister& zd,
                        const PRegister& pg,
                        const ZRegister& zn,
                        const ZRegister& zm) {
-  // SPLICE <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>
-  //  0000 0101 ..10 1100 100. .... .... ....
-  //  size<23:22> | Pg<12:10> | Zm<9:5> | Zdn<4:0>
-
-  USE(zn);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(SPLICE_z_p_zz_des | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
+  if (zd.Aliases(zn)) {
+    // SPLICE <Zdn>.<T>, <Pg>, <Zdn>.<T>, <Zm>.<T>
+    //  0000 0101 ..10 1100 100. .... .... ....
+    //  size<23:22> | Pg<12:10> | Zm<9:5> | Zdn<4:0>
+
+    USE(zn);
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
+    VIXL_ASSERT(zd.Is(zn));
+
+    Emit(SPLICE_z_p_zz_des | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
+  } else {
+    splice_con(zd, pg, zn, zm);
+  }
+}
+
+void Assembler::splice_con(const ZRegister& zd,
+                           const PRegister& pg,
+                           const ZRegister& zn1,
+                           const ZRegister& zn2) {
+  // SPLICE <Zd>.<T>, <Pg>, { <Zn1>.<T>, <Zn2>.<T> }
+  //  0000 0101 ..10 1101 100. .... .... ....
+  //  size<23:22> | Pg<12:10> | Zn<9:5> | Zd<4:0>
+
+  USE(zn2);
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreConsecutive(zn1, zn2));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn1, zn2));
+
+  Emit(0x052d8000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn1));
 }
 
 // SVEPermuteVectorUnpredicated.
@@ -7873,21 +7894,6 @@ void Assembler::smullt(const ZRegister& zd,
 
   Emit(0x45007400 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
 }
-
-// TODO: merge SVE2 constructive splice into SVE1 destructive splice.
-// void Assembler::splice(const ZRegister& zd, const PRegister& pg, const
-// ZRegister& zn1, const ZRegister& zn2) {
-//  // SPLICE <Zd>.<T>, <Pg>, { <Zn1>.<T>, <Zn2>.<T> }
-//  //  0000 0101 ..10 1101 100. .... .... ....
-//  //  size<23:22> | Pg<12:10> | Zn<9:5> | Zd<4:0>
-//
-//  USE(zn2);
-//  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-//  VIXL_ASSERT(AreConsecutive(zn1, zn2));
-//  VIXL_ASSERT(AreSameLaneSize(zd, zn1, zn2));
-//
-//  Emit(0x052d8000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn1) | Rn(zn2));
-//}
 
 void Assembler::sqabs(const ZRegister& zd,
                       const PRegisterM& pg,

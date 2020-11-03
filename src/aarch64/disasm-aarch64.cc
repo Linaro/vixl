@@ -8527,11 +8527,11 @@ void Disassembler::VisitSVEUnpackVectorElements(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
-void Disassembler::VisitSVEVectorSplice_Destructive(const Instruction *instr) {
+void Disassembler::VisitSVEVectorSplice(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "(SVEVectorSplice_Destructive)";
+  const char *form = "(SVEVectorSplice)";
 
-  switch (instr->Mask(SVEVectorSplice_DestructiveMask)) {
+  switch (instr->Mask(SVEVectorSpliceMask)) {
     case SPLICE_z_p_zz_des:
       mnemonic = "splice";
       form = "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t";
@@ -9956,7 +9956,7 @@ void Disassembler::Disassemble_ZdT_PgZ_ZnT_ZmT(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdT_Pg_Zn1T_Zn2T(const Instruction *instr) {
-  const char *form = "'Zd.'t, 'Pgl, { 'Zn.'t, 'Zn2.'t }";
+  const char *form = "'Zd.'t, 'Pgl, {'Zn.'t, 'Zn2.'t}";
   Format(instr, mnemonic_.c_str(), form);
 }
 

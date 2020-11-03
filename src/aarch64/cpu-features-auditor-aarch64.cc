@@ -1217,7 +1217,7 @@ void CPUFeaturesAuditor::VisitPCRelAddressing(const Instruction* instr) {
   V(SVETableLookup)                                              \
   V(SVEUnpackPredicateElements)                                  \
   V(SVEUnpackVectorElements)                                     \
-  V(SVEVectorSplice_Destructive)
+  V(SVEVectorSplice)
 
 #define VIXL_DEFINE_SIMPLE_SVE_VISITOR(NAME)                       \
   void CPUFeaturesAuditor::Visit##NAME(const Instruction* instr) { \

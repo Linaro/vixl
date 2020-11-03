@@ -2037,7 +2037,10 @@ void MacroAssembler::Splice(const ZRegister& zd,
                             const ZRegister& zn,
                             const ZRegister& zm) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (zd.Aliases(zm) && !zd.Aliases(zn)) {
+  if (CPUHas(CPUFeatures::kSVE2) && AreConsecutive(zn, zm) && !zd.Aliases(zn)) {
+    SingleEmissionCheckScope guard(this);
+    splice(zd, pg, zn, zm);
+  } else if (zd.Aliases(zm) && !zd.Aliases(zn)) {
     UseScratchRegisterScope temps(this);
     ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
     {

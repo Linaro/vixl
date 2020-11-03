@@ -6826,12 +6826,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     smullt(zd, zn, zm);
   }
-  //  void Splice(const ZRegister& zd, const PRegister& pg, const ZRegister&
-  //  zn1, const ZRegister& zn2) {
-  //    VIXL_ASSERT(allow_macro_instructions_);
-  //    SingleEmissionCheckScope guard(this);
-  //    splice(zd, pg, zn1, zn2);
-  //  }
   void Sqabs(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     MovprfxHelperScope guard(this, zd, pg, zd);

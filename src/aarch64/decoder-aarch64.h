@@ -1306,7 +1306,7 @@
   V(SVETableLookup)                                              \
   V(SVEUnpackPredicateElements)                                  \
   V(SVEUnpackVectorElements)                                     \
-  V(SVEVectorSplice_Destructive)                                 \
+  V(SVEVectorSplice)                                             \
   V(System)                                                      \
   V(TestBranch)                                                  \
   V(Unallocated)                                                 \

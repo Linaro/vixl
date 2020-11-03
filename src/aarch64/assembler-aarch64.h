@@ -5266,6 +5266,12 @@ class Assembler : public vixl::internal::AssemblerBase {
               const ZRegister& zn,
               const ZRegister& zm);
 
+  // Splice two vectors under predicate control (constructive).
+  void splice_con(const ZRegister& zd,
+                  const PRegister& pg,
+                  const ZRegister& zn,
+                  const ZRegister& zm);
+
   // Signed saturating add vectors (unpredicated).
   void sqadd(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 

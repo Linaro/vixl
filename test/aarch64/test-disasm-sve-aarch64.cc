@@ -5836,9 +5836,9 @@ TEST(sve_permute_vector_predicated) {
   COMPARE_PREFIX(splice(z7.VnD(), p6, z7.VnD(), z2.VnD()),
                  "splice z7.d, p6, z7.d, z2.d");
 
-  COMPARE_MACRO(Splice(z0.VnB(), p1, z2.VnB(), z3.VnB()),
+  COMPARE_MACRO(Splice(z0.VnB(), p1, z2.VnB(), z4.VnB()),
                 "movprfx z0, z2\n"
-                "splice z0.b, p1, z0.b, z3.b");
+                "splice z0.b, p1, z0.b, z4.b");
   COMPARE_MACRO(Splice(z0.VnH(), p1, z2.VnH(), z0.VnH()),
                 "movprfx z31, z2\n"
                 "splice z31.h, p1, z31.h, z0.h\n"
@@ -8215,6 +8215,23 @@ TEST(sve2_int_compare_scalars) {
   CLEANUP();
 }
 
+TEST(sve2_splice) {
+  SETUP();
+
+  COMPARE_MACRO(Splice(z31.VnB(), p0, z21.VnB(), z22.VnB()),
+                "splice z31.b, p0, {z21.b, z22.b}");
+  COMPARE_MACRO(Splice(z31.VnD(), p0, z21.VnD(), z22.VnD()),
+                "splice z31.d, p0, {z21.d, z22.d}");
+  COMPARE_MACRO(Splice(z31.VnH(), p0, z21.VnH(), z22.VnH()),
+                "splice z31.h, p0, {z21.h, z22.h}");
+  COMPARE_MACRO(Splice(z31.VnS(), p0, z31.VnS(), z0.VnS()),
+                "splice z31.s, p0, z31.s, z0.s");
+  COMPARE_MACRO(Splice(z30.VnS(), p0, z31.VnS(), z0.VnS()),
+                "splice z30.s, p0, {z31.s, z0.s}");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8354,14 +8371,6 @@ TEST(sve2_all_instructions) {
   // COMPARE_PREFIX(smullt(z31.VnD(), z26, z5), "smullt z31.d, z26, z5");
   // COMPARE_PREFIX(smullt(z31.VnH(), z26, z5), "smullt z31.h, z26, z5");
   // COMPARE_PREFIX(smullt(z31.VnS(), z26, z5), "smullt z31.s, z26, z5");
-  // COMPARE_PREFIX(splice(z31.VnB(), p0, z21.VnB(), z22.VnB()), "splice
-  // <Zd>.<T>, <Pg>, { <Zn1>.<T>, <Zn2>.<T> }");
-  // COMPARE_PREFIX(splice(z31.VnD(), p0, z21.VnD(), z22.VnD()), "splice
-  // <Zd>.<T>, <Pg>, { <Zn1>.<T>, <Zn2>.<T> }");
-  // COMPARE_PREFIX(splice(z31.VnH(), p0, z21.VnH(), z22.VnH()), "splice
-  // <Zd>.<T>, <Pg>, { <Zn1>.<T>, <Zn2>.<T> }");
-  // COMPARE_PREFIX(splice(z31.VnS(), p0, z21.VnS(), z22.VnS()), "splice
-  // <Zd>.<T>, <Pg>, { <Zn1>.<T>, <Zn2>.<T> }");
   // COMPARE_PREFIX(sqdmlalb(z1.VnD(), z27.VnS()), "sqdmlalb z1.d, z27.s,
   // <Zm>.s[<imm>]");
   // COMPARE_PREFIX(sqdmlalb(z30.VnS(), z6.VnH()), "sqdmlalb z30.d, z6.s,
