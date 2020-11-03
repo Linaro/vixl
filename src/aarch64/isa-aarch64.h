@@ -87,7 +87,7 @@ inline int GetInterworkOffset(ISA isa) {
 class ISAMap {
  public:
   explicit ISAMap(ISA default_isa)
-      : default_isa_(default_isa), offset_(0), isas_(), cursor_(isas_.end()) {}
+      : default_isa_(default_isa), isas_(), cursor_(isas_.end()) {}
 
   // Set the ISA for a block starting at the specified offset, and ending at the
   // next `SetISAAt` (or the end of the buffer). The order in which ISA changes
@@ -160,7 +160,6 @@ class ISAMap {
   }
 
   ISA default_isa_;
-  ptrdiff_t offset_;
 
   // Map the offset at the start of each block to the ISA of the block.
   std::map<ptrdiff_t, ISA> isas_;
