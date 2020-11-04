@@ -15493,12 +15493,11 @@ static void TestFcvtzHelper(Test* config,
 }
 
 TEST_SVE(fcvtzs_fcvtzu_float16) {
-  const double h_max_float16 = kHMaxInt;        // Largest float16 == INT16_MAX.
+  const double h_max_float16 = 0x7ff0;          // Largest float16 == INT16_MAX.
   const double h_min_float16 = -h_max_float16;  // Smallest float16 > INT16_MIN.
   const double largest_float16 = 0xffe0;        // 65504
   const double smallest_float16 = -largest_float16;
-  const double h_max_int_sub_one = kHMaxInt - 1;
-  const double h_min_int_add_one = kHMinInt + 1;
+  const double h_max_int_add_one = 0x8000;
 
   double zn_inputs[] = {1.0,
                         1.1,
@@ -15510,26 +15509,15 @@ TEST_SVE(fcvtzs_fcvtzu_float16) {
                         smallest_float16,
                         kFP64PositiveInfinity,
                         kFP64NegativeInfinity,
-                        h_max_int_sub_one,
-                        h_min_int_add_one};
+                        h_max_int_add_one};
 
-  int pg_inputs[] = {0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0};
+  int pg_inputs[] = {0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1};
 
-  uint64_t expected_fcvtzs_fp162h[] = {1,
-                                       1,
-                                       1,
-                                       0xffff,
-                                       0x7fff,
-                                       0x8000,
-                                       0x7fff,
-                                       0x8000,
-                                       0x7fff,
-                                       0x8000,
-                                       0x7fff,
-                                       0x8000};
+  uint64_t expected_fcvtzs_fp162h[] =
+      {1, 1, 1, 0xffff, 0x7ff0, 0x8010, 0x7fff, 0x8000, 0x7fff, 0x8000, 0x7fff};
 
   uint64_t expected_fcvtzu_fp162h[] =
-      {1, 1, 1, 0, 0x8000, 0, 0xffe0, 0, 0xffff, 0, 0x8000, 0};
+      {1, 1, 1, 0, 0x7ff0, 0, 0xffe0, 0, 0xffff, 0, 0x8000};
 
   // Float16 to 16-bit integers.
   TestFcvtzHelper(config,
@@ -15552,17 +15540,16 @@ TEST_SVE(fcvtzs_fcvtzu_float16) {
                                        1,
                                        1,
                                        0xffffffff,
-                                       0x8000,
-                                       0xffff8000,
+                                       0x7ff0,
+                                       0xffff8010,
                                        0xffe0,
                                        0xffff0020,
                                        0x7fffffff,
                                        0x80000000,
-                                       0x8000,
-                                       0xffff8000};
+                                       0x8000};
 
   uint64_t expected_fcvtzu_fp162w[] =
-      {1, 1, 1, 0, 0x8000, 0, 0xffe0, 0, 0xffffffff, 0, 0x8000, 0};
+      {1, 1, 1, 0, 0x7ff0, 0, 0xffe0, 0, 0xffffffff, 0, 0x8000};
 
   // Float16 to 32-bit integers.
   TestFcvtzHelper(config,
@@ -15585,17 +15572,16 @@ TEST_SVE(fcvtzs_fcvtzu_float16) {
                                        1,
                                        1,
                                        0xffffffffffffffff,
-                                       0x8000,
-                                       0xffffffffffff8000,
+                                       0x7ff0,
+                                       0xffffffffffff8010,
                                        0xffe0,
                                        0xffffffffffff0020,
                                        0x7fffffffffffffff,
                                        0x8000000000000000,
-                                       0x8000,
-                                       0xffffffffffff8000};
+                                       0x8000};
 
   uint64_t expected_fcvtzu_fp162x[] =
-      {1, 1, 1, 0, 0x8000, 0, 0xffe0, 0, 0xffffffffffffffff, 0, 0x8000, 0};
+      {1, 1, 1, 0, 0x7ff0, 0, 0xffe0, 0, 0xffffffffffffffff, 0, 0x8000};
 
   // Float16 to 64-bit integers.
   TestFcvtzHelper(config,
@@ -15620,10 +15606,8 @@ TEST_SVE(fcvtzs_fcvtzu_float) {
   const double w_min_float = -w_max_float;        // Smallest float > INT32_MIN.
   const double x_max_float = 0x7fffff8000000000;  // Largest float < INT64_MAX.
   const double x_min_float = -x_max_float;        // Smallest float > INT64_MIN.
-  const double w_max_int_sub_one = kWMaxInt - 1;
-  const double w_min_int_add_one = kWMinInt + 1;
-  const double x_max_int_sub_one = kXMaxInt - 1;
-  const double x_min_int_add_one = kXMinInt + 1;
+  const double w_min_int_add_one = 0x80000000;
+  const double x_max_int_add_one = 0x80000000'00000000;
 
   double zn_inputs[] = {1.0,
                         1.1,
@@ -15635,12 +15619,10 @@ TEST_SVE(fcvtzs_fcvtzu_float) {
                         x_min_float,
                         kFP64PositiveInfinity,
                         kFP64NegativeInfinity,
-                        w_max_int_sub_one,
                         w_min_int_add_one,
-                        x_max_int_sub_one,
-                        x_min_int_add_one};
+                        x_max_int_add_one};
 
-  int pg_inputs[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0, 0};
+  int pg_inputs[] = {0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1};
 
   uint64_t expected_fcvtzs_s2w[] = {1,
                                     1,
@@ -15653,9 +15635,7 @@ TEST_SVE(fcvtzs_fcvtzu_float) {
                                     0x7fffffff,
                                     0x80000000,
                                     0x7fffffff,
-                                    0x80000000,
-                                    0x7fffffff,
-                                    0x80000000};
+                                    0x7fffffff};
 
   uint64_t expected_fcvtzu_s2w[] = {1,
                                     1,
@@ -15668,9 +15648,7 @@ TEST_SVE(fcvtzs_fcvtzu_float) {
                                     0xffffffff,
                                     0,
                                     0x80000000,
-                                    0,
-                                    0xffffffff,
-                                    0};
+                                    0xffffffff};
 
   // Float to 32-bit integers.
   TestFcvtzHelper(config,
@@ -15700,9 +15678,7 @@ TEST_SVE(fcvtzs_fcvtzu_float) {
                                     0x7fffffffffffffff,
                                     0x8000000000000000,
                                     0x80000000,
-                                    0xffffffff80000000,
-                                    0x7fffffffffffffff,
-                                    0x8000000000000000};
+                                    0x7fffffffffffffff};
 
   uint64_t expected_fcvtzu_s2x[] = {1,
                                     1,
@@ -15714,10 +15690,8 @@ TEST_SVE(fcvtzs_fcvtzu_float) {
                                     0,
                                     0xffffffffffffffff,
                                     0,
-                                    0x0000000080000000,
-                                    0,
-                                    0x8000000000000000,
-                                    0};
+                                    0x80000000,
+                                    0x8000000000000000};
 
   // Float to 64-bit integers.
   TestFcvtzHelper(config,
@@ -15749,8 +15723,8 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
   const double x_min_double = -x_max_double;  // Smallest double > INT64_MIN.
   const double w_max_int_sub_one = kWMaxInt - 1;
   const double w_min_int_add_one = kWMinInt + 1;
-  const double x_max_int_sub_one = kXMaxInt - 1;
-  const double x_min_int_add_one = kXMinInt + 1;
+  const double w_max_int_add_one = 0x80000000;
+  const double x_max_int_add_one = 0x80000000'00000000;
 
   double zn_inputs[] = {1.0,
                         1.1,
@@ -15768,8 +15742,8 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
                         kFP64NegativeInfinity,
                         w_max_int_sub_one,
                         w_min_int_add_one,
-                        x_max_int_sub_one,
-                        x_min_int_add_one};
+                        w_max_int_add_one,
+                        x_max_int_add_one};
 
   int pg_inputs[] = {1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 0};
 
@@ -15790,7 +15764,7 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
                                     0x7ffffffe,
                                     0xffffffff80000001,
                                     0x7fffffff,
-                                    0xffffffff80000000};
+                                    0x7fffffff};
 
   uint64_t expected_fcvtzu_d2w[] = {1,
                                     1,
@@ -15808,8 +15782,8 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
                                     0,
                                     0x7ffffffe,
                                     0,
-                                    0xffffffff,
-                                    0};
+                                    0x80000000,
+                                    0xffffffff};
 
   // Double to 32-bit integers.
   TestFcvtzHelper(config,
@@ -15844,8 +15818,8 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
                                     0x8000000000000000,
                                     0x7ffffffe,
                                     0xffffffff80000001,
-                                    0x7fffffffffffffff,
-                                    0x8000000000000000};
+                                    0x80000000,
+                                    0x7fffffffffffffff};
 
   uint64_t expected_fcvtzu_d2x[] = {1,
                                     1,
@@ -15863,8 +15837,8 @@ TEST_SVE(fcvtzs_fcvtzu_double) {
                                     0,
                                     0x000000007ffffffe,
                                     0,
-                                    0x8000000000000000,
-                                    0};
+                                    0x80000000,
+                                    0x8000000000000000};
 
   // Double to 64-bit integers.
   TestFcvtzHelper(config,

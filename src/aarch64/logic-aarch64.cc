@@ -4711,11 +4711,20 @@ double Simulator::FPRoundInt(double value,
 
   double result = FPRoundIntCommon(value, round_mode);
 
+  // We want to compare `result > INT64_MAX` below, but INT64_MAX isn't exactly
+  // representable as a double, and is rounded to (INT64_MAX + 1) when
+  // converted. To avoid this, we compare `result >= int64_max_plus_one`
+  // instead; this is safe because `result` is known to be integral, and
+  // `int64_max_plus_one` is exactly representable as a double.
+  constexpr uint64_t int64_max_plus_one = static_cast<uint64_t>(INT64_MAX) + 1;
+  VIXL_STATIC_ASSERT(static_cast<uint64_t>(static_cast<double>(
+                         int64_max_plus_one)) == int64_max_plus_one);
+
   if (frint_mode == kFrintToInt32) {
     if ((result > INT32_MAX) || (result < INT32_MIN)) {
       return INT32_MIN;
     }
-  } else if ((result > INT64_MAX) || (result < INT64_MIN)) {
+  } else if ((result >= int64_max_plus_one) || (result < INT64_MIN)) {
     return INT64_MIN;
   }
 
