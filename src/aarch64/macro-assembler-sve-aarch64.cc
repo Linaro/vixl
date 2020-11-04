@@ -1770,6 +1770,28 @@ void MacroAssembler::Cdot(const ZRegister& zd,
                           const ZRegister& za,
                           const ZRegister& zn,
                           const ZRegister& zm,
+                          int index,
+                          int rot) {
+  // This doesn't handle zm when it's out of the range that can be encoded in
+  // instruction. The range depends on element size: z0-z7 for B, z0-15 for H.
+  if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, ztmp, za);
+      cdot(ztmp, zn, zm, index, rot);
+    }
+    Mov(zd, ztmp);
+  } else {
+    MovprfxHelperScope guard(this, zd, za);
+    cdot(zd, zn, zm, index, rot);
+  }
+}
+
+void MacroAssembler::Cdot(const ZRegister& zd,
+                          const ZRegister& za,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
                           int rot) {
   if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) {
     UseScratchRegisterScope temps(this);

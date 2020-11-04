@@ -8058,6 +8058,47 @@ TEST(sve2_cdot) {
                 "movprfx z0, z1\n"
                 "cdot z0.s, z31.b, z31.b, #0");
 
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 0, 0),
+                "cdot z18.s, z26.b, z7.b[0], #0");
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 1, 0),
+                "cdot z18.s, z26.b, z7.b[1], #0");
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 2, 0),
+                "cdot z18.s, z26.b, z7.b[2], #0");
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 3, 0),
+                "cdot z18.s, z26.b, z7.b[3], #0");
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 2, 90),
+                "cdot z18.s, z26.b, z7.b[2], #90");
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 2, 180),
+                "cdot z18.s, z26.b, z7.b[2], #180");
+  COMPARE_MACRO(Cdot(z18.VnS(), z18.VnS(), z26.VnB(), z7.VnB(), 2, 270),
+                "cdot z18.s, z26.b, z7.b[2], #270");
+  COMPARE_MACRO(Cdot(z5.VnD(), z5.VnD(), z7.VnH(), z1.VnH(), 0, 0),
+                "cdot z5.d, z7.h, z1.h[0], #0");
+  COMPARE_MACRO(Cdot(z5.VnD(), z5.VnD(), z7.VnH(), z1.VnH(), 1, 0),
+                "cdot z5.d, z7.h, z1.h[1], #0");
+  COMPARE_MACRO(Cdot(z5.VnD(), z5.VnD(), z7.VnH(), z1.VnH(), 1, 90),
+                "cdot z5.d, z7.h, z1.h[1], #90");
+  COMPARE_MACRO(Cdot(z5.VnD(), z5.VnD(), z7.VnH(), z1.VnH(), 1, 180),
+                "cdot z5.d, z7.h, z1.h[1], #180");
+  COMPARE_MACRO(Cdot(z5.VnD(), z5.VnD(), z7.VnH(), z1.VnH(), 1, 270),
+                "cdot z5.d, z7.h, z1.h[1], #270");
+
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z2.VnB(), z3.VnB(), 0, 0),
+                "movprfx z0, z1\n"
+                "cdot z0.s, z2.b, z3.b[0], #0");
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z0.VnB(), z3.VnB(), 1, 90),
+                "movprfx z31, z1\n"
+                "cdot z31.s, z0.b, z3.b[1], #90\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z2.VnB(), z0.VnB(), 2, 180),
+                "movprfx z31, z1\n"
+                "cdot z31.s, z2.b, z0.b[2], #180\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Cdot(z0.VnS(), z1.VnS(), z0.VnB(), z0.VnB(), 3, 270),
+                "movprfx z31, z1\n"
+                "cdot z31.s, z0.b, z0.b[3], #270\n"
+                "mov z0.d, z31.d");
+
   CLEANUP();
 }
 
@@ -8178,10 +8219,6 @@ TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
 
-  // COMPARE_PREFIX(cdot(z18.VnS(), z26.VnB()), "cdot z18.d, z26.h,
-  // <Zm>.h[<imm>], <const>");
-  // COMPARE_PREFIX(cdot(z5.VnD(), z7.VnH()), "cdot z5.d, z7.h, <Zm>.h[<imm>],
-  // <const>");
   // COMPARE_PREFIX(cmla(z17.VnS(), z29.VnS()), "cmla z17.h, z29.h,
   // <Zm>.h[<imm>], <const>");
   // COMPARE_PREFIX(cmla(z18.VnH(), z22.VnH()), "cmla z18.h, z22.h,

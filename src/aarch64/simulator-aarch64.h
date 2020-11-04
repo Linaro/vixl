@@ -1187,11 +1187,9 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdT_ZnT_ZmTb(const Instruction* instr);
   void Simulate_ZdT_ZnT_const(const Instruction* instr);
   void Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr);
-  void Simulate_ZdaD_ZnH_ZmH_imm_const(const Instruction* instr);
   void Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr);
   void Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr);
   void Simulate_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr);
-  void Simulate_ZdaS_ZnB_ZmB_imm_const(const Instruction* instr);
   void Simulate_ZdaS_ZnH_ZmH(const Instruction* instr);
   void Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr);
   void Simulate_ZdaS_ZnS_ZmS_imm(const Instruction* instr);
@@ -1201,7 +1199,6 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdaT_ZnT_ZmT_const(const Instruction* instr);
   void Simulate_ZdaT_ZnT_const(const Instruction* instr);
   void Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr);
-  void Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr);
   void Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr);
   void Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr);
   void Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr);
@@ -1222,6 +1219,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVESaturatingIntMulLongIdx(const Instruction* instr);
   void SimulateSVEExclusiveOrRotate(const Instruction* instr);
   void SimulateSVEBitwiseTernary(const Instruction* instr);
+  void SimulateSVEComplexDotProduct(const Instruction* instr);
 
   // Integer register accessors.
 

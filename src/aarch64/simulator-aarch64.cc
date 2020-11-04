@@ -82,9 +82,9 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"bsl2n_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"bsl_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"cadd_z_zz", &Simulator::Simulate_ZdnT_ZdnT_ZmT_const},
-    {"cdot_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb_const},
-    {"cdot_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnH_ZmH_imm_const},
-    {"cdot_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnB_ZmB_imm_const},
+    {"cdot_z_zzz", &Simulator::SimulateSVEComplexDotProduct},
+    {"cdot_z_zzzi_d", &Simulator::SimulateSVEComplexDotProduct},
+    {"cdot_z_zzzi_s", &Simulator::SimulateSVEComplexDotProduct},
     {"cmla_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
     {"cmla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
     {"cmla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
@@ -2723,21 +2723,6 @@ void Simulator::Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaD_ZnH_ZmH_imm_const(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("cdot_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
   SimVRegister& zda = ReadVRegister(instr->GetRd());
   USE(zda);
@@ -2821,21 +2806,6 @@ void Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqrdcmlah_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
-void Simulator::Simulate_ZdaS_ZnB_ZmB_imm_const(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("cdot_z_zzzi_s"):
       VIXL_UNIMPLEMENTED();
       break;
     default:
@@ -3150,20 +3120,34 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaT_ZnTb_ZmTb_const(const Instruction* instr) {
+void Simulator::SimulateSVEComplexDotProduct(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  SimVRegister& zm = ReadVRegister(instr->GetRm());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   int rot = instr->ExtractBits(11, 10) * 90;
+  unsigned zm_code = instr->GetRm();
+  int index = -1;
 
   switch (form_hash_) {
     case Hash("cdot_z_zzz"):
-      cdot(vform, zda, zda, zn, zm, rot);
+      // Nothing to do.
+      break;
+    case Hash("cdot_z_zzzi_s"):
+      index = zm_code >> 3;
+      zm_code &= 0x7;
+      break;
+    case Hash("cdot_z_zzzi_d"):
+      index = zm_code >> 4;
+      zm_code &= 0xf;
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+
+  SimVRegister temp;
+  SimVRegister& zm = ReadVRegister(zm_code);
+  if (index >= 0) dup_elements_to_segments(vform, temp, zm, index);
+  cdot(vform, zda, zda, zn, (index >= 0) ? temp : zm, rot);
 }
 
 void Simulator::SimulateSVEBitwiseTernary(const Instruction* instr) {

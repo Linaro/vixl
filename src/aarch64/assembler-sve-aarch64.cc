@@ -6793,17 +6793,36 @@ void Assembler::cadd(const ZRegister& zd,
   Emit(0x4500d800 | rotate_bit | SVESize(zd) | Rd(zd) | Rn(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  cdot_z_zzzi_d
-//  cdot_z_zzzi_s
-void Assembler::cdot(const ZRegister& zda, const ZRegister& zn) {
+void Assembler::cdot(const ZRegister& zda,
+                     const ZRegister& zn,
+                     const ZRegister& zm,
+                     int index,
+                     int rot) {
   // CDOT <Zda>.D, <Zn>.H, <Zm>.H[<imm>], <const>
   //  0100 0100 111. .... 0100 .... .... ....
   //  size<23:22> | opc<20:16> | rot<11:10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.IsLaneSizeS() || zda.IsLaneSizeD());
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
+  VIXL_ASSERT(index >= 0);
 
-  Emit(0x44e04000 | Rd(zda) | Rn(zn));
+  Instr zm_and_idx = 0;
+  if (zm.IsLaneSizeB()) {
+    // Zm<18:16> | i2<20:19>
+    VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 3));
+    zm_and_idx = (index << 19) | Rx<18, 16>(zm);
+  } else {
+    // Zm<19:16> | i1<20>
+    VIXL_ASSERT(zm.IsLaneSizeH());
+    VIXL_ASSERT((zm.GetCode() <= 15) && (index <= 1));
+    zm_and_idx = (index << 20) | Rx<19, 16>(zm);
+  }
+
+  Instr rotate_bits = (rot / 90) << 10;
+  Emit(0x44a04000 | zm_and_idx | rotate_bits | SVESize(zda) | Rd(zda) | Rn(zn));
 }
 
 void Assembler::cdot(const ZRegister& zda,
@@ -6821,7 +6840,6 @@ void Assembler::cdot(const ZRegister& zda,
   VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 4));
 
   Instr rotate_bits = (rot / 90) << 10;
-
   Emit(0x44001000 | rotate_bits | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
