@@ -131,7 +131,7 @@ const uint32_t kExpected_frint64x_s[] = {
   0xdf000000,
   0xdeffffff,
   0x5effffff,
-  0x5f000000,
+  0xdf000000,
   0xdf000000,
   0xdf000000,
   0xcf000001,
