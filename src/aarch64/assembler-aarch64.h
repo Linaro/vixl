@@ -6015,7 +6015,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void mls(const ZRegister& zda, const ZRegister& zn);
 
   // Multiply (indexed).
-  void mul(const ZRegister& zd, const ZRegister& zn);
+  void mul(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int index);
 
   // Multiply vectors (unpredicated).
   void mul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -7659,12 +7662,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                                     Instr encoded_imm,
                                     Instr op);
 
-  Instr SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
-                            const ZRegister& zm,
-                            int index,
-                            Instr op_h,
-                            Instr op_s,
-                            Instr op_d);
+  Instr SVEMulIndexHelper(unsigned lane_size_in_bytes_log2,
+                          const ZRegister& zm,
+                          int index,
+                          Instr op_h,
+                          Instr op_s,
+                          Instr op_d);
 
 
   void SVEContiguousPrefetchScalarPlusScalarHelper(PrefetchOperation prfop,

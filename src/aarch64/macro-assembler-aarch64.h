@@ -6607,10 +6607,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     mls(zda, zn);
   }
-  void Mul(const ZRegister& zd, const ZRegister& zn) {
+  void Mul(const ZRegister& zd,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    mul(zd, zn);
+    mul(zd, zn, zm, index);
   }
   void Mul(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);

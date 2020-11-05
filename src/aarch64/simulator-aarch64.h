@@ -1219,6 +1219,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEExclusiveOrRotate(const Instruction* instr);
   void SimulateSVEBitwiseTernary(const Instruction* instr);
   void SimulateSVEComplexDotProduct(const Instruction* instr);
+  void SimulateSVEMulIndex(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3375,6 +3376,10 @@ class Simulator : public DecoderVisitor {
                                           LogicVRegister dst,
                                           const LogicVRegister& src,
                                           int src_index);
+  LogicVRegister dup_elements_to_segments(
+      VectorFormat vform,
+      LogicVRegister dst,
+      const std::pair<int, int>& src_and_index);
   LogicVRegister dup_immediate(VectorFormat vform,
                                LogicVRegister dst,
                                uint64_t imm);

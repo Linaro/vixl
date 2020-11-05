@@ -8243,6 +8243,29 @@ TEST(sve2_splice) {
   CLEANUP();
 }
 
+TEST(sve2_mul_index) {
+  SETUP();
+
+  COMPARE_MACRO(Mul(z18.VnH(), z5.VnH(), z7.VnH(), 0),
+                "mul z18.h, z5.h, z7.h[0]");
+  COMPARE_MACRO(Mul(z18.VnH(), z5.VnH(), z2.VnH(), 2),
+                "mul z18.h, z5.h, z2.h[2]");
+  COMPARE_MACRO(Mul(z18.VnH(), z5.VnH(), z2.VnH(), 6),
+                "mul z18.h, z5.h, z2.h[6]");
+  COMPARE_MACRO(Mul(z18.VnH(), z5.VnH(), z2.VnH(), 7),
+                "mul z18.h, z5.h, z2.h[7]");
+  COMPARE_MACRO(Mul(z8.VnS(), z15.VnS(), z7.VnS(), 0),
+                "mul z8.s, z15.s, z7.s[0]");
+  COMPARE_MACRO(Mul(z8.VnS(), z15.VnS(), z0.VnS(), 3),
+                "mul z8.s, z15.s, z0.s[3]");
+  COMPARE_MACRO(Mul(z8.VnD(), z15.VnD(), z15.VnD(), 0),
+                "mul z8.d, z15.d, z15.d[0]");
+  COMPARE_MACRO(Mul(z8.VnD(), z15.VnD(), z0.VnD(), 1),
+                "mul z8.d, z15.d, z0.d[1]");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8335,7 +8358,6 @@ TEST(sve2_all_instructions) {
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mul(z14.VnD(), z26.VnD()), "mul z14.d, z26.d,
   // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mul(z18.VnS(), z5.VnS()), "mul z18.d, z5.d, <Zm>.d[<imm>]");
   // COMPARE_PREFIX(pmullb(z12.Vn?(), z21, z12), "pmullb <Zd>.<T>, <Zn>.<Tb>,
   // <Zm>.<Tb>");
   // COMPARE_PREFIX(pmullt(z31.Vn?(), z30, z26), "pmullt <Zd>.<T>, <Zn>.<Tb>,

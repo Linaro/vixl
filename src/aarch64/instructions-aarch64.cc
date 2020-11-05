@@ -610,6 +610,33 @@ std::pair<int, int> Instruction::GetSVEPermuteIndexAndLaneSizeLog2() const {
   return std::make_pair(index, lane_size_in_byte_log_2);
 }
 
+// Get the register and index for SVE indexed multiplies encoded in the forms:
+//  .h : Zm = <18:16>, index = <22><20:19>
+//  .s : Zm = <18:16>, index = <20:19>
+//  .d : Zm = <19:16>, index = <20>
+std::pair<int, int> Instruction::GetSVEMulZmAndIndex() const {
+  int reg_code = GetRmLow16();
+  int index = ExtractBits(20, 19);
+
+  // For .h, index uses bit zero of the size field, so kFormatVnB below implies
+  // half-word lane, with most-significant bit of the index zero.
+  switch (GetSVEVectorFormat()) {
+    case kFormatVnD:
+      index >>= 1;  // Only bit 20 in the index for D lanes.
+      break;
+    case kFormatVnH:
+      index += 4;  // Bit 22 is the top bit of index.
+      VIXL_FALLTHROUGH();
+    case kFormatVnB:
+    case kFormatVnS:
+      reg_code &= 7;  // Three bits used for the register.
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  return std::make_pair(reg_code, index);
+}
 
 // Logical immediates can't encode zero, so a return value of zero is used to
 // indicate a failure case. Specifically, where the constraints on imm_s are

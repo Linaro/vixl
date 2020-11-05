@@ -3087,6 +3087,16 @@ LogicVRegister Simulator::dup_elements_to_segments(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::dup_elements_to_segments(
+    VectorFormat vform,
+    LogicVRegister dst,
+    const std::pair<int, int>& src_and_index) {
+  return dup_elements_to_segments(vform,
+                                  dst,
+                                  ReadVRegister(src_and_index.first),
+                                  src_and_index.second);
+}
+
 LogicVRegister Simulator::dup_immediate(VectorFormat vform,
                                         LogicVRegister dst,
                                         uint64_t imm) {

@@ -1536,12 +1536,12 @@ void Assembler::fnmsb(const ZRegister& zdn,
   Emit(FNMSB_z_p_zzz | SVESize(zdn) | Rd(zdn) | PgLow8(pg) | Rn(zm) | Rm(za));
 }
 
-Instr Assembler::SVEFPMulIndexHelper(unsigned lane_size_in_bytes_log2,
-                                     const ZRegister& zm,
-                                     int index,
-                                     Instr op_h,
-                                     Instr op_s,
-                                     Instr op_d) {
+Instr Assembler::SVEMulIndexHelper(unsigned lane_size_in_bytes_log2,
+                                   const ZRegister& zm,
+                                   int index,
+                                   Instr op_h,
+                                   Instr op_s,
+                                   Instr op_d) {
   Instr size = lane_size_in_bytes_log2 << SVESize_offset;
   Instr zm_with_index = Rm(zm);
   Instr op = 0xffffffff;
@@ -1590,12 +1590,12 @@ void Assembler::fmla(const ZRegister& zda,
 
   // The encoding of opcode, index, Zm, and size are synthesized in this
   // variable.
-  Instr synthesized_op = SVEFPMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
-                                             zm,
-                                             index,
-                                             FMLA_z_zzzi_h,
-                                             FMLA_z_zzzi_s,
-                                             FMLA_z_zzzi_d);
+  Instr synthesized_op = SVEMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           FMLA_z_zzzi_h,
+                                           FMLA_z_zzzi_s,
+                                           FMLA_z_zzzi_d);
 
   Emit(synthesized_op | Rd(zda) | Rn(zn));
 }
@@ -1609,12 +1609,12 @@ void Assembler::fmls(const ZRegister& zda,
 
   // The encoding of opcode, index, Zm, and size are synthesized in this
   // variable.
-  Instr synthesized_op = SVEFPMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
-                                             zm,
-                                             index,
-                                             FMLS_z_zzzi_h,
-                                             FMLS_z_zzzi_s,
-                                             FMLS_z_zzzi_d);
+  Instr synthesized_op = SVEMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           FMLS_z_zzzi_h,
+                                           FMLS_z_zzzi_s,
+                                           FMLS_z_zzzi_d);
 
   Emit(synthesized_op | Rd(zda) | Rn(zn));
 }
@@ -1635,12 +1635,12 @@ void Assembler::fmul(const ZRegister& zd,
 
   // The encoding of opcode, index, Zm, and size are synthesized in this
   // variable.
-  Instr synthesized_op = SVEFPMulIndexHelper(zd.GetLaneSizeInBytesLog2(),
-                                             zm,
-                                             index,
-                                             FMUL_z_zzi_h,
-                                             FMUL_z_zzi_s,
-                                             FMUL_z_zzi_d);
+  Instr synthesized_op = SVEMulIndexHelper(zd.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           FMUL_z_zzi_h,
+                                           FMUL_z_zzi_s,
+                                           FMUL_z_zzi_d);
 
   Emit(synthesized_op | Rd(zd) | Rn(zn));
 }
@@ -7230,18 +7230,25 @@ void Assembler::mls(const ZRegister& zda, const ZRegister& zn) {
   Emit(0x44e00c00 | Rd(zda) | Rn(zn));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  mul_z_zzi_d
-//  mul_z_zzi_h
-//  mul_z_zzi_s
-void Assembler::mul(const ZRegister& zd, const ZRegister& zn) {
+void Assembler::mul(const ZRegister& zd,
+                    const ZRegister& zn,
+                    const ZRegister& zm,
+                    int index) {
   // MUL <Zd>.D, <Zn>.D, <Zm>.D[<imm>]
   //  0100 0100 111. .... 1111 10.. .... ....
   //  size<23:22> | opc<20:16> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(0x44e0f800 | Rd(zd) | Rn(zn));
+  Instr synthesised_op = SVEMulIndexHelper(zd.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           0x4420f800,
+                                           0x44a0f800,
+                                           0x44e0f800);
+
+  Emit(synthesised_op | Rd(zd) | Rn(zn));
 }
 
 void Assembler::mul(const ZRegister& zd,
