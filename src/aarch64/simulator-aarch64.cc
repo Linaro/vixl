@@ -85,7 +85,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"cdot_z_zzz", &Simulator::SimulateSVEComplexDotProduct},
     {"cdot_z_zzzi_d", &Simulator::SimulateSVEComplexDotProduct},
     {"cdot_z_zzzi_s", &Simulator::SimulateSVEComplexDotProduct},
-    {"cmla_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
+    {"cmla_z_zzz", &Simulator::SimulateSVEComplexIntMulAdd},
     {"cmla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
     {"cmla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
     {"eor3_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
@@ -217,7 +217,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqdmullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"sqdmullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"sqneg_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
-    {"sqrdcmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT_const},
+    {"sqrdcmlah_z_zzz", &Simulator::SimulateSVEComplexIntMulAdd},
     {"sqrdcmlah_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
     {"sqrdcmlah_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
     {"sqrdmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
@@ -3057,20 +3057,19 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaT_ZnT_ZmT_const(const Instruction* instr) {
+void Simulator::SimulateSVEComplexIntMulAdd(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  int rot = instr->ExtractBits(11, 10) * 90;
 
   switch (form_hash_) {
     case Hash("cmla_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      cmla(vform, zda, zda, zn, zm, rot);
       break;
     case Hash("sqrdcmlah_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqrdcmlah(vform, zda, zda, zn, zm, rot);
       break;
     default:
       VIXL_UNIMPLEMENTED();

@@ -6446,11 +6446,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     cmla(zda, zn);
   }
-  void Cmla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmla(zda, zn, zm);
-  }
+  void Cmla(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int rot);
   void Eor3(const ZRegister& zd,
             const ZRegister& zn,
             const ZRegister& zm,
@@ -6942,13 +6942,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqrdcmlah(zda, zn);
   }
-  void Sqrdcmlah(const ZRegister& zda,
+  void Sqrdcmlah(const ZRegister& zd,
+                 const ZRegister& za,
                  const ZRegister& zn,
-                 const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqrdcmlah(zda, zn, zm);
-  }
+                 const ZRegister& zm,
+                 int rot);
   void Sqrdmlah(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

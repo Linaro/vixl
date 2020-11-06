@@ -5900,7 +5900,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void cmla(const ZRegister& zda, const ZRegister& zn);
 
   // Complex integer multiply-add with rotate.
-  void cmla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+  void cmla(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int rot);
 
   // Bitwise exclusive OR of three vectors.
   void eor3(const ZRegister& zd,
@@ -6277,7 +6280,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   // rotate.
   void sqrdcmlah(const ZRegister& zda,
                  const ZRegister& zn,
-                 const ZRegister& zm);
+                 const ZRegister& zm,
+                 int rot);
 
   // Signed saturating rounding doubling multiply-add high to accumulator
   // (indexed).

@@ -6879,15 +6879,18 @@ void Assembler::cmla(const ZRegister& zda, const ZRegister& zn) {
 
 void Assembler::cmla(const ZRegister& zda,
                      const ZRegister& zn,
-                     const ZRegister& zm) {
+                     const ZRegister& zm,
+                     int rot) {
   // CMLA <Zda>.<T>, <Zn>.<T>, <Zm>.<T>, <const>
   //  0100 0100 ..0. .... 0010 .... .... ....
   //  size<23:22> | Zm<20:16> | op<12> | rot<11:10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
 
-  Emit(0x44002000 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr rotate_bit = (rot / 90) << 10;
+  Emit(0x44002000 | rotate_bit | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 void Assembler::eor3(const ZRegister& zd,
@@ -8253,15 +8256,18 @@ void Assembler::sqrdcmlah(const ZRegister& zda, const ZRegister& zn) {
 
 void Assembler::sqrdcmlah(const ZRegister& zda,
                           const ZRegister& zn,
-                          const ZRegister& zm) {
+                          const ZRegister& zm,
+                          int rot) {
   // SQRDCMLAH <Zda>.<T>, <Zn>.<T>, <Zm>.<T>, <const>
   //  0100 0100 ..0. .... 0011 .... .... ....
   //  size<23:22> | Zm<20:16> | op<12> | rot<11:10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
 
-  Emit(0x44003000 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
+  Instr rotate_bit = (rot / 90) << 10;
+  Emit(0x44003000 | rotate_bit | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
 // This prototype maps to 3 instruction encodings:

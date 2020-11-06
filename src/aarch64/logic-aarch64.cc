@@ -2956,6 +2956,52 @@ LogicVRegister Simulator::cadd(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::cmla(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& srca,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               int rot) {
+  SimVRegister src1_a, src1_b;
+  SimVRegister src2_a, src2_b;
+  SimVRegister srca_i, srca_r;
+  SimVRegister zero, temp;
+  zero.Clear();
+
+  if ((rot == 0) || (rot == 180)) {
+    uzp1(vform, src1_a, src1, zero);
+    uzp1(vform, src2_a, src2, zero);
+    uzp2(vform, src2_b, src2, zero);
+  } else {
+    uzp2(vform, src1_a, src1, zero);
+    uzp2(vform, src2_a, src2, zero);
+    uzp1(vform, src2_b, src2, zero);
+  }
+
+  uzp1(vform, srca_r, srca, zero);
+  uzp2(vform, srca_i, srca, zero);
+
+  bool sub_r = (rot == 90) || (rot == 270);
+  bool sub_i = (rot == 180) || (rot == 270);
+
+  mul(vform, temp, src1_a, src2_a);
+  if (sub_r) {
+    sub(vform, srca_r, srca_r, temp);
+  } else {
+    add(vform, srca_r, srca_r, temp);
+  }
+
+  mul(vform, temp, src1_a, src2_b);
+  if (sub_i) {
+    sub(vform, srca_i, srca_i, temp);
+  } else {
+    add(vform, srca_i, srca_i, temp);
+  }
+
+  zip1(vform, dst, srca_r, srca_i);
+  return dst;
+}
+
 LogicVRegister Simulator::bgrp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
@@ -4211,6 +4257,41 @@ LogicVRegister Simulator::cdot(VectorFormat vform,
     }
     dst.SetInt(vform, i, result);
   }
+  return dst;
+}
+
+LogicVRegister Simulator::sqrdcmlah(VectorFormat vform,
+                                    LogicVRegister dst,
+                                    const LogicVRegister& srca,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2,
+                                    int rot) {
+  SimVRegister src1_a, src1_b;
+  SimVRegister src2_a, src2_b;
+  SimVRegister srca_i, srca_r;
+  SimVRegister zero, temp;
+  zero.Clear();
+
+  if ((rot == 0) || (rot == 180)) {
+    uzp1(vform, src1_a, src1, zero);
+    uzp1(vform, src2_a, src2, zero);
+    uzp2(vform, src2_b, src2, zero);
+  } else {
+    uzp2(vform, src1_a, src1, zero);
+    uzp2(vform, src2_a, src2, zero);
+    uzp1(vform, src2_b, src2, zero);
+  }
+
+  uzp1(vform, srca_r, srca, zero);
+  uzp2(vform, srca_i, srca, zero);
+
+  bool sub_r = (rot == 90) || (rot == 270);
+  bool sub_i = (rot == 180) || (rot == 270);
+
+  const bool round = true;
+  sqrdmlash(vform, srca_r, src1_a, src2_a, round, sub_r);
+  sqrdmlash(vform, srca_i, src1_a, src2_b, round, sub_i);
+  zip1(vform, dst, srca_r, srca_i);
   return dst;
 }
 

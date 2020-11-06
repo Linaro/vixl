@@ -19111,5 +19111,122 @@ TEST_SVE(sve2_whilerw_whilewr_simple) {
   }
 }
 
+TEST_SVE(sve2_sqrdcmlah) {
+  int32_t zn_inputs[] = {-1, -2, -3, -4, 1, 2, 3, 4};
+  int32_t zm_inputs[] = {-1, -2, 3, 4, 1, 2, -3, -4};
+  int32_t za_inputs[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  int32_t zd_000_expected[] =
+      {1025, 2050, -6141, -8188, 1029, 2054, -6137, -8184};
+  int32_t zd_090_expected[] =
+      {1025, -510, -6141, 4612, 1029, -506, -6137, 4616};
+  int32_t zd_180_expected[] =
+      {-1023, 2050, 6147, -8188, -1019, 2054, 6151, -8184};
+  int32_t zd_270_expected[] =
+      {-1023, -510, 6147, 4612, -1019, -506, 6151, 4616};
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  InsrHelper(&masm, z0.VnS(), zn_inputs);
+  InsrHelper(&masm, z1.VnS(), zm_inputs);
+  InsrHelper(&masm, z31.VnS(), za_inputs);
+
+  // When the value in operands is small, shift left a random value so that it
+  // can affect the result in destination.
+  int shift = 20;
+  __ Lsl(z0.VnS(), z0.VnS(), shift);
+  __ Lsl(z1.VnS(), z1.VnS(), shift);
+
+  __ Mov(z10, z31);
+  __ Sqrdcmlah(z10.VnS(), z10.VnS(), z0.VnS(), z1.VnS(), 0);
+
+  __ Mov(z11, z31);
+  __ Sqrdcmlah(z11.VnS(), z11.VnS(), z0.VnS(), z1.VnS(), 90);
+
+  __ Mov(z12, z31);
+  __ Sqrdcmlah(z12.VnS(), z12.VnS(), z0.VnS(), z1.VnS(), 180);
+
+  __ Mov(z13, z31);
+  __ Sqrdcmlah(z13.VnS(), z13.VnS(), z0.VnS(), z1.VnS(), 270);
+
+  // TODO remove below comment once movprfx simulation is completed.
+  // With workaround the test has been checked locally.
+  // __ Sqrdcmlah(z14.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 0);
+  // __ Sqrdcmlah(z15.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 90);
+  // __ Sqrdcmlah(z16.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 180);
+  // __ Sqrdcmlah(z17.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 270);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zd_000_expected, z10.VnS());
+    ASSERT_EQUAL_SVE(zd_090_expected, z11.VnS());
+    ASSERT_EQUAL_SVE(zd_180_expected, z12.VnS());
+    ASSERT_EQUAL_SVE(zd_270_expected, z13.VnS());
+
+    // ASSERT_EQUAL_SVE(z14, z10);
+    // ASSERT_EQUAL_SVE(z15, z11);
+    // ASSERT_EQUAL_SVE(z16, z12);
+    // ASSERT_EQUAL_SVE(z17, z13);
+  }
+}
+
+TEST_SVE(sve2_cmla) {
+  int32_t zn_inputs_s[] = {-2, -4, -6, -8, 2, 4, 6, 8};
+  int32_t zm_inputs_s[] = {-2, -4, -6, -8, 2, 4, 6, 8};
+  int32_t zda_inputs_s[] = {1, 2, 3, 4, 5, 6, 7, 8};
+  int32_t zd_000_expected[] = {9, 18, 51, 68, 13, 22, 55, 72};
+  int32_t zd_090_expected[] = {9, -2, 51, -32, 13, 2, 55, -28};
+  int32_t zd_180_expected[] = {-7, 18, -45, 68, -3, 22, -41, 72};
+  int32_t zd_270_expected[] = {-7, -2, -45, -32, -3, 2, -41, -28};
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  InsrHelper(&masm, z31.VnS(), zn_inputs_s);
+  InsrHelper(&masm, z30.VnS(), zm_inputs_s);
+
+  InsrHelper(&masm, z0.VnS(), zda_inputs_s);
+  __ Mov(z29, z0);
+  __ Cmla(z0.VnS(), z0.VnS(), z31.VnS(), z30.VnS(), 0);
+
+  InsrHelper(&masm, z1.VnS(), zda_inputs_s);
+  __ Mov(z28, z1);
+  __ Cmla(z1.VnS(), z1.VnS(), z31.VnS(), z30.VnS(), 90);
+
+  InsrHelper(&masm, z2.VnS(), zda_inputs_s);
+  __ Mov(z27, z2);
+  __ Cmla(z2.VnS(), z2.VnS(), z31.VnS(), z30.VnS(), 180);
+
+  InsrHelper(&masm, z3.VnS(), zda_inputs_s);
+  __ Mov(z26, z3);
+  __ Cmla(z3.VnS(), z3.VnS(), z31.VnS(), z30.VnS(), 270);
+
+  // TODO remove below comment once movprfx simulation is completed.
+  // With workaround the test has been checked locally.
+  // __ Cmla(z4.VnS(), z29.VnS(), z31.VnS(), z30.VnS(), 0);
+  // __ Cmla(z5.VnS(), z28.VnS(), z31.VnS(), z30.VnS(), 90);
+  // __ Cmla(z6.VnS(), z27.VnS(), z31.VnS(), z30.VnS(), 180);
+  // __ Cmla(z7.VnS(), z26.VnS(), z31.VnS(), z30.VnS(), 270);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(zd_000_expected, z0.VnS());
+    ASSERT_EQUAL_SVE(zd_090_expected, z1.VnS());
+    ASSERT_EQUAL_SVE(zd_180_expected, z2.VnS());
+    ASSERT_EQUAL_SVE(zd_270_expected, z3.VnS());
+
+    // ASSERT_EQUAL_SVE(z4, z0);
+    // ASSERT_EQUAL_SVE(z5, z1);
+    // ASSERT_EQUAL_SVE(z6, z2);
+    // ASSERT_EQUAL_SVE(z7, z3);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

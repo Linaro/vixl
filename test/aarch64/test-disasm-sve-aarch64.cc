@@ -8409,6 +8409,47 @@ TEST(sve2_mla_long) {
   CLEANUP();
 }
 
+TEST(sve2_complex_integer_multiply_add) {
+  SETUP();
+
+  COMPARE_PREFIX(sqrdcmlah(z31.VnB(), z15.VnB(), z20.VnB(), 0),
+                 "sqrdcmlah z31.b, z15.b, z20.b, #0");
+  COMPARE_PREFIX(sqrdcmlah(z31.VnD(), z15.VnD(), z20.VnD(), 90),
+                 "sqrdcmlah z31.d, z15.d, z20.d, #90");
+  COMPARE_PREFIX(sqrdcmlah(z31.VnH(), z15.VnH(), z20.VnH(), 180),
+                 "sqrdcmlah z31.h, z15.h, z20.h, #180");
+  COMPARE_PREFIX(sqrdcmlah(z31.VnS(), z15.VnS(), z20.VnS(), 270),
+                 "sqrdcmlah z31.s, z15.s, z20.s, #270");
+
+  COMPARE_PREFIX(cmla(z19.VnB(), z7.VnB(), z2.VnB(), 0),
+                 "cmla z19.b, z7.b, z2.b, #0");
+  COMPARE_PREFIX(cmla(z19.VnD(), z7.VnD(), z2.VnD(), 90),
+                 "cmla z19.d, z7.d, z2.d, #90");
+  COMPARE_PREFIX(cmla(z19.VnH(), z7.VnH(), z2.VnH(), 180),
+                 "cmla z19.h, z7.h, z2.h, #180");
+  COMPARE_PREFIX(cmla(z19.VnS(), z7.VnS(), z2.VnS(), 270),
+                 "cmla z19.s, z7.s, z2.s, #270");
+
+  COMPARE_MACRO(Cmla(z0.VnB(), z1.VnB(), z0.VnB(), z3.VnB(), 0),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cmla z0.b, z31.b, z3.b, #0");
+  COMPARE_MACRO(Cmla(z0.VnH(), z1.VnH(), z2.VnH(), z0.VnH(), 90),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cmla z0.h, z2.h, z31.h, #90");
+  COMPARE_MACRO(Cmla(z0.VnS(), z1.VnS(), z0.VnS(), z0.VnS(), 180),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cmla z0.s, z31.s, z31.s, #180");
+  COMPARE_MACRO(Cmla(z0.VnD(), z1.VnD(), z2.VnD(), z0.VnD(), 270),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "cmla z0.d, z2.d, z31.d, #270");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();

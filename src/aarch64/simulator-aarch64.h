@@ -1195,7 +1195,6 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr);
   void Simulate_ZdaT_PgM_ZnTb(const Instruction* instr);
   void Simulate_ZdaT_ZnT_ZmT(const Instruction* instr);
-  void Simulate_ZdaT_ZnT_ZmT_const(const Instruction* instr);
   void Simulate_ZdaT_ZnT_const(const Instruction* instr);
   void Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr);
   void Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr);
@@ -1221,6 +1220,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEComplexDotProduct(const Instruction* instr);
   void SimulateSVEMulIndex(const Instruction* instr);
   void SimulateSVEMlaMlsIndex(const Instruction* instr);
+  void SimulateSVEComplexIntMulAdd(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3340,6 +3340,12 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src2,
                       int rot,
                       bool saturate = false);
+  LogicVRegister cmla(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& srca,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      int rot);
   LogicVRegister bgrp(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
@@ -3935,6 +3941,12 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src1,
                       const LogicVRegister& src2,
                       int rot);
+  LogicVRegister sqrdcmlah(VectorFormat vform,
+                           LogicVRegister dst,
+                           const LogicVRegister& srca,
+                           const LogicVRegister& src1,
+                           const LogicVRegister& src2,
+                           int rot);
   LogicVRegister sqrdmlash(VectorFormat vform,
                            LogicVRegister dst,
                            const LogicVRegister& src1,

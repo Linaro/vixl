@@ -562,6 +562,36 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
   }
 }
 
+// Instructions of the form "inst zda, zn, zm, #num", where they are
+// non-commutative and no reversed form is provided.
+#define VIXL_SVE_NONCOMM_ARITH_ZZZZI_LIST(V) \
+  V(Cmla, cmla)                              \
+  V(Sqrdcmlah, sqrdcmlah)
+
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                     \
+  void MacroAssembler::MASMFN(const ZRegister& zd,               \
+                              const ZRegister& za,               \
+                              const ZRegister& zn,               \
+                              const ZRegister& zm,               \
+                              int imm) {                         \
+    if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) { \
+      UseScratchRegisterScope temps(this);                       \
+      VIXL_ASSERT(AreSameLaneSize(zn, zm));                      \
+      ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zn);  \
+      Mov(ztmp, zd.Aliases(zn) ? zn : zm);                       \
+      MovprfxHelperScope guard(this, zd, za);                    \
+      ASMFN(zd,                                                  \
+            (zd.Aliases(zn) ? ztmp : zn),                        \
+            (zd.Aliases(zm) ? ztmp : zm),                        \
+            imm);                                                \
+    } else {                                                     \
+      MovprfxHelperScope guard(this, zd, za);                    \
+      ASMFN(zd, zn, zm, imm);                                    \
+    }                                                            \
+  }
+VIXL_SVE_NONCOMM_ARITH_ZZZZI_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
+
 // Instructions of the form "inst zda, pg, zda, zn", where they are
 // non-commutative and no reversed form is provided.
 #define VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(V) \
