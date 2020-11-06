@@ -127,12 +127,12 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"ldnt1w_z_p_ar_d_64_unscaled", &Simulator::Simulate_ZtD_PgZ_ZnD_Xm},
     {"ldnt1w_z_p_ar_s_x32_unscaled", &Simulator::Simulate_ZtS_PgZ_ZnS_Xm},
     {"match_p_p_zz", &Simulator::Simulate_PdT_PgZ_ZnT_ZmT},
-    {"mla_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
-    {"mla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
-    {"mla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
-    {"mls_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
-    {"mls_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
-    {"mls_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
+    {"mla_z_zzzi_d", &Simulator::SimulateSVEMlaMlsIndex},
+    {"mla_z_zzzi_h", &Simulator::SimulateSVEMlaMlsIndex},
+    {"mla_z_zzzi_s", &Simulator::SimulateSVEMlaMlsIndex},
+    {"mls_z_zzzi_d", &Simulator::SimulateSVEMlaMlsIndex},
+    {"mls_z_zzzi_h", &Simulator::SimulateSVEMlaMlsIndex},
+    {"mls_z_zzzi_s", &Simulator::SimulateSVEMlaMlsIndex},
     {"mul_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"mul_z_zzi_d", &Simulator::SimulateSVEMulIndex},
     {"mul_z_zzi_h", &Simulator::SimulateSVEMulIndex},
@@ -2014,6 +2014,32 @@ void Simulator::SimulateSVEMulIndex(const Instruction* instr) {
   SimVRegister temp;
   dup_elements_to_segments(vform, temp, instr->GetSVEMulZmAndIndex());
   mul(vform, zd, zn, temp);
+}
+
+void Simulator::SimulateSVEMlaMlsIndex(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zda = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+
+  // The encoding for B and H-sized lanes are redefined to encode the most
+  // significant bit of index for H-sized lanes. B-sized lanes are not
+  // supported.
+  if (vform == kFormatVnB) vform = kFormatVnH;
+
+  VIXL_ASSERT((form_hash_ == Hash("mla_z_zzzi_d")) ||
+              (form_hash_ == Hash("mla_z_zzzi_h")) ||
+              (form_hash_ == Hash("mla_z_zzzi_s")) ||
+              (form_hash_ == Hash("mls_z_zzzi_d")) ||
+              (form_hash_ == Hash("mls_z_zzzi_h")) ||
+              (form_hash_ == Hash("mls_z_zzzi_s")));
+
+  SimVRegister temp;
+  dup_elements_to_segments(vform, temp, instr->GetSVEMulZmAndIndex());
+  if (instr->ExtractBit(10) == 0) {
+    mla(vform, zda, zda, zn, temp);
+  } else {
+    mls(vform, zda, zda, zn, temp);
+  }
 }
 
 void Simulator::Simulate_ZdD_ZnD_ZmD_imm(const Instruction* instr) {

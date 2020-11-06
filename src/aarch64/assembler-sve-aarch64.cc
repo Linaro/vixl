@@ -7202,32 +7202,46 @@ void Assembler::match(const PRegisterWithLaneSize& pd,
   Emit(0x45208000 | SVESize(zm) | Pd(pd) | PgLow8(pg) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  mla_z_zzzi_d
-//  mla_z_zzzi_h
-//  mla_z_zzzi_s
-void Assembler::mla(const ZRegister& zda, const ZRegister& zn) {
+void Assembler::mla(const ZRegister& zda,
+                    const ZRegister& zn,
+                    const ZRegister& zm,
+                    int index) {
   // MLA <Zda>.D, <Zn>.D, <Zm>.D[<imm>]
   //  0100 0100 111. .... 0000 10.. .... ....
   //  size<23:22> | opc<20:16> | S<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
 
-  Emit(0x44e00800 | Rd(zda) | Rn(zn));
+  Instr synthesised_op = SVEMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           0x44200800,
+                                           0x44a00800,
+                                           0x44e00800);
+
+  Emit(synthesised_op | Rd(zda) | Rn(zn));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  mls_z_zzzi_d
-//  mls_z_zzzi_h
-//  mls_z_zzzi_s
-void Assembler::mls(const ZRegister& zda, const ZRegister& zn) {
+void Assembler::mls(const ZRegister& zda,
+                    const ZRegister& zn,
+                    const ZRegister& zm,
+                    int index) {
   // MLS <Zda>.D, <Zn>.D, <Zm>.D[<imm>]
   //  0100 0100 111. .... 0000 11.. .... ....
   //  size<23:22> | opc<20:16> | S<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
 
-  Emit(0x44e00c00 | Rd(zda) | Rn(zn));
+  Instr synthesised_op = SVEMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           0x44200c00,
+                                           0x44a00c00,
+                                           0x44e00c00);
+
+  Emit(synthesised_op | Rd(zda) | Rn(zn));
 }
 
 void Assembler::mul(const ZRegister& zd,

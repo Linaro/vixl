@@ -6009,10 +6009,16 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Multiply-add to accumulator (indexed).
-  void mla(const ZRegister& zda, const ZRegister& zn);
+  void mla(const ZRegister& zda,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int index);
 
   // Multiply-subtract from accumulator (indexed).
-  void mls(const ZRegister& zda, const ZRegister& zn);
+  void mls(const ZRegister& zda,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int index);
 
   // Multiply (indexed).
   void mul(const ZRegister& zd,

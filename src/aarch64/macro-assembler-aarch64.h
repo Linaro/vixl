@@ -6597,16 +6597,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     match(pd, pg, zn, zm);
   }
-  void Mla(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    mla(zda, zn);
-  }
-  void Mls(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    mls(zda, zn);
-  }
+  void Mla(const ZRegister& zd,
+           const ZRegister& za,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int index);
+  void Mls(const ZRegister& zd,
+           const ZRegister& za,
+           const ZRegister& zn,
+           const ZRegister& zm,
+           int index);
   void Mul(const ZRegister& zd,
            const ZRegister& zn,
            const ZRegister& zm,
@@ -8027,12 +8027,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                               const ZRegister& zm,
                                               int index);
 
-  void FPMulAddIndexHelper(SVEMulAddIndexFn fn,
-                           const ZRegister& zd,
-                           const ZRegister& za,
-                           const ZRegister& zn,
-                           const ZRegister& zm,
-                           int index);
+  void MulAddIndexHelper(SVEMulAddIndexFn fn,
+                         const ZRegister& zd,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index);
 
   void ShiftRightAccumulate(IntArithImmFn fn,
                             const ZRegister& zd,

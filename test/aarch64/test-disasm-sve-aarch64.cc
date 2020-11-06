@@ -8266,6 +8266,78 @@ TEST(sve2_mul_index) {
   CLEANUP();
 }
 
+TEST(sve2_mla_mls_index) {
+  SETUP();
+
+  COMPARE_MACRO(Mla(z1.VnH(), z1.VnH(), z9.VnH(), z0.VnH(), 0),
+                "mla z1.h, z9.h, z0.h[0]");
+  COMPARE_MACRO(Mla(z1.VnH(), z1.VnH(), z9.VnH(), z1.VnH(), 2),
+                "mla z1.h, z9.h, z1.h[2]");
+  COMPARE_MACRO(Mla(z1.VnH(), z1.VnH(), z9.VnH(), z2.VnH(), 6),
+                "mla z1.h, z9.h, z2.h[6]");
+  COMPARE_MACRO(Mla(z1.VnH(), z1.VnH(), z9.VnH(), z3.VnH(), 7),
+                "mla z1.h, z9.h, z3.h[7]");
+  COMPARE_MACRO(Mla(z10.VnS(), z10.VnS(), z22.VnS(), z7.VnS(), 0),
+                "mla z10.s, z22.s, z7.s[0]");
+  COMPARE_MACRO(Mla(z10.VnS(), z10.VnS(), z22.VnS(), z0.VnS(), 3),
+                "mla z10.s, z22.s, z0.s[3]");
+  COMPARE_MACRO(Mla(z4.VnD(), z4.VnD(), z0.VnD(), z15.VnD(), 0),
+                "mla z4.d, z0.d, z15.d[0]");
+  COMPARE_MACRO(Mla(z4.VnD(), z4.VnD(), z0.VnD(), z0.VnD(), 1),
+                "mla z4.d, z0.d, z0.d[1]");
+
+  COMPARE_MACRO(Mla(z4.VnH(), z5.VnH(), z0.VnH(), z1.VnH(), 0),
+                "movprfx z4, z5\n"
+                "mla z4.h, z0.h, z1.h[0]");
+  COMPARE_MACRO(Mla(z4.VnH(), z5.VnH(), z4.VnH(), z1.VnH(), 0),
+                "movprfx z31, z5\n"
+                "mla z31.h, z4.h, z1.h[0]\n"
+                "mov z4.d, z31.d");
+  COMPARE_MACRO(Mla(z4.VnH(), z5.VnH(), z0.VnH(), z4.VnH(), 0),
+                "movprfx z31, z5\n"
+                "mla z31.h, z0.h, z4.h[0]\n"
+                "mov z4.d, z31.d");
+  COMPARE_MACRO(Mla(z4.VnH(), z5.VnH(), z4.VnH(), z4.VnH(), 0),
+                "movprfx z31, z5\n"
+                "mla z31.h, z4.h, z4.h[0]\n"
+                "mov z4.d, z31.d");
+
+  COMPARE_MACRO(Mls(z1.VnH(), z1.VnH(), z9.VnH(), z0.VnH(), 0),
+                "mls z1.h, z9.h, z0.h[0]");
+  COMPARE_MACRO(Mls(z1.VnH(), z1.VnH(), z9.VnH(), z1.VnH(), 2),
+                "mls z1.h, z9.h, z1.h[2]");
+  COMPARE_MACRO(Mls(z1.VnH(), z1.VnH(), z9.VnH(), z2.VnH(), 6),
+                "mls z1.h, z9.h, z2.h[6]");
+  COMPARE_MACRO(Mls(z1.VnH(), z1.VnH(), z9.VnH(), z3.VnH(), 7),
+                "mls z1.h, z9.h, z3.h[7]");
+  COMPARE_MACRO(Mls(z10.VnS(), z10.VnS(), z22.VnS(), z7.VnS(), 0),
+                "mls z10.s, z22.s, z7.s[0]");
+  COMPARE_MACRO(Mls(z10.VnS(), z10.VnS(), z22.VnS(), z0.VnS(), 3),
+                "mls z10.s, z22.s, z0.s[3]");
+  COMPARE_MACRO(Mls(z4.VnD(), z4.VnD(), z0.VnD(), z15.VnD(), 0),
+                "mls z4.d, z0.d, z15.d[0]");
+  COMPARE_MACRO(Mls(z4.VnD(), z4.VnD(), z0.VnD(), z0.VnD(), 1),
+                "mls z4.d, z0.d, z0.d[1]");
+
+  COMPARE_MACRO(Mls(z4.VnS(), z5.VnS(), z0.VnS(), z1.VnS(), 0),
+                "movprfx z4, z5\n"
+                "mls z4.s, z0.s, z1.s[0]");
+  COMPARE_MACRO(Mls(z4.VnS(), z5.VnS(), z4.VnS(), z1.VnS(), 0),
+                "movprfx z31, z5\n"
+                "mls z31.s, z4.s, z1.s[0]\n"
+                "mov z4.d, z31.d");
+  COMPARE_MACRO(Mls(z4.VnS(), z5.VnS(), z0.VnS(), z4.VnS(), 0),
+                "movprfx z31, z5\n"
+                "mls z31.s, z0.s, z4.s[0]\n"
+                "mov z4.d, z31.d");
+  COMPARE_MACRO(Mls(z4.VnS(), z5.VnS(), z4.VnS(), z4.VnS(), 0),
+                "movprfx z31, z5\n"
+                "mls z31.s, z4.s, z4.s[0]\n"
+                "mov z4.d, z31.d");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8344,16 +8416,6 @@ TEST(sve2_all_instructions) {
   // z14.h");
   // COMPARE_PREFIX(fmlslt(z5.VnS(), z1.VnH(), z7.VnH()), "fmlslt z5.s, z1.h,
   // z7.h");
-  // COMPARE_PREFIX(mla(z1.VnH(), z9.VnH()), "mla z1.d, z9.d, <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mla(z10.VnS(), z22.VnS()), "mla z10.d, z22.d,
-  // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mla(z4.VnD(), z0.VnD()), "mla z4.d, z0.d, <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mls(z21.VnH(), z15.VnH()), "mls z21.d, z15.d,
-  // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mls(z21.VnS(), z21.VnS()), "mls z21.d, z21.d,
-  // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mls(z25.VnD(), z23.VnD()), "mls z25.d, z23.d,
-  // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mul(z13.VnH(), z14.VnH()), "mul z13.d, z14.d,
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mul(z14.VnD(), z26.VnD()), "mul z14.d, z26.d,

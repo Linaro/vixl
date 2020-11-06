@@ -1858,12 +1858,12 @@ void MacroAssembler::FPMulAddHelper(const ZRegister& zd,
   }
 }
 
-void MacroAssembler::FPMulAddIndexHelper(SVEMulAddIndexFn fn,
-                                         const ZRegister& zd,
-                                         const ZRegister& za,
-                                         const ZRegister& zn,
-                                         const ZRegister& zm,
-                                         int index) {
+void MacroAssembler::MulAddIndexHelper(SVEMulAddIndexFn fn,
+                                       const ZRegister& zd,
+                                       const ZRegister& za,
+                                       const ZRegister& zn,
+                                       const ZRegister& zm,
+                                       int index) {
   if (zd.Aliases(za)) {
     // zda = zda + (zn * zm[i])
     SingleEmissionCheckScope guard(this);
@@ -1910,7 +1910,7 @@ void MacroAssembler::Fmla(const ZRegister& zd,
                           const ZRegister& zm,
                           int index) {
   VIXL_ASSERT(allow_macro_instructions_);
-  FPMulAddIndexHelper(&Assembler::fmla, zd, za, zn, zm, index);
+  MulAddIndexHelper(&Assembler::fmla, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::Fmls(const ZRegister& zd,
@@ -1936,7 +1936,7 @@ void MacroAssembler::Fmls(const ZRegister& zd,
                           const ZRegister& zm,
                           int index) {
   VIXL_ASSERT(allow_macro_instructions_);
-  FPMulAddIndexHelper(&Assembler::fmls, zd, za, zn, zm, index);
+  MulAddIndexHelper(&Assembler::fmls, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::Fnmla(const ZRegister& zd,
@@ -2198,6 +2198,22 @@ void MacroAssembler::Sqcadd(const ZRegister& zd,
   }
 VIXL_SVE_FOUR_REG_DES_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
+
+void MacroAssembler::Mla(const ZRegister& zd,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
+  MulAddIndexHelper(&Assembler::mla, zd, za, zn, zm, index);
+}
+
+void MacroAssembler::Mls(const ZRegister& zd,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
+  MulAddIndexHelper(&Assembler::mls, zd, za, zn, zm, index);
+}
 
 }  // namespace aarch64
 }  // namespace vixl
