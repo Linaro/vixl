@@ -170,10 +170,33 @@ void CodeBuffer::Grow(size_t new_capacity) {
 #ifdef VIXL_CODE_BUFFER_MALLOC
   buffer_ = static_cast<byte*>(realloc(buffer_, new_capacity));
   VIXL_CHECK(buffer_ != NULL);
-#elif defined(VIXL_CODE_BUFFER_MMAP)
+#elif defined(VIXL_CODE_BUFFER_MMAP) && defined(__linux__)
   buffer_ = static_cast<byte*>(
       mremap(buffer_, capacity_, new_capacity, MREMAP_MAYMOVE));
   VIXL_CHECK(buffer_ != MAP_FAILED);
+#elif defined(VIXL_CODE_BUFFER_MMAP) && defined(__FreeBSD__)
+  // FreeBSD does not implement `mremap`.
+  // Try to allocate an extension immediately after the existing one.
+  void* extra = mmap(buffer_ + capacity_,
+                     new_capacity - capacity_,
+                     PROT_READ | PROT_WRITE,
+                     MAP_FIXED | MAP_EXCL | MAP_PRIVATE | MAP_ANON,
+                     -1,
+                     0);
+  if (extra == MAP_FAILED) {
+    // We can't extend the buffer in-place, so allocate a new one.
+    void* new_buffer = mmap(nullptr,
+                            new_capacity,
+                            PROT_READ | PROT_WRITE,
+                            MAP_PRIVATE | MAP_ANON,
+                            -1,
+                            0);
+    VIXL_CHECK(new_buffer != MAP_FAILED);
+    memmove(new_buffer, buffer_, capacity_);
+    munmap(buffer_, capacity_);
+    buffer_ = reinterpret_cast<byte*>(new_buffer);
+  }
+  capacity_ = new_capacity;
 #else
 #error Unknown code buffer allocator.
 #endif

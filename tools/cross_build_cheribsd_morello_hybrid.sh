@@ -43,8 +43,8 @@ shift
 CLANG_PREFIX=$CHERI/output/morello-sdk/bin/aarch64-unknown-freebsd-
 SYSROOT=$CHERI/output/morello-sdk/sysroot-morello-hybrid
 
-export CCFLAGS="--sysroot=$SYSROOT -iwithsysroot/usr/include/c++/v1 -target aarch64-unknown-freebsd13"
-export LINKFLAGS="--sysroot=$SYSROOT -iwithsysroot/usr/include/c++/v1 -target aarch64-unknown-freebsd13"
+export CCFLAGS="--sysroot=$SYSROOT -iwithsysroot/usr/include/c++/v1 -target aarch64-unknown-freebsd13 -march=morello"
+export LINKFLAGS="$CCFLAGS"
 
 export CXX=${CLANG_PREFIX}clang++
 export AR=${CLANG_PREFIX}ar

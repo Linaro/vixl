@@ -125,4 +125,55 @@ void GenerateRuntimeCallExamples(vixl::aarch64::MacroAssembler* masm);
 // The function implements the standard `strlen` using SVE.
 void GenerateSVEStrlen(vixl::aarch64::MacroAssembler* masm);
 
+// Generate a function to retrieve information about the DDC:
+//    Capinfo print_ddc();
+//
+// Note that (as per AAPCS64), the caller must allocate space for the `Capinfo`
+// result and pass its address in x8.
+void GenerateDDCInfo(vixl::aarch64::MacroAssembler* masm);
+
+
+// Utilities shared between multiple examples.
+
+// Generate a function to construct a new `Capinfo` struct from a capability:
+//    Capinfo new_capinfo(void* __capability cap);
+//
+// This is not a standalone example, but is used as a result-presentation tool
+// by other capability-manipulation examples.
+void GenerateNewCapinfo(vixl::aarch64::MacroAssembler* masm);
+
+// Are the specified CPUFeatures available for native execution (i.e. not using
+// the simulator)?
+//
+// If false, this automatically prints a diagnostic message.
+bool CanRunNatively(vixl::CPUFeatures req);
+
+// A capability, with collected properties.
+struct Capinfo {
+#ifdef __CHERI__
+  void* __capability cap;
+#else
+  // Fake a `cap` field for use with `offsetof`, so we can assemble if we can't
+  // execute Morello instructions.
+  alignas(16) uint64_t cap[2];
+#endif
+
+  uint64_t low64;
+  uint64_t high64;
+
+  uint64_t gcbase;
+  uint64_t gcflgs;
+  uint64_t gclen;
+  uint64_t gclim;
+  uint64_t gcoff;
+  uint64_t gcperm;
+  uint64_t gcseal;
+  uint64_t gctag;
+  uint64_t gctype;
+  uint64_t gcvalue;
+
+  void Print() const;
+};
+
+
 #endif  // VIXL_EXAMPLE_EXAMPLES_H_

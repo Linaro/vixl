@@ -538,11 +538,14 @@ if CanTargetAArch64(env):
   aarch64_example_names = util.ListCCFilesWithoutExt(config.dir_aarch64_examples)
   aarch64_examples_build_dir = PrepareVariantDir('examples/aarch64', TargetBuildDir(env))
   aarch64_example_targets = []
+  example_utils = env.Object(join(aarch64_examples_build_dir, 'example-utils.o'),
+                             join(aarch64_examples_build_dir, 'example-utils.cc'))
   for example in aarch64_example_names:
-    prog = env.Program(join(aarch64_examples_build_dir, example),
-                       join(aarch64_examples_build_dir, example + '.cc'),
-                       LIBS=[libvixl])
-    aarch64_example_targets.append(prog)
+    if example != 'example-utils':
+      prog = env.Program(join(aarch64_examples_build_dir, example),
+                         [join(aarch64_examples_build_dir, example + '.cc'), example_utils],
+                         LIBS=[libvixl])
+      aarch64_example_targets.append(prog)
   env.Alias('aarch64_examples', aarch64_example_targets)
   top_level_targets.Add('aarch64_examples', 'Build the examples for AArch64.')
 

@@ -299,6 +299,13 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
       (features.Has(CPUFeatures::kIDRegisterEmulation))) {
     features.Combine(InferCPUFeaturesFromIDRegisters());
   }
+
+#if __CHERI__
+  // Early Morello kernels don't set the feature flag, so infer it from the
+  // compiler.
+  features.Combine(CPUFeatures::kMorello);
+#endif
+
   return features;
 }
 
