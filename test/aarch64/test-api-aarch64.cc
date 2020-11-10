@@ -344,7 +344,7 @@ static void CPURegisterByValueHelper(CPURegister reg) {
   // generate a function using VIXL instead.
 
   MacroAssembler masm;
-  // CPURegister fn(int dummy, CPURegister reg);
+  // CPURegister fn(int placeholder, CPURegister reg);
   // Move `reg` to its result register.
   __ Mov(x0, x1);
   // Clobber all other result registers.

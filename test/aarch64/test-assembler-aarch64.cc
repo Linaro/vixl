@@ -8692,7 +8692,7 @@ static void PushPopWXOverlapHelper(int reg_count, int claim) {
     if (active_w_slots > requested_w_slots) {
       __ Drop((active_w_slots - requested_w_slots) * kWRegSizeInBytes);
       // Bump the number of active W-sized slots back to where it should be,
-      // and fill the empty space with a dummy value.
+      // and fill the empty space with a placeholder value.
       do {
         stack[active_w_slots--] = 0xdeadbeef;
       } while (active_w_slots > requested_w_slots);
@@ -13315,7 +13315,7 @@ TEST(runtime_calls) {
   __ Ret();
   __ Bind(&after_function);
 
-  // Call our dummy function, taking care to preserve the link register.
+  // Call our placeholder function, taking care to preserve the link register.
   __ Push(ip0, lr);
   __ Bl(&function);
   __ Pop(lr, ip0);

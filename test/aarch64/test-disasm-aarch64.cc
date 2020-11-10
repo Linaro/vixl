@@ -3048,11 +3048,11 @@ TEST(bti) {
   COMPARE(hint(BTI_j), "bti j");
   COMPARE(hint(BTI_jc), "bti jc");
 
-  Label dummy1, dummy2, dummy3, dummy4;
-  COMPARE_MACRO(Bind(&dummy1, EmitBTI), "bti");
-  COMPARE_MACRO(Bind(&dummy2, EmitBTI_c), "bti c");
-  COMPARE_MACRO(Bind(&dummy3, EmitBTI_j), "bti j");
-  COMPARE_MACRO(Bind(&dummy4, EmitBTI_jc), "bti jc");
+  Label placeholder1, placeholder2, placeholder3, placeholder4;
+  COMPARE_MACRO(Bind(&placeholder1, EmitBTI), "bti");
+  COMPARE_MACRO(Bind(&placeholder2, EmitBTI_c), "bti c");
+  COMPARE_MACRO(Bind(&placeholder3, EmitBTI_j), "bti j");
+  COMPARE_MACRO(Bind(&placeholder4, EmitBTI_jc), "bti jc");
 
   CLEANUP();
 }
