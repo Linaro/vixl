@@ -4621,10 +4621,10 @@ class Simulator : public DecoderVisitor {
 
   bool CanReadMemory(uintptr_t address, size_t size);
 
-  // CanReadMemory needs dummy file descriptors, so we use a pipe. We can save
-  // some system call overhead by opening them on construction, rather than on
-  // every call to CanReadMemory.
-  int dummy_pipe_fd_[2];
+  // CanReadMemory needs placeholder file descriptors, so we use a pipe. We can
+  // save some system call overhead by opening them on construction, rather than
+  // on every call to CanReadMemory.
+  int placeholder_pipe_fd_[2];
 
   template <typename T>
   static T FPDefaultNaN();

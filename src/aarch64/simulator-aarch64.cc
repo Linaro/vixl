@@ -75,8 +75,8 @@ Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
 
-  // Set up a dummy pipe for CanReadMemory.
-  VIXL_CHECK(pipe(dummy_pipe_fd_) == 0);
+  // Set up a placeholder pipe for CanReadMemory.
+  VIXL_CHECK(pipe(placeholder_pipe_fd_) == 0);
 
   // Set up the decoder.
   decoder_ = decoder;
@@ -216,8 +216,8 @@ Simulator::~Simulator() {
   // The decoder may outlive the simulator.
   decoder_->RemoveVisitor(print_disasm_);
   delete print_disasm_;
-  close(dummy_pipe_fd_[0]);
-  close(dummy_pipe_fd_[1]);
+  close(placeholder_pipe_fd_[0]);
+  close(placeholder_pipe_fd_[1]);
 }
 
 
@@ -2517,8 +2517,8 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
 bool Simulator::CanReadMemory(uintptr_t address, size_t size) {
   // To simulate fault-tolerant loads, we need to know what host addresses we
   // can access without generating a real fault. One way to do that is to
-  // attempt to `write()` the memory to a dummy pipe[1]. This is more portable
-  // and less intrusive than using (global) signal handlers.
+  // attempt to `write()` the memory to a placeholder pipe[1]. This is more
+  // portable and less intrusive than using (global) signal handlers.
   //
   // [1]: https://stackoverflow.com/questions/7134590
 
@@ -2527,7 +2527,7 @@ bool Simulator::CanReadMemory(uintptr_t address, size_t size) {
   // `write` will normally return after one invocation, but it is allowed to
   // handle only part of the operation, so wrap it in a loop.
   while (can_read && (written < size)) {
-    ssize_t result = write(dummy_pipe_fd_[1],
+    ssize_t result = write(placeholder_pipe_fd_[1],
                            reinterpret_cast<void*>(address + written),
                            size - written);
     if (result > 0) {
@@ -2551,13 +2551,13 @@ bool Simulator::CanReadMemory(uintptr_t address, size_t size) {
     }
   }
   // Drain the read side of the pipe. If we don't do this, we'll leak memory as
-  // the dummy data is buffered. As before, we expect to drain the whole write
-  // in one invocation, but cannot guarantee that, so we wrap it in a loop. This
-  // function is primarily intended to implement SVE fault-tolerant loads, so
-  // the maximum Z register size is a good default buffer size.
+  // the placeholder data is buffered. As before, we expect to drain the whole
+  // write in one invocation, but cannot guarantee that, so we wrap it in a
+  // loop. This function is primarily intended to implement SVE fault-tolerant
+  // loads, so the maximum Z register size is a good default buffer size.
   char buffer[kZRegMaxSizeInBytes];
   while (written > 0) {
-    ssize_t result = read(dummy_pipe_fd_[0],
+    ssize_t result = read(placeholder_pipe_fd_[0],
                           reinterpret_cast<void*>(buffer),
                           sizeof(buffer));
     // `read` blocks, and returns 0 only at EOF. We should not hit EOF until
@@ -4426,7 +4426,7 @@ void Simulator::SysOp_W(int op, int64_t val) {
     case CVAP:
     case CVADP:
     case CIVAC: {
-      // Perform a dummy memory access to ensure that we have read access
+      // Perform a placeholder memory access to ensure that we have read access
       // to the specified address.
       volatile uint8_t y = MemRead<uint8_t>(val);
       USE(y);
