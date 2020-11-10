@@ -382,6 +382,7 @@ bool SVEMemOperand::IsValid() const {
     if (IsScalarPlusScalar()) count++;
     if (IsScalarPlusVector()) count++;
     if (IsVectorPlusImmediate()) count++;
+    if (IsVectorPlusScalar()) count++;
     if (IsVectorPlusVector()) count++;
     VIXL_ASSERT(count <= 1);
   }
@@ -406,7 +407,7 @@ bool SVEMemOperand::IsValid() const {
 
   return IsScalarPlusImmediate() || IsScalarPlusScalar() ||
          IsScalarPlusVector() || IsVectorPlusImmediate() ||
-         IsVectorPlusVector();
+         IsVectorPlusScalar() || IsVectorPlusVector();
 }
 
 

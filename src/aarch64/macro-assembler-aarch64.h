@@ -6587,43 +6587,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     histseg(zd, zn, zm);
   }
-#if 0
-  void Ldnt1b(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
+  void Ldnt1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnt1b(zt, pg, zn, rm);
+    ldnt1sb(zt, pg, addr);
   }
-  void Ldnt1d(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
+  void Ldnt1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnt1d(zt, pg, zn, rm);
+    ldnt1sh(zt, pg, addr);
   }
-  void Ldnt1h(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
+  void Ldnt1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    ldnt1h(zt, pg, zn, rm);
+    ldnt1sw(zt, pg, addr);
   }
-  void Ldnt1sb(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1sb(zt, pg, zn, rm);
-  }
-  void Ldnt1sh(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1sh(zt, pg, zn, rm);
-  }
-  void Ldnt1sw(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1sw(zt, pg, zn, rm);
-  }
-  void Ldnt1w(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ldnt1w(zt, pg, zn, rm);
-  }
-#endif
   void Match(const PRegisterWithLaneSize& pd,
              const PRegisterZ& pg,
              const ZRegister& zn,

@@ -3461,37 +3461,43 @@ void Simulator::Simulate_ZdnT_ZdnT_ZmT_const(const Instruction* instr) {
 
 void Simulator::Simulate_ZtD_PgZ_ZnD_Xm(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-  SimVRegister& zt = ReadVRegister(instr->GetRt());
-  USE(zt);
+  uint64_t xm = ReadXRegister(instr->GetRm());
+
+  LogicSVEAddressVector addr(xm, &zn, kFormatVnD);
+  int msize = -1;
+  bool is_signed = false;
 
   switch (form_hash_) {
     case Hash("ldnt1b_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 0;
       break;
     case Hash("ldnt1d_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 3;
       break;
     case Hash("ldnt1h_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 1;
       break;
     case Hash("ldnt1sb_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 0;
+      is_signed = true;
       break;
     case Hash("ldnt1sh_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 1;
+      is_signed = true;
       break;
     case Hash("ldnt1sw_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 2;
+      is_signed = true;
       break;
     case Hash("ldnt1w_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 2;
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  addr.SetMsizeInBytesLog2(msize);
+  SVEStructuredLoadHelper(kFormatVnD, pg, instr->GetRt(), addr, is_signed);
 }
 
 void Simulator::Simulate_ZtD_Pg_ZnD_Xm(const Instruction* instr) {
@@ -3522,31 +3528,36 @@ void Simulator::Simulate_ZtD_Pg_ZnD_Xm(const Instruction* instr) {
 
 void Simulator::Simulate_ZtS_PgZ_ZnS_Xm(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-  SimVRegister& zt = ReadVRegister(instr->GetRt());
-  USE(zt);
+  uint64_t xm = ReadXRegister(instr->GetRm());
+
+  LogicSVEAddressVector addr(xm, &zn, kFormatVnS);
+  int msize = -1;
+  bool is_signed = false;
 
   switch (form_hash_) {
     case Hash("ldnt1b_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 0;
       break;
     case Hash("ldnt1h_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 1;
       break;
     case Hash("ldnt1sb_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 0;
+      is_signed = true;
       break;
     case Hash("ldnt1sh_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 1;
+      is_signed = true;
       break;
     case Hash("ldnt1w_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
+      msize = 2;
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  addr.SetMsizeInBytesLog2(msize);
+  SVEStructuredLoadHelper(kFormatVnS, pg, instr->GetRt(), addr, is_signed);
 }
 
 void Simulator::Simulate_ZtS_Pg_ZnS_Xm(const Instruction* instr) {

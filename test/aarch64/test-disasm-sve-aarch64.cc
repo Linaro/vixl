@@ -8061,6 +8061,38 @@ TEST(sve2_cdot) {
   CLEANUP();
 }
 
+TEST(sve2_ldnt1) {
+  SETUP();
+
+  COMPARE_MACRO(Ldnt1b(z24.VnS(), p4.Zeroing(), SVEMemOperand(z18.VnS(), x13)),
+                "ldnt1b {z24.s}, p4/z, [z18.s, x13]");
+  COMPARE_MACRO(Ldnt1h(z3.VnS(), p4.Zeroing(), SVEMemOperand(z15.VnS(), x14)),
+                "ldnt1h {z3.s}, p4/z, [z15.s, x14]");
+  COMPARE_MACRO(Ldnt1sb(z7.VnS(), p3.Zeroing(), SVEMemOperand(z18.VnS(), x11)),
+                "ldnt1sb {z7.s}, p3/z, [z18.s, x11]");
+  COMPARE_MACRO(Ldnt1sh(z17.VnS(), p5.Zeroing(), SVEMemOperand(z31.VnS(), x19)),
+                "ldnt1sh {z17.s}, p5/z, [z31.s, x19]");
+  COMPARE_MACRO(Ldnt1w(z18.VnS(), p5.Zeroing(), SVEMemOperand(z9.VnS(), x17)),
+                "ldnt1w {z18.s}, p5/z, [z9.s, x17]");
+
+  COMPARE_MACRO(Ldnt1b(z27.VnD(), p4.Zeroing(), SVEMemOperand(z27.VnD(), x24)),
+                "ldnt1b {z27.d}, p4/z, [z27.d, x24]");
+  COMPARE_MACRO(Ldnt1d(z25.VnD(), p0.Zeroing(), SVEMemOperand(z10.VnD(), x0)),
+                "ldnt1d {z25.d}, p0/z, [z10.d, x0]");
+  COMPARE_MACRO(Ldnt1h(z16.VnD(), p2.Zeroing(), SVEMemOperand(z10.VnD(), x9)),
+                "ldnt1h {z16.d}, p2/z, [z10.d, x9]");
+  COMPARE_MACRO(Ldnt1sb(z25.VnD(), p0.Zeroing(), SVEMemOperand(z0.VnD(), x3)),
+                "ldnt1sb {z25.d}, p0/z, [z0.d, x3]");
+  COMPARE_MACRO(Ldnt1sh(z4.VnD(), p1.Zeroing(), SVEMemOperand(z31.VnD(), x4)),
+                "ldnt1sh {z4.d}, p1/z, [z31.d, x4]");
+  COMPARE_MACRO(Ldnt1sw(z3.VnD(), p7.Zeroing(), SVEMemOperand(z1.VnD(), x10)),
+                "ldnt1sw {z3.d}, p7/z, [z1.d, x10]");
+  COMPARE_MACRO(Ldnt1w(z17.VnD(), p5.Zeroing(), SVEMemOperand(z8.VnD(), x12)),
+                "ldnt1w {z17.d}, p5/z, [z8.d, x12]");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8153,30 +8185,6 @@ TEST(sve2_all_instructions) {
   // z14.h");
   // COMPARE_PREFIX(fmlslt(z5.VnS(), z1.VnH(), z7.VnH()), "fmlslt z5.s, z1.h,
   // z7.h");
-  // COMPARE_PREFIX(ldnt1b(z24.VnS(), p4.Zeroing(), z18.VnS(), x13), "ldnt1b {
-  // <Zt>.S }, <Pg>/Z, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1b(z27.VnD(), p4.Zeroing(), z27.VnD(), x24), "ldnt1b {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1d(z25.VnD(), p0.Zeroing(), z10.VnD(), x0), "ldnt1d {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1h(z16.VnD(), p2.Zeroing(), z10.VnD(), x9), "ldnt1h {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1h(z3.VnS(), p4.Zeroing(), z15.VnS(), x14), "ldnt1h {
-  // <Zt>.S }, <Pg>/Z, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1sb(z25.VnD(), p0.Zeroing(), z0.VnD(), x3), "ldnt1sb {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1sb(z7.VnS(), p3.Zeroing(), z18.VnS(), x11), "ldnt1sb {
-  // <Zt>.S }, <Pg>/Z, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1sh(z17.VnS(), p5.Zeroing(), z31.VnS(), x19), "ldnt1sh {
-  // <Zt>.S }, <Pg>/Z, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1sh(z4.VnD(), p1.Zeroing(), z31.VnD(), x4), "ldnt1sh {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1sw(z3.VnD(), p7.Zeroing(), z10.VnD(), x10), "ldnt1sw {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1w(z17.VnD(), p5.Zeroing(), z8.VnD(), x12), "ldnt1w {
-  // <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(ldnt1w(z18.VnS(), p5.Zeroing(), z9.VnS(), x17), "ldnt1w {
-  // <Zt>.S }, <Pg>/Z, [<Zn>.S{, <Xm>}]");
   // COMPARE_PREFIX(mla(z1.VnH(), z9.VnH()), "mla z1.d, z9.d, <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mla(z10.VnS(), z22.VnS()), "mla z10.d, z22.d,
   // <Zm>.d[<imm>]");

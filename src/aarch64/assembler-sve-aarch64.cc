@@ -4740,6 +4740,27 @@ void Assembler::SVELd1St1ScaImmHelper(const ZRegister& zt,
   Emit(op | Rt(zt) | PgLow8(pg) | RnSP(addr.GetScalarBase()));
 }
 
+void Assembler::SVELd1VecScaHelper(const ZRegister& zt,
+                                   const PRegister& pg,
+                                   const SVEMemOperand& addr,
+                                   uint32_t msize_bytes_log2,
+                                   bool is_signed) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(addr.IsVectorPlusScalar());
+  ZRegister zn = addr.GetVectorBase();
+  VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
+  VIXL_ASSERT(AreSameLaneSize(zn, zt));
+
+  uint32_t esize = zn.GetLaneSizeInBytesLog2();
+  uint32_t b14_13 = 0;
+  if (!is_signed) b14_13 = zn.IsLaneSizeS() ? 0x1 : 0x2;
+
+  Instr op = 0x04008000;  // LDNT1 with vector plus scalar addressing mode.
+  op |= (esize << 30) | (msize_bytes_log2 << 23) | (b14_13 << 13);
+  Emit(op | Rt(zt) | PgLow8(pg) |
+       SVEMemOperandHelper(msize_bytes_log2, 1, addr, true));
+}
+
 void Assembler::ld1rqb(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const SVEMemOperand& addr) {
@@ -4927,12 +4948,17 @@ void Assembler::ldnt1b(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LDNT1B_z_p_br_contiguous,
-                        LDNT1B_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVELd1VecScaHelper(zt, pg, addr, 0, /* is_signed = */ false);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          LDNT1B_z_p_br_contiguous,
+                          LDNT1B_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::ldnt1d(const ZRegister& zt,
@@ -4940,12 +4966,17 @@ void Assembler::ldnt1d(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LDNT1D_z_p_br_contiguous,
-                        LDNT1D_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVELd1VecScaHelper(zt, pg, addr, 3, /* is_signed = */ false);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          LDNT1D_z_p_br_contiguous,
+                          LDNT1D_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::ldnt1h(const ZRegister& zt,
@@ -4953,12 +4984,17 @@ void Assembler::ldnt1h(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LDNT1H_z_p_br_contiguous,
-                        LDNT1H_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVELd1VecScaHelper(zt, pg, addr, 1, /* is_signed = */ false);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          LDNT1H_z_p_br_contiguous,
+                          LDNT1H_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::ldnt1w(const ZRegister& zt,
@@ -4966,12 +5002,38 @@ void Assembler::ldnt1w(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LDNT1W_z_p_br_contiguous,
-                        LDNT1W_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVELd1VecScaHelper(zt, pg, addr, 2, /* is_signed = */ false);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          LDNT1W_z_p_br_contiguous,
+                          LDNT1W_z_p_bi_contiguous);
+  }
+}
+
+void Assembler::ldnt1sb(const ZRegister& zt,
+                        const PRegisterZ& pg,
+                        const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2));
+  SVELd1VecScaHelper(zt, pg, addr, 0, /* is_signed = */ true);
+}
+
+void Assembler::ldnt1sh(const ZRegister& zt,
+                        const PRegisterZ& pg,
+                        const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2));
+  SVELd1VecScaHelper(zt, pg, addr, 1, /* is_signed = */ true);
+}
+
+void Assembler::ldnt1sw(const ZRegister& zt,
+                        const PRegisterZ& pg,
+                        const SVEMemOperand& addr) {
+  VIXL_ASSERT(addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2));
+  SVELd1VecScaHelper(zt, pg, addr, 2, /* is_signed = */ true);
 }
 
 Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
@@ -4999,7 +5061,13 @@ Instr Assembler::SVEMemOperandHelper(unsigned msize_in_bytes_log2,
     VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
     VIXL_ASSERT(IsMultiple(imm, (1 << msize_in_bytes_log2)));
     op = Rn(zn) | ImmUnsignedField<20, 16>(imm >> msize_in_bytes_log2);
-
+  } else if (addr.IsVectorPlusScalar()) {
+    VIXL_ASSERT(addr.GetOffsetModifier() == NO_SVE_OFFSET_MODIFIER);
+    VIXL_ASSERT(addr.GetShiftAmount() == 0);
+    ZRegister zn = addr.GetVectorBase();
+    VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
+    Register xm = addr.GetScalarOffset();
+    op = Rn(zn) | Rm(xm);
   } else if (addr.IsScalarPlusVector()) {
     // We have to support several different addressing modes. Some instructions
     // support a subset of these, but the SVEMemOperand encoding is consistent.
@@ -7032,94 +7100,6 @@ void Assembler::histseg(const ZRegister& zd,
 
   Emit(0x4520a000 | Rd(zd) | Rn(zn) | Rm(zm));
 }
-
-#if 0
-
-// This prototype maps to 2 instruction encodings:
-//  ldnt1b_z_p_ar_d_64_unscaled
-//  ldnt1b_z_p_ar_s_x32_unscaled
-void Assembler::ldnt1b(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1B { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0100 000. .... 110. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc400c000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-
-void Assembler::ldnt1d(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1D { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0101 100. .... 110. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc580c000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  ldnt1h_z_p_ar_d_64_unscaled
-//  ldnt1h_z_p_ar_s_x32_unscaled
-void Assembler::ldnt1h(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1H { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0100 100. .... 110. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc480c000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  ldnt1sb_z_p_ar_d_64_unscaled
-//  ldnt1sb_z_p_ar_s_x32_unscaled
-void Assembler::ldnt1sb(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1SB { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0100 000. .... 100. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc4008000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  ldnt1sh_z_p_ar_d_64_unscaled
-//  ldnt1sh_z_p_ar_s_x32_unscaled
-void Assembler::ldnt1sh(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1SH { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0100 100. .... 100. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc4808000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-
-void Assembler::ldnt1sw(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1SW { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0101 000. .... 100. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc5008000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  ldnt1w_z_p_ar_d_64_unscaled
-//  ldnt1w_z_p_ar_s_x32_unscaled
-void Assembler::ldnt1w(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm) {
-  // LDNT1W { <Zt>.D }, <Pg>/Z, [<Zn>.D{, <Xm>}]
-  //  1100 0101 000. .... 110. .... .... ....
-  //  msz<24:23> | Rm<20:16> | U<14> | Pg<12:10> | Zn<9:5> | Zt<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0xc500c000 | Rt(zt) | PgLow8(pg) | Rn(zn) | Rm(rm));
-}
-#endif
 
 void Assembler::match(const PRegisterWithLaneSize& pd,
                       const PRegisterZ& pg,

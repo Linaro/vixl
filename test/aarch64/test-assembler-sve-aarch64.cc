@@ -18854,5 +18854,66 @@ TEST_SVE(sve2_integer_multiply_long_vector) {
   }
 }
 
+TEST_SVE(sve2_ldnt1) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  int data_size = kZRegMaxSizeInBytes * 4;
+  uint8_t* data = new uint8_t[data_size];
+  for (int i = 0; i < data_size; i++) {
+    data[i] = i & 0xff;
+  }
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+  __ Index(z30.VnD(), x0, 1);
+  __ Ptrue(p0.VnB());
+  __ Punpklo(p1.VnH(), p0.VnB());
+  __ Punpklo(p2.VnH(), p1.VnB());
+  __ Punpklo(p3.VnH(), p2.VnB());
+  __ Punpklo(p4.VnH(), p3.VnB());
+
+  __ Mov(x1, 1);
+  __ Ldnt1b(z0.VnD(), p1.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1b(z1.VnD(), p1.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  __ Mov(x1, -4);
+  __ Ldnt1h(z2.VnD(), p2.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1h(z3.VnD(), p2.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  __ Mov(x1, 16);
+  __ Ldnt1w(z4.VnD(), p3.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1w(z5.VnD(), p3.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  __ Mov(x1, -16);
+  __ Ldnt1d(z6.VnD(), p4.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1d(z7.VnD(), p4.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  __ Mov(x1, 1);
+  __ Ldnt1sb(z8.VnD(), p0.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1sb(z9.VnD(), p0.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  __ Mov(x1, -4);
+  __ Ldnt1sh(z10.VnD(), p2.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1sh(z11.VnD(), p2.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  __ Mov(x1, 16);
+  __ Ldnt1sw(z12.VnD(), p3.Zeroing(), SVEMemOperand(z30.VnD(), x1));
+  __ Ld1sw(z13.VnD(), p3.Zeroing(), SVEMemOperand(x1, z30.VnD()));
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z0, z1);
+    ASSERT_EQUAL_SVE(z2, z3);
+    ASSERT_EQUAL_SVE(z4, z5);
+    ASSERT_EQUAL_SVE(z6, z7);
+    ASSERT_EQUAL_SVE(z8, z9);
+    ASSERT_EQUAL_SVE(z10, z11);
+    ASSERT_EQUAL_SVE(z12, z13);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

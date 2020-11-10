@@ -5977,28 +5977,20 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Count matching elements in vector segments.
   void histseg(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
-#if 0
-  // Gather load non-temporal unsigned bytes.
-  void ldnt1b(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
-
-  // Gather load non-temporal unsigned doublewords.
-  void ldnt1d(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
-
-  // Gather load non-temporal unsigned halfwords.
-  void ldnt1h(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
-
   // Gather load non-temporal signed bytes.
-  void ldnt1sb(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
+  void ldnt1sb(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
 
   // Gather load non-temporal signed halfwords.
-  void ldnt1sh(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
+  void ldnt1sh(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
 
   // Gather load non-temporal signed words.
-  void ldnt1sw(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
-
-  // Gather load non-temporal unsigned words.
-  void ldnt1w(const ZRegister& zt, const PRegisterZ& pg, const ZRegister& zn, const Register& rm);
-#endif
+  void ldnt1sw(const ZRegister& zt,
+               const PRegisterZ& pg,
+               const SVEMemOperand& addr);
 
   // Detect any matching elements, setting the condition flags.
   void match(const PRegisterWithLaneSize& pd,
@@ -7568,6 +7560,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                              Instr regoffset_op,
                              Instr immoffset_op,
                              int imm_divisor = 1);
+
+  void SVELd1VecScaHelper(const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr,
+                          uint32_t msize,
+                          bool is_signed);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,
