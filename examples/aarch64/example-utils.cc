@@ -60,12 +60,64 @@ bool CanRunNatively(vixl::CPUFeatures req) {
 #endif
 }
 
+#ifdef __CHERI__
+Capinfo::Capinfo(void* __capability c) : name("Capability") {
+  uint64_t tmp;
+  asm(  // Store the capability verbatim.
+      "str %[c], [%[self], %[cap]]\n\t"
+      // Store raw high/low halves.
+      "cfhi %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[high64]]\n\t"
+      // TODO: Can we just read %[c] as an X register?
+      "gcvalue %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[low64]]\n\t"
+      // Store properties.
+      "gcbase %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gcbase]]\n\t"
+      "gcflgs %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gcflgs]]\n\t"
+      "gclen %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gclen]]\n\t"
+      "gclim %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gclim]]\n\t"
+      "gcoff %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gcoff]]\n\t"
+      "gcperm %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gcperm]]\n\t"
+      "gcseal %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gcseal]]\n\t"
+      "gctag %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gctag]]\n\t"
+      "gctype %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gctype]]\n\t"
+      "gcvalue %[tmp], %[c]\n\t"
+      "str %[tmp], [%[self], %[gcvalue]]\n\t"
+      : [tmp] "=&r"(tmp)
+      : [self] "r"(this),
+        [c] "C"(c),
+        [cap] "i"(offsetof(Capinfo, cap)),
+        [high64] "i"(offsetof(Capinfo, high64)),
+        [low64] "i"(offsetof(Capinfo, low64)),
+        [gcbase] "i"(offsetof(Capinfo, gcbase)),
+        [gcflgs] "i"(offsetof(Capinfo, gcflgs)),
+        [gclen] "i"(offsetof(Capinfo, gclen)),
+        [gclim] "i"(offsetof(Capinfo, gclim)),
+        [gcoff] "i"(offsetof(Capinfo, gcoff)),
+        [gcperm] "i"(offsetof(Capinfo, gcperm)),
+        [gcseal] "i"(offsetof(Capinfo, gcseal)),
+        [gctag] "i"(offsetof(Capinfo, gctag)),
+        [gctype] "i"(offsetof(Capinfo, gctype)),
+        [gcvalue] "i"(offsetof(Capinfo, gcvalue))
+      : "memory");
+}
+#endif
+
 // Capinfo (*)(void* __capability cap)
 void GenerateNewCapinfo(MacroAssembler* masm) {
   // AAPCS64:
   //  - The input (cap) is in c0.
   //  - The caller allocates space for the result and passes it in x8/c8.
-  __ Str(c0, MemOperand(x8));
+  __ Str(c0, MemOperand(x8, offsetof(Capinfo, cap)));
 
   __ Cfhi(x10, c0);
   __ Str(x10, MemOperand(x8, offsetof(Capinfo, high64)));
@@ -96,7 +148,8 @@ void GenerateNewCapinfo(MacroAssembler* masm) {
 }
 
 void Capinfo::Print() const {
-  printf("Capability: 0x%" PRId64 "_%016" PRIx64 "_%016" PRIx64 "\n",
+  printf("%s: 0x%" PRId64 "_%016" PRIx64 "_%016" PRIx64 "\n",
+         name,
          (gctag & 1),
          high64,
          low64);
@@ -115,4 +168,13 @@ void Capinfo::Print() const {
   printf("     gctag: %#18" PRIx64 "\n", gctag);
   printf("    gctype: %#18" PRIx64 "\n", gctype);
   printf("   gcvalue: %#18" PRIx64 "\n", gcvalue);
+}
+
+void Capinfo::PrintOneLine() const {
+  printf("%s: 0x%" PRIx64 " [0x%" PRIx64 "-0x%" PRIx64 "]%s\n",
+         name,
+         gcvalue,
+         gcbase,
+         gclim,
+         gcseal ? " (sealed)" : "");
 }

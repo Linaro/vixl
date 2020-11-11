@@ -172,7 +172,16 @@ struct Capinfo {
   uint64_t gctype;
   uint64_t gcvalue;
 
+  const char* name;
+
+#ifdef __CHERI__
+  explicit Capinfo(void* __capability cap);
+  Capinfo(const char* name, void* __capability c) : Capinfo(c) {
+    this->name = name;
+  }
+#endif
   void Print() const;
+  void PrintOneLine() const;
 };
 
 
