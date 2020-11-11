@@ -4761,6 +4761,23 @@ void Assembler::SVELd1VecScaHelper(const ZRegister& zt,
        SVEMemOperandHelper(msize_bytes_log2, 1, addr, true));
 }
 
+void Assembler::SVESt1VecScaHelper(const ZRegister& zt,
+                                   const PRegister& pg,
+                                   const SVEMemOperand& addr,
+                                   uint32_t msize_bytes_log2) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(addr.IsVectorPlusScalar());
+  ZRegister zn = addr.GetVectorBase();
+  VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
+  VIXL_ASSERT(AreSameLaneSize(zn, zt));
+
+  uint32_t b22 = zn.IsLaneSizeS() ? (1 << 22) : 0;
+  Instr op = 0xe4002000;  // STNT1 with vector plus scalar addressing mode.
+  op |= b22 | (msize_bytes_log2 << 23);
+  Emit(op | Rt(zt) | PgLow8(pg) |
+       SVEMemOperandHelper(msize_bytes_log2, 1, addr, true));
+}
+
 void Assembler::ld1rqb(const ZRegister& zt,
                        const PRegisterZ& pg,
                        const SVEMemOperand& addr) {
@@ -5221,12 +5238,17 @@ void Assembler::stnt1b(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        STNT1B_z_p_br_contiguous,
-                        STNT1B_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(0)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVESt1VecScaHelper(zt, pg, addr, 0);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          STNT1B_z_p_br_contiguous,
+                          STNT1B_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::stnt1d(const ZRegister& zt,
@@ -5234,12 +5256,17 @@ void Assembler::stnt1d(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        STNT1D_z_p_br_contiguous,
-                        STNT1D_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(3)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVESt1VecScaHelper(zt, pg, addr, 3);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          STNT1D_z_p_br_contiguous,
+                          STNT1D_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::stnt1h(const ZRegister& zt,
@@ -5247,12 +5274,17 @@ void Assembler::stnt1h(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        STNT1H_z_p_br_contiguous,
-                        STNT1H_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(1)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVESt1VecScaHelper(zt, pg, addr, 1);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          STNT1H_z_p_br_contiguous,
+                          STNT1H_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::stnt1w(const ZRegister& zt,
@@ -5260,12 +5292,17 @@ void Assembler::stnt1w(const ZRegister& zt,
                        const SVEMemOperand& addr) {
   VIXL_ASSERT(addr.IsPlainScalar() ||
               (addr.IsScalarPlusImmediate() && addr.IsMulVl()) ||
-              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)));
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        STNT1W_z_p_br_contiguous,
-                        STNT1W_z_p_bi_contiguous);
+              (addr.IsScalarPlusScalar() && addr.IsEquivalentToLSL(2)) ||
+              (addr.IsVectorPlusScalar() && CPUHas(CPUFeatures::kSVE2)));
+  if (addr.IsVectorPlusScalar()) {
+    SVESt1VecScaHelper(zt, pg, addr, 2);
+  } else {
+    SVELd1St1ScaImmHelper(zt,
+                          pg,
+                          addr,
+                          STNT1W_z_p_br_contiguous,
+                          STNT1W_z_p_bi_contiguous);
+  }
 }
 
 void Assembler::str(const CPURegister& rt, const SVEMemOperand& addr) {

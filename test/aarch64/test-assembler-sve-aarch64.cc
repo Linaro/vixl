@@ -18915,5 +18915,80 @@ TEST_SVE(sve2_ldnt1) {
   }
 }
 
+TEST_SVE(sve2_stnt1) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  int data_size = kZRegMaxSizeInBytes * 4;
+  uint8_t* data = new uint8_t[data_size];
+
+  // Set the base half-way through the buffer so we can use negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
+  __ Ptrue(p0.VnB());
+  __ Punpklo(p1.VnH(), p0.VnB());
+  __ Punpklo(p2.VnH(), p1.VnB());
+  __ Punpklo(p3.VnH(), p2.VnB());
+  __ Punpklo(p4.VnH(), p3.VnB());
+  __ Dup(z0.VnB(), 0xaa);
+  __ Dup(z1.VnB(), 0x55);
+  __ Rdvl(x1, 1);
+  __ Mov(x3, 0);
+
+  // Put store addresses into z30, and a small offset in x4.
+  __ Index(z30.VnD(), x0, 1);
+  __ Mov(x4, 2);
+
+  // Store an entire vector of 0xaa to the buffer, then a smaller scatter store
+  // of 0x55 using Stnt1b.
+  __ St1b(z0.VnB(), p0, SVEMemOperand(x0, x4));
+  __ Stnt1b(z1.VnD(), p0, SVEMemOperand(z30.VnD(), x4));
+
+  // Load the entire vector back from the buffer.
+  __ Ld1b(z2.VnB(), p0.Zeroing(), SVEMemOperand(x0, x4));
+
+  // Construct a predicate that reflects the number of bytes stored by Stnt1b,
+  // based on the current VL, and use Sel to obtain a reference vector for
+  // comparison.
+  __ Lsr(x2, x1, 3);
+  __ Whilelo(p5.VnB(), x3, x2);
+  __ Sel(z3.VnB(), p5.Merging(), z1.VnB(), z0.VnB());
+
+  // Repeat for larger element sizes.
+  __ Mov(x4, -4);
+  __ Index(z30.VnD(), x0, 2);
+  __ St1b(z0.VnB(), p0, SVEMemOperand(x0, x4));
+  __ Stnt1h(z1.VnD(), p0, SVEMemOperand(z30.VnD(), x4));
+  __ Ld1b(z4.VnB(), p0.Zeroing(), SVEMemOperand(x0, x4));
+  __ Lsr(x2, x1, 2);
+  __ Whilelo(p5.VnB(), x3, x2);
+  __ Sel(z5.VnB(), p5.Merging(), z1.VnB(), z0.VnB());
+
+  __ Mov(x4, 16);
+  __ Index(z30.VnD(), x0, 4);
+  __ St1b(z0.VnB(), p0, SVEMemOperand(x0, x4));
+  __ Stnt1w(z1.VnD(), p0, SVEMemOperand(z30.VnD(), x4));
+  __ Ld1b(z6.VnB(), p0.Zeroing(), SVEMemOperand(x0, x4));
+  __ Lsr(x2, x1, 1);
+  __ Whilelo(p5.VnB(), x3, x2);
+  __ Sel(z7.VnB(), p5.Merging(), z1.VnB(), z0.VnB());
+
+  __ Mov(x4, -16);
+  __ Index(z30.VnD(), x0, 8);
+  __ St1b(z0.VnB(), p0, SVEMemOperand(x0, x4));
+  __ Stnt1d(z1.VnD(), p0, SVEMemOperand(z30.VnD(), x4));
+  __ Ld1b(z8.VnB(), p0.Zeroing(), SVEMemOperand(x0, x4));
+  __ Whilelo(p5.VnB(), x3, x1);
+  __ Sel(z9.VnB(), p5.Merging(), z1.VnB(), z0.VnB());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z2, z3);
+    ASSERT_EQUAL_SVE(z4, z5);
+    ASSERT_EQUAL_SVE(z6, z7);
+    ASSERT_EQUAL_SVE(z8, z9);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl

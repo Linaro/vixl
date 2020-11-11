@@ -10219,8 +10219,9 @@ void Disassembler::Disassemble_ZtD_PgZ_ZnD_Xm(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZtD_Pg_ZnD_Xm(const Instruction *instr) {
-  const char *form = "{ 'Zt.d }, 'Pgl, ['Zn.d{, 'Rm}]";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "{'Zt.d}, 'Pgl, ['Zn.d";
+  const char *suffix = instr->GetRm() == 31 ? "]" : ", 'Xm]";
+  Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
 void Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm(const Instruction *instr) {
@@ -10230,8 +10231,9 @@ void Disassembler::Disassemble_ZtS_PgZ_ZnS_Xm(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZtS_Pg_ZnS_Xm(const Instruction *instr) {
-  const char *form = "{ 'Zt.s }, 'Pgl, ['Zn.s{, 'Rm}]";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "{'Zt.s}, 'Pgl, ['Zn.s";
+  const char *suffix = instr->GetRm() == 31 ? "]" : ", 'Xm]";
+  Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {

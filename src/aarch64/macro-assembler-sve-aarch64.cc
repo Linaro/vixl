@@ -1557,49 +1557,69 @@ void MacroAssembler::Stnt1b(const ZRegister& zt,
                             const PRegister& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::stnt1b,
-                              4,
-                              0,
-                              SVE_MUL_VL);
+  if (addr.IsVectorPlusScalar()) {
+    SingleEmissionCheckScope guard(this);
+    stnt1b(zt, pg, addr);
+  } else {
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::stnt1b,
+                                4,
+                                0,
+                                SVE_MUL_VL);
+  }
 }
 void MacroAssembler::Stnt1d(const ZRegister& zt,
                             const PRegister& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::stnt1d,
-                              4,
-                              0,
-                              SVE_MUL_VL);
+  if (addr.IsVectorPlusScalar()) {
+    SingleEmissionCheckScope guard(this);
+    stnt1d(zt, pg, addr);
+  } else {
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::stnt1d,
+                                4,
+                                0,
+                                SVE_MUL_VL);
+  }
 }
 void MacroAssembler::Stnt1h(const ZRegister& zt,
                             const PRegister& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::stnt1h,
-                              4,
-                              0,
-                              SVE_MUL_VL);
+  if (addr.IsVectorPlusScalar()) {
+    SingleEmissionCheckScope guard(this);
+    stnt1h(zt, pg, addr);
+  } else {
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::stnt1h,
+                                4,
+                                0,
+                                SVE_MUL_VL);
+  }
 }
 void MacroAssembler::Stnt1w(const ZRegister& zt,
                             const PRegister& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::stnt1w,
-                              4,
-                              0,
-                              SVE_MUL_VL);
+  if (addr.IsVectorPlusScalar()) {
+    SingleEmissionCheckScope guard(this);
+    stnt1w(zt, pg, addr);
+  } else {
+    SVELoadStoreScalarImmHelper(zt,
+                                pg,
+                                addr,
+                                &MacroAssembler::stnt1w,
+                                4,
+                                0,
+                                SVE_MUL_VL);
+  }
 }
 
 void MacroAssembler::SVESdotUdotIndexHelper(ZZZImmFn fn,

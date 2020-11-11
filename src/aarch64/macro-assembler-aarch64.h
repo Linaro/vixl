@@ -7166,28 +7166,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ssubwt(zd, zn, zm);
   }
-#if 0
-  void Stnt1b(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    stnt1b(zt, pg, zn, rm);
-  }
-  void Stnt1d(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    stnt1d(zt, pg, zn, rm);
-  }
-  void Stnt1h(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    stnt1h(zt, pg, zn, rm);
-  }
-  void Stnt1w(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    stnt1w(zt, pg, zn, rm);
-  }
-#endif
   void Subhnb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

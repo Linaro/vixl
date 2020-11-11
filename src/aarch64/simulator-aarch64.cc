@@ -3502,28 +3502,18 @@ void Simulator::Simulate_ZtD_PgZ_ZnD_Xm(const Instruction* instr) {
 
 void Simulator::Simulate_ZtD_Pg_ZnD_Xm(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-  SimVRegister& zt = ReadVRegister(instr->GetRt());
-  USE(zt);
+  uint64_t xm = ReadXRegister(instr->GetRm());
 
-  switch (form_hash_) {
-    case Hash("stnt1b_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("stnt1d_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("stnt1h_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("stnt1w_z_p_ar_d_64_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
+  LogicSVEAddressVector addr(xm, &zn, kFormatVnD);
+  VIXL_ASSERT((form_hash_ == Hash("stnt1b_z_p_ar_d_64_unscaled")) ||
+              (form_hash_ == Hash("stnt1d_z_p_ar_d_64_unscaled")) ||
+              (form_hash_ == Hash("stnt1h_z_p_ar_d_64_unscaled")) ||
+              (form_hash_ == Hash("stnt1w_z_p_ar_d_64_unscaled")));
+
+  addr.SetMsizeInBytesLog2(
+      instr->GetSVEMsizeFromDtype(/* is_signed = */ false));
+  SVEStructuredStoreHelper(kFormatVnD, pg, instr->GetRt(), addr);
 }
 
 void Simulator::Simulate_ZtS_PgZ_ZnS_Xm(const Instruction* instr) {
@@ -3562,25 +3552,17 @@ void Simulator::Simulate_ZtS_PgZ_ZnS_Xm(const Instruction* instr) {
 
 void Simulator::Simulate_ZtS_Pg_ZnS_Xm(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-  SimVRegister& zt = ReadVRegister(instr->GetRt());
-  USE(zt);
+  uint64_t xm = ReadXRegister(instr->GetRm());
 
-  switch (form_hash_) {
-    case Hash("stnt1b_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("stnt1h_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("stnt1w_z_p_ar_s_x32_unscaled"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
+  LogicSVEAddressVector addr(xm, &zn, kFormatVnS);
+  VIXL_ASSERT((form_hash_ == Hash("stnt1b_z_p_ar_s_x32_unscaled")) ||
+              (form_hash_ == Hash("stnt1h_z_p_ar_s_x32_unscaled")) ||
+              (form_hash_ == Hash("stnt1w_z_p_ar_s_x32_unscaled")));
+
+  addr.SetMsizeInBytesLog2(
+      instr->GetSVEMsizeFromDtype(/* is_signed = */ false));
+  SVEStructuredStoreHelper(kFormatVnS, pg, instr->GetRt(), addr);
 }
 
 void Simulator::VisitReserved(const Instruction* instr) {

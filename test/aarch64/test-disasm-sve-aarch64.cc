@@ -8093,6 +8093,25 @@ TEST(sve2_ldnt1) {
   CLEANUP();
 }
 
+TEST(sve2_stnt1) {
+  SETUP();
+
+  COMPARE_MACRO(Stnt1b(z29.VnD(), p7, SVEMemOperand(z29.VnD(), x21)),
+                "stnt1b {z29.d}, p7, [z29.d, x21]");
+  COMPARE_MACRO(Stnt1d(z19.VnD(), p4, SVEMemOperand(z3.VnD(), x16)),
+                "stnt1d {z19.d}, p4, [z3.d, x16]");
+  COMPARE_MACRO(Stnt1h(z11.VnS(), p3, SVEMemOperand(z2.VnS(), x16)),
+                "stnt1h {z11.s}, p3, [z2.s, x16]");
+  COMPARE_MACRO(Stnt1h(z3.VnD(), p3, SVEMemOperand(z10.VnD(), x16)),
+                "stnt1h {z3.d}, p3, [z10.d, x16]");
+  COMPARE_MACRO(Stnt1w(z11.VnS(), p4, SVEMemOperand(z14.VnS(), x15)),
+                "stnt1w {z11.s}, p4, [z14.s, x15]");
+  COMPARE_MACRO(Stnt1w(z7.VnD(), p0, SVEMemOperand(z11.VnD(), x10)),
+                "stnt1w {z7.d}, p0, [z11.d, x10]");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8359,20 +8378,6 @@ TEST(sve2_all_instructions) {
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(sqrdmulh(z3.VnH(), z29.VnH()), "sqrdmulh z3.d, z29.d,
   // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(stnt1b(z29.VnD(), p7, z29.VnD(), x21), "stnt1b { <Zt>.D },
-  // <Pg>, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(stnt1b(z31.VnS(), p6, z12.VnS(), x7), "stnt1b { <Zt>.S },
-  // <Pg>, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(stnt1d(z19.VnD(), p4, z3.VnD(), x16), "stnt1d { <Zt>.D },
-  // <Pg>, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(stnt1h(z11.VnS(), p3, z2.VnS(), x16), "stnt1h { <Zt>.S },
-  // <Pg>, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(stnt1h(z3.VnD(), p3, z10.VnD(), x16), "stnt1h { <Zt>.D },
-  // <Pg>, [<Zn>.D{, <Xm>}]");
-  // COMPARE_PREFIX(stnt1w(z11.VnS(), p4, z14.VnS(), x15), "stnt1w { <Zt>.S },
-  // <Pg>, [<Zn>.S{, <Xm>}]");
-  // COMPARE_PREFIX(stnt1w(z7.VnD(), p0, z11.VnD(), x10), "stnt1w { <Zt>.D },
-  // <Pg>, [<Zn>.D{, <Xm>}]");
   // COMPARE_PREFIX(umlalb(z31.VnD(), z9, z21), "umlalb z31.d, z9, z21");
   // COMPARE_PREFIX(umlalb(z31.VnH(), z9, z21), "umlalb z31.h, z9, z21");
   // COMPARE_PREFIX(umlalb(z31.VnS(), z9, z21), "umlalb z31.s, z9, z21");

@@ -7566,6 +7566,10 @@ class Assembler : public vixl::internal::AssemblerBase {
                           const SVEMemOperand& addr,
                           uint32_t msize,
                           bool is_signed);
+  void SVESt1VecScaHelper(const ZRegister& zt,
+                          const PRegister& pg,
+                          const SVEMemOperand& addr,
+                          uint32_t msize);
 
   void Prefetch(PrefetchOperation op,
                 const MemOperand& addr,
