@@ -10664,10 +10664,10 @@ TEST(atomic_memory_swp) {
 
 
 TEST(ldaprb_ldaprh_ldapr) {
-  uint64_t data0[] = {0x1010101010101010, 0};
-  uint64_t data1[] = {0x1010101010101010, 0};
-  uint64_t data2[] = {0x1010101010101010, 0};
-  uint64_t data3[] = {0x1010101010101010, 0};
+  uint64_t data0[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t data1[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t data2[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t data3[] = {0x1010101010101010, 0x1010101010101010};
 
   uint64_t* data0_aligned = AlignUp(data0, kXRegSizeInBytes * 2);
   uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
