@@ -1729,23 +1729,43 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
   }
 }
 
-#define VIXL_SVE_ABSDIFF_LIST(V) \
-  V(Saba, saba)                  \
-  V(Uaba, uaba)                  \
-  V(Sabalb, sabalb)              \
-  V(Sabalt, sabalt)              \
-  V(Uabalb, uabalb)              \
-  V(Uabalt, uabalt)
+#define VIXL_SVE_4REG_LIST(V)                     \
+  V(Saba, saba, AbsoluteDifferenceAccumulate)     \
+  V(Uaba, uaba, AbsoluteDifferenceAccumulate)     \
+  V(Sabalb, sabalb, AbsoluteDifferenceAccumulate) \
+  V(Sabalt, sabalt, AbsoluteDifferenceAccumulate) \
+  V(Uabalb, uabalb, AbsoluteDifferenceAccumulate) \
+  V(Uabalt, uabalt, AbsoluteDifferenceAccumulate) \
+  V(Sdot, sdot, FourRegDestructiveHelper)         \
+  V(Udot, udot, FourRegDestructiveHelper)         \
+  V(Adclb, adclb, FourRegDestructiveHelper)       \
+  V(Adclt, adclt, FourRegDestructiveHelper)       \
+  V(Sbclb, sbclb, FourRegDestructiveHelper)       \
+  V(Sbclt, sbclt, FourRegDestructiveHelper)       \
+  V(Smlalb, smlalb, FourRegDestructiveHelper)     \
+  V(Smlalt, smlalt, FourRegDestructiveHelper)     \
+  V(Smlslb, smlslb, FourRegDestructiveHelper)     \
+  V(Smlslt, smlslt, FourRegDestructiveHelper)     \
+  V(Umlalb, umlalb, FourRegDestructiveHelper)     \
+  V(Umlalt, umlalt, FourRegDestructiveHelper)     \
+  V(Umlslb, umlslb, FourRegDestructiveHelper)     \
+  V(Umlslt, umlslt, FourRegDestructiveHelper)     \
+  V(Bcax, bcax, FourRegDestructiveHelper)         \
+  V(Bsl, bsl, FourRegDestructiveHelper)           \
+  V(Bsl1n, bsl1n, FourRegDestructiveHelper)       \
+  V(Bsl2n, bsl2n, FourRegDestructiveHelper)       \
+  V(Eor3, eor3, FourRegDestructiveHelper)         \
+  V(Nbsl, nbsl, FourRegDestructiveHelper)
 
-#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                         \
-  void MacroAssembler::MASMFN(const ZRegister& zd,                   \
-                              const ZRegister& za,                   \
-                              const ZRegister& zn,                   \
-                              const ZRegister& zm) {                 \
-    VIXL_ASSERT(allow_macro_instructions_);                          \
-    AbsoluteDifferenceAccumulate(&Assembler::ASMFN, zd, za, zn, zm); \
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN, HELPER) \
+  void MacroAssembler::MASMFN(const ZRegister& zd,   \
+                              const ZRegister& za,   \
+                              const ZRegister& zn,   \
+                              const ZRegister& zm) { \
+    VIXL_ASSERT(allow_macro_instructions_);          \
+    HELPER(&Assembler::ASMFN, zd, za, zn, zm);       \
   }
-VIXL_SVE_ABSDIFF_LIST(VIXL_DEFINE_MASM_FUNC)
+VIXL_SVE_4REG_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
 
 void MacroAssembler::Sdot(const ZRegister& zd,
@@ -2173,31 +2193,6 @@ void MacroAssembler::Sqcadd(const ZRegister& zd,
                             int rot) {
   ComplexAddition(&Assembler::sqcadd, zd, zn, zm, rot);
 }
-
-#define VIXL_SVE_FOUR_REG_DES_LIST(V) \
-  V(Adclb, adclb)                     \
-  V(Adclt, adclt)                     \
-  V(Sbclb, sbclb)                     \
-  V(Sbclt, sbclt)                     \
-  V(Sdot, sdot)                       \
-  V(Udot, udot)                       \
-  V(Bcax, bcax)                       \
-  V(Bsl, bsl)                         \
-  V(Bsl1n, bsl1n)                     \
-  V(Bsl2n, bsl2n)                     \
-  V(Eor3, eor3)                       \
-  V(Nbsl, nbsl)
-
-#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                     \
-  void MacroAssembler::MASMFN(const ZRegister& zd,               \
-                              const ZRegister& za,               \
-                              const ZRegister& zn,               \
-                              const ZRegister& zm) {             \
-    VIXL_ASSERT(allow_macro_instructions_);                      \
-    FourRegDestructiveHelper(&Assembler::ASMFN, zd, za, zn, zm); \
-  }
-VIXL_SVE_FOUR_REG_DES_LIST(VIXL_DEFINE_MASM_FUNC)
-#undef VIXL_DEFINE_MASM_FUNC
 
 void MacroAssembler::Mla(const ZRegister& zd,
                          const ZRegister& za,

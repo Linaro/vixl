@@ -7757,8 +7757,9 @@ void Assembler::smlalb(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44004000 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -7785,8 +7786,9 @@ void Assembler::smlalt(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44004400 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -7813,8 +7815,9 @@ void Assembler::smlslb(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44005000 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -7841,8 +7844,9 @@ void Assembler::smlslt(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44005400 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -9139,8 +9143,9 @@ void Assembler::umlalb(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44004800 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -9167,8 +9172,9 @@ void Assembler::umlalt(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44004c00 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -9195,8 +9201,9 @@ void Assembler::umlslb(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44005800 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
@@ -9223,8 +9230,9 @@ void Assembler::umlslt(const ZRegister& zda,
   //  size<23:22> | Zm<20:16> | S<12> | U<11> | T<10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
-  VIXL_ASSERT(zda.GetLaneSizeInBytes() != kBRegSizeInBytes);
+  VIXL_ASSERT(!zda.IsLaneSizeB());
+  VIXL_ASSERT(AreSameLaneSize(zn, zm));
+  VIXL_ASSERT(zda.GetLaneSizeInBytes() == (zn.GetLaneSizeInBytes() * 2));
 
   Emit(0x44005c00 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }

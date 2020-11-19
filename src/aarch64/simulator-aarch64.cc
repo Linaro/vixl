@@ -3108,25 +3108,30 @@ void Simulator::Simulate_ZdaT_ZnT_const(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+
+  SimVRegister temp, zn_b, zm_b, zn_t, zm_t;
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  pack_even_elements(vform_half, zn_b, zn);
+  pack_even_elements(vform_half, zm_b, zm);
+  pack_odd_elements(vform_half, zn_t, zn);
+  pack_odd_elements(vform_half, zm_t, zm);
 
   switch (form_hash_) {
     case Hash("smlalb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      smlal(vform, zda, zn_b, zm_b);
       break;
     case Hash("smlalt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      smlal(vform, zda, zn_t, zm_t);
       break;
     case Hash("smlslb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      smlsl(vform, zda, zn_b, zm_b);
       break;
     case Hash("smlslt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      smlsl(vform, zda, zn_t, zm_t);
       break;
     case Hash("sqdmlalb_z_zzz"):
       VIXL_UNIMPLEMENTED();
@@ -3147,16 +3152,16 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("umlalb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      umlal(vform, zda, zn_b, zm_b);
       break;
     case Hash("umlalt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      umlal(vform, zda, zn_t, zm_t);
       break;
     case Hash("umlslb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      umlsl(vform, zda, zn_b, zm_b);
       break;
     case Hash("umlslt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      umlsl(vform, zda, zn_t, zm_t);
       break;
     default:
       VIXL_UNIMPLEMENTED();
