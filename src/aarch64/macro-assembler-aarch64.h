@@ -716,9 +716,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   static int MoveImmediateHelper(MacroAssembler* masm,
                                  const Register& rd,
                                  uint64_t imm);
-  static bool OneInstrMoveImmediateHelper(MacroAssembler* masm,
-                                          const Register& dst,
-                                          uint64_t imm);
 
 
   // Logical macros.

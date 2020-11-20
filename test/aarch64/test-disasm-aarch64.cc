@@ -133,6 +133,15 @@ TEST(move_immediate) {
   COMPARE(movn(x19, 0x5555, 32), "mov x19, #0xffffaaaaffffffff");
   COMPARE(movn(x20, 0xaaaa, 48), "mov x20, #0x5555ffffffffffff");
 
+  COMPARE(mov(w14, 0x1234), "mov w14, #0x1234");
+  COMPARE(mov(x15, 0xabcd0000), "mov x15, #0xabcd0000");
+  COMPARE(mov(x16, 0xaaaa000000000000), "mov x16, #0xaaaa000000000000");
+  COMPARE(mov(w17, 0xaaaaffff), "mov w17, #0xaaaaffff");
+  COMPARE(mov(x18, 0xffffaaaaffffffff), "mov x18, #0xffffaaaaffffffff");
+  COMPARE(mov(x19, 0xffffffffffffffff), "mov x19, #0xffffffffffffffff");
+  COMPARE(mov(x20, 0xc001c001c001c001), "mov x20, #0xc001c001c001c001");
+  COMPARE(mov(sp, 0xfefefefefefefefe), "mov sp, #0xfefefefefefefefe");
+
   COMPARE(movk(w21, 0), "movk w21, #0x0");
   COMPARE(movk(x22, 0, 0), "movk x22, #0x0");
   COMPARE(movk(w23, 0, 16), "movk w23, #0x0, lsl #16");

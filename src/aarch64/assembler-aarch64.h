@@ -2105,6 +2105,13 @@ class Assembler : public vixl::internal::AssemblerBase {
     MoveWide(rd, imm, shift, MOVZ);
   }
 
+  // Move immediate, aliases for movz, movn, orr.
+  void mov(const Register& rd, uint64_t imm) {
+    if (!OneInstrMoveImmediateHelper(this, rd, imm)) {
+      VIXL_UNIMPLEMENTED();
+    }
+  }
+
   // Misc instructions.
 
   // Monitor debug-mode breakpoint.
@@ -5850,6 +5857,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   // Code generation helpers.
+  static bool OneInstrMoveImmediateHelper(Assembler* assm,
+                                          const Register& dst,
+                                          uint64_t imm);
 
   // Register encoding.
   template <int hibit, int lobit>
