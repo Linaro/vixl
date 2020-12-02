@@ -6760,38 +6760,38 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const PRegisterM& pg,
              const ZRegister& zn,
              const ZRegister& zm);
-  void Smlalb(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smlalb(zda, zn);
-  }
+  void Smlalb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
   void Smlalb(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Smlalt(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smlalt(zda, zn);
-  }
+  void Smlalt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
   void Smlalt(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Smlslb(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smlslb(zda, zn);
-  }
+  void Smlslb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
   void Smlslb(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Smlslt(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    smlslt(zda, zn);
-  }
+  void Smlslt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
   void Smlslt(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
@@ -7199,39 +7199,39 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const PRegisterM& pg,
              const ZRegister& zn,
              const ZRegister& zm);
-  void Umlalb(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umlalb(zda, zn);
-  }
+  void Umlalb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
   void Umlalb(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Umlalt(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umlalt(zda, zn);
-  }
-  void Umlalt(const ZRegister& zda,
+  void Umlalt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+  void Umlalt(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Umlslb(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umlslb(zda, zn);
-  }
-  void Umlslb(const ZRegister& zda,
+  void Umlslb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+  void Umlslb(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
-  void Umlslt(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    umlslt(zda, zn);
-  }
-  void Umlslt(const ZRegister& zda,
+  void Umlslt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+  void Umlslt(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);

@@ -350,6 +350,7 @@ class Instruction {
   std::pair<int, int> GetSVEPermuteIndexAndLaneSizeLog2() const;
 
   std::pair<int, int> GetSVEMulZmAndIndex() const;
+  std::pair<int, int> GetSVEMulLongZmAndIndex() const;
 
   std::pair<int, int> GetSVEImmShiftAndLaneSizeLog2(bool is_predicated) const;
 

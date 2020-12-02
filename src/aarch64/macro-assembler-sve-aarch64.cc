@@ -1862,7 +1862,15 @@ VIXL_SVE_4REG_LIST(VIXL_DEFINE_MASM_FUNC)
   V(Sqdmlalb, sqdmlalb, FourRegOneImmDestructiveHelper) \
   V(Sqdmlalt, sqdmlalt, FourRegOneImmDestructiveHelper) \
   V(Sqdmlslb, sqdmlslb, FourRegOneImmDestructiveHelper) \
-  V(Sqdmlslt, sqdmlslt, FourRegOneImmDestructiveHelper)
+  V(Sqdmlslt, sqdmlslt, FourRegOneImmDestructiveHelper) \
+  V(Smlalb, smlalb, FourRegOneImmDestructiveHelper)     \
+  V(Smlalt, smlalt, FourRegOneImmDestructiveHelper)     \
+  V(Smlslb, smlslb, FourRegOneImmDestructiveHelper)     \
+  V(Smlslt, smlslt, FourRegOneImmDestructiveHelper)     \
+  V(Umlalb, umlalb, FourRegOneImmDestructiveHelper)     \
+  V(Umlalt, umlalt, FourRegOneImmDestructiveHelper)     \
+  V(Umlslb, umlslb, FourRegOneImmDestructiveHelper)     \
+  V(Umlslt, umlslt, FourRegOneImmDestructiveHelper)
 
 #define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN, HELPER) \
   void MacroAssembler::MASMFN(const ZRegister& zd,   \

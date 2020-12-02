@@ -170,24 +170,24 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"smaxp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"sminp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"smlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"smlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"smlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlalb_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"smlalb_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smlalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"smlalt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"smlalt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlalt_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"smlalt_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smlslb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"smlslb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"smlslb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlslb_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"smlslb_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smlslt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"smlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"smlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"smlslt_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"smlslt_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"smullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"smullb_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
-    {"smullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"smullb_z_zzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"smullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"smullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
-    {"smullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"smullt_z_zzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"splice_z_p_zz_con", &Simulator::VisitSVEVectorSplice},
     {"sqabs_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
     {"sqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
@@ -212,10 +212,10 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqdmulh_z_zzi_s", &Simulator::Simulate_ZdS_ZnS_ZmS_imm},
     {"sqdmullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"sqdmullb_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
-    {"sqdmullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"sqdmullb_z_zzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"sqdmullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"sqdmullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
-    {"sqdmullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"sqdmullt_z_zzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"sqneg_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
     {"sqrdcmlah_z_zzz", &Simulator::SimulateSVEComplexIntMulAdd},
     {"sqrdcmlah_z_zzzi_h", &Simulator::SimulateSVEComplexIntMulAdd},
@@ -295,24 +295,24 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"umaxp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"uminp_z_p_zz", &Simulator::SimulateSVEIntArithPair},
     {"umlalb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"umlalb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"umlalb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlalb_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"umlalb_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umlalt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"umlalt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"umlalt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlalt_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"umlalt_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umlslb_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"umlslb_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"umlslb_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlslb_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"umlslb_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umlslt_z_zzz", &Simulator::Simulate_ZdaT_ZnTb_ZmTb},
-    {"umlslt_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnS_ZmS_imm},
-    {"umlslt_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnH_ZmH_imm},
+    {"umlslt_z_zzzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
+    {"umlslt_z_zzzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"umullb_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"umullb_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
-    {"umullb_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"umullb_z_zzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"umullt_z_zz", &Simulator::SimulateSVEIntMulLongVec},
     {"umullt_z_zzi_d", &Simulator::SimulateSVESaturatingIntMulLongIdx},
-    {"umullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
+    {"umullt_z_zzi_s", &Simulator::SimulateSVESaturatingIntMulLongIdx},
     {"uqadd_z_p_zz", &Simulator::SimulateSVESaturatingArithmetic},
     {"uqrshl_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
     {"uqrshlr_z_p_zz", &Simulator::VisitSVEBitwiseShiftByVector_Predicated},
@@ -2064,20 +2064,21 @@ void Simulator::Simulate_ZdD_ZnD_ZmD_imm(const Instruction* instr) {
 }
 
 void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  SimVRegister& zm = ReadVRegister(instr->ExtractBits(19, 16));
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
   SimVRegister temp, zm_idx, zn_b, zn_t;
   // Instead of calling the indexed form of the instruction logic, we call the
-  // vector form, which can reuse existing function logics without modification.
+  // vector form, which can reuse existing function logic without modification.
   // Select the specified elements based on the index input and than pack them
   // to the corresponding position.
-  Instr index = (instr->ExtractBit(20) << 1) | instr->ExtractBit(11);
-  dup_elements_to_segments(kFormatVnS, temp, zm, index);
-  pack_even_elements(kFormatVnS, zm_idx, temp);
-  pack_even_elements(kFormatVnS, zn_b, zn);
-  pack_odd_elements(kFormatVnS, zn_t, zn);
+  VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  dup_elements_to_segments(vform_half, temp, instr->GetSVEMulLongZmAndIndex());
+  pack_even_elements(vform_half, zm_idx, temp);
+
+  pack_even_elements(vform_half, zn_b, zn);
+  pack_odd_elements(vform_half, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("smullb_z_zzi_d"):
@@ -2087,16 +2088,66 @@ void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmullb_z_zzi_d"):
-      sqdmull(kFormatVnD, zd, zn_b, zm_idx);
+      sqdmull(vform, zd, zn_b, zm_idx);
       break;
     case Hash("sqdmullt_z_zzi_d"):
-      sqdmull(kFormatVnD, zd, zn_t, zm_idx);
+      sqdmull(vform, zd, zn_t, zm_idx);
       break;
     case Hash("umullb_z_zzi_d"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("umullt_z_zzi_d"):
       VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smullb_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smullt_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("sqdmullb_z_zzi_s"):
+      sqdmull(vform, zd, zn_b, zm_idx);
+      break;
+    case Hash("sqdmullt_z_zzi_s"):
+      sqdmull(vform, zd, zn_t, zm_idx);
+      break;
+    case Hash("umullb_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("umullt_z_zzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("smlalb_z_zzzi_s"):
+    case Hash("smlalb_z_zzzi_d"):
+      smlal(vform, zd, zn_b, zm_idx);
+      break;
+    case Hash("smlalt_z_zzzi_s"):
+    case Hash("smlalt_z_zzzi_d"):
+      smlal(vform, zd, zn_t, zm_idx);
+      break;
+    case Hash("smlslb_z_zzzi_s"):
+    case Hash("smlslb_z_zzzi_d"):
+      smlsl(vform, zd, zn_b, zm_idx);
+      break;
+    case Hash("smlslt_z_zzzi_s"):
+    case Hash("smlslt_z_zzzi_d"):
+      smlsl(vform, zd, zn_t, zm_idx);
+      break;
+    case Hash("umlalb_z_zzzi_s"):
+    case Hash("umlalb_z_zzzi_d"):
+      umlal(vform, zd, zn_b, zm_idx);
+      break;
+    case Hash("umlalt_z_zzzi_s"):
+    case Hash("umlalt_z_zzzi_d"):
+      umlal(vform, zd, zn_t, zm_idx);
+      break;
+    case Hash("umlslb_z_zzzi_s"):
+    case Hash("umlslb_z_zzzi_d"):
+      umlsl(vform, zd, zn_b, zm_idx);
+      break;
+    case Hash("umlslt_z_zzzi_s"):
+    case Hash("umlslt_z_zzzi_d"):
+      umlsl(vform, zd, zn_t, zm_idx);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2203,46 +2254,6 @@ void Simulator::Simulate_ZdS_PgM_ZnS(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
   }
   mov_merging(vform, zd, pg, result);
-}
-
-void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
-  SimVRegister& zm = ReadVRegister(instr->ExtractBits(18, 16));
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-
-  SimVRegister temp, zm_idx, zn_b, zn_t;
-  // Instead of calling the indexed form of the instruction logic, we call the
-  // vector form, which can reuse existing function logics without modification.
-  // Select the specified elements based on the index input and than pack them
-  // to the corresponding position.
-  Instr index = (instr->ExtractBits(20, 19) << 1) | instr->ExtractBit(11);
-  dup_elements_to_segments(kFormatVnH, temp, zm, index);
-  pack_even_elements(kFormatVnH, zm_idx, temp);
-  pack_even_elements(kFormatVnH, zn_b, zn);
-  pack_odd_elements(kFormatVnH, zn_t, zn);
-
-  switch (form_hash_) {
-    case Hash("smullb_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smullt_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqdmullb_z_zzi_s"):
-      sqdmull(kFormatVnS, zd, zn_b, zm_idx);
-      break;
-    case Hash("sqdmullt_z_zzi_s"):
-      sqdmull(kFormatVnS, zd, zn_t, zm_idx);
-      break;
-    case Hash("umullb_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umullt_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
 }
 
 void Simulator::Simulate_ZdS_ZnS_ZmS_imm(const Instruction* instr) {
@@ -2776,18 +2787,6 @@ void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
   pack_odd_elements(kFormatVnS, zn_t, zn);
 
   switch (form_hash_) {
-    case Hash("smlalb_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smlalt_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smlslb_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smlslt_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("sqdmlalb_z_zzzi_d"):
       sqdmlal(kFormatVnD, zda, zn_b, zm_idx);
       break;
@@ -2799,18 +2798,6 @@ void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
       break;
     case Hash("sqdmlslt_z_zzzi_d"):
       sqdmlsl(kFormatVnD, zda, zn_t, zm_idx);
-      break;
-    case Hash("umlalb_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umlalt_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umlslb_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umlslt_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2895,18 +2882,6 @@ void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
     case Hash("fmlslt_z_zzzi_s"):
       VIXL_UNIMPLEMENTED();
       break;
-    case Hash("smlalb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smlalt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smlslb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smlslt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
     case Hash("sqdmlalb_z_zzzi_s"):
       sqdmlal(kFormatVnS, zda, zn_b, zm_idx);
       break;
@@ -2918,18 +2893,6 @@ void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
       break;
     case Hash("sqdmlslt_z_zzzi_s"):
       sqdmlsl(kFormatVnS, zda, zn_t, zm_idx);
-      break;
-    case Hash("umlalb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umlalt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umlslb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umlslt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();

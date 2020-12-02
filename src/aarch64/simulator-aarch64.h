@@ -1178,7 +1178,6 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdS_PgM_ZnD(const Instruction* instr);
   void Simulate_ZdS_PgM_ZnH(const Instruction* instr);
   void Simulate_ZdS_PgM_ZnS(const Instruction* instr);
-  void Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr);
   void Simulate_ZdS_ZnS_ZmS_imm(const Instruction* instr);
   void Simulate_ZdT_PgM_ZnT(const Instruction* instr);
   void Simulate_ZdT_PgZ_ZnT_ZmT(const Instruction* instr);

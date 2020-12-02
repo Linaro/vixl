@@ -6150,25 +6150,37 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Signed multiply-add long to accumulator (bottom, indexed).
-  void smlalb(const ZRegister& zda, const ZRegister& zn);
+  void smlalb(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Signed multiply-add long to accumulator (bottom).
   void smlalb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Signed multiply-add long to accumulator (top, indexed).
-  void smlalt(const ZRegister& zda, const ZRegister& zn);
+  void smlalt(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Signed multiply-add long to accumulator (top).
   void smlalt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Signed multiply-subtract long from accumulator (bottom, indexed).
-  void smlslb(const ZRegister& zda, const ZRegister& zn);
+  void smlslb(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Signed multiply-subtract long from accumulator (bottom).
   void smlslb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Signed multiply-subtract long from accumulator (top, indexed).
-  void smlslt(const ZRegister& zda, const ZRegister& zn);
+  void smlslt(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Signed multiply-subtract long from accumulator (top).
   void smlslt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
@@ -6560,25 +6572,37 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm);
 
   // Unsigned multiply-add long to accumulator (bottom, indexed).
-  void umlalb(const ZRegister& zda, const ZRegister& zn);
+  void umlalb(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Unsigned multiply-add long to accumulator (bottom).
   void umlalb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned multiply-add long to accumulator (top, indexed).
-  void umlalt(const ZRegister& zda, const ZRegister& zn);
+  void umlalt(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Unsigned multiply-add long to accumulator (top).
   void umlalt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned multiply-subtract long from accumulator (bottom, indexed).
-  void umlslb(const ZRegister& zda, const ZRegister& zn);
+  void umlslb(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Unsigned multiply-subtract long from accumulator (bottom).
   void umlslb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned multiply-subtract long from accumulator (top, indexed).
-  void umlslt(const ZRegister& zda, const ZRegister& zn);
+  void umlslt(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Unsigned multiply-subtract long from accumulator (top).
   void umlslt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
@@ -7695,6 +7719,7 @@ class Assembler : public vixl::internal::AssemblerBase {
                           Instr op_s,
                           Instr op_d);
 
+  Instr SVEMulLongIndexHelper(const ZRegister& zm, int index);
 
   void SVEContiguousPrefetchScalarPlusScalarHelper(PrefetchOperation prfop,
                                                    const PRegister& pg,

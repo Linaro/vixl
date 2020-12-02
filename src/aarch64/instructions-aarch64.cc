@@ -638,6 +638,31 @@ std::pair<int, int> Instruction::GetSVEMulZmAndIndex() const {
   return std::make_pair(reg_code, index);
 }
 
+// Get the register and index for SVE indexed long multiplies encoded in the
+// forms:
+//  .h : Zm = <18:16>, index = <20:19><11>
+//  .s : Zm = <19:16>, index = <20><11>
+std::pair<int, int> Instruction::GetSVEMulLongZmAndIndex() const {
+  int reg_code = GetRmLow16();
+  int index = ExtractBit(11);
+
+  // For long multiplies, the SVE size field <23:22> encodes the destination
+  // element size. The source element size is half the width.
+  switch (GetSVEVectorFormat()) {
+    case kFormatVnS:
+      reg_code &= 7;
+      index |= ExtractBits(20, 19) << 1;
+      break;
+    case kFormatVnD:
+      index |= ExtractBit(20) << 1;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  return std::make_pair(reg_code, index);
+}
+
 // Logical immediates can't encode zero, so a return value of zero is used to
 // indicate a failure case. Specifically, where the constraints on imm_s are
 // not met.
