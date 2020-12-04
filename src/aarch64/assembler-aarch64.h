@@ -6274,7 +6274,11 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Saturating rounding doubling complex integer multiply-add high with
   // rotate (indexed).
-  void sqrdcmlah(const ZRegister& zda, const ZRegister& zn);
+  void sqrdcmlah(const ZRegister& zda,
+                 const ZRegister& zn,
+                 const ZRegister& zm,
+                 int index,
+                 int rot);
 
   // Saturating rounding doubling complex integer multiply-add high with
   // rotate.

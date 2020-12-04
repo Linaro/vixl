@@ -664,6 +664,27 @@ VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
 VIXL_SVE_NONCOMM_ARITH_REVERSE_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
 
+void MacroAssembler::Sqrdcmlah(const ZRegister& zd,
+                               const ZRegister& za,
+                               const ZRegister& zn,
+                               const ZRegister& zm,
+                               int index,
+                               int rot) {
+  if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) {
+    UseScratchRegisterScope temps(this);
+    VIXL_ASSERT(AreSameLaneSize(zn, zm));
+    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zn);
+    {
+      MovprfxHelperScope guard(this, ztmp, za);
+      sqrdcmlah(ztmp, zn, zm, index, rot);
+    }
+    Mov(zd, ztmp);
+  } else {
+    MovprfxHelperScope guard(this, zd, za);
+    sqrdcmlah(zd, zn, zm, index, rot);
+  }
+}
+
 void MacroAssembler::Fadd(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& zn,

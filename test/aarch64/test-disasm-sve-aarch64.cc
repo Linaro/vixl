@@ -8421,6 +8421,30 @@ TEST(sve2_complex_integer_multiply_add) {
   COMPARE_PREFIX(sqrdcmlah(z31.VnS(), z15.VnS(), z20.VnS(), 270),
                  "sqrdcmlah z31.s, z15.s, z20.s, #270");
 
+  COMPARE_PREFIX(sqrdcmlah(z14.VnS(), z11.VnS(), z8.VnS(), 1, 0),
+                 "sqrdcmlah z14.s, z11.s, z8.s[1], #0");
+  COMPARE_PREFIX(sqrdcmlah(z31.VnH(), z2.VnH(), z3.VnH(), 2, 180),
+                 "sqrdcmlah z31.h, z2.h, z3.h[2], #180");
+
+  COMPARE_MACRO(Sqrdcmlah(z0.VnB(), z1.VnB(), z0.VnB(), z3.VnB(), 0),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "sqrdcmlah z0.b, z31.b, z3.b, #0");
+  COMPARE_MACRO(Sqrdcmlah(z0.VnH(), z1.VnH(), z2.VnH(), z0.VnH(), 90),
+                "mov z31.d, z0.d\n"
+                "movprfx z0, z1\n"
+                "sqrdcmlah z0.h, z2.h, z31.h, #90");
+  COMPARE_MACRO(Sqrdcmlah(z0.VnS(), z1.VnS(), z0.VnS(), z0.VnS(), 0, 180),
+                "movprfx z31, z1\n"
+                "sqrdcmlah z31.s, z0.s, z0.s[0], #180\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Sqrdcmlah(z5.VnH(), z1.VnH(), z2.VnH(), z5.VnH(), 3, 270),
+                "movprfx z31, z1\n"
+                "sqrdcmlah z31.h, z2.h, z5.h[3], #270\n"
+                "mov z5.d, z31.d");
+  COMPARE_MACRO(Sqrdcmlah(z3.VnH(), z3.VnH(), z3.VnH(), z3.VnH(), 2, 90),
+                "sqrdcmlah z3.h, z3.h, z3.h[2], #90");
+
   COMPARE_PREFIX(cmla(z19.VnB(), z7.VnB(), z2.VnB(), 0),
                  "cmla z19.b, z7.b, z2.b, #0");
   COMPARE_PREFIX(cmla(z19.VnD(), z7.VnD(), z2.VnD(), 90),
@@ -8631,16 +8655,12 @@ TEST(sve2_all_instructions) {
   // <Zm>.s[<imm>]");
   // COMPARE_PREFIX(sqdmullt(z7.VnD(), z4.VnS()), "sqdmullt z7.d, z4.s,
   // <Zm>.s[<imm>]");
-  // COMPARE_PREFIX(sqrdcmlah(z14.VnS(), z11.VnS()), "sqrdcmlah z14.h, z11.h,
-  // <Zm>.h[<imm>], <const>");
   // COMPARE_PREFIX(sqrdcmlah(z31.VnB(), z15.VnB(), z20.VnB()), "sqrdcmlah
   // z31.b, z15.b, z20.b, <const>");
   // COMPARE_PREFIX(sqrdcmlah(z31.VnD(), z15.VnD(), z20.VnD()), "sqrdcmlah
   // z31.d, z15.d, z20.d, <const>");
   // COMPARE_PREFIX(sqrdcmlah(z31.VnH(), z15.VnH(), z20.VnH()), "sqrdcmlah
   // z31.h, z15.h, z20.h, <const>");
-  // COMPARE_PREFIX(sqrdcmlah(z31.VnH(), z2.VnH()), "sqrdcmlah z31.h, z2.h,
-  // <Zm>.h[<imm>], <const>");
   // COMPARE_PREFIX(sqrdcmlah(z31.VnS(), z15.VnS(), z20.VnS()), "sqrdcmlah
   // z31.s, z15.s, z20.s, <const>");
   // COMPARE_PREFIX(sqrdmlah(z10.VnH(), z30.VnH()), "sqrdmlah z10.d, z30.d,

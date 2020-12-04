@@ -19123,6 +19123,10 @@ TEST_SVE(sve2_sqrdcmlah) {
       {-1023, 2050, 6147, -8188, -1019, 2054, 6151, -8184};
   int32_t zd_270_expected[] =
       {-1023, -510, 6147, 4612, -1019, -506, 6151, 4616};
+  int32_t zd_0_270_expected[] =
+      {2049, 2050, 6147, 6148, 2053, 2054, 6151, 6152};
+  int32_t zd_3_090_expected[] =
+      {-1535, 1538, -4605, 4612, -1531, 1542, -4601, 4616};
 
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
   START();
@@ -19156,6 +19160,12 @@ TEST_SVE(sve2_sqrdcmlah) {
   // __ Sqrdcmlah(z16.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 180);
   // __ Sqrdcmlah(z17.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 270);
 
+  __ Mov(z18, z31);
+  __ Sqrdcmlah(z18.VnS(), z18.VnS(), z0.VnS(), z1.VnS(), 0, 270);
+
+  __ Mov(z19, z31);
+  __ Sqrdcmlah(z19.VnS(), z19.VnS(), z0.VnS(), z1.VnS(), 1, 90);
+
   END();
 
   if (CAN_RUN()) {
@@ -19170,6 +19180,9 @@ TEST_SVE(sve2_sqrdcmlah) {
     // ASSERT_EQUAL_SVE(z15, z11);
     // ASSERT_EQUAL_SVE(z16, z12);
     // ASSERT_EQUAL_SVE(z17, z13);
+
+    ASSERT_EQUAL_SVE(zd_0_270_expected, z18.VnS());
+    ASSERT_EQUAL_SVE(zd_3_090_expected, z19.VnS());
   }
 }
 

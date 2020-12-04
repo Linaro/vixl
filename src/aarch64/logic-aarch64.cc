@@ -4295,6 +4295,18 @@ LogicVRegister Simulator::sqrdcmlah(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::sqrdcmlah(VectorFormat vform,
+                                    LogicVRegister dst,
+                                    const LogicVRegister& srca,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2,
+                                    int index,
+                                    int rot) {
+  SimVRegister temp;
+  dup_elements_to_segments(vform, temp, src2, index);
+  return sqrdcmlah(vform, dst, srca, src1, temp, rot);
+}
+
 LogicVRegister Simulator::sqrdmlash(VectorFormat vform,
                                     LogicVRegister dst,
                                     const LogicVRegister& src1,

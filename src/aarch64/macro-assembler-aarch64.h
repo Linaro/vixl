@@ -6937,11 +6937,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     MovprfxHelperScope guard(this, zd, pg, zd);
     sqneg(zd, pg.Merging(), zn);
   }
-  void Sqrdcmlah(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqrdcmlah(zda, zn);
-  }
+  void Sqrdcmlah(const ZRegister& zd,
+                 const ZRegister& za,
+                 const ZRegister& zn,
+                 const ZRegister& zm,
+                 int index,
+                 int rot);
   void Sqrdcmlah(const ZRegister& zd,
                  const ZRegister& za,
                  const ZRegister& zn,

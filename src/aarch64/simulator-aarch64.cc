@@ -86,8 +86,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"cdot_z_zzzi_d", &Simulator::SimulateSVEComplexDotProduct},
     {"cdot_z_zzzi_s", &Simulator::SimulateSVEComplexDotProduct},
     {"cmla_z_zzz", &Simulator::SimulateSVEComplexIntMulAdd},
-    {"cmla_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
-    {"cmla_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
+    {"cmla_z_zzzi_h", &Simulator::SimulateSVEComplexIntMulAdd},
+    {"cmla_z_zzzi_s", &Simulator::SimulateSVEComplexIntMulAdd},
     {"eor3_z_zzz", &Simulator::SimulateSVEBitwiseTernary},
     {"eorbt_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"eortb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
@@ -218,8 +218,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqdmullt_z_zzi_s", &Simulator::Simulate_ZdS_ZnH_ZmH_imm},
     {"sqneg_z_p_z", &Simulator::Simulate_ZdT_PgM_ZnT},
     {"sqrdcmlah_z_zzz", &Simulator::SimulateSVEComplexIntMulAdd},
-    {"sqrdcmlah_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const},
-    {"sqrdcmlah_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const},
+    {"sqrdcmlah_z_zzzi_h", &Simulator::SimulateSVEComplexIntMulAdd},
+    {"sqrdcmlah_z_zzzi_s", &Simulator::SimulateSVEComplexIntMulAdd},
     {"sqrdmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
     {"sqrdmlah_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
     {"sqrdmlah_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
@@ -2838,24 +2838,6 @@ void Simulator::Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("cmla_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrdcmlah_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::Simulate_ZdaS_ZnH_ZmH(const Instruction* instr) {
   SimVRegister& zda = ReadVRegister(instr->GetRd());
   USE(zda);
@@ -2968,24 +2950,6 @@ void Simulator::Simulate_ZdaS_ZnS_ZmS_imm(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("cmla_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrdcmlah_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::Simulate_ZdaT_PgM_ZnTb(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
@@ -3058,18 +3022,43 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
 }
 
 void Simulator::SimulateSVEComplexIntMulAdd(const Instruction* instr) {
-  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  SimVRegister& zm = ReadVRegister(instr->GetRm());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   int rot = instr->ExtractBits(11, 10) * 90;
+  // The information below are only valid for the vector form of instruction.
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
 
   switch (form_hash_) {
     case Hash("cmla_z_zzz"):
       cmla(vform, zda, zda, zn, zm, rot);
       break;
+    case Hash("cmla_z_zzzi_h"):
+      VIXL_UNIMPLEMENTED();
+      break;
+    case Hash("cmla_z_zzzi_s"):
+      VIXL_UNIMPLEMENTED();
+      break;
     case Hash("sqrdcmlah_z_zzz"):
       sqrdcmlah(vform, zda, zda, zn, zm, rot);
+      break;
+    case Hash("sqrdcmlah_z_zzzi_h"):
+      sqrdcmlah(kFormatVnH,
+                zda,
+                zda,
+                zn,
+                ReadVRegister(instr->ExtractBits(18, 16)),
+                instr->ExtractBits(20, 19),
+                rot);
+      break;
+    case Hash("sqrdcmlah_z_zzzi_s"):
+      sqrdcmlah(kFormatVnS,
+                zda,
+                zda,
+                zn,
+                ReadVRegister(instr->ExtractBits(19, 16)),
+                instr->ExtractBit(20),
+                rot);
       break;
     default:
       VIXL_UNIMPLEMENTED();

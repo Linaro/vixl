@@ -8244,14 +8244,34 @@ void Assembler::sqneg(const ZRegister& zd,
 // This prototype maps to 2 instruction encodings:
 //  sqrdcmlah_z_zzzi_h
 //  sqrdcmlah_z_zzzi_s
-void Assembler::sqrdcmlah(const ZRegister& zda, const ZRegister& zn) {
+void Assembler::sqrdcmlah(const ZRegister& zda,
+                          const ZRegister& zn,
+                          const ZRegister& zm,
+                          int index,
+                          int rot) {
   // SQRDCMLAH <Zda>.H, <Zn>.H, <Zm>.H[<imm>], <const>
   //  0100 0100 101. .... 0111 .... .... ....
   //  size<23:22> | opc<20:16> | rot<11:10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
+  VIXL_ASSERT(index >= 0);
 
-  Emit(0x44a07000 | Rd(zda) | Rn(zn));
+  Instr zm_and_idx_and_size = 0;
+  if (zda.IsLaneSizeH()) {
+    // Zm<18:16> | i2<20:19>
+    VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 3));
+    zm_and_idx_and_size = (index << 19) | Rx<18, 16>(zm) | 0;
+  } else {
+    VIXL_ASSERT(zda.IsLaneSizeS());
+    // Zm<19:16> | i1<20>
+    VIXL_ASSERT((zm.GetCode() <= 15) && (index <= 1));
+    zm_and_idx_and_size = (index << 20) | Rx<19, 16>(zm) | (1 << 22);
+  }
+
+  Instr rotate_bit = (rot / 90) << 10;
+  Emit(0x44a07000 | zm_and_idx_and_size | rotate_bit | Rd(zda) | Rn(zn));
 }
 
 void Assembler::sqrdcmlah(const ZRegister& zda,
