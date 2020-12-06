@@ -8474,6 +8474,53 @@ TEST(sve2_complex_integer_multiply_add) {
   CLEANUP();
 }
 
+TEST(sve2_saturating_multiply_add_long) {
+  SETUP();
+
+  COMPARE_PREFIX(sqdmlalb(z6.VnD(), z19.VnS(), z25.VnS()),
+                 "sqdmlalb z6.d, z19.s, z25.s");
+  COMPARE_PREFIX(sqdmlalb(z6.VnH(), z19.VnB(), z25.VnB()),
+                 "sqdmlalb z6.h, z19.b, z25.b");
+  COMPARE_PREFIX(sqdmlalb(z6.VnS(), z19.VnH(), z25.VnH()),
+                 "sqdmlalb z6.s, z19.h, z25.h");
+  COMPARE_PREFIX(sqdmlalt(z11.VnD(), z0.VnS(), z10.VnS()),
+                 "sqdmlalt z11.d, z0.s, z10.s");
+  COMPARE_PREFIX(sqdmlalt(z11.VnH(), z0.VnB(), z10.VnB()),
+                 "sqdmlalt z11.h, z0.b, z10.b");
+  COMPARE_PREFIX(sqdmlalt(z11.VnS(), z0.VnH(), z10.VnH()),
+                 "sqdmlalt z11.s, z0.h, z10.h");
+  COMPARE_PREFIX(sqdmlslb(z16.VnD(), z26.VnS(), z25.VnS()),
+                 "sqdmlslb z16.d, z26.s, z25.s");
+  COMPARE_PREFIX(sqdmlslb(z16.VnH(), z26.VnB(), z25.VnB()),
+                 "sqdmlslb z16.h, z26.b, z25.b");
+  COMPARE_PREFIX(sqdmlslb(z16.VnS(), z26.VnH(), z25.VnH()),
+                 "sqdmlslb z16.s, z26.h, z25.h");
+  COMPARE_PREFIX(sqdmlslt(z21.VnD(), z23.VnS(), z9.VnS()),
+                 "sqdmlslt z21.d, z23.s, z9.s");
+  COMPARE_PREFIX(sqdmlslt(z21.VnH(), z23.VnB(), z9.VnB()),
+                 "sqdmlslt z21.h, z23.b, z9.b");
+  COMPARE_PREFIX(sqdmlslt(z21.VnS(), z23.VnH(), z9.VnH()),
+                 "sqdmlslt z21.s, z23.h, z9.h");
+
+  COMPARE_MACRO(Sqdmlalb(z6.VnD(), z16.VnD(), z19.VnS(), z25.VnS()),
+                "movprfx z6, z16\n"
+                "sqdmlalb z6.d, z19.s, z25.s");
+  COMPARE_MACRO(Sqdmlalt(z4.VnH(), z26.VnH(), z4.VnB(), z24.VnB()),
+                "movprfx z31, z26\n"
+                "sqdmlalt z31.h, z4.b, z24.b\n"
+                "mov z4.d, z31.d");
+  COMPARE_MACRO(Sqdmlslb(z2.VnS(), z6.VnS(), z17.VnH(), z2.VnH()),
+                "movprfx z31, z6\n"
+                "sqdmlslb z31.s, z17.h, z2.h\n"
+                "mov z2.d, z31.d");
+  COMPARE_MACRO(Sqdmlslt(z0.VnD(), z1.VnD(), z0.VnS(), z0.VnS()),
+                "movprfx z31, z1\n"
+                "sqdmlslt z31.d, z0.s, z0.s\n"
+                "mov z0.d, z31.d");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();

@@ -6839,13 +6839,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqdmlalb(zda, zn);
   }
-  void Sqdmlalb(const ZRegister& zda,
+  void Sqdmlalb(const ZRegister& zd,
+                const ZRegister& za,
                 const ZRegister& zn,
-                const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlalb(zda, zn, zm);
-  }
+                const ZRegister& zm);
   void Sqdmlalbt(const ZRegister& zda,
                  const ZRegister& zn,
                  const ZRegister& zm) {
@@ -6858,25 +6855,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqdmlalt(zda, zn);
   }
-  void Sqdmlalt(const ZRegister& zda,
+  void Sqdmlalt(const ZRegister& zd,
+                const ZRegister& za,
                 const ZRegister& zn,
-                const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlalt(zda, zn, zm);
-  }
+                const ZRegister& zm);
   void Sqdmlslb(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     sqdmlslb(zda, zn);
   }
-  void Sqdmlslb(const ZRegister& zda,
+  void Sqdmlslb(const ZRegister& zd,
+                const ZRegister& za,
                 const ZRegister& zn,
-                const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlslb(zda, zn, zm);
-  }
+                const ZRegister& zm);
   void Sqdmlslbt(const ZRegister& zda,
                  const ZRegister& zn,
                  const ZRegister& zm) {
@@ -6889,13 +6880,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     sqdmlslt(zda, zn);
   }
-  void Sqdmlslt(const ZRegister& zda,
+  void Sqdmlslt(const ZRegister& zd,
+                const ZRegister& za,
                 const ZRegister& zn,
-                const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlslt(zda, zn, zm);
-  }
+                const ZRegister& zm);
   void Sqdmulh(const ZRegister& zd, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

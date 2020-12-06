@@ -3122,22 +3122,22 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
       smlsl(vform, zda, zn_t, zm_t);
       break;
     case Hash("sqdmlalb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(vform, zda, zn_b, zm_b);
       break;
     case Hash("sqdmlalbt_z_zzz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmlalt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(vform, zda, zn_t, zm_t);
       break;
     case Hash("sqdmlslb_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(vform, zda, zn_b, zm_b);
       break;
     case Hash("sqdmlslbt_z_zzz"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmlslt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(vform, zda, zn_t, zm_t);
       break;
     case Hash("umlalb_z_zzz"):
       umlal(vform, zda, zn_b, zm_b);
