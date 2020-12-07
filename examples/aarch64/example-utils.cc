@@ -155,7 +155,7 @@ void Capinfo::Print() const {
          low64);
 #ifdef __CHERI__
   // CHERI printf extension.
-  printf("    printf: %#lp\n", reinterpret_cast<const void*>(&cap));
+  printf("    printf: %#lp\n", reinterpret_cast<const void* __capability>(cap));
 #endif
 
   printf("    gcbase: %#18" PRIx64 "\n", gcbase);
