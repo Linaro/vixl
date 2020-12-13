@@ -6843,13 +6843,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                 const ZRegister& za,
                 const ZRegister& zn,
                 const ZRegister& zm);
-  void Sqdmlalbt(const ZRegister& zda,
+  void Sqdmlalbt(const ZRegister& zd,
+                 const ZRegister& za,
                  const ZRegister& zn,
-                 const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlalbt(zda, zn, zm);
-  }
+                 const ZRegister& zm);
   void Sqdmlalt(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6868,13 +6865,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                 const ZRegister& za,
                 const ZRegister& zn,
                 const ZRegister& zm);
-  void Sqdmlslbt(const ZRegister& zda,
+  void Sqdmlslbt(const ZRegister& zd,
+                 const ZRegister& za,
                  const ZRegister& zn,
-                 const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlslbt(zda, zn, zm);
-  }
+                 const ZRegister& zm);
   void Sqdmlslt(const ZRegister& zda, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);

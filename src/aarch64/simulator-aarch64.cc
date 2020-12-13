@@ -3101,12 +3101,14 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRm());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
-  SimVRegister temp, zn_b, zm_b, zn_t, zm_t;
+  SimVRegister zero, zn_b, zm_b, zn_t, zm_t;
+  zero.Clear();
+
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
-  pack_even_elements(vform_half, zn_b, zn);
-  pack_even_elements(vform_half, zm_b, zm);
-  pack_odd_elements(vform_half, zn_t, zn);
-  pack_odd_elements(vform_half, zm_t, zm);
+  uzp1(vform_half, zn_b, zn, zero);
+  uzp1(vform_half, zm_b, zm, zero);
+  uzp2(vform_half, zn_t, zn, zero);
+  uzp2(vform_half, zm_t, zm, zero);
 
   switch (form_hash_) {
     case Hash("smlalb_z_zzz"):
@@ -3125,7 +3127,7 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
       sqdmlal(vform, zda, zn_b, zm_b);
       break;
     case Hash("sqdmlalbt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(vform, zda, zn_b, zm_t);
       break;
     case Hash("sqdmlalt_z_zzz"):
       sqdmlal(vform, zda, zn_t, zm_t);
@@ -3134,7 +3136,7 @@ void Simulator::Simulate_ZdaT_ZnTb_ZmTb(const Instruction* instr) {
       sqdmlsl(vform, zda, zn_b, zm_b);
       break;
     case Hash("sqdmlslbt_z_zzz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(vform, zda, zn_b, zm_t);
       break;
     case Hash("sqdmlslt_z_zzz"):
       sqdmlsl(vform, zda, zn_t, zm_t);

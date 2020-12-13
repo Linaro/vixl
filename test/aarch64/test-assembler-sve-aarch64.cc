@@ -18790,7 +18790,7 @@ TEST_SVE(sve2_integer_multiply_long_vector) {
   int32_t zm_inputs_s[] =
       {1, 2, 3, 4, 5, 6, 7, 8, INT32_MAX, INT32_MIN, INT32_MAX, INT32_MIN};
   int64_t sqdmullb_vec_expected_d[] =
-      {-8, -32, -72, -128, static_cast<int64_t>(0x8000000100000000), INT64_MAX};
+      {-8, -32, -72, -128, RawbitsToInt64(0x8000000100000000), INT64_MAX};
 
   uint64_t sqdmullt_vec_expected_d[] =
       {2, 18, 50, 98, 0x8000000100000000, 0x7ffffffe00000002};
@@ -18862,13 +18862,13 @@ TEST_SVE(sve2_integer_multiply_add_long_vector) {
       {1, 2, 3, 4, 5, 6, 7, 8, INT32_MAX, INT32_MIN, INT32_MAX, INT32_MIN};
 
   int64_t sqdmlalb_vec_expected_d[] =
-      {-3, -28, -69, -126, static_cast<int64_t>(0x8000000100000001), INT64_MAX};
+      {-3, -28, -69, -126, RawbitsToInt64(0x8000000100000001), INT64_MAX};
 
   int64_t sqdmlalt_vec_expected_d[] = {-3,
                                        14,
                                        47,
                                        96,
-                                       static_cast<int64_t>(0x80000000ffffffff),
+                                       RawbitsToInt64(0x80000000ffffffff),
                                        static_cast<int64_t>(
                                            0x7ffffffe00000002)};
 
@@ -19297,6 +19297,55 @@ TEST_SVE(sve2_cmla) {
     // ASSERT_EQUAL_SVE(z5, z1);
     // ASSERT_EQUAL_SVE(z6, z2);
     // ASSERT_EQUAL_SVE(z7, z3);
+  }
+}
+
+TEST_SVE(sve2_integer_saturating_multiply_add_long) {
+  int32_t zn_bottom_inputs[] =
+      {-2, -4, -6, -8, INT32_MAX, INT32_MIN, INT32_MIN};
+
+  int32_t zm_top_inputs[] = {1, 3, 5, 7, INT32_MAX, INT32_MAX, INT32_MIN};
+
+  int64_t sqdmlalbt_expected[] = {2,
+                                  -19,
+                                  -56,
+                                  -109,
+                                  static_cast<int64_t>(0x7ffffffe00000004),
+                                  RawbitsToInt64(0x8000000100000001),
+                                  INT64_MAX};
+
+  int64_t sqdmlslbt_expected[] = {-2,
+                                  19,
+                                  56,
+                                  109,
+                                  RawbitsToInt64(0x80000001fffffffc),
+                                  static_cast<int64_t>(0x7ffffffeffffffff),
+                                  RawbitsToInt64(0x8000000000000001)};
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  InsrHelper(&masm, z31.VnS(), zn_bottom_inputs);
+  InsrHelper(&masm, z30.VnS(), zm_top_inputs);
+
+  __ Dup(z29.VnD(), 0);
+  __ Zip1(z31.VnS(), z31.VnS(), z29.VnS());
+  __ Zip1(z30.VnS(), z29.VnS(), z30.VnS());
+
+  // Initialise inputs for za.
+  __ Index(z1.VnD(), 0, 1);
+  __ Index(z2.VnD(), 0, -1);
+
+  __ Sqdmlalbt(z1.VnD(), z1.VnD(), z31.VnS(), z30.VnS());
+  __ Sqdmlslbt(z2.VnD(), z2.VnD(), z31.VnS(), z30.VnS());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_SVE(sqdmlalbt_expected, z1.VnD());
+    ASSERT_EQUAL_SVE(sqdmlslbt_expected, z2.VnD());
   }
 }
 

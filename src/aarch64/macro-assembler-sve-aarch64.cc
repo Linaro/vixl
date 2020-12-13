@@ -1780,36 +1780,38 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
   }
 }
 
-#define VIXL_SVE_4REG_LIST(V)                     \
-  V(Saba, saba, AbsoluteDifferenceAccumulate)     \
-  V(Uaba, uaba, AbsoluteDifferenceAccumulate)     \
-  V(Sabalb, sabalb, AbsoluteDifferenceAccumulate) \
-  V(Sabalt, sabalt, AbsoluteDifferenceAccumulate) \
-  V(Uabalb, uabalb, AbsoluteDifferenceAccumulate) \
-  V(Uabalt, uabalt, AbsoluteDifferenceAccumulate) \
-  V(Sdot, sdot, FourRegDestructiveHelper)         \
-  V(Udot, udot, FourRegDestructiveHelper)         \
-  V(Adclb, adclb, FourRegDestructiveHelper)       \
-  V(Adclt, adclt, FourRegDestructiveHelper)       \
-  V(Sbclb, sbclb, FourRegDestructiveHelper)       \
-  V(Sbclt, sbclt, FourRegDestructiveHelper)       \
-  V(Smlalb, smlalb, FourRegDestructiveHelper)     \
-  V(Smlalt, smlalt, FourRegDestructiveHelper)     \
-  V(Smlslb, smlslb, FourRegDestructiveHelper)     \
-  V(Smlslt, smlslt, FourRegDestructiveHelper)     \
-  V(Umlalb, umlalb, FourRegDestructiveHelper)     \
-  V(Umlalt, umlalt, FourRegDestructiveHelper)     \
-  V(Umlslb, umlslb, FourRegDestructiveHelper)     \
-  V(Umlslt, umlslt, FourRegDestructiveHelper)     \
-  V(Bcax, bcax, FourRegDestructiveHelper)         \
-  V(Bsl, bsl, FourRegDestructiveHelper)           \
-  V(Bsl1n, bsl1n, FourRegDestructiveHelper)       \
-  V(Bsl2n, bsl2n, FourRegDestructiveHelper)       \
-  V(Eor3, eor3, FourRegDestructiveHelper)         \
-  V(Nbsl, nbsl, FourRegDestructiveHelper)         \
-  V(Sqdmlalb, sqdmlalb, FourRegDestructiveHelper) \
-  V(Sqdmlalt, sqdmlalt, FourRegDestructiveHelper) \
-  V(Sqdmlslb, sqdmlslb, FourRegDestructiveHelper) \
+#define VIXL_SVE_4REG_LIST(V)                       \
+  V(Saba, saba, AbsoluteDifferenceAccumulate)       \
+  V(Uaba, uaba, AbsoluteDifferenceAccumulate)       \
+  V(Sabalb, sabalb, AbsoluteDifferenceAccumulate)   \
+  V(Sabalt, sabalt, AbsoluteDifferenceAccumulate)   \
+  V(Uabalb, uabalb, AbsoluteDifferenceAccumulate)   \
+  V(Uabalt, uabalt, AbsoluteDifferenceAccumulate)   \
+  V(Sdot, sdot, FourRegDestructiveHelper)           \
+  V(Udot, udot, FourRegDestructiveHelper)           \
+  V(Adclb, adclb, FourRegDestructiveHelper)         \
+  V(Adclt, adclt, FourRegDestructiveHelper)         \
+  V(Sbclb, sbclb, FourRegDestructiveHelper)         \
+  V(Sbclt, sbclt, FourRegDestructiveHelper)         \
+  V(Smlalb, smlalb, FourRegDestructiveHelper)       \
+  V(Smlalt, smlalt, FourRegDestructiveHelper)       \
+  V(Smlslb, smlslb, FourRegDestructiveHelper)       \
+  V(Smlslt, smlslt, FourRegDestructiveHelper)       \
+  V(Umlalb, umlalb, FourRegDestructiveHelper)       \
+  V(Umlalt, umlalt, FourRegDestructiveHelper)       \
+  V(Umlslb, umlslb, FourRegDestructiveHelper)       \
+  V(Umlslt, umlslt, FourRegDestructiveHelper)       \
+  V(Bcax, bcax, FourRegDestructiveHelper)           \
+  V(Bsl, bsl, FourRegDestructiveHelper)             \
+  V(Bsl1n, bsl1n, FourRegDestructiveHelper)         \
+  V(Bsl2n, bsl2n, FourRegDestructiveHelper)         \
+  V(Eor3, eor3, FourRegDestructiveHelper)           \
+  V(Nbsl, nbsl, FourRegDestructiveHelper)           \
+  V(Sqdmlalb, sqdmlalb, FourRegDestructiveHelper)   \
+  V(Sqdmlalbt, sqdmlalbt, FourRegDestructiveHelper) \
+  V(Sqdmlalt, sqdmlalt, FourRegDestructiveHelper)   \
+  V(Sqdmlslb, sqdmlslb, FourRegDestructiveHelper)   \
+  V(Sqdmlslbt, sqdmlslbt, FourRegDestructiveHelper) \
   V(Sqdmlslt, sqdmlslt, FourRegDestructiveHelper)
 
 #define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN, HELPER) \
