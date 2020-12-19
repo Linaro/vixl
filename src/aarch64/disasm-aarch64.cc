@@ -10056,7 +10056,7 @@ void Disassembler::Disassemble_ZdaD_ZnH_ZmH_imm_const(
 }
 
 void Disassembler::Disassemble_ZdaD_ZnS_ZmS_imm(const Instruction *instr) {
-  const char *form = "'Zd.d, 'Zn.s, <Zm>.s[<imm>]";
+  const char *form = "'Zd.d, 'Zn.s, z'u1916.s['u2020:1111]";
   Format(instr, mnemonic_.c_str(), form);
 }
 
@@ -10083,7 +10083,7 @@ void Disassembler::Disassemble_ZdaS_ZnH_ZmH(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm(const Instruction *instr) {
-  const char *form = "'Zd.s, 'Zn.h, <Zm>.h[<imm>]";
+  const char *form = "'Zd.s, 'Zn.h, z'u1816.h['u2019:1111]";
   Format(instr, mnemonic_.c_str(), form);
 }
 

@@ -6205,7 +6205,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating doubling multiply-add long to accumulator (bottom,
   // indexed).
-  void sqdmlalb(const ZRegister& zda, const ZRegister& zn);
+  void sqdmlalb(const ZRegister& zda,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating doubling multiply-add long to accumulator (bottom).
   void sqdmlalb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
@@ -6218,14 +6221,20 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating doubling multiply-add long to accumulator (top,
   // indexed).
-  void sqdmlalt(const ZRegister& zda, const ZRegister& zn);
+  void sqdmlalt(const ZRegister& zda,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating doubling multiply-add long to accumulator (top).
   void sqdmlalt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating doubling multiply-subtract long from accumulator
   // (bottom, indexed).
-  void sqdmlslb(const ZRegister& zda, const ZRegister& zn);
+  void sqdmlslb(const ZRegister& zda,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating doubling multiply-subtract long from accumulator
   // (bottom).
@@ -6239,7 +6248,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating doubling multiply-subtract long from accumulator
   // (top, indexed).
-  void sqdmlslt(const ZRegister& zda, const ZRegister& zn);
+  void sqdmlslt(const ZRegister& zda,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating doubling multiply-subtract long from accumulator
   // (top).

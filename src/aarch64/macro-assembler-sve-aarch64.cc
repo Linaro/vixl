@@ -1749,6 +1749,31 @@ void MacroAssembler::FourRegDestructiveHelper(Int4ArithFn fn,
   }
 }
 
+void MacroAssembler::FourRegOneImmDestructiveHelper(ZZZImmFn fn,
+                                                    const ZRegister& zd,
+                                                    const ZRegister& za,
+                                                    const ZRegister& zn,
+                                                    const ZRegister& zm,
+                                                    int imm) {
+  if (!zd.Aliases(za) && (zd.Aliases(zn) || zd.Aliases(zm))) {
+    // zd = za . zd . zm[i]
+    // zd = za . zn . zd[i]
+    // zd = za . zd . zd[i]
+    UseScratchRegisterScope temps(this);
+    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, scratch, za);
+      (this->*fn)(scratch, zn, zm, imm);
+    }
+
+    Mov(zd, scratch);
+  } else {
+    // zd = za . zn . zm[i]
+    MovprfxHelperScope guard(this, zd, za);
+    (this->*fn)(zd, zn, zm, imm);
+  }
+}
+
 void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
                                                   const ZRegister& zd,
                                                   const ZRegister& za,
@@ -1823,6 +1848,28 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
     HELPER(&Assembler::ASMFN, zd, za, zn, zm);       \
   }
 VIXL_SVE_4REG_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
+
+#define VIXL_SVE_4REG_1IMM_LIST(V)                      \
+  V(Fmla, fmla, FourRegOneImmDestructiveHelper)         \
+  V(Fmls, fmls, FourRegOneImmDestructiveHelper)         \
+  V(Mla, mla, FourRegOneImmDestructiveHelper)           \
+  V(Mls, mls, FourRegOneImmDestructiveHelper)           \
+  V(Sqdmlalb, sqdmlalb, FourRegOneImmDestructiveHelper) \
+  V(Sqdmlalt, sqdmlalt, FourRegOneImmDestructiveHelper) \
+  V(Sqdmlslb, sqdmlslb, FourRegOneImmDestructiveHelper) \
+  V(Sqdmlslt, sqdmlslt, FourRegOneImmDestructiveHelper)
+
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN, HELPER) \
+  void MacroAssembler::MASMFN(const ZRegister& zd,   \
+                              const ZRegister& za,   \
+                              const ZRegister& zn,   \
+                              const ZRegister& zm,   \
+                              int imm) {             \
+    VIXL_ASSERT(allow_macro_instructions_);          \
+    HELPER(&Assembler::ASMFN, zd, za, zn, zm, imm);  \
+  }
+VIXL_SVE_4REG_1IMM_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
 
 void MacroAssembler::Sdot(const ZRegister& zd,
@@ -1935,35 +1982,6 @@ void MacroAssembler::FPMulAddHelper(const ZRegister& zd,
   }
 }
 
-void MacroAssembler::MulAddIndexHelper(SVEMulAddIndexFn fn,
-                                       const ZRegister& zd,
-                                       const ZRegister& za,
-                                       const ZRegister& zn,
-                                       const ZRegister& zm,
-                                       int index) {
-  if (zd.Aliases(za)) {
-    // zda = zda + (zn * zm[i])
-    SingleEmissionCheckScope guard(this);
-    (this->*fn)(zd, zn, zm, index);
-
-  } else if (zd.Aliases(zn) || zd.Aliases(zm)) {
-    // zdn = za + (zdn * zm[i])
-    // zdm = za + (zn * zdm[i])
-    // zdnm = za + (zdnm * zdnm[i])
-    UseScratchRegisterScope temps(this);
-    ZRegister scratch = temps.AcquireZ().WithSameLaneSizeAs(zd);
-    {
-      MovprfxHelperScope guard(this, scratch, za);
-      (this->*fn)(scratch, zn, zm, index);
-    }
-    Mov(zd, scratch);
-  } else {
-    // zd = za + (zn * zm[i])
-    MovprfxHelperScope guard(this, zd, za);
-    (this->*fn)(zd, zn, zm, index);
-  }
-}
-
 void MacroAssembler::Fmla(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& za,
@@ -1981,15 +1999,6 @@ void MacroAssembler::Fmla(const ZRegister& zd,
                  nan_option);
 }
 
-void MacroAssembler::Fmla(const ZRegister& zd,
-                          const ZRegister& za,
-                          const ZRegister& zn,
-                          const ZRegister& zm,
-                          int index) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  MulAddIndexHelper(&Assembler::fmla, zd, za, zn, zm, index);
-}
-
 void MacroAssembler::Fmls(const ZRegister& zd,
                           const PRegisterM& pg,
                           const ZRegister& za,
@@ -2005,15 +2014,6 @@ void MacroAssembler::Fmls(const ZRegister& zd,
                  &Assembler::fmls,
                  &Assembler::fmsb,
                  nan_option);
-}
-
-void MacroAssembler::Fmls(const ZRegister& zd,
-                          const ZRegister& za,
-                          const ZRegister& zn,
-                          const ZRegister& zm,
-                          int index) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  MulAddIndexHelper(&Assembler::fmls, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::Fnmla(const ZRegister& zd,
@@ -2249,22 +2249,6 @@ void MacroAssembler::Sqcadd(const ZRegister& zd,
                             const ZRegister& zm,
                             int rot) {
   ComplexAddition(&Assembler::sqcadd, zd, zn, zm, rot);
-}
-
-void MacroAssembler::Mla(const ZRegister& zd,
-                         const ZRegister& za,
-                         const ZRegister& zn,
-                         const ZRegister& zm,
-                         int index) {
-  MulAddIndexHelper(&Assembler::mla, zd, za, zn, zm, index);
-}
-
-void MacroAssembler::Mls(const ZRegister& zd,
-                         const ZRegister& za,
-                         const ZRegister& zn,
-                         const ZRegister& zm,
-                         int index) {
-  MulAddIndexHelper(&Assembler::mls, zd, za, zn, zm, index);
 }
 
 }  // namespace aarch64

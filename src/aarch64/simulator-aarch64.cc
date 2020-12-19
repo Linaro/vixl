@@ -2076,7 +2076,6 @@ void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
   Instr index = (instr->ExtractBit(20) << 1) | instr->ExtractBit(11);
   dup_elements_to_segments(kFormatVnS, temp, zm, index);
   pack_even_elements(kFormatVnS, zm_idx, temp);
-
   pack_even_elements(kFormatVnS, zn_b, zn);
   pack_odd_elements(kFormatVnS, zn_t, zn);
 
@@ -2215,12 +2214,10 @@ void Simulator::Simulate_ZdS_ZnH_ZmH_imm(const Instruction* instr) {
   // Instead of calling the indexed form of the instruction logic, we call the
   // vector form, which can reuse existing function logics without modification.
   // Select the specified elements based on the index input and than pack them
-  // to
-  // the corresponding position.
+  // to the corresponding position.
   Instr index = (instr->ExtractBits(20, 19) << 1) | instr->ExtractBit(11);
   dup_elements_to_segments(kFormatVnH, temp, zm, index);
   pack_even_elements(kFormatVnH, zm_idx, temp);
-
   pack_even_elements(kFormatVnH, zn_b, zn);
   pack_odd_elements(kFormatVnH, zn_t, zn);
 
@@ -2768,9 +2765,15 @@ void Simulator::Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr) {
 
 void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister& zm = ReadVRegister(instr->ExtractBits(19, 16));
+
+  SimVRegister temp, zm_idx, zn_b, zn_t;
+  Instr index = (instr->ExtractBit(20) << 1) | instr->ExtractBit(11);
+  dup_elements_to_segments(kFormatVnS, temp, zm, index);
+  pack_even_elements(kFormatVnS, zm_idx, temp);
+  pack_even_elements(kFormatVnS, zn_b, zn);
+  pack_odd_elements(kFormatVnS, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("smlalb_z_zzzi_d"):
@@ -2786,16 +2789,16 @@ void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmlalb_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(kFormatVnD, zda, zn_b, zm_idx);
       break;
     case Hash("sqdmlalt_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(kFormatVnD, zda, zn_t, zm_idx);
       break;
     case Hash("sqdmlslb_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(kFormatVnD, zda, zn_b, zm_idx);
       break;
     case Hash("sqdmlslt_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(kFormatVnD, zda, zn_t, zm_idx);
       break;
     case Hash("umlalb_z_zzzi_d"):
       VIXL_UNIMPLEMENTED();
@@ -2866,11 +2869,15 @@ void Simulator::Simulate_ZdaS_ZnH_ZmH(const Instruction* instr) {
 
 void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zm = ReadVRegister(instr->GetRm());
-  USE(zm);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister& zm = ReadVRegister(instr->ExtractBits(18, 16));
+
+  SimVRegister temp, zm_idx, zn_b, zn_t;
+  Instr index = (instr->ExtractBits(20, 19) << 1) | instr->ExtractBit(11);
+  dup_elements_to_segments(kFormatVnH, temp, zm, index);
+  pack_even_elements(kFormatVnH, zm_idx, temp);
+  pack_even_elements(kFormatVnH, zn_b, zn);
+  pack_odd_elements(kFormatVnH, zn_t, zn);
 
   switch (form_hash_) {
     case Hash("fmlalb_z_zzzi_s"):
@@ -2898,16 +2905,16 @@ void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("sqdmlalb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(kFormatVnS, zda, zn_b, zm_idx);
       break;
     case Hash("sqdmlalt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlal(kFormatVnS, zda, zn_t, zm_idx);
       break;
     case Hash("sqdmlslb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(kFormatVnS, zda, zn_b, zm_idx);
       break;
     case Hash("sqdmlslt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      sqdmlsl(kFormatVnS, zda, zn_t, zm_idx);
       break;
     case Hash("umlalb_z_zzzi_s"):
       VIXL_UNIMPLEMENTED();

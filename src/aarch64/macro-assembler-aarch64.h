@@ -6834,11 +6834,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
               const ZRegister& zn,
               const ZRegister& zm,
               int rot);
-  void Sqdmlalb(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlalb(zda, zn);
-  }
+  void Sqdmlalb(const ZRegister& zd,
+                const ZRegister& za,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
   void Sqdmlalb(const ZRegister& zd,
                 const ZRegister& za,
                 const ZRegister& zn,
@@ -6847,20 +6847,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  const ZRegister& za,
                  const ZRegister& zn,
                  const ZRegister& zm);
-  void Sqdmlalt(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlalt(zda, zn);
-  }
+  void Sqdmlalt(const ZRegister& zd,
+                const ZRegister& za,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
   void Sqdmlalt(const ZRegister& zd,
                 const ZRegister& za,
                 const ZRegister& zn,
                 const ZRegister& zm);
-  void Sqdmlslb(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlslb(zda, zn);
-  }
+  void Sqdmlslb(const ZRegister& zd,
+                const ZRegister& za,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
   void Sqdmlslb(const ZRegister& zd,
                 const ZRegister& za,
                 const ZRegister& zn,
@@ -6869,11 +6869,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                  const ZRegister& za,
                  const ZRegister& zn,
                  const ZRegister& zm);
-  void Sqdmlslt(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    sqdmlslt(zda, zn);
-  }
+  void Sqdmlslt(const ZRegister& zd,
+                const ZRegister& za,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
   void Sqdmlslt(const ZRegister& zd,
                 const ZRegister& za,
                 const ZRegister& zn,
@@ -8000,12 +8000,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                               const ZRegister& zm,
                                               int index);
 
-  void MulAddIndexHelper(SVEMulAddIndexFn fn,
-                         const ZRegister& zd,
-                         const ZRegister& za,
-                         const ZRegister& zn,
-                         const ZRegister& zm,
-                         int index);
+  void FourRegOneImmDestructiveHelper(ZZZImmFn fn,
+                                      const ZRegister& zd,
+                                      const ZRegister& za,
+                                      const ZRegister& zn,
+                                      const ZRegister& zm,
+                                      int imm);
 
   void ShiftRightAccumulate(IntArithImmFn fn,
                             const ZRegister& zd,
