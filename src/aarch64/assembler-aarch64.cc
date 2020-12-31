@@ -1054,7 +1054,7 @@ void Assembler::cls(const Register& rd, const Register& rn) {
   void Assembler::PRE##za(const Register& xd) {                    \
     VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));                      \
     VIXL_ASSERT(xd.Is64Bits());                                    \
-    Emit(SF(xd) | OP##ZA | Rd(xd));                                \
+    Emit(SF(xd) | OP##ZA | Rd(xd) | Rn(xzr));                      \
   }                                                                \
                                                                    \
   void Assembler::PRE##b(const Register& xd, const Register& xn) { \
@@ -1066,7 +1066,7 @@ void Assembler::cls(const Register& rd, const Register& rn) {
   void Assembler::PRE##zb(const Register& xd) {                    \
     VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));                      \
     VIXL_ASSERT(xd.Is64Bits());                                    \
-    Emit(SF(xd) | OP##ZB | Rd(xd));                                \
+    Emit(SF(xd) | OP##ZB | Rd(xd) | Rn(xzr));                      \
   }
 
 PAUTH_VARIATIONS(VIXL_DEFINE_ASM_FUNC)
@@ -1083,13 +1083,13 @@ void Assembler::pacga(const Register& xd,
 void Assembler::xpaci(const Register& xd) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
   VIXL_ASSERT(xd.Is64Bits());
-  Emit(SF(xd) | XPACI | Rd(xd));
+  Emit(SF(xd) | XPACI | Rd(xd) | Rn(xzr));
 }
 
 void Assembler::xpacd(const Register& xd) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
   VIXL_ASSERT(xd.Is64Bits());
-  Emit(SF(xd) | XPACD | Rd(xd));
+  Emit(SF(xd) | XPACD | Rd(xd) | Rn(xzr));
 }
 
 

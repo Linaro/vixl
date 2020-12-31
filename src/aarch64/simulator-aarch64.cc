@@ -3162,42 +3162,71 @@ void Simulator::VisitConditionalSelect(const Instruction* instr) {
 }
 
 
-// clang-format off
-#define PAUTH_MODES(V)                                       \
-  V(IA,  ReadXRegister(src), kPACKeyIA, kInstructionPointer) \
-  V(IB,  ReadXRegister(src), kPACKeyIB, kInstructionPointer) \
-  V(IZA, 0x00000000,         kPACKeyIA, kInstructionPointer) \
-  V(IZB, 0x00000000,         kPACKeyIB, kInstructionPointer) \
-  V(DA,  ReadXRegister(src), kPACKeyDA, kDataPointer)        \
-  V(DB,  ReadXRegister(src), kPACKeyDB, kDataPointer)        \
-  V(DZA, 0x00000000,         kPACKeyDA, kDataPointer)        \
-  V(DZB, 0x00000000,         kPACKeyDB, kDataPointer)
-// clang-format on
+#define PAUTH_MODES_REGISTER_CONTEXT(V) \
+  V(IA, kPACKeyIA, kInstructionPointer) \
+  V(IB, kPACKeyIB, kInstructionPointer) \
+  V(DA, kPACKeyDA, kDataPointer)        \
+  V(DB, kPACKeyDB, kDataPointer)
+
+#define PAUTH_MODES_ZERO_CONTEXT(V)      \
+  V(IZA, kPACKeyIA, kInstructionPointer) \
+  V(IZB, kPACKeyIB, kInstructionPointer) \
+  V(DZA, kPACKeyDA, kDataPointer)        \
+  V(DZB, kPACKeyDB, kDataPointer)
 
 void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
   unsigned dst = instr->GetRd();
   unsigned src = instr->GetRn();
 
   switch (instr->Mask(DataProcessing1SourceMask)) {
-#define DEFINE_PAUTH_FUNCS(SUFFIX, MOD, KEY, D)     \
+#define DEFINE_PAUTH_FUNCS(SUFFIX, KEY, D)          \
   case PAC##SUFFIX: {                               \
+    uint64_t mod = ReadXRegister(src);              \
     uint64_t ptr = ReadXRegister(dst);              \
-    WriteXRegister(dst, AddPAC(ptr, MOD, KEY, D));  \
+    WriteXRegister(dst, AddPAC(ptr, mod, KEY, D));  \
     break;                                          \
   }                                                 \
   case AUT##SUFFIX: {                               \
+    uint64_t mod = ReadXRegister(src);              \
     uint64_t ptr = ReadXRegister(dst);              \
-    WriteXRegister(dst, AuthPAC(ptr, MOD, KEY, D)); \
+    WriteXRegister(dst, AuthPAC(ptr, mod, KEY, D)); \
     break;                                          \
   }
 
-    PAUTH_MODES(DEFINE_PAUTH_FUNCS)
+    PAUTH_MODES_REGISTER_CONTEXT(DEFINE_PAUTH_FUNCS)
+#undef DEFINE_PAUTH_FUNCS
+
+#define DEFINE_PAUTH_FUNCS(SUFFIX, KEY, D)          \
+  case PAC##SUFFIX: {                               \
+    if (src != kZeroRegCode) {                      \
+      VIXL_UNIMPLEMENTED();                         \
+    }                                               \
+    uint64_t ptr = ReadXRegister(dst);              \
+    WriteXRegister(dst, AddPAC(ptr, 0x0, KEY, D));  \
+    break;                                          \
+  }                                                 \
+  case AUT##SUFFIX: {                               \
+    if (src != kZeroRegCode) {                      \
+      VIXL_UNIMPLEMENTED();                         \
+    }                                               \
+    uint64_t ptr = ReadXRegister(dst);              \
+    WriteXRegister(dst, AuthPAC(ptr, 0x0, KEY, D)); \
+    break;                                          \
+  }
+
+    PAUTH_MODES_ZERO_CONTEXT(DEFINE_PAUTH_FUNCS)
 #undef DEFINE_PAUTH_FUNCS
 
     case XPACI:
+      if (src != kZeroRegCode) {
+        VIXL_UNIMPLEMENTED();
+      }
       WriteXRegister(dst, StripPAC(ReadXRegister(dst), kInstructionPointer));
       break;
     case XPACD:
+      if (src != kZeroRegCode) {
+        VIXL_UNIMPLEMENTED();
+      }
       WriteXRegister(dst, StripPAC(ReadXRegister(dst), kDataPointer));
       break;
     case RBIT_w:
