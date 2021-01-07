@@ -2081,11 +2081,13 @@ void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
   pack_odd_elements(vform_half, zn_t, zn);
 
   switch (form_hash_) {
+    case Hash("smullb_z_zzi_s"):
     case Hash("smullb_z_zzi_d"):
-      VIXL_UNIMPLEMENTED();
+      smull(vform, zd, zn_b, zm_idx);
       break;
+    case Hash("smullt_z_zzi_s"):
     case Hash("smullt_z_zzi_d"):
-      VIXL_UNIMPLEMENTED();
+      smull(vform, zd, zn_t, zm_idx);
       break;
     case Hash("sqdmullb_z_zzi_d"):
       sqdmull(vform, zd, zn_b, zm_idx);
@@ -2093,29 +2095,19 @@ void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
     case Hash("sqdmullt_z_zzi_d"):
       sqdmull(vform, zd, zn_t, zm_idx);
       break;
+    case Hash("umullb_z_zzi_s"):
     case Hash("umullb_z_zzi_d"):
-      VIXL_UNIMPLEMENTED();
+      umull(vform, zd, zn_b, zm_idx);
       break;
+    case Hash("umullt_z_zzi_s"):
     case Hash("umullt_z_zzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smullb_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("smullt_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
+      umull(vform, zd, zn_t, zm_idx);
       break;
     case Hash("sqdmullb_z_zzi_s"):
       sqdmull(vform, zd, zn_b, zm_idx);
       break;
     case Hash("sqdmullt_z_zzi_s"):
       sqdmull(vform, zd, zn_t, zm_idx);
-      break;
-    case Hash("umullb_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("umullt_z_zzi_s"):
-      VIXL_UNIMPLEMENTED();
       break;
     case Hash("smlalb_z_zzzi_s"):
     case Hash("smlalb_z_zzzi_d"):

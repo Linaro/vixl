@@ -6189,13 +6189,19 @@ class Assembler : public vixl::internal::AssemblerBase {
   void smulh(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Signed multiply long (bottom, indexed).
-  void smullb(const ZRegister& zd, const ZRegister& zn);
+  void smullb(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Signed multiply long (bottom).
   void smullb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Signed multiply long (top, indexed).
-  void smullt(const ZRegister& zd, const ZRegister& zn);
+  void smullt(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Signed multiply long (top).
   void smullt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -6611,13 +6617,19 @@ class Assembler : public vixl::internal::AssemblerBase {
   void umulh(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned multiply long (bottom, indexed).
-  void umullb(const ZRegister& zd, const ZRegister& zn);
+  void umullb(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Unsigned multiply long (bottom).
   void umullb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
   // Unsigned multiply long (top, indexed).
-  void umullt(const ZRegister& zd, const ZRegister& zn);
+  void umullt(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
 
   // Unsigned multiply long (top).
   void umullt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);

@@ -6801,20 +6801,26 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     smulh(zd, zn, zm);
   }
-  void Smullb(const ZRegister& zd, const ZRegister& zn) {
+  void Smullb(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    smullb(zd, zn);
+    smullb(zd, zn, zm, index);
   }
   void Smullb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     smullb(zd, zn, zm);
   }
-  void Smullt(const ZRegister& zd, const ZRegister& zn) {
+  void Smullt(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    smullt(zd, zn);
+    smullt(zd, zn, zm, index);
   }
   void Smullt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
@@ -7240,20 +7246,26 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     umulh(zd, zn, zm);
   }
-  void Umullb(const ZRegister& zd, const ZRegister& zn) {
+  void Umullb(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    umullb(zd, zn);
+    umullb(zd, zn, zm, index);
   }
   void Umullb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     umullb(zd, zn, zm);
   }
-  void Umullt(const ZRegister& zd, const ZRegister& zn) {
+  void Umullt(const ZRegister& zd,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
-    umullt(zd, zn);
+    umullt(zd, zn, zm, index);
   }
   void Umullt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm) {
     VIXL_ASSERT(allow_macro_instructions_);

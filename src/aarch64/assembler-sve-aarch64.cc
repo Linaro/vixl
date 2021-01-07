@@ -7769,6 +7769,10 @@ void Assembler::sminp(const ZRegister& zd,
 }
 
 #define VIXL_SVE_MULL_INDEX_LIST(V) \
+  V(smullb, 0x44a0c000)             \
+  V(smullt, 0x44a0c400)             \
+  V(umullb, 0x44a0d000)             \
+  V(umullt, 0x44a0d400)             \
   V(smlalb, 0x44a08000)             \
   V(smlalt, 0x44a08400)             \
   V(smlslb, 0x44a0a000)             \
@@ -7868,19 +7872,6 @@ void Assembler::smulh(const ZRegister& zd,
   Emit(0x04206800 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  smullb_z_zzi_d
-//  smullb_z_zzi_s
-void Assembler::smullb(const ZRegister& zd, const ZRegister& zn) {
-  // SMULLB <Zd>.D, <Zn>.S, <Zm>.S[<imm>]
-  //  0100 0100 111. .... 1100 .0.. .... ....
-  //  size<23:22> | opc<20:16> | U<12> | il<11> | T<10> | Zn<9:5> | Zd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0x44e0c000 | Rd(zd) | Rn(zn));
-}
-
 void Assembler::smullb(const ZRegister& zd,
                        const ZRegister& zn,
                        const ZRegister& zm) {
@@ -7894,19 +7885,6 @@ void Assembler::smullb(const ZRegister& zd,
   VIXL_ASSERT(zd.GetLaneSizeInBytes() == zn.GetLaneSizeInBytes() * 2);
 
   Emit(0x45007000 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  smullt_z_zzi_d
-//  smullt_z_zzi_s
-void Assembler::smullt(const ZRegister& zd, const ZRegister& zn) {
-  // SMULLT <Zd>.D, <Zn>.S, <Zm>.S[<imm>]
-  //  0100 0100 111. .... 1100 .1.. .... ....
-  //  size<23:22> | opc<20:16> | U<12> | il<11> | T<10> | Zn<9:5> | Zd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0x44e0c400 | Rd(zd) | Rn(zn));
 }
 
 void Assembler::smullt(const ZRegister& zd,
@@ -9242,19 +9220,6 @@ void Assembler::umulh(const ZRegister& zd,
   Emit(0x04206c00 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  umullb_z_zzi_d
-//  umullb_z_zzi_s
-void Assembler::umullb(const ZRegister& zd, const ZRegister& zn) {
-  // UMULLB <Zd>.D, <Zn>.S, <Zm>.S[<imm>]
-  //  0100 0100 111. .... 1101 .0.. .... ....
-  //  size<23:22> | opc<20:16> | U<12> | il<11> | T<10> | Zn<9:5> | Zd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0x44e0d000 | Rd(zd) | Rn(zn));
-}
-
 void Assembler::umullb(const ZRegister& zd,
                        const ZRegister& zn,
                        const ZRegister& zm) {
@@ -9268,19 +9233,6 @@ void Assembler::umullb(const ZRegister& zd,
   VIXL_ASSERT(zd.GetLaneSizeInBytes() == zn.GetLaneSizeInBytes() * 2);
 
   Emit(0x45007800 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
-}
-
-// This prototype maps to 2 instruction encodings:
-//  umullt_z_zzi_d
-//  umullt_z_zzi_s
-void Assembler::umullt(const ZRegister& zd, const ZRegister& zn) {
-  // UMULLT <Zd>.D, <Zn>.S, <Zm>.S[<imm>]
-  //  0100 0100 111. .... 1101 .1.. .... ....
-  //  size<23:22> | opc<20:16> | U<12> | il<11> | T<10> | Zn<9:5> | Zd<4:0>
-
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-
-  Emit(0x44e0d400 | Rd(zd) | Rn(zn));
 }
 
 void Assembler::umullt(const ZRegister& zd,
