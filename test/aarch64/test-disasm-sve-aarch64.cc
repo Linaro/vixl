@@ -7249,6 +7249,20 @@ TEST(sve2_saturating_multiply_add_high_vector) {
   COMPARE_PREFIX(sqrdmlsh(z11.VnS(), z16.VnS(), z31.VnS()),
                  "sqrdmlsh z11.s, z16.s, z31.s");
 
+  COMPARE_MACRO(Sqrdmlah(z29.VnD(), z0.VnD(), z29.VnD(), z26.VnD()),
+                "movprfx z31, z0\n"
+                "sqrdmlah z31.d, z29.d, z26.d\n"
+                "mov z29.d, z31.d");
+  COMPARE_MACRO(Sqrdmlah(z26.VnH(), z0.VnH(), z29.VnH(), z26.VnH()),
+                "movprfx z31, z0\n"
+                "sqrdmlah z31.h, z29.h, z26.h\n"
+                "mov z26.d, z31.d");
+  COMPARE_MACRO(Sqrdmlsh(z23.VnS(), z31.VnS(), z26.VnS(), z29.VnS()),
+                "movprfx z23, z31\n"
+                "sqrdmlsh z23.s, z26.s, z29.s");
+  COMPARE_MACRO(Sqrdmlsh(z4.VnB(), z31.VnB(), z4.VnB(), z4.VnB()),
+                "sqrdmlsh z31.b, z4.b, z4.b\n"
+                "mov z4.d, z31.d");
 
   CLEANUP();
 }
