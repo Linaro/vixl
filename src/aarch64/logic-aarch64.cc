@@ -4157,33 +4157,46 @@ LogicVRegister Simulator::sqdmull2(VectorFormat vform,
   return add(vform, dst, product, product).SignedSaturate(vform);
 }
 
-
 LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2,
                                    bool round) {
-  // 2 * INT_32_MIN * INT_32_MIN causes int64_t to overflow.
-  // To avoid this, we use (src1 * src2 + 1 << (esize - 2)) >> (esize - 1)
-  // which is same as (2 * src1 * src2 + 1 << (esize - 1)) >> esize.
-
   int esize = LaneSizeInBitsFromFormat(vform);
-  int round_const = round ? (1 << (esize - 2)) : 0;
-  int64_t product;
 
+  SimVRegister temp_lo, temp_hi;
+
+  // Compute low and high multiplication results.
+  mul(vform, temp_lo, src1, src2);
+  smulh(vform, temp_hi, src1, src2);
+
+  // Double by shifting high half, and adding in most-significant bit of low
+  // half.
+  shl(vform, temp_hi, temp_hi, 1);
+  usra(vform, temp_hi, temp_lo, esize - 1);
+
+  if (round) {
+    // Add the second (due to doubling) most-significant bit of the low half
+    // into the result.
+    shl(vform, temp_lo, temp_lo, 1);
+    usra(vform, temp_hi, temp_lo, esize - 1);
+  }
+
+  SimPRegister not_sat;
+  LogicPRegister ptemp(not_sat);
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    product = src1.Int(vform, i) * src2.Int(vform, i);
-    product += round_const;
-    product = product >> (esize - 1);
-
-    if (product > MaxIntFromFormat(vform)) {
-      product = MaxIntFromFormat(vform);
-    } else if (product < MinIntFromFormat(vform)) {
-      product = MinIntFromFormat(vform);
+    // Saturation only occurs when src1 = src2 = minimum representable value.
+    // Check this as a special case.
+    ptemp.SetActive(vform, i, true);
+    if ((src1.Int(vform, i) == MinIntFromFormat(vform)) &&
+        (src2.Int(vform, i) == MinIntFromFormat(vform))) {
+      ptemp.SetActive(vform, i, false);
     }
-    dst.SetInt(vform, i, product);
+    dst.SetInt(vform, i, MaxIntFromFormat(vform));
   }
+
+  mov_merging(vform, dst, not_sat, temp_hi);
   return dst;
 }
 

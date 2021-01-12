@@ -2344,10 +2344,10 @@ void Simulator::Simulate_ZdT_ZnT_ZmT(const Instruction* instr) {
       smulh(vform, zd, zn, zm);
       break;
     case Hash("sqdmulh_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      sqdmulh(vform, zd, zn, zm);
       break;
     case Hash("sqrdmulh_z_zz"):
-      VIXL_UNIMPLEMENTED();
+      sqrdmulh(vform, zd, zn, zm);
       break;
     case Hash("umulh_z_zz"):
       umulh(vform, zd, zn, zm);
