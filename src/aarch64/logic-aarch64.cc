@@ -2962,7 +2962,7 @@ LogicVRegister Simulator::cmla(VectorFormat vform,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2,
                                int rot) {
-  SimVRegister src1_a, src1_b;
+  SimVRegister src1_a;
   SimVRegister src2_a, src2_b;
   SimVRegister srca_i, srca_r;
   SimVRegister zero, temp;
@@ -2981,7 +2981,7 @@ LogicVRegister Simulator::cmla(VectorFormat vform,
   uzp1(vform, srca_r, srca, zero);
   uzp2(vform, srca_i, srca, zero);
 
-  bool sub_r = (rot == 90) || (rot == 270);
+  bool sub_r = (rot == 90) || (rot == 180);
   bool sub_i = (rot == 180) || (rot == 270);
 
   mul(vform, temp, src1_a, src2_a);
@@ -4285,7 +4285,7 @@ LogicVRegister Simulator::sqrdcmlah(VectorFormat vform,
   uzp1(vform, srca_r, srca, zero);
   uzp2(vform, srca_i, srca, zero);
 
-  bool sub_r = (rot == 90) || (rot == 270);
+  bool sub_r = (rot == 90) || (rot == 180);
   bool sub_i = (rot == 180) || (rot == 270);
 
   const bool round = true;
@@ -4303,7 +4303,7 @@ LogicVRegister Simulator::sqrdcmlah(VectorFormat vform,
                                     int index,
                                     int rot) {
   SimVRegister temp;
-  dup_elements_to_segments(vform, temp, src2, index);
+  dup_elements_to_segments(VectorFormatDoubleWidth(vform), temp, src2, index);
   return sqrdcmlah(vform, dst, srca, src1, temp, rot);
 }
 
