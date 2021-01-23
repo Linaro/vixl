@@ -2897,7 +2897,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    pop(cond, registers);
+    if (registers.IsSingleRegister() &&
+        (!IsUsingT32() || !registers.IsR0toR7orPC())) {
+      pop(cond, registers.GetFirstAvailableRegister());
+    } else if (!registers.IsEmpty()) {
+      pop(cond, registers);
+    }
   }
   void Pop(RegisterList registers) { Pop(al, registers); }
 
@@ -2917,7 +2922,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(OutsideITBlock());
     MacroEmissionCheckScope guard(this);
     ITScope it_scope(this, &cond, guard);
-    push(cond, registers);
+    if (registers.IsSingleRegister() &&
+        (!IsUsingT32() || !registers.IsR0toR7orLR())) {
+      push(cond, registers.GetFirstAvailableRegister());
+    } else if (!registers.IsEmpty()) {
+      push(cond, registers);
+    }
   }
   void Push(RegisterList registers) { Push(al, registers); }
 
