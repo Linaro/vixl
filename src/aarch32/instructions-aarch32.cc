@@ -95,10 +95,10 @@ QRegister VRegister::Q() const {
 
 
 Register RegisterList::GetFirstAvailableRegister() const {
-  for (uint32_t i = 0; i < kNumberOfRegisters; i++) {
-    if (((list_ >> i) & 1) != 0) return Register(i);
+  if (list_ == 0) {
+    return Register();
   }
-  return Register();
+  return Register(CountTrailingZeros(list_));
 }
 
 
