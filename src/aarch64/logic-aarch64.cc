@@ -4755,7 +4755,9 @@ int32_t Simulator::FPToInt32(double value, FPRounding rmode) {
 
 int64_t Simulator::FPToInt64(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
-  if (value >= kXMaxInt) {
+  // This is equivalent to "if (value >= kXMaxInt)" but avoids rounding issues
+  // as a result of kMaxInt not being representable as a double.
+  if (value >= 9223372036854775808.) {
     return kXMaxInt;
   } else if (value < kXMinInt) {
     return kXMinInt;
@@ -4788,7 +4790,9 @@ uint32_t Simulator::FPToUInt32(double value, FPRounding rmode) {
 
 uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
-  if (value >= kXMaxUInt) {
+  // This is equivalent to "if (value >= kXMaxUInt)" but avoids rounding issues
+  // as a result of kMaxUInt not being representable as a double.
+  if (value >= 18446744073709551616.) {
     return kXMaxUInt;
   } else if (value < 0.0) {
     return 0;
