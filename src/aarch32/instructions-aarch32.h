@@ -491,9 +491,7 @@ class RegisterList {
   }
   Register GetFirstAvailableRegister() const;
   bool IsEmpty() const { return list_ == 0; }
-  bool IsSingleRegister() const {
-    return list_ != 0 && (list_ & (list_ - 1)) == 0;
-  }
+  bool IsSingleRegister() const { return IsPowerOf2(list_); }
   static RegisterList Union(const RegisterList& list_1,
                             const RegisterList& list_2) {
     return RegisterList(list_1.list_ | list_2.list_);
