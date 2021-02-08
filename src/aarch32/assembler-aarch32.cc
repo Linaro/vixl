@@ -8473,27 +8473,33 @@ void Assembler::pop(Condition cond, EncodingSize size, RegisterList registers) {
   CheckIT(cond);
   if (!registers.IsEmpty() || AllowUnpredictable()) {
     if (IsUsingT32()) {
-      // POP{<c>}{<q>} <registers> ; T1
-      if (!size.IsWide() && registers.IsR0toR7orPC()) {
-        EmitT32_16(0xbc00 | (GetRegisterListEncoding(registers, 15, 1) << 8) |
-                   GetRegisterListEncoding(registers, 0, 8));
-        AdvanceIT();
-        return;
-      }
-      // POP{<c>}{<q>} <registers> ; T2
-      if (!size.IsNarrow() && !registers.Includes(sp) &&
-          (!registers.IsSingleRegister() || AllowUnpredictable())) {
-        EmitT32_32(0xe8bd0000U |
-                   (GetRegisterListEncoding(registers, 15, 1) << 15) |
-                   (GetRegisterListEncoding(registers, 14, 1) << 14) |
-                   GetRegisterListEncoding(registers, 0, 13));
-        AdvanceIT();
-        return;
+      // A branch out of an IT block should be the last instruction in the
+      // block.
+      if (!registers.Includes(pc) || OutsideITBlockAndAlOrLast(cond) ||
+          AllowUnpredictable()) {
+        // POP{<c>}{<q>} <registers> ; T1
+        if (!size.IsWide() && registers.IsR0toR7orPC()) {
+          EmitT32_16(0xbc00 | (GetRegisterListEncoding(registers, 15, 1) << 8) |
+                     GetRegisterListEncoding(registers, 0, 8));
+          AdvanceIT();
+          return;
+        }
+        // POP{<c>}{<q>} <registers> ; T2
+        // Alias of: LDM{<c>}{<q>} SP!, <registers> ; T2
+        if (!size.IsNarrow() &&
+            ((!registers.Includes(sp) && (registers.GetCount() > 1) &&
+              !(registers.Includes(pc) && registers.Includes(lr))) ||
+             AllowUnpredictable())) {
+          EmitT32_32(0xe8bd0000U | GetRegisterListEncoding(registers, 0, 16));
+          AdvanceIT();
+          return;
+        }
       }
     } else {
       // POP{<c>}{<q>} <registers> ; A1
+      // Alias of: LDM{<c>}{<q>} SP!, <registers> ; A1
       if (cond.IsNotNever() &&
-          (!registers.IsSingleRegister() || AllowUnpredictable())) {
+          (!registers.Includes(sp) || AllowUnpredictable())) {
         EmitA32(0x08bd0000U | (cond.GetCondition() << 28) |
                 GetRegisterListEncoding(registers, 0, 16));
         return;
@@ -8506,19 +8512,24 @@ void Assembler::pop(Condition cond, EncodingSize size, RegisterList registers) {
 void Assembler::pop(Condition cond, EncodingSize size, Register rt) {
   VIXL_ASSERT(AllowAssembler());
   CheckIT(cond);
-  if (IsUsingT32()) {
-    // POP{<c>}{<q>} <single_register_list> ; T4
-    if (!size.IsNarrow() && ((!rt.IsPC() || OutsideITBlockAndAlOrLast(cond)) ||
-                             AllowUnpredictable())) {
-      EmitT32_32(0xf85d0b04U | (rt.GetCode() << 12));
-      AdvanceIT();
-      return;
-    }
-  } else {
-    // POP{<c>}{<q>} <single_register_list> ; A1
-    if (cond.IsNotNever()) {
-      EmitA32(0x049d0004U | (cond.GetCondition() << 28) | (rt.GetCode() << 12));
-      return;
+  if (!rt.IsSP() || AllowUnpredictable()) {
+    if (IsUsingT32()) {
+      // POP{<c>}{<q>} <single_register_list> ; T4
+      // Alias of: LDR{<c>}{<q>} <Rt>, [SP], #4 ; T4
+      if (!size.IsNarrow() && (!rt.IsPC() || OutsideITBlockAndAlOrLast(cond) ||
+                               AllowUnpredictable())) {
+        EmitT32_32(0xf85d0b04U | (rt.GetCode() << 12));
+        AdvanceIT();
+        return;
+      }
+    } else {
+      // POP{<c>}{<q>} <single_register_list> ; A1
+      // Alias of: LDR{<c>}{<q>} <Rt>, [SP], #4 ; T1
+      if (cond.IsNotNever()) {
+        EmitA32(0x049d0004U | (cond.GetCondition() << 28) |
+                (rt.GetCode() << 12));
+        return;
+      }
     }
   }
   Delegate(kPop, &Assembler::pop, cond, size, rt);
@@ -8539,18 +8550,23 @@ void Assembler::push(Condition cond,
         return;
       }
       // PUSH{<c>}{<q>} <registers> ; T1
-      if (!size.IsNarrow() && !registers.Includes(sp) &&
-          !registers.Includes(pc) &&
-          (!registers.IsSingleRegister() || AllowUnpredictable())) {
-        EmitT32_32(0xe92d0000U |
-                   (GetRegisterListEncoding(registers, 14, 1) << 14) |
-                   GetRegisterListEncoding(registers, 0, 13));
+      // Alias of: STMDB SP!, <registers> ; T1
+      if (!size.IsNarrow() && !registers.Includes(pc) &&
+          ((!registers.Includes(sp) && (registers.GetCount() > 1)) ||
+           AllowUnpredictable())) {
+        EmitT32_32(0xe92d0000U | GetRegisterListEncoding(registers, 0, 15));
         AdvanceIT();
         return;
       }
     } else {
       // PUSH{<c>}{<q>} <registers> ; A1
-      if (cond.IsNotNever()) {
+      // Alias of: STMDB SP!, <registers> ; A1
+      if (cond.IsNotNever() &&
+          // For A32, sp can appear in the list, but stores an UNKNOWN value if
+          // it is not the lowest-valued register.
+          (!registers.Includes(sp) ||
+           registers.GetFirstAvailableRegister().IsSP() ||
+           AllowUnpredictable())) {
         EmitA32(0x092d0000U | (cond.GetCondition() << 28) |
                 GetRegisterListEncoding(registers, 0, 16));
         return;
@@ -8565,14 +8581,17 @@ void Assembler::push(Condition cond, EncodingSize size, Register rt) {
   CheckIT(cond);
   if (IsUsingT32()) {
     // PUSH{<c>}{<q>} <single_register_list> ; T4
-    if (!size.IsNarrow() && (!rt.IsPC() || AllowUnpredictable())) {
+    // Alias of: STR{<c>}{<q>} <Rt>, [SP, #4]! ; T4
+    if (!size.IsNarrow() &&
+        ((!rt.IsPC() && !rt.IsSP()) || AllowUnpredictable())) {
       EmitT32_32(0xf84d0d04U | (rt.GetCode() << 12));
       AdvanceIT();
       return;
     }
   } else {
     // PUSH{<c>}{<q>} <single_register_list> ; A1
-    if (cond.IsNotNever() && (!rt.IsPC() || AllowUnpredictable())) {
+    // Alias of: STR{<c>}{<q>} <Rt>, [SP, #4]! ; A1
+    if (cond.IsNotNever() && (!rt.IsSP() || AllowUnpredictable())) {
       EmitA32(0x052d0004U | (cond.GetCondition() << 28) | (rt.GetCode() << 12));
       return;
     }
