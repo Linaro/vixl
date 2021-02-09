@@ -24,7 +24,7 @@ VIXL contains three components.
     assembler. The simulator allows generated code to be run on another
     architecture without the need for a full ISA model.
 
-The VIXL git repository can be found [on 'https://git.linaro.org'][vixl].
+The VIXL git repository can be found [on GitHub][vixl].
 
 Changes from previous versions of VIXL can be found in the
 [Changelog](doc/changelog.md).
@@ -216,8 +216,8 @@ aarch32_examples` or `scons aarch64_examples` from the root directory, or use
 [cpplint]: http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py
            "Google's cpplint.py script."
 
-[vixl]: https://git.linaro.org/arm/vixl.git
-        "The VIXL repository at 'https://git.linaro.org'."
+[vixl]: https://github.com/Linaro/vixl
+        "The VIXL repository on GitHub."
 
 [getting-started-aarch32]: doc/aarch32/getting-started-aarch32.md
                            "Introduction to VIXL for AArch32."
