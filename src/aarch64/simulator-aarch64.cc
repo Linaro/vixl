@@ -733,7 +733,6 @@ void Simulator::SetTraceParameters(int parameters) {
   }
 }
 
-
 // Helpers ---------------------------------------------------------------------
 uint64_t Simulator::AddWithCarry(unsigned reg_size,
                                  bool set_flags,
@@ -786,6 +785,55 @@ std::pair<uint64_t, uint8_t> Simulator::AddWithCarry(unsigned reg_size,
   nzcv |= V ? 1 : 0;
 
   return std::make_pair(result, nzcv);
+}
+
+using vixl_uint128_t = std::pair<uint64_t, uint64_t>;
+
+vixl_uint128_t Simulator::Add128(vixl_uint128_t x, vixl_uint128_t y) {
+  std::pair<uint64_t, uint8_t> sum_lo =
+      AddWithCarry(kXRegSize, x.second, y.second, 0);
+  int carry_in = (sum_lo.second & 0x2) >> 1;  // C flag in NZCV result.
+  std::pair<uint64_t, uint8_t> sum_hi =
+      AddWithCarry(kXRegSize, x.first, y.first, carry_in);
+  return std::make_pair(sum_hi.first, sum_lo.first);
+}
+
+vixl_uint128_t Simulator::Neg128(vixl_uint128_t x) {
+  // Negate the integer value. Throw an assertion when the input is INT128_MIN.
+  VIXL_ASSERT((x.first != GetSignMask(64)) || (x.second != 0));
+  x.first = ~x.first;
+  x.second = ~x.second;
+  return Add128(x, {0, 1});
+}
+
+vixl_uint128_t Simulator::Mul64(uint64_t x, uint64_t y) {
+  bool neg_result = false;
+  if ((x >> 63) == 1) {
+    x = -x;
+    neg_result = !neg_result;
+  }
+  if ((y >> 63) == 1) {
+    y = -y;
+    neg_result = !neg_result;
+  }
+
+  uint64_t x_lo = x & 0xffffffff;
+  uint64_t x_hi = x >> 32;
+  uint64_t y_lo = y & 0xffffffff;
+  uint64_t y_hi = y >> 32;
+
+  uint64_t t1 = x_lo * y_hi;
+  uint64_t t2 = x_hi * y_lo;
+  vixl_uint128_t a = std::make_pair(0, x_lo * y_lo);
+  vixl_uint128_t b = std::make_pair(t1 >> 32, t1 << 32);
+  vixl_uint128_t c = std::make_pair(t2 >> 32, t2 << 32);
+  vixl_uint128_t d = std::make_pair(x_hi * y_hi, 0);
+
+  vixl_uint128_t result = Add128(a, b);
+  result = Add128(result, c);
+  result = Add128(result, d);
+  return neg_result ? std::make_pair(-result.first - 1, -result.second)
+                    : result;
 }
 
 int64_t Simulator::ShiftOperand(unsigned reg_size,

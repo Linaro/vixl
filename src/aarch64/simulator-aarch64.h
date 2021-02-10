@@ -2781,6 +2781,10 @@ class Simulator : public DecoderVisitor {
                                             uint64_t left,
                                             uint64_t right,
                                             int carry_in);
+  using vixl_uint128_t = std::pair<uint64_t, uint64_t>;
+  vixl_uint128_t Add128(vixl_uint128_t x, vixl_uint128_t y);
+  vixl_uint128_t Mul64(uint64_t x, uint64_t y);
+  vixl_uint128_t Neg128(vixl_uint128_t x);
   void LogicalHelper(const Instruction* instr, int64_t op2);
   void ConditionalCompareHelper(const Instruction* instr, int64_t op2);
   void LoadStoreHelper(const Instruction* instr,
@@ -3966,6 +3970,12 @@ class Simulator : public DecoderVisitor {
                            const LogicVRegister& src2,
                            bool round = true,
                            bool sub_op = false);
+  LogicVRegister sqrdmlash_d(VectorFormat vform,
+                             LogicVRegister dst,
+                             const LogicVRegister& src1,
+                             const LogicVRegister& src2,
+                             bool round = true,
+                             bool sub_op = false);
   LogicVRegister sqrdmlah(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src1,

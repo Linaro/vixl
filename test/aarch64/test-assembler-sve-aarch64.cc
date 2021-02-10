@@ -19256,6 +19256,154 @@ TEST_SVE(sve2_sqrdcmlah) {
   }
 }
 
+TEST_SVE(sve2_sqrdmlah) {
+  uint16_t zn_inputs_h[] = {0x7ffe, 0x7ffd, 0x7ffd, 0x7ffd, 0x8000,
+                            0x7fff, 0x7ffe, 0x7ffe, 0x8001, 0x8000,
+                            0x7ffd, 0x7ffd, 0x7ffd, 0x5555, 0x5555,
+                            0x5555, 0x8000, 0x8000, 0xaaaa, 0x8001};
+
+  uint16_t zm_inputs_h[] = {0x7ffd, 0x7fff, 0x7ffe, 0x7ffd, 0x8001,
+                            0x7fff, 0x7fff, 0x7ffe, 0x8000, 0x8000,
+                            0xaaaa, 0x0001, 0x0001, 0xaaaa, 0xaaaa,
+                            0xcccc, 0x8000, 0x8000, 0x8000, 0x8001};
+
+  uint16_t za_inputs_h[] = {0x1010, 0x1010, 0x1010, 0x1010, 0x1010,
+                            0x1010, 0x1010, 0x1010, 0x8000, 0x8011,
+                            0x8006, 0xff7d, 0xfeff, 0xaabc, 0xaabb,
+                            0x9c72, 0x8000, 0x0000, 0x8000, 0xffff};
+
+  uint16_t zd_expected_h[] = {0x7fff, 0x7fff, 0x7fff, 0x7fff, 0x7fff,
+                              0x7fff, 0x7fff, 0x7fff, 0xffff, 0x0011,
+                              0x8000, 0xff7e, 0xff00, 0x8000, 0x8000,
+                              0x8000, 0x0000, 0x7fff, 0xd556, 0x7ffd};
+
+  uint32_t zn_inputs_s[] = {0x04000000,
+                            0x80000000,
+                            0x04000000,
+                            0x80000000,
+                            0x80000000,
+                            0x80000001,
+                            0x7fffffff,
+                            0x80000000,
+                            0x7ffffffe,
+                            0x7ffffffd,
+                            0x7ffffffd,
+                            0x7ffffffd};
+
+  uint32_t zm_inputs_s[] = {0x00000020,
+                            0x80000000,
+                            0x00000010,
+                            0x80000000,
+                            0x7fffffff,
+                            0x80000000,
+                            0x80000000,
+                            0x80000001,
+                            0x7ffffffd,
+                            0x7fffffff,
+                            0x7ffffffe,
+                            0x7ffffffd};
+
+  uint32_t za_inputs_s[] = {0x00000000,
+                            0x00000000,
+                            0x00000020,
+                            0x00108000,
+                            0x00000000,
+                            0x00000001,
+                            0x00000000,
+                            0x00000001,
+                            0x10101010,
+                            0x10101010,
+                            0x10101010,
+                            0x10101010};
+
+  uint32_t zd_expected_s[] = {0x00000001,
+                              0x7fffffff,
+                              0x00000021,
+                              0x7fffffff,
+                              0x80000001,
+                              0x7fffffff,
+                              0x80000001,
+                              0x7fffffff,
+                              0x7fffffff,
+                              0x7fffffff,
+                              0x7fffffff,
+                              0x7fffffff};
+
+  uint64_t zn_inputs_d[] = {0x0400000000000000, 0x8000000000000000,
+                            0x0400000000000000, 0x8000000000000000,
+                            0x8000000000000000, 0x8000000000000001,
+                            0x7fffffffffffffff, 0x8000000000000000,
+                            0x7ffffffffffffffe, 0x7ffffffffffffffd,
+                            0x7ffffffffffffffd, 0x7ffffffffffffffd,
+                            0xf1299accc9186169, 0xd529d2675ee9da21,
+                            0x1a10b5d60b92dcf9, 0xfb1d358e0e6455b1,
+                            0x8eb7721078bdc589, 0x4171509750ded141,
+                            0x8eb7721078bdc589, 0x4171509750ded141};
+
+  uint64_t zm_inputs_d[] = {0x0000000000000020, 0x8000000000000000,
+                            0x0000000000000010, 0x8000000000000000,
+                            0x7fffffffffffffff, 0x8000000000000000,
+                            0x8000000000000000, 0x8000000000000001,
+                            0x7ffffffffffffffd, 0x7fffffffffffffff,
+                            0x7ffffffffffffffe, 0x7ffffffffffffffd,
+                            0x30b940efe73f180e, 0x3bc1ff1e52a99b66,
+                            0x40de5c9793535a5e, 0x24752faf47bdddb6,
+                            0x162663016b07e5ae, 0x1de34b56f3d22006,
+                            0x8eb7721078bdc589, 0x4171509750ded141};
+
+  uint64_t za_inputs_d[] = {0x0000000000000000, 0x0000000000000000,
+                            0x0000000000000020, 0x0010108000000000,
+                            0x0000000000000000, 0x0000000000000001,
+                            0x0000000000000000, 0x0000000000000001,
+                            0x1010101010101010, 0x1010101010101010,
+                            0x1010101010101010, 0x1010101010101010,
+                            0xb18253371b2c2c77, 0xa70de31e6645eaef,
+                            0xda817198c0318487, 0x9fd9e6b8e04b42ff,
+                            0xced1f6b7119ab197, 0x01ae051a85509b0f,
+                            0x01a211e9352f7927, 0x7667b70a5b13749f};
+
+  uint64_t zd_expected_d[] = {0x0000000000000001, 0x7fffffffffffffff,
+                              0x0000000000000021, 0x7fffffffffffffff,
+                              0x8000000000000001, 0x7fffffffffffffff,
+                              0x8000000000000001, 0x7fffffffffffffff,
+                              0x7fffffffffffffff, 0x7fffffffffffffff,
+                              0x7fffffffffffffff, 0x7fffffffffffffff,
+                              0xabdc73dea0d72a35, 0x930e3dc877301966,
+                              0xe7b7145a059f8a9f, 0x9e75a4a9d10cf8af,
+                              0xbb378528642d2581, 0x10f5e6d693ffddf3,
+                              0x65e455a46adc091c, 0x7fffffffffffffff};
+
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  START();
+
+  InsrHelper(&masm, z0.VnH(), zn_inputs_h);
+  InsrHelper(&masm, z1.VnH(), zm_inputs_h);
+  InsrHelper(&masm, z2.VnH(), za_inputs_h);
+
+  __ Sqrdmlah(z2.VnH(), z2.VnH(), z0.VnH(), z1.VnH());
+
+  InsrHelper(&masm, z3.VnS(), zn_inputs_s);
+  InsrHelper(&masm, z4.VnS(), zm_inputs_s);
+  InsrHelper(&masm, z5.VnS(), za_inputs_s);
+
+  __ Sqrdmlah(z5.VnS(), z5.VnS(), z3.VnS(), z4.VnS());
+
+  InsrHelper(&masm, z6.VnD(), zn_inputs_d);
+  InsrHelper(&masm, z7.VnD(), zm_inputs_d);
+  InsrHelper(&masm, z8.VnD(), za_inputs_d);
+
+  __ Sqrdmlah(z8.VnD(), z8.VnD(), z6.VnD(), z7.VnD());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(zd_expected_h, z2.VnH());
+    ASSERT_EQUAL_SVE(zd_expected_s, z5.VnS());
+    ASSERT_EQUAL_SVE(zd_expected_d, z8.VnD());
+  }
+}
+
 TEST_SVE(sve2_cmla) {
   int32_t zn_inputs_s[] = {-2, -4, -6, -8, 2, 4, 6, 8};
   int32_t zm_inputs_s[] = {-2, -4, -6, -8, 2, 4, 6, 8};
