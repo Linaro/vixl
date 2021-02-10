@@ -4332,6 +4332,64 @@ LogicVRegister Simulator::sqrdcmlah(VectorFormat vform,
   return sqrdcmlah(vform, dst, srca, src1, temp, rot);
 }
 
+LogicVRegister Simulator::sqrdmlash_d(VectorFormat vform,
+                                      LogicVRegister dst,
+                                      const LogicVRegister& src1,
+                                      const LogicVRegister& src2,
+                                      bool round,
+                                      bool sub_op) {
+  // 2 * INT_64_MIN * INT_64_MIN causes INT_128 to overflow.
+  // To avoid this, we use:
+  //     (dst << (esize - 1) + src1 * src2 + 1 << (esize - 2)) >> (esize - 1)
+  // which is same as:
+  //     (dst << esize + 2 * src1 * src2 + 1 << (esize - 1)) >> esize.
+
+  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
+  int esize = kDRegSize;
+  vixl_uint128_t round_const, accum;
+  round_const.first = 0;
+  if (round) {
+    round_const.second = UINT64_C(1) << (esize - 2);
+  } else {
+    round_const.second = 0;
+  }
+
+  dst.ClearForWrite(vform);
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    // Shift the whole value left by `esize - 1` bits.
+    accum.first = dst.Int(vform, i) >> 1;
+    accum.second = dst.Int(vform, i) << (esize - 1);
+
+    vixl_uint128_t product = Mul64(src1.Int(vform, i), src2.Int(vform, i));
+
+    if (sub_op) {
+      product = Neg128(product);
+    }
+    accum = Add128(accum, product);
+
+    // Perform rounding.
+    accum = Add128(accum, round_const);
+
+    // Arithmetic shift the whole value right by `esize - 1` bits.
+    accum.second = (accum.first << 1) | (accum.second >> (esize - 1));
+    accum.first = -(accum.first >> (esize - 1));
+
+    // Perform saturation.
+    bool is_pos = (accum.first == 0) ? true : false;
+    if (is_pos &&
+        (accum.second > static_cast<uint64_t>(MaxIntFromFormat(vform)))) {
+      accum.second = MaxIntFromFormat(vform);
+    } else if (!is_pos && (accum.second <
+                           static_cast<uint64_t>(MinIntFromFormat(vform)))) {
+      accum.second = MinIntFromFormat(vform);
+    }
+
+    dst.SetInt(vform, i, accum.second);
+  }
+
+  return dst;
+}
+
 LogicVRegister Simulator::sqrdmlash(VectorFormat vform,
                                     LogicVRegister dst,
                                     const LogicVRegister& src1,
@@ -4343,6 +4401,10 @@ LogicVRegister Simulator::sqrdmlash(VectorFormat vform,
   //     (dst << (esize - 1) + src1 * src2 + 1 << (esize - 2)) >> (esize - 1)
   // which is same as:
   //     (dst << esize + 2 * src1 * src2 + 1 << (esize - 1)) >> esize.
+
+  if (vform == kFormatVnD) {
+    return sqrdmlash_d(vform, dst, src1, src2, round, sub_op);
+  }
 
   int esize = LaneSizeInBitsFromFormat(vform);
   int round_const = round ? (1 << (esize - 2)) : 0;
