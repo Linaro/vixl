@@ -1,0 +1,139 @@
+// Copyright 2021, VIXL authors
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+//   * Redistributions of source code must retain the above copyright notice,
+//     this list of conditions and the following disclaimer.
+//   * Redistributions in binary form must reproduce the above copyright notice,
+//     this list of conditions and the following disclaimer in the documentation
+//     and/or other materials provided with the distribution.
+//   * Neither the name of ARM Limited nor the names of its contributors may be
+//     used to endorse or promote products derived from this software without
+//     specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS CONTRIBUTORS "AS IS" AND
+// ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+#ifndef VIXL_TASM_ASSEMBLER_H
+#define VIXL_TASM_ASSEMBLER_H
+
+#if __cplusplus < 201703L
+#error "Text Assembler requires C++17 standard or above."
+#else
+
+#include <iostream>
+#include <map>
+#include <string>
+#include <variant>  // NOLINT(build/include_order)
+
+#include "tasm-parser.h"
+#include "tasm-errors.h"
+#include "aarch64/assembler-aarch64.h"
+
+namespace vixl {
+namespace aarch64 {
+namespace tasm {
+
+class TextAssembler;
+
+{% for prototype, instructions in prototypes.items() -%}
+using VIXL_{{ prototype }}_Fn = void (TextAssembler::*)({{ instructions.signature }});
+{% endfor %}
+
+using AssemblerFn = std::variant<std::monostate,
+{% for prototype, tuple in prototypes.items() -%}
+VIXL_{{ prototype }}_Fn
+{%- if not loop.last %},
+{% else %}>;
+{% endif -%}
+{% endfor %}
+
+class TextAssembler : private Assembler {
+ public:
+  TextAssembler() : ip_(MnemonicExists, GetPrototypes, &eh_) {}
+  void Assemble(std::string instruction);
+  bool GetError();
+
+  // Functions allowing instruction prototype/mnemonic lookup.
+  static bool MnemonicExists(std::string prototype, std::string mnemonic);
+  static std::vector<std::string> GetPrototypes();
+
+  // Necessary methods to expose some functionality of Assembler base class.
+  using Assembler::bind;
+  using Assembler::GetBuffer;
+  using Assembler::FinalizeCode;
+  using Assembler::GetCPUFeatures;
+  vixl::internal::AssemblerBase *AsAssemblerBase();
+
+ private:
+  ErrorHandler eh_;
+  InstructionParser ip_;
+  static const std::vector<std::string> str_prototypes_;
+
+  // Maps have to be members if we want to have private inheritance from
+  // Assembler class.
+  {% for prototype, instructions in prototypes.items() -%}
+  static const std::map<std::string, AssemblerFn> {{ prototype }}_insts_;
+  {% endfor -%}
+  static const std::map<std::string, std::map<std::string, AssemblerFn> >
+      prototypes_;
+
+  using Assembler::movi;
+  void movi(const VRegister &rd, uint64_t imm);
+
+  using Assembler::movz;
+  void movz(const Register &rd, uint64_t imm);
+
+  using Assembler::ptrue;
+  void ptrue(const PRegisterWithLaneSize &pd);
+
+  using Assembler::ptrues;
+  void ptrues(const PRegisterWithLaneSize &pd);
+
+  using Assembler::ret;
+  void ret();
+};
+
+// Class used in std::visit to get current value held by std::variant.
+class InstructionDispatcher {
+ public:
+  void operator()(std::monostate v) {
+    std::cout << "No function with given signature !" << std::endl;
+    (void)v;
+  }
+{% for prototype, instructions in prototypes.items() %}
+  void operator()(VIXL_{{ prototype }}_Fn f) {
+    (tasm->*f)({%- for i in range(instructions.types| length) -%}
+      std::get<{{ instructions.types[i] }}>(args[{{ i }}])
+      {%- if not loop.last %}, {% endif -%}
+    {%- endfor -%});
+  }
+{% endfor %}
+
+
+  InstructionDispatcher(TextAssembler *tasm,
+                        std::vector<Argument> args,
+                        std::string mnemonic)
+      : tasm(tasm), args(args), mnemonic(mnemonic) {}
+
+ private:
+  TextAssembler *tasm;
+  std::vector<Argument> args;
+  std::string mnemonic;
+};
+}
+}
+}  // namespace vixl::aarch64::tasm
+
+#endif  // __cplusplus >= 201703L
+#endif  // VIXL_TASM_ASSEMBLER_H
