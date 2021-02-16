@@ -26,9 +26,6 @@ VIXL contains three components.
 
 The VIXL git repository can be found [on GitHub][vixl].
 
-Changes from previous versions of VIXL can be found in the
-[Changelog](doc/changelog.md).
-
 
 Licence
 =======
@@ -213,7 +210,7 @@ aarch32_examples` or `scons aarch64_examples` from the root directory, or use
 
 
 
-[cpplint]: http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py
+[cpplint]: https://github.com/google/styleguide/tree/gh-pages/cpplint
            "Google's cpplint.py script."
 
 [vixl]: https://github.com/Linaro/vixl
