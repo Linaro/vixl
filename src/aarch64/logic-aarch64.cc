@@ -3002,6 +3002,18 @@ LogicVRegister Simulator::cmla(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::cmla(VectorFormat vform,
+                               LogicVRegister dst,
+                               const LogicVRegister& srca,
+                               const LogicVRegister& src1,
+                               const LogicVRegister& src2,
+                               int index,
+                               int rot) {
+  SimVRegister temp;
+  dup_elements_to_segments(VectorFormatDoubleWidth(vform), temp, src2, index);
+  return cmla(vform, dst, srca, src1, temp, rot);
+}
+
 LogicVRegister Simulator::bgrp(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,

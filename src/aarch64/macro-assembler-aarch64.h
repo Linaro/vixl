@@ -6441,11 +6441,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
             const ZRegister& zn,
             const ZRegister& zm,
             int rot);
-  void Cmla(const ZRegister& zda, const ZRegister& zn) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    cmla(zda, zn);
-  }
+  void Cmla(const ZRegister& zd,
+            const ZRegister& za,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index,
+            int rot);
   void Cmla(const ZRegister& zd,
             const ZRegister& za,
             const ZRegister& zn,

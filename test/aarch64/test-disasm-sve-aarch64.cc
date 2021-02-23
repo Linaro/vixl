@@ -8485,6 +8485,39 @@ TEST(sve2_complex_integer_multiply_add) {
                 "movprfx z0, z1\n"
                 "cmla z0.d, z2.d, z31.d, #270");
 
+  COMPARE_MACRO(Cmla(z17.VnS(), z17.VnS(), z29.VnS(), z0.VnS(), 1, 0),
+                "cmla z17.s, z29.s, z0.s[1], #0");
+  COMPARE_MACRO(Cmla(z17.VnS(), z17.VnS(), z29.VnS(), z1.VnS(), 0, 0),
+                "cmla z17.s, z29.s, z1.s[0], #0");
+  COMPARE_MACRO(Cmla(z17.VnS(), z17.VnS(), z29.VnS(), z8.VnS(), 1, 90),
+                "cmla z17.s, z29.s, z8.s[1], #90");
+  COMPARE_MACRO(Cmla(z17.VnS(), z17.VnS(), z29.VnS(), z15.VnS(), 0, 180),
+                "cmla z17.s, z29.s, z15.s[0], #180");
+  COMPARE_MACRO(Cmla(z18.VnH(), z18.VnH(), z22.VnH(), z0.VnH(), 3, 0),
+                "cmla z18.h, z22.h, z0.h[3], #0");
+  COMPARE_MACRO(Cmla(z18.VnH(), z18.VnH(), z22.VnH(), z1.VnH(), 2, 0),
+                "cmla z18.h, z22.h, z1.h[2], #0");
+  COMPARE_MACRO(Cmla(z18.VnH(), z18.VnH(), z22.VnH(), z4.VnH(), 1, 270),
+                "cmla z18.h, z22.h, z4.h[1], #270");
+  COMPARE_MACRO(Cmla(z18.VnH(), z18.VnH(), z22.VnH(), z7.VnH(), 0, 90),
+                "cmla z18.h, z22.h, z7.h[0], #90");
+
+  COMPARE_MACRO(Cmla(z1.VnH(), z19.VnH(), z22.VnH(), z7.VnH(), 0, 90),
+                "movprfx z1, z19\n"
+                "cmla z1.h, z22.h, z7.h[0], #90");
+  COMPARE_MACRO(Cmla(z1.VnH(), z19.VnH(), z1.VnH(), z7.VnH(), 0, 90),
+                "movprfx z31, z19\n"
+                "cmla z31.h, z1.h, z7.h[0], #90\n"
+                "mov z1.d, z31.d");
+  COMPARE_MACRO(Cmla(z1.VnH(), z19.VnH(), z22.VnH(), z1.VnH(), 0, 90),
+                "movprfx z31, z19\n"
+                "cmla z31.h, z22.h, z1.h[0], #90\n"
+                "mov z1.d, z31.d");
+  COMPARE_MACRO(Cmla(z1.VnH(), z19.VnH(), z1.VnH(), z1.VnH(), 0, 90),
+                "movprfx z31, z19\n"
+                "cmla z31.h, z1.h, z1.h[0], #90\n"
+                "mov z1.d, z31.d");
+
   CLEANUP();
 }
 
@@ -8730,18 +8763,6 @@ TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
 
-  // COMPARE_PREFIX(cmla(z17.VnS(), z29.VnS()), "cmla z17.h, z29.h,
-  // <Zm>.h[<imm>], <const>");
-  // COMPARE_PREFIX(cmla(z18.VnH(), z22.VnH()), "cmla z18.h, z22.h,
-  // <Zm>.h[<imm>], <const>");
-  // COMPARE_PREFIX(cmla(z19.VnB(), z7.VnB(), z2.VnB()), "cmla z19.b, z7.b,
-  // z2.b, <const>");
-  // COMPARE_PREFIX(cmla(z19.VnD(), z7.VnD(), z2.VnD()), "cmla z19.d, z7.d,
-  // z2.d, <const>");
-  // COMPARE_PREFIX(cmla(z19.VnH(), z7.VnH(), z2.VnH()), "cmla z19.h, z7.h,
-  // z2.h, <const>");
-  // COMPARE_PREFIX(cmla(z19.VnS(), z7.VnS(), z2.VnS()), "cmla z19.s, z7.s,
-  // z2.s, <const>");
   // COMPARE_PREFIX(ext(z13.VnB(), z11.VnB(), z12.VnB()), "ext z13.b, { z15.b,
   // z16.b }, #<imm>");
   // COMPARE_PREFIX(faddp(z14.VnD(), p1.Merging(), z14.VnD(), z26.VnD()), "faddp

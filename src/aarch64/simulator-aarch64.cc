@@ -2990,40 +2990,34 @@ void Simulator::SimulateSVEComplexIntMulAdd(const Instruction* instr) {
   SimVRegister& zda = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   int rot = instr->ExtractBits(11, 10) * 90;
-  // The information below are only valid for the vector form of instruction.
+  // vform and zm are only valid for the vector form of instruction.
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  // Inputs for indexed form of instruction.
+  SimVRegister& zm_h = ReadVRegister(instr->ExtractBits(18, 16));
+  SimVRegister& zm_s = ReadVRegister(instr->ExtractBits(19, 16));
+  int idx_h = instr->ExtractBits(20, 19);
+  int idx_s = instr->ExtractBit(20);
 
   switch (form_hash_) {
     case Hash("cmla_z_zzz"):
       cmla(vform, zda, zda, zn, zm, rot);
       break;
     case Hash("cmla_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
+      cmla(kFormatVnH, zda, zda, zn, zm_h, idx_h, rot);
       break;
     case Hash("cmla_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      cmla(kFormatVnS, zda, zda, zn, zm_s, idx_s, rot);
       break;
     case Hash("sqrdcmlah_z_zzz"):
       sqrdcmlah(vform, zda, zda, zn, zm, rot);
       break;
     case Hash("sqrdcmlah_z_zzzi_h"):
-      sqrdcmlah(kFormatVnH,
-                zda,
-                zda,
-                zn,
-                ReadVRegister(instr->ExtractBits(18, 16)),
-                instr->ExtractBits(20, 19),
-                rot);
+      sqrdcmlah(kFormatVnH, zda, zda, zn, zm_h, idx_h, rot);
       break;
     case Hash("sqrdcmlah_z_zzzi_s"):
-      sqrdcmlah(kFormatVnS,
-                zda,
-                zda,
-                zn,
-                ReadVRegister(instr->ExtractBits(19, 16)),
-                instr->ExtractBit(20),
-                rot);
+      sqrdcmlah(kFormatVnS, zda, zda, zn, zm_s, idx_s, rot);
       break;
     default:
       VIXL_UNIMPLEMENTED();

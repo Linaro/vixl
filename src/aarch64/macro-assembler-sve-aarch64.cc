@@ -592,6 +592,37 @@ void MacroAssembler::FPCommutativeArithmeticHelper(
 VIXL_SVE_NONCOMM_ARITH_ZZZZI_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
 
+// Instructions of the form "inst zda, zn, zm, #num, #num", where they are
+// non-commutative and no reversed form is provided.
+#define VIXL_SVE_NONCOMM_ARITH_ZZZZII_LIST(V) \
+  V(Cmla, cmla)                               \
+  V(Sqrdcmlah, sqrdcmlah)
+
+// This doesn't handle zm when it's out of the range that can be encoded in
+// instruction. The range depends on element size: z0-z7 for H, z0-15 for S.
+#define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN)                     \
+  void MacroAssembler::MASMFN(const ZRegister& zd,               \
+                              const ZRegister& za,               \
+                              const ZRegister& zn,               \
+                              const ZRegister& zm,               \
+                              int index,                         \
+                              int rot) {                         \
+    if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) { \
+      UseScratchRegisterScope temps(this);                       \
+      ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zd);  \
+      {                                                          \
+        MovprfxHelperScope guard(this, ztmp, za);                \
+        ASMFN(ztmp, zn, zm, index, rot);                         \
+      }                                                          \
+      Mov(zd, ztmp);                                             \
+    } else {                                                     \
+      MovprfxHelperScope guard(this, zd, za);                    \
+      ASMFN(zd, zn, zm, index, rot);                             \
+    }                                                            \
+  }
+VIXL_SVE_NONCOMM_ARITH_ZZZZII_LIST(VIXL_DEFINE_MASM_FUNC)
+#undef VIXL_DEFINE_MASM_FUNC
+
 // Instructions of the form "inst zda, pg, zda, zn", where they are
 // non-commutative and no reversed form is provided.
 #define VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(V) \
@@ -663,27 +694,6 @@ VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
   }
 VIXL_SVE_NONCOMM_ARITH_REVERSE_ZPZZ_LIST(VIXL_DEFINE_MASM_FUNC)
 #undef VIXL_DEFINE_MASM_FUNC
-
-void MacroAssembler::Sqrdcmlah(const ZRegister& zd,
-                               const ZRegister& za,
-                               const ZRegister& zn,
-                               const ZRegister& zm,
-                               int index,
-                               int rot) {
-  if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) {
-    UseScratchRegisterScope temps(this);
-    VIXL_ASSERT(AreSameLaneSize(zn, zm));
-    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zn);
-    {
-      MovprfxHelperScope guard(this, ztmp, za);
-      sqrdcmlah(ztmp, zn, zm, index, rot);
-    }
-    Mov(zd, ztmp);
-  } else {
-    MovprfxHelperScope guard(this, zd, za);
-    sqrdcmlah(zd, zn, zm, index, rot);
-  }
-}
 
 void MacroAssembler::Fadd(const ZRegister& zd,
                           const PRegisterM& pg,

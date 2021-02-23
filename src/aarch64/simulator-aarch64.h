@@ -3345,6 +3345,13 @@ class Simulator : public DecoderVisitor {
                       const LogicVRegister& src1,
                       const LogicVRegister& src2,
                       int rot);
+  LogicVRegister cmla(VectorFormat vform,
+                      LogicVRegister dst,
+                      const LogicVRegister& srca,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2,
+                      int index,
+                      int rot);
   LogicVRegister bgrp(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,

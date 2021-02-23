@@ -1315,26 +1315,10 @@ void Assembler::fcmla(const ZRegister& zda,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
-  VIXL_ASSERT(index >= 0);
-
-  int lane_size = zda.GetLaneSizeInBytes();
-
-  Instr zm_and_idx = 0;
-  Instr op = FCMLA_z_zzzi_h;
-  if (lane_size == kHRegSizeInBytes) {
-    // Zm<18:16> | i2<20:19>
-    VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 3));
-    zm_and_idx = (index << 19) | Rx<18, 16>(zm);
-  } else {
-    // Zm<19:16> | i1<20>
-    VIXL_ASSERT(lane_size == kSRegSizeInBytes);
-    VIXL_ASSERT((zm.GetCode() <= 15) && (index <= 1));
-    zm_and_idx = (index << 20) | Rx<19, 16>(zm);
-    op = FCMLA_z_zzzi_s;
-  }
 
   Instr rotate_bit = (rot / 90) << 10;
-  Emit(op | zm_and_idx | rotate_bit | Rd(zda) | Rn(zn));
+  Emit(FCMLA_z_zzzi_h | SVEMulComplexIndexHelper(zm, index) | rotate_bit |
+       Rd(zda) | Rn(zn));
 }
 
 // SVEFPFastReduction.
@@ -1599,6 +1583,23 @@ Instr Assembler::SVEMulLongIndexHelper(const ZRegister& zm, int index) {
   imm_field |= ExtractBit(index, 0) << 11;
 
   return zm_id | imm_field;
+}
+
+Instr Assembler::SVEMulComplexIndexHelper(const ZRegister& zm, int index) {
+  Instr zm_idx_size;
+  if (zm.IsLaneSizeH()) {
+    // Zm<18:16> | i2<20:19>
+    VIXL_CHECK(zm.GetCode() <= 7);
+    VIXL_CHECK(IsUint2(index));
+    zm_idx_size = (index << 19) | Rx<18, 16>(zm) | 0;
+  } else {
+    VIXL_ASSERT(zm.IsLaneSizeS());
+    // Zm<19:16> | i1<20>
+    VIXL_CHECK(zm.GetCode() <= 15);
+    VIXL_CHECK(IsUint1(index));
+    zm_idx_size = (index << 20) | Rx<19, 16>(zm) | (1 << 22);
+  }
+  return zm_idx_size;
 }
 
 // SVEFPMulAddIndex.
@@ -6886,17 +6887,22 @@ void Assembler::cdot(const ZRegister& zda,
   Emit(0x44001000 | rotate_bits | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  cmla_z_zzzi_h
-//  cmla_z_zzzi_s
-void Assembler::cmla(const ZRegister& zda, const ZRegister& zn) {
+void Assembler::cmla(const ZRegister& zda,
+                     const ZRegister& zn,
+                     const ZRegister& zm,
+                     int index,
+                     int rot) {
   // CMLA <Zda>.H, <Zn>.H, <Zm>.H[<imm>], <const>
   //  0100 0100 101. .... 0110 .... .... ....
   //  size<23:22> | opc<20:16> | rot<11:10> | Zn<9:5> | Zda<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
+  VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
 
-  Emit(0x44a06000 | Rd(zda) | Rn(zn));
+  Instr rotate_bit = (rot / 90) << 10;
+  Emit(0x44a06000 | SVEMulComplexIndexHelper(zm, index) | rotate_bit | Rd(zda) |
+       Rn(zn));
 }
 
 void Assembler::cmla(const ZRegister& zda,
@@ -8241,9 +8247,6 @@ void Assembler::sqneg(const ZRegister& zd,
   Emit(0x4409a000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  sqrdcmlah_z_zzzi_h
-//  sqrdcmlah_z_zzzi_s
 void Assembler::sqrdcmlah(const ZRegister& zda,
                           const ZRegister& zn,
                           const ZRegister& zm,
@@ -8256,22 +8259,10 @@ void Assembler::sqrdcmlah(const ZRegister& zda,
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
   VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
   VIXL_ASSERT((rot == 0) || (rot == 90) || (rot == 180) || (rot == 270));
-  VIXL_ASSERT(index >= 0);
-
-  Instr zm_and_idx_and_size = 0;
-  if (zda.IsLaneSizeH()) {
-    // Zm<18:16> | i2<20:19>
-    VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 3));
-    zm_and_idx_and_size = (index << 19) | Rx<18, 16>(zm) | 0;
-  } else {
-    VIXL_ASSERT(zda.IsLaneSizeS());
-    // Zm<19:16> | i1<20>
-    VIXL_ASSERT((zm.GetCode() <= 15) && (index <= 1));
-    zm_and_idx_and_size = (index << 20) | Rx<19, 16>(zm) | (1 << 22);
-  }
 
   Instr rotate_bit = (rot / 90) << 10;
-  Emit(0x44a07000 | zm_and_idx_and_size | rotate_bit | Rd(zda) | Rn(zn));
+  Emit(0x44a07000 | SVEMulComplexIndexHelper(zm, index) | rotate_bit | Rd(zda) |
+       Rn(zn));
 }
 
 void Assembler::sqrdcmlah(const ZRegister& zda,

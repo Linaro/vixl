@@ -5897,7 +5897,11 @@ class Assembler : public vixl::internal::AssemblerBase {
             int rot);
 
   // Complex integer multiply-add with rotate (indexed).
-  void cmla(const ZRegister& zda, const ZRegister& zn);
+  void cmla(const ZRegister& zda,
+            const ZRegister& zn,
+            const ZRegister& zm,
+            int index,
+            int rot);
 
   // Complex integer multiply-add with rotate.
   void cmla(const ZRegister& zda,
@@ -7732,6 +7736,8 @@ class Assembler : public vixl::internal::AssemblerBase {
                           Instr op_d);
 
   Instr SVEMulLongIndexHelper(const ZRegister& zm, int index);
+
+  Instr SVEMulComplexIndexHelper(const ZRegister& zm, int index);
 
   void SVEContiguousPrefetchScalarPlusScalarHelper(PrefetchOperation prfop,
                                                    const PRegister& pg,
