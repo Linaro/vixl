@@ -6485,10 +6485,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcvtnt(zd, pg, zn);
   }
-  void Fcvtx(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Fcvtx(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fcvtx(zd, pg, zn);
+    VIXL_ASSERT(zn.IsLaneSizeD());
+    MovprfxHelperScope guard(this, zd.VnD(), pg, zd.VnD());
+    fcvtx(zd, pg.Merging(), zn);
   }
   void Fcvtxnt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);

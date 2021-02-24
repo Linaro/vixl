@@ -7033,6 +7033,7 @@ void Assembler::fcvtx(const ZRegister& zd,
   //  opc<23:22> | opc2<17:16> | Pg<12:10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zd.IsLaneSizeS() && zn.IsLaneSizeD());
 
   Emit(0x650aa000 | Rd(zd) | PgLow8(pg) | Rn(zn));
 }

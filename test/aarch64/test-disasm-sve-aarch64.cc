@@ -8867,6 +8867,18 @@ TEST(sve2_fmlal_fmlsl_index) {
   CLEANUP();
 }
 
+TEST(sve2_fp_convert) {
+  SETUP();
+
+  COMPARE_MACRO(Fcvtx(z14.VnS(), p4.Merging(), z0.VnD()),
+                "fcvtx z14.s, p4/m, z0.d");
+  COMPARE_MACRO(Fcvtx(z14.VnS(), p4.Zeroing(), z0.VnD()),
+                "movprfx z14.d, p4/z, z14.d\n"
+                "fcvtx z14.s, p4/m, z0.d");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();

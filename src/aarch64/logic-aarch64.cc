@@ -6185,7 +6185,13 @@ LogicVRegister Simulator::fcvtxn(VectorFormat vform,
                                  const LogicVRegister& src) {
   dst.ClearForWrite(vform);
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+
+  int input_lane_count = LaneCountFromFormat(vform);
+  if (IsSVEFormat(vform)) {
+    input_lane_count /= 2;
+  }
+
+  for (int i = 0; i < input_lane_count; i++) {
     dst.SetFloat(i, FPToFloat(src.Float<double>(i), FPRoundOdd, ReadDN()));
   }
   return dst;

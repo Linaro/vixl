@@ -2186,18 +2186,18 @@ void Simulator::Simulate_ZdH_ZnH_ZmH_imm(const Instruction* instr) {
 
 void Simulator::Simulate_ZdS_PgM_ZnD(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result, zero;
+  zero.Clear();
 
   switch (form_hash_) {
     case Hash("fcvtnt_z_p_z_d2s"):
       VIXL_UNIMPLEMENTED();
       break;
     case Hash("fcvtx_z_p_z_d2s"):
-      VIXL_UNIMPLEMENTED();
+      fcvtxn(kFormatVnS, result, zn);
+      zip1(kFormatVnS, result, result, zero);
       break;
     case Hash("fcvtxnt_z_p_z_d2s"):
       VIXL_UNIMPLEMENTED();
@@ -2205,6 +2205,7 @@ void Simulator::Simulate_ZdS_PgM_ZnD(const Instruction* instr) {
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(kFormatVnD, zd, pg, result);
 }
 
 void Simulator::Simulate_ZdS_PgM_ZnH(const Instruction* instr) {
