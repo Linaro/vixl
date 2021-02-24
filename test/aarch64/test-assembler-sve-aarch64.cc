@@ -19447,5 +19447,54 @@ TEST_SVE(sve2_floating_point_multiply_add_long_vector) {
   }
 }
 
+TEST_SVE(sve2_flogb_simple) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+
+  START();
+  __ Ptrue(p0.VnB());
+  __ Index(z0.VnS(), -4, 1);
+  __ Mov(z1.VnS(), 0);
+  __ Mov(z2.VnD(), 0x000fffffffffffff);
+  __ Mov(z3.VnD(), 0x0010000000000000);
+  __ Scvtf(z0.VnS(), p0.Merging(), z0.VnS());
+  __ Scvtf(z1.VnS(), p0.Merging(), z1.VnS());
+  __ Fdiv(z1.VnS(), p0.Merging(), z0.VnS(), z1.VnS());
+  __ Flogb(z0.VnS(), p0.Merging(), z0.VnS());
+  __ Flogb(z1.VnS(), p0.Merging(), z1.VnS());
+  __ Flogb(z2.VnD(), p0.Merging(), z2.VnD());
+  __ Flogb(z3.VnD(), p0.Merging(), z3.VnD());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    uint64_t expected_z0[] = {0x0000000200000002,
+                              0x0000000200000002,
+                              0x0000000100000001,
+                              0x0000000080000000,
+                              0x0000000000000001,
+                              0x0000000100000002};
+    ASSERT_EQUAL_SVE(expected_z0, z0.VnD());
+
+    uint64_t expected_z1[] = {0x7fffffff7fffffff,
+                              0x7fffffff7fffffff,
+                              0x7fffffff7fffffff,
+                              0x7fffffff80000000,
+                              0x7fffffff7fffffff,
+                              0x7fffffff7fffffff};
+    ASSERT_EQUAL_SVE(expected_z1, z1.VnD());
+
+    uint64_t expected_z2[] = {0xfffffffffffffc01,
+                              0xfffffffffffffc01,
+                              0xfffffffffffffc01,
+                              0xfffffffffffffc01};
+    ASSERT_EQUAL_SVE(expected_z2, z2.VnD());
+
+    uint64_t expected_z3[] = {0xfffffffffffffc02,
+                              0xfffffffffffffc02,
+                              0xfffffffffffffc02,
+                              0xfffffffffffffc02};
+    ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
+  }
+}
 }  // namespace aarch64
 }  // namespace vixl

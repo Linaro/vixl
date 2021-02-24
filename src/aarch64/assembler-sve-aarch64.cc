@@ -7057,8 +7057,12 @@ void Assembler::flogb(const ZRegister& zd,
   //  opc<23:22> | opc2<18:17> | U<16> | Pg<12:10> | Zn<9:5> | Zd<4:0> | size<>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn));
+  VIXL_ASSERT(!zd.IsLaneSizeB());
 
-  Emit(0x6518a000 | Rd(zd) | PgLow8(pg) | Rn(zn));
+  // Size field is encoded in bits <18:17> rather than <23:22>.
+  Instr size = SVESize(zd) >> 5;
+  Emit(0x6518a000 | size | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fmaxnmp(const ZRegister& zd,

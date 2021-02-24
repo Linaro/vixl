@@ -184,6 +184,7 @@ class Disassembler : public DecoderVisitor {
   void DisassembleSVEAddSubHigh(const Instruction* instr);
   void DisassembleSVEComplexIntAddition(const Instruction* instr);
   void DisassembleSVEBitwiseTernary(const Instruction* instr);
+  void DisassembleSVEFlogb(const Instruction* instr);
 
   void Format(const Instruction* instr,
               const char* mnemonic,

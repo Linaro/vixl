@@ -300,8 +300,13 @@ class Instruction {
     return this->ExtractBits(msb, lsb);
   }
 
-  VectorFormat GetSVEVectorFormat() const {
-    switch (Mask(SVESizeFieldMask)) {
+  VectorFormat GetSVEVectorFormat(int field_lsb = 22) const {
+    VIXL_ASSERT((field_lsb >= 0) && (field_lsb <= 30));
+    uint32_t instr = ExtractUnsignedBitfield32(field_lsb + 1,
+                                               field_lsb,
+                                               GetInstructionBits())
+                     << 22;
+    switch (instr & SVESizeFieldMask) {
       case SVE_B:
         return kFormatVnB;
       case SVE_H:

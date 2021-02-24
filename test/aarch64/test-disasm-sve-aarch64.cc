@@ -8759,6 +8759,22 @@ TEST(sve2_sat_double_mul_high) {
   CLEANUP();
 }
 
+TEST(sve2_flogb) {
+  SETUP();
+
+  COMPARE_MACRO(Flogb(z15.VnH(), p0.Merging(), z3.VnH()),
+                "flogb z15.h, p0/m, z3.h");
+  COMPARE_MACRO(Flogb(z15.VnS(), p0.Merging(), z3.VnS()),
+                "flogb z15.s, p0/m, z3.s");
+  COMPARE_MACRO(Flogb(z15.VnD(), p0.Merging(), z3.VnD()),
+                "flogb z15.d, p0/m, z3.d");
+  COMPARE_MACRO(Flogb(z15.VnD(), p0.Zeroing(), z3.VnD()),
+                "movprfx z15.d, p0/z, z15.d\n"
+                "flogb z15.d, p0/m, z3.d");
+
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
@@ -8783,8 +8799,6 @@ TEST(sve2_all_instructions) {
   // p4/m, z0.d");
   // COMPARE_PREFIX(fcvtxnt(z27.VnS(), p0.Merging(), z17.VnD()), "fcvtxnt z27.s,
   // p0/m, z17.d");
-  // COMPARE_PREFIX(flogb(z15.Vn?(), p0.Merging(), z3.Vn?()), "flogb <Zd>.<T>,
-  // <Pg>/M, <Zn>.<T>");
   // COMPARE_PREFIX(fmaxnmp(z2.VnD(), p1.Merging(), z2.VnD(), z14.VnD()),
   // "fmaxnmp z2.d, p1/m, z2.d, z14.d");
   // COMPARE_PREFIX(fmaxnmp(z2.VnH(), p1.Merging(), z2.VnH(), z14.VnH()),

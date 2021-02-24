@@ -6499,10 +6499,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     fcvtxnt(zd, pg, zn);
   }
-  void Flogb(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
+  void Flogb(const ZRegister& zd, const PRegister& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    flogb(zd, pg, zn);
+    MovprfxHelperScope guard(this, zd, pg, zd);
+    flogb(zd, pg.Merging(), zn);
   }
   void Fmaxnmp(const ZRegister& zd,
                const PRegisterM& pg,

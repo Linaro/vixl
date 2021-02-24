@@ -69,7 +69,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"fcvtnt_z_p_z_s2h", &Disassembler::Disassemble_ZdH_PgM_ZnS},
     {"fcvtx_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
     {"fcvtxnt_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
-    {"flogb_z_p_z", &Disassembler::Disassemble_ZdT_PgM_ZnT},
+    {"flogb_z_p_z", &Disassembler::DisassembleSVEFlogb},
     {"fmaxnmp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"fmaxp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
     {"fminnmp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
@@ -9940,6 +9940,15 @@ void Disassembler::Disassemble_ZdS_ZnS_ZmS_imm(const Instruction *instr) {
   Format(instr, mnemonic_.c_str(), form);
 }
 
+void Disassembler::DisassembleSVEFlogb(const Instruction *instr) {
+  const char *form = "'Zd.'tf, 'Pgl/m, 'Zn.'tf";
+  if (instr->GetSVEVectorFormat(17) == kFormatVnB) {
+    Format(instr, "unimplemented", "(SVEFlogb)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
+}
+
 void Disassembler::Disassemble_ZdT_PgM_ZnT(const Instruction *instr) {
   const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'t";
   Format(instr, mnemonic_.c_str(), form);
@@ -11501,12 +11510,13 @@ int Disassembler::SubstituteSVESize(const Instruction *instr,
   VIXL_ASSERT(format[0] == 't');
 
   static const char sizes[] = {'b', 'h', 's', 'd', 'q'};
-  // TODO: only the most common case for <size> is supported at the moment,
-  // and even then, the RESERVED values are handled as if they're not
-  // reserved.
   unsigned size_in_bytes_log2 = instr->GetSVESize();
   int placeholder_length = 1;
   switch (format[1]) {
+    case 'f':  // 'tf - FP size encoded in <18:17>
+      placeholder_length++;
+      size_in_bytes_log2 = instr->ExtractBits(18, 17);
+      break;
     case 'l':
       placeholder_length++;
       if (format[2] == 's') {

@@ -2278,7 +2278,8 @@ void Simulator::Simulate_ZdT_PgM_ZnT(const Instruction* instr) {
 
   switch (form_hash_) {
     case Hash("flogb_z_p_z"):
-      VIXL_UNIMPLEMENTED();
+      vform = instr->GetSVEVectorFormat(17);
+      flogb(vform, result, zn);
       break;
     case Hash("sqabs_z_p_z"):
       abs(vform, result, zn).SignedSaturate(vform);

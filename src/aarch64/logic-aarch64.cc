@@ -6615,6 +6615,52 @@ LogicVRegister Simulator::frecpx(VectorFormat vform,
   return dst;
 }
 
+LogicVRegister Simulator::flogb(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src) {
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    double op = 0.0;
+    switch (vform) {
+      case kFormatVnH:
+        op = FPToDouble(src.Float<SimFloat16>(i), kIgnoreDefaultNaN);
+        break;
+      case kFormatVnS:
+        op = src.Float<float>(i);
+        break;
+      case kFormatVnD:
+        op = src.Float<double>(i);
+        break;
+      default:
+        VIXL_UNREACHABLE();
+    }
+
+    switch (std::fpclassify(op)) {
+      case FP_INFINITE:
+        dst.SetInt(vform, i, MaxIntFromFormat(vform));
+        break;
+      case FP_NAN:
+      case FP_ZERO:
+        dst.SetInt(vform, i, MinIntFromFormat(vform));
+        break;
+      case FP_SUBNORMAL: {
+        // DoubleMantissa returns the mantissa of its input, leaving 12 zero
+        // bits where the sign and exponent would be. We subtract 12 to
+        // find the number of leading zero bits in the mantissa itself.
+        int64_t mant_zero_count = CountLeadingZeros(DoubleMantissa(op)) - 12;
+        // Log2 of a subnormal is the lowest exponent a normal number can
+        // represent, together with the zeros in the mantissa.
+        dst.SetInt(vform, i, -1023 - mant_zero_count);
+        break;
+      }
+      case FP_NORMAL:
+        // Log2 of a normal number is the exponent minus the bias.
+        dst.SetInt(vform, i, static_cast<int64_t>(DoubleExp(op)) - 1023);
+        break;
+    }
+  }
+  return dst;
+}
+
 LogicVRegister Simulator::ftsmul(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
