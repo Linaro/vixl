@@ -3293,68 +3293,32 @@ void Simulator::SimulateSVEIntArithPair(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zdn = ReadVRegister(instr->GetRd());
-  USE(zdn);
   SimVRegister& zm = ReadVRegister(instr->GetRn());
-  USE(zm);
+  SimVRegister result;
 
   switch (form_hash_) {
     case Hash("faddp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      faddp(vform, result, zdn, zm);
       break;
     case Hash("fmaxnmp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      fmaxnmp(vform, result, zdn, zm);
       break;
     case Hash("fmaxp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      fmaxp(vform, result, zdn, zm);
       break;
     case Hash("fminnmp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      fminnmp(vform, result, zdn, zm);
       break;
     case Hash("fminp_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrshl_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqshl_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("srshl_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("srshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqrshl_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqrshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqshl_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("uqshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("urshl_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("urshlr_z_p_zz"):
-      VIXL_UNIMPLEMENTED();
+      fminp(vform, result, zdn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(vform, zdn, pg, result);
 }
 
 void Simulator::Simulate_ZdnT_PgM_ZdnT_const(const Instruction* instr) {

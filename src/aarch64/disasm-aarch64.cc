@@ -62,7 +62,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"eorbt_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
     {"eortb_z_zz", &Disassembler::Disassemble_ZdT_ZnT_ZmT},
     {"ext_z_zi_con", &Disassembler::Disassemble_ZdB_Zn1B_Zn2B_imm},
-    {"faddp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"faddp_z_p_zz", &Disassembler::DisassembleSVEFPPair},
     {"fcvtlt_z_p_z_h2s", &Disassembler::Disassemble_ZdS_PgM_ZnH},
     {"fcvtlt_z_p_z_s2d", &Disassembler::Disassemble_ZdD_PgM_ZnS},
     {"fcvtnt_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
@@ -70,10 +70,10 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"fcvtx_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
     {"fcvtxnt_z_p_z_d2s", &Disassembler::Disassemble_ZdS_PgM_ZnD},
     {"flogb_z_p_z", &Disassembler::DisassembleSVEFlogb},
-    {"fmaxnmp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"fmaxp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"fminnmp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
-    {"fminp_z_p_zz", &Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT},
+    {"fmaxnmp_z_p_zz", &Disassembler::DisassembleSVEFPPair},
+    {"fmaxp_z_p_zz", &Disassembler::DisassembleSVEFPPair},
+    {"fminnmp_z_p_zz", &Disassembler::DisassembleSVEFPPair},
+    {"fminp_z_p_zz", &Disassembler::DisassembleSVEFPPair},
     {"fmlalb_z_zzz", &Disassembler::Disassemble_ZdaS_ZnH_ZmH},
     {"fmlalb_z_zzzi_s", &Disassembler::Disassemble_ZdaS_ZnH_ZmH_imm},
     {"fmlalt_z_zzz", &Disassembler::Disassemble_ZdaS_ZnH_ZmH},
@@ -10172,6 +10172,15 @@ void Disassembler::DisassembleSVEBitwiseTernary(const Instruction *instr) {
 void Disassembler::Disassemble_ZdnS_ZdnS_ZmS(const Instruction *instr) {
   const char *form = "'Zd.s, 'Zd.s, 'Zn.s";
   Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleSVEFPPair(const Instruction *instr) {
+  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
+  if (instr->GetSVEVectorFormat() == kFormatVnB) {
+    Format(instr, "unimplemented", "(SVEFPPair)");
+  } else {
+    Format(instr, mnemonic_.c_str(), form);
+  }
 }
 
 void Disassembler::Disassemble_ZdnT_PgM_ZdnT_ZmT(const Instruction *instr) {

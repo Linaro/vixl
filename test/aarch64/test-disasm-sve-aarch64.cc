@@ -8775,18 +8775,66 @@ TEST(sve2_flogb) {
   CLEANUP();
 }
 
+TEST(sve2_fp_pair) {
+  SETUP();
+
+  COMPARE_MACRO(Faddp(z14.VnD(), p1.Merging(), z14.VnD(), z26.VnD()),
+                "faddp z14.d, p1/m, z14.d, z26.d");
+  COMPARE_MACRO(Faddp(z14.VnH(), p1.Merging(), z14.VnH(), z26.VnH()),
+                "faddp z14.h, p1/m, z14.h, z26.h");
+  COMPARE_MACRO(Faddp(z14.VnS(), p1.Merging(), z14.VnS(), z26.VnS()),
+                "faddp z14.s, p1/m, z14.s, z26.s");
+  COMPARE_MACRO(Fmaxnmp(z2.VnD(), p1.Merging(), z2.VnD(), z14.VnD()),
+                "fmaxnmp z2.d, p1/m, z2.d, z14.d");
+  COMPARE_MACRO(Fmaxnmp(z2.VnH(), p1.Merging(), z2.VnH(), z14.VnH()),
+                "fmaxnmp z2.h, p1/m, z2.h, z14.h");
+  COMPARE_MACRO(Fmaxnmp(z2.VnS(), p1.Merging(), z2.VnS(), z14.VnS()),
+                "fmaxnmp z2.s, p1/m, z2.s, z14.s");
+  COMPARE_MACRO(Fmaxp(z22.VnD(), p1.Merging(), z22.VnD(), z3.VnD()),
+                "fmaxp z22.d, p1/m, z22.d, z3.d");
+  COMPARE_MACRO(Fmaxp(z22.VnH(), p1.Merging(), z22.VnH(), z3.VnH()),
+                "fmaxp z22.h, p1/m, z22.h, z3.h");
+  COMPARE_MACRO(Fmaxp(z22.VnS(), p1.Merging(), z22.VnS(), z3.VnS()),
+                "fmaxp z22.s, p1/m, z22.s, z3.s");
+  COMPARE_MACRO(Fminnmp(z1.VnD(), p0.Merging(), z1.VnD(), z14.VnD()),
+                "fminnmp z1.d, p0/m, z1.d, z14.d");
+  COMPARE_MACRO(Fminnmp(z1.VnH(), p0.Merging(), z1.VnH(), z14.VnH()),
+                "fminnmp z1.h, p0/m, z1.h, z14.h");
+  COMPARE_MACRO(Fminnmp(z1.VnS(), p0.Merging(), z1.VnS(), z14.VnS()),
+                "fminnmp z1.s, p0/m, z1.s, z14.s");
+  COMPARE_MACRO(Fminp(z16.VnD(), p3.Merging(), z16.VnD(), z11.VnD()),
+                "fminp z16.d, p3/m, z16.d, z11.d");
+  COMPARE_MACRO(Fminp(z16.VnH(), p3.Merging(), z16.VnH(), z11.VnH()),
+                "fminp z16.h, p3/m, z16.h, z11.h");
+  COMPARE_MACRO(Fminp(z16.VnS(), p3.Merging(), z16.VnS(), z11.VnS()),
+                "fminp z16.s, p3/m, z16.s, z11.s");
+
+  COMPARE_MACRO(Faddp(z14.VnD(), p1.Merging(), z13.VnD(), z26.VnD()),
+                "movprfx z14.d, p1/m, z13.d\n"
+                "faddp z14.d, p1/m, z14.d, z26.d");
+  COMPARE_MACRO(Fmaxnmp(z2.VnD(), p1.Merging(), z3.VnD(), z2.VnD()),
+                "mov z31.d, z2.d\n"
+                "movprfx z2.d, p1/m, z3.d\n"
+                "fmaxnmp z2.d, p1/m, z2.d, z31.d");
+  COMPARE_MACRO(Fmaxp(z22.VnH(), p1.Merging(), z23.VnH(), z3.VnH()),
+                "movprfx z22.h, p1/m, z23.h\n"
+                "fmaxp z22.h, p1/m, z22.h, z3.h");
+  COMPARE_MACRO(Fminnmp(z1.VnH(), p0.Merging(), z4.VnH(), z1.VnH()),
+                "mov z31.d, z1.d\n"
+                "movprfx z1.h, p0/m, z4.h\n"
+                "fminnmp z1.h, p0/m, z1.h, z31.h");
+  COMPARE_MACRO(Fminp(z16.VnS(), p3.Merging(), z11.VnS(), z11.VnS()),
+                "movprfx z16.s, p3/m, z11.s\n"
+                "fminp z16.s, p3/m, z16.s, z11.s");
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();
 
   // COMPARE_PREFIX(ext(z13.VnB(), z11.VnB(), z12.VnB()), "ext z13.b, { z15.b,
   // z16.b }, #<imm>");
-  // COMPARE_PREFIX(faddp(z14.VnD(), p1.Merging(), z14.VnD(), z26.VnD()), "faddp
-  // z14.d, p1/m, z14.d, z26.d");
-  // COMPARE_PREFIX(faddp(z14.VnH(), p1.Merging(), z14.VnH(), z26.VnH()), "faddp
-  // z14.h, p1/m, z14.h, z26.h");
-  // COMPARE_PREFIX(faddp(z14.VnS(), p1.Merging(), z14.VnS(), z26.VnS()), "faddp
-  // z14.s, p1/m, z14.s, z26.s");
   // COMPARE_PREFIX(fcvtlt(z1.VnD(), p1.Merging(), z28.VnS()), "fcvtlt z1.s,
   // p1/m, z28.h");
   // COMPARE_PREFIX(fcvtlt(z10.VnS(), p5.Merging(), z0.VnH()), "fcvtlt z10.s,
@@ -8799,30 +8847,6 @@ TEST(sve2_all_instructions) {
   // p4/m, z0.d");
   // COMPARE_PREFIX(fcvtxnt(z27.VnS(), p0.Merging(), z17.VnD()), "fcvtxnt z27.s,
   // p0/m, z17.d");
-  // COMPARE_PREFIX(fmaxnmp(z2.VnD(), p1.Merging(), z2.VnD(), z14.VnD()),
-  // "fmaxnmp z2.d, p1/m, z2.d, z14.d");
-  // COMPARE_PREFIX(fmaxnmp(z2.VnH(), p1.Merging(), z2.VnH(), z14.VnH()),
-  // "fmaxnmp z2.h, p1/m, z2.h, z14.h");
-  // COMPARE_PREFIX(fmaxnmp(z2.VnS(), p1.Merging(), z2.VnS(), z14.VnS()),
-  // "fmaxnmp z2.s, p1/m, z2.s, z14.s");
-  // COMPARE_PREFIX(fmaxp(z22.VnD(), p1.Merging(), z22.VnD(), z3.VnD()), "fmaxp
-  // z22.d, p1/m, z22.d, z3.d");
-  // COMPARE_PREFIX(fmaxp(z22.VnH(), p1.Merging(), z22.VnH(), z3.VnH()), "fmaxp
-  // z22.h, p1/m, z22.h, z3.h");
-  // COMPARE_PREFIX(fmaxp(z22.VnS(), p1.Merging(), z22.VnS(), z3.VnS()), "fmaxp
-  // z22.s, p1/m, z22.s, z3.s");
-  // COMPARE_PREFIX(fminnmp(z1.VnD(), p0.Merging(), z1.VnD(), z14.VnD()),
-  // "fminnmp z1.d, p0/m, z1.d, z14.d");
-  // COMPARE_PREFIX(fminnmp(z1.VnH(), p0.Merging(), z1.VnH(), z14.VnH()),
-  // "fminnmp z1.h, p0/m, z1.h, z14.h");
-  // COMPARE_PREFIX(fminnmp(z1.VnS(), p0.Merging(), z1.VnS(), z14.VnS()),
-  // "fminnmp z1.s, p0/m, z1.s, z14.s");
-  // COMPARE_PREFIX(fminp(z16.VnD(), p3.Merging(), z16.VnD(), z11.VnD()), "fminp
-  // z16.d, p3/m, z16.d, z11.d");
-  // COMPARE_PREFIX(fminp(z16.VnH(), p3.Merging(), z16.VnH(), z11.VnH()), "fminp
-  // z16.h, p3/m, z16.h, z11.h");
-  // COMPARE_PREFIX(fminp(z16.VnS(), p3.Merging(), z16.VnS(), z11.VnS()), "fminp
-  // z16.s, p3/m, z16.s, z11.s");
   // COMPARE_PREFIX(mul(z13.VnH(), z14.VnH()), "mul z13.d, z14.d,
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mul(z14.VnD(), z26.VnD()), "mul z14.d, z26.d,

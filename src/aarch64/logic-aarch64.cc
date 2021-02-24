@@ -5676,6 +5676,9 @@ LogicVRegister Simulator::fsqrt(VectorFormat vform,
     uzp1(vform, temp1, src1, src2);                                            \
     uzp2(vform, temp2, src1, src2);                                            \
     FN(vform, dst, temp1, temp2);                                              \
+    if (IsSVEFormat(vform)) {                                                  \
+      interleave_top_bottom(vform, dst, dst);                                  \
+    }                                                                          \
     return dst;                                                                \
   }                                                                            \
                                                                                \

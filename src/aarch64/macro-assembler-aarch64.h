@@ -6474,11 +6474,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Faddp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    faddp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Fcvtlt(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -6507,35 +6503,19 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Fmaxnmp(const ZRegister& zd,
                const PRegisterM& pg,
                const ZRegister& zn,
-               const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmaxnmp(zd, pg, zn, zm);
-  }
+               const ZRegister& zm);
   void Fmaxp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fmaxp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Fminnmp(const ZRegister& zd,
                const PRegisterM& pg,
                const ZRegister& zn,
-               const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fminnmp(zd, pg, zn, zm);
-  }
+               const ZRegister& zm);
   void Fminp(const ZRegister& zd,
              const PRegisterM& pg,
              const ZRegister& zn,
-             const ZRegister& zm) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    fminp(zd, pg, zn, zm);
-  }
+             const ZRegister& zm);
   void Fmlalb(const ZRegister& zd,
               const ZRegister& za,
               const ZRegister& zn,
