@@ -6532,6 +6532,26 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
+  void Fmlalb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+  void Fmlalt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+  void Fmlslb(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+  void Fmlslt(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
   void Histcnt(const ZRegister& zd,
                const PRegisterZ& pg,
                const ZRegister& zn,

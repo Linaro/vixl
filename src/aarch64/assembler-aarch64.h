@@ -5982,6 +5982,34 @@ class Assembler : public vixl::internal::AssemblerBase {
   void fmlslb(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Half-precision floating-point multiply-subtract long from
+  // single-precision (top, indexed).
+  void fmlslt(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+
+  // Half-precision floating-point multiply-add long to single-precision
+  // (bottom, indexed).
+  void fmlalb(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+
+  // Half-precision floating-point multiply-add long to single-precision
+  // (top, indexed).
+  void fmlalt(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+
+  // Half-precision floating-point multiply-subtract long from
+  // single-precision (bottom, indexed).
+  void fmlslb(const ZRegister& zda,
+              const ZRegister& zn,
+              const ZRegister& zm,
+              int index);
+
+  // Half-precision floating-point multiply-subtract long from
   // single-precision (top).
   void fmlslt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 

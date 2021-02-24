@@ -1874,6 +1874,10 @@ VIXL_SVE_4REG_LIST(VIXL_DEFINE_MASM_FUNC)
 #define VIXL_SVE_4REG_1IMM_LIST(V)                      \
   V(Fmla, fmla, FourRegOneImmDestructiveHelper)         \
   V(Fmls, fmls, FourRegOneImmDestructiveHelper)         \
+  V(Fmlalb, fmlalb, FourRegOneImmDestructiveHelper)     \
+  V(Fmlalt, fmlalt, FourRegOneImmDestructiveHelper)     \
+  V(Fmlslb, fmlslb, FourRegOneImmDestructiveHelper)     \
+  V(Fmlslt, fmlslt, FourRegOneImmDestructiveHelper)     \
   V(Mla, mla, FourRegOneImmDestructiveHelper)           \
   V(Mls, mls, FourRegOneImmDestructiveHelper)           \
   V(Sqdmlalb, sqdmlalb, FourRegOneImmDestructiveHelper) \

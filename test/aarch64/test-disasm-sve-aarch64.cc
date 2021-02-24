@@ -8829,6 +8829,44 @@ TEST(sve2_fp_pair) {
   CLEANUP();
 }
 
+TEST(sve2_fmlal_fmlsl_index) {
+  SETUP();
+
+  COMPARE_MACRO(Fmlalb(z16.VnS(), z16.VnS(), z18.VnH(), z2.VnH(), 0),
+                "fmlalb z16.s, z18.h, z2.h[0]");
+  COMPARE_MACRO(Fmlalb(z3.VnS(), z3.VnS(), z8.VnH(), z7.VnH(), 7),
+                "fmlalb z3.s, z8.h, z7.h[7]");
+  COMPARE_MACRO(Fmlalt(z18.VnS(), z18.VnS(), z13.VnH(), z5.VnH(), 6),
+                "fmlalt z18.s, z13.h, z5.h[6]");
+  COMPARE_MACRO(Fmlalt(z18.VnS(), z18.VnS(), z7.VnH(), z6.VnH(), 5),
+                "fmlalt z18.s, z7.h, z6.h[5]");
+  COMPARE_MACRO(Fmlslb(z16.VnS(), z16.VnS(), z10.VnH(), z1.VnH(), 4),
+                "fmlslb z16.s, z10.h, z1.h[4]");
+  COMPARE_MACRO(Fmlslb(z25.VnS(), z25.VnS(), z11.VnH(), z0.VnH(), 3),
+                "fmlslb z25.s, z11.h, z0.h[3]");
+  COMPARE_MACRO(Fmlslt(z3.VnS(), z3.VnS(), z17.VnH(), z4.VnH(), 2),
+                "fmlslt z3.s, z17.h, z4.h[2]");
+  COMPARE_MACRO(Fmlslt(z5.VnS(), z5.VnS(), z1.VnH(), z7.VnH(), 1),
+                "fmlslt z5.s, z1.h, z7.h[1]");
+
+  COMPARE_MACRO(Fmlalb(z5.VnS(), z4.VnS(), z1.VnH(), z7.VnH(), 1),
+                "movprfx z5, z4\n"
+                "fmlalb z5.s, z1.h, z7.h[1]");
+  COMPARE_MACRO(Fmlalt(z5.VnS(), z4.VnS(), z5.VnH(), z7.VnH(), 1),
+                "movprfx z31, z4\n"
+                "fmlalt z31.s, z5.h, z7.h[1]\n"
+                "mov z5.d, z31.d");
+  COMPARE_MACRO(Fmlslb(z5.VnS(), z4.VnS(), z1.VnH(), z5.VnH(), 1),
+                "movprfx z31, z4\n"
+                "fmlslb z31.s, z1.h, z5.h[1]\n"
+                "mov z5.d, z31.d");
+  COMPARE_MACRO(Fmlslt(z5.VnS(), z4.VnS(), z5.VnH(), z5.VnH(), 1),
+                "movprfx z31, z4\n"
+                "fmlslt z31.s, z5.h, z5.h[1]\n"
+                "mov z5.d, z31.d");
+  CLEANUP();
+}
+
 TEST(sve2_all_instructions) {
   // TODO: split these instructions into more logical groups.
   SETUP();

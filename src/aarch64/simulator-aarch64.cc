@@ -2864,16 +2864,16 @@ void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
 
   switch (form_hash_) {
     case Hash("fmlalb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      fmlal(kFormatVnS, zda, zn_b, zm_idx);
       break;
     case Hash("fmlalt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      fmlal(kFormatVnS, zda, zn_t, zm_idx);
       break;
     case Hash("fmlslb_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      fmlsl(kFormatVnS, zda, zn_b, zm_idx);
       break;
     case Hash("fmlslt_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
+      fmlsl(kFormatVnS, zda, zn_t, zm_idx);
       break;
     case Hash("sqdmlalb_z_zzzi_s"):
       sqdmlal(kFormatVnS, zda, zn_b, zm_idx);

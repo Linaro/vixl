@@ -7133,9 +7133,6 @@ void Assembler::fminp(const ZRegister& zd,
   Emit(0x64178000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  fmlalb_z_zzz
-//  fmlalb_z_zzzi_s
 void Assembler::fmlalb(const ZRegister& zda,
                        const ZRegister& zn,
                        const ZRegister& zm) {
@@ -7150,9 +7147,20 @@ void Assembler::fmlalb(const ZRegister& zda,
   Emit(0x64a08000 | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  fmlalt_z_zzz
-//  fmlalt_z_zzzi_s
+void Assembler::fmlalb(const ZRegister& zda,
+                       const ZRegister& zn,
+                       const ZRegister& zm,
+                       int index) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zda.IsLaneSizeS());
+  VIXL_ASSERT(zn.IsLaneSizeH() && zm.IsLaneSizeH());
+  VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 7));
+  Instr zm_and_idx = (ExtractUnsignedBitfield32(2, 1, index) << 19) |
+                     (ExtractBit(index, 0) << 11) | Rx<18, 16>(zm);
+
+  Emit(0x64a04000 | Rd(zda) | Rn(zn) | zm_and_idx);
+}
+
 void Assembler::fmlalt(const ZRegister& zda,
                        const ZRegister& zn,
                        const ZRegister& zm) {
@@ -7167,9 +7175,24 @@ void Assembler::fmlalt(const ZRegister& zda,
   Emit(0x64a08400 | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  fmlslb_z_zzz
-//  fmlslb_z_zzzi_s
+void Assembler::fmlalt(const ZRegister& zda,
+                       const ZRegister& zn,
+                       const ZRegister& zm,
+                       int index) {
+  // FMLALT <Zda>.S, <Zn>.H, <Zm>.H
+  //  0110 0100 101. .... 1000 01.. .... ....
+  //  o2<22> | Zm<20:16> | op<13> | T<10> | Zn<9:5> | Zda<4:0>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zda.IsLaneSizeS());
+  VIXL_ASSERT(zn.IsLaneSizeH() && zm.IsLaneSizeH());
+  VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 7));
+  Instr zm_and_idx = (ExtractUnsignedBitfield32(2, 1, index) << 19) |
+                     (ExtractBit(index, 0) << 11) | Rx<18, 16>(zm);
+
+  Emit(0x64a04400 | Rd(zda) | Rn(zn) | zm_and_idx);
+}
+
 void Assembler::fmlslb(const ZRegister& zda,
                        const ZRegister& zn,
                        const ZRegister& zm) {
@@ -7184,9 +7207,24 @@ void Assembler::fmlslb(const ZRegister& zda,
   Emit(0x64a0a000 | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  fmlslt_z_zzz
-//  fmlslt_z_zzzi_s
+void Assembler::fmlslb(const ZRegister& zda,
+                       const ZRegister& zn,
+                       const ZRegister& zm,
+                       int index) {
+  // FMLSLB <Zda>.S, <Zn>.H, <Zm>.H
+  //  0110 0100 101. .... 1010 00.. .... ....
+  //  o2<22> | Zm<20:16> | op<13> | T<10> | Zn<9:5> | Zda<4:0>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zda.IsLaneSizeS());
+  VIXL_ASSERT(zn.IsLaneSizeH() && zm.IsLaneSizeH());
+  VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 7));
+  Instr zm_and_idx = (ExtractUnsignedBitfield32(2, 1, index) << 19) |
+                     (ExtractBit(index, 0) << 11) | Rx<18, 16>(zm);
+
+  Emit(0x64a06000 | Rd(zda) | Rn(zn) | zm_and_idx);
+}
+
 void Assembler::fmlslt(const ZRegister& zda,
                        const ZRegister& zn,
                        const ZRegister& zm) {
@@ -7199,6 +7237,24 @@ void Assembler::fmlslt(const ZRegister& zda,
   VIXL_ASSERT(zn.IsLaneSizeH() && zm.IsLaneSizeH());
 
   Emit(0x64a0a400 | Rd(zda) | Rn(zn) | Rm(zm));
+}
+
+void Assembler::fmlslt(const ZRegister& zda,
+                       const ZRegister& zn,
+                       const ZRegister& zm,
+                       int index) {
+  // FMLSLT <Zda>.S, <Zn>.H, <Zm>.H
+  //  0110 0100 101. .... 1010 01.. .... ....
+  //  o2<22> | Zm<20:16> | op<13> | T<10> | Zn<9:5> | Zda<4:0>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(zda.IsLaneSizeS());
+  VIXL_ASSERT(zn.IsLaneSizeH() && zm.IsLaneSizeH());
+  VIXL_ASSERT((zm.GetCode() <= 7) && (index <= 7));
+  Instr zm_and_idx = (ExtractUnsignedBitfield32(2, 1, index) << 19) |
+                     (ExtractBit(index, 0) << 11) | Rx<18, 16>(zm);
+
+  Emit(0x64a06400 | Rd(zda) | Rn(zn) | zm_and_idx);
 }
 
 void Assembler::histcnt(const ZRegister& zd,
