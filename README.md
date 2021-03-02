@@ -1,5 +1,5 @@
-VIXL: ARMv8 Runtime Code Generation Library, Development Version
-================================================================
+VIXL: ARMv8 Runtime Code Generation Library
+===========================================
 
 Contents:
 
@@ -25,6 +25,13 @@ VIXL contains three components.
     architecture without the need for a full ISA model.
 
 The VIXL git repository can be found [on GitHub][vixl].
+
+Build and Test Status
+---------------------
+
+  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit)](https://ci.linaro.org/job/linaro-art-vixlpresubmit/) Simulator
+  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit-native-armv8)](https://ci.linaro.org/job/linaro-art-vixlpresubmit-native-armv8/) Native
+  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit-macos)](https://ci.linaro.org/job/linaro-art-vixlpresubmit-macos/) MacOS
 
 
 Licence
