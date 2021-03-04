@@ -352,7 +352,7 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream)
-    : movprfx_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {
+    : last_instr_(NULL), cpu_features_auditor_(decoder, CPUFeatures::All()) {
   // Ensure that shift operations act as the simulator expects.
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
@@ -11194,8 +11194,6 @@ void Simulator::VisitSVEConstructivePrefix_Unpredicated(
   switch (instr->Mask(SVEConstructivePrefix_UnpredicatedMask)) {
     case MOVPRFX_z_z:
       mov(kFormatVnD, zd, zn);  // The lane size is arbitrary.
-      // Record the movprfx, so the next ExecuteInstruction() can check it.
-      movprfx_ = instr;
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -11265,9 +11263,6 @@ void Simulator::VisitSVEMovprfx(const Instruction* instr) {
       } else {
         mov_zeroing(vform, zd, pg, zn);
       }
-
-      // Record the movprfx, so the next ExecuteInstruction() can check it.
-      movprfx_ = instr;
       break;
     default:
       VIXL_UNIMPLEMENTED();

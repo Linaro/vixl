@@ -44,7 +44,13 @@ static uint64_t RepeatBitsAcrossReg(unsigned reg_size,
   return result;
 }
 
-bool Instruction::CanTakeSVEMovprfx(const Instruction* movprfx) const {
+bool Instruction::CanTakeSVEMovprfx(const char* form,
+                                    const Instruction* movprfx) const {
+  return CanTakeSVEMovprfx(Hash(form), movprfx);
+}
+
+bool Instruction::CanTakeSVEMovprfx(uint32_t form_hash,
+                                    const Instruction* movprfx) const {
   bool movprfx_is_predicated = movprfx->Mask(SVEMovprfxMask) == MOVPRFX_z_p_z;
   bool movprfx_is_unpredicated =
       movprfx->Mask(SVEConstructivePrefix_UnpredicatedMask) == MOVPRFX_z_z;
@@ -58,90 +64,196 @@ bool Instruction::CanTakeSVEMovprfx(const Instruction* movprfx) const {
   bool pg_matches_low8 = movprfx_pg == GetPgLow8();
   bool vform_matches = movprfx_vform == GetSVEVectorFormat();
   bool zd_matches = movprfx_zd == GetRd();
-  bool zd_matches_zm = movprfx_zd == GetRm();
-  bool zd_matches_zn = movprfx_zd == GetRn();
+  bool zd_isnt_zn = movprfx_zd != GetRn();
+  bool zd_isnt_zm = movprfx_zd != GetRm();
 
-  switch (Mask(SVEBitwiseLogicalWithImm_UnpredicatedMask)) {
-    case AND_z_zi:
-    case EOR_z_zi:
-    case ORR_z_zi:
+  switch (form_hash) {
+    case Hash("cdot_z_zzzi_s"):
+    case Hash("sdot_z_zzzi_s"):
+    case Hash("sudot_z_zzzi_s"):
+    case Hash("udot_z_zzzi_s"):
+    case Hash("usdot_z_zzzi_s"):
+      return (GetRd() != static_cast<int>(ExtractBits(18, 16))) &&
+             movprfx_is_unpredicated && zd_isnt_zn && zd_matches;
+
+    case Hash("cdot_z_zzzi_d"):
+    case Hash("sdot_z_zzzi_d"):
+    case Hash("udot_z_zzzi_d"):
+      return (GetRd() != static_cast<int>(ExtractBits(19, 16))) &&
+             movprfx_is_unpredicated && zd_isnt_zn && zd_matches;
+
+    case Hash("fmlalb_z_zzzi_s"):
+    case Hash("fmlalt_z_zzzi_s"):
+    case Hash("fmlslb_z_zzzi_s"):
+    case Hash("fmlslt_z_zzzi_s"):
+    case Hash("smlalb_z_zzzi_d"):
+    case Hash("smlalb_z_zzzi_s"):
+    case Hash("smlalt_z_zzzi_d"):
+    case Hash("smlalt_z_zzzi_s"):
+    case Hash("smlslb_z_zzzi_d"):
+    case Hash("smlslb_z_zzzi_s"):
+    case Hash("smlslt_z_zzzi_d"):
+    case Hash("smlslt_z_zzzi_s"):
+    case Hash("sqdmlalb_z_zzzi_d"):
+    case Hash("sqdmlalb_z_zzzi_s"):
+    case Hash("sqdmlalt_z_zzzi_d"):
+    case Hash("sqdmlalt_z_zzzi_s"):
+    case Hash("sqdmlslb_z_zzzi_d"):
+    case Hash("sqdmlslb_z_zzzi_s"):
+    case Hash("sqdmlslt_z_zzzi_d"):
+    case Hash("sqdmlslt_z_zzzi_s"):
+    case Hash("umlalb_z_zzzi_d"):
+    case Hash("umlalb_z_zzzi_s"):
+    case Hash("umlalt_z_zzzi_d"):
+    case Hash("umlalt_z_zzzi_s"):
+    case Hash("umlslb_z_zzzi_d"):
+    case Hash("umlslb_z_zzzi_s"):
+    case Hash("umlslt_z_zzzi_d"):
+    case Hash("umlslt_z_zzzi_s"):
+      return (GetRd() != GetSVEMulLongZmAndIndex().first) &&
+             movprfx_is_unpredicated && zd_isnt_zn && zd_matches;
+
+    case Hash("cmla_z_zzzi_h"):
+    case Hash("cmla_z_zzzi_s"):
+    case Hash("fcmla_z_zzzi_h"):
+    case Hash("fcmla_z_zzzi_s"):
+    case Hash("fmla_z_zzzi_d"):
+    case Hash("fmla_z_zzzi_h"):
+    case Hash("fmla_z_zzzi_s"):
+    case Hash("fmls_z_zzzi_d"):
+    case Hash("fmls_z_zzzi_h"):
+    case Hash("fmls_z_zzzi_s"):
+    case Hash("mla_z_zzzi_d"):
+    case Hash("mla_z_zzzi_h"):
+    case Hash("mla_z_zzzi_s"):
+    case Hash("mls_z_zzzi_d"):
+    case Hash("mls_z_zzzi_h"):
+    case Hash("mls_z_zzzi_s"):
+    case Hash("sqrdcmlah_z_zzzi_h"):
+    case Hash("sqrdcmlah_z_zzzi_s"):
+    case Hash("sqrdmlah_z_zzzi_d"):
+    case Hash("sqrdmlah_z_zzzi_h"):
+    case Hash("sqrdmlah_z_zzzi_s"):
+    case Hash("sqrdmlsh_z_zzzi_d"):
+    case Hash("sqrdmlsh_z_zzzi_h"):
+    case Hash("sqrdmlsh_z_zzzi_s"):
+      return (GetRd() != GetSVEMulZmAndIndex().first) &&
+             movprfx_is_unpredicated && zd_isnt_zn && zd_matches;
+
+    case Hash("adclb_z_zzz"):
+    case Hash("adclt_z_zzz"):
+    case Hash("bcax_z_zzz"):
+    case Hash("bsl1n_z_zzz"):
+    case Hash("bsl2n_z_zzz"):
+    case Hash("bsl_z_zzz"):
+    case Hash("cdot_z_zzz"):
+    case Hash("cmla_z_zzz"):
+    case Hash("eor3_z_zzz"):
+    case Hash("eorbt_z_zz"):
+    case Hash("eortb_z_zz"):
+    case Hash("fmlalb_z_zzz"):
+    case Hash("fmlalt_z_zzz"):
+    case Hash("fmlslb_z_zzz"):
+    case Hash("fmlslt_z_zzz"):
+    case Hash("nbsl_z_zzz"):
+    case Hash("saba_z_zzz"):
+    case Hash("sabalb_z_zzz"):
+    case Hash("sabalt_z_zzz"):
+    case Hash("sbclb_z_zzz"):
+    case Hash("sbclt_z_zzz"):
+    case Hash("sdot_z_zzz"):
+    case Hash("smlalb_z_zzz"):
+    case Hash("smlalt_z_zzz"):
+    case Hash("smlslb_z_zzz"):
+    case Hash("smlslt_z_zzz"):
+    case Hash("sqdmlalb_z_zzz"):
+    case Hash("sqdmlalbt_z_zzz"):
+    case Hash("sqdmlalt_z_zzz"):
+    case Hash("sqdmlslb_z_zzz"):
+    case Hash("sqdmlslbt_z_zzz"):
+    case Hash("sqdmlslt_z_zzz"):
+    case Hash("sqrdcmlah_z_zzz"):
+    case Hash("sqrdmlah_z_zzz"):
+    case Hash("sqrdmlsh_z_zzz"):
+    case Hash("uaba_z_zzz"):
+    case Hash("uabalb_z_zzz"):
+    case Hash("uabalt_z_zzz"):
+    case Hash("udot_z_zzz"):
+    case Hash("umlalb_z_zzz"):
+    case Hash("umlalt_z_zzz"):
+    case Hash("umlslb_z_zzz"):
+    case Hash("umlslt_z_zzz"):
+    case Hash("usdot_z_zzz_s"):
+      return movprfx_is_unpredicated && zd_isnt_zm && zd_isnt_zn && zd_matches;
+
+    case Hash("addp_z_p_zz"):
+    case Hash("cadd_z_zz"):
+    case Hash("clasta_z_p_zz"):
+    case Hash("clastb_z_p_zz"):
+    case Hash("decd_z_zs"):
+    case Hash("dech_z_zs"):
+    case Hash("decw_z_zs"):
+    case Hash("faddp_z_p_zz"):
+    case Hash("fmaxnmp_z_p_zz"):
+    case Hash("fmaxp_z_p_zz"):
+    case Hash("fminnmp_z_p_zz"):
+    case Hash("fminp_z_p_zz"):
+    case Hash("ftmad_z_zzi"):
+    case Hash("incd_z_zs"):
+    case Hash("inch_z_zs"):
+    case Hash("incw_z_zs"):
+    case Hash("insr_z_v"):
+    case Hash("smaxp_z_p_zz"):
+    case Hash("sminp_z_p_zz"):
+    case Hash("splice_z_p_zz_con"):
+    case Hash("splice_z_p_zz_des"):
+    case Hash("sqcadd_z_zz"):
+    case Hash("sqdecd_z_zs"):
+    case Hash("sqdech_z_zs"):
+    case Hash("sqdecw_z_zs"):
+    case Hash("sqincd_z_zs"):
+    case Hash("sqinch_z_zs"):
+    case Hash("sqincw_z_zs"):
+    case Hash("srsra_z_zi"):
+    case Hash("ssra_z_zi"):
+    case Hash("umaxp_z_p_zz"):
+    case Hash("uminp_z_p_zz"):
+    case Hash("uqdecd_z_zs"):
+    case Hash("uqdech_z_zs"):
+    case Hash("uqdecw_z_zs"):
+    case Hash("uqincd_z_zs"):
+    case Hash("uqinch_z_zs"):
+    case Hash("uqincw_z_zs"):
+    case Hash("ursra_z_zi"):
+    case Hash("usra_z_zi"):
+    case Hash("xar_z_zzi"):
+      return movprfx_is_unpredicated && zd_isnt_zn && zd_matches;
+
+    case Hash("add_z_zi"):
+    case Hash("and_z_zi"):
+    case Hash("decp_z_p_z"):
+    case Hash("eor_z_zi"):
+    case Hash("incp_z_p_z"):
+    case Hash("insr_z_r"):
+    case Hash("mul_z_zi"):
+    case Hash("orr_z_zi"):
+    case Hash("smax_z_zi"):
+    case Hash("smin_z_zi"):
+    case Hash("sqadd_z_zi"):
+    case Hash("sqdecp_z_p_z"):
+    case Hash("sqincp_z_p_z"):
+    case Hash("sqsub_z_zi"):
+    case Hash("sub_z_zi"):
+    case Hash("subr_z_zi"):
+    case Hash("umax_z_zi"):
+    case Hash("umin_z_zi"):
+    case Hash("uqadd_z_zi"):
+    case Hash("uqdecp_z_p_z"):
+    case Hash("uqincp_z_p_z"):
+    case Hash("uqsub_z_zi"):
       return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEBitwiseLogical_PredicatedMask)) {
-    case AND_z_p_zz:
-    case BIC_z_p_zz:
-    case EOR_z_p_zz:
-    case ORR_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEBitwiseShiftByImm_PredicatedMask)) {
-    case ASRD_z_p_zi:
-    case ASR_z_p_zi:
-    case LSL_z_p_zi:
-    case LSR_z_p_zi:
-      if (movprfx_is_predicated) {
-        if (!pg_matches_low8) return false;
-        unsigned tsz = ExtractBits<0x00c00300>();
-        VectorFormat instr_vform =
-            SVEFormatFromLaneSizeInBytesLog2(HighestSetBitPosition(tsz));
-        if (movprfx_vform != instr_vform) return false;
-      }
-      return zd_matches;
-  }
-  switch (Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
-    case ASRR_z_p_zz:
-    case ASR_z_p_zz:
-    case LSLR_z_p_zz:
-    case LSL_z_p_zz:
-    case LSRR_z_p_zz:
-    case LSR_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEBitwiseShiftByWideElements_PredicatedMask)) {
-    case ASR_z_p_zw:
-    case LSL_z_p_zw:
-    case LSR_z_p_zw:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEConditionallyBroadcastElementToVectorMask)) {
-    case CLASTA_z_p_zz:
-    case CLASTB_z_p_zz:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVECopyFPImm_PredicatedMask)) {
-    case FCPY_z_p_i:
-      if (movprfx_is_predicated) {
-        if (!vform_matches) return false;
-        if (movprfx_pg != GetRx<19, 16>()) return false;
-      }
-      return zd_matches;
-  }
-  switch (Mask(SVECopyGeneralRegisterToVector_PredicatedMask)) {
-    case CPY_z_p_r:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches;
-  }
-  switch (Mask(SVECopyIntImm_PredicatedMask)) {
-    case CPY_z_p_i:
+
+    case Hash("cpy_z_p_i"):
       if (movprfx_is_predicated) {
         if (!vform_matches) return false;
         if (movprfx_pg != GetRx<19, 16>()) return false;
@@ -149,397 +261,219 @@ bool Instruction::CanTakeSVEMovprfx(const Instruction* movprfx) const {
       // Only the merging form can take movprfx.
       if (ExtractBit(14) == 0) return false;
       return zd_matches;
+
+    case Hash("fcpy_z_p_i"):
+      return (movprfx_is_unpredicated ||
+              ((movprfx_pg == GetRx<19, 16>()) && vform_matches)) &&
+             zd_matches;
+
+    case Hash("flogb_z_p_z"):
+      return (movprfx_is_unpredicated ||
+              ((movprfx_vform == GetSVEVectorFormat(17)) && pg_matches_low8)) &&
+             zd_isnt_zn && zd_matches;
+
+    case Hash("asr_z_p_zi"):
+    case Hash("asrd_z_p_zi"):
+    case Hash("lsl_z_p_zi"):
+    case Hash("lsr_z_p_zi"):
+    case Hash("sqshl_z_p_zi"):
+    case Hash("sqshlu_z_p_zi"):
+    case Hash("srshr_z_p_zi"):
+    case Hash("uqshl_z_p_zi"):
+    case Hash("urshr_z_p_zi"):
+      return (movprfx_is_unpredicated ||
+              ((movprfx_vform ==
+                SVEFormatFromLaneSizeInBytesLog2(
+                    GetSVEImmShiftAndLaneSizeLog2(true).second)) &&
+               pg_matches_low8)) &&
+             zd_matches;
+
+    case Hash("fcvt_z_p_z_d2h"):
+    case Hash("fcvt_z_p_z_d2s"):
+    case Hash("fcvt_z_p_z_h2d"):
+    case Hash("fcvt_z_p_z_s2d"):
+    case Hash("fcvtx_z_p_z_d2s"):
+    case Hash("fcvtzs_z_p_z_d2w"):
+    case Hash("fcvtzs_z_p_z_d2x"):
+    case Hash("fcvtzs_z_p_z_fp162x"):
+    case Hash("fcvtzs_z_p_z_s2x"):
+    case Hash("fcvtzu_z_p_z_d2w"):
+    case Hash("fcvtzu_z_p_z_d2x"):
+    case Hash("fcvtzu_z_p_z_fp162x"):
+    case Hash("fcvtzu_z_p_z_s2x"):
+    case Hash("scvtf_z_p_z_w2d"):
+    case Hash("scvtf_z_p_z_x2d"):
+    case Hash("scvtf_z_p_z_x2fp16"):
+    case Hash("scvtf_z_p_z_x2s"):
+    case Hash("ucvtf_z_p_z_w2d"):
+    case Hash("ucvtf_z_p_z_x2d"):
+    case Hash("ucvtf_z_p_z_x2fp16"):
+    case Hash("ucvtf_z_p_z_x2s"):
+      return (movprfx_is_unpredicated ||
+              ((movprfx_vform == kFormatVnD) && pg_matches_low8)) &&
+             zd_isnt_zn && zd_matches;
+
+    case Hash("fcvtzs_z_p_z_fp162h"):
+    case Hash("fcvtzu_z_p_z_fp162h"):
+    case Hash("scvtf_z_p_z_h2fp16"):
+    case Hash("ucvtf_z_p_z_h2fp16"):
+      return (movprfx_is_unpredicated ||
+              ((movprfx_vform == kFormatVnH) && pg_matches_low8)) &&
+             zd_isnt_zn && zd_matches;
+
+    case Hash("fcvt_z_p_z_h2s"):
+    case Hash("fcvt_z_p_z_s2h"):
+    case Hash("fcvtzs_z_p_z_fp162w"):
+    case Hash("fcvtzs_z_p_z_s2w"):
+    case Hash("fcvtzu_z_p_z_fp162w"):
+    case Hash("fcvtzu_z_p_z_s2w"):
+    case Hash("scvtf_z_p_z_w2fp16"):
+    case Hash("scvtf_z_p_z_w2s"):
+    case Hash("ucvtf_z_p_z_w2fp16"):
+    case Hash("ucvtf_z_p_z_w2s"):
+      return (movprfx_is_unpredicated ||
+              ((movprfx_vform == kFormatVnS) && pg_matches_low8)) &&
+             zd_isnt_zn && zd_matches;
+
+    case Hash("fcmla_z_p_zzz"):
+    case Hash("fmad_z_p_zzz"):
+    case Hash("fmla_z_p_zzz"):
+    case Hash("fmls_z_p_zzz"):
+    case Hash("fmsb_z_p_zzz"):
+    case Hash("fnmad_z_p_zzz"):
+    case Hash("fnmla_z_p_zzz"):
+    case Hash("fnmls_z_p_zzz"):
+    case Hash("fnmsb_z_p_zzz"):
+    case Hash("mad_z_p_zzz"):
+    case Hash("mla_z_p_zzz"):
+    case Hash("mls_z_p_zzz"):
+    case Hash("msb_z_p_zzz"):
+      return (movprfx_is_unpredicated || (pg_matches_low8 && vform_matches)) &&
+             zd_isnt_zm && zd_isnt_zn && zd_matches;
+
+    case Hash("abs_z_p_z"):
+    case Hash("add_z_p_zz"):
+    case Hash("and_z_p_zz"):
+    case Hash("asr_z_p_zw"):
+    case Hash("asr_z_p_zz"):
+    case Hash("asrr_z_p_zz"):
+    case Hash("bic_z_p_zz"):
+    case Hash("cls_z_p_z"):
+    case Hash("clz_z_p_z"):
+    case Hash("cnot_z_p_z"):
+    case Hash("cnt_z_p_z"):
+    case Hash("cpy_z_p_v"):
+    case Hash("eor_z_p_zz"):
+    case Hash("fabd_z_p_zz"):
+    case Hash("fabs_z_p_z"):
+    case Hash("fadd_z_p_zz"):
+    case Hash("fcadd_z_p_zz"):
+    case Hash("fdiv_z_p_zz"):
+    case Hash("fdivr_z_p_zz"):
+    case Hash("fmax_z_p_zz"):
+    case Hash("fmaxnm_z_p_zz"):
+    case Hash("fmin_z_p_zz"):
+    case Hash("fminnm_z_p_zz"):
+    case Hash("fmul_z_p_zz"):
+    case Hash("fmulx_z_p_zz"):
+    case Hash("fneg_z_p_z"):
+    case Hash("frecpx_z_p_z"):
+    case Hash("frinta_z_p_z"):
+    case Hash("frinti_z_p_z"):
+    case Hash("frintm_z_p_z"):
+    case Hash("frintn_z_p_z"):
+    case Hash("frintp_z_p_z"):
+    case Hash("frintx_z_p_z"):
+    case Hash("frintz_z_p_z"):
+    case Hash("fscale_z_p_zz"):
+    case Hash("fsqrt_z_p_z"):
+    case Hash("fsub_z_p_zz"):
+    case Hash("fsubr_z_p_zz"):
+    case Hash("lsl_z_p_zw"):
+    case Hash("lsl_z_p_zz"):
+    case Hash("lslr_z_p_zz"):
+    case Hash("lsr_z_p_zw"):
+    case Hash("lsr_z_p_zz"):
+    case Hash("lsrr_z_p_zz"):
+    case Hash("mul_z_p_zz"):
+    case Hash("neg_z_p_z"):
+    case Hash("not_z_p_z"):
+    case Hash("orr_z_p_zz"):
+    case Hash("rbit_z_p_z"):
+    case Hash("revb_z_z"):
+    case Hash("revh_z_z"):
+    case Hash("revw_z_z"):
+    case Hash("sabd_z_p_zz"):
+    case Hash("sadalp_z_p_z"):
+    case Hash("sdiv_z_p_zz"):
+    case Hash("sdivr_z_p_zz"):
+    case Hash("shadd_z_p_zz"):
+    case Hash("shsub_z_p_zz"):
+    case Hash("shsubr_z_p_zz"):
+    case Hash("smax_z_p_zz"):
+    case Hash("smin_z_p_zz"):
+    case Hash("smulh_z_p_zz"):
+    case Hash("sqabs_z_p_z"):
+    case Hash("sqadd_z_p_zz"):
+    case Hash("sqneg_z_p_z"):
+    case Hash("sqrshl_z_p_zz"):
+    case Hash("sqrshlr_z_p_zz"):
+    case Hash("sqshl_z_p_zz"):
+    case Hash("sqshlr_z_p_zz"):
+    case Hash("sqsub_z_p_zz"):
+    case Hash("sqsubr_z_p_zz"):
+    case Hash("srhadd_z_p_zz"):
+    case Hash("srshl_z_p_zz"):
+    case Hash("srshlr_z_p_zz"):
+    case Hash("sub_z_p_zz"):
+    case Hash("subr_z_p_zz"):
+    case Hash("suqadd_z_p_zz"):
+    case Hash("sxtb_z_p_z"):
+    case Hash("sxth_z_p_z"):
+    case Hash("sxtw_z_p_z"):
+    case Hash("uabd_z_p_zz"):
+    case Hash("uadalp_z_p_z"):
+    case Hash("udiv_z_p_zz"):
+    case Hash("udivr_z_p_zz"):
+    case Hash("uhadd_z_p_zz"):
+    case Hash("uhsub_z_p_zz"):
+    case Hash("uhsubr_z_p_zz"):
+    case Hash("umax_z_p_zz"):
+    case Hash("umin_z_p_zz"):
+    case Hash("umulh_z_p_zz"):
+    case Hash("uqadd_z_p_zz"):
+    case Hash("uqrshl_z_p_zz"):
+    case Hash("uqrshlr_z_p_zz"):
+    case Hash("uqshl_z_p_zz"):
+    case Hash("uqshlr_z_p_zz"):
+    case Hash("uqsub_z_p_zz"):
+    case Hash("uqsubr_z_p_zz"):
+    case Hash("urecpe_z_p_z"):
+    case Hash("urhadd_z_p_zz"):
+    case Hash("urshl_z_p_zz"):
+    case Hash("urshlr_z_p_zz"):
+    case Hash("ursqrte_z_p_z"):
+    case Hash("usqadd_z_p_zz"):
+    case Hash("uxtb_z_p_z"):
+    case Hash("uxth_z_p_z"):
+    case Hash("uxtw_z_p_z"):
+      return (movprfx_is_unpredicated || (pg_matches_low8 && vform_matches)) &&
+             zd_isnt_zn && zd_matches;
+
+    case Hash("cpy_z_p_r"):
+    case Hash("fadd_z_p_zs"):
+    case Hash("fmax_z_p_zs"):
+    case Hash("fmaxnm_z_p_zs"):
+    case Hash("fmin_z_p_zs"):
+    case Hash("fminnm_z_p_zs"):
+    case Hash("fmul_z_p_zs"):
+    case Hash("fsub_z_p_zs"):
+    case Hash("fsubr_z_p_zs"):
+      return (movprfx_is_unpredicated || (pg_matches_low8 && vform_matches)) &&
+             zd_matches;
+    default:
+      return false;
   }
-  switch (Mask(SVECopySIMDFPScalarRegisterToVector_PredicatedMask)) {
-    case CPY_z_p_v:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPArithmeticWithImm_PredicatedMask)) {
-    case FADD_z_p_zs:
-    case FMAXNM_z_p_zs:
-    case FMAX_z_p_zs:
-    case FMINNM_z_p_zs:
-    case FMIN_z_p_zs:
-    case FMUL_z_p_zs:
-    case FSUBR_z_p_zs:
-    case FSUB_z_p_zs:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches;
-  }
-  switch (Mask(SVEFPArithmetic_PredicatedMask)) {
-    case FABD_z_p_zz:
-    case FADD_z_p_zz:
-    case FDIVR_z_p_zz:
-    case FDIV_z_p_zz:
-    case FMAXNM_z_p_zz:
-    case FMAX_z_p_zz:
-    case FMINNM_z_p_zz:
-    case FMIN_z_p_zz:
-    case FMULX_z_p_zz:
-    case FMUL_z_p_zz:
-    case FSCALE_z_p_zz:
-    case FSUBR_z_p_zz:
-    case FSUB_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEFPComplexAdditionMask)) {
-    case FCADD_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEFPComplexMulAddIndexMask)) {
-    case FCMLA_z_zzzi_h:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<18, 16>()) return false;
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zn;
-    case FCMLA_z_zzzi_s:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<19, 16>()) return false;
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPComplexMulAddMask)) {
-    case FCMLA_z_p_zzz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zm && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPConvertPrecisionMask)) {
-    case FCVT_z_p_z_d2h:
-    case FCVT_z_p_z_d2s:
-    case FCVT_z_p_z_h2d:
-    case FCVT_z_p_z_h2s:
-    case FCVT_z_p_z_s2d:
-    case FCVT_z_p_z_s2h:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPConvertToIntMask)) {
-    case FCVTZS_z_p_z_d2w:
-    case FCVTZS_z_p_z_d2x:
-    case FCVTZS_z_p_z_fp162h:
-    case FCVTZS_z_p_z_fp162w:
-    case FCVTZS_z_p_z_fp162x:
-    case FCVTZS_z_p_z_s2w:
-    case FCVTZS_z_p_z_s2x:
-    case FCVTZU_z_p_z_d2w:
-    case FCVTZU_z_p_z_d2x:
-    case FCVTZU_z_p_z_fp162h:
-    case FCVTZU_z_p_z_fp162w:
-    case FCVTZU_z_p_z_fp162x:
-    case FCVTZU_z_p_z_s2w:
-    case FCVTZU_z_p_z_s2x:
-      if (movprfx_is_predicated) {
-        if (!pg_matches_low8) return false;
-        // The movprfx element size must match the instruction's maximum encoded
-        // element size. We have to partially decode the opc and opc2 fields to
-        // find this.
-        unsigned opc = ExtractBits(23, 22);
-        unsigned opc2 = ExtractBits(18, 17);
-        VectorFormat instr_vform =
-            SVEFormatFromLaneSizeInBytesLog2(std::max(opc, opc2));
-        if (movprfx_vform != instr_vform) return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPMulAddIndexMask)) {
-    case FMLA_z_zzzi_h:
-    case FMLA_z_zzzi_h_i3h:
-    case FMLA_z_zzzi_s:
-    case FMLS_z_zzzi_h:
-    case FMLS_z_zzzi_h_i3h:
-    case FMLS_z_zzzi_s:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<18, 16>()) return false;
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zn;
-    case FMLA_z_zzzi_d:
-    case FMLS_z_zzzi_d:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<19, 16>()) return false;
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPMulAddMask)) {
-    case FMAD_z_p_zzz:
-    case FMSB_z_p_zzz:
-    case FNMAD_z_p_zzz:
-    case FNMSB_z_p_zzz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<20, 16>()) return false;
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-    case FMLA_z_p_zzz:
-    case FMLS_z_p_zzz:
-    case FNMLA_z_p_zzz:
-    case FNMLS_z_p_zzz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zm && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPRoundToIntegralValueMask)) {
-    case FRINTA_z_p_z:
-    case FRINTI_z_p_z:
-    case FRINTM_z_p_z:
-    case FRINTN_z_p_z:
-    case FRINTP_z_p_z:
-    case FRINTX_z_p_z:
-    case FRINTZ_z_p_z:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEFPTrigMulAddCoefficientMask)) {
-    case FTMAD_z_zzi:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEFPUnaryOpMask)) {
-    case FRECPX_z_p_z:
-    case FSQRT_z_p_z:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEIncDecByPredicateCountMask)) {
-    case DECP_z_p_z:
-    case INCP_z_p_z:
-    case SQDECP_z_p_z:
-    case SQINCP_z_p_z:
-    case UQDECP_z_p_z:
-    case UQINCP_z_p_z:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEIncDecVectorByElementCountMask)) {
-    case DECD_z_zs:
-    case DECH_z_zs:
-    case DECW_z_zs:
-    case INCD_z_zs:
-    case INCH_z_zs:
-    case INCW_z_zs:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEInsertGeneralRegisterMask)) {
-    case INSR_z_r:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEInsertSIMDFPScalarRegisterMask)) {
-    case INSR_z_v:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEIntAddSubtractImm_UnpredicatedMask)) {
-    case ADD_z_zi:
-    case SQADD_z_zi:
-    case SQSUB_z_zi:
-    case SUBR_z_zi:
-    case SUB_z_zi:
-    case UQADD_z_zi:
-    case UQSUB_z_zi:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEIntAddSubtractVectors_PredicatedMask)) {
-    case ADD_z_p_zz:
-    case SUBR_z_p_zz:
-    case SUB_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEIntConvertToFPMask)) {
-    case SCVTF_z_p_z_h2fp16:
-    case SCVTF_z_p_z_w2d:
-    case SCVTF_z_p_z_w2fp16:
-    case SCVTF_z_p_z_w2s:
-    case SCVTF_z_p_z_x2d:
-    case SCVTF_z_p_z_x2fp16:
-    case SCVTF_z_p_z_x2s:
-    case UCVTF_z_p_z_h2fp16:
-    case UCVTF_z_p_z_w2d:
-    case UCVTF_z_p_z_w2fp16:
-    case UCVTF_z_p_z_w2s:
-    case UCVTF_z_p_z_x2d:
-    case UCVTF_z_p_z_x2fp16:
-    case UCVTF_z_p_z_x2s:
-      if (movprfx_is_predicated) {
-        if (!pg_matches_low8) return false;
-        // The movprfx element size must match the instruction's maximum encoded
-        // element size. We have to partially decode the opc and opc2 fields to
-        // find this.
-        unsigned opc = ExtractBits(23, 22);
-        unsigned opc2 = ExtractBits(18, 17);
-        VectorFormat instr_vform =
-            SVEFormatFromLaneSizeInBytesLog2(std::max(opc, opc2));
-        if (movprfx_vform != instr_vform) return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEIntDivideVectors_PredicatedMask)) {
-    case SDIVR_z_p_zz:
-    case SDIV_z_p_zz:
-    case UDIVR_z_p_zz:
-    case UDIV_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEIntMinMaxDifference_PredicatedMask)) {
-    case SABD_z_p_zz:
-    case SMAX_z_p_zz:
-    case SMIN_z_p_zz:
-    case UABD_z_p_zz:
-    case UMAX_z_p_zz:
-    case UMIN_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEIntMinMaxImm_UnpredicatedMask)) {
-    case SMAX_z_zi:
-    case SMIN_z_zi:
-    case UMAX_z_zi:
-    case UMIN_z_zi:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEIntMulAddPredicatedMask)) {
-    case MAD_z_p_zzz:
-    case MSB_z_p_zzz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches && !zd_matches_zm;
-    case MLA_z_p_zzz:
-    case MLS_z_p_zzz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zm && !zd_matches_zn;
-  }
-  switch (Mask(SVEIntMulAddUnpredicatedMask)) {
-    case SDOT_z_zzz:
-    case UDOT_z_zzz:
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zm &&
-             !zd_matches_zn;
-  }
-  switch (Mask(SVEIntMulImm_UnpredicatedMask)) {
-    case MUL_z_zi:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEIntMulVectors_PredicatedMask)) {
-    case MUL_z_p_zz:
-    case SMULH_z_p_zz:
-    case UMULH_z_p_zz:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return zd_matches;
-  }
-  switch (Mask(SVEIntUnaryArithmeticPredicatedMask)) {
-    case ABS_z_p_z:
-    case CLS_z_p_z:
-    case CLZ_z_p_z:
-    case CNOT_z_p_z:
-    case CNT_z_p_z:
-    case FABS_z_p_z:
-    case FNEG_z_p_z:
-    case NEG_z_p_z:
-    case NOT_z_p_z:
-    case SXTB_z_p_z:
-    case SXTH_z_p_z:
-    case SXTW_z_p_z:
-    case UXTB_z_p_z:
-    case UXTH_z_p_z:
-    case UXTW_z_p_z:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEMulIndexMask)) {
-    case SDOT_z_zzzi_s:
-    case UDOT_z_zzzi_s:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<18, 16>()) return false;
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zn;
-    case SDOT_z_zzzi_d:
-    case UDOT_z_zzzi_d:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<19, 16>()) return false;
-      return movprfx_is_unpredicated && zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVEPermuteVectorExtractMask)) {
-    case EXT_z_zi_des:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEReverseWithinElementsMask)) {
-    case RBIT_z_p_z:
-    case REVB_z_z:
-    case REVH_z_z:
-    case REVW_z_z:
-      if (movprfx_is_predicated && !(pg_matches_low8 && vform_matches)) {
-        return false;
-      }
-      return zd_matches && !zd_matches_zn;
-  }
-  switch (Mask(SVESaturatingIncDecVectorByElementCountMask)) {
-    case SQDECD_z_zs:
-    case SQDECH_z_zs:
-    case SQDECW_z_zs:
-    case SQINCD_z_zs:
-    case SQINCH_z_zs:
-    case SQINCW_z_zs:
-    case UQDECD_z_zs:
-    case UQDECH_z_zs:
-    case UQDECW_z_zs:
-    case UQINCD_z_zs:
-    case UQINCH_z_zs:
-    case UQINCW_z_zs:
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  switch (Mask(SVEVectorSpliceMask)) {
-    case SPLICE_z_p_zz_des:
-      // The movprfx's `zd` must not alias any other inputs.
-      if (movprfx_zd == GetRx<9, 5>()) return false;
-      return movprfx_is_unpredicated && zd_matches;
-  }
-  return false;
 }  // NOLINT(readability/fn_size)
 
 bool Instruction::IsLoad() const {

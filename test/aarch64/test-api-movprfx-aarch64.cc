@@ -41,19 +41,42 @@
 namespace vixl {
 namespace aarch64 {
 
+class InstructionReporter : public DecoderVisitorWithDefaults {
+ public:
+  InstructionReporter() : DecoderVisitorWithDefaults(kNonConstVisitor) {}
+
+  void Visit(Metadata* metadata, const Instruction* instr) VIXL_OVERRIDE {
+    USE(instr);
+    instr_form_ = (*metadata)["form"];
+  }
+
+  std::string MoveForm() { return std::move(instr_form_); }
+
+ private:
+  std::string instr_form_;
+};
+
 static void CheckAndMaybeDisassembleMovprfxPairs(const CodeBuffer* buffer,
                                                  bool can_take_movprfx) {
   const Instruction* pair = buffer->GetStartAddress<Instruction*>();
   const Instruction* end = buffer->GetEndAddress<Instruction*>();
   bool any_failures = false;
   PrintDisassembler print_disasm(stdout);
+  Decoder decoder;
+  InstructionReporter reporter;
+  decoder.AppendVisitor(&reporter);
+
   while (pair < end) {
     const Instruction* movprfx = pair;
     const Instruction* candidate = pair->GetNextInstruction();
     const Instruction* next_pair = candidate->GetNextInstruction();
     VIXL_ASSERT(candidate < end);
 
-    bool failed = can_take_movprfx != candidate->CanTakeSVEMovprfx(movprfx);
+    Instr inst = candidate->GetInstructionBits();
+    decoder.Decode(reinterpret_cast<Instruction*>(&inst));
+    std::string form = reporter.MoveForm();
+    bool failed =
+        can_take_movprfx != candidate->CanTakeSVEMovprfx(form.c_str(), movprfx);
     any_failures = any_failures || failed;
 
     if (failed || Test::disassemble()) {
@@ -1348,9 +1371,6 @@ TEST(movprfx_positive) {
 
     __ movprfx(z15, z18);
     __ eor(z15.VnH(), z15.VnH(), 4);
-
-    __ movprfx(z30, z11);
-    __ ext(z30.VnB(), z30.VnB(), z11.VnB(), 42);
 
     __ movprfx(z19, z28);
     __ incd(z19.VnD(), SVE_MUL3);

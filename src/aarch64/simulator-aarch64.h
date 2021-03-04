@@ -1120,11 +1120,6 @@ class Simulator : public DecoderVisitor {
     VIXL_ASSERT(IsWordAligned(pc_));
     pc_modified_ = false;
 
-    if (movprfx_ != NULL) {
-      VIXL_CHECK(pc_->CanTakeSVEMovprfx(movprfx_));
-      movprfx_ = NULL;
-    }
-
     // On guarded pages, if BType is not zero, take an exception on any
     // instruction other than BTI, PACI[AB]SP, HLT or BRK.
     if (PcIsInGuardedPage() && (ReadBType() != DefaultBType)) {
@@ -1139,6 +1134,9 @@ class Simulator : public DecoderVisitor {
       }
     }
 
+    bool last_instr_was_movprfx = (form_hash_ == Hash("movprfx_z_z")) ||
+                                  (form_hash_ == Hash("movprfx_z_p_z"));
+
     // decoder_->Decode(...) triggers at least the following visitors:
     //  1. The CPUFeaturesAuditor (`cpu_features_auditor_`).
     //  2. The PrintDisassembler (`print_disasm_`), if enabled.
@@ -1146,6 +1144,13 @@ class Simulator : public DecoderVisitor {
     // User can add additional visitors at any point, but the Simulator requires
     // that the ordering above is preserved.
     decoder_->Decode(pc_);
+
+    if (last_instr_was_movprfx) {
+      VIXL_ASSERT(last_instr_ != NULL);
+      VIXL_CHECK(pc_->CanTakeSVEMovprfx(form_hash_, last_instr_));
+    }
+
+    last_instr_ = ReadPc();
     IncrementPc();
     LogAllWrittenRegisters();
     UpdateBType();
@@ -4702,9 +4707,9 @@ class Simulator : public DecoderVisitor {
   bool pc_modified_;
   const Instruction* pc_;
 
-  // If non-NULL, the last instruction was a movprfx, and validity needs to be
-  // checked.
-  Instruction const* movprfx_;
+  // Pointer to the last simulated instruction, used for checking the validity
+  // of the current instruction with movprfx.
+  Instruction const* last_instr_;
 
   // Branch type register, used for branch target identification.
   BType btype_;

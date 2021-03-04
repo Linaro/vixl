@@ -461,7 +461,8 @@ class Instruction {
   }
 
   // True if `this` is valid immediately after the provided movprfx instruction.
-  bool CanTakeSVEMovprfx(Instruction const* movprfx) const;
+  bool CanTakeSVEMovprfx(uint32_t form_hash, Instruction const* movprfx) const;
+  bool CanTakeSVEMovprfx(const char* form, Instruction const* movprfx) const;
 
   bool IsLoad() const;
   bool IsStore() const;

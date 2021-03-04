@@ -10466,18 +10466,22 @@ TEST_SVE(sve_ld1rq) {
 
   // Check that all segments match by rotating the vector by one segment,
   // eoring, and orring across the vector.
-  __ Ext(z4.VnB(), z0.VnB(), z0.VnB(), 16);
+  __ Mov(z4, z0);
+  __ Ext(z4.VnB(), z4.VnB(), z4.VnB(), 16);
   __ Eor(z4.VnB(), z4.VnB(), z0.VnB());
   __ Orv(b4, p0, z4.VnB());
-  __ Ext(z5.VnB(), z1.VnB(), z1.VnB(), 16);
+  __ Mov(z5, z1);
+  __ Ext(z5.VnB(), z5.VnB(), z5.VnB(), 16);
   __ Eor(z5.VnB(), z5.VnB(), z1.VnB());
   __ Orv(b5, p0, z5.VnB());
   __ Orr(z4, z4, z5);
-  __ Ext(z5.VnB(), z2.VnB(), z2.VnB(), 16);
+  __ Mov(z5, z2);
+  __ Ext(z5.VnB(), z5.VnB(), z5.VnB(), 16);
   __ Eor(z5.VnB(), z5.VnB(), z2.VnB());
   __ Orv(b5, p0, z5.VnB());
   __ Orr(z4, z4, z5);
-  __ Ext(z5.VnB(), z3.VnB(), z3.VnB(), 16);
+  __ Mov(z5, z3);
+  __ Ext(z5.VnB(), z5.VnB(), z5.VnB(), 16);
   __ Eor(z5.VnB(), z5.VnB(), z3.VnB());
   __ Orv(b5, p0, z5.VnB());
   __ Orr(z4, z4, z5);
@@ -14490,7 +14494,8 @@ TEST_SVE(sve_fcadd) {
   __ Sel(z2.VnH(), p3, z1.VnH(), z30.VnH());  // 5i + 0
   __ Sel(z3.VnH(), p2, z1.VnH(), z30.VnH());  // 0i + 5
   __ Sel(z7.VnH(), p3, z7.VnH(), z0.VnH());   // Ai + 10
-  __ Ext(z8.VnB(), z7.VnB(), z7.VnB(), 2);
+  __ Mov(z8, z7);
+  __ Ext(z8.VnB(), z8.VnB(), z8.VnB(), 2);
   __ Sel(z8.VnH(), p2, z8.VnH(), z30.VnH());  // 0i + A
 
   // (10i + 10) + rotate(5i + 0, 90)
@@ -14532,7 +14537,8 @@ TEST_SVE(sve_fcadd) {
   __ Sel(z2.VnS(), p3, z1.VnS(), z30.VnS());
   __ Sel(z29.VnS(), p2, z1.VnS(), z30.VnS());
   __ Sel(z11.VnS(), p3, z11.VnS(), z0.VnS());
-  __ Ext(z12.VnB(), z11.VnB(), z11.VnB(), 4);
+  __ Mov(z12, z11);
+  __ Ext(z12.VnB(), z12.VnB(), z12.VnB(), 4);
   __ Sel(z12.VnS(), p2, z12.VnS(), z30.VnS());
   __ Fcadd(z8.VnS(), p0.Merging(), z0.VnS(), z2.VnS(), 90);
   __ Fcadd(z8.VnS(), p0.Merging(), z8.VnS(), z29.VnS(), 270);
@@ -14552,7 +14558,8 @@ TEST_SVE(sve_fcadd) {
   __ Sel(z2.VnD(), p3, z1.VnD(), z30.VnD());
   __ Sel(z28.VnD(), p2, z1.VnD(), z30.VnD());
   __ Sel(z15.VnD(), p3, z15.VnD(), z0.VnD());
-  __ Ext(z16.VnB(), z15.VnB(), z15.VnB(), 8);
+  __ Mov(z16, z15);
+  __ Ext(z16.VnB(), z16.VnB(), z16.VnB(), 8);
   __ Sel(z16.VnD(), p2, z16.VnD(), z30.VnD());
   __ Fcadd(z12.VnD(), p0.Merging(), z0.VnD(), z2.VnD(), 90);
   __ Fcadd(z12.VnD(), p0.Merging(), z12.VnD(), z28.VnD(), 270);
