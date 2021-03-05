@@ -1874,6 +1874,1763 @@ TEST(movprfx_positive_fp) {
   CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), true);
 }
 
+TEST(movprfx_positive_sve2) {
+  Assembler assm;
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  {
+    // We have to use the Assembler directly to generate movprfx, so we need
+    // to manually reserve space for the code we're about to emit.
+    static const size_t kPairCount = 145;
+    CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
+
+    __ movprfx(z25, z26);
+    __ adclb(z25.VnS(), z17.VnS(), z24.VnS());
+
+    __ movprfx(z0, z1);
+    __ adclt(z0.VnS(), z2.VnS(), z15.VnS());
+
+    __ movprfx(z3, z4);
+    __ addp(z3.VnB(), p1.Merging(), z3.VnB(), z0.VnB());
+
+    __ movprfx(z6, z7);
+    __ bcax(z6.VnD(), z6.VnD(), z12.VnD(), z1.VnD());
+
+    __ movprfx(z18, z19);
+    __ bsl1n(z18.VnD(), z18.VnD(), z8.VnD(), z7.VnD());
+
+    __ movprfx(z7, z8);
+    __ bsl2n(z7.VnD(), z7.VnD(), z3.VnD(), z19.VnD());
+
+    __ movprfx(z21, z22);
+    __ bsl(z21.VnD(), z21.VnD(), z2.VnD(), z2.VnD());
+
+    __ movprfx(z5, z6);
+    __ cadd(z5.VnB(), z5.VnB(), z12.VnB(), 90);
+
+    __ movprfx(z7, z8);
+    __ cdot(z7.VnS(), z4.VnB(), z10.VnB(), 0);
+
+    __ movprfx(z7, z8);
+    __ cdot(z7.VnS(), z4.VnB(), z0.VnB(), 0, 0);
+
+    __ movprfx(z7, z8);
+    __ cdot(z7.VnD(), z4.VnH(), z0.VnH(), 0, 0);
+
+    __ movprfx(z19, z20);
+    __ cmla(z19.VnB(), z7.VnB(), z2.VnB(), 0);
+
+    __ movprfx(z19, z20);
+    __ cmla(z19.VnS(), z7.VnS(), z2.VnS(), 0, 0);
+
+    __ movprfx(z19, z20);
+    __ cmla(z19.VnH(), z7.VnH(), z2.VnH(), 0, 0);
+
+    __ movprfx(z10, z11);
+    __ eor3(z10.VnD(), z10.VnD(), z24.VnD(), z23.VnD());
+
+    __ movprfx(z3, z4);
+    __ eorbt(z3.VnB(), z10.VnB(), z8.VnB());
+
+    __ movprfx(z20, z22);
+    __ eortb(z20.VnB(), z21.VnB(), z15.VnB());
+
+    __ movprfx(z14, z15);
+    __ faddp(z14.VnD(), p1.Merging(), z14.VnD(), z26.VnD());
+
+    __ movprfx(z14.VnD(), p4.Merging(), z15.VnD());
+    __ fcvtx(z14.VnS(), p4.Merging(), z0.VnD());
+
+    __ movprfx(z15.VnH(), p0.Merging(), z16.VnH());
+    __ flogb(z15.VnH(), p0.Merging(), z3.VnH());
+
+    __ movprfx(z2, z3);
+    __ fmaxnmp(z2.VnD(), p1.Merging(), z2.VnD(), z14.VnD());
+
+    __ movprfx(z22, z23);
+    __ fmaxp(z22.VnD(), p1.Merging(), z22.VnD(), z3.VnD());
+
+    __ movprfx(z1, z2);
+    __ fminnmp(z1.VnD(), p0.Merging(), z1.VnD(), z14.VnD());
+
+    __ movprfx(z16, z17);
+    __ fminp(z16.VnD(), p3.Merging(), z16.VnD(), z11.VnD());
+
+    __ movprfx(z16, z17);
+    __ fmlalb(z16.VnS(), z18.VnH(), z29.VnH());
+
+    __ movprfx(z16, z17);
+    __ fmlalb(z16.VnS(), z18.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z18, z19);
+    __ fmlalt(z18.VnS(), z13.VnH(), z5.VnH());
+
+    __ movprfx(z18, z19);
+    __ fmlalt(z18.VnS(), z13.VnH(), z5.VnH(), 0);
+
+    __ movprfx(z16, z17);
+    __ fmlslb(z16.VnS(), z10.VnH(), z1.VnH());
+
+    __ movprfx(z16, z17);
+    __ fmlslb(z16.VnS(), z10.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z3, z4);
+    __ fmlslt(z3.VnS(), z17.VnH(), z14.VnH());
+
+    __ movprfx(z3, z4);
+    __ fmlslt(z3.VnS(), z17.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ mla(z2.VnH(), z0.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ mla(z2.VnS(), z0.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z2, z3);
+    __ mla(z2.VnD(), z0.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z2, z3);
+    __ mls(z2.VnH(), z0.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ mls(z2.VnS(), z0.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z2, z3);
+    __ mls(z2.VnD(), z0.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z17, z18);
+    __ nbsl(z17.VnD(), z17.VnD(), z21.VnD(), z27.VnD());
+
+    __ movprfx(z13, z14);
+    __ saba(z13.VnB(), z2.VnB(), z31.VnB());
+
+    __ movprfx(z13, z14);
+    __ sabalb(z13.VnD(), z20.VnS(), z26.VnS());
+
+    __ movprfx(z14, z15);
+    __ sabalt(z14.VnD(), z19.VnS(), z10.VnS());
+
+    __ movprfx(z19.VnD(), p5.Merging(), z20.VnD());
+    __ sadalp(z19.VnD(), p5.Merging(), z9.VnS());
+
+    __ movprfx(z17, z18);
+    __ sbclb(z17.VnS(), z10.VnS(), z8.VnS());
+
+    __ movprfx(z20, z21);
+    __ sbclt(z20.VnS(), z0.VnS(), z13.VnS());
+
+    __ movprfx(z20.VnB(), p3.Merging(), z21.VnB());
+    __ shadd(z20.VnB(), p3.Merging(), z20.VnB(), z7.VnB());
+
+    __ movprfx(z21.VnB(), p0.Merging(), z22.VnB());
+    __ shsub(z21.VnB(), p0.Merging(), z21.VnB(), z0.VnB());
+
+    __ movprfx(z1.VnB(), p0.Merging(), z2.VnB());
+    __ shsubr(z1.VnB(), p0.Merging(), z1.VnB(), z2.VnB());
+
+    __ movprfx(z5, z6);
+    __ smaxp(z5.VnB(), p4.Merging(), z5.VnB(), z10.VnB());
+
+    __ movprfx(z27, z28);
+    __ sminp(z27.VnB(), p3.Merging(), z27.VnB(), z1.VnB());
+
+    __ movprfx(z1, z2);
+    __ smlalb(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlalb(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlalb(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlalt(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlalt(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlalt(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslb(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlslb(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslb(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslt(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlslt(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslt(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z29.VnB(), p1.Merging(), z30.VnB());
+    __ sqabs(z29.VnB(), p1.Merging(), z18.VnB());
+
+    __ movprfx(z28.VnB(), p0.Merging(), z29.VnB());
+    __ sqadd(z28.VnB(), p0.Merging(), z28.VnB(), z3.VnB());
+
+    __ movprfx(z20, z21);
+    __ sqcadd(z20.VnB(), z20.VnB(), z23.VnB(), 90);
+
+    __ movprfx(z6, z7);
+    __ sqdmlalb(z6.VnD(), z19.VnS(), z25.VnS());
+
+    __ movprfx(z6, z7);
+    __ sqdmlalb(z6.VnD(), z19.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z6, z7);
+    __ sqdmlalb(z6.VnS(), z19.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z23, z24);
+    __ sqdmlalbt(z23.VnD(), z29.VnS(), z26.VnS());
+
+    __ movprfx(z11, z12);
+    __ sqdmlalt(z11.VnD(), z0.VnS(), z0.VnS());
+
+    __ movprfx(z11, z12);
+    __ sqdmlalt(z11.VnD(), z0.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqdmlalt(z11.VnS(), z0.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z16, z17);
+    __ sqdmlslb(z16.VnD(), z26.VnS(), z25.VnS());
+
+    __ movprfx(z16, z17);
+    __ sqdmlslb(z16.VnD(), z26.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z16, z17);
+    __ sqdmlslb(z16.VnS(), z26.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z26, z27);
+    __ sqdmlslbt(z26.VnD(), z23.VnS(), z4.VnS());
+
+    __ movprfx(z21, z22);
+    __ sqdmlslt(z21.VnD(), z23.VnS(), z9.VnS());
+
+    __ movprfx(z21, z22);
+    __ sqdmlslt(z21.VnD(), z23.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z21, z22);
+    __ sqdmlslt(z21.VnS(), z23.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z21.VnB(), p0.Merging(), z22.VnB());
+    __ sqneg(z21.VnB(), p0.Merging(), z17.VnB());
+
+    __ movprfx(z31, z0);
+    __ sqrdcmlah(z31.VnB(), z15.VnB(), z20.VnB(), 0);
+
+    __ movprfx(z31, z0);
+    __ sqrdcmlah(z31.VnH(), z15.VnH(), z2.VnH(), 0, 0);
+
+    __ movprfx(z31, z0);
+    __ sqrdcmlah(z31.VnS(), z15.VnS(), z2.VnS(), 0, 0);
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnB(), z28.VnB(), z19.VnB());
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnH(), z28.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnS(), z28.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnD(), z28.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnB(), z16.VnB(), z31.VnB());
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnH(), z16.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnS(), z16.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnD(), z16.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z31.VnB(), p5.Merging(), z0.VnB());
+    __ sqrshl(z31.VnB(), p5.Merging(), z31.VnB(), z27.VnB());
+
+    __ movprfx(z25.VnB(), p6.Merging(), z26.VnB());
+    __ sqrshlr(z25.VnB(), p6.Merging(), z25.VnB(), z7.VnB());
+
+    __ movprfx(z0.VnB(), p5.Merging(), z1.VnB());
+    __ sqshl(z0.VnB(), p5.Merging(), z0.VnB(), 0);
+
+    __ movprfx(z0.VnB(), p5.Merging(), z1.VnB());
+    __ sqshl(z0.VnB(), p5.Merging(), z0.VnB(), z2.VnB());
+
+    __ movprfx(z7.VnB(), p3.Merging(), z8.VnB());
+    __ sqshlr(z7.VnB(), p3.Merging(), z7.VnB(), z5.VnB());
+
+    __ movprfx(z10.VnB(), p1.Merging(), z11.VnB());
+    __ sqshlu(z10.VnB(), p1.Merging(), z10.VnB(), 0);
+
+    __ movprfx(z16.VnB(), p7.Merging(), z17.VnB());
+    __ sqsub(z16.VnB(), p7.Merging(), z16.VnB(), z22.VnB());
+
+    __ movprfx(z16.VnB(), p7.Merging(), z17.VnB());
+    __ sqsubr(z16.VnB(), p7.Merging(), z16.VnB(), z22.VnB());
+
+    __ movprfx(z23.VnB(), p4.Merging(), z24.VnB());
+    __ srhadd(z23.VnB(), p4.Merging(), z23.VnB(), z14.VnB());
+
+    __ movprfx(z31.VnB(), p7.Merging(), z0.VnB());
+    __ srshl(z31.VnB(), p7.Merging(), z31.VnB(), z3.VnB());
+
+    __ movprfx(z16.VnB(), p7.Merging(), z17.VnB());
+    __ srshlr(z16.VnB(), p7.Merging(), z16.VnB(), z29.VnB());
+
+    __ movprfx(z12.VnB(), p0.Merging(), z13.VnB());
+    __ srshr(z12.VnB(), p0.Merging(), z12.VnB(), 1);
+
+    __ movprfx(z0, z1);
+    __ srsra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z0, z1);
+    __ ssra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z26.VnB(), p2.Merging(), z27.VnB());
+    __ suqadd(z26.VnB(), p2.Merging(), z26.VnB(), z28.VnB());
+
+    __ movprfx(z23, z24);
+    __ uaba(z23.VnB(), z22.VnB(), z20.VnB());
+
+    __ movprfx(z11, z12);
+    __ uabalb(z11.VnD(), z25.VnS(), z12.VnS());
+
+    __ movprfx(z4, z5);
+    __ uabalt(z4.VnD(), z2.VnS(), z31.VnS());
+
+    __ movprfx(z20.VnD(), p4.Merging(), z21.VnD());
+    __ uadalp(z20.VnD(), p4.Merging(), z5.VnS());
+
+    __ movprfx(z21.VnB(), p2.Merging(), z22.VnB());
+    __ uhadd(z21.VnB(), p2.Merging(), z21.VnB(), z19.VnB());
+
+    __ movprfx(z1.VnB(), p4.Merging(), z2.VnB());
+    __ uhsub(z1.VnB(), p4.Merging(), z1.VnB(), z9.VnB());
+
+    __ movprfx(z18.VnB(), p0.Merging(), z19.VnB());
+    __ uhsubr(z18.VnB(), p0.Merging(), z18.VnB(), z1.VnB());
+
+    __ movprfx(z7, z8);
+    __ umaxp(z7.VnB(), p2.Merging(), z7.VnB(), z23.VnB());
+
+    __ movprfx(z10, z11);
+    __ uminp(z10.VnB(), p0.Merging(), z10.VnB(), z22.VnB());
+
+    __ movprfx(z31, z0);
+    __ umlalb(z31.VnD(), z9.VnS(), z21.VnS());
+
+    __ movprfx(z31, z0);
+    __ umlalb(z31.VnD(), z9.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z31, z0);
+    __ umlalb(z31.VnS(), z9.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z11, z12);
+    __ umlalt(z11.VnD(), z5.VnS(), z22.VnS());
+
+    __ movprfx(z11, z12);
+    __ umlalt(z11.VnD(), z5.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z11, z12);
+    __ umlalt(z11.VnS(), z5.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z28, z29);
+    __ umlslb(z28.VnD(), z13.VnS(), z9.VnS());
+
+    __ movprfx(z28, z29);
+    __ umlslb(z28.VnD(), z13.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z28, z29);
+    __ umlslb(z28.VnS(), z13.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z9, z10);
+    __ umlslt(z9.VnD(), z12.VnS(), z30.VnS());
+
+    __ movprfx(z9, z10);
+    __ umlslt(z9.VnD(), z12.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z9, z10);
+    __ umlslt(z9.VnS(), z12.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z24.VnB(), p7.Merging(), z25.VnB());
+    __ uqadd(z24.VnB(), p7.Merging(), z24.VnB(), z1.VnB()),
+
+        __ movprfx(z20.VnB(), p1.Merging(), z21.VnB());
+    __ uqrshl(z20.VnB(), p1.Merging(), z20.VnB(), z30.VnB());
+
+    __ movprfx(z8.VnB(), p5.Merging(), z9.VnB());
+    __ uqrshlr(z8.VnB(), p5.Merging(), z8.VnB(), z9.VnB());
+
+    __ movprfx(z29.VnB(), p7.Merging(), z30.VnB());
+    __ uqshl(z29.VnB(), p7.Merging(), z29.VnB(), 0);
+
+    __ movprfx(z29.VnB(), p7.Merging(), z30.VnB());
+    __ uqshl(z29.VnB(), p7.Merging(), z29.VnB(), z30.VnB());
+
+    __ movprfx(z12.VnB(), p1.Merging(), z13.VnB());
+    __ uqshlr(z12.VnB(), p1.Merging(), z12.VnB(), z13.VnB());
+
+    __ movprfx(z20.VnB(), p0.Merging(), z21.VnB());
+    __ uqsub(z20.VnB(), p0.Merging(), z20.VnB(), z6.VnB());
+
+    __ movprfx(z20.VnB(), p0.Merging(), z21.VnB());
+    __ uqsubr(z20.VnB(), p0.Merging(), z20.VnB(), z6.VnB());
+
+    __ movprfx(z25.VnS(), p7.Merging(), z26.VnS());
+    __ urecpe(z25.VnS(), p7.Merging(), z2.VnS());
+
+    __ movprfx(z29.VnB(), p4.Merging(), z30.VnB());
+    __ urhadd(z29.VnB(), p4.Merging(), z29.VnB(), z10.VnB());
+
+    __ movprfx(z15.VnB(), p2.Merging(), z16.VnB());
+    __ urshl(z15.VnB(), p2.Merging(), z15.VnB(), z3.VnB());
+
+    __ movprfx(z27.VnB(), p1.Merging(), z28.VnB());
+    __ urshlr(z27.VnB(), p1.Merging(), z27.VnB(), z30.VnB());
+
+    __ movprfx(z31.VnB(), p2.Merging(), z0.VnB());
+    __ urshr(z31.VnB(), p2.Merging(), z31.VnB(), 1);
+
+    __ movprfx(z4.VnS(), p3.Merging(), z5.VnS());
+    __ ursqrte(z4.VnS(), p3.Merging(), z3.VnS());
+
+    __ movprfx(z0, z1);
+    __ ursra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z25.VnB(), p4.Merging(), z26.VnB());
+    __ usqadd(z25.VnB(), p4.Merging(), z25.VnB(), z6.VnB());
+
+    __ movprfx(z0, z1);
+    __ usra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z16, z17);
+    __ xar(z16.VnB(), z16.VnB(), z13.VnB(), 1);
+  }
+  assm.FinalizeCode();
+
+  CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), true);
+}
+
+TEST(movprfx_negative_instructions_sve2) {
+  Assembler assm;
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE,
+                                 CPUFeatures::kSVE2,
+                                 CPUFeatures::kSVEBitPerm);
+  {
+    // We have to use the Assembler directly to generate movprfx, so we need
+    // to manually reserve space for the code we're about to emit.
+    static const size_t kPairCount = 133;
+    CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
+
+    __ movprfx(z29, z30);
+    __ addhnb(z29.VnS(), z19.VnD(), z2.VnD());
+
+    __ movprfx(z8, z9);
+    __ addhnt(z8.VnS(), z12.VnD(), z6.VnD());
+
+    __ movprfx(z18, z19);
+    __ bdep(z18.VnB(), z10.VnB(), z0.VnB());
+
+    __ movprfx(z6, z7);
+    __ bext(z6.VnB(), z2.VnB(), z5.VnB());
+
+    __ movprfx(z24, z25);
+    __ bgrp(z24.VnB(), z9.VnB(), z5.VnB());
+
+    __ movprfx(z1, z2);
+    __ fcvtlt(z1.VnD(), p1.Merging(), z28.VnS());
+
+    __ movprfx(z1, z2);
+    __ fcvtlt(z1.VnS(), p1.Merging(), z28.VnH());
+
+    __ movprfx(z4, z5);
+    __ fcvtnt(z4.VnH(), p7.Merging(), z0.VnS());
+
+    __ movprfx(z4, z5);
+    __ fcvtnt(z4.VnS(), p7.Merging(), z0.VnD());
+
+    __ movprfx(z27, z28);
+    __ fcvtxnt(z27.VnS(), p0.Merging(), z17.VnD());
+
+    __ movprfx(z24, z25);
+    __ histcnt(z24.VnS(), p6.Zeroing(), z3.VnS(), z10.VnS());
+
+    __ movprfx(z22, z23);
+    __ histseg(z22.VnB(), z14.VnB(), z8.VnB());
+
+    __ movprfx(z21, z22);
+    __ ldnt1b(z21.VnS(), p5.Zeroing(), SVEMemOperand(z21.VnS(), x23));
+
+    __ movprfx(z21, z22);
+    __ ldnt1b(z21.VnD(), p5.Zeroing(), SVEMemOperand(z1.VnD(), x23));
+
+    __ movprfx(z10, z11);
+    __ ldnt1d(z10.VnD(), p0.Zeroing(), SVEMemOperand(z23.VnD(), x6));
+
+    __ movprfx(z30, z31);
+    __ ldnt1h(z30.VnS(), p4.Zeroing(), SVEMemOperand(z6.VnS(), x11));
+
+    __ movprfx(z30, z31);
+    __ ldnt1h(z30.VnD(), p4.Zeroing(), SVEMemOperand(z6.VnD(), x11));
+
+    __ movprfx(z7, z8);
+    __ ldnt1sb(z7.VnS(), p3.Zeroing(), SVEMemOperand(z18.VnS(), x11));
+
+    __ movprfx(z7, z8);
+    __ ldnt1sb(z7.VnD(), p3.Zeroing(), SVEMemOperand(z18.VnD(), x11));
+
+    __ movprfx(z17, z18);
+    __ ldnt1sh(z17.VnS(), p5.Zeroing(), SVEMemOperand(z31.VnS(), x19));
+
+    __ movprfx(z17, z18);
+    __ ldnt1sh(z17.VnD(), p5.Zeroing(), SVEMemOperand(z31.VnD(), x19));
+
+    __ movprfx(z3, z4);
+    __ ldnt1sw(z3.VnD(), p7.Zeroing(), SVEMemOperand(z1.VnD(), x10));
+
+    __ movprfx(z0, z1);
+    __ ldnt1w(z0.VnS(), p4.Zeroing(), SVEMemOperand(z11.VnS(), x1));
+
+    __ movprfx(z0, z1);
+    __ ldnt1w(z0.VnD(), p4.Zeroing(), SVEMemOperand(z11.VnD(), x1));
+
+    __ movprfx(z18, z19);
+    __ match(p15.VnB(), p1.Zeroing(), z18.VnB(), z5.VnB());
+
+    __ movprfx(z15, z16);
+    __ mul(z15.VnB(), z15.VnB(), z15.VnB());
+
+    __ movprfx(z15, z16);
+    __ mul(z15.VnH(), z15.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z15, z16);
+    __ mul(z15.VnS(), z15.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z15, z16);
+    __ mul(z15.VnD(), z15.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z20, z21);
+    __ nmatch(p1.VnB(), p1.Zeroing(), z20.VnB(), z17.VnB());
+
+    __ movprfx(z0, z1);
+    __ pmul(z0.VnB(), z5.VnB(), z5.VnB());
+
+    __ movprfx(z12, z13);
+    __ pmullb(z12.VnD(), z21.VnS(), z12.VnS());
+
+    __ movprfx(z31, z0);
+    __ pmullt(z31.VnD(), z30.VnS(), z26.VnS());
+
+    __ movprfx(z0, z1);
+    __ raddhnb(z0.VnS(), z11.VnD(), z10.VnD());
+
+    __ movprfx(z23, z24);
+    __ raddhnt(z23.VnS(), z27.VnD(), z9.VnD());
+
+    __ movprfx(z5, z6);
+    __ rshrnb(z5.VnB(), z1.VnH(), 1);
+
+    __ movprfx(z5, z6);
+    __ rshrnt(z5.VnB(), z1.VnH(), 8);
+
+    __ movprfx(z30, z31);
+    __ rsubhnb(z30.VnS(), z29.VnD(), z11.VnD());
+
+    __ movprfx(z25, z26);
+    __ rsubhnt(z25.VnS(), z7.VnD(), z18.VnD());
+
+    __ movprfx(z2, z3);
+    __ sabdlb(z2.VnD(), z21.VnS(), z3.VnS());
+
+    __ movprfx(z25, z26);
+    __ sabdlt(z25.VnD(), z23.VnS(), z17.VnS());
+
+    __ movprfx(z24, z25);
+    __ saddlb(z24.VnD(), z30.VnS(), z16.VnS());
+
+    __ movprfx(z15, z16);
+    __ saddlbt(z15.VnD(), z6.VnS(), z18.VnS());
+
+    __ movprfx(z21, z22);
+    __ saddlt(z21.VnD(), z29.VnS(), z31.VnS());
+
+    __ movprfx(z12, z13);
+    __ saddwb(z12.VnD(), z8.VnD(), z8.VnS());
+
+    __ movprfx(z24, z25);
+    __ saddwt(z24.VnD(), z0.VnD(), z3.VnS());
+
+    __ movprfx(z7, z8);
+    __ shrnb(z7.VnB(), z4.VnH(), 1);
+
+    __ movprfx(z21, z22);
+    __ shrnt(z21.VnB(), z29.VnH(), 1);
+
+    __ movprfx(z29, z30);
+    __ sli(z29.VnB(), z7.VnB(), 0);
+
+    __ movprfx(z23, z24);
+    __ smulh(z23.VnB(), z23.VnB(), z3.VnB());
+
+    __ movprfx(z10, z11);
+    __ smullb(z10.VnD(), z4.VnS(), z4.VnS());
+
+    __ movprfx(z10, z11);
+    __ smullb(z10.VnS(), z4.VnH(), z4.VnH(), 0);
+
+    __ movprfx(z10, z11);
+    __ smullb(z10.VnD(), z4.VnS(), z4.VnS(), 0);
+
+    __ movprfx(z31, z0);
+    __ smullt(z31.VnD(), z26.VnS(), z5.VnS());
+
+    __ movprfx(z31, z0);
+    __ smullt(z31.VnS(), z26.VnH(), z5.VnH(), 0);
+
+    __ movprfx(z31, z0);
+    __ smullt(z31.VnD(), z26.VnS(), z5.VnS(), 0);
+
+    __ movprfx(z18, z19);
+    __ sqdmulh(z18.VnB(), z25.VnB(), z1.VnB());
+
+    __ movprfx(z18, z19);
+    __ sqdmulh(z18.VnH(), z25.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z18, z19);
+    __ sqdmulh(z18.VnS(), z25.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z18, z19);
+    __ sqdmulh(z18.VnD(), z25.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z1, z2);
+    __ sqdmullb(z1.VnD(), z31.VnS(), z21.VnS());
+
+    __ movprfx(z1, z2);
+    __ sqdmullb(z1.VnS(), z31.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ sqdmullb(z1.VnD(), z31.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z2, z3);
+    __ sqdmullt(z2.VnD(), z1.VnS(), z5.VnS());
+
+    __ movprfx(z2, z3);
+    __ sqdmullt(z2.VnS(), z1.VnH(), z5.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ sqdmullt(z2.VnD(), z1.VnS(), z5.VnS(), 0);
+
+    __ movprfx(z21, z22);
+    __ sqrdmulh(z21.VnB(), z21.VnB(), z27.VnB());
+
+    __ movprfx(z21, z22);
+    __ sqrdmulh(z21.VnH(), z21.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z21, z22);
+    __ sqrdmulh(z21.VnS(), z21.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z21, z22);
+    __ sqrdmulh(z21.VnD(), z21.VnD(), z2.VnD(), 0);
+
+    __ movprfx(z1, z2);
+    __ sqrshrnb(z1.VnB(), z1.VnH(), 1);
+
+    __ movprfx(z24, z25);
+    __ sqrshrnt(z24.VnB(), z19.VnH(), 8);
+
+    __ movprfx(z23, z24);
+    __ sqrshrunb(z23.VnB(), z28.VnH(), 1);
+
+    __ movprfx(z9, z10);
+    __ sqrshrunt(z9.VnB(), z15.VnH(), 8);
+
+    __ movprfx(z25, z26);
+    __ sqshrnb(z25.VnB(), z1.VnH(), 1);
+
+    __ movprfx(z0, z1);
+    __ sqshrnt(z0.VnB(), z25.VnH(), 8);
+
+    __ movprfx(z25, z26);
+    __ sqshrunb(z25.VnB(), z10.VnH(), 1);
+
+    __ movprfx(z20, z21);
+    __ sqshrunt(z20.VnB(), z3.VnH(), 8);
+
+    __ movprfx(z2, z3);
+    __ sqxtnb(z2.VnB(), z0.VnH());
+
+    __ movprfx(z31, z0);
+    __ sqxtnt(z31.VnB(), z18.VnH());
+
+    __ movprfx(z28, z29);
+    __ sqxtunb(z28.VnB(), z6.VnH());
+
+    __ movprfx(z14, z15);
+    __ sqxtunt(z14.VnB(), z31.VnH());
+
+    __ movprfx(z6, z7);
+    __ sri(z6.VnB(), z9.VnB(), 1);
+
+    __ movprfx(z2, z3);
+    __ sshllb(z2.VnH(), z20.VnB(), 0);
+
+    __ movprfx(z27, z28);
+    __ sshllt(z27.VnH(), z8.VnB(), 0);
+
+    __ movprfx(z4, z5);
+    __ ssublb(z4.VnD(), z23.VnS(), z7.VnS());
+
+    __ movprfx(z6, z7);
+    __ ssublbt(z6.VnD(), z28.VnS(), z12.VnS());
+
+    __ movprfx(z12, z13);
+    __ ssublt(z12.VnD(), z13.VnS(), z6.VnS());
+
+    __ movprfx(z11, z12);
+    __ ssubltb(z11.VnD(), z18.VnS(), z19.VnS());
+
+    __ movprfx(z7, z8);
+    __ ssubwb(z7.VnD(), z28.VnD(), z11.VnS());
+
+    __ movprfx(z29, z30);
+    __ ssubwt(z29.VnD(), z25.VnD(), z20.VnS());
+
+    __ movprfx(z21, z22);
+    __ stnt1b(z21.VnS(), p5.Zeroing(), SVEMemOperand(z1.VnS(), x23));
+
+    __ movprfx(z21, z22);
+    __ stnt1b(z21.VnD(), p5.Zeroing(), SVEMemOperand(z1.VnD(), x23));
+
+    __ movprfx(z10, z11);
+    __ stnt1d(z10.VnD(), p0.Zeroing(), SVEMemOperand(z1.VnD(), x23));
+
+    __ movprfx(z30, z31);
+    __ stnt1h(z30.VnS(), p4.Zeroing(), SVEMemOperand(z6.VnS(), x6));
+
+    __ movprfx(z30, z31);
+    __ stnt1h(z30.VnD(), p4.Zeroing(), SVEMemOperand(z6.VnD(), x6));
+
+    __ movprfx(z0, z1);
+    __ stnt1w(z0.VnS(), p4.Zeroing(), SVEMemOperand(z11.VnS(), x1));
+
+    __ movprfx(z0, z1);
+    __ stnt1w(z0.VnD(), p4.Zeroing(), SVEMemOperand(z11.VnD(), x1));
+
+    __ movprfx(z31, z0);
+    __ subhnb(z31.VnS(), z31.VnD(), z7.VnD());
+
+    __ movprfx(z31, z0);
+    __ subhnt(z31.VnS(), z22.VnD(), z27.VnD());
+
+    __ movprfx(z24, z25);
+    __ tbl(z24.VnB(), z29.VnB(), z30.VnB(), z0.VnB());
+
+    __ movprfx(z22, z23);
+    __ tbx(z22.VnB(), z15.VnB(), z19.VnB());
+
+    __ movprfx(z1, z2);
+    __ uabdlb(z1.VnD(), z26.VnS(), z12.VnS());
+
+    __ movprfx(z25, z26);
+    __ uabdlt(z25.VnD(), z29.VnS(), z14.VnS());
+
+    __ movprfx(z3, z4);
+    __ uaddlb(z3.VnD(), z5.VnS(), z2.VnS());
+
+    __ movprfx(z15, z16);
+    __ uaddlt(z15.VnD(), z28.VnS(), z20.VnS());
+
+    __ movprfx(z31, z0);
+    __ uaddwb(z31.VnD(), z8.VnD(), z25.VnS());
+
+    __ movprfx(z17, z18);
+    __ uaddwt(z17.VnD(), z15.VnD(), z2.VnS());
+
+    __ movprfx(z12, z13);
+    __ umulh(z12.VnB(), z12.VnB(), z17.VnB());
+
+    __ movprfx(z12, z13);
+    __ umullb(z12.VnD(), z5.VnS(), z2.VnS());
+
+    __ movprfx(z12, z13);
+    __ umullb(z12.VnS(), z5.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z12, z13);
+    __ umullb(z12.VnD(), z5.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z24, z25);
+    __ umullt(z24.VnD(), z6.VnS(), z6.VnS());
+
+    __ movprfx(z24, z25);
+    __ umullt(z24.VnS(), z6.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z24, z25);
+    __ umullt(z24.VnD(), z6.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z30, z31);
+    __ uqrshrnb(z30.VnB(), z25.VnH(), 1);
+
+    __ movprfx(z3, z4);
+    __ uqrshrnt(z3.VnB(), z25.VnH(), 8);
+
+    __ movprfx(z17, z18);
+    __ uqshrnb(z17.VnB(), z4.VnH(), 1);
+
+    __ movprfx(z28, z29);
+    __ uqshrnt(z28.VnB(), z18.VnH(), 8);
+
+    __ movprfx(z28, z29);
+    __ uqxtnb(z28.VnB(), z4.VnH());
+
+    __ movprfx(z19, z20);
+    __ uqxtnt(z19.VnB(), z7.VnH());
+
+    __ movprfx(z8, z9);
+    __ ushllb(z8.VnH(), z31.VnB(), 0);
+
+    __ movprfx(z3, z4);
+    __ ushllt(z3.VnH(), z21.VnB(), 0);
+
+    __ movprfx(z25, z26);
+    __ usublb(z25.VnD(), z9.VnS(), z17.VnS());
+
+    __ movprfx(z5, z6);
+    __ usublt(z5.VnD(), z11.VnS(), z15.VnS());
+
+    __ movprfx(z10, z11);
+    __ usubwb(z10.VnD(), z13.VnD(), z20.VnS());
+
+    __ movprfx(z15, z16);
+    __ usubwt(z15.VnD(), z8.VnD(), z23.VnS());
+
+    __ movprfx(z20, z21);
+    __ whilege(p0.VnB(), w20, w29);
+
+    __ movprfx(z24, z25);
+    __ whilegt(p11.VnB(), w24, w3);
+
+    __ movprfx(z20, z21);
+    __ whilehi(p2.VnB(), x20, x8);
+
+    __ movprfx(z22, z23);
+    __ whilehs(p4.VnB(), w22, w9);
+
+    __ movprfx(z25, z26);
+    __ whilerw(p7.VnB(), x25, x27);
+
+    __ movprfx(z14, z15);
+    __ whilewr(p8.VnB(), x14, x14);
+  }
+  assm.FinalizeCode();
+
+  CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), false);
+}
+
+TEST(movprfx_negative_predication_sve2) {
+  Assembler assm;
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  {
+    // We have to use the Assembler directly to generate movprfx, so we need
+    // to manually reserve space for the code we're about to emit.
+    static const size_t kPairCount = 140;
+    CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
+
+    __ movprfx(z25.VnS(), p0.Zeroing(), z26.VnS());
+    __ adclb(z25.VnS(), z17.VnS(), z24.VnS());
+
+    __ movprfx(z0.VnS(), p0.Zeroing(), z1.VnS());
+    __ adclt(z0.VnS(), z2.VnS(), z15.VnS());
+
+    __ movprfx(z6.VnD(), p0.Zeroing(), z7.VnD());
+    __ bcax(z6.VnD(), z6.VnD(), z12.VnD(), z1.VnD());
+
+    __ movprfx(z18.VnD(), p0.Zeroing(), z19.VnD());
+    __ bsl1n(z18.VnD(), z18.VnD(), z8.VnD(), z7.VnD());
+
+    __ movprfx(z7.VnD(), p0.Zeroing(), z8.VnD());
+    __ bsl2n(z7.VnD(), z7.VnD(), z3.VnD(), z19.VnD());
+
+    __ movprfx(z21.VnD(), p0.Zeroing(), z22.VnD());
+    __ bsl(z21.VnD(), z21.VnD(), z2.VnD(), z2.VnD());
+
+    __ movprfx(z5.VnB(), p0.Zeroing(), z6.VnB());
+    __ cadd(z5.VnB(), z5.VnB(), z12.VnB(), 90);
+
+    __ movprfx(z7.VnS(), p0.Zeroing(), z8.VnS());
+    __ cdot(z7.VnS(), z4.VnB(), z10.VnB(), 0);
+
+    __ movprfx(z7.VnS(), p0.Zeroing(), z8.VnS());
+    __ cdot(z7.VnS(), z4.VnB(), z0.VnB(), 0, 0);
+
+    __ movprfx(z7.VnD(), p0.Zeroing(), z8.VnD());
+    __ cdot(z7.VnD(), z4.VnH(), z0.VnH(), 0, 0);
+
+    __ movprfx(z19.VnB(), p0.Zeroing(), z20.VnB());
+    __ cmla(z19.VnB(), z7.VnB(), z2.VnB(), 0);
+
+    __ movprfx(z19.VnS(), p0.Zeroing(), z20.VnS());
+    __ cmla(z19.VnS(), z7.VnS(), z2.VnS(), 0, 0);
+
+    __ movprfx(z19.VnH(), p0.Zeroing(), z20.VnH());
+    __ cmla(z19.VnH(), z7.VnH(), z2.VnH(), 0, 0);
+
+    __ movprfx(z10.VnD(), p0.Zeroing(), z11.VnD());
+    __ eor3(z10.VnD(), z10.VnD(), z24.VnD(), z23.VnD());
+
+    __ movprfx(z3.VnB(), p0.Zeroing(), z4.VnB());
+    __ eorbt(z3.VnB(), z10.VnB(), z8.VnB());
+
+    __ movprfx(z20.VnB(), p0.Zeroing(), z22.VnB());
+    __ eortb(z20.VnB(), z21.VnB(), z15.VnB());
+
+    __ movprfx(z14.VnD(), p0.Zeroing(), z15.VnD());
+    __ faddp(z14.VnD(), p1.Merging(), z14.VnD(), z26.VnD());
+
+    __ movprfx(z2.VnD(), p0.Zeroing(), z3.VnD());
+    __ fmaxnmp(z2.VnD(), p1.Merging(), z2.VnD(), z14.VnD());
+
+    __ movprfx(z22.VnD(), p0.Zeroing(), z23.VnD());
+    __ fmaxp(z22.VnD(), p1.Merging(), z22.VnD(), z3.VnD());
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ fminnmp(z1.VnD(), p0.Merging(), z1.VnD(), z14.VnD());
+
+    __ movprfx(z16.VnD(), p0.Zeroing(), z17.VnD());
+    __ fminp(z16.VnD(), p3.Merging(), z16.VnD(), z11.VnD());
+
+    __ movprfx(z16.VnS(), p0.Zeroing(), z17.VnS());
+    __ fmlalb(z16.VnS(), z18.VnH(), z29.VnH());
+
+    __ movprfx(z16.VnS(), p0.Zeroing(), z17.VnS());
+    __ fmlalb(z16.VnS(), z18.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z18.VnS(), p0.Zeroing(), z19.VnS());
+    __ fmlalt(z18.VnS(), z13.VnH(), z5.VnH());
+
+    __ movprfx(z18.VnS(), p0.Zeroing(), z19.VnS());
+    __ fmlalt(z18.VnS(), z13.VnH(), z5.VnH(), 0);
+
+    __ movprfx(z16.VnS(), p0.Zeroing(), z17.VnS());
+    __ fmlslb(z16.VnS(), z10.VnH(), z1.VnH());
+
+    __ movprfx(z16.VnS(), p0.Zeroing(), z17.VnS());
+    __ fmlslb(z16.VnS(), z10.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z3.VnS(), p0.Zeroing(), z4.VnS());
+    __ fmlslt(z3.VnS(), z17.VnH(), z14.VnH());
+
+    __ movprfx(z3.VnS(), p0.Zeroing(), z4.VnS());
+    __ fmlslt(z3.VnS(), z17.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z2.VnH(), p0.Zeroing(), z3.VnH());
+    __ mla(z2.VnH(), z0.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z2.VnS(), p0.Zeroing(), z3.VnS());
+    __ mla(z2.VnS(), z0.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z2.VnD(), p0.Zeroing(), z3.VnD());
+    __ mla(z2.VnD(), z0.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z2.VnH(), p0.Zeroing(), z3.VnH());
+    __ mls(z2.VnH(), z0.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z2.VnS(), p0.Zeroing(), z3.VnS());
+    __ mls(z2.VnS(), z0.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z2.VnD(), p0.Zeroing(), z3.VnD());
+    __ mls(z2.VnD(), z0.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z17.VnD(), p0.Zeroing(), z18.VnD());
+    __ nbsl(z17.VnD(), z17.VnD(), z21.VnD(), z27.VnD());
+
+    __ movprfx(z13.VnB(), p0.Zeroing(), z14.VnB());
+    __ saba(z13.VnB(), z2.VnB(), z31.VnB());
+
+    __ movprfx(z13.VnD(), p0.Zeroing(), z14.VnD());
+    __ sabalb(z13.VnD(), z20.VnS(), z26.VnS());
+
+    __ movprfx(z14.VnD(), p0.Zeroing(), z15.VnD());
+    __ sabalt(z14.VnD(), z19.VnS(), z10.VnS());
+
+    __ movprfx(z17.VnS(), p0.Zeroing(), z18.VnS());
+    __ sbclb(z17.VnS(), z10.VnS(), z8.VnS());
+
+    __ movprfx(z20.VnS(), p0.Zeroing(), z21.VnS());
+    __ sbclt(z20.VnS(), z0.VnS(), z13.VnS());
+
+    __ movprfx(z5.VnB(), p0.Zeroing(), z6.VnB());
+    __ smaxp(z5.VnB(), p4.Merging(), z5.VnB(), z10.VnB());
+
+    __ movprfx(z27.VnB(), p0.Zeroing(), z28.VnB());
+    __ sminp(z27.VnB(), p3.Merging(), z27.VnB(), z1.VnB());
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlalb(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlalb(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1.VnS(), p0.Zeroing(), z2.VnS());
+    __ smlalb(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlalt(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlalt(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1.VnS(), p0.Zeroing(), z2.VnS());
+    __ smlalt(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlslb(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlslb(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1.VnS(), p0.Zeroing(), z2.VnS());
+    __ smlslb(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlslt(z1.VnD(), z3.VnS(), z23.VnS());
+
+    __ movprfx(z1.VnD(), p0.Zeroing(), z2.VnD());
+    __ smlslt(z1.VnD(), z3.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1.VnS(), p0.Zeroing(), z2.VnS());
+    __ smlslt(z1.VnS(), z3.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z20.VnB(), p0.Zeroing(), z21.VnB());
+    __ sqcadd(z20.VnB(), z20.VnB(), z23.VnB(), 90);
+
+    __ movprfx(z6.VnD(), p0.Zeroing(), z7.VnD());
+    __ sqdmlalb(z6.VnD(), z19.VnS(), z25.VnS());
+
+    __ movprfx(z6.VnD(), p0.Zeroing(), z7.VnD());
+    __ sqdmlalb(z6.VnD(), z19.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z6.VnS(), p0.Zeroing(), z7.VnS());
+    __ sqdmlalb(z6.VnS(), z19.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z23.VnD(), p0.Zeroing(), z24.VnD());
+    __ sqdmlalbt(z23.VnD(), z29.VnS(), z26.VnS());
+
+    __ movprfx(z11.VnD(), p0.Zeroing(), z12.VnD());
+    __ sqdmlalt(z11.VnD(), z0.VnS(), z0.VnS());
+
+    __ movprfx(z11.VnD(), p0.Zeroing(), z12.VnD());
+    __ sqdmlalt(z11.VnD(), z0.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z11.VnS(), p0.Zeroing(), z12.VnS());
+    __ sqdmlalt(z11.VnS(), z0.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z16.VnD(), p0.Zeroing(), z17.VnD());
+    __ sqdmlslb(z16.VnD(), z26.VnS(), z25.VnS());
+
+    __ movprfx(z16.VnD(), p0.Zeroing(), z17.VnD());
+    __ sqdmlslb(z16.VnD(), z26.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z16.VnS(), p0.Zeroing(), z17.VnS());
+    __ sqdmlslb(z16.VnS(), z26.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z26.VnD(), p0.Zeroing(), z27.VnD());
+    __ sqdmlslbt(z26.VnD(), z23.VnS(), z4.VnS());
+
+    __ movprfx(z21.VnD(), p0.Zeroing(), z22.VnD());
+    __ sqdmlslt(z21.VnD(), z23.VnS(), z9.VnS());
+
+    __ movprfx(z21.VnD(), p0.Zeroing(), z22.VnD());
+    __ sqdmlslt(z21.VnD(), z23.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z21.VnS(), p0.Zeroing(), z22.VnS());
+    __ sqdmlslt(z21.VnS(), z23.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z31.VnB(), p0.Zeroing(), z0.VnB());
+    __ sqrdcmlah(z31.VnB(), z15.VnB(), z20.VnB(), 0);
+
+    __ movprfx(z31.VnH(), p0.Zeroing(), z0.VnH());
+    __ sqrdcmlah(z31.VnH(), z15.VnH(), z2.VnH(), 0, 0);
+
+    __ movprfx(z31.VnS(), p0.Zeroing(), z0.VnS());
+    __ sqrdcmlah(z31.VnS(), z15.VnS(), z2.VnS(), 0, 0);
+
+    __ movprfx(z27.VnB(), p0.Zeroing(), z28.VnB());
+    __ sqrdmlah(z27.VnB(), z28.VnB(), z19.VnB());
+
+    __ movprfx(z27.VnH(), p0.Zeroing(), z28.VnH());
+    __ sqrdmlah(z27.VnH(), z28.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z27.VnS(), p0.Zeroing(), z28.VnS());
+    __ sqrdmlah(z27.VnS(), z28.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z27.VnD(), p0.Zeroing(), z28.VnD());
+    __ sqrdmlah(z27.VnD(), z28.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z11.VnB(), p0.Zeroing(), z12.VnB());
+    __ sqrdmlsh(z11.VnB(), z16.VnB(), z31.VnB());
+
+    __ movprfx(z11.VnH(), p0.Zeroing(), z12.VnH());
+    __ sqrdmlsh(z11.VnH(), z16.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z11.VnS(), p0.Zeroing(), z12.VnS());
+    __ sqrdmlsh(z11.VnS(), z16.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z11.VnD(), p0.Zeroing(), z12.VnD());
+    __ sqrdmlsh(z11.VnD(), z16.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z0.VnB(), p0.Zeroing(), z1.VnB());
+    __ srsra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z0.VnB(), p0.Zeroing(), z1.VnB());
+    __ ssra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z23.VnB(), p0.Zeroing(), z24.VnB());
+    __ uaba(z23.VnB(), z22.VnB(), z20.VnB());
+
+    __ movprfx(z11.VnD(), p0.Zeroing(), z12.VnD());
+    __ uabalb(z11.VnD(), z25.VnS(), z12.VnS());
+
+    __ movprfx(z4.VnD(), p0.Zeroing(), z5.VnD());
+    __ uabalt(z4.VnD(), z2.VnS(), z31.VnS());
+
+    __ movprfx(z7.VnB(), p0.Zeroing(), z8.VnB());
+    __ umaxp(z7.VnB(), p2.Merging(), z7.VnB(), z23.VnB());
+
+    __ movprfx(z10.VnB(), p0.Zeroing(), z11.VnB());
+    __ uminp(z10.VnB(), p0.Merging(), z10.VnB(), z22.VnB());
+
+    __ movprfx(z31.VnD(), p0.Zeroing(), z0.VnD());
+    __ umlalb(z31.VnD(), z9.VnS(), z21.VnS());
+
+    __ movprfx(z31.VnD(), p0.Zeroing(), z0.VnD());
+    __ umlalb(z31.VnD(), z9.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z31.VnS(), p0.Zeroing(), z0.VnS());
+    __ umlalb(z31.VnS(), z9.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z11.VnD(), p0.Zeroing(), z12.VnD());
+    __ umlalt(z11.VnD(), z5.VnS(), z22.VnS());
+
+    __ movprfx(z11.VnD(), p0.Zeroing(), z12.VnD());
+    __ umlalt(z11.VnD(), z5.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z11.VnS(), p0.Zeroing(), z12.VnS());
+    __ umlalt(z11.VnS(), z5.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z28.VnD(), p0.Zeroing(), z29.VnD());
+    __ umlslb(z28.VnD(), z13.VnS(), z9.VnS());
+
+    __ movprfx(z28.VnD(), p0.Zeroing(), z29.VnD());
+    __ umlslb(z28.VnD(), z13.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z28.VnS(), p0.Zeroing(), z29.VnS());
+    __ umlslb(z28.VnS(), z13.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z9.VnD(), p0.Zeroing(), z10.VnD());
+    __ umlslt(z9.VnD(), z12.VnS(), z30.VnS());
+
+    __ movprfx(z9.VnD(), p0.Zeroing(), z10.VnD());
+    __ umlslt(z9.VnD(), z12.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z9.VnS(), p0.Zeroing(), z10.VnS());
+    __ umlslt(z9.VnS(), z12.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z0.VnB(), p0.Zeroing(), z1.VnB());
+    __ ursra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z0.VnB(), p0.Zeroing(), z1.VnB());
+    __ usra(z0.VnB(), z8.VnB(), 1);
+
+    __ movprfx(z16.VnB(), p0.Zeroing(), z17.VnB());
+    __ xar(z16.VnB(), z16.VnB(), z13.VnB(), 1);
+  }
+  assm.FinalizeCode();
+
+  CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), false);
+}
+
+TEST(movprfx_negative_aliasing_sve2) {
+  Assembler assm;
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  {
+    // We have to use the Assembler directly to generate movprfx, so we need
+    // to manually reserve space for the code we're about to emit.
+    static const size_t kPairCount = 140;
+    CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
+
+    __ movprfx(z25, z26);
+    __ adclb(z25.VnS(), z17.VnS(), z25.VnS());
+
+    __ movprfx(z0, z1);
+    __ adclt(z0.VnS(), z2.VnS(), z0.VnS());
+
+    __ movprfx(z3, z4);
+    __ addp(z3.VnB(), p1.Merging(), z3.VnB(), z3.VnB());
+
+    __ movprfx(z6, z7);
+    __ bcax(z6.VnD(), z6.VnD(), z12.VnD(), z6.VnD());
+
+    __ movprfx(z18, z19);
+    __ bsl1n(z18.VnD(), z18.VnD(), z8.VnD(), z18.VnD());
+
+    __ movprfx(z7, z8);
+    __ bsl2n(z7.VnD(), z7.VnD(), z3.VnD(), z7.VnD());
+
+    __ movprfx(z21, z22);
+    __ bsl(z21.VnD(), z21.VnD(), z2.VnD(), z21.VnD());
+
+    __ movprfx(z5, z6);
+    __ cadd(z5.VnB(), z5.VnB(), z5.VnB(), 90);
+
+    __ movprfx(z7, z8);
+    __ cdot(z7.VnS(), z4.VnB(), z7.VnB(), 0);
+
+    __ movprfx(z7, z8);
+    __ cdot(z7.VnS(), z4.VnB(), z7.VnB(), 0, 0);
+
+    __ movprfx(z7, z8);
+    __ cdot(z7.VnD(), z7.VnH(), z0.VnH(), 0, 0);
+
+    __ movprfx(z19, z20);
+    __ cmla(z19.VnB(), z19.VnB(), z2.VnB(), 0);
+
+    __ movprfx(z19, z20);
+    __ cmla(z19.VnS(), z19.VnS(), z2.VnS(), 0, 0);
+
+    __ movprfx(z1, z20);
+    __ cmla(z1.VnH(), z7.VnH(), z1.VnH(), 0, 0);
+
+    __ movprfx(z10, z11);
+    __ eor3(z10.VnD(), z10.VnD(), z10.VnD(), z23.VnD());
+
+    __ movprfx(z3, z4);
+    __ eorbt(z3.VnB(), z10.VnB(), z3.VnB());
+
+    __ movprfx(z20, z22);
+    __ eortb(z20.VnB(), z21.VnB(), z20.VnB());
+
+    __ movprfx(z14, z15);
+    __ faddp(z14.VnD(), p1.Merging(), z14.VnD(), z14.VnD());
+
+    __ movprfx(z14.VnD(), p4.Merging(), z15.VnD());
+    __ fcvtx(z14.VnS(), p4.Merging(), z14.VnD());
+
+    __ movprfx(z15.VnH(), p0.Merging(), z16.VnH());
+    __ flogb(z15.VnH(), p0.Merging(), z15.VnH());
+
+    __ movprfx(z2, z3);
+    __ fmaxnmp(z2.VnD(), p1.Merging(), z2.VnD(), z2.VnD());
+
+    __ movprfx(z22, z23);
+    __ fmaxp(z22.VnD(), p1.Merging(), z22.VnD(), z22.VnD());
+
+    __ movprfx(z1, z2);
+    __ fminnmp(z1.VnD(), p0.Merging(), z1.VnD(), z1.VnD());
+
+    __ movprfx(z16, z17);
+    __ fminp(z16.VnD(), p3.Merging(), z16.VnD(), z16.VnD());
+
+    __ movprfx(z16, z17);
+    __ fmlalb(z16.VnS(), z18.VnH(), z16.VnH());
+
+    __ movprfx(z16, z17);
+    __ fmlalb(z16.VnS(), z16.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z18, z19);
+    __ fmlalt(z18.VnS(), z13.VnH(), z18.VnH());
+
+    __ movprfx(z18, z19);
+    __ fmlalt(z18.VnS(), z18.VnH(), z5.VnH(), 0);
+
+    __ movprfx(z16, z17);
+    __ fmlslb(z16.VnS(), z16.VnH(), z1.VnH());
+
+    __ movprfx(z16, z17);
+    __ fmlslb(z16.VnS(), z16.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z3, z4);
+    __ fmlslt(z3.VnS(), z17.VnH(), z3.VnH());
+
+    __ movprfx(z3, z4);
+    __ fmlslt(z3.VnS(), z17.VnH(), z3.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ mla(z2.VnH(), z0.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ mla(z2.VnS(), z0.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z2, z3);
+    __ mla(z2.VnD(), z0.VnD(), z2.VnD(), 0);
+
+    __ movprfx(z2, z3);
+    __ mls(z2.VnH(), z0.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z2, z3);
+    __ mls(z2.VnS(), z0.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z2, z3);
+    __ mls(z2.VnD(), z0.VnD(), z2.VnD(), 0);
+
+    __ movprfx(z17, z18);
+    __ nbsl(z17.VnD(), z17.VnD(), z21.VnD(), z17.VnD());
+
+    __ movprfx(z13, z14);
+    __ saba(z13.VnB(), z2.VnB(), z13.VnB());
+
+    __ movprfx(z13, z14);
+    __ sabalb(z13.VnD(), z13.VnS(), z26.VnS());
+
+    __ movprfx(z14, z15);
+    __ sabalt(z14.VnD(), z14.VnS(), z10.VnS());
+
+    __ movprfx(z19.VnD(), p5.Merging(), z20.VnD());
+    __ sadalp(z19.VnD(), p5.Merging(), z19.VnS());
+
+    __ movprfx(z17, z18);
+    __ sbclb(z17.VnS(), z17.VnS(), z8.VnS());
+
+    __ movprfx(z20, z21);
+    __ sbclt(z20.VnS(), z20.VnS(), z13.VnS());
+
+    __ movprfx(z20.VnB(), p3.Merging(), z21.VnB());
+    __ shadd(z20.VnB(), p3.Merging(), z20.VnB(), z20.VnB());
+
+    __ movprfx(z21.VnB(), p0.Merging(), z22.VnB());
+    __ shsub(z21.VnB(), p0.Merging(), z21.VnB(), z21.VnB());
+
+    __ movprfx(z1.VnB(), p0.Merging(), z2.VnB());
+    __ shsubr(z1.VnB(), p0.Merging(), z1.VnB(), z1.VnB());
+
+    __ movprfx(z5, z6);
+    __ smaxp(z5.VnB(), p4.Merging(), z5.VnB(), z5.VnB());
+
+    __ movprfx(z27, z28);
+    __ sminp(z27.VnB(), p3.Merging(), z27.VnB(), z27.VnB());
+
+    __ movprfx(z1, z2);
+    __ smlalb(z1.VnD(), z3.VnS(), z1.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlalb(z1.VnD(), z3.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlalb(z1.VnS(), z1.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlalt(z1.VnD(), z1.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlalt(z1.VnD(), z3.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlalt(z1.VnS(), z1.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslb(z1.VnD(), z1.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlslb(z1.VnD(), z3.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslb(z1.VnS(), z3.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslt(z1.VnD(), z1.VnS(), z23.VnS());
+
+    __ movprfx(z1, z2);
+    __ smlslt(z1.VnD(), z3.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z1, z2);
+    __ smlslt(z1.VnS(), z1.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z29.VnB(), p1.Merging(), z30.VnB());
+    __ sqabs(z29.VnB(), p1.Merging(), z29.VnB());
+
+    __ movprfx(z28.VnB(), p0.Merging(), z29.VnB());
+    __ sqadd(z28.VnB(), p0.Merging(), z28.VnB(), z28.VnB());
+
+    __ movprfx(z20, z21);
+    __ sqcadd(z20.VnB(), z20.VnB(), z20.VnB(), 90);
+
+    __ movprfx(z6, z7);
+    __ sqdmlalb(z6.VnD(), z6.VnS(), z25.VnS());
+
+    __ movprfx(z6, z7);
+    __ sqdmlalb(z6.VnD(), z6.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z6, z7);
+    __ sqdmlalb(z6.VnS(), z6.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z23, z24);
+    __ sqdmlalbt(z23.VnD(), z23.VnS(), z26.VnS());
+
+    __ movprfx(z11, z12);
+    __ sqdmlalt(z11.VnD(), z11.VnS(), z0.VnS());
+
+    __ movprfx(z11, z12);
+    __ sqdmlalt(z11.VnD(), z11.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z1, z12);
+    __ sqdmlalt(z1.VnS(), z0.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z16, z17);
+    __ sqdmlslb(z16.VnD(), z26.VnS(), z16.VnS());
+
+    __ movprfx(z16, z17);
+    __ sqdmlslb(z16.VnD(), z16.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z16, z17);
+    __ sqdmlslb(z16.VnS(), z16.VnH(), z2.VnH(), 0);
+
+    __ movprfx(z26, z27);
+    __ sqdmlslbt(z26.VnD(), z26.VnS(), z4.VnS());
+
+    __ movprfx(z21, z22);
+    __ sqdmlslt(z21.VnD(), z23.VnS(), z21.VnS());
+
+    __ movprfx(z21, z22);
+    __ sqdmlslt(z21.VnD(), z21.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z1, z22);
+    __ sqdmlslt(z21.VnS(), z23.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z21.VnB(), p0.Merging(), z22.VnB());
+    __ sqneg(z21.VnB(), p0.Merging(), z21.VnB());
+
+    __ movprfx(z31, z0);
+    __ sqrdcmlah(z31.VnB(), z15.VnB(), z31.VnB(), 0);
+
+    __ movprfx(z31, z0);
+    __ sqrdcmlah(z31.VnH(), z31.VnH(), z2.VnH(), 0, 0);
+
+    __ movprfx(z31, z0);
+    __ sqrdcmlah(z31.VnS(), z31.VnS(), z2.VnS(), 0, 0);
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnB(), z27.VnB(), z19.VnB());
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnH(), z27.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnS(), z27.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z27, z28);
+    __ sqrdmlah(z27.VnD(), z27.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnB(), z16.VnB(), z11.VnB());
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnH(), z11.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnS(), z11.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z11, z12);
+    __ sqrdmlsh(z11.VnD(), z11.VnD(), z1.VnD(), 0);
+
+    __ movprfx(z31.VnB(), p5.Merging(), z0.VnB());
+    __ sqrshl(z31.VnB(), p5.Merging(), z31.VnB(), z31.VnB());
+
+    __ movprfx(z25.VnB(), p6.Merging(), z26.VnB());
+    __ sqrshlr(z25.VnB(), p6.Merging(), z25.VnB(), z25.VnB());
+
+    __ movprfx(z0.VnB(), p5.Merging(), z1.VnB());
+    __ sqshl(z0.VnB(), p5.Merging(), z0.VnB(), z0.VnB());
+
+    __ movprfx(z7.VnB(), p3.Merging(), z8.VnB());
+    __ sqshlr(z7.VnB(), p3.Merging(), z7.VnB(), z7.VnB());
+
+    __ movprfx(z16.VnB(), p7.Merging(), z17.VnB());
+    __ sqsub(z16.VnB(), p7.Merging(), z16.VnB(), z16.VnB());
+
+    __ movprfx(z16.VnB(), p7.Merging(), z17.VnB());
+    __ sqsubr(z16.VnB(), p7.Merging(), z16.VnB(), z16.VnB());
+
+    __ movprfx(z23.VnB(), p4.Merging(), z24.VnB());
+    __ srhadd(z23.VnB(), p4.Merging(), z23.VnB(), z23.VnB());
+
+    __ movprfx(z31.VnB(), p7.Merging(), z0.VnB());
+    __ srshl(z31.VnB(), p7.Merging(), z31.VnB(), z31.VnB());
+
+    __ movprfx(z16.VnB(), p7.Merging(), z17.VnB());
+    __ srshlr(z16.VnB(), p7.Merging(), z16.VnB(), z16.VnB());
+
+    __ movprfx(z0, z1);
+    __ srsra(z0.VnB(), z0.VnB(), 1);
+
+    __ movprfx(z0, z1);
+    __ ssra(z0.VnB(), z0.VnB(), 1);
+
+    __ movprfx(z26.VnB(), p2.Merging(), z27.VnB());
+    __ suqadd(z26.VnB(), p2.Merging(), z26.VnB(), z26.VnB());
+
+    __ movprfx(z23, z24);
+    __ uaba(z23.VnB(), z22.VnB(), z23.VnB());
+
+    __ movprfx(z11, z12);
+    __ uabalb(z11.VnD(), z25.VnS(), z11.VnS());
+
+    __ movprfx(z4, z5);
+    __ uabalt(z4.VnD(), z4.VnS(), z31.VnS());
+
+    __ movprfx(z20.VnD(), p4.Merging(), z21.VnD());
+    __ uadalp(z20.VnD(), p4.Merging(), z20.VnS());
+
+    __ movprfx(z21.VnB(), p2.Merging(), z22.VnB());
+    __ uhadd(z21.VnB(), p2.Merging(), z21.VnB(), z21.VnB());
+
+    __ movprfx(z1.VnB(), p4.Merging(), z2.VnB());
+    __ uhsub(z1.VnB(), p4.Merging(), z1.VnB(), z1.VnB());
+
+    __ movprfx(z18.VnB(), p0.Merging(), z19.VnB());
+    __ uhsubr(z18.VnB(), p0.Merging(), z18.VnB(), z18.VnB());
+
+    __ movprfx(z7, z8);
+    __ umaxp(z7.VnB(), p2.Merging(), z7.VnB(), z7.VnB());
+
+    __ movprfx(z10, z11);
+    __ uminp(z10.VnB(), p0.Merging(), z10.VnB(), z10.VnB());
+
+    __ movprfx(z31, z0);
+    __ umlalb(z31.VnD(), z9.VnS(), z31.VnS());
+
+    __ movprfx(z31, z0);
+    __ umlalb(z31.VnD(), z31.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z31, z0);
+    __ umlalb(z31.VnS(), z31.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z11, z12);
+    __ umlalt(z11.VnD(), z11.VnS(), z22.VnS());
+
+    __ movprfx(z11, z12);
+    __ umlalt(z11.VnD(), z11.VnS(), z2.VnS(), 0);
+
+    __ movprfx(z1, z12);
+    __ umlalt(z1.VnS(), z5.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z28, z29);
+    __ umlslb(z28.VnD(), z28.VnS(), z9.VnS());
+
+    __ movprfx(z28, z29);
+    __ umlslb(z28.VnD(), z28.VnS(), z1.VnS(), 0);
+
+    __ movprfx(z28, z29);
+    __ umlslb(z28.VnS(), z28.VnH(), z1.VnH(), 0);
+
+    __ movprfx(z9, z10);
+    __ umlslt(z9.VnD(), z9.VnS(), z30.VnS());
+
+    __ movprfx(z9, z10);
+    __ umlslt(z9.VnD(), z9.VnS(), z0.VnS(), 0);
+
+    __ movprfx(z9, z10);
+    __ umlslt(z9.VnS(), z9.VnH(), z0.VnH(), 0);
+
+    __ movprfx(z24.VnB(), p7.Merging(), z25.VnB());
+    __ uqadd(z24.VnB(), p7.Merging(), z24.VnB(), z24.VnB()),
+
+        __ movprfx(z20.VnB(), p1.Merging(), z21.VnB());
+    __ uqrshl(z20.VnB(), p1.Merging(), z20.VnB(), z20.VnB());
+
+    __ movprfx(z8.VnB(), p5.Merging(), z9.VnB());
+    __ uqrshlr(z8.VnB(), p5.Merging(), z8.VnB(), z8.VnB());
+
+    __ movprfx(z29.VnB(), p7.Merging(), z30.VnB());
+    __ uqshl(z29.VnB(), p7.Merging(), z29.VnB(), z29.VnB());
+
+    __ movprfx(z12.VnB(), p1.Merging(), z13.VnB());
+    __ uqshlr(z12.VnB(), p1.Merging(), z12.VnB(), z12.VnB());
+
+    __ movprfx(z20.VnB(), p0.Merging(), z21.VnB());
+    __ uqsub(z20.VnB(), p0.Merging(), z20.VnB(), z20.VnB());
+
+    __ movprfx(z20.VnB(), p0.Merging(), z21.VnB());
+    __ uqsubr(z20.VnB(), p0.Merging(), z20.VnB(), z20.VnB());
+
+    __ movprfx(z25.VnS(), p7.Merging(), z26.VnS());
+    __ urecpe(z25.VnS(), p7.Merging(), z25.VnS());
+
+    __ movprfx(z29.VnB(), p4.Merging(), z30.VnB());
+    __ urhadd(z29.VnB(), p4.Merging(), z29.VnB(), z29.VnB());
+
+    __ movprfx(z15.VnB(), p2.Merging(), z16.VnB());
+    __ urshl(z15.VnB(), p2.Merging(), z15.VnB(), z15.VnB());
+
+    __ movprfx(z27.VnB(), p1.Merging(), z28.VnB());
+    __ urshlr(z27.VnB(), p1.Merging(), z27.VnB(), z27.VnB());
+
+    __ movprfx(z4.VnS(), p3.Merging(), z5.VnS());
+    __ ursqrte(z4.VnS(), p3.Merging(), z4.VnS());
+
+    __ movprfx(z0, z1);
+    __ ursra(z0.VnB(), z0.VnB(), 1);
+
+    __ movprfx(z25.VnB(), p4.Merging(), z26.VnB());
+    __ usqadd(z25.VnB(), p4.Merging(), z25.VnB(), z25.VnB());
+
+    __ movprfx(z0, z1);
+    __ usra(z0.VnB(), z0.VnB(), 1);
+
+    __ movprfx(z16, z17);
+    __ xar(z16.VnB(), z16.VnB(), z16.VnB(), 1);
+  }
+  assm.FinalizeCode();
+
+  CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), false);
+}
+
+TEST(movprfx_negative_lane_size_sve2) {
+  Assembler assm;
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVE2);
+  {
+    // We have to use the Assembler directly to generate movprfx, so we need
+    // to manually reserve space for the code we're about to emit.
+    static const size_t kPairCount = 140;
+    CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
+
+    __ movprfx(z14.VnS(), p4.Merging(), z15.VnS());
+    __ fcvtx(z14.VnS(), p4.Merging(), z0.VnD());
+
+    __ movprfx(z15.VnS(), p0.Merging(), z16.VnS());
+    __ flogb(z15.VnH(), p0.Merging(), z3.VnH());
+
+    __ movprfx(z19.VnB(), p5.Merging(), z20.VnB());
+    __ sadalp(z19.VnD(), p5.Merging(), z9.VnS());
+
+    __ movprfx(z20.VnH(), p3.Merging(), z21.VnH());
+    __ shadd(z20.VnB(), p3.Merging(), z20.VnB(), z7.VnB());
+
+    __ movprfx(z21.VnH(), p0.Merging(), z22.VnH());
+    __ shsub(z21.VnB(), p0.Merging(), z21.VnB(), z0.VnB());
+
+    __ movprfx(z1.VnS(), p0.Merging(), z2.VnS());
+    __ shsubr(z1.VnB(), p0.Merging(), z1.VnB(), z2.VnB());
+
+    __ movprfx(z29.VnD(), p1.Merging(), z30.VnD());
+    __ sqabs(z29.VnB(), p1.Merging(), z18.VnB());
+
+    __ movprfx(z28.VnH(), p0.Merging(), z29.VnH());
+    __ sqadd(z28.VnB(), p0.Merging(), z28.VnB(), z3.VnB());
+
+    __ movprfx(z21.VnH(), p0.Merging(), z22.VnH());
+    __ sqneg(z21.VnB(), p0.Merging(), z17.VnB());
+
+    __ movprfx(z31.VnS(), p5.Merging(), z0.VnS());
+    __ sqrshl(z31.VnB(), p5.Merging(), z31.VnB(), z27.VnB());
+
+    __ movprfx(z25.VnD(), p6.Merging(), z26.VnD());
+    __ sqrshlr(z25.VnB(), p6.Merging(), z25.VnB(), z7.VnB());
+
+    __ movprfx(z0.VnH(), p5.Merging(), z1.VnH());
+    __ sqshl(z0.VnB(), p5.Merging(), z0.VnB(), 0);
+
+    __ movprfx(z0.VnS(), p5.Merging(), z1.VnS());
+    __ sqshl(z0.VnB(), p5.Merging(), z0.VnB(), z2.VnB());
+
+    __ movprfx(z7.VnD(), p3.Merging(), z8.VnD());
+    __ sqshlr(z7.VnB(), p3.Merging(), z7.VnB(), z5.VnB());
+
+    __ movprfx(z10.VnH(), p1.Merging(), z11.VnH());
+    __ sqshlu(z10.VnB(), p1.Merging(), z10.VnB(), 0);
+
+    __ movprfx(z16.VnH(), p7.Merging(), z17.VnH());
+    __ sqsub(z16.VnB(), p7.Merging(), z16.VnB(), z22.VnB());
+
+    __ movprfx(z16.VnS(), p7.Merging(), z17.VnS());
+    __ sqsubr(z16.VnB(), p7.Merging(), z16.VnB(), z22.VnB());
+
+    __ movprfx(z23.VnD(), p4.Merging(), z24.VnD());
+    __ srhadd(z23.VnB(), p4.Merging(), z23.VnB(), z14.VnB());
+
+    __ movprfx(z31.VnH(), p7.Merging(), z0.VnH());
+    __ srshl(z31.VnB(), p7.Merging(), z31.VnB(), z3.VnB());
+
+    __ movprfx(z16.VnH(), p7.Merging(), z17.VnH());
+    __ srshlr(z16.VnB(), p7.Merging(), z16.VnB(), z29.VnB());
+
+    __ movprfx(z12.VnH(), p0.Merging(), z13.VnH());
+    __ srshr(z12.VnB(), p0.Merging(), z12.VnB(), 1);
+
+    __ movprfx(z26.VnH(), p2.Merging(), z27.VnH());
+    __ suqadd(z26.VnB(), p2.Merging(), z26.VnB(), z28.VnB());
+
+    __ movprfx(z20.VnB(), p4.Merging(), z21.VnB());
+    __ uadalp(z20.VnD(), p4.Merging(), z5.VnS());
+
+    __ movprfx(z21.VnH(), p2.Merging(), z22.VnH());
+    __ uhadd(z21.VnB(), p2.Merging(), z21.VnB(), z19.VnB());
+
+    __ movprfx(z1.VnH(), p4.Merging(), z2.VnH());
+    __ uhsub(z1.VnB(), p4.Merging(), z1.VnB(), z9.VnB());
+
+    __ movprfx(z18.VnH(), p0.Merging(), z19.VnH());
+    __ uhsubr(z18.VnB(), p0.Merging(), z18.VnB(), z1.VnB());
+
+    __ movprfx(z24.VnH(), p7.Merging(), z25.VnH());
+    __ uqadd(z24.VnB(), p7.Merging(), z24.VnB(), z1.VnB()),
+
+        __ movprfx(z20.VnS(), p1.Merging(), z21.VnS());
+    __ uqrshl(z20.VnB(), p1.Merging(), z20.VnB(), z30.VnB());
+
+    __ movprfx(z8.VnS(), p5.Merging(), z9.VnS());
+    __ uqrshlr(z8.VnB(), p5.Merging(), z8.VnB(), z9.VnB());
+
+    __ movprfx(z29.VnS(), p7.Merging(), z30.VnS());
+    __ uqshl(z29.VnB(), p7.Merging(), z29.VnB(), 0);
+
+    __ movprfx(z29.VnS(), p7.Merging(), z30.VnS());
+    __ uqshl(z29.VnB(), p7.Merging(), z29.VnB(), z30.VnB());
+
+    __ movprfx(z12.VnS(), p1.Merging(), z13.VnS());
+    __ uqshlr(z12.VnB(), p1.Merging(), z12.VnB(), z13.VnB());
+
+    __ movprfx(z20.VnS(), p0.Merging(), z21.VnS());
+    __ uqsub(z20.VnB(), p0.Merging(), z20.VnB(), z6.VnB());
+
+    __ movprfx(z20.VnS(), p0.Merging(), z21.VnS());
+    __ uqsubr(z20.VnB(), p0.Merging(), z20.VnB(), z6.VnB());
+
+    __ movprfx(z25.VnB(), p7.Merging(), z26.VnB());
+    __ urecpe(z25.VnS(), p7.Merging(), z2.VnS());
+
+    __ movprfx(z29.VnD(), p4.Merging(), z30.VnD());
+    __ urhadd(z29.VnB(), p4.Merging(), z29.VnB(), z10.VnB());
+
+    __ movprfx(z15.VnD(), p2.Merging(), z16.VnD());
+    __ urshl(z15.VnB(), p2.Merging(), z15.VnB(), z3.VnB());
+
+    __ movprfx(z27.VnD(), p1.Merging(), z28.VnD());
+    __ urshlr(z27.VnB(), p1.Merging(), z27.VnB(), z30.VnB());
+
+    __ movprfx(z31.VnD(), p2.Merging(), z0.VnD());
+    __ urshr(z31.VnB(), p2.Merging(), z31.VnB(), 1);
+
+    __ movprfx(z4.VnH(), p3.Merging(), z5.VnH());
+    __ ursqrte(z4.VnS(), p3.Merging(), z3.VnS());
+
+    __ movprfx(z25.VnD(), p4.Merging(), z26.VnD());
+    __ usqadd(z25.VnB(), p4.Merging(), z25.VnB(), z6.VnB());
+  }
+  assm.FinalizeCode();
+
+  CheckAndMaybeDisassembleMovprfxPairs(assm.GetBuffer(), false);
+}
 
 }  // namespace aarch64
 }  // namespace vixl
