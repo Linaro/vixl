@@ -8346,14 +8346,26 @@ void Assembler::sqrdcmlah(const ZRegister& zda,
 //  sqrdmlah_z_zzzi_d
 //  sqrdmlah_z_zzzi_h
 //  sqrdmlah_z_zzzi_s
-void Assembler::sqrdmlah(const ZRegister& zda, const ZRegister& zn) {
-  // SQRDMLAH <Zda>.D, <Zn>.D, <Zm>.D[<imm>]
-  //  0100 0100 111. .... 0001 00.. .... ....
-  //  size<23:22> | opc<20:16> | S<10> | Zn<9:5> | Zda<4:0>
-
+void Assembler::sqrdmlah(const ZRegister& zda,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
 
-  Emit(0x44e01000 | Rd(zda) | Rn(zn));
+  Instr op_h = 0x44201000;
+  Instr op_s = op_h | (1 << 23);
+  Instr op_d = op_h | (3 << 22);
+  // The encoding of opcode, index, Zm, and size are synthesized in this
+  // variable.
+  Instr synthesized_op = SVEMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           op_h,
+                                           op_s,
+                                           op_d);
+
+  Emit(synthesized_op | Rd(zda) | Rn(zn));
 }
 
 void Assembler::sqrdmlah(const ZRegister& zda,
@@ -8373,14 +8385,26 @@ void Assembler::sqrdmlah(const ZRegister& zda,
 //  sqrdmlsh_z_zzzi_d
 //  sqrdmlsh_z_zzzi_h
 //  sqrdmlsh_z_zzzi_s
-void Assembler::sqrdmlsh(const ZRegister& zda, const ZRegister& zn) {
-  // SQRDMLSH <Zda>.D, <Zn>.D, <Zm>.D[<imm>]
-  //  0100 0100 111. .... 0001 01.. .... ....
-  //  size<23:22> | opc<20:16> | S<10> | Zn<9:5> | Zda<4:0>
-
+void Assembler::sqrdmlsh(const ZRegister& zda,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zda, zn, zm));
 
-  Emit(0x44e01400 | Rd(zda) | Rn(zn));
+  Instr op_h = 0x44201400;
+  Instr op_s = op_h | (1 << 23);
+  Instr op_d = op_h | (3 << 22);
+  // The encoding of opcode, index, Zm, and size are synthesized in this
+  // variable.
+  Instr synthesized_op = SVEMulIndexHelper(zda.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           op_h,
+                                           op_s,
+                                           op_d);
+
+  Emit(synthesized_op | Rd(zda) | Rn(zn));
 }
 
 void Assembler::sqrdmlsh(const ZRegister& zda,

@@ -1184,13 +1184,10 @@ class Simulator : public DecoderVisitor {
   void Simulate_ZdT_ZnT_ZmT(const Instruction* instr);
   void Simulate_ZdT_ZnT_ZmTb(const Instruction* instr);
   void Simulate_ZdT_ZnT_const(const Instruction* instr);
-  void Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr);
   void Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr);
-  void Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr);
   void Simulate_ZdaH_ZnH_ZmH_imm_const(const Instruction* instr);
   void Simulate_ZdaS_ZnH_ZmH(const Instruction* instr);
   void Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr);
-  void Simulate_ZdaS_ZnS_ZmS_imm(const Instruction* instr);
   void Simulate_ZdaS_ZnS_ZmS_imm_const(const Instruction* instr);
   void Simulate_ZdaT_PgM_ZnTb(const Instruction* instr);
   void Simulate_ZdaT_ZnT_ZmT(const Instruction* instr);
@@ -1220,6 +1217,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEMulIndex(const Instruction* instr);
   void SimulateSVEMlaMlsIndex(const Instruction* instr);
   void SimulateSVEComplexIntMulAdd(const Instruction* instr);
+  void SimulateSVESaturatingMulAddHigh(const Instruction* instr);
 
   // Integer register accessors.
 

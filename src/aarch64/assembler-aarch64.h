@@ -6351,7 +6351,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating rounding doubling multiply-add high to accumulator
   // (indexed).
-  void sqrdmlah(const ZRegister& zda, const ZRegister& zn);
+  void sqrdmlah(const ZRegister& zda,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating rounding doubling multiply-add high to accumulator
   // (unpredicated).
@@ -6359,7 +6362,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Signed saturating rounding doubling multiply-subtract high from
   // accumulator (indexed).
-  void sqrdmlsh(const ZRegister& zda, const ZRegister& zn);
+  void sqrdmlsh(const ZRegister& zda,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating rounding doubling multiply-subtract high from
   // accumulator (unpredicated).

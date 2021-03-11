@@ -1880,14 +1880,16 @@ VIXL_SVE_4REG_LIST(VIXL_DEFINE_MASM_FUNC)
   V(Fmlslt, fmlslt, FourRegOneImmDestructiveHelper)     \
   V(Mla, mla, FourRegOneImmDestructiveHelper)           \
   V(Mls, mls, FourRegOneImmDestructiveHelper)           \
-  V(Sqdmlalb, sqdmlalb, FourRegOneImmDestructiveHelper) \
-  V(Sqdmlalt, sqdmlalt, FourRegOneImmDestructiveHelper) \
-  V(Sqdmlslb, sqdmlslb, FourRegOneImmDestructiveHelper) \
-  V(Sqdmlslt, sqdmlslt, FourRegOneImmDestructiveHelper) \
   V(Smlalb, smlalb, FourRegOneImmDestructiveHelper)     \
   V(Smlalt, smlalt, FourRegOneImmDestructiveHelper)     \
   V(Smlslb, smlslb, FourRegOneImmDestructiveHelper)     \
   V(Smlslt, smlslt, FourRegOneImmDestructiveHelper)     \
+  V(Sqdmlalb, sqdmlalb, FourRegOneImmDestructiveHelper) \
+  V(Sqdmlalt, sqdmlalt, FourRegOneImmDestructiveHelper) \
+  V(Sqdmlslb, sqdmlslb, FourRegOneImmDestructiveHelper) \
+  V(Sqdmlslt, sqdmlslt, FourRegOneImmDestructiveHelper) \
+  V(Sqrdmlah, sqrdmlah, FourRegOneImmDestructiveHelper) \
+  V(Sqrdmlsh, sqrdmlsh, FourRegOneImmDestructiveHelper) \
   V(Umlalb, umlalb, FourRegOneImmDestructiveHelper)     \
   V(Umlalt, umlalt, FourRegOneImmDestructiveHelper)     \
   V(Umlslb, umlslb, FourRegOneImmDestructiveHelper)     \
