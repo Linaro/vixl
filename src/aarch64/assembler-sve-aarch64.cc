@@ -6995,9 +6995,6 @@ void Assembler::faddp(const ZRegister& zd,
   Emit(0x64108000 | SVESize(zd) | Rd(zd) | PgLow8(pg) | Rn(zm));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  fcvtlt_z_p_z_h2s
-//  fcvtlt_z_p_z_s2d
 void Assembler::fcvtlt(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
@@ -7007,12 +7004,17 @@ void Assembler::fcvtlt(const ZRegister& zd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
 
-  Emit(0x6489a000 | Rd(zd) | PgLow8(pg) | Rn(zn));
+  Instr op;
+  if (zd.IsLaneSizeD() && zn.IsLaneSizeS()) {
+    op = 0x64cba000;
+  } else {
+    VIXL_ASSERT(zd.IsLaneSizeS() && zn.IsLaneSizeH());
+    op = 0x6489a000;
+  }
+
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
-// This prototype maps to 2 instruction encodings:
-//  fcvtnt_z_p_z_d2s
-//  fcvtnt_z_p_z_s2h
 void Assembler::fcvtnt(const ZRegister& zd,
                        const PRegisterM& pg,
                        const ZRegister& zn) {
@@ -7022,7 +7024,14 @@ void Assembler::fcvtnt(const ZRegister& zd,
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
 
-  Emit(0x64caa000 | Rd(zd) | PgLow8(pg) | Rn(zn));
+  Instr op;
+  if (zd.IsLaneSizeS() && zn.IsLaneSizeD()) {
+    op = 0x64caa000;
+  } else {
+    VIXL_ASSERT(zd.IsLaneSizeH() && zn.IsLaneSizeS());
+    op = 0x6488a000;
+  }
+  Emit(op | Rd(zd) | PgLow8(pg) | Rn(zn));
 }
 
 void Assembler::fcvtx(const ZRegister& zd,

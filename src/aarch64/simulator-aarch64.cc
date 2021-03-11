@@ -93,8 +93,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"eortb_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"ext_z_zi_con", &Simulator::Simulate_ZdB_Zn1B_Zn2B_imm},
     {"faddp_z_p_zz", &Simulator::Simulate_ZdnT_PgM_ZdnT_ZmT},
-    {"fcvtlt_z_p_z_h2s", &Simulator::Simulate_ZdS_PgM_ZnH},
-    {"fcvtlt_z_p_z_s2d", &Simulator::Simulate_ZdD_PgM_ZnS},
+    {"fcvtlt_z_p_z_h2s", &Simulator::SimulateSVEFPConvertLong},
+    {"fcvtlt_z_p_z_s2d", &Simulator::SimulateSVEFPConvertLong},
     {"fcvtnt_z_p_z_d2s", &Simulator::Simulate_ZdS_PgM_ZnD},
     {"fcvtnt_z_p_z_s2h", &Simulator::Simulate_ZdH_PgM_ZnS},
     {"fcvtx_z_p_z_d2s", &Simulator::Simulate_ZdS_PgM_ZnD},
@@ -2028,23 +2028,6 @@ void Simulator::Simulate_ZdB_ZnB_ZmB(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdD_PgM_ZnS(const Instruction* instr) {
-  SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("fcvtlt_z_p_z_s2d"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::SimulateSVEMulIndex(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
@@ -2196,19 +2179,22 @@ void Simulator::SimulateSVESaturatingIntMulLongIdx(const Instruction* instr) {
 
 void Simulator::Simulate_ZdH_PgM_ZnS(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result, zd_b;
+
+  pack_even_elements(kFormatVnH, zd_b, zd);
 
   switch (form_hash_) {
     case Hash("fcvtnt_z_p_z_s2h"):
-      VIXL_UNIMPLEMENTED();
+      fcvt(kFormatVnS, kHRegSize, kSRegSize, result, pg, zn);
+      pack_even_elements(kFormatVnH, result, result);
+      zip1(kFormatVnH, result, zd_b, result);
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+  mov_merging(kFormatVnS, zd, pg, result);
 }
 
 void Simulator::Simulate_ZdH_ZnH_ZmH_imm(const Instruction* instr) {
@@ -2236,19 +2222,24 @@ void Simulator::Simulate_ZdS_PgM_ZnD(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  SimVRegister result, zero;
+  SimVRegister result, zero, zd_b;
+
   zero.Clear();
+  pack_even_elements(kFormatVnS, zd_b, zd);
 
   switch (form_hash_) {
     case Hash("fcvtnt_z_p_z_d2s"):
-      VIXL_UNIMPLEMENTED();
+      fcvt(kFormatVnD, kSRegSize, kDRegSize, result, pg, zn);
+      pack_even_elements(kFormatVnS, result, result);
+      zip1(kFormatVnS, result, zd_b, result);
       break;
     case Hash("fcvtx_z_p_z_d2s"):
       fcvtxn(kFormatVnS, result, zn);
       zip1(kFormatVnS, result, result, zero);
       break;
     case Hash("fcvtxnt_z_p_z_d2s"):
-      VIXL_UNIMPLEMENTED();
+      fcvtxn(kFormatVnS, result, zn);
+      zip1(kFormatVnS, result, zd_b, result);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2256,17 +2247,20 @@ void Simulator::Simulate_ZdS_PgM_ZnD(const Instruction* instr) {
   mov_merging(kFormatVnD, zd, pg, result);
 }
 
-void Simulator::Simulate_ZdS_PgM_ZnH(const Instruction* instr) {
+void Simulator::SimulateSVEFPConvertLong(const Instruction* instr) {
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  USE(pg);
   SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  SimVRegister result;
 
   switch (form_hash_) {
     case Hash("fcvtlt_z_p_z_h2s"):
-      VIXL_UNIMPLEMENTED();
+      ext(kFormatVnB, result, zn, zn, kHRegSizeInBytes);
+      fcvt(kFormatVnS, kSRegSize, kHRegSize, zd, pg, result);
+      break;
+    case Hash("fcvtlt_z_p_z_s2d"):
+      ext(kFormatVnB, result, zn, zn, kSRegSizeInBytes);
+      fcvt(kFormatVnD, kDRegSize, kSRegSize, zd, pg, result);
       break;
     default:
       VIXL_UNIMPLEMENTED();

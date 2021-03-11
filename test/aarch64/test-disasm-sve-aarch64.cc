@@ -8903,6 +8903,18 @@ TEST(sve2_fp_convert) {
   COMPARE_MACRO(Fcvtx(z14.VnS(), p4.Zeroing(), z0.VnD()),
                 "movprfx z14.d, p4/z, z14.d\n"
                 "fcvtx z14.s, p4/m, z0.d");
+  COMPARE_MACRO(Fcvtlt(z1.VnD(), p1.Merging(), z28.VnS()),
+                "fcvtlt z1.d, p1/m, z28.s");
+  COMPARE_MACRO(Fcvtlt(z10.VnS(), p5.Merging(), z0.VnH()),
+                "fcvtlt z10.s, p5/m, z0.h");
+  COMPARE_MACRO(Fcvtnt(z4.VnH(), p7.Merging(), z0.VnS()),
+                "fcvtnt z4.h, p7/m, z0.s");
+  COMPARE_MACRO(Fcvtnt(z8.VnS(), p0.Merging(), z4.VnD()),
+                "fcvtnt z8.s, p0/m, z4.d");
+  COMPARE_MACRO(Fcvtx(z14.VnS(), p4.Merging(), z0.VnD()),
+                "fcvtx z14.s, p4/m, z0.d");
+  COMPARE_MACRO(Fcvtxnt(z27.VnS(), p0.Merging(), z17.VnD()),
+                "fcvtxnt z27.s, p0/m, z17.d");
 
   CLEANUP();
 }
@@ -8913,18 +8925,6 @@ TEST(sve2_all_instructions) {
 
   // COMPARE_PREFIX(ext(z13.VnB(), z11.VnB(), z12.VnB()), "ext z13.b, { z15.b,
   // z16.b }, #<imm>");
-  // COMPARE_PREFIX(fcvtlt(z1.VnD(), p1.Merging(), z28.VnS()), "fcvtlt z1.s,
-  // p1/m, z28.h");
-  // COMPARE_PREFIX(fcvtlt(z10.VnS(), p5.Merging(), z0.VnH()), "fcvtlt z10.s,
-  // p5/m, z0.h");
-  // COMPARE_PREFIX(fcvtnt(z4.VnH(), p7.Merging(), z0.VnS()), "fcvtnt z4.s,
-  // p7/m, z0.d");
-  // COMPARE_PREFIX(fcvtnt(z8.VnS(), p0.Merging(), z4.VnD()), "fcvtnt z8.s,
-  // p0/m, z4.d");
-  // COMPARE_PREFIX(fcvtx(z14.VnS(), p4.Merging(), z0.VnD()), "fcvtx z14.s,
-  // p4/m, z0.d");
-  // COMPARE_PREFIX(fcvtxnt(z27.VnS(), p0.Merging(), z17.VnD()), "fcvtxnt z27.s,
-  // p0/m, z17.d");
   // COMPARE_PREFIX(mul(z13.VnH(), z14.VnH()), "mul z13.d, z14.d,
   // <Zm>.d[<imm>]");
   // COMPARE_PREFIX(mul(z14.VnD(), z26.VnD()), "mul z14.d, z26.d,
