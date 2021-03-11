@@ -18892,12 +18892,10 @@ TEST_SVE(sve2_integer_multiply_add_long_vector) {
   __ Mov(z28, z30);
   __ Sqdmlslt(z28.VnD(), z28.VnD(), z0.VnS(), z1.VnS());
 
-  // TODO remove below comment once movprfx simulation is completed.
-  // With workaround the test has been checked locally.
-  // __ Sqdmlalb(z27.VnD(), z2.VnD(), z0.VnS(), z1.VnS());
-  // __ Sqdmlalt(z26.VnD(), z3.VnD(), z0.VnS(), z1.VnS());
-  // __ Sqdmlslb(z25.VnD(), z27.VnD(), z0.VnS(), z1.VnS());
-  // __ Sqdmlslt(z24.VnD(), z26.VnD(), z0.VnS(), z1.VnS());
+  __ Sqdmlalb(z27.VnD(), z2.VnD(), z0.VnS(), z1.VnS());
+  __ Sqdmlalt(z26.VnD(), z3.VnD(), z0.VnS(), z1.VnS());
+  __ Sqdmlslb(z25.VnD(), z27.VnD(), z0.VnS(), z1.VnS());
+  __ Sqdmlslt(z24.VnD(), z26.VnD(), z0.VnS(), z1.VnS());
 
   __ Mov(z23, z2);
   __ Sqdmlalb(z23.VnD(), z23.VnD(), z0.VnS(), z1.VnS(), 0);
@@ -18919,10 +18917,10 @@ TEST_SVE(sve2_integer_multiply_add_long_vector) {
     ASSERT_EQUAL_SVE(z2, z29);
     ASSERT_EQUAL_SVE(z3, z28);
 
-    // ASSERT_EQUAL_SVE(z31, z27);
-    // ASSERT_EQUAL_SVE(z30, z26);
-    // ASSERT_EQUAL_SVE(z29, z25);
-    // ASSERT_EQUAL_SVE(z28, z24);
+    ASSERT_EQUAL_SVE(z31, z27);
+    ASSERT_EQUAL_SVE(z30, z26);
+    ASSERT_EQUAL_SVE(z29, z25);
+    ASSERT_EQUAL_SVE(z28, z24);
 
     ASSERT_EQUAL_SVE(sqdmlalb_idx_expected_d, z23.VnD());
     ASSERT_EQUAL_SVE(sqdmlalt_idx_expected_d, z22.VnD());
@@ -19230,12 +19228,10 @@ TEST_SVE(sve2_sqrdcmlah) {
   __ Mov(z13, z31);
   __ Sqrdcmlah(z13.VnS(), z13.VnS(), z0.VnS(), z1.VnS(), 270);
 
-  // TODO remove below comment once movprfx simulation is completed.
-  // With workaround the test has been checked locally.
-  // __ Sqrdcmlah(z14.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 0);
-  // __ Sqrdcmlah(z15.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 90);
-  // __ Sqrdcmlah(z16.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 180);
-  // __ Sqrdcmlah(z17.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 270);
+  __ Sqrdcmlah(z14.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 0);
+  __ Sqrdcmlah(z15.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 90);
+  __ Sqrdcmlah(z16.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 180);
+  __ Sqrdcmlah(z17.VnS(), z31.VnS(), z0.VnS(), z1.VnS(), 270);
 
   __ Mov(z18, z31);
   __ Sqrdcmlah(z18.VnS(), z18.VnS(), z0.VnS(), z1.VnS(), 0, 270);
@@ -19253,10 +19249,10 @@ TEST_SVE(sve2_sqrdcmlah) {
     ASSERT_EQUAL_SVE(zd_180_expected, z12.VnS());
     ASSERT_EQUAL_SVE(zd_270_expected, z13.VnS());
 
-    // ASSERT_EQUAL_SVE(z14, z10);
-    // ASSERT_EQUAL_SVE(z15, z11);
-    // ASSERT_EQUAL_SVE(z16, z12);
-    // ASSERT_EQUAL_SVE(z17, z13);
+    ASSERT_EQUAL_SVE(z14, z10);
+    ASSERT_EQUAL_SVE(z15, z11);
+    ASSERT_EQUAL_SVE(z16, z12);
+    ASSERT_EQUAL_SVE(z17, z13);
 
     ASSERT_EQUAL_SVE(zd_0_270_expected, z18.VnS());
     ASSERT_EQUAL_SVE(zd_3_090_expected, z19.VnS());
@@ -19442,12 +19438,10 @@ TEST_SVE(sve2_cmla) {
   __ Mov(z26, z3);
   __ Cmla(z3.VnS(), z3.VnS(), z31.VnS(), z30.VnS(), 270);
 
-  // TODO remove below comment once movprfx simulation is completed.
-  // With workaround the test has been checked locally.
-  // __ Cmla(z4.VnS(), z29.VnS(), z31.VnS(), z30.VnS(), 0);
-  // __ Cmla(z5.VnS(), z28.VnS(), z31.VnS(), z30.VnS(), 90);
-  // __ Cmla(z6.VnS(), z27.VnS(), z31.VnS(), z30.VnS(), 180);
-  // __ Cmla(z7.VnS(), z26.VnS(), z31.VnS(), z30.VnS(), 270);
+  __ Cmla(z4.VnS(), z29.VnS(), z31.VnS(), z30.VnS(), 0);
+  __ Cmla(z5.VnS(), z28.VnS(), z31.VnS(), z30.VnS(), 90);
+  __ Cmla(z6.VnS(), z27.VnS(), z31.VnS(), z30.VnS(), 180);
+  __ Cmla(z7.VnS(), z26.VnS(), z31.VnS(), z30.VnS(), 270);
 
   END();
 
@@ -19459,10 +19453,10 @@ TEST_SVE(sve2_cmla) {
     ASSERT_EQUAL_SVE(zd_180_expected, z2.VnS());
     ASSERT_EQUAL_SVE(zd_270_expected, z3.VnS());
 
-    // ASSERT_EQUAL_SVE(z4, z0);
-    // ASSERT_EQUAL_SVE(z5, z1);
-    // ASSERT_EQUAL_SVE(z6, z2);
-    // ASSERT_EQUAL_SVE(z7, z3);
+    ASSERT_EQUAL_SVE(z4, z0);
+    ASSERT_EQUAL_SVE(z5, z1);
+    ASSERT_EQUAL_SVE(z6, z2);
+    ASSERT_EQUAL_SVE(z7, z3);
   }
 }
 
@@ -19578,12 +19572,10 @@ TEST_SVE(sve2_floating_point_multiply_add_long_vector) {
   __ Mov(z3, z29);
   __ Fmlslt(z3.VnS(), z3.VnS(), z31.VnH(), z30.VnH());
 
-  // TODO remove below comment once movprfx simulation is completed.
-  // With workaround the test has been checked locally.
-  // __ Fmlalb(z4.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
-  // __ Fmlalt(z5.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
-  // __ Fmlslb(z6.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
-  // __ Fmlslt(z7.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  __ Fmlalb(z4.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  __ Fmlalt(z5.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  __ Fmlslb(z6.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
+  __ Fmlslt(z7.VnS(), z29.VnS(), z31.VnH(), z30.VnH());
 
   END();
 
@@ -19595,10 +19587,10 @@ TEST_SVE(sve2_floating_point_multiply_add_long_vector) {
     ASSERT_EQUAL_SVE(fmlslb_zd_expected, z2.VnS());
     ASSERT_EQUAL_SVE(fmlslt_zd_expected, z3.VnS());
 
-    // ASSERT_EQUAL_SVE(z4, z0);
-    // ASSERT_EQUAL_SVE(z5, z1);
-    // ASSERT_EQUAL_SVE(z6, z2);
-    // ASSERT_EQUAL_SVE(z7, z3);
+    ASSERT_EQUAL_SVE(z4, z0);
+    ASSERT_EQUAL_SVE(z5, z1);
+    ASSERT_EQUAL_SVE(z6, z2);
+    ASSERT_EQUAL_SVE(z7, z3);
   }
 }
 
