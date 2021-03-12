@@ -220,14 +220,14 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"sqrdcmlah_z_zzz", &Simulator::SimulateSVEComplexIntMulAdd},
     {"sqrdcmlah_z_zzzi_h", &Simulator::SimulateSVEComplexIntMulAdd},
     {"sqrdcmlah_z_zzzi_s", &Simulator::SimulateSVEComplexIntMulAdd},
-    {"sqrdmlah_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"sqrdmlah_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
-    {"sqrdmlah_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
-    {"sqrdmlah_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
-    {"sqrdmlsh_z_zzz", &Simulator::Simulate_ZdaT_ZnT_ZmT},
-    {"sqrdmlsh_z_zzzi_d", &Simulator::Simulate_ZdaD_ZnD_ZmD_imm},
-    {"sqrdmlsh_z_zzzi_h", &Simulator::Simulate_ZdaH_ZnH_ZmH_imm},
-    {"sqrdmlsh_z_zzzi_s", &Simulator::Simulate_ZdaS_ZnS_ZmS_imm},
+    {"sqrdmlah_z_zzz", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlah_z_zzzi_d", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlah_z_zzzi_h", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlah_z_zzzi_s", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlsh_z_zzz", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlsh_z_zzzi_d", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlsh_z_zzzi_h", &Simulator::SimulateSVESaturatingMulAddHigh},
+    {"sqrdmlsh_z_zzzi_s", &Simulator::SimulateSVESaturatingMulAddHigh},
     {"sqrdmulh_z_zz", &Simulator::Simulate_ZdT_ZnT_ZmT},
     {"sqrdmulh_z_zzi_d", &Simulator::Simulate_ZdD_ZnD_ZmD_imm},
     {"sqrdmulh_z_zzi_h", &Simulator::Simulate_ZdH_ZnH_ZmH_imm},
@@ -2792,27 +2792,59 @@ void Simulator::SimulateSVEShiftLeftImm(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaD_ZnD_ZmD_imm(const Instruction* instr) {
+void Simulator::SimulateSVESaturatingMulAddHigh(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
   SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
+  unsigned zm_code = instr->GetRm();
+  int index = -1;
+  bool is_mla = false;
 
   switch (form_hash_) {
-    case Hash("mla_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+    case Hash("sqrdmlah_z_zzz"):
+      is_mla = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqrdmlsh_z_zzz"):
+      // Nothing to do.
       break;
-    case Hash("mls_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+    case Hash("sqrdmlah_z_zzzi_h"):
+      is_mla = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqrdmlsh_z_zzzi_h"):
+      vform = kFormatVnH;
+      index = (instr->ExtractBit(22) << 2) | instr->ExtractBits(20, 19);
+      zm_code = instr->ExtractBits(18, 16);
+      break;
+    case Hash("sqrdmlah_z_zzzi_s"):
+      is_mla = true;
+      VIXL_FALLTHROUGH();
+    case Hash("sqrdmlsh_z_zzzi_s"):
+      vform = kFormatVnS;
+      index = instr->ExtractBits(20, 19);
+      zm_code = instr->ExtractBits(18, 16);
       break;
     case Hash("sqrdmlah_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
-      break;
+      is_mla = true;
+      VIXL_FALLTHROUGH();
     case Hash("sqrdmlsh_z_zzzi_d"):
-      VIXL_UNIMPLEMENTED();
+      vform = kFormatVnD;
+      index = instr->ExtractBit(20);
+      zm_code = instr->ExtractBits(19, 16);
       break;
     default:
       VIXL_UNIMPLEMENTED();
+  }
+
+  SimVRegister& zm = ReadVRegister(zm_code);
+  SimVRegister zm_idx;
+  if (index >= 0) {
+    dup_elements_to_segments(vform, zm_idx, zm, index);
+  }
+
+  if (is_mla) {
+    sqrdmlah(vform, zda, zn, (index >= 0) ? zm_idx : zm);
+  } else {
+    sqrdmlsh(vform, zda, zn, (index >= 0) ? zm_idx : zm);
   }
 }
 
@@ -2840,30 +2872,6 @@ void Simulator::Simulate_ZdaD_ZnS_ZmS_imm(const Instruction* instr) {
       break;
     case Hash("sqdmlslt_z_zzzi_d"):
       sqdmlsl(kFormatVnD, zda, zn_t, zm_idx);
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
-void Simulator::Simulate_ZdaH_ZnH_ZmH_imm(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("mla_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("mls_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrdmlah_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrdmlsh_z_zzzi_h"):
-      VIXL_UNIMPLEMENTED();
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -2941,30 +2949,6 @@ void Simulator::Simulate_ZdaS_ZnH_ZmH_imm(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_ZdaS_ZnS_ZmS_imm(const Instruction* instr) {
-  SimVRegister& zda = ReadVRegister(instr->GetRd());
-  USE(zda);
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  USE(zn);
-
-  switch (form_hash_) {
-    case Hash("mla_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("mls_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrdmlah_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    case Hash("sqrdmlsh_z_zzzi_s"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::Simulate_ZdaT_PgM_ZnTb(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
@@ -3021,12 +3005,6 @@ void Simulator::Simulate_ZdaT_ZnT_ZmT(const Instruction* instr) {
   switch (form_hash_) {
     case Hash("saba_z_zzz"):
       saba(vform, zda, zn, zm);
-      break;
-    case Hash("sqrdmlah_z_zzz"):
-      sqrdmlah(vform, zda, zn, zm);
-      break;
-    case Hash("sqrdmlsh_z_zzz"):
-      sqrdmlsh(vform, zda, zn, zm);
       break;
     case Hash("uaba_z_zzz"):
       uaba(vform, zda, zn, zm);
