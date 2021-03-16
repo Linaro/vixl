@@ -8247,18 +8247,25 @@ void Assembler::sqdmlslt(const ZRegister& zda,
   Emit(0x44006c00 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  sqdmulh_z_zzi_d
-//  sqdmulh_z_zzi_h
-//  sqdmulh_z_zzi_s
-void Assembler::sqdmulh(const ZRegister& zd, const ZRegister& zn) {
+void Assembler::sqdmulh(const ZRegister& zd,
+                        const ZRegister& zn,
+                        const ZRegister& zm,
+                        int index) {
   // SQDMULH <Zd>.D, <Zn>.D, <Zm>.D[<imm>]
   //  0100 0100 111. .... 1111 00.. .... ....
   //  size<23:22> | opc<20:16> | R<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(0x44e0f000 | Rd(zd) | Rn(zn));
+  Instr synthesised_op = SVEMulIndexHelper(zd.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           0x4420f000,
+                                           0x44a0f000,
+                                           0x44e0f000);
+
+  Emit(synthesised_op | Rd(zd) | Rn(zn));
 }
 
 void Assembler::sqdmulh(const ZRegister& zd,
@@ -8429,18 +8436,25 @@ void Assembler::sqrdmlsh(const ZRegister& zda,
   Emit(0x44007400 | SVESize(zda) | Rd(zda) | Rn(zn) | Rm(zm));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  sqrdmulh_z_zzi_d
-//  sqrdmulh_z_zzi_h
-//  sqrdmulh_z_zzi_s
-void Assembler::sqrdmulh(const ZRegister& zd, const ZRegister& zn) {
+void Assembler::sqrdmulh(const ZRegister& zd,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index) {
   // SQRDMULH <Zd>.D, <Zn>.D, <Zm>.D[<imm>]
   //  0100 0100 111. .... 1111 01.. .... ....
   //  size<23:22> | opc<20:16> | R<10> | Zn<9:5> | Zd<4:0>
 
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
+  VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
-  Emit(0x44e0f400 | Rd(zd) | Rn(zn));
+  Instr synthesised_op = SVEMulIndexHelper(zd.GetLaneSizeInBytesLog2(),
+                                           zm,
+                                           index,
+                                           0x4420f400,
+                                           0x44a0f400,
+                                           0x44e0f400);
+
+  Emit(synthesised_op | Rd(zd) | Rn(zn));
 }
 
 void Assembler::sqrdmulh(const ZRegister& zd,

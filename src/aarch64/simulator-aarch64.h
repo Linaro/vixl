@@ -1216,6 +1216,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVEMlaMlsIndex(const Instruction* instr);
   void SimulateSVEComplexIntMulAdd(const Instruction* instr);
   void SimulateSVESaturatingMulAddHigh(const Instruction* instr);
+  void SimulateSVESaturatingMulHighIndex(const Instruction* instr);
   void SimulateSVEFPConvertLong(const Instruction* instr);
 
   // Integer register accessors.

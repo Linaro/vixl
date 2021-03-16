@@ -6308,7 +6308,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqdmlslt(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating doubling multiply high (indexed).
-  void sqdmulh(const ZRegister& zd, const ZRegister& zn);
+  void sqdmulh(const ZRegister& zd,
+               const ZRegister& zn,
+               const ZRegister& zm,
+               int index);
 
   // Signed saturating doubling multiply high (unpredicated).
   void sqdmulh(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
@@ -6372,7 +6375,10 @@ class Assembler : public vixl::internal::AssemblerBase {
   void sqrdmlsh(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
   // Signed saturating rounding doubling multiply high (indexed).
-  void sqrdmulh(const ZRegister& zd, const ZRegister& zn);
+  void sqrdmulh(const ZRegister& zd,
+                const ZRegister& zn,
+                const ZRegister& zm,
+                int index);
 
   // Signed saturating rounding doubling multiply high (unpredicated).
   void sqrdmulh(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
