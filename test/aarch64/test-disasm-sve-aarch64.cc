@@ -1432,19 +1432,92 @@ TEST(sve_fp_complex_addition) {
 TEST(sve_fp_complex_mul_add) {
   SETUP();
 
-  COMPARE_PREFIX(fcmla(z19.VnH(), p7.Merging(), z16.VnH(), z0.VnH(), 90),
-                 "fcmla z19.h, p7/m, z16.h, z0.h, #90");
-  COMPARE_PREFIX(fcmla(z19.VnS(), p7.Merging(), z16.VnS(), z0.VnS(), 90),
-                 "fcmla z19.s, p7/m, z16.s, z0.s, #90");
-  COMPARE_PREFIX(fcmla(z19.VnD(), p7.Merging(), z16.VnD(), z0.VnD(), 90),
-                 "fcmla z19.d, p7/m, z16.d, z0.d, #90");
+  COMPARE_MACRO(Fcmla(z19.VnH(),
+                      p7.Merging(),
+                      z19.VnH(),
+                      z16.VnH(),
+                      z0.VnH(),
+                      90),
+                "fcmla z19.h, p7/m, z16.h, z0.h, #90");
+  COMPARE_MACRO(Fcmla(z19.VnS(),
+                      p7.Merging(),
+                      z19.VnS(),
+                      z16.VnS(),
+                      z0.VnS(),
+                      90),
+                "fcmla z19.s, p7/m, z16.s, z0.s, #90");
+  COMPARE_MACRO(Fcmla(z19.VnD(),
+                      p7.Merging(),
+                      z19.VnD(),
+                      z16.VnD(),
+                      z0.VnD(),
+                      90),
+                "fcmla z19.d, p7/m, z16.d, z0.d, #90");
 
-  COMPARE_PREFIX(fcmla(z20.VnD(), p6.Merging(), z15.VnD(), z1.VnD(), 0),
-                 "fcmla z20.d, p6/m, z15.d, z1.d, #0");
-  COMPARE_PREFIX(fcmla(z20.VnD(), p6.Merging(), z15.VnD(), z1.VnD(), 180),
-                 "fcmla z20.d, p6/m, z15.d, z1.d, #180");
-  COMPARE_PREFIX(fcmla(z20.VnD(), p6.Merging(), z15.VnD(), z1.VnD(), 270),
-                 "fcmla z20.d, p6/m, z15.d, z1.d, #270");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z20.VnD(),
+                      z15.VnD(),
+                      z1.VnD(),
+                      0),
+                "fcmla z20.d, p6/m, z15.d, z1.d, #0");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z20.VnD(),
+                      z15.VnD(),
+                      z1.VnD(),
+                      180),
+                "fcmla z20.d, p6/m, z15.d, z1.d, #180");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z20.VnD(),
+                      z15.VnD(),
+                      z1.VnD(),
+                      270),
+                "fcmla z20.d, p6/m, z15.d, z1.d, #270");
+
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z20.VnD(),
+                      z15.VnD(),
+                      z20.VnD(),
+                      270),
+                "fcmla z20.d, p6/m, z15.d, z20.d, #270");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z21.VnD(),
+                      z15.VnD(),
+                      z1.VnD(),
+                      270),
+                "movprfx z20.d, p6/m, z21.d\n"
+                "fcmla z20.d, p6/m, z15.d, z1.d, #270");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z21.VnD(),
+                      z20.VnD(),
+                      z1.VnD(),
+                      270),
+                "movprfx z31, z21\n"
+                "fcmla z31.d, p6/m, z20.d, z1.d, #270\n"
+                "mov z20.d, p6/m, z31.d");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z21.VnD(),
+                      z15.VnD(),
+                      z20.VnD(),
+                      270),
+                "movprfx z31, z21\n"
+                "fcmla z31.d, p6/m, z15.d, z20.d, #270\n"
+                "mov z20.d, p6/m, z31.d");
+  COMPARE_MACRO(Fcmla(z20.VnD(),
+                      p6.Merging(),
+                      z21.VnD(),
+                      z20.VnD(),
+                      z20.VnD(),
+                      270),
+                "movprfx z31, z21\n"
+                "fcmla z31.d, p6/m, z20.d, z20.d, #270\n"
+                "mov z20.d, p6/m, z31.d");
 
   CLEANUP();
 }

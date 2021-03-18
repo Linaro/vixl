@@ -2122,6 +2122,27 @@ void MacroAssembler::Fcadd(const ZRegister& zd,
   }
 }
 
+void MacroAssembler::Fcmla(const ZRegister& zd,
+                           const PRegisterM& pg,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           int rot) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  if ((zd.Aliases(zn) || zd.Aliases(zm)) && !zd.Aliases(za)) {
+    UseScratchRegisterScope temps(this);
+    ZRegister ztmp = temps.AcquireZ().WithSameLaneSizeAs(zd);
+    {
+      MovprfxHelperScope guard(this, ztmp, za);
+      fcmla(ztmp, pg, zn, zm, rot);
+    }
+    Mov(zd, pg, ztmp);
+  } else {
+    MovprfxHelperScope guard(this, zd, pg, za);
+    fcmla(zd, pg, zn, zm, rot);
+  }
+}
+
 void MacroAssembler::Splice(const ZRegister& zd,
                             const PRegister& pg,
                             const ZRegister& zn,

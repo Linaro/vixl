@@ -14643,8 +14643,8 @@ TEST_SVE(sve_fcmla_index) {
 
   // Create a reference result from a vector complex multiply.
   __ Dup(z6.VnH(), 0);
-  __ Fcmla(z6.VnH(), p0.Merging(), z0.VnH(), z2.VnH(), 0);
-  __ Fcmla(z6.VnH(), p0.Merging(), z0.VnH(), z2.VnH(), 90);
+  __ Fcmla(z6.VnH(), p0.Merging(), z6.VnH(), z0.VnH(), z2.VnH(), 0);
+  __ Fcmla(z6.VnH(), p0.Merging(), z6.VnH(), z0.VnH(), z2.VnH(), 90);
 
   // Repeated, but for wider elements.
   __ Fdup(z0.VnS(), 42.0);
@@ -14668,8 +14668,8 @@ TEST_SVE(sve_fcmla_index) {
   __ Fcmla(z8.VnS(), z0.VnS(), z3.VnS(), 0, 270);
   __ Fneg(z8.VnS(), p0.Merging(), z8.VnS());
   __ Dup(z9.VnS(), 0);
-  __ Fcmla(z9.VnS(), p0.Merging(), z0.VnS(), z2.VnS(), 0);
-  __ Fcmla(z9.VnS(), p0.Merging(), z0.VnS(), z2.VnS(), 90);
+  __ Fcmla(z9.VnS(), p0.Merging(), z9.VnS(), z0.VnS(), z2.VnS(), 0);
+  __ Fcmla(z9.VnS(), p0.Merging(), z9.VnS(), z0.VnS(), z2.VnS(), 90);
   END();
 
   if (CAN_RUN()) {
@@ -14712,8 +14712,8 @@ TEST_SVE(sve_fcmla) {
   //   ...      7      6   5   4      3      2   1   0     <-- element
   //   ... | 20+A^2 | 8A | 0 | 0 | 20+A^2 | 8A | 0 | 0 |   <-- value
   __ Dup(z5.VnH(), 0);
-  __ Fcmla(z5.VnH(), p3.Merging(), z4.VnH(), z3.VnH(), 0);
-  __ Fcmla(z5.VnH(), p3.Merging(), z4.VnH(), z3.VnH(), 90);
+  __ Fcmla(z5.VnH(), p3.Merging(), z5.VnH(), z4.VnH(), z3.VnH(), 0);
+  __ Fcmla(z5.VnH(), p3.Merging(), z5.VnH(), z4.VnH(), z3.VnH(), 90);
 
   // Move the odd results to the even result positions.
   //   ...   7   6      5      4   3   2      1      0     <-- element
@@ -14725,8 +14725,8 @@ TEST_SVE(sve_fcmla) {
   //   ...   7   6       5       4   3   2       1       0     <-- element
   //   ... | 0 | 0 | -20-A^2 | -8A | 0 | 0 | -20-A^2 | -8A |   <-- value
   __ Dup(z6.VnH(), 0);
-  __ Fcmla(z6.VnH(), p2.Merging(), z4.VnH(), z3.VnH(), 180);
-  __ Fcmla(z6.VnH(), p2.Merging(), z4.VnH(), z3.VnH(), 270);
+  __ Fcmla(z6.VnH(), p2.Merging(), z6.VnH(), z4.VnH(), z3.VnH(), 180);
+  __ Fcmla(z6.VnH(), p2.Merging(), z6.VnH(), z4.VnH(), z3.VnH(), 270);
 
   // Negate the even results. The results in z6 should now match the results
   // computed earlier in z5.
@@ -14749,12 +14749,12 @@ TEST_SVE(sve_fcmla) {
   __ Punpklo(p2.VnH(), p2.VnB());
   __ Punpklo(p3.VnH(), p3.VnB());
   __ Dup(z7.VnS(), 0);
-  __ Fcmla(z7.VnS(), p3.Merging(), z4.VnS(), z3.VnS(), 0);
-  __ Fcmla(z7.VnS(), p3.Merging(), z4.VnS(), z3.VnS(), 90);
+  __ Fcmla(z7.VnS(), p3.Merging(), z7.VnS(), z4.VnS(), z3.VnS(), 0);
+  __ Fcmla(z7.VnS(), p3.Merging(), z7.VnS(), z4.VnS(), z3.VnS(), 90);
   __ Ext(z7.VnB(), z7.VnB(), z7.VnB(), 8);
   __ Dup(z8.VnS(), 0);
-  __ Fcmla(z8.VnS(), p2.Merging(), z4.VnS(), z3.VnS(), 180);
-  __ Fcmla(z8.VnS(), p2.Merging(), z4.VnS(), z3.VnS(), 270);
+  __ Fcmla(z8.VnS(), p2.Merging(), z8.VnS(), z4.VnS(), z3.VnS(), 180);
+  __ Fcmla(z8.VnS(), p2.Merging(), z8.VnS(), z4.VnS(), z3.VnS(), 270);
   __ Fneg(z8.VnS(), p2.Merging(), z8.VnS());
 
   // Double precision computed for even lanes only.
@@ -14769,11 +14769,11 @@ TEST_SVE(sve_fcmla) {
   __ Sel(z4.VnD(), p2, z1.VnD(), z2.VnD());
   __ Punpklo(p2.VnH(), p2.VnB());
   __ Dup(z9.VnD(), 0);
-  __ Fcmla(z9.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 0);
-  __ Fcmla(z9.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 90);
+  __ Fcmla(z9.VnD(), p2.Merging(), z9.VnD(), z4.VnD(), z3.VnD(), 0);
+  __ Fcmla(z9.VnD(), p2.Merging(), z9.VnD(), z4.VnD(), z3.VnD(), 90);
   __ Dup(z10.VnD(), 0);
-  __ Fcmla(z10.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 180);
-  __ Fcmla(z10.VnD(), p2.Merging(), z4.VnD(), z3.VnD(), 270);
+  __ Fcmla(z10.VnD(), p2.Merging(), z10.VnD(), z4.VnD(), z3.VnD(), 180);
+  __ Fcmla(z10.VnD(), p2.Merging(), z10.VnD(), z4.VnD(), z3.VnD(), 270);
   __ Fneg(z10.VnD(), p2.Merging(), z10.VnD());
   END();
 
