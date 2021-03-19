@@ -1988,18 +1988,17 @@ void Simulator::Simulate_PdT_Xn_Xm(const Instruction* instr) {
 }
 
 void Simulator::Simulate_ZdB_Zn1B_Zn2B_imm(const Instruction* instr) {
-  SimVRegister& zd = ReadVRegister(instr->GetRd());
-  USE(zd);
-  SimVRegister& zn1 = ReadVRegister(instr->GetRn());
-  USE(zn1);
+  VIXL_ASSERT(form_hash_ == Hash("ext_z_zi_con"));
 
-  switch (form_hash_) {
-    case Hash("ext_z_zi_con"):
-      VIXL_UNIMPLEMENTED();
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zn2 = ReadVRegister((instr->GetRn() + 1) % kNumberOfZRegisters);
+
+  int index = instr->GetSVEExtractImmediate();
+  int vl = GetVectorLengthInBytes();
+  index = (index >= vl) ? 0 : index;
+
+  ext(kFormatVnB, zd, zn, zn2, index);
 }
 
 void Simulator::Simulate_ZdB_ZnB_ZmB(const Instruction* instr) {
@@ -12858,9 +12857,7 @@ void Simulator::VisitSVEPermuteVectorExtract(const Instruction* instr) {
   // Second source register "Zm" is encoded where "Zn" would usually be.
   SimVRegister& zm = ReadVRegister(instr->GetRn());
 
-  const int imm8h_mask = 0x001F0000;
-  const int imm8l_mask = 0x00001C00;
-  int index = instr->ExtractBits<imm8h_mask | imm8l_mask>();
+  int index = instr->GetSVEExtractImmediate();
   int vl = GetVectorLengthInBytes();
   index = (index >= vl) ? 0 : index;
 

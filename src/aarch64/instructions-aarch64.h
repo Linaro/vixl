@@ -359,9 +359,12 @@ class Instruction {
 
   std::pair<int, int> GetSVEImmShiftAndLaneSizeLog2(bool is_predicated) const;
 
+  int GetSVEExtractImmediate() const;
+
   int GetSVEMsizeFromDtype(bool is_signed, int dtype_h_lsb = 23) const;
 
   int GetSVEEsizeFromDtype(bool is_signed, int dtype_l_lsb = 21) const;
+
 
   unsigned GetImmNEONabcdefgh() const;
   VIXL_DEPRECATED("GetImmNEONabcdefgh", unsigned ImmNEONabcdefgh() const) {

@@ -5921,9 +5921,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Interleaving exclusive OR (top, bottom).
   void eortb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
-  // Extract vector from pair of vectors.
-  void ext(const ZRegister& zd, const ZRegister& zn1, const ZRegister& zn2);
-
   // Floating-point add pairwise.
   void faddp(const ZRegister& zd,
              const PRegisterM& pg,

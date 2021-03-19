@@ -5728,13 +5728,7 @@ TEST(sve_permute_vector_extract) {
                 "ext z2.b, z2.b, z10.b, #254");
   COMPARE_MACRO(Ext(z2.VnB(), z2.VnB(), z10.VnB(), 255),
                 "ext z2.b, z2.b, z10.b, #255");
-  COMPARE_MACRO(Ext(z2.VnB(), z4.VnB(), z10.VnB(), 127),
-                "movprfx z2, z4\n"
-                "ext z2.b, z2.b, z10.b, #127");
-  COMPARE_MACRO(Ext(z2.VnB(), z12.VnB(), z2.VnB(), 2),
-                "movprfx z31, z12\n"
-                "ext z31.b, z31.b, z2.b, #2\n"
-                "mov z2.d, z31.d");
+
   CLEANUP();
 }
 
@@ -8951,43 +8945,19 @@ TEST(sve2_sat_double_mul_high_index) {
   CLEANUP();
 }
 
-TEST(sve2_all_instructions) {
-  // TODO: split these instructions into more logical groups.
+TEST(sve2_extract) {
   SETUP();
 
-  // COMPARE_PREFIX(ext(z13.VnB(), z11.VnB(), z12.VnB()), "ext z13.b, { z15.b,
-  // z16.b }, #<imm>");
-  // COMPARE_PREFIX(mul(z13.VnH(), z14.VnH()), "mul z13.d, z14.d,
-  // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(mul(z14.VnD(), z26.VnD()), "mul z14.d, z26.d,
-  // <Zm>.d[<imm>]");
-  // COMPARE_PREFIX(pmullb(z12.Vn?(), z21, z12), "pmullb <Zd>.<T>, <Zn>.<Tb>,
-  // <Zm>.<Tb>");
-  // COMPARE_PREFIX(pmullt(z31.Vn?(), z30, z26), "pmullt <Zd>.<T>, <Zn>.<Tb>,
-  // <Zm>.<Tb>");
-  // COMPARE_PREFIX(sqdmullb(z1.VnD(), z31, z23), "sqdmullb z1.d, z31, z23");
-  // COMPARE_PREFIX(sqdmullb(z1.VnH(), z31, z23), "sqdmullb z1.h, z31, z23");
-  // COMPARE_PREFIX(sqdmullb(z1.VnS(), z27.VnH()), "sqdmullb z1.d, z27.s,
-  // <Zm>.s[<imm>]");
-  // COMPARE_PREFIX(sqdmullb(z1.VnS(), z31, z23), "sqdmullb z1.s, z31, z23");
-  // COMPARE_PREFIX(sqdmullb(z27.VnD(), z16.VnS()), "sqdmullb z27.d, z16.s,
-  // <Zm>.s[<imm>]");
-  // COMPARE_PREFIX(sqdmullt(z2.VnD(), z11, z15), "sqdmullt z2.d, z11, z15");
-  // COMPARE_PREFIX(sqdmullt(z2.VnH(), z11, z15), "sqdmullt z2.h, z11, z15");
-  // COMPARE_PREFIX(sqdmullt(z2.VnS(), z11, z15), "sqdmullt z2.s, z11, z15");
-  // COMPARE_PREFIX(sqdmullt(z23.VnS(), z28.VnH()), "sqdmullt z23.d, z28.s,
-  // <Zm>.s[<imm>]");
-  // COMPARE_PREFIX(sqdmullt(z7.VnD(), z4.VnS()), "sqdmullt z7.d, z4.s,
-  // <Zm>.s[<imm>]");
-  // COMPARE_PREFIX(sqrdcmlah(z31.VnB(), z15.VnB(), z20.VnB()), "sqrdcmlah
-  // z31.b, z15.b, z20.b, <const>");
-  // COMPARE_PREFIX(sqrdcmlah(z31.VnD(), z15.VnD(), z20.VnD()), "sqrdcmlah
-  // z31.d, z15.d, z20.d, <const>");
-  // COMPARE_PREFIX(sqrdcmlah(z31.VnH(), z15.VnH(), z20.VnH()), "sqrdcmlah
-  // z31.h, z15.h, z20.h, <const>");
-  // COMPARE_PREFIX(sqrdcmlah(z31.VnS(), z15.VnS(), z20.VnS()), "sqrdcmlah
-  // z31.s, z15.s, z20.s, <const>");
-  // <Zm>.d[<imm>]");
+  COMPARE_MACRO(Ext(z0.VnB(), z1.VnB(), z2.VnB(), 2),
+                "ext z0.b, {z1.b, z2.b}, #2");
+  COMPARE_MACRO(Ext(z0.VnB(), z31.VnB(), z0.VnB(), 255),
+                "ext z0.b, {z31.b, z0.b}, #255");
+  COMPARE_MACRO(Ext(z0.VnB(), z31.VnB(), z0.VnB(), 0),
+                "ext z0.b, {z31.b, z0.b}, #0");
+
+  // Check destructive form is preferred over constructive.
+  COMPARE_MACRO(Ext(z0.VnB(), z0.VnB(), z1.VnB(), 42),
+                "ext z0.b, z0.b, z1.b, #42");
 
   CLEANUP();
 }

@@ -4109,7 +4109,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ext(const ZRegister& zd,
            const ZRegister& zn,
            const ZRegister& zm,
-           unsigned offset);
+           unsigned offset) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ext(zd, zn, zm, offset);
+  }
   void Fabd(const ZRegister& zd,
             const PRegisterM& pg,
             const ZRegister& zn,
@@ -6465,11 +6469,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     eortb(zd, zn, zm);
-  }
-  void Ext(const ZRegister& zd, const ZRegister& zn1, const ZRegister& zn2) {
-    VIXL_ASSERT(allow_macro_instructions_);
-    SingleEmissionCheckScope guard(this);
-    ext(zd, zn1, zn2);
   }
   void Faddp(const ZRegister& zd,
              const PRegisterM& pg,

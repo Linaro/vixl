@@ -703,6 +703,12 @@ int Instruction::GetSVEBitwiseImmLaneSizeInBytesLog2() const {
   }
 }
 
+int Instruction::GetSVEExtractImmediate() const {
+  const int imm8h_mask = 0x001F0000;
+  const int imm8l_mask = 0x00001C00;
+  return ExtractBits<imm8h_mask | imm8l_mask>();
+}
+
 uint64_t Instruction::DecodeImmBitMask(int32_t n,
                                        int32_t imm_s,
                                        int32_t imm_r,

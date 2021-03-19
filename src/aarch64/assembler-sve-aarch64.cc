@@ -5596,14 +5596,27 @@ void Assembler::ext(const ZRegister& zd,
   //  0000 0101 001. .... 000. .... .... ....
   //  imm8h<20:16> | imm8l<12:10> | Zm<9:5> | Zdn<4:0>
 
-  USE(zn);
+  // EXT <Zd>.B, { <Zn1>.B, <Zn2>.B }, #<imm>
+  //  0000 0101 011. .... 000. .... .... ....
+  //  imm8h<20:16> | imm8l<12:10> | Zn<9:5> | Zd<4:0>
+
   VIXL_ASSERT(CPUHas(CPUFeatures::kSVE));
-  VIXL_ASSERT(zd.Is(zn));
   VIXL_ASSERT(IsUint8(offset));
 
   int imm8h = ExtractUnsignedBitfield32(7, 3, offset);
   int imm8l = ExtractUnsignedBitfield32(2, 0, offset);
-  Emit(EXT_z_zi_des | Rd(zd) | Rn(zm) | ImmUnsignedField<20, 16>(imm8h) |
+
+  Instr op;
+  if (zd.Is(zn)) {
+    // Destructive form.
+    op = EXT_z_zi_des | Rn(zm);
+  } else {
+    // Constructive form (requires SVE2).
+    VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2) && AreConsecutive(zn, zm));
+    op = 0x05600000 | Rn(zn);
+  }
+
+  Emit(op | Rd(zd) | ImmUnsignedField<20, 16>(imm8h) |
        ImmUnsignedField<12, 10>(imm8l));
 }
 
@@ -6962,20 +6975,6 @@ void Assembler::eortb(const ZRegister& zd,
   VIXL_ASSERT(AreSameLaneSize(zd, zn, zm));
 
   Emit(0x45009400 | SVESize(zd) | Rd(zd) | Rn(zn) | Rm(zm));
-}
-
-void Assembler::ext(const ZRegister& zd,
-                    const ZRegister& zn1,
-                    const ZRegister& zn2) {
-  // EXT <Zd>.B, { <Zn1>.B, <Zn2>.B }, #<imm>
-  //  0000 0101 011. .... 000. .... .... ....
-  //  imm8h<20:16> | imm8l<12:10> | Zn<9:5> | Zd<4:0>
-
-  USE(zn2);
-  VIXL_ASSERT(CPUHas(CPUFeatures::kSVE2));
-  VIXL_ASSERT(AreConsecutive(zn1, zn2));
-
-  Emit(0x05600000 | Rd(zd) | Rn(zn1) | Rn(zn2));
 }
 
 void Assembler::faddp(const ZRegister& zd,
