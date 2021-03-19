@@ -3896,22 +3896,28 @@ TEST(neon_fcvtn) {
   }
 }
 
-TEST(neon_fcvtn_regression_test) {
+TEST(neon_fcvtn_fcvtxn_regression_test) {
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
 
   START();
-
   __ Movi(v0.V2D(), 0x3ff0000000000000, 0xbff0000000000000);
   __ Movi(v1.V2D(), 0x3f800000bf800000, 0x40000000c0000000);
+  __ Movi(v2.V2D(), 0x3ff0000000000000, 0xbff0000000000000);
 
   __ Fcvtn(v16.V2S(), v0.V2D());
   __ Fcvtn(v17.V4H(), v1.V4S());
+  __ Fcvtn(v0.V2S(), v0.V2D());
+  __ Fcvtn(v1.V4H(), v1.V4S());
+  __ Fcvtxn(v2.V2S(), v2.V2D());
   END();
 
   if (CAN_RUN()) {
     RUN();
     ASSERT_EQUAL_128(0x0000000000000000, 0x3f800000bf800000, q16);
     ASSERT_EQUAL_128(0x0000000000000000, 0x3c00bc004000c000, q17);
+    ASSERT_EQUAL_128(0x0000000000000000, 0x3f800000bf800000, q0);
+    ASSERT_EQUAL_128(0x0000000000000000, 0x3c00bc004000c000, q1);
+    ASSERT_EQUAL_128(0x0000000000000000, 0x3f800000bf800000, q2);
   }
 }
 

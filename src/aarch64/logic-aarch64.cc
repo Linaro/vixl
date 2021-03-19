@@ -5814,17 +5814,20 @@ LogicVRegister Simulator::fcvtl2(VectorFormat vform,
 LogicVRegister Simulator::fcvtn(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
+  SimVRegister tmp;
+  LogicVRegister srctmp = mov(kFormat2D, tmp, src);
   dst.ClearForWrite(vform);
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       dst.SetFloat(i,
-                   Float16ToRawbits(
-                       FPToFloat16(src.Float<float>(i), FPTieEven, ReadDN())));
+                   Float16ToRawbits(FPToFloat16(srctmp.Float<float>(i),
+                                                FPTieEven,
+                                                ReadDN())));
     }
   } else {
     VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-      dst.SetFloat(i, FPToFloat(src.Float<double>(i), FPTieEven, ReadDN()));
+      dst.SetFloat(i, FPToFloat(srctmp.Float<double>(i), FPTieEven, ReadDN()));
     }
   }
   return dst;
@@ -5855,10 +5858,12 @@ LogicVRegister Simulator::fcvtn2(VectorFormat vform,
 LogicVRegister Simulator::fcvtxn(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
+  SimVRegister tmp;
+  LogicVRegister srctmp = mov(kFormat2D, tmp, src);
   dst.ClearForWrite(vform);
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.SetFloat(i, FPToFloat(src.Float<double>(i), FPRoundOdd, ReadDN()));
+    dst.SetFloat(i, FPToFloat(srctmp.Float<double>(i), FPRoundOdd, ReadDN()));
   }
   return dst;
 }
