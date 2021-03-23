@@ -67,6 +67,36 @@ Refer to the 'Usage' section for details.
 Note that in Ubuntu 18.04, clang-tidy-4.0 will only work if the clang-4.0
 package is also installed.
 
+Supported Arm Architecture Features
+===================================
+
+| Feature | VIXL CPUFeatures Flag | Notes                           |
+|---------|-----------------------|---------------------------------|
+| LOR     | kLORegions            |                                 |
+| LSE     | kAtomics              |                                 |
+| RDM     | kRDM                  |                                 |
+| DotProd | kDotProduct           |                                 |
+| FHM     | kFHM                  |                                 |
+| FP16    | kFPHalf, kNEONHalf    |                                 |
+| RAS     | kRAS                  |                                 |
+| SVE     | kSVE                  |                                 |
+| FCMA    | kFcma                 |                                 |
+| JSCVT   | kJSCVT                |                                 |
+| LRCPC   | kRCpc                 |                                 |
+| PAuth   | kPAuth, kPAuthGeneric | Not ERETAA, ERETAB              |
+| FlagM   | kFlagM                |                                 |
+| LRCPC2  | kRCpcImm              |                                 |
+| BTI     | kBTI                  | Per-page enabling not supported |
+| FRINTTS | kFrintToFixedSizedInt |                                 |
+| FlagM2  | kAXFlag               |                                 |
+| SVE2    | kSVE2                 |                                 |
+
+Enable generating code for an architecture feature by combining a flag with
+the MacroAssembler's defaults. For example, to generate code for SVE, use
+`masm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);`.
+
+See [the cpu features header file](src/cpu-features.h) for more information.
+
 
 Known Limitations
 =================
@@ -165,9 +195,9 @@ selection.
 Bug reports
 ===========
 
-Bug reports may be sent to vixl@arm.com. Please provide any steps required to
-recreate a bug, along with build environment and host system information.
-
+Bug reports may be made in the Issues section of GitHub, or sent to
+vixl@arm.com. Please provide any steps required to recreate a bug, along with
+build environment and host system information.
 
 Usage
 =====
