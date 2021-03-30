@@ -2195,7 +2195,7 @@ void Simulator::Simulate_ZdH_PgM_ZnS(const Instruction* instr) {
 
   switch (form_hash_) {
     case Hash("fcvtnt_z_p_z_s2h"):
-      fcvt(kFormatVnS, kHRegSize, kSRegSize, result, pg, zn);
+      fcvt(kFormatVnH, kFormatVnS, result, pg, zn);
       pack_even_elements(kFormatVnH, result, result);
       zip1(kFormatVnH, result, zd_b, result);
       break;
@@ -2216,7 +2216,7 @@ void Simulator::Simulate_ZdS_PgM_ZnD(const Instruction* instr) {
 
   switch (form_hash_) {
     case Hash("fcvtnt_z_p_z_d2s"):
-      fcvt(kFormatVnD, kSRegSize, kDRegSize, result, pg, zn);
+      fcvt(kFormatVnS, kFormatVnD, result, pg, zn);
       pack_even_elements(kFormatVnS, result, result);
       zip1(kFormatVnS, result, zd_b, result);
       break;
@@ -2243,11 +2243,11 @@ void Simulator::SimulateSVEFPConvertLong(const Instruction* instr) {
   switch (form_hash_) {
     case Hash("fcvtlt_z_p_z_h2s"):
       ext(kFormatVnB, result, zn, zn, kHRegSizeInBytes);
-      fcvt(kFormatVnS, kSRegSize, kHRegSize, zd, pg, result);
+      fcvt(kFormatVnS, kFormatVnH, zd, pg, result);
       break;
     case Hash("fcvtlt_z_p_z_s2d"):
       ext(kFormatVnB, result, zn, zn, kSRegSizeInBytes);
-      fcvt(kFormatVnD, kDRegSize, kSRegSize, zd, pg, result);
+      fcvt(kFormatVnD, kFormatVnS, zd, pg, result);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -10366,44 +10366,40 @@ void Simulator::VisitSVEFPConvertPrecision(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
-  int dst_data_size;
-  int src_data_size;
+  VectorFormat dst_data_size = kFormatUndefined;
+  VectorFormat src_data_size = kFormatUndefined;
 
   switch (instr->Mask(SVEFPConvertPrecisionMask)) {
     case FCVT_z_p_z_d2h:
-      dst_data_size = kHRegSize;
-      src_data_size = kDRegSize;
+      dst_data_size = kFormatVnH;
+      src_data_size = kFormatVnD;
       break;
     case FCVT_z_p_z_d2s:
-      dst_data_size = kSRegSize;
-      src_data_size = kDRegSize;
+      dst_data_size = kFormatVnS;
+      src_data_size = kFormatVnD;
       break;
     case FCVT_z_p_z_h2d:
-      dst_data_size = kDRegSize;
-      src_data_size = kHRegSize;
+      dst_data_size = kFormatVnD;
+      src_data_size = kFormatVnH;
       break;
     case FCVT_z_p_z_h2s:
-      dst_data_size = kSRegSize;
-      src_data_size = kHRegSize;
+      dst_data_size = kFormatVnS;
+      src_data_size = kFormatVnH;
       break;
     case FCVT_z_p_z_s2d:
-      dst_data_size = kDRegSize;
-      src_data_size = kSRegSize;
+      dst_data_size = kFormatVnD;
+      src_data_size = kFormatVnS;
       break;
     case FCVT_z_p_z_s2h:
-      dst_data_size = kHRegSize;
-      src_data_size = kSRegSize;
+      dst_data_size = kFormatVnH;
+      src_data_size = kFormatVnS;
       break;
     default:
       VIXL_UNIMPLEMENTED();
-      dst_data_size = 0;
-      src_data_size = 0;
       break;
   }
-  VectorFormat vform =
-      SVEFormatFromLaneSizeInBits(std::max(dst_data_size, src_data_size));
 
-  fcvt(vform, dst_data_size, src_data_size, zd, pg, zn);
+  fcvt(dst_data_size, src_data_size, zd, pg, zn);
 }
 
 void Simulator::VisitSVEFPUnaryOp(const Instruction* instr) {

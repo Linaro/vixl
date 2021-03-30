@@ -4229,9 +4229,8 @@ class Simulator : public DecoderVisitor {
                        FPRounding rounding_mode,
                        bool inexact_exception = false,
                        FrintMode frint_mode = kFrintToInteger);
-  LogicVRegister fcvt(VectorFormat vform,
-                      unsigned dst_data_size_in_bits,
-                      unsigned src_data_size_in_bits,
+  LogicVRegister fcvt(VectorFormat dst_vform,
+                      VectorFormat src_vform,
                       LogicVRegister dst,
                       const LogicPRegister& pg,
                       const LogicVRegister& src);

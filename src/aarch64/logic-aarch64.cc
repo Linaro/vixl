@@ -6023,14 +6023,15 @@ LogicVRegister Simulator::frint(VectorFormat vform,
   return dst;
 }
 
-LogicVRegister Simulator::fcvt(VectorFormat vform,
-                               unsigned dst_data_size_in_bits,
-                               unsigned src_data_size_in_bits,
+LogicVRegister Simulator::fcvt(VectorFormat dst_vform,
+                               VectorFormat src_vform,
                                LogicVRegister dst,
                                const LogicPRegister& pg,
                                const LogicVRegister& src) {
-  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
-  VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+  unsigned dst_data_size_in_bits = LaneSizeInBitsFromFormat(dst_vform);
+  unsigned src_data_size_in_bits = LaneSizeInBitsFromFormat(src_vform);
+  VectorFormat vform = SVEFormatFromLaneSizeInBits(
+      std::max(dst_data_size_in_bits, src_data_size_in_bits));
 
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     if (!pg.IsActive(vform, i)) continue;
