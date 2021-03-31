@@ -1,5 +1,5 @@
-VIXL: ARMv8 Runtime Code Generation Library, Development Version
-================================================================
+VIXL: ARMv8 Runtime Code Generation Library
+===========================================
 
 Contents:
 
@@ -7,6 +7,7 @@ Contents:
  * Licence
  * Requirements
  * Known limitations
+ * Bug reports
  * Usage
 
 
@@ -23,10 +24,14 @@ VIXL contains three components.
     assembler. The simulator allows generated code to be run on another
     architecture without the need for a full ISA model.
 
-The VIXL git repository can be found [on 'https://git.linaro.org'][vixl].
+The VIXL git repository can be found [on GitHub][vixl].
 
-Changes from previous versions of VIXL can be found in the
-[Changelog](doc/changelog.md).
+Build and Test Status
+---------------------
+
+  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit)](https://ci.linaro.org/job/linaro-art-vixlpresubmit/) Simulator
+  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit-native-armv8)](https://ci.linaro.org/job/linaro-art-vixlpresubmit-native-armv8/) Native
+  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit-macos)](https://ci.linaro.org/job/linaro-art-vixlpresubmit-macos/) MacOS
 
 
 Licence
@@ -63,8 +68,8 @@ Note that in Ubuntu 18.04, clang-tidy-4.0 will only work if the clang-4.0
 package is also installed.
 
 
-Known Limitations for AArch64 code generation
-=============================================
+Known Limitations
+=================
 
 VIXL was developed for JavaScript engines so a number of features from A64 were
 deemed unnecessary:
@@ -82,11 +87,6 @@ The VIXL simulator was developed to run on 64-bit amd64 platforms. Whilst it
 builds and mostly works for 32-bit x86 platforms, there are a number of
 floating-point operations which do not work correctly, and a number of tests
 fail as a result.
-
-VIXL may not build using Clang 3.7, due to a compiler warning. A workaround is
-to disable conversion of warnings to errors, or to delete the offending
-`return` statement reported and rebuild. This problem will be fixed in the next
-release.
 
 Debug Builds
 ------------
@@ -162,6 +162,13 @@ instructions precisely, because, subject to the limitations described above, it
 offers an additional layer of protection against logic bugs in instruction
 selection.
 
+Bug reports
+===========
+
+Bug reports may be sent to vixl@arm.com. Please provide any steps required to
+recreate a bug, along with build environment and host system information.
+
+
 Usage
 =====
 
@@ -210,11 +217,11 @@ aarch32_examples` or `scons aarch64_examples` from the root directory, or use
 
 
 
-[cpplint]: http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py
+[cpplint]: https://github.com/google/styleguide/tree/gh-pages/cpplint
            "Google's cpplint.py script."
 
-[vixl]: https://git.linaro.org/arm/vixl.git
-        "The VIXL repository at 'https://git.linaro.org'."
+[vixl]: https://github.com/Linaro/vixl
+        "The VIXL repository on GitHub."
 
 [getting-started-aarch32]: doc/aarch32/getting-started-aarch32.md
                            "Introduction to VIXL for AArch32."

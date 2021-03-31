@@ -2029,9 +2029,9 @@ TEST(frint32x_s) {
   __ Fmov(s24, -0.2);
   __ Fmov(s25, kFP32DefaultNaN);
   __ Fmov(s26, INT32_MIN);
-  __ Fmov(s27, INT32_MIN + 1);
-  __ Fmov(s28, INT32_MAX);
-  __ Fmov(s29, INT32_MAX - 1);
+  __ Fmov(s27, INT32_MIN + 0x80);  // The next representable FP32.
+  __ Fmov(s28, 0x80000000);
+  __ Fmov(s29, 0x7fffff80);  // The largest int32_t representable as FP32.
   __ Fmov(s30, FLT_MIN);
   __ Fmov(s31, FLT_MAX);
 
@@ -2072,11 +2072,11 @@ TEST(frint32x_s) {
     ASSERT_EQUAL_FP32(0.0, s9);
     ASSERT_EQUAL_FP32(-0.0, s10);
     ASSERT_EQUAL_FP32(-0.0, s11);
-    ASSERT_EQUAL_FP32(INT32_MIN, s12);
+    ASSERT_EQUAL_FP32(INT32_MIN, s12);  // NaN.
     ASSERT_EQUAL_FP32(INT32_MIN, s13);
-    ASSERT_EQUAL_FP32(INT32_MIN + 1, s14);
-    ASSERT_EQUAL_FP32(INT32_MIN, s15);
-    ASSERT_EQUAL_FP32(INT32_MIN, s16);
+    ASSERT_EQUAL_FP32(INT32_MIN + 0x80, s14);
+    ASSERT_EQUAL_FP32(INT32_MIN, s15);  // Out of range.
+    ASSERT_EQUAL_FP32(0x7fffff80, s16);
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT32_MIN, s18);
   }
@@ -2173,9 +2173,9 @@ TEST(frint32z_s) {
   __ Fmov(s24, -0.2);
   __ Fmov(s25, kFP32DefaultNaN);
   __ Fmov(s26, INT32_MIN);
-  __ Fmov(s27, INT32_MIN + 1);
-  __ Fmov(s28, INT32_MAX);
-  __ Fmov(s29, INT32_MAX - 1);
+  __ Fmov(s27, INT32_MIN + 0x80);  // The next representable FP32.
+  __ Fmov(s28, 0x80000000);
+  __ Fmov(s29, 0x7fffff80);  // The largest int32_t representable as FP32.
   __ Fmov(s30, FLT_MIN);
   __ Fmov(s31, FLT_MAX);
 
@@ -2216,11 +2216,11 @@ TEST(frint32z_s) {
     ASSERT_EQUAL_FP32(0.0, s9);
     ASSERT_EQUAL_FP32(-0.0, s10);
     ASSERT_EQUAL_FP32(-0.0, s11);
-    ASSERT_EQUAL_FP32(INT32_MIN, s12);
+    ASSERT_EQUAL_FP32(INT32_MIN, s12);  // NaN.
     ASSERT_EQUAL_FP32(INT32_MIN, s13);
-    ASSERT_EQUAL_FP32(INT32_MIN + 1, s14);
-    ASSERT_EQUAL_FP32(INT32_MIN, s15);
-    ASSERT_EQUAL_FP32(INT32_MIN, s16);
+    ASSERT_EQUAL_FP32(INT32_MIN + 0x80, s14);
+    ASSERT_EQUAL_FP32(INT32_MIN, s15);  // Out of range.
+    ASSERT_EQUAL_FP32(0x7fffff80, s16);
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT32_MIN, s18);
   }
@@ -2317,9 +2317,10 @@ TEST(frint64x_s) {
   __ Fmov(s24, -0.2);
   __ Fmov(s25, kFP64DefaultNaN);
   __ Fmov(s26, INT64_MIN);
-  __ Fmov(s27, INT64_MIN + 1);
-  __ Fmov(s28, INT64_MAX);
-  __ Fmov(s29, INT64_MAX - 1);
+  __ Fmov(s27, INT64_MIN + 0x80'00000000);  // The next representable FP32.
+  __ Fmov(s28, 0x80000000'00000000);
+  // The largest int64_t representable as FP32.
+  __ Fmov(s29, 0x7fffff80'00000000);
   __ Fmov(s30, FLT_MIN);
   __ Fmov(s31, FLT_MAX);
 
@@ -2360,11 +2361,11 @@ TEST(frint64x_s) {
     ASSERT_EQUAL_FP32(0.0, s9);
     ASSERT_EQUAL_FP32(-0.0, s10);
     ASSERT_EQUAL_FP32(-0.0, s11);
-    ASSERT_EQUAL_FP32(INT64_MIN, s12);
+    ASSERT_EQUAL_FP32(INT64_MIN, s12);  // Nan.
     ASSERT_EQUAL_FP32(INT64_MIN, s13);
-    ASSERT_EQUAL_FP32(INT64_MIN + 1, s14);
-    ASSERT_EQUAL_FP32(INT64_MAX, s15);
-    ASSERT_EQUAL_FP32(INT64_MAX - 1, s16);
+    ASSERT_EQUAL_FP32(INT64_MIN + 0x80'00000000, s14);
+    ASSERT_EQUAL_FP32(INT64_MIN, s15);  // Out of range.
+    ASSERT_EQUAL_FP32(0x7fffff80'00000000, s16);
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT64_MIN, s18);
   }
@@ -2389,9 +2390,10 @@ TEST(frint64x_d) {
   __ Fmov(d24, -0.2);
   __ Fmov(d25, kFP64DefaultNaN);
   __ Fmov(d26, INT64_MIN);
-  __ Fmov(d27, INT64_MIN + 1);
-  __ Fmov(d28, INT64_MAX);
-  __ Fmov(d29, INT64_MAX - 1);
+  __ Fmov(d27, INT64_MIN + 0x400);  // The next representable FP64.
+  __ Fmov(d28, 0x80000000'00000000);
+  // The largest int64_t representable as FP64.
+  __ Fmov(d29, 0x7fffffff'fffffc00);
   __ Fmov(d30, FLT_MIN);
   __ Fmov(d31, FLT_MAX);
 
@@ -2432,11 +2434,11 @@ TEST(frint64x_d) {
     ASSERT_EQUAL_FP64(0.0, d9);
     ASSERT_EQUAL_FP64(-0.0, d10);
     ASSERT_EQUAL_FP64(-0.0, d11);
-    ASSERT_EQUAL_FP64(INT64_MIN, d12);
+    ASSERT_EQUAL_FP64(INT64_MIN, d12);  // NaN.
     ASSERT_EQUAL_FP64(INT64_MIN, d13);
-    ASSERT_EQUAL_FP64(INT64_MIN, d14);
-    ASSERT_EQUAL_FP64(INT64_MAX, d15);
-    ASSERT_EQUAL_FP64(INT64_MAX, d16);
+    ASSERT_EQUAL_FP64(INT64_MIN + 0x400, d14);
+    ASSERT_EQUAL_FP64(INT64_MIN, d15);  // Out of range.
+    ASSERT_EQUAL_FP64(0x7fffffff'fffffc00, d16);
     ASSERT_EQUAL_FP64(0, d17);
     ASSERT_EQUAL_FP64(INT64_MIN, d18);
   }
@@ -2461,9 +2463,10 @@ TEST(frint64z_s) {
   __ Fmov(s24, -0.2);
   __ Fmov(s25, kFP64DefaultNaN);
   __ Fmov(s26, INT64_MIN);
-  __ Fmov(s27, INT64_MIN + 1);
-  __ Fmov(s28, INT64_MAX);
-  __ Fmov(s29, INT64_MAX - 1);
+  __ Fmov(s27, INT64_MIN + 0x80'00000000);  // The next representable FP32.
+  __ Fmov(s28, 0x80000000'00000000);
+  // The largest int64_t representable as FP32.
+  __ Fmov(s29, 0x7fffff80'00000000);
   __ Fmov(s30, FLT_MIN);
   __ Fmov(s31, FLT_MAX);
 
@@ -2504,11 +2507,11 @@ TEST(frint64z_s) {
     ASSERT_EQUAL_FP32(0.0, s9);
     ASSERT_EQUAL_FP32(-0.0, s10);
     ASSERT_EQUAL_FP32(-0.0, s11);
-    ASSERT_EQUAL_FP32(INT64_MIN, s12);
+    ASSERT_EQUAL_FP32(INT64_MIN, s12);  // Nan.
     ASSERT_EQUAL_FP32(INT64_MIN, s13);
-    ASSERT_EQUAL_FP32(INT64_MIN + 1, s14);
-    ASSERT_EQUAL_FP32(INT64_MAX, s15);
-    ASSERT_EQUAL_FP32(INT64_MAX - 1, s16);
+    ASSERT_EQUAL_FP32(INT64_MIN + 0x80'00000000, s14);
+    ASSERT_EQUAL_FP32(INT64_MIN, s15);  // Out of range.
+    ASSERT_EQUAL_FP32(0x7fffff80'00000000, s16);
     ASSERT_EQUAL_FP32(0, s17);
     ASSERT_EQUAL_FP32(INT64_MIN, s18);
   }
@@ -2533,9 +2536,10 @@ TEST(frint64z_d) {
   __ Fmov(d24, -0.2);
   __ Fmov(d25, kFP64DefaultNaN);
   __ Fmov(d26, INT64_MIN);
-  __ Fmov(d27, INT64_MIN + 1);
-  __ Fmov(d28, INT64_MAX);
-  __ Fmov(d29, INT64_MAX - 1);
+  __ Fmov(d27, INT64_MIN + 0x400);  // The next representable FP64.
+  __ Fmov(d28, 0x80000000'00000000);
+  // The largest int64_t representable as FP64.
+  __ Fmov(d29, 0x7fffffff'fffffc00);
   __ Fmov(d30, FLT_MIN);
   __ Fmov(d31, FLT_MAX);
 
@@ -2576,11 +2580,11 @@ TEST(frint64z_d) {
     ASSERT_EQUAL_FP64(0.0, d9);
     ASSERT_EQUAL_FP64(-0.0, d10);
     ASSERT_EQUAL_FP64(-0.0, d11);
-    ASSERT_EQUAL_FP64(INT64_MIN, d12);
+    ASSERT_EQUAL_FP64(INT64_MIN, d12);  // NaN.
     ASSERT_EQUAL_FP64(INT64_MIN, d13);
-    ASSERT_EQUAL_FP64(INT64_MIN, d14);
-    ASSERT_EQUAL_FP64(INT64_MAX, d15);
-    ASSERT_EQUAL_FP64(INT64_MAX, d16);
+    ASSERT_EQUAL_FP64(INT64_MIN + 0x400, d14);
+    ASSERT_EQUAL_FP64(INT64_MIN, d15);  // Out of range.
+    ASSERT_EQUAL_FP64(0x7fffffff'fffffc00, d16);
     ASSERT_EQUAL_FP64(0, d17);
     ASSERT_EQUAL_FP64(INT64_MIN, d18);
   }

@@ -203,7 +203,7 @@ const uint64_t kExpected_frint64z_d[] = {
   0xc3e0000000000000,
   0xc3dfffffffffffff,
   0x43dfffffffffffff,
-  0x43e0000000000000,
+  0xc3e0000000000000,
   0xc3e0000000000000,
   0xc3e0000000000000,
   0xc1e0000000200000,

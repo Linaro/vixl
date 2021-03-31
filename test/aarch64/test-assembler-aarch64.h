@@ -85,17 +85,27 @@ namespace aarch64 {
 
 #define SETUP()        \
   MacroAssembler masm; \
-  SETUP_COMMON()
+  SETUP_COMMON();      \
+  SETUP_COMMON_SIM()
 
 #define SETUP_WITH_FEATURES(...)                 \
   MacroAssembler masm;                           \
   SETUP_COMMON();                                \
+  SETUP_COMMON_SIM();                            \
   masm.SetCPUFeatures(CPUFeatures(__VA_ARGS__)); \
   simulator.SetCPUFeatures(CPUFeatures(__VA_ARGS__))
 
 #define SETUP_CUSTOM(size, pic)                                  \
   MacroAssembler masm(size + CodeBuffer::kDefaultCapacity, pic); \
-  SETUP_COMMON()
+  SETUP_COMMON();                                                \
+  SETUP_COMMON_SIM()
+
+#define SETUP_CUSTOM_SIM(...)                                   \
+  MacroAssembler masm;                                          \
+  SETUP_COMMON();                                               \
+  Simulator simulator(&simulator_decoder, stdout, __VA_ARGS__); \
+  simulator.SetColouredTrace(Test::coloured_trace());           \
+  simulator.SetCPUFeatures(CPUFeatures::None())
 
 #define SETUP_COMMON()                                                   \
   bool queried_can_run = false;                                          \
@@ -106,12 +116,14 @@ namespace aarch64 {
   masm.SetCPUFeatures(CPUFeatures::None());                              \
   masm.SetGenerateSimulatorCode(true);                                   \
   Decoder simulator_decoder;                                             \
-  Simulator simulator(&simulator_decoder);                               \
-  simulator.SetColouredTrace(Test::coloured_trace());                    \
-  simulator.SetCPUFeatures(CPUFeatures::None());                         \
   RegisterDump core;                                                     \
   ptrdiff_t offset_after_infrastructure_start;                           \
   ptrdiff_t offset_before_infrastructure_end
+
+#define SETUP_COMMON_SIM()                            \
+  Simulator simulator(&simulator_decoder);            \
+  simulator.SetColouredTrace(Test::coloured_trace()); \
+  simulator.SetCPUFeatures(CPUFeatures::None())
 
 #define START()                                                               \
   masm.Reset();                                                               \

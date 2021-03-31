@@ -72,7 +72,7 @@ TEST(defaults) {
 TEST(reset) {
   CodeBuffer buffer;
   // Update the buffer by writing to it.
-  buffer.Emit("dummy data");
+  buffer.Emit("placeholder data");
   VIXL_CHECK(buffer.IsDirty());
   VIXL_CHECK(buffer.GetSizeInBytes() > 0);
   // Calling Reset() should reset it back to its default state. (It does not

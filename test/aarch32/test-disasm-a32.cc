@@ -2507,37 +2507,43 @@ TEST(macro_assembler_PushRegisterList) {
               "beq 0x00000006\n"
               "push {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
 
-  COMPARE_A32(Push(RegisterList(sp)), "stmdb sp!, {sp}\n");
+  // Narrow form, T1.
+  COMPARE_T32(Pop(RegisterList(r0)), "pop {r0}\n");
+  // <single_register_list> form, T4
+  COMPARE_T32(Pop(RegisterList(r10)), "pop {r10}\n");
 
-  // TODO: Clarify behaviour of MacroAssembler vs Assembler with respect to
-  //       deprecated and unpredictable instructions. The tests reflect the
-  //       current behaviour and will need to be updated.
+  // It is usually UNPREDICTABLE to push sp.
+  MUST_FAIL_TEST_BOTH(Push(RegisterList(r0, sp)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Push(RegisterList(sp)), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Push(sp), "Unpredictable instruction.\n");
+  // A32 can push sp if it is the first register in the list.
+  COMPARE_A32(Push(sp), "stmdb sp!, {sp}\n");
+  COMPARE_A32(Push(RegisterList(sp)), "stmdb sp!, {sp}\n");
+  COMPARE_A32(Push(RegisterList(sp, lr)), "push {sp,lr}\n");
 
   // Deprecated, but accepted:
+  SHOULD_FAIL_TEST_A32(Push(pc));
   SHOULD_FAIL_TEST_A32(Push(RegisterList(pc)));
-  // Whereas we don't accept the single-register version:
-  MUST_FAIL_TEST_BOTH(Push(pc), "Unpredictable instruction.\n");
+  SHOULD_FAIL_TEST_A32(Push(RegisterList(r0, pc)));
 
-  // Accepted, but stores UNKNOWN value for the SP:
-  SHOULD_FAIL_TEST_A32(Push(RegisterList(r0, sp)));
-
-  // The following use the T1 and A1 encodings for T32 and A32 respectively, and
-  // hence have different preferred disassembly.
-  COMPARE_T32(Push(RegisterList(r0)), "push {r0}\n");
-  COMPARE_A32(Push(RegisterList(r0)), "stmdb sp!, {r0}\n");
-  COMPARE_T32(Push(RegisterList(r7)), "push {r7}\n");
-  COMPARE_A32(Push(RegisterList(r7)), "stmdb sp!, {r7}\n");
-  COMPARE_T32(Push(RegisterList(lr)), "push {lr}\n");
-  COMPARE_A32(Push(RegisterList(lr)), "stmdb sp!, {lr}\n");
-
-  // T2 and A1 encodings, with the same preferred disassembly:
-  COMPARE_BOTH(Push(RegisterList(r8)), "stmdb sp!, {r8}\n");
-
-  // Cannot push the sp and pc in T32 when using a register list.
-  MUST_FAIL_TEST_T32(Push(RegisterList(sp)),
+  MUST_FAIL_TEST_T32(Push(pc), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_T32(Push(RegisterList(pc)), "Unpredictable instruction.\n");
+  // The multiple-register T32 push can't encode PC at all.
+  MUST_FAIL_TEST_T32(Push(RegisterList(r0, pc)),
                      "Ill-formed 'push' instruction.\n");
-  MUST_FAIL_TEST_T32(Push(RegisterList(pc)),
-                     "Ill-formed 'push' instruction.\n");
+
+  // The following use the PUSH (T1) and PUSH (single register) (A1) encodings
+  // for T32 and A32 respectively:
+  COMPARE_BOTH(Push(RegisterList(r0)), "push {r0}\n");
+  COMPARE_BOTH(Push(RegisterList(r7)), "push {r7}\n");
+  COMPARE_BOTH(Push(RegisterList(lr)), "push {lr}\n");
+
+  // PUSH (single register), T4 and A1 encodings:
+  COMPARE_BOTH(Push(RegisterList(r8)), "push {r8}\n");
+
+  // Pushing zero registers should produce no instructions.
+  COMPARE_BOTH(Push(RegisterList()), "");
 
   CLEANUP();
 }
@@ -2564,29 +2570,33 @@ TEST(macro_assembler_PopRegisterList) {
               "beq 0x00000006\n"
               "pop {r0,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,ip}\n");
 
-  // TODO: Accepted, but value of SP after the instruction is UNKNOWN:
-  SHOULD_FAIL_TEST_A32(Pop(RegisterList(sp)));
-
-  // Cannot pop the sp in T32 when using a register list.
-  MUST_FAIL_TEST_T32(Pop(RegisterList(sp)), "Ill-formed 'pop' instruction.\n");
-
-  // The following use the T1 and A1 encodings for T32 and A32 respectively, and
-  // hence have different preferred disassembly.
-  COMPARE_T32(Pop(RegisterList(pc)), "pop {pc}\n");
-  COMPARE_A32(Pop(RegisterList(pc)), "ldm sp!, {pc}\n");
+  // Narrow form, T1.
   COMPARE_T32(Pop(RegisterList(r0)), "pop {r0}\n");
-  COMPARE_A32(Pop(RegisterList(r0)), "ldm sp!, {r0}\n");
-  COMPARE_T32(Pop(RegisterList(r7)), "pop {r7}\n");
-  COMPARE_A32(Pop(RegisterList(r7)), "ldm sp!, {r7}\n");
+  // <single_register_list> form, T4.
+  COMPARE_T32(Pop(RegisterList(r10)), "pop {r10}\n");
 
-  // T2 and A1 encodings, with the same preferred disassembly:
-  COMPARE_BOTH(Pop(RegisterList(r8)), "ldm sp!, {r8}\n");
-  COMPARE_BOTH(Pop(RegisterList(lr)), "ldm sp!, {lr}\n");
+  // It is UNPREDICTABLE to pop sp.
+  MUST_FAIL_TEST_BOTH(Pop(RegisterList(r0, sp)),
+                      "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pop(RegisterList(sp)), "Unpredictable instruction.\n");
+  MUST_FAIL_TEST_BOTH(Pop(sp), "Unpredictable instruction.\n");
 
-  // TODO: Pushing both the lr and pc should not be allowed by the
-  //       MacroAssembler (deprecated for A32, for T32 they shouldn't both
-  //       be in the list).
-  SHOULD_FAIL_TEST_BOTH(Pop(RegisterList(lr, pc)));
+  // The following use the POP (T1) and POP (single register) (A1) encodings for
+  // T32 and A32 respectively:
+  COMPARE_BOTH(Pop(RegisterList(pc)), "pop {pc}\n");
+  COMPARE_BOTH(Pop(RegisterList(r0)), "pop {r0}\n");
+  COMPARE_BOTH(Pop(RegisterList(r7)), "pop {r7}\n");
+
+  // POP (single register), T4 and A1 encodings:
+  COMPARE_BOTH(Pop(RegisterList(r8)), "pop {r8}\n");
+  COMPARE_BOTH(Pop(RegisterList(lr)), "pop {lr}\n");
+
+  MUST_FAIL_TEST_T32(Pop(RegisterList(lr, pc)), "Unpredictable instruction.\n");
+  // Deprecated, but allowed.
+  COMPARE_A32(Pop(RegisterList(lr, pc)), "pop {lr,pc}\n");
+
+  // Popping zero registers should produce no instructions.
+  COMPARE_BOTH(Pop(RegisterList()), "");
 
   CLEANUP();
 }

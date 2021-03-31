@@ -34,6 +34,7 @@
 
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/registers-aarch64.h"
+#include "aarch64/simulator-aarch64.h"
 
 #define __ masm.
 #define TEST(name) TEST_(AARCH64_API_##name)
@@ -343,7 +344,7 @@ static void CPURegisterByValueHelper(CPURegister reg) {
   // generate a function using VIXL instead.
 
   MacroAssembler masm;
-  // CPURegister fn(int dummy, CPURegister reg);
+  // CPURegister fn(int placeholder, CPURegister reg);
   // Move `reg` to its result register.
   __ Mov(x0, x1);
   // Clobber all other result registers.
@@ -1708,6 +1709,61 @@ TEST(scratch_scope_release_p) {
     // invalid to release a register that is already available.
   }
 }
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+TEST(sim_stack_default) {
+  SimStack::Allocated s = SimStack().Allocate();
+
+  // The default stack is at least 16-byte aligned.
+  VIXL_CHECK(IsAligned<16>(s.GetBase()));
+  VIXL_CHECK(IsAligned<16>(s.GetLimit() + 1));
+
+  VIXL_CHECK(s.GetBase() > s.GetLimit());
+
+  // The default guard regions are sufficient to detect at least off-by-one
+  // errors.
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetBase(), 1));
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetBase() - 1, 1));
+  // The limit is one below the lowest address on the stack.
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit(), 1));
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetLimit() + 1, 1));
+
+  // We need to be able to access 16-byte granules at both extremes.
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetBase() - 16, 16));
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetLimit() + 1, 16));
+}
+
+TEST(sim_stack) {
+  SimStack builder;
+  builder.AlignToBytesLog2(WhichPowerOf2(1024));
+  builder.SetBaseGuardSize(42);
+  builder.SetLimitGuardSize(2049);
+  builder.SetUsableSize(2048);
+  SimStack::Allocated s = builder.Allocate();
+
+  VIXL_CHECK(IsAligned<1024>(s.GetBase()));
+  VIXL_CHECK(IsAligned<1024>(s.GetLimit() + 1));
+
+  // The stack is accessible for (limit, base), both exclusive.
+  // This is checked precisely, using the base and limit modified to respect
+  // alignment, so we can test the exact boundary condition.
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetBase(), 1));
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetBase() - 1, 1));
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit(), 1));
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetLimit() + 1, 1));
+  VIXL_CHECK((s.GetBase() - s.GetLimit() - 1) == 2048);
+
+  // We can access the whole range (limit, base), both exclusive.
+  VIXL_CHECK(!s.IsAccessInGuardRegion(s.GetLimit() + 1, 2048));
+  // Off-by-one.
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit(), 2048));
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit() + 1, 2049));
+  // Accesses spanning whole guard regions.
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetBase() - 42, 4096));
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit() - 1280, 2048));
+  VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit() - 1280, 10000));
+}
+#endif
 
 }  // namespace aarch64
 }  // namespace vixl
