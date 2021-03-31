@@ -115,6 +115,10 @@ options = {
     'ubsan:on' : {
       'CCFLAGS': ['-fsanitize=undefined'],
       'LINKFLAGS': ['-fsanitize=undefined']
+      },
+    'coverage:on' : {
+      'CCFLAGS': ['-fprofile-instr-generate', '-fcoverage-mapping'],
+      'LINKFLAGS': ['-fprofile-instr-generate', '-fcoverage-mapping']
       }
     }
 
@@ -254,6 +258,8 @@ vars.AddVariables(
     EnumVariable('mode', 'Build mode',
                  'release', allowed_values=config.build_options_modes),
     EnumVariable('ubsan', 'Enable undefined behavior checks',
+                 'off', allowed_values=['on', 'off']),
+    EnumVariable('coverage', 'Enable code coverage measurement',
                  'off', allowed_values=['on', 'off']),
     EnumVariable('negative_testing',
                   'Enable negative testing (needs exceptions)',
