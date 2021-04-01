@@ -35,6 +35,9 @@ my $hfile = "src/aarch64/assembler-aarch64.h";
 # Extra pseudo instructions added to AArch64.
 my @extras = qw/bind debug dci dc32 dc64 place/;
 
+# SVE instructions that can't be inferred from their argument types.
+my @sves = qw/addvl addpl rdvl cntb cnth cntw cntd ctermeq ctermne setffr/;
+
 my %inst = ();  # Global hash of instructions.
 
 # Set record separator to one or more consecutive new lines. This causes $_ to
@@ -45,7 +48,7 @@ open(IN, "<$hfile") or die("Can't open header file $hfile.\n");
 while(<IN>)
 {
   # Find a function formatted like an instruction.
-  if(my($t) = /^  ((?:void|inline void) [a-z][a-z0-9]{0,8}_?)\(/mgp)
+  if(my($t) = /^  ((?:void|inline void) [a-z][a-z0-9]{0,9}_?)\(/mgp)
   {
     # Everything before the function match, ie. the comments.
     my $before = ${^PREMATCH};
@@ -55,7 +58,7 @@ while(<IN>)
     my $after = ${^POSTMATCH};
 
     # Extract the instruction.
-    my($i) = $t =~ /(?:void|inline void) ([a-z][a-z0-9]{0,8})/;
+    my($i) = $t =~ /(?:void|inline void) ([a-z][a-z0-9]{0,9})/;
 
     # Extract the comment from before the function. Drop comment characters
     # and format the architecture version suffix, if present.
@@ -76,7 +79,13 @@ while(<IN>)
 
     # Establish the type of the instruction.
     my $type = 'integer';
-    ($p =~ /VRegister/) and $type = 'float';
+    if ($p =~ /([PZ]Register|SVEMemOperand)/) {
+      $type = 'sve';
+    } elsif ($i =~ /[su]?q?(inc|dec)[bhwd]/ || $i ~~ @sves) {
+      $type = 'sve';
+    } elsif ($p =~ /VRegister/) {
+      $type = 'float';
+    }
     ($i ~~ @extras) and $type = 'pseudo';
 
     # Special case to distinguish dc() the data constant placing function from
@@ -89,9 +98,12 @@ while(<IN>)
     $inst{$p}->{'type'} = $type;
     $inst{$p}->{'mnemonic'} = $i;
     $inst{$p}->{'description'} = $d;
+    $inst{$p}->{'initial'} = substr($i, 0, 1);
   }
 }
 close(IN);
+
+my $links = get_links_list(\%inst);
 
 print <<HEADER;
 VIXL Supported Instruction List
@@ -102,11 +114,44 @@ disassembler and simulator. The simulator may not support all floating point
 operations to the precision required by AArch64 - please check the simulator
 source code for details.
 
+#### AAch64 integer instructions ####
+$links->{'integer'}
+
+#### AArch64 floating point and NEON instructions ####
+$links->{'float'}
+
+#### AArch64 Scalable Vector Extension (SVE) instructions ####
+$links->{'sve'}
+
+#### Additional or pseudo instructions ####
+$links->{'pseudo'}
+
+___
+
 HEADER
 
 print describe_insts('AArch64 integer instructions', 'integer');
 print describe_insts('AArch64 floating point and NEON instructions', 'float');
+print describe_insts('AArch64 Scalable Vector Extension (SVE) instructions', 'sve');
 print describe_insts('Additional or pseudo instructions', 'pseudo');
+
+# Get a hash of links to each initialed section of the document, keyed by type.
+sub get_links_list {
+  my $insts = shift;
+  my %initials;
+  foreach my $i (sort(keys(%$insts))) {
+    my $inst = $insts->{$i};
+    $initials{$inst->{type}}->{$inst->{initial}}++;
+  }
+  my %result;
+  foreach my $t (keys(%initials)) {
+    foreach my $i (sort(keys(%{$initials{$t}}))) {
+      push(@{$result{$t}}, "[$i](#$t-$i)");
+    }
+    $result{$t} = join(' ', @{$result{$t}});
+  }
+  return \%result;
+}
 
 # Sort instructions by mnemonic and then description.
 sub inst_sort
@@ -125,9 +170,14 @@ sub describe_insts
   $result .= '-' x length($title);
   $result .= "\n\n";
 
+  my $last_initial = '';
   foreach my $i (sort inst_sort keys(%inst))
   {
     next if($inst{$i}->{'type'} ne $type);
+    unless ($last_initial eq $inst{$i}->{'initial'}) {
+      $last_initial = $inst{$i}->{'initial'};
+      $result .= sprintf("<a id=\"%s-%s\">\n", lc($type), $last_initial);
+    }
     $result .= sprintf("### %s ###\n\n%s\n\n",
                        uc($inst{$i}->{'mnemonic'}),
                        $inst{$i}->{'description'});

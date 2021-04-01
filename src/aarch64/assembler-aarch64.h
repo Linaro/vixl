@@ -6574,20 +6574,6 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Signed subtract wide (top).
   void ssubwt(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
-#if 0
-  // Scatter store non-temporal bytes.
-  void stnt1b(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm);
-
-  // Scatter store non-temporal doublewords.
-  void stnt1d(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm);
-
-  // Scatter store non-temporal halfwords.
-  void stnt1h(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm);
-
-  // Scatter store non-temporal words.
-  void stnt1w(const ZRegister& zt, const PRegister& pg, const ZRegister& zn, const Register& rm);
-#endif
-
   // Subtract narrow high part (bottom).
   void subhnb(const ZRegister& zd, const ZRegister& zn, const ZRegister& zm);
 
