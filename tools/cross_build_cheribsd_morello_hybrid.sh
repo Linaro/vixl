@@ -40,10 +40,16 @@ fi
 CHERI=$1
 shift
 
-CLANG_PREFIX=$CHERI/output/morello-sdk/bin/aarch64-unknown-freebsd-
+CLANG_PREFIX=$CHERI/output/morello-sdk/bin/aarch64-unknown-freebsd13-
 SYSROOT=$CHERI/output/morello-sdk/sysroot-morello-hybrid
 
-export CCFLAGS="--sysroot=$SYSROOT -iwithsysroot/usr/include/c++/v1 -target aarch64-unknown-freebsd13 -march=morello"
+if [ ! -d "$SYSROOT" ]; then
+  echo "Error: Cannot find sysroot: $SYSROOT"
+  echo "Have you built sdk-morello-hybrid?"
+  exit 1
+fi
+
+export CCFLAGS="--sysroot=$SYSROOT -iwithsysroot/usr/include/c++/v1 -march=morello"
 export LINKFLAGS="$CCFLAGS"
 
 export CXX=${CLANG_PREFIX}clang++
