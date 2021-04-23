@@ -42,25 +42,25 @@ namespace vixl {
 namespace aarch64 {
 namespace tasm {
 
-// TODO: Make mnemonics and arguments case insensitive.
 const std::vector<std::pair<InstructionParser::ParserFn, std::string> >
     InstructionParser::regex_parser =
         {{&InstructionParser::ParseVRegister, "(b|h|s|d)(\\d{1,2})"},
          {&InstructionParser::ParseShift, "(lsl|lsr|asr|ror)#(\\d+)"},
          {&InstructionParser::ParseExtend,
           "(sxtb|sxth|sxtw|sxtx|uxtb|uxth|uxtw|uxtx)(#\\d*)?"},
-         {&InstructionParser::ParseImmediate, "#(\\d+|0x[\\da-fA-F]+)"},
+         {&InstructionParser::ParseImmediate, "#(-?\\d+|-?0x[\\da-fA-F]+)"},
          {&InstructionParser::ParseRegister, "(lr|sp|wsp|xzr|wzr)"},
          {&InstructionParser::ParseRegister, "(w|x)(\\d{1,2})"},
          {&InstructionParser::ParseZRegister, "z(\\d{1,2})\\.(b|h|s|d)"},
-         {&InstructionParser::ParseVRegister,
-          "v(\\d{1,2})\\.(16b|8b|8h|4h|4s|2s)"},
          {&InstructionParser::ParsePRegister, "p(\\d{1,2})"},
          {&InstructionParser::ParsePRegister, "p(\\d{1,2})\\.(b|h|s|d|q)"},
          {&InstructionParser::ParsePRegister, "p(\\d{1,2})/(m|z)"},
-         {&InstructionParser::ParseSVEConstraint, "(pow2|vl\\d|mul\\d|all)"}};
+         {&InstructionParser::ParseSVEConstraint, "(pow2|vl\\d|mul\\d|all)"},
+         {&InstructionParser::ParseVRegister, "v(\\d{1,2})\\.(\\d{1,2})(\\w)"},
+         {&InstructionParser::ParseVRegisterList,
+          "\\{(.*)\\}(?:\\[(\\d{1,2})\\])?"},
+         {&InstructionParser::ParseMemOperandList, "\\[(.*)\\](!?)"}};
 
-// Following const variables could be also static/member variables.
 const std::map<std::string, Shift> shift_map = {{"lsl", LSL},
                                                 {"ror", ROR},
                                                 {"lsr", LSR},
@@ -116,259 +116,364 @@ InstructionParser::InstructionParser(MnemonicFn mf_p, PrototypesFn sf_p) {
   get_prototypes = sf_p;
 }
 
-// Load instruction and split it into mnemonic and vector of consecutive string
-// arguments.
-void InstructionParser::LoadInstruction(std::string inst_line) {
+InstructionParser::~InstructionParser() {}
+
+// Load instruction and split it into mnemonic and string of arguments
+bool InstructionParser::LoadInstruction(std::string inst_line,
+                                        std::string *prototype) {
+  std::string empty_regex = "\\s*";
+  std::string comment_regex = "(.*)//.*";
   std::string inst_regex = "\\s*([a-zA-Z0-9.]+)(?:\\s+(.+))?";
-  std::string args_regex = "([^,]+)";
-  std::smatch mne_args;
+
+  std::smatch match_args;
 
   mnemonic.clear();
-  str_args.clear();
   args.clear();
+  mem_args.clear();
 
-  std::transform(inst_line.begin(),
-                 inst_line.end(),
-                 inst_line.begin(),
-                 [](unsigned char c) { return std::tolower(c); });
-
-  if (std::regex_match(inst_line, mne_args, std::regex(inst_regex))) {
-    mnemonic = mne_args.str(1);
-    std::string arguments =
-        std::regex_replace(mne_args.str(2), std::regex(" "), "");
-
-    while (std::regex_search(arguments, mne_args, std::regex(args_regex))) {
-      str_args.push_back(mne_args.str(1));
-      arguments = mne_args.suffix();
-    }
+  // Strip comments from current line.
+  if (std::regex_match(inst_line, match_args, std::regex(comment_regex))) {
+    inst_line = match_args.str(1);
   }
+
+  // Parse current line as an instruction.
+  if (std::regex_match(inst_line, match_args, std::regex(inst_regex))) {
+    // Make instruction line case insensitive by converting all letters to
+    // lower case.
+    std::transform(inst_line.begin(),
+                   inst_line.end(),
+                   inst_line.begin(),
+                   [](unsigned char c) { return std::tolower(c); });
+
+    mnemonic = match_args.str(1);
+    std::string arguments =
+        std::regex_replace(match_args.str(2), std::regex(" "), "");
+    ParseArgumentsLine(prototype, arguments);
+
+    for (const auto &mem_arg : mem_args) {
+      ParseMemOperandTypes(prototype, mem_arg);
+    }
+
+    ParseMnemonic(&mnemonic, prototype);
+    ParseImmediatesTypes(prototype);
+  } else if (std::regex_match(inst_line, match_args, std::regex(empty_regex))) {
+    return false;
+  }
+  return true;
 }
 
-// Creates instruction prototype from vector of string arguments.
-// Then fills vector of arguments with objects of coresponding type.
-void InstructionParser::GetPrototype(std::string* prototype) {
-  std::vector<std::pair<size_t, size_t> > mem_operands;
+// Creates instruction prototype from string of arguments and fills vector of
+// arguments with objects of coresponding type.
+void InstructionParser::ParseArgumentsLine(std::string *prototype,
+                                           std::string arguments) {
+  std::smatch args_match;
 
-  // Iterating through vector of arguments and looking for a matching
-  // regex(from regex_parser map) to recognize the argument type.
-  for (auto& argument : str_args) {
+  while (!arguments.empty()) {
     auto i = regex_parser.begin();
-    Argument arg_object;
-
-    if (argument[0] == '[') {
-      argument.erase(0, 1);
-      mem_operands.push_back({prototype->size(), -1});
-    }
-
-    if (argument.back() == ']') {
-      argument.pop_back();
-      mem_operands.back().second = prototype->size();
-    }
+    bool found = false;
 
     while (i != regex_parser.end()) {
       auto parse_func = i->first;
-      // Parse string argument to the object of the given type in the parser
-      // function if regex matches this type.
-      if (std::regex_match(argument, std::regex(i->second))) {
+      // After an argument there should be a comma or the end of line.
+      // Positive lookahead `,(?=[^$])` excludes cases with trailing coma
+      // after last instruction.
+      std::regex arg_regex = std::regex(i->second + "(?:,(?=[^$])|$)");
+
+      if (std::regex_search(arguments,
+                            args_match,
+                            arg_regex,
+                            std::regex_constants::match_continuous)) {
+        found = true;
         // TODO: return error code from the parser functions and
         // stop parsing arguments further.
-        (this->*parse_func)(argument, prototype, &arg_object);
+        (this->*parse_func)(args_match, prototype);
         break;
       }
       i++;
     }
-    args.push_back(arg_object);
+    if (!found) {
+      std::cerr << "Error: Argument not matching any type" << std::endl;
+      break;
+    }
+    arguments.erase(0, args_match.str(0).size());
   }
-  for (const auto& pair : mem_operands)
-    ParseMemOperand(prototype, pair.first, pair.second);
-
-  ParseImmediatesTypes(prototype);
 }
 
-int InstructionParser::ParseShift(std::string argument,
-                                  std::string* prototype,
-                                  Argument* arg_object) {
+int InstructionParser::ParseShift(std::smatch arg_match,
+                                  std::string *prototype) {
   if (prototype->back() == 'r') {
-    int imm = 0;
     Register r = std::get<Register>(args.back());
+    Shift s = shift_map.at(arg_match.str(1));
+    IntegerOperand int_op = ExtractInteger(arg_match.str(2));
 
-    args.pop_back();
-    SplitShiftExtend(&argument, &imm);
-
-    Shift s = shift_map.at(argument);
-    *arg_object = Operand(r, s, imm);
+    if (!int_op.IsUint32()) {
+      std::cerr << "shift immediate in the wrong format" << std::endl;
+      return -1;
+    }
+    args.back() = Operand(r, s, int_op.AsUint32());
     prototype->back() = 'o';
   }
   return 0;
 }
 
-int InstructionParser::ParseExtend(std::string argument,
-                                   std::string* prototype,
-                                   Argument* arg_object) {
+int InstructionParser::ParseExtend(std::smatch arg_match,
+                                   std::string *prototype) {
   if (prototype->back() == 'r') {
-    int imm = 0;
     Register r = std::get<Register>(args.back());
+    Extend e = extend_map.at(arg_match.str(1));
 
-    args.pop_back();
-    SplitShiftExtend(&argument, &imm);
+    if (arg_match.size() > 1) {
+      IntegerOperand int_op = ExtractInteger(arg_match.str(2));
 
-    Extend e = extend_map.at(argument);
-    *arg_object = Operand(r, e, imm);
+      if (!int_op.IsUint32()) {
+        std::cerr << "extend immediate in the wrong format" << std::endl;
+        return -1;
+      }
+      args.back() = Operand(r, e, int_op.AsUint32());
+    } else {
+      args.back() = Operand(r, e);
+    }
     prototype->back() = 'o';
   }
   return 0;
 }
 
-// TODO: Additional validity checks of registers.
-int InstructionParser::ParseRegister(std::string argument,
-                                     std::string* prototype,
-                                     Argument* arg_object) {
-  if (register_map.count(argument)) {
-    *arg_object = register_map.at(argument);
-  } else if (argument.length() >= 2) {
-    int reg_num;
-    char reg_type;
+int InstructionParser::ParseRegister(std::smatch arg_match,
+                                     std::string *prototype) {
+  Register reg;
+  // Currently parsed register is a special register (sp, xzr...).
+  if (register_map.count(arg_match.str(1))) {
+    reg = register_map.at(arg_match.str(1));
+    // Currently parsed register is a general purpose register (x0 - x31).
+  } else {
+    int reg_num = std::stoi(arg_match.str(2));
+    char reg_type = arg_match.str(1).at(0);
 
-    reg_type = argument.at(0);
-    argument = argument.erase(0, 1);
-    reg_num = std::stoi(argument);
+    if (reg_num < 0 || reg_num > 31) return -1;
 
     VIXL_ASSERT((reg_type == 'w' || reg_type == 'x'));
-    *arg_object = Register(reg_num, reg_type == 'w' ? kWRegSize : kXRegSize);
+    reg = Register(reg_num, reg_type == 'w' ? kWRegSize : kXRegSize);
+  }
+  // Standalone register on the last place should be treated as an Operand for
+  // some instructions. We need to handle such cases and convert arguments.
+  if (MnemonicExists(*prototype + 'o', mnemonic) &&
+      arg_match.suffix().str().empty()) {
+    args.push_back(Operand(reg));
+    prototype->push_back('o');
   } else {
-    return -1;
-  }
-
-  // Register on a last place can be treated as an Operand object sometimes.
-  // We need to handle such cases and convert argument respectively.
-  std::string op_prototype = *prototype + 'o';
-  prototype->push_back('r');
-
-  if (str_args.size() == prototype->length() &&
-      mnemonic_exists(op_prototype, mnemonic)) {
-    *arg_object = Operand(std::get<Register>(*arg_object));
-    prototype->back() = 'o';
-  }
-
-  return 0;
-}
-
-// TODO: Implement proper parser functions.
-// (void)param just to avoid compiler error about unused variables temporarily.
-int InstructionParser::ParseVRegister(std::string argument,
-                                      std::string* prototype,
-                                      Argument* arg_object) {
-  (void)argument;
-  (void)arg_object;
-  (void)prototype;
-
-  return 0;
-}
-
-int InstructionParser::ParseZRegister(std::string argument,
-                                      std::string* prototype,
-                                      Argument* arg_object) {
-  int num_end = std::isdigit(argument.at(2)) ? 2 : 1;
-  int reg_num = std::stoi(argument.substr(1, num_end));
-
-  *arg_object = ZRegister(reg_num, sve_sizes_map.at(argument.at(num_end + 2)));
-  prototype->push_back('z');
-
-  return 0;
-}
-
-int InstructionParser::ParsePRegister(std::string argument,
-                                      std::string* prototype,
-                                      Argument* arg_object) {
-  int num_end = (argument.size() > 2 && std::isdigit(argument.at(2))) ? 2 : 1;
-  int reg_num = std::stoi(argument.substr(1, num_end));
-
-  if (argument.length() <= 3) {
-    *arg_object = PRegister(reg_num);
-    prototype->push_back('p');
-  } else if (argument.at(num_end + 1) == '.') {
-    *arg_object =
-        PRegisterWithLaneSize(reg_num,
-                              sve_sizes_map.at(argument.at(num_end + 2)));
-    prototype->push_back('L');
-  } else if (argument.at(num_end + 1) == '/') {
-    if (argument.at(num_end + 2) == 'm') {
-      *arg_object = PRegisterM(reg_num);
-      prototype->push_back('M');
-    } else if (argument.at(num_end + 2) == 'z') {
-      *arg_object = PRegisterZ(reg_num);
-      prototype->push_back('Z');
+    // If currently parsed register occurs just after memory operand we can
+    // assume that it is the post indexing mode (for example [x0], x1).
+    if (!mem_args.empty() && mem_args.back().end_pos == prototype->size() - 1) {
+      mem_args.back().addr_mode = PostIndex;
+      mem_args.back().end_pos += 1;
     }
-  } else {
-    return -1;
+    args.push_back(reg);
+    prototype->push_back('r');
   }
   return 0;
 }
 
-int InstructionParser::ParseSVEConstraint(std::string argument,
-                                          std::string* prototype,
-                                          Argument* arg_object) {
-  auto it = constraint_map.find(argument);
+int InstructionParser::ParseZRegister(std::smatch arg_match,
+                                      std::string *prototype) {
+  int reg_num = std::stoi(arg_match.str(1));
+  unsigned int reg_size = sve_sizes_map.at(arg_match.str(2).at(0));
 
+  args.push_back(ZRegister(reg_num, reg_size));
+  prototype->push_back('z');
+  return 0;
+}
+
+int InstructionParser::ParsePRegister(std::smatch arg_match,
+                                      std::string *prototype) {
+  Argument arg_object;
+  int reg_num = std::stoi(arg_match.str(1));
+
+  if (arg_match.size() == 2) {
+    arg_object = PRegister(reg_num);
+    prototype->push_back('p');
+  } else {
+    char spe_arg = arg_match.str(2).at(0);
+    if (spe_arg == 'm') {
+      arg_object = PRegisterM(reg_num);
+      prototype->push_back('M');
+    } else if (spe_arg == 'z') {
+      arg_object = PRegisterZ(reg_num);
+      prototype->push_back('Z');
+    } else {
+      arg_object = PRegisterWithLaneSize(reg_num, sve_sizes_map.at(spe_arg));
+      prototype->push_back('L');
+    }
+  }
+  args.push_back(arg_object);
+  return 0;
+}
+
+int InstructionParser::ParseSVEConstraint(std::smatch arg_match,
+                                          std::string *prototype) {
+  auto it = constraint_map.find(arg_match.str(1));
   if (it != constraint_map.end()) {
-    *arg_object = it->second;
+    args.push_back(it->second);
     prototype->push_back('c');
   } else {
+    std::cerr << "SVE constraint in the wrong format" << std::endl;
     return -1;
   }
   return 0;
 }
 
-// Immediates are parsed as unsigned integers and marked as "."
-// in the prototype string. This dots are changed to consecutive types
-// at the end of instruction parsing (in ParseImmediatesTypes function).
-int InstructionParser::ParseImmediate(std::string argument,
-                                      std::string* prototype,
-                                      Argument* arg_object) {
-  argument = argument.substr(1, argument.size() - 1);
+// Immediates are parsed corresponding to the sign and marked as "_" in the
+// prototype string. They are replaced by the exact type in the vector of
+// arguments and prototype string when all the arguments are parsed.
+int InstructionParser::ParseImmediate(std::smatch arg_match,
+                                      std::string *prototype) {
+  IntegerOperand int_op = ExtractInteger(arg_match.str(1));
 
-  try {
-    *arg_object = std::stoul(argument, NULL, 0);
-  } catch (std::out_of_range) {
-    std::cout << "immediate out of unsigned integer type range" << std::endl;
+  // Standalone immediate on the last argument can be treated as an Operand in
+  // some instructions. If we are parsing last argument and there is entry for
+  // current mnemonic and prototype + 'o', we have to parse this argument as an
+  // Operand.
+  if (arg_match.suffix().length() == 0 &&
+      MnemonicExists(*prototype + 'o', mnemonic)) {
+    if (int_op.IsInt64()) {
+      args.push_back(Operand(int_op.AsInt64()));
+      prototype->push_back('o');
+    } else {
+      std::cerr << "Error: immediate not suitable for given instruction: "
+                << mnemonic << std::endl;
+    }
+  } else {
+    // If currently parsed immediate occurs just after memory operand we can
+    // assume that it is the post indexing mode (for example [x0], #5).
+    if (!mem_args.empty() &&
+        (mem_args.back().end_pos == (prototype->size() - 1))) {
+      mem_args.back().addr_mode = PostIndex;
+      mem_args.back().end_pos += 1;
+    }
+    prototype->push_back('_');
+    args.push_back(int_op);
   }
-  prototype->push_back('.');
+  return 0;
+}
+
+int InstructionParser::ParseVRegister(std::smatch arg_match,
+                                      std::string *prototype) {
+  int code = std::stoi(arg_match.str(1));
+  int lanes = std::stoi(arg_match.str(2));
+  char size = arg_match.str(3).at(0);
+  std::map<int, char> vreg_vals =
+      {{16, 'b'}, {8, 'b'}, {8, 'h'}, {4, 'h'}, {4, 's'}, {2, 's'}};
+
+  if (code > 32 || code < 0) return -1;
+
+  if (!vreg_vals.count(lanes) || vreg_vals.at(lanes) != size) return -1;
+
+  args.push_back(VRegister(code, lanes * sve_sizes_map.at(size), lanes));
+  prototype->push_back('v');
+  return 0;
+}
+
+// Parse and validate VRegister list (for example {v30.8b, v31.8b, v0.8b})
+int InstructionParser::ParseVRegisterList(std::smatch arg_match,
+                                          std::string *prototype) {
+  std::string vreg_list = arg_match.str(1);
+  std::regex vreg_regex =
+      std::regex("v(\\d{1,2})\\.(\\d{1,2})(\\w)(?:,(?=[^$])|$)");
+  std::smatch vreg_match;
+  std::vector<int> vreg_codes;
+
+  while (!vreg_list.empty()) {
+    if (std::regex_search(vreg_list,
+                          vreg_match,
+                          vreg_regex,
+                          std::regex_constants::match_continuous)) {
+      ParseVRegister(vreg_match, prototype);
+      vreg_codes.push_back(std::stoi(vreg_match.str(1)));
+      vreg_list.erase(0, vreg_match.str(0).size());
+    } else {
+      std::cerr << "Error: wrong format of a VRegister list element"
+                << std::endl;
+      return -1;
+    }
+  }
+  // If there is an index caught by regex after vregister list in form
+  // {...}[<index>], then parse it as an integer immediate.
+  if (!arg_match.str(2).empty()) {
+    IntegerOperand int_op = ExtractInteger(arg_match.str(2));
+    prototype->push_back('_');
+    args.push_back(int_op);
+  }
+
+  size_t inst_args_num = mnemonic.back() - '0';
+  // Check if mnemonic number matches list size. For example:
+  // st3 {v30.8b, v31.8b, v0.8b}
+  if (vreg_codes.size() != inst_args_num) {
+    std::cerr << "Error: number of elements in vregister list doesn't"
+              << " match elements required by instruction: " << mnemonic
+              << std::endl;
+  }
+  // Check if list elements are registers with consecutive numbers modulo 32.
+  for (auto it = std::next(vreg_codes.begin()); it != vreg_codes.end();
+       std::advance(it, 1)) {
+    auto prev_code = std::prev(it);
+    if ((*prev_code + 1) % 32 != *it)
+      std::cerr << "Error: elements of the list should have consecutive numbers"
+                << std::endl;
+  }
+  return 0;
+}
+
+int InstructionParser::ParseMemOperandList(std::smatch arg_match,
+                                           std::string *prototype) {
+  MemDescriptor mem_op;
+
+  mem_op.beg_pos = prototype->size();
+  ParseArgumentsLine(prototype, arg_match.str(1));
+  mem_op.end_pos = prototype->size() - 1;
+
+  // Handling pre-index and offset addressing modes. Post-index mode is
+  // handled in immediate parsing function - ParseImmediate.
+  if (!arg_match.str(2).compare("!"))
+    mem_op.addr_mode = PreIndex;
+  else
+    mem_op.addr_mode = Offset;
+
+  mem_args.push_back(mem_op);
   return 0;
 }
 
 // Combine parsed arguments from given range (specified by pos_start and
 // pos_end) into SVEMemOperand or MemOperand.
-void InstructionParser::ParseMemOperand(std::string* prototype,
-                                        size_t pos_start,
-                                        size_t pos_end) {
-  Argument arg_object;
-  std::smatch mem_op_match;
-  std::string mem_op_regex = prototype->substr(0, pos_start) + "(s|m).*";
+void InstructionParser::ParseMemOperandTypes(std::string *prototype,
+                                             MemDescriptor mem_arg) {
+  size_t pos_start = mem_arg.beg_pos;
+  size_t pos_end = mem_arg.end_pos;
+  std::string mem_op_type = prototype->substr(pos_start, pos_end);
+  std::string mem_prototype(*prototype);
 
-  std::vector<std::string> prototypes = get_prototypes();
-  auto it = prototypes.begin();
-  bool found = false;
+  mem_prototype.replace(pos_start, pos_end - pos_start + 1, "s");
 
-  // Looking for prototype matching current prototype substring up to pos_start
-  // with letter "s"(SVEMemOperand) or "m"(MemOperand) on the following place.
-  while (it != prototypes.end() && !found) {
-    if (std::regex_match(*it, mem_op_match, std::regex(mem_op_regex)) &&
-        mnemonic_exists(*it, mnemonic))
-      found = true;
-    it++;
+  if (!MnemonicExists(mem_prototype, mnemonic)) {
+    mem_prototype.replace(pos_start, 1, "m");
   }
 
-  std::string mem_op_type = prototype->substr(pos_start, pos_end);
+  uint64_t imm = 0;
+  if (size_t imm_pos = mem_op_type.find('_') != std::string::npos) {
+    IntegerOperand int_op = std::get<IntegerOperand>(args[pos_start + imm_pos]);
+    if (int_op.IsUint64())
+      imm = int_op.AsUint64();
+    else
+      std::cerr << "Error: immediate in memory operand in a wrong format"
+                << std::endl;
+  }
 
+  Argument arg_object;
   // Is there some way to write switch/case with strings ?
-  if (!mem_op_match.str(1).compare("s")) {
+  if (mem_prototype.at(pos_start) == 's') {
     // TODO: Handle all the cases of SVEMemOperand
-    if (!mem_op_type.compare("r.")) {
-      arg_object = SVEMemOperand(std::get<Register>(args[pos_start]),
-                                 std::get<uint64_t>(args[pos_start + 1]));
-    } else if (!mem_op_type.compare("z.")) {
-      arg_object = SVEMemOperand(std::get<ZRegister>(args[pos_start]),
-                                 std::get<uint64_t>(args[pos_start + 1]));
+    if (!mem_op_type.compare("r_")) {
+      arg_object = SVEMemOperand(std::get<Register>(args[pos_start]), imm);
+    } else if (!mem_op_type.compare("z_")) {
+      arg_object = SVEMemOperand(std::get<ZRegister>(args[pos_start]), imm);
     } else if (!mem_op_type.compare("ro")) {
       Operand op = std::get<Operand>(args[pos_start + 1]);
       arg_object = SVEMemOperand(std::get<Register>(args[pos_start]),
@@ -386,83 +491,139 @@ void InstructionParser::ParseMemOperand(std::string* prototype,
     } else if (!mem_op_type.compare("z")) {
       arg_object = SVEMemOperand(std::get<ZRegister>(args[pos_start]));
     }
-  } else if (!mem_op_match.str(1).compare("m")) {
-    // TODO: Implement logic handling MemOperand type
+  } else if (mem_prototype.at(pos_start) == 'm') {
+    // TODO: Handle all cases of MemOperand
+    if (!mem_op_type.compare("r_")) {
+      arg_object = MemOperand(std::get<Register>(args[pos_start]),
+                              imm,
+                              mem_arg.addr_mode);
+    } else if (!mem_op_type.compare("rr")) {
+      arg_object = MemOperand(std::get<Register>(args[pos_start]),
+                              Operand(std::get<Register>(args[pos_start + 1])),
+                              mem_arg.addr_mode);
+    } else if (!mem_op_type.compare("r")) {
+      arg_object = MemOperand(std::get<Register>(args[pos_start]));
+    }
   }
 
-  // If arg_object(of std::variant type) holds std::monostate(index 0),
-  // then parsing was unsucessful
+  // If arg_object(of std::variant type) holds std::monostate(index 0), then
+  // parsing was unsucessful.
   if (arg_object.index() != 0) {
     args.erase(args.begin() + pos_start, args.begin() + pos_end + 1);
     args.insert(args.begin() + pos_start, arg_object);
-    *prototype = prototype->substr(0, pos_start) + mem_op_match.str(1);
+    *prototype = mem_prototype;
   }
 }
 
-// Parse immediates by matching currently built prototype string with candidate
-// prototypes of a given mnemonic, then convert string arguments to given types
-// consecutively.
-void InstructionParser::ParseImmediatesTypes(std::string* prototype) {
-  std::string matching_prototype;
-  size_t imm_pos = prototype->find('.');
+// Check if mnemonic has some additional condition (for example b.ne) and parse
+// it as another argument.
+void InstructionParser::ParseMnemonic(std::string *mnemonic,
+                                      std::string *prototype) {
+  std::string cond_regex = "(.*)\\.(.*)";
+  std::smatch match_args;
+  std::map<std::string, Condition> cond_vals = {{"eq", eq},
+                                                {"ne", ne},
+                                                {"cs", cs},
+                                                {"cc", cc},
+                                                {"mi", mi},
+                                                {"pl", pl},
+                                                {"vs", vs},
+                                                {"vc", vc},
+                                                {"hi", hi},
+                                                {"ls", ls},
+                                                {"ge", ge},
+                                                {"lt", lt},
+                                                {"gt", gt},
+                                                {"le", le},
+                                                {"al", al},
+                                                {"nv", nv}};
 
-  std::vector<std::string> prototypes = get_prototypes();
-  auto it = prototypes.begin();
-
-  if (imm_pos == std::string::npos) return;
-
-  // Looking for prototype matching parsed instruction and currently
-  // built prototype without immediates.
-  while (it != prototypes.end() && matching_prototype.empty()) {
-    // Two prototype strings are compared as regexes. Dots in current
-    // prototype string are matching any character on immediate place.
-    // For example: "rr." and "rro".
-    if (std::regex_match(*it, std::regex(*prototype)) &&
-        mnemonic_exists(*it, mnemonic))
-      matching_prototype = *it;
-    it++;
-  }
-
-  if (matching_prototype.empty()) return;
-
-  // Compare current prototype without immediates with full prototype found in a
-  // map for given mnemonic and parse arguments to immediate objects
-  // respectively.
-  while (imm_pos != std::string::npos && imm_pos < args.size()) {
-    uint64_t u_imm = std::get<uint64_t>(args[imm_pos]);
-    str_args[imm_pos].erase(0, 1);
-
-    switch (matching_prototype.at(imm_pos)) {
-      case 'o':
-        args[imm_pos] = Operand(u_imm);
-        (*prototype)[imm_pos] = 'o';
-        break;
-      case 'i':
-        args[imm_pos] = static_cast<int64_t>(u_imm);
-        (*prototype)[imm_pos] = 'i';
-        break;
-      case 'u':
-        args[imm_pos] = u_imm;
-        (*prototype)[imm_pos] = 'u';
-        break;
-      default:
-        std::cout << "unrecognized immediate type" << std::endl;
+  if (std::regex_match(*mnemonic, match_args, std::regex(cond_regex))) {
+    *mnemonic = match_args.str(1);
+    auto it = cond_vals.find(match_args.str(2));
+    if (it != cond_vals.end()) {
+      args.push_back(it->second);
+      prototype->push_back('C');
+    } else {
+      std::cerr << "Unrecognized condition in instruction mnemonic: "
+                << match_args.str(2) << std::endl;
     }
-    imm_pos = prototype->find('.', imm_pos + 1);
   }
 }
 
-// Split shift/extend into shift type and immediate, for example:
-//  * lsl #3 -> lsl, 3
-void InstructionParser::SplitShiftExtend(std::string* argument, int* imm) {
-  std::string shift_regex = "(.*)(?:\\s*#)(\\d+)";
-  std::smatch match;
-  std::string imm_str;
+// Parse immediates to given types. Types are resolved by matching currently
+// built prototype (with '_' on immediate fields) with found full candidate
+// prototype.
+void InstructionParser::ParseImmediatesTypes(std::string *prototype) {
+  std::smatch imm_match = FindImmPrototype(*prototype);
+  size_t arg_index = prototype->find("_");
+  size_t i = 1;
 
-  if (std::regex_match(*argument, match, std::regex(shift_regex))) {
-    *argument = match.str(1);
-    *imm = std::stoi(match.str(2));
+  while (i < imm_match.size() && arg_index != std::string::npos) {
+    IntegerOperand i_op = std::get<IntegerOperand>(args[arg_index]);
+
+    if (!imm_match.str(i).compare("i64") && i_op.IsInt64())
+      args[arg_index] = i_op.AsInt64();
+    else if (!imm_match.str(i).compare("i32") && i_op.IsInt32())
+      args[arg_index] = i_op.AsInt32();
+    else if (!imm_match.str(i).compare("i") && i_op.IsIntN(sizeof(int)))
+      args[arg_index] = static_cast<int>(i_op.AsIntN(sizeof(int)));
+    else if (!imm_match.str(i).compare("u64") && i_op.IsUint64())
+      args[arg_index] = i_op.AsUint64();
+    else if (!imm_match.str(i).compare("u32") && i_op.IsUint32())
+      args[arg_index] = i_op.AsUint32();
+    else if (!imm_match.str(i).compare("u") && i_op.IsUintN(sizeof(unsigned)))
+      args[arg_index] = static_cast<unsigned>(i_op.AsUintN(sizeof(unsigned)));
+    else
+      std::cerr << "Error: immediate in a wrong format for the given mnemonic"
+                << std::endl;
+    arg_index = prototype->find("_");
+    i++;
   }
+  *prototype = imm_match.str(0);
+}
+
+// Find full prototype with proper immediate types by matching with currently
+// built prototype.
+std::smatch InstructionParser::FindImmPrototype(std::string prototype) {
+  std::string imm_regex = "([ui](?:32|64)?)";
+  std::smatch imm_match;
+  size_t imm_index = prototype.find("_", 0);
+
+  // Create regular expression from prototype by replacing '_' with expression
+  // matching any immediate type.
+  while (imm_index != std::string::npos) {
+    prototype.replace(imm_index, 1, imm_regex);
+    imm_index = prototype.find("_", imm_index);
+  }
+
+  for (const auto &p : get_prototypes()) {
+    if (std::regex_match(p, imm_match, std::regex(prototype))) break;
+  }
+  return imm_match;
+}
+
+// Convert string to integer based on the sign. Check for out of range error.
+IntegerOperand InstructionParser::ExtractInteger(std::string int_str) {
+  IntegerOperand int_op(0);
+  if (int_str.at(0) == '-') {
+    int64_t i_imm = std::strtoll(int_str.c_str(), NULL, 0);
+    int_op = IntegerOperand(i_imm);
+  } else {
+    uint64_t u_imm = std::strtoull(int_str.c_str(), NULL, 0);
+    int_op = IntegerOperand(u_imm);
+  }
+  if (errno == ERANGE) {
+    std::cerr << "Error: immediate out of range: " << int_str << std::endl;
+  }
+  return int_op;
+}
+
+bool InstructionParser::MnemonicExists(std::string prototype,
+                                       std::string mnemonic) {
+  std::smatch imm_prototype = FindImmPrototype(prototype);
+
+  return mnemonic_exists(imm_prototype.str(0), mnemonic);
 }
 
 std::string InstructionParser::GetMnemonic() { return mnemonic; }

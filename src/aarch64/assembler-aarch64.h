@@ -44,6 +44,7 @@ class LabelTestHelper;  // Forward declaration.
 class Label {
  public:
   Label() : location_(kLocationUnbound) {}
+  Label(Label&&) = default;
   ~Label() {
     // All links to a label must have been resolved before it is destructed.
     VIXL_ASSERT(!IsLinked());

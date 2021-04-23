@@ -46,14 +46,17 @@ class Reassembler : public Disassembler {
 
  protected:
   virtual void ProcessOutput(const Instruction* instr) override {
-    std::regex imm_reg = std::regex("(.*#0x[\\da-fA-F]+)(\\s\\(\\d+\\))");
+    USE(instr);
+    std::regex imm_reg = std::regex("(.*)\\s\\(\\d+\\)");
+    std::regex addr_reg = std::regex("(.*)\\s\\(addr 0x[\\da-fA-F]+\\)");
     std::string str_instr = GetOutput();
     std::smatch reg_match;
     // Discard disassembler hex immediate value translation in arithmetic
     // instructions, for example #0xff (255).
     // TODO: handle more cases with other instructions classes.
-    if (std::regex_match(str_instr, reg_match, imm_reg) &&
-        instr->IsAddSubImmediate()) {
+    if (std::regex_match(str_instr, reg_match, imm_reg)) {
+      tasm_->Assemble(reg_match.str(1));
+    } else if (std::regex_match(str_instr, reg_match, addr_reg)) {
       tasm_->Assemble(reg_match.str(1));
     } else {
       tasm_->Assemble(str_instr);

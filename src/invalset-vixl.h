@@ -91,6 +91,7 @@ template <TEMPLATE_INVALSET_P_DECL>
 class InvalSet {
  public:
   InvalSet();
+  InvalSet(InvalSet&&) = default;
   ~InvalSet() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION;
 
   static const size_t kNPreallocatedElements = N_PREALLOCATED_ELEMENTS;

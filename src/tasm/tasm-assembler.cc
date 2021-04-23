@@ -50,15 +50,14 @@ void TextAssembler::Assemble(std::string instruction) {
   AssemblerFn fun_object;
   std::string prototype;
   std::string mnemonic;
-  std::vector<Argument> args;
 
-  ip_.LoadInstruction(instruction);
-  ip_.GetPrototype(&prototype);
-  mnemonic = ip_.GetMnemonic();
-  args = ip_.GetArgs();
+  if (ip_.LoadInstruction(instruction, &prototype)) {
+    std::string mnemonic = ip_.GetMnemonic();
+    std::vector<Argument> args = ip_.GetArgs();
 
-  fun_object = prototypes_.at(prototype).at(mnemonic);
-  std::visit(InstructionDispatcher(this, args), fun_object);
+    fun_object = prototypes_.at(prototype).at(mnemonic);
+    std::visit(InstructionDispatcher(this, args, mnemonic), fun_object);
+  }
 }
 
 bool TextAssembler::MnemonicExists(std::string prototype,
@@ -75,6 +74,10 @@ std::vector<std::string> TextAssembler::GetPrototypes() {
 }
 
 vixl::internal::AssemblerBase* TextAssembler::AsAssemblerBase() { return this; }
+
+void TextAssembler::movi(const VRegister& rd, uint64_t imm) {
+  Assembler::movi(rd, imm);
+}
 
 void TextAssembler::movz(const Register& rd, uint64_t imm) {
   Assembler::movz(rd, imm);

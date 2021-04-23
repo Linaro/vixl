@@ -1,5 +1,5 @@
-  ptrue p2.B
-  ptrue p3.B, VL7
-  not p3.B, p2/Z, p3.B
-  brka p1.B p2/Z p3.B
+  ptrue p2.b
+  ptrue p3.b, vl7
+  not p3.b, p2/z, p3.b
+  brka p1.b p2/z p3.b
   ret

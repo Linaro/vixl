@@ -31,6 +31,7 @@
 #error "Text Assembler requires C++17 standard or above."
 #else
 
+#include <regex>
 #include <string>
 #include <variant>  // NOLINT(build/include_order)
 #include <vector>
@@ -42,6 +43,8 @@ namespace aarch64 {
 namespace tasm {
 
 using Argument = std::variant<std::monostate,
+                              Condition,
+                              Label *,
                               Register,
                               PRegister,
                               ZRegister,
@@ -52,14 +55,23 @@ using Argument = std::variant<std::monostate,
                               Operand,
                               MemOperand,
                               SVEMemOperand,
+                              IntegerOperand,
                               int64_t,
                               uint64_t,
+                              unsigned,
                               int>;
 
+// Structure holding information about encountered memory operand in the
+// instruction line. beg_pos and end_pos are storing position of a first and
+// last argument of the operand in the prototype string.
+struct MemDescriptor {
+  size_t beg_pos;
+  size_t end_pos;
+  AddrMode addr_mode;
+};
+
 class InstructionParser {
-  using ParserFn = int (InstructionParser::*)(std::string,
-                                              std::string*,
-                                              Argument*);
+  using ParserFn = int (InstructionParser::*)(std::smatch, std::string *);
   using MnemonicFn = bool (*)(std::string, std::string);
   using PrototypesFn = std::vector<std::string> (*)();
 
@@ -69,8 +81,9 @@ class InstructionParser {
 
   // Variables responsible for holding splited elements of currently parsed
   // instruction line.
-  std::vector<std::string> str_args;
+  std::map<std::string, Label> labels;
   std::vector<Argument> args;
+  std::vector<MemDescriptor> mem_args;
   std::string mnemonic;
 
   // Function pointers to handlers used to mnemonic/prototype lookup in
@@ -79,45 +92,33 @@ class InstructionParser {
   PrototypesFn get_prototypes;
 
  public:
-  InstructionParser(MnemonicFn mf, PrototypesFn sf);
-  void LoadInstruction(std::string inst_line);
+  InstructionParser(MnemonicFn, PrototypesFn);
+  ~InstructionParser();
+  bool LoadInstruction(std::string inst_line, std::string *prototype);
 
-  void GetPrototype(std::string* prototype);
+  void ParseArgumentsLine(std::string *prototype, std::string arguments);
   std::string GetMnemonic();
   std::vector<Argument> GetArgs();
 
   // Functions responsible for parsing arguments of a given type.
-  int ParseRegister(std::string argument,
-                    std::string* prototype,
-                    Argument* arg_object);
-  int ParseSVEConstraint(std::string argument,
-                         std::string* prototype,
-                         Argument* arg_object);
-  int ParseZRegister(std::string argument,
-                     std::string* prototype,
-                     Argument* arg_object);
-  int ParseVRegister(std::string argument,
-                     std::string* prototype,
-                     Argument* arg_object);
-  int ParsePRegister(std::string argument,
-                     std::string* prototype,
-                     Argument* arg_object);
-  int ParseExtend(std::string argument,
-                  std::string* prototype,
-                  Argument* arg_object);
-  int ParseShift(std::string argument,
-                 std::string* prototype,
-                 Argument* arg_object);
-  int ParseImmediate(std::string argument,
-                     std::string* prototype,
-                     Argument* arg_object);
+  int ParseRegister(std::smatch arg_match, std::string *prototype);
+  int ParseSVEConstraint(std::smatch arg_match, std::string *prototype);
+  int ParseZRegister(std::smatch arg_match, std::string *prototype);
+  int ParseVRegister(std::smatch arg_match, std::string *prototype);
+  int ParsePRegister(std::smatch arg_match, std::string *prototype);
+  int ParseExtend(std::smatch arg_match, std::string *prototype);
+  int ParseShift(std::smatch arg_match, std::string *prototype);
+  int ParseImmediate(std::smatch arg_match, std::string *prototype);
+  int ParseVRegisterList(std::smatch arg_match, std::string *prototype);
+  int ParseMemOperandList(std::smatch arg_match, std::string *prototype);
 
   // Helper functions for arguments parsing.
-  void ParseImmediatesTypes(std::string* prototype);
-  void ParseMemOperand(std::string* prototype,
-                       size_t pos_start,
-                       size_t pos_end);
-  void SplitShiftExtend(std::string* argument, int* imm);
+  bool MnemonicExists(std::string mnemonic, std::string prototype);
+  std::smatch FindImmPrototype(std::string prototype);
+  IntegerOperand ExtractInteger(std::string int_str);
+  void ParseImmediatesTypes(std::string *prototype);
+  void ParseMemOperandTypes(std::string *prototype, MemDescriptor mem_arg);
+  void ParseMnemonic(std::string *mnemonic, std::string *prototype);
 };
 }
 }
