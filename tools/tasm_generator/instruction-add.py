@@ -29,6 +29,8 @@
 from __future__ import print_function
 from jinja2 import Template
 from collections import defaultdict
+import subprocess
+import pathlib
 import argparse
 import re
 import os
@@ -260,6 +262,8 @@ I_ALIAS = {
   "not" : "not_"
 }
 
+VERBOSITY_LOW = 1
+VERBOSITY_HIGH = 2
 ROOT_DIR = os.path.dirname(os.path.realpath(__file__))
 ASSEMBLER_HEADER = os.path.join(ROOT_DIR, '..', '..', 'src',
                                           'aarch64', 'assembler-aarch64.h')
@@ -677,7 +681,7 @@ def GetMatchingInstructions(instructions, signatures, eh):
                       "Truncated to default argument: {}"
                       .format(mnemonic.ref_name,
                               ''.join(curr_prototype),
-                              curr_signature[index]), 2)
+                              curr_signature[index]), VERBOSITY_HIGH)
 
         names_arr.append(m.group('name'))
         types_arr.append(m.group('type'))
@@ -718,7 +722,7 @@ def GetMatchingInstructions(instructions, signatures, eh):
                                        names_arr)
 
         eh.PrintMsg("Instruction added - mnemonic: {}, prototype: {}"
-                    .format(mnemonic.ref_name, curr_prototype), 2)
+                    .format(mnemonic.ref_name, curr_prototype), VERBOSITY_HIGH)
 
     if init_size == parsed_insts.InstructionsCount():
       eh.PrintError("No matching signature for mnemonic supported by VIXL",
@@ -737,35 +741,39 @@ if __name__ == '__main__':
   parser.add_argument('-v', '--verbose', action="count", default=0,
                       help=('print logs to standard output,'
                             ' two verbosity levels available'))
+  parser.add_argument('--clang-format', default="clang-format-4.0",
+                      help='path to clang-format, by default clang-format-4.0'
+                           ' is invoked.')
 
   args = parser.parse_args()
   header_insts = GetSignaturesFromHeader()
 
   with ErrorHandler(header_insts, args.verbose) as eh:
     eh.PrintMsg('Opening input file - {} and parsing content ...\n'
-                 .format(args.filepath[0].name), 1)
+                 .format(args.filepath[0].name), VERBOSITY_LOW)
 
     reference_insts = ParseInputFile(args.filepath[0], eh)
     parsed_insts = GetMatchingInstructions(reference_insts, header_insts, eh)
 
-    eh.PrintMsg("Opening and reading templates ...", 1)
-    eh.PrintMsg("./tasm-template/tasm-assembler.jinja2", 1)
-    eh.PrintMsg("./tasm-template/tasm-instructions.jinja2\n", 1)
+    # Parse all files with .jinja2 extension from the ./tasm-template
+    # subdirectory and produce Text Assembler header files in the same
+    # directory.
+    for template_file in pathlib.Path('tasm-template/').glob('*.jinja2'):
+      eh.PrintMsg("Opening and reading template ...", VERBOSITY_LOW)
+      eh.PrintMsg("{}\n".format(template_file), VERBOSITY_LOW)
+      file_t = Template(open(template_file, "r").read())
 
-    assembler_in = open("./tasm-template/tasm-assembler.jinja2", "r")
-    instructions_in = open("./tasm-template/tasm-instructions.jinja2", "r")
-    assembler_t = Template(assembler_in.read())
-    instructions_t = Template(instructions_in.read())
+      header_file = os.path.splitext(template_file)[0] + ".h"
+      eh.PrintMsg("Generating C++ header ...", VERBOSITY_LOW)
+      eh.PrintMsg("{}\n".format(header_file), VERBOSITY_LOW)
+      file_out = open(header_file, "w")
 
-    eh.PrintMsg("Generating C++ headers ...", 1)
-    eh.PrintMsg("./tasm-template/tasm-assembler.h", 1)
-    eh.PrintMsg("./tasm-template/tasm-instructions.h\n", 1)
-
-    assembler_out = open("./tasm-template/tasm-assembler.h", "w")
-    instructions_out = open("./tasm-template/tasm-instructions.h", "w")
-    print(assembler_t.render(prototypes=parsed_insts.instruction_map,
-                             functions=parsed_insts.function_map),
-          file=assembler_out)
-    print(instructions_t.render(prototypes=parsed_insts.instruction_map,
-                                 functions=parsed_insts.function_map),
-          file=instructions_out)
+      # Invoke clang-format on generated header files.
+      eh.PrintMsg("Invoking clang-format on a generated file...\n",
+                  VERBOSITY_LOW)
+      proc = subprocess.Popen([args.clang_format], stdin=subprocess.PIPE,
+                          stdout=subprocess.PIPE)
+      out, _ = proc.communicate(
+                file_t.render(prototypes=parsed_insts.instruction_map,
+                              functions=parsed_insts.function_map).encode())
+      file_out.write(out.decode())
