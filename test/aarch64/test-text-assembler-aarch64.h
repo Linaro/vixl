@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
+#include <map>
 #include <regex>
 
 #include "assembler-base-vixl.h"
@@ -38,19 +39,35 @@ namespace vixl {
 namespace aarch64 {
 namespace tasm {
 
-// Currently this class only passes whole disassembled instruction to
-// TextAssembler. It can be used as a visitor node in Decoder object.
+// Currently this class processes and passes disassembled instruction to the
+// TextAssembler. It can be used as a visitor node in a Decoder object.
 class Reassembler : public Disassembler {
  public:
+  bool err_flag;
+  std::string str_instr;
   explicit Reassembler(TextAssembler* tasm) : tasm_(tasm) {}
 
  protected:
   virtual void ProcessOutput(const Instruction* instr) override {
     USE(instr);
-    std::regex imm_reg = std::regex("(.*)\\s\\(\\d+\\)");
+    std::regex imm_reg = std::regex("(.*)\\s\\(-?(\\d+.)?\\d+\\)");
     std::regex addr_reg = std::regex("(.*)\\s\\(addr 0x[\\da-fA-F]+\\)");
-    std::string str_instr = GetOutput();
     std::smatch reg_match;
+
+    str_instr = GetOutput();
+    err_flag = false;
+
+    if (str_instr.find("unallocated") != std::string::npos) {
+      err_flag = true;
+      return;
+    } else if (str_instr.find("unimplemented", 0) != std::string::npos) {
+      err_flag = true;
+      return;
+    } else if (str_instr.find("undefined", 0) != std::string::npos) {
+      err_flag = true;
+      return;
+    }
+
     // Discard disassembler hex immediate value translation in arithmetic
     // instructions, for example #0xff (255).
     // TODO: handle more cases with other instructions classes.
