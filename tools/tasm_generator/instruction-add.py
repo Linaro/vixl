@@ -156,6 +156,10 @@ REGEX_MAP = {
   # SVE MEM OPERANDS
   "\[<Zn>\.S\]": "__mem__",
   "\[<Zn>\.<T>, <Zm>\.<T>\]": "__mem__",
+  "\[<Zn>\.D, <Zm>\.D, SXTW\]": "__mem__",
+  "\[<Zn>\.D, <Zm>\.D, UXTW\]": "__mem__",
+  "\[<Zn>\.D, <Zm>\.D, SXTW <amount>\]": "__mem__",
+  "\[<Zn>\.D, <Zm>\.D, UXTW <amount>\]": "__mem__",
   "\[<Zn>\.<T>, <Zm>\.<T>, <mod> <amount>\]": "__mem__",
   "\[<Xn\|SP>, <Zm>\.S, <mod> #1\]": "__mem__",
   "\[<Xn\|SP>, <Zm>\.D, LSL #1\]": "__mem__",
@@ -313,7 +317,7 @@ def ParseOptionalArgs(arg_str):
 
   while True:
     if len(stack) == 0:
-      break;
+      break
     arg_str, i, i_stack = stack.pop()
 
     if i >= len(arg_str):
@@ -323,16 +327,14 @@ def ParseOptionalArgs(arg_str):
     # There are two cases:
     # - register list (for example { <Zt>.B })
     # - optional arguments (for example {, <shift>bf #<amount>}).
-    # If there is space after '{', expression is treated as a register list.
-    # Otherwise as an optional argument.
-    if arg_str[i - 1:i + 1] == "{ ":
+    # If there is beginning of a register type after '{', expression is treated
+    # as a register list. Otherwise as an optional argument.
+    if (arg_str[i - 1:i + 3] == "{ <Z"
+        or arg_str[i - 1:i + 3] == "{ <V") :
       i_stack.append((i - 1, False))
     elif arg_str[i - 1] == "{":
       i_stack.append((i - 1, True))
 
-    # Two types of expressions must be distinguished by opening braces. Character
-    # before closing brace may change after cutting off arguments. For example:
-    # - {, <extend> {#<amount>}} -> {, <extend> }
     if arg_str[i] == "}" and len(i_stack) > 0:
       beg, is_opt = i_stack.pop()
       if is_opt:
@@ -426,7 +428,15 @@ def ParseInputFile(file, eh):
     for instruction in instruction_arr:
       instruction = instruction.split(' ', maxsplit=1)
       arguments = '' if len(instruction) == 1 else instruction[1].strip()
+
+      # Check if mnemonic contains condition at the end. For example b.eq.
       mnemonic = instruction[0].lower()
+      match = re.match("(?P<mnemonic>.*)\.(?P<condition>.*)", mnemonic)
+
+      if match:
+        match_dict = match.groupdict()
+        mnemonic = match_dict['mnemonic']
+        arguments += ", {}".format(match_dict['condition'])
 
       if mnemonic in I_ALIAS:
         mnemonic = I_ALIAS[mnemonic]
