@@ -32,7 +32,6 @@ from collections import defaultdict
 import argparse
 import re
 import os
-import string
 import sys
 
 # Purpose of this script is to parse file with instructions in reference manual
@@ -50,7 +49,8 @@ import sys
 # jinja2 library. To test if instruction operands match, "prototypes" are used.
 # They are a single-word representation of the operand list. For example:
 #   "<Zd>.<T>, <Zn>.<T>, <Zm>.<T>"" -> prototype: "zzz"
-#   "const ZRegister& zd, const ZRegister& zn, const ZRegister& zm" -> prototype: "zzz"
+#   "const ZRegister& zd, const ZRegister& zn, const ZRegister& zm" ->
+#   prototype: "zzz"
 # Prototypes are also used internally in text assembler code.
 
 REGEX_MAP = {
@@ -72,14 +72,15 @@ REGEX_MAP = {
   "<Z[dnm]>\.Q": "z",
   "<Z[dnm]>\.[BHSD]": "z",
   "<Z[nm]>\.<Tb>": "z",
-  "<Zm>\.[BSDH]\[<imm>\]": "zi",
+  "<Zm>\.[BSDH]\[<imm>\]": ["z", "i"],
   "<Zdn>\.<T>": "z",
-  "<Zn>\.<T>\[<imm>\]": "zi",
-  "\{ <Z[tn](1)?>\.(?:[HSBD]|<T>)(, <Z[tn](?P<num>[234])?>\.(?:[HSBD]|<T>))* \}": "z_list",
+  "<Zn>\.<T>\[<imm>\]": ["z", "i"],
+  "\{ <Z[tn](1)?>\.(?:[HSBD]|<T>)(, <Z[tn](?P<num>[234])?>"
+    "\.(?:[HSBD]|<T>))* \}": "z_list",
   # PREGISTERS
   "<Pg>/M": "M",
   "<Pg>/Z": "Z",
-  "<Pg>/<ZM>": "p",
+  "<Pg>/<ZM>": "pZM",
   "<P[gt]>": "p",
   "<P[dnm]>\.<T>": "L",
   "<Pdn>\.<T>": "L",
@@ -95,13 +96,14 @@ REGEX_MAP = {
   "<V[dnm]>\.<T>": "v",
   "<V[adnm]>\.\d{1,2}[SBDH]": "v",
   "<V[nd]>\.D\[1\]": "v",
-  "<V[nmd]>\.<Ts?>\[<index[12]?>\]": "vi",
-  "<V[nm]>\.4?[HBSD]\[<index>\]": "vi",
+  "<V[nmd]>\.<Ts?>\[<index[12]?>\]": ["v", "i"],
+  "<V[nm]>\.4?[HBSD]\[<index>\]": ["v", "i"],
   "<[SDQ]t[12]>": "v",
-  "\{ <Vt>\.<T>(, <Vt(?P<num>[234])?>\.<T>)* \}(?P<imm>\[<index>\])?": "v_list",
-  "\{ <V[tn]>\.[0-9]{0,2}[HSBD](, <V[tn]\+?(?P<num>[1234])>\.[0-9]{0,2}[HSBD])* \}(?P<imm>\[<index>\])?": "v_list",
+  "\{ <Vt>\.<T>(, <Vt(?P<num>[234])?>\.<T>)* \}(?P<imm>\[<index>\])?":
+    "v_list",
+  "\{ <V[tn]>\.[0-9]{0,2}[HSBD](, <V[tn]\+?(?P<num>[1234])>"
+    "\.[0-9]{0,2}[HSBD])* \}(?P<imm>\[<index>\])?": "v_list",
   # IMMEDIATES
-  "#<imm>, <shift>": "(o|ii)", # exception -> VIXL treats this combination as an Operand type
   "#<rotate>": "i",
   "#<index>": "i",
   "<pattern>": "i",
@@ -118,9 +120,9 @@ REGEX_MAP = {
   "#<const>": "i",
   "MUL #<imm>": "i",
   "LSL #<shift>": "i",
-  "LSL #0": "Si",
-  "MSL #<amount>": "Si",
-  "LSL #<amount>": "S?i",
+  "LSL #0": ["S", "i"],
+  "MSL #<amount>": ["S", "i"],
+  "LSL #<amount>": ["S?", "i"],
   "#<op1>|#<op2>": "i",
   "#0|#2|#4|#8|#16": "i",
   "<C[nm]>": "i",
@@ -180,13 +182,15 @@ REGEX_MAP = {
   # OTHERS
   "<prfop>": "P",
   "\(<prfop>\|#<imm5>\)": "(P|i)",
-  "<label>": "l",
+  # Instructions taking named labels accept also syntax with immediate offset
+  # For example: b #+8
+  "<label>": "(l|i)",
   "<extend>": "e",
   "<extend> #<amount>": "e",
   "LSL|ROR|<shift> #<amount>": "S",
   "<cond>|invert\(<cond>\)": "c",
-  "<option>\|#<imm>": "Bb",
-  "<option>nXS\|#<imm>": "Bb",
+  "<option>\|#<imm>": ["B", "b"],
+  "<option>nXS\|#<imm>": ["B", "b"],
   "<targets>": "T",
   "#<mask>": "F",
   "#<nzcv>": "F",
@@ -233,6 +237,21 @@ TYPES = {
   "Label*": "l",
 }
 
+# Some of the subtypes are not accepted as a base type argument for some
+# signatures in VIXL functions. This cases have to be checked to prevent
+# from causing possible bugs in Text Assembler. For example:
+#  - ldr(const CPURegister& rt, const SVEMemOperand& addr)
+#  - ldr(const CPURegister& rt, const MemOperand& src)
+# In such case with overloaded functions Text Assembler will decide how to
+# parse memory operand (MemOperand or SVEMemOperand) based on the preceding
+# register type.
+BASE_TYPE_EXCEPTIONS = [
+  ("const CPURegister& [\w]+, const SVEMemOperand& [\w]+",
+    {'base': "CPURegister", 'derived': ["Register", "VRegister"]}),
+  ("const CPURegister& [\w]+, const MemOperand& [\w]+, "
+   "LoadStoreScalingOption [\w]+ = PreferScaledOffset",
+    {'base': "CPURegister", 'derived': ["PRegister", "ZRegister"]})
+]
 
 # Dictionary with matching instructions names that are different in VIXL and
 # reference manual.
@@ -272,10 +291,12 @@ class ErrorHandler(object):
       return
 
     print("{} errors were raised.\n".format(err_num))
-    print("{} about instructions supported by VIXL.".format(self.general_err_num),
-         file=sys.stderr)
+    print("{} about instructions supported by VIXL."
+          .format(self.general_err_num),
+          file=sys.stderr)
     print("Located in file {}\n".format(self.general_err_fn), file=sys.stderr)
-    print("{} about instructions not supported by VIXL.".format(self.support_err_num),
+    print("{} about instructions not supported by VIXL."
+          .format(self.support_err_num),
           file=sys.stderr)
     print("Located in file {}\n".format(self.support_err_fn), file=sys.stderr)
 
@@ -296,11 +317,69 @@ class ErrorHandler(object):
     if verbosity <= self.verbosity:
       print(message)
 
-class InstructionSet(object):
-  def __init__(self, signature, types):
-    self.signature = signature
-    self.types = types
-    self.mnemonics = set()
+
+# Class containing instructions and functions that will be added in generated
+# Text Assembler headers. Map members in this class are passed directly to
+# jinja template files.
+class ParsedInstructionSet(object):
+  def __init__(self):
+    self.instructions_count = 0
+    self.instruction_map = {}
+    self.function_map = {}
+
+  # Subclass containing single signature, array with type names and array with
+  # mnemonics that are handled with this signature. This class is used for
+  # more readability in jinja templates. Members can be accessed by names
+  # instead of indexes.
+  class MnemonicSet(object):
+    def __init__(self, signature, types):
+      self.signature = signature
+      self.types = types
+      self.mnemonics = set()
+
+  def StripDefaultValues(self, signature):
+    # Strip default values from default arguments in the function signature.
+    # For example:
+    #  - cntw(const Register& rd, int pattern = SVE_ALL, int multiplier = 1)
+    #  - cntw(const Register& rd, int pattern, int multiplier)
+    return re.sub('\s*=\s*[^,)]*', '', signature)
+
+  def InsertInstruction(self, mnemonic, signature, types_arr, prototype):
+    signature = self.StripDefaultValues(signature)
+    self.instructions_count += 1
+    str_prototype = ''.join(prototype)
+    instructions = self.instruction_map.get(str_prototype,
+                                            self.MnemonicSet(signature,
+                                                                types_arr))
+    instructions.mnemonics.add(mnemonic)
+    self.instruction_map[str_prototype] = instructions
+
+  def InsertFunction(self, mnemonic, signature, names):
+    signature = self.StripDefaultValues(signature)
+    arguments = self.function_map.get(mnemonic, set())
+    arguments.add((signature, tuple(names)))
+    self.function_map[mnemonic] = arguments
+
+  def InstructionsCount(self):
+    return self.instructions_count
+
+
+class Mnemonic(object):
+  def __init__(self, ref_name, hdr_name=None):
+    self.hdr_name = ref_name if hdr_name is None else hdr_name
+    self.ref_name = ref_name
+
+  # Mnemonic class is used as a key in a set data type. Functions __hash__ and
+  # __eq__ are implemented for proper comparision between instances of a class.
+  def __hash__(self):
+    return hash((self.ref_name, self.hdr_name))
+
+  def __eq__(self, other):
+    if not isinstance(other, Mnemonic):
+      return False
+
+    return (self.hdr_name == self.hdr_name and
+            self.ref_name == self.ref_name)
 
 
 # Parse instructions operand list and find all possible placements of optional
@@ -383,10 +462,18 @@ def GetSignaturesFromHeader():
 # Get prototype of the instruction in the reference manual form. Prototype is
 # created by matching argument list with regexes from global regex map.
 # For example:
-# instruction: "ADD  <Vd>.<T>, <Vn>.<T>, <Vm>.<T>" -> prototype: "vvv"
-def GetPrototype(arguments):
+# instruction: "ADD  <Vd>.<T>, <Vn>.<T>, <Vm>.<T>" -> prototype: ["v", "v", "v"]
+def GetPrototype(arguments, mnemonic):
   match = None
-  prototype = ""
+  # Some instructions can take both PRegisterM and PRegisterZ arguments and
+  # they have common function in VIXL, for example:
+  #   - movprfx(const ZRegister& zd, const PRegister& pg, const ZRegister& zn)
+  # Some of these arguments are marked as <Pg>/<ZM> in the reference.
+  # In this cases two separate prototypes are returned instead of one.
+  # Example for movprfx case:
+  #   - ("zMz", "zZz") instead of "zPz"
+  split_index = None
+  prototype = []
 
   while arguments:
     found = False
@@ -398,20 +485,27 @@ def GetPrototype(arguments):
         t_value = REGEX_MAP[regex]
         if t_value == "v_list":
           num = 1 if match.group('num') is None else int(match.group('num'))
-          prototype = prototype.ljust(num + len(prototype), 'v')
+          prototype.extend(['v'] * num)
           prototype += '' if match.group('imm') is None else 'i'
         elif t_value == "z_list":
           num = 1 if match.group('num') is None else int(match.group('num'))
-          prototype = prototype.ljust(num + len(prototype), 'z')
+          prototype.extend(['z'] * num)
+        elif t_value == "pZM" and split_index is None:
+          split_index = len(prototype)
         else:
-          prototype += t_value
+          prototype += t_value if isinstance(t_value, list) else [t_value]
         arguments = arguments[match.end():].strip()
         break
 
     if not match:
       return (True, arguments)
 
-  return (False, prototype)
+  if split_index:
+    m_prototype = prototype[split_index:] + ["M"] + prototype[:split_index]
+    z_prototype = prototype[split_index:] + ["Z"] + prototype[:split_index]
+    return (False, [m_prototype, z_prototype])
+  else:
+    return (False, [prototype])
 
 
 # Parse file with instructions in reference manual form and create prototypes
@@ -438,15 +532,13 @@ def ParseInputFile(file, eh):
         mnemonic = match_dict['mnemonic']
         arguments += ", {}".format(match_dict['condition'])
 
-      if mnemonic in I_ALIAS:
-        mnemonic = I_ALIAS[mnemonic]
-
-      err, ret_str = GetPrototype(arguments)
+      err, ret_arr = GetPrototype(arguments, mnemonic)
       if err:
         eh.PrintError("Couldn't match any regex with argument", mnemonic,
-                      description="not matched part: {}".format(ret_str))
+                      description="not matched part: {}".format(ret_arr))
       else:
-        instructions.append((mnemonic, ret_str))
+        for prototype in ret_arr:
+          instructions.append((Mnemonic(mnemonic), prototype))
 
     input_line = file.readline()
 
@@ -454,107 +546,187 @@ def ParseInputFile(file, eh):
 
 # Check for a match between prototype from reference manual and possible
 # prototypes of a function in VIXL.
-def CheckPrototype(ref_prototype, prototype_arr):
+def CheckPrototype(ref_prototype, hdr_prototype):
   # Some types from reference manual are represented in different ways in VIXL.
   # It is needed to match specific type that is used in VIXL for given
   # instruction. For example:
   # - "Register, Shift" can be represented as "Operand"
-  # - All types of registers can be represented as "CPURegister"
-  operand_types = ["re", "rS", "iS", "r", "i"]
-  register_types = ["r", "v", "z", "p", "L", "M", "Z"]
+  regex_p = ''.join(ref_prototype)
+  hdr_str = ''.join(hdr_prototype)
+  operand_types = ["ii", "re", "rS", "iS", "r", "i"]
   other_types = [('i', "(d|f(16)?|[ui](?:32|64)?)"),
-                 ('__mem__', "(m|s)"),
-                 ('L', "(p|L)"),
-                 ('M', "(p|M)"),
-                 ('Z', "(p|Z)")]
+                 ('__mem__', "(m|s)")]
 
-  for prototype in prototype_arr:
-    regex_p = ref_prototype
+  if "o" in hdr_str and "o" not in regex_p:
+    index = hdr_str.find('o')
+    if len(regex_p) >= index + 2 and regex_p[index:index + 2] in operand_types:
+      regex_p = regex_p[:index] + "o" + regex_p[index + 2:]
+    elif (len(regex_p) >= index + 1 and
+          regex_p[index:index + 1] in operand_types):
+      regex_p = regex_p[:index] + "o" + regex_p[index + 1:]
 
-    if "o" in prototype and "o" not in ref_prototype:
-      index = prototype.find('o')
-      if len(ref_prototype) >= index + 2 and ref_prototype[index:index + 2] in operand_types:
-        regex_p = ref_prototype[:index] + "o" + ref_prototype[index + 2:]
-      elif len(ref_prototype) >= index + 1 and ref_prototype[index:index + 1] in operand_types:
-        regex_p = ref_prototype[:index] + "o" + ref_prototype[index + 1:]
+  for ot_type in other_types:
+    regex_p = regex_p.replace(ot_type[0], ot_type[1])
 
-    for ot_type in other_types:
-      regex_p = regex_p.replace(ot_type[0], ot_type[1])
+  if bool(re.match("^" + regex_p + "$", hdr_str)):
+    return True
 
-    for reg_type in register_types:
-      regex_p = regex_p.replace(reg_type, "({}|C)".format(reg_type))
+  return False
 
-    if bool(re.match("^" + regex_p + "$", prototype)):
-      return prototype
+
+# Check if the type for a given argument from VIXL header is a base type for
+# the one found in the xml reference. For example:
+#   - PRegister is a base type for PRegisterM and PRegisterZ
+# Return full signature for the subtype from xml.
+def CheckBaseTypes(ref_prototype, index, name_str, types_arr, type_exception):
+  derived_type = None
+  base_types = {"PRegister": ["PRegisterM", "PRegisterZ"],
+                "CPURegister": ["Register", "VRegister",
+                                "ZRegister", "PRegister",
+                                "PRegisterM", "PRegisterZ",
+                                "PRegisterWithLaneSize"]}
+  opt_types = base_types.get(types_arr[-1])
+
+  if opt_types is None or index > len(ref_prototype):
+    return None
+
+  ref_type = ref_prototype[index]
+
+  for opt_type in opt_types:
+    if TYPES.get(opt_type) == ref_type:
+      derived_type = opt_type
+      break
+
+  if (type_exception is not None and
+      types_arr[-1] == type_exception['base'] and
+      derived_type in type_exception['derived']):
+    return None
+
+  if derived_type is not None:
+    type_def = "const {}& {}".format(derived_type, name_str)
+    types_arr[-1] = derived_type
+    return type_def
 
   return None
+
 
 # Iterate through list of instructions from reference manual and check if
 # given mnemonic and prototype is supported by VIXL. Instructions that are
 # supported are returned in a map.
 def GetMatchingInstructions(instructions, signatures, eh):
-  prototype_map = {}
-  for mnemonic, prototype in instructions:
-    t_regex = "((const )?(?P<type>\w+\*?)&? \w+(?P<default> = .*)?)?"
-    found = False
+  parsed_insts = ParsedInstructionSet()
 
-    if mnemonic not in signatures:
-      eh.PrintError("No matching mnemonic supported by VIXL", mnemonic,
-                    description="prototype from reference: {}".format(prototype))
+  for mnemonic, prototype in instructions:
+    init_size = parsed_insts.InstructionsCount()
+    t_regex = "((const )?(?P<type>\w+\*?)&? (?P<name>\w+)(?P<default> = .*)?)?"
+
+    if mnemonic.ref_name in I_ALIAS:
+      mnemonic.hdr_name = I_ALIAS[mnemonic.ref_name]
+
+    if mnemonic.hdr_name not in signatures:
+      eh.PrintError("No matching mnemonic supported by VIXL",
+                    mnemonic.ref_name,
+                    description="prototype from reference: {}"
+                    .format(prototype))
       continue
 
     # Iterate through array of signatures supported by VIXL for given mnemonic
     # and check if there is one matching.
-    for signature in signatures[mnemonic]:
-      curr_prototype = ""
-      prototype_arr = []
+    for signature in signatures[mnemonic.hdr_name]:
+      curr_signature = signature.copy()
+      generate_func = False
+      curr_prototype = []
       types_arr = []
+      names_arr = []
 
       # Create prototype from signature by iterating through arguments list.
       # Prototype is created by extracting type name with regular expression
       # and lookup in the global types map.
-      for argument in signature:
+      for index, argument in enumerate(signature):
         m = re.match(t_regex, argument.strip())
 
         if m is None:
           eh.PrintError("Couldn't extract argument type: {}".format(argument),
-                        mnemonic, description="signature: {}".format(signature))
-          continue
-
-        if m.group('type') not in TYPES:
-          eh.PrintError("Type was not recognized: {}".format(argument), mnemonic,
+                        mnemonic.ref_name,
                         description="signature: {}".format(signature))
           continue
 
-        # When default arguments are encountered all possible prototypes are
-        # written in the array. For example:
-        # const Register& rd, int pattern = SVE_ALL, int multiplier = 1
-        # prototype_arr = ['r', 'ri', 'rii']
-        if m.group('default') is not None:
-          prototype_arr.append(curr_prototype)
+        if m.group('type') not in TYPES:
+          eh.PrintError("Type was not recognized: {}".format(argument),
+                        mnemonic.ref_name,
+                        description="signature: {}".format(signature))
+          continue
+
+        # Text Assembler refers to functions by pointers and in C++ it is not
+        # possible to omit default arguments in such case. When default
+        # argument is encountered additional function is generated in the
+        # Text Assembler header file. For example:
+        #   - void clrex(int imm4 = 0xf);
+        # For above function additional one will be generated:
+        #   - void clrex()
+        if (m.group('default') is not None
+            and CheckPrototype(prototype, curr_prototype)):
+          parsed_insts.InsertInstruction(mnemonic,
+                                          ','.join(curr_signature[:index]),
+                                          types_arr[:index],
+                                          curr_prototype)
+          parsed_insts.InsertFunction(mnemonic,
+                                       ','.join(curr_signature[:index]),
+                                       names_arr[:index])
+          eh.PrintMsg("Instruction added - mnemonic: {}, prototype: {}\n"
+                      "Truncated to default argument: {}"
+                      .format(mnemonic.ref_name,
+                              ''.join(curr_prototype),
+                              curr_signature[index]), 2)
+
+        names_arr.append(m.group('name'))
         types_arr.append(m.group('type'))
-        curr_prototype += TYPES.get(m.group('type'))
+        type_exception = None
 
-      prototype_arr.append(curr_prototype)
-      # Possible prototypes for given signature are checked for a match with
-      # prototype of given instruction from reference manual.
-      match_p = CheckPrototype(prototype, prototype_arr)
-      if match_p is not None:
-        found = True
-        f_signature = ','.join(signature[:len(match_p)])
-        f_signature = re.sub('\s*=\s*[^,)]*', '', f_signature)
+        for e_signature, e_types in BASE_TYPE_EXCEPTIONS:
+          if bool(re.match(e_signature, ','.join(signature))):
+            type_exception = e_types
+            break
 
-        instructions = prototype_map.get(match_p, InstructionSet(f_signature, types_arr))
-        instructions.mnemonics.add(mnemonic)
-        prototype_map[match_p] = instructions
+        # Check if currently parsed type from VIXL header is a base type for
+        # the type found in the xml. Text Assembler refers to arguments by
+        # exact type and additional functions are generated in its header file.
+        # For example:
+        #  - movprfx(const ZRegister& zd, const PRegister& pg,...
+        # For the above function two others will be generated:
+        #  - movprfx(const ZRegister& zd, const PRegisterM& pg,...
+        #  - movprfx(const ZRegister& zd, const PRegisterZ& pg,...
+        type_def = CheckBaseTypes(prototype, index, m.group('name'),
+                                  types_arr, type_exception)
+
+        if type_def is not None:
+          generate_func = True
+          curr_signature[index] = type_def
+
+        curr_prototype.append(TYPES.get(types_arr[-1]))
+
+      # Prototype constructed from the function signature is checked for a
+      # match with the prototype of a given instruction from reference manual.
+      if CheckPrototype(prototype, curr_prototype):
+        parsed_insts.InsertInstruction(mnemonic,
+                                        ','.join(curr_signature),
+                                        types_arr,
+                                        curr_prototype)
+        if generate_func:
+          parsed_insts.InsertFunction(mnemonic,
+                                       ','.join(curr_signature),
+                                       names_arr)
+
         eh.PrintMsg("Instruction added - mnemonic: {}, prototype: {}"
-                    .format(mnemonic, prototype), 2)
+                    .format(mnemonic.ref_name, curr_prototype), 2)
 
-    if not found:
-      eh.PrintError("No matching signature for mnemonic supported by VIXL", mnemonic,
-                    description="prototype from reference: {}".format(prototype))
+    if init_size == parsed_insts.InstructionsCount():
+      eh.PrintError("No matching signature for mnemonic supported by VIXL",
+                    mnemonic.ref_name,
+                    description="prototype from reference: {}"
+                    .format(prototype))
 
-  return prototype_map
+  return parsed_insts
 
 
 if __name__ == '__main__':
@@ -565,6 +737,7 @@ if __name__ == '__main__':
   parser.add_argument('-v', '--verbose', action="count", default=0,
                       help=('print logs to standard output,'
                             ' two verbosity levels available'))
+
   args = parser.parse_args()
   header_insts = GetSignaturesFromHeader()
 
@@ -573,7 +746,7 @@ if __name__ == '__main__':
                  .format(args.filepath[0].name), 1)
 
     reference_insts = ParseInputFile(args.filepath[0], eh)
-    prototype_map = GetMatchingInstructions(reference_insts, header_insts, eh)
+    parsed_insts = GetMatchingInstructions(reference_insts, header_insts, eh)
 
     eh.PrintMsg("Opening and reading templates ...", 1)
     eh.PrintMsg("./tasm-template/tasm-assembler.jinja2", 1)
@@ -590,5 +763,9 @@ if __name__ == '__main__':
 
     assembler_out = open("./tasm-template/tasm-assembler.h", "w")
     instructions_out = open("./tasm-template/tasm-instructions.h", "w")
-    print(assembler_t.render(prototypes=prototype_map), file=assembler_out)
-    print(instructions_t.render(prototypes=prototype_map), file=instructions_out)
+    print(assembler_t.render(prototypes=parsed_insts.instruction_map,
+                             functions=parsed_insts.function_map),
+          file=assembler_out)
+    print(instructions_t.render(prototypes=parsed_insts.instruction_map,
+                                 functions=parsed_insts.function_map),
+          file=instructions_out)

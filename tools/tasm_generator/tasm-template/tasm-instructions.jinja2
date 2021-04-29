@@ -32,19 +32,15 @@
 namespace vixl {
 namespace aarch64 {
 namespace tasm {
-
-
 {% for prototype, instructions in prototypes.items() %}
 #define VIXL_AF(F) AssemblerFn(static_cast<VIXL_{{ prototype }}_Fn>(F))
 const std::map<std::string, AssemblerFn> TextAssembler::{{ prototype }}_insts_ = {
     {% for mnemonic in instructions.mnemonics -%}
-    {"{{ mnemonic }}", VIXL_AF(&TextAssembler::{{ mnemonic }})},
+    {"{{ mnemonic.ref_name }}", VIXL_AF(&TextAssembler::{{ mnemonic.hdr_name }})},
     {% endfor -%}
 };
 #undef VIXL_AF
 {% endfor %}
-
-
 // Instruction prototype is a signature of the function handling that
 // instruction, for example
 //  * rro -> Register, Register, Operand

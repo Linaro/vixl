@@ -45,24 +45,26 @@ namespace aarch64 {
 namespace tasm {
 
 class TextAssembler;
-
-{% for prototype, instructions in prototypes.items() -%}
+{% for prototype, instructions in prototypes.items() %}
 using VIXL_{{ prototype }}_Fn = void (TextAssembler::*)({{ instructions.signature }});
 {% endfor %}
-
 using AssemblerFn = std::variant<std::monostate,
 {% for prototype, tuple in prototypes.items() -%}
 VIXL_{{ prototype }}_Fn
 {%- if not loop.last %},
 {% else %}>;
-{% endif -%}
-{% endfor %}
+{%- endif -%}
+{%- endfor %}
 
 class TextAssembler : private Assembler {
  public:
-  TextAssembler() : ip_(MnemonicExists, GetPrototypes, &eh_) {}
+  TextAssembler() = default;
+  explicit TextAssembler(std::string filename) : eh_{filename} {};
   void Assemble(std::string instruction);
   bool GetError();
+  bool GetLineError();
+  std::string GetLine();
+  std::string GetPrototype();
 
   // Functions allowing instruction prototype/mnemonic lookup.
   static bool MnemonicExists(std::string prototype, std::string mnemonic);
@@ -76,8 +78,10 @@ class TextAssembler : private Assembler {
   vixl::internal::AssemblerBase *AsAssemblerBase();
 
  private:
+  std::string line;
+  std::string curr_prototype;
   ErrorHandler eh_;
-  InstructionParser ip_;
+  InstructionParser ip_ {MnemonicExists, GetPrototypes, &eh_};
   static const std::vector<std::string> str_prototypes_;
 
   // Maps have to be members if we want to have private inheritance from
@@ -87,21 +91,17 @@ class TextAssembler : private Assembler {
   {% endfor -%}
   static const std::map<std::string, std::map<std::string, AssemblerFn> >
       prototypes_;
-
-  using Assembler::movi;
-  void movi(const VRegister &rd, uint64_t imm);
-
-  using Assembler::movz;
-  void movz(const Register &rd, uint64_t imm);
-
-  using Assembler::ptrue;
-  void ptrue(const PRegisterWithLaneSize &pd);
-
-  using Assembler::ptrues;
-  void ptrues(const PRegisterWithLaneSize &pd);
-
-  using Assembler::ret;
-  void ret();
+{% for mnemonic, arguments in functions.items() %}
+  using Assembler::{{ mnemonic.hdr_name }};
+  {%- for signature, names in arguments %}
+  void {{ mnemonic.hdr_name }}({{ signature }}){
+    Assembler::{{ mnemonic.hdr_name }}({%- for name in names -%}
+      {{ name }}
+      {%- if not loop.last %}, {% endif -%}
+    {% endfor %});
+  }
+  {%- endfor %}
+{% endfor %}
 };
 
 // Class used in std::visit to get current value held by std::variant.
@@ -118,8 +118,7 @@ class InstructionDispatcher {
       {%- if not loop.last %}, {% endif -%}
     {%- endfor -%});
   }
-{% endfor %}
-
+{%- endfor %}
 
   InstructionDispatcher(TextAssembler *tasm,
                         std::vector<Argument> args,
