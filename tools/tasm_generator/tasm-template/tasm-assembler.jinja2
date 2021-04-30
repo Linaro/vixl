@@ -58,13 +58,9 @@ VIXL_{{ prototype }}_Fn
 
 class TextAssembler : private Assembler {
  public:
-  TextAssembler() = default;
-  explicit TextAssembler(std::string filename) : eh_{filename} {};
   void Assemble(std::string instruction);
   bool GetError();
   bool GetLineError();
-  std::string GetLine();
-  std::string GetPrototype();
 
   // Functions allowing instruction prototype/mnemonic lookup.
   static bool MnemonicExists(std::string prototype, std::string mnemonic);
@@ -78,8 +74,6 @@ class TextAssembler : private Assembler {
   vixl::internal::AssemblerBase *AsAssemblerBase();
 
  private:
-  std::string line;
-  std::string curr_prototype;
   ErrorHandler eh_;
   InstructionParser ip_ {MnemonicExists, GetPrototypes, &eh_};
   static const std::vector<std::string> str_prototypes_;
@@ -91,6 +85,31 @@ class TextAssembler : private Assembler {
   {% endfor -%}
   static const std::map<std::string, std::map<std::string, AssemblerFn> >
       prototypes_;
+
+  // Functions below are wrappers around Assembler methods, they are generated
+  // in two cases.
+  //
+  // 1) For Assembler methods with default arguments. For example:
+  //     - cntd(const Register& rd, int pattern = SVE_ALL, int multiplier = 1)
+  //
+  //    For the above function two other ones will be generated:
+  //     - cntd(const Register& rd)
+  //     - cntd(const Register& rd, int pattern)
+  //
+  //    Text Assembler holds pointers to functions and needs explicit
+  //    signatures to refer to this functions omitting default arguments.
+  //
+  // 2) For Assembler methods that take base type argument governing few
+  //    subtypes. For example:
+  //   -movprfx(const ZRegister& zd, const PRegister& pg, const ZRegister& zn)
+  //
+  //    For the above function two other ones will be generated:
+  //   -movprfx(const ZRegister& zd, const PRegisterM& pg, const ZRegister& zn)
+  //   -movprfx(const ZRegister& zd, const PRegisterZ& pg, const ZRegister& zn)
+  //
+  //    PRegisterM and PRegisterZ are subtypes of the PRegister type.
+  //    Text Assembler parses arguments to the exact types and refers to the
+  //    function signatures with these types.
 {% for mnemonic, arguments in functions.items() %}
   using Assembler::{{ mnemonic.hdr_name }};
   {%- for signature, names in arguments %}
