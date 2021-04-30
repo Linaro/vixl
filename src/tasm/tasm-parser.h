@@ -100,7 +100,7 @@ struct ArgumentSet {
 };
 
 // Enum with possible types of the single input line.
-enum LineType { kInstruction, kEmpty, kUnmatched };
+enum LineType { kInstruction, kLabel, kEmpty, kUnmatched };
 
 class InstructionParser {
   using ParserFn = void (InstructionParser::*)(ArgumentSet, std::string *);
@@ -114,6 +114,7 @@ class InstructionParser {
 
   // Variables responsible for holding splited elements of currently parsed
   // instruction line.
+  std::map<std::string, Label> labels;
   std::vector<Argument> args;
   std::vector<MemDescriptor> mem_args;
   std::string mnemonic;
@@ -149,6 +150,7 @@ class InstructionParser {
   void ParseFPImmediate(ArgumentSet arg_set, std::string *prototype);
   void ParseRegisterList(ArgumentSet arg_set, std::string *prototype);
   void ParseMemOperandList(ArgumentSet arg_set, std::string *prototype);
+  void ParseLabel(ArgumentSet arg_set, std::string *prototype);
 
   // Helper functions for arguments parsing.
   bool MnemonicExists(std::string mnemonic, std::string prototype);

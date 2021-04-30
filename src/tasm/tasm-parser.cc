@@ -68,7 +68,8 @@ const std::vector<std::pair<InstructionParser::ParserFn, std::string> >
           "v(\\d{1,2})\\.(\\d{1,2})?(\\w)(?:\\[(\\d{1,2})\\])?"},
          {&InstructionParser::ParseRegisterList,
           "\\{(.*)\\}(?:\\[(\\d{1,2})\\])?"},
-         {&InstructionParser::ParseMemOperandList, "\\[(.*)\\](!?)"}};
+         {&InstructionParser::ParseMemOperandList, "\\[(.*)\\](!?)"},
+         {&InstructionParser::ParseLabel, "([a-zA-Z0-9_]+)"}};
 
 // Global maps that are used in a few parsing functions.
 const std::map<char, unsigned int> sve_sizes_map = {
@@ -104,6 +105,7 @@ LineType InstructionParser::LoadInstruction(std::string inst_line,
   std::string empty_regex = "\\s*";
   std::string comment_regex = "(.*)//.*";
   std::string inst_regex = "\\s*([a-zA-Z0-9.]+)(?:\\s+(.+))?\\s*";
+  std::string label_regex = "\\s*([a-zA-Z0-9.]+):\\s*";
   std::smatch match_args;
 
   eh->IncrementLineNumber(inst_line);
@@ -115,8 +117,8 @@ LineType InstructionParser::LoadInstruction(std::string inst_line,
     inst_line = match_args.str(1);
   }
 
-  // Parse current line as an instruction.
   if (std::regex_match(inst_line, match_args, std::regex(inst_regex))) {
+    // Parse current line as an instruction.
     mnemonic = match_args.str(1);
 
     // Make mnemonic case insensitive by converting all letters to
@@ -136,8 +138,19 @@ LineType InstructionParser::LoadInstruction(std::string inst_line,
     ParseImmediatesTypes(prototype);
 
     return kInstruction;
-    // Mark empty line properly.
+  } else if (std::regex_match(inst_line, match_args, std::regex(label_regex))) {
+    // Parse current line as a label.
+    auto it = labels.try_emplace(match_args.str(1), Label());
+    Label *label = &(it.first->second);
+
+    if (label->IsBound()) {
+      eh->Err("Label redeclaration.");
+    } else {
+      args.push_back(label);
+    }
+    return kLabel;
   } else if (std::regex_match(inst_line, match_args, std::regex(empty_regex))) {
+    // Mark empty line properly.
     return kEmpty;
   }
   return kUnmatched;
@@ -624,6 +637,15 @@ void InstructionParser::ParseMemOperandList(ArgumentSet arg_set,
     mem_op.addr_mode = PreIndex;
   else
     mem_op.addr_mode = Offset;
+}
+
+void InstructionParser::ParseLabel(ArgumentSet arg_set,
+                                   std::string *prototype) {
+  std::smatch arg_match = arg_set.match;
+  auto it = labels.try_emplace(arg_match.str(1), Label());
+
+  args.push_back(&(it.first->second));
+  prototype->push_back('l');
 }
 
 // Combine parsed arguments from given range (specified by pos_start and

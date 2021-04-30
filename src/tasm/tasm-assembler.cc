@@ -76,7 +76,9 @@ void TextAssembler::Assemble(std::string instruction) {
   // Don't try to assemble instruction line if there was an error in this line.
   if (eh_.GetLineErr()) return;
 
-  if (line_type == kInstruction) {
+  if (line_type == kLabel) {
+    bind(std::get<Label*>(args[0]));
+  } else if (line_type == kInstruction) {
     try {
       fun_object = prototypes_.at(prototype).at(mnemonic);
       std::visit(InstructionDispatcher(this, args, mnemonic), fun_object);
