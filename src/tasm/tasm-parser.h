@@ -36,6 +36,7 @@
 #include <variant>  // NOLINT(build/include_order)
 #include <vector>
 
+#include "tasm-errors.h"
 #include "aarch64/assembler-aarch64.h"
 
 namespace vixl {
@@ -43,6 +44,20 @@ namespace aarch64 {
 namespace tasm {
 
 using Argument = std::variant<std::monostate,
+                              Extend,
+                              Shift,
+                              StatusFlags,
+                              SystemRegister,
+                              SVEOffsetModifier,
+                              PrefetchOperation,
+                              LoadStoreScalingOption,
+                              BarrierDomain,
+                              BranchTargetIdentifier,
+                              InstructionCacheOp,
+                              BarrierType,
+                              DataCacheOp,
+                              SystemHint,
+                              CPURegister,
                               Condition,
                               Label *,
                               Register,
@@ -59,29 +74,46 @@ using Argument = std::variant<std::monostate,
                               int64_t,
                               uint64_t,
                               unsigned,
-                              int>;
+                              int,
+                              Float16,
+                              float,
+                              double>;
 
 // Structure holding information about encountered memory operand in the
 // instruction line. beg_pos and end_pos are storing position of a first and
 // last argument of the operand in the prototype string.
 struct MemDescriptor {
   size_t beg_pos;
-  size_t end_pos;
-  AddrMode addr_mode;
+  size_t end_pos{SIZE_MAX};
+  AddrMode addr_mode{Offset};
 };
 
+// Structure holding information about single parsed argument from the
+// instruction line. match and raw_case are storing the result of the regular
+// expression match and raw argument string.
+struct ArgumentSet {
+  std::smatch match;
+  std::string raw_case;
+
+  ArgumentSet() = default;
+  explicit ArgumentSet(std::smatch m) : match{m}, raw_case{""} {};
+};
+
+// Enum with possible types of the single input line.
+enum LineType { kInstruction, kEmpty, kUnmatched };
+
 class InstructionParser {
-  using ParserFn = int (InstructionParser::*)(std::smatch, std::string *);
+  using ParserFn = void (InstructionParser::*)(ArgumentSet, std::string *);
   using MnemonicFn = bool (*)(std::string, std::string);
   using PrototypesFn = std::vector<std::string> (*)();
 
  private:
+  ErrorHandler *eh;
   // Variable with defined mappings between regexes and parser functions
   static const std::vector<std::pair<ParserFn, std::string> > regex_parser;
 
   // Variables responsible for holding splited elements of currently parsed
   // instruction line.
-  std::map<std::string, Label> labels;
   std::vector<Argument> args;
   std::vector<MemDescriptor> mem_args;
   std::string mnemonic;
@@ -92,25 +124,31 @@ class InstructionParser {
   PrototypesFn get_prototypes;
 
  public:
-  InstructionParser(MnemonicFn, PrototypesFn);
+  InstructionParser(MnemonicFn mf_p, PrototypesFn sf_p, ErrorHandler *err_h);
   ~InstructionParser();
-  bool LoadInstruction(std::string inst_line, std::string *prototype);
+  LineType LoadInstruction(std::string inst_line, std::string *prototype);
 
   void ParseArgumentsLine(std::string *prototype, std::string arguments);
   std::string GetMnemonic();
   std::vector<Argument> GetArgs();
 
   // Functions responsible for parsing arguments of a given type.
-  int ParseRegister(std::smatch arg_match, std::string *prototype);
-  int ParseSVEConstraint(std::smatch arg_match, std::string *prototype);
-  int ParseZRegister(std::smatch arg_match, std::string *prototype);
-  int ParseVRegister(std::smatch arg_match, std::string *prototype);
-  int ParsePRegister(std::smatch arg_match, std::string *prototype);
-  int ParseExtend(std::smatch arg_match, std::string *prototype);
-  int ParseShift(std::smatch arg_match, std::string *prototype);
-  int ParseImmediate(std::smatch arg_match, std::string *prototype);
-  int ParseVRegisterList(std::smatch arg_match, std::string *prototype);
-  int ParseMemOperandList(std::smatch arg_match, std::string *prototype);
+  void ParseRegister(ArgumentSet arg_set, std::string *prototype);
+  void ParseSVEConstraint(ArgumentSet arg_set, std::string *prototype);
+  void ParseCondition(ArgumentSet arg_set, std::string *prototype);
+  void ParseZRegister(ArgumentSet arg_set, std::string *prototype);
+  void ParseVRegister(ArgumentSet arg_set, std::string *prototype);
+  void ParseFPRegister(ArgumentSet arg_set, std::string *prototype);
+  void ParsePRegister(ArgumentSet arg_set, std::string *prototype);
+  void ParseMultiplier(ArgumentSet arg_set, std::string *prototype);
+  void ParseExtend(ArgumentSet arg_set, std::string *prototype);
+  void ParseShift(ArgumentSet arg_set, std::string *prototype);
+  void ParseStatusFlags(ArgumentSet arg_set, std::string *prototype);
+  void ParseImmediate(ArgumentSet arg_set, std::string *prototype);
+  void ParseMemOffset(ArgumentSet arg_set, std::string *prototype);
+  void ParseFPImmediate(ArgumentSet arg_set, std::string *prototype);
+  void ParseRegisterList(ArgumentSet arg_set, std::string *prototype);
+  void ParseMemOperandList(ArgumentSet arg_set, std::string *prototype);
 
   // Helper functions for arguments parsing.
   bool MnemonicExists(std::string mnemonic, std::string prototype);
@@ -119,6 +157,7 @@ class InstructionParser {
   void ParseImmediatesTypes(std::string *prototype);
   void ParseMemOperandTypes(std::string *prototype, MemDescriptor mem_arg);
   void ParseMnemonic(std::string *mnemonic, std::string *prototype);
+  bool CurrArgumentInMemOperand(size_t curr_pos);
 };
 }
 }

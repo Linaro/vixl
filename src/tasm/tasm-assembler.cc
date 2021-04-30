@@ -45,18 +45,51 @@ const std::vector<std::string> TextAssembler::str_prototypes_([]() {
   return keys;
 }());
 
-// TODO: implement error handling, catch exceptions
 void TextAssembler::Assemble(std::string instruction) {
   AssemblerFn fun_object;
   std::string prototype;
   std::string mnemonic;
+  std::vector<Argument> args;
+  LineType line_type;
 
-  if (ip_.LoadInstruction(instruction, &prototype)) {
-    std::string mnemonic = ip_.GetMnemonic();
-    std::vector<Argument> args = ip_.GetArgs();
+  line_type = ip_.LoadInstruction(instruction, &prototype);
+  mnemonic = ip_.GetMnemonic();
+  args = ip_.GetArgs();
 
-    fun_object = prototypes_.at(prototype).at(mnemonic);
-    std::visit(InstructionDispatcher(this, args, mnemonic), fun_object);
+  // There are few cases where VIXL expects a raw (as-encoded) immediate.
+  if (mnemonic.compare("adrp") == 0 && prototype.compare("ri64") == 0) {
+    args[1] = std::get<int64_t>(args[1]) / 4096;
+  } else if (mnemonic.compare("cbnz") == 0 && prototype.compare("ri64") == 0) {
+    args[1] = std::get<int64_t>(args[1]) / 4;
+  } else if (mnemonic.compare("cbz") == 0 && prototype.compare("ri64") == 0) {
+    args[1] = std::get<int64_t>(args[1]) / 4;
+  } else if (mnemonic.compare("ldrsw") == 0 && prototype.compare("ri64") == 0) {
+    args[1] = std::get<int64_t>(args[1]) / 4;
+  } else if (mnemonic.compare("ldr") == 0 &&
+             std::regex_match(prototype, std::regex("[rv]i64"))) {
+    args[1] = std::get<int64_t>(args[1]) / 4;
+  } else if (mnemonic.compare("b") == 0 &&
+             std::regex_match(prototype, std::regex("i64c?"))) {
+    args[0] = std::get<int64_t>(args[0]) / 4;
+  }
+
+  // Don't try to assemble instruction line if there was an error in this line.
+  if (eh_.GetLineErr()) return;
+
+  if (line_type == kInstruction) {
+    try {
+      fun_object = prototypes_.at(prototype).at(mnemonic);
+      std::visit(InstructionDispatcher(this, args, mnemonic), fun_object);
+    } catch (std::out_of_range) {
+      eh_.Err("Instruction with given mnemonic and arguments doesn't exist.");
+    } catch (std::bad_variant_access) {
+      eh_.Err("Wrong arguments for the given instruction.");
+    } catch (std::runtime_error& ex) {
+      eh_.Err("Wrong instruction semantics. Internal error message: " +
+              std::string(ex.what()));
+    }
+  } else if (line_type == kUnmatched) {
+    eh_.Err("Wrong input line format");
   }
 }
 
@@ -73,25 +106,10 @@ std::vector<std::string> TextAssembler::GetPrototypes() {
   return str_prototypes_;
 }
 
+bool TextAssembler::GetError() { return eh_.GetErr(); }
+bool TextAssembler::GetLineError() { return eh_.GetLineErr(); }
+
 vixl::internal::AssemblerBase* TextAssembler::AsAssemblerBase() { return this; }
-
-void TextAssembler::movi(const VRegister& rd, uint64_t imm) {
-  Assembler::movi(rd, imm);
-}
-
-void TextAssembler::movz(const Register& rd, uint64_t imm) {
-  Assembler::movz(rd, imm);
-}
-
-void TextAssembler::ptrue(const PRegisterWithLaneSize& pd) {
-  Assembler::ptrue(pd);
-}
-
-void TextAssembler::ptrues(const PRegisterWithLaneSize& pd) {
-  Assembler::ptrues(pd);
-}
-
-void TextAssembler::ret() { Assembler::ret(); }
 }
 }
 }  // namespace vixl::aarch64::tasm
