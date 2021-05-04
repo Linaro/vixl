@@ -49,11 +49,7 @@ class Disassembler : public DecoderVisitor {
   virtual ~Disassembler();
   char* GetOutput();
 
-// Declare all Visitor functions.
-#define DECLARE(A) \
-  virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
-  VISITOR_LIST(DECLARE)
-#undef DECLARE
+  // Declare all Visitor functions.
   virtual void Visit(Metadata* metadata,
                      const Instruction* instr) VIXL_OVERRIDE;
 
@@ -116,6 +112,10 @@ class Disassembler : public DecoderVisitor {
   int64_t CodeRelativeAddress(const void* instr);
 
  private:
+#define DECLARE(A) virtual void Visit##A(const Instruction* instr);
+  VISITOR_LIST(DECLARE)
+#undef DECLARE
+
   using FormToVisitorFnMap =
       std::map<const std::string,
                const std::function<void(Disassembler*, const Instruction*)>>;
@@ -124,8 +124,10 @@ class Disassembler : public DecoderVisitor {
   uint32_t form_hash_;
 
   void SetMnemonicFromForm(const std::string& form) {
-    VIXL_ASSERT(form.find_first_of('_') != std::string::npos);
-    mnemonic_ = form.substr(0, form.find_first_of('_'));
+    if (form != "Unallocated") {
+      VIXL_ASSERT(form.find_first_of('_') != std::string::npos);
+      mnemonic_ = form.substr(0, form.find_first_of('_'));
+    }
   }
 
   void Disassemble_PdT_PgZ_ZnT_ZmT(const Instruction* instr);

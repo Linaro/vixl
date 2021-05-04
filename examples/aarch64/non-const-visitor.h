@@ -30,17 +30,16 @@
 #include "aarch64/decoder-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 
-class SwitchAddSubRegisterSources
-    : public vixl::aarch64::DecoderVisitorWithDefaults {
+class SwitchAddSubRegisterSources : public vixl::aarch64::DecoderVisitor {
  public:
   SwitchAddSubRegisterSources()
-      : vixl::aarch64::DecoderVisitorWithDefaults(kNonConstVisitor) {}
+      : vixl::aarch64::DecoderVisitor(kNonConstVisitor) {}
 
   // Our visitor switches the register sources for some add and sub instructions
   // (not all add and sub instructions).
 
-  virtual void VisitAddSubShifted(const vixl::aarch64::Instruction* instr)
-      VIXL_OVERRIDE;
+  virtual void Visit(vixl::aarch64::Metadata* metadata,
+                     const vixl::aarch64::Instruction* instr) VIXL_OVERRIDE;
 };
 
 

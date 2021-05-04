@@ -24,8 +24,10 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "non-const-visitor.h"
+#include <regex>
+
 #include "examples.h"
+#include "non-const-visitor.h"
 
 using namespace vixl;
 using namespace vixl::aarch64;
@@ -33,20 +35,28 @@ using namespace vixl::aarch64;
 #define __ masm->
 
 
-void SwitchAddSubRegisterSources::VisitAddSubShifted(const Instruction* instr) {
-  int rn = instr->GetRn();
-  int rm = instr->GetRm();
-  // Only non-const visitors are allowed to discard constness of the visited
-  // instruction.
-  Instruction* mutable_instr = MutableInstruction(instr);
-  Instr instr_bits = mutable_instr->GetInstructionBits();
+void SwitchAddSubRegisterSources::Visit(Metadata* metadata,
+                                        const Instruction* instr) {
+  const std::string& form = (*metadata)["form"];
 
-  // Switch the bitfields for the `rn` and `rm` registers.
-  instr_bits &= ~(Rn_mask | Rm_mask);
-  instr_bits |= (rn << Rm_offset) | (rm << Rn_offset);
+  // Match the forms for 32/64-bit add/subtract with shift, with optional flag
+  // setting.
+  if (std::regex_match(form,
+                       std::regex("(?:add|sub)s?_(?:32|64)_addsub_shift"))) {
+    int rn = instr->GetRn();
+    int rm = instr->GetRm();
+    // Only non-const visitors are allowed to discard constness of the visited
+    // instruction.
+    Instruction* mutable_instr = MutableInstruction(instr);
+    Instr instr_bits = mutable_instr->GetInstructionBits();
 
-  // Rewrite the instruction.
-  mutable_instr->SetInstructionBits(instr_bits);
+    // Switch the bitfields for the `rn` and `rm` registers.
+    instr_bits &= ~(Rn_mask | Rm_mask);
+    instr_bits |= (rn << Rm_offset) | (rm << Rn_offset);
+
+    // Rewrite the instruction.
+    mutable_instr->SetInstructionBits(instr_bits);
+  }
 }
 
 

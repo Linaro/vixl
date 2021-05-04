@@ -34,9 +34,9 @@ using namespace vixl::aarch64;
 
 #define __ masm->
 
-class InstructionReporter : public DecoderVisitorWithDefaults {
+class InstructionReporter : public DecoderVisitor {
  public:
-  InstructionReporter() : DecoderVisitorWithDefaults(kNonConstVisitor) {}
+  InstructionReporter() : DecoderVisitor(kNonConstVisitor) {}
 
   void Visit(Metadata *metadata, const Instruction *instr) VIXL_OVERRIDE {
     USE(instr);

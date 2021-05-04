@@ -41,9 +41,9 @@
 namespace vixl {
 namespace aarch64 {
 
-class InstructionReporter : public DecoderVisitorWithDefaults {
+class InstructionReporter : public DecoderVisitor {
  public:
-  InstructionReporter() : DecoderVisitorWithDefaults(kNonConstVisitor) {}
+  InstructionReporter() : DecoderVisitor(kNonConstVisitor) {}
 
   void Visit(Metadata* metadata, const Instruction* instr) VIXL_OVERRIDE {
     USE(instr);

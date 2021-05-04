@@ -102,16 +102,15 @@ class CPUFeaturesAuditor : public DecoderVisitor {
     SetAvailableFeatures(available);
   }
 
-// Declare all Visitor functions.
-#define DECLARE(A) \
-  virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
-  VISITOR_LIST(DECLARE)
-#undef DECLARE
   virtual void Visit(Metadata* metadata,
                      const Instruction* instr) VIXL_OVERRIDE;
 
  private:
   class RecordInstructionFeaturesScope;
+
+#define DECLARE(A) virtual void Visit##A(const Instruction* instr);
+  VISITOR_LIST(DECLARE)
+#undef DECLARE
 
   void LoadStoreHelper(const Instruction* instr);
   void LoadStorePairHelper(const Instruction* instr);

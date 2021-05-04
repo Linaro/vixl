@@ -40,8 +40,8 @@ class CustomDisassembler : public vixl::aarch64::Disassembler {
   CustomDisassembler() : vixl::aarch64::Disassembler() {}
   virtual ~CustomDisassembler() {}
 
-  virtual void VisitAddSubShifted(const vixl::aarch64::Instruction* instr)
-      VIXL_OVERRIDE;
+  virtual void Visit(vixl::aarch64::Metadata* metadata,
+                     const vixl::aarch64::Instruction* instr) VIXL_OVERRIDE;
 
  protected:
   virtual void AppendRegisterNameToOutput(

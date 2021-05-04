@@ -1176,17 +1176,14 @@ class Simulator : public DecoderVisitor {
     VIXL_CHECK(cpu_features_auditor_.InstructionIsAvailable());
   }
 
-// Declare all Visitor functions.
-#define DECLARE(A) \
-  virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
-  VISITOR_LIST_THAT_RETURN(DECLARE)
-#undef DECLARE
-
   virtual void Visit(Metadata* metadata,
                      const Instruction* instr) VIXL_OVERRIDE;
 
+#define DECLARE(A) virtual void Visit##A(const Instruction* instr);
+  VISITOR_LIST_THAT_RETURN(DECLARE)
+#undef DECLARE
 #define DECLARE(A) \
-  VIXL_NO_RETURN virtual void Visit##A(const Instruction* instr) VIXL_OVERRIDE;
+  VIXL_NO_RETURN virtual void Visit##A(const Instruction* instr);
   VISITOR_LIST_THAT_DONT_RETURN(DECLARE)
 #undef DECLARE
 
