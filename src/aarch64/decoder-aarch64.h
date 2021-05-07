@@ -1669,12 +1669,16 @@ class DecodeNode {
   // contiguous sequence, suitable for indexing an array.
   // For example, a mask of 0b1010 returns a function that, given an instruction
   // 0bXYZW, will return 0bXZ.
-  BitExtractFn GetBitExtractFunction(uint32_t mask);
+  BitExtractFn GetBitExtractFunction(uint32_t mask) {
+    return GetBitExtractFunctionHelper(mask, 0);
+  }
 
   // Get a pointer to an Instruction method that applies a mask to the
   // instruction bits, and tests if the result is equal to value. The returned
   // function gives a 1 result if (inst & mask == value), 0 otherwise.
-  BitExtractFn GetBitExtractFunction(uint32_t mask, uint32_t value);
+  BitExtractFn GetBitExtractFunction(uint32_t mask, uint32_t value) {
+    return GetBitExtractFunctionHelper(value, mask);
+  }
 
   // Compile this DecodeNode into a new CompiledDecodeNode and returns a pointer
   // to it. This pointer is also stored inside the DecodeNode itself. Destroying
@@ -1709,6 +1713,11 @@ class DecodeNode {
   // Try to compile a more optimised decode operation for this node, returning
   // true if successful.
   bool TryCompileOptimisedDecodeTable(Decoder* decoder);
+
+  // Helper function that returns a bit extracting function. If y is zero,
+  // x is a bit extraction mask. Otherwise, y is the mask, and x is the value
+  // to match after masking.
+  BitExtractFn GetBitExtractFunctionHelper(uint32_t x, uint32_t y);
 
   // Name of this decoder node, used to construct edges in the decode graph.
   std::string name_;

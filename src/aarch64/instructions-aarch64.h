@@ -267,9 +267,19 @@ class Instruction {
     return Compress(M);
   }
 
+  uint32_t ExtractBitsAbsent() const {
+    VIXL_UNREACHABLE();
+    return 0;
+  }
+
   template <uint32_t M, uint32_t V>
   uint32_t IsMaskedValue() const {
     return (Mask(M) == V) ? 1 : 0;
+  }
+
+  uint32_t IsMaskedValueAbsent() const {
+    VIXL_UNREACHABLE();
+    return 0;
   }
 
   int32_t ExtractSignedBits(int msb, int lsb) const {
