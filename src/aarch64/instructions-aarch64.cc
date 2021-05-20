@@ -184,6 +184,11 @@ bool Instruction::CanTakeSVEMovprfx(uint32_t form_hash,
     case Hash("umlslb_z_zzz"):
     case Hash("umlslt_z_zzz"):
     case Hash("usdot_z_zzz_s"):
+    case Hash("fmmla_z_zzz_s"):
+    case Hash("fmmla_z_zzz_d"):
+    case Hash("smmla_z_zzz"):
+    case Hash("ummla_z_zzz"):
+    case Hash("usmmla_z_zzz"):
       return movprfx_is_unpredicated && zd_isnt_zm && zd_isnt_zn && zd_matches;
 
     case Hash("addp_z_p_zz"):

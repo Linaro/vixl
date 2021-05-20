@@ -324,6 +324,11 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"whilerw_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
     {"whilewr_p_rr", &Disassembler::VisitSVEIntCompareScalarCountAndLimit},
     {"xar_z_zzi", &Disassembler::Disassemble_ZdnT_ZdnT_ZmT_const},
+    {"fmmla_z_zzz_s", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"fmmla_z_zzz_d", &Disassembler::Disassemble_ZdaT_ZnT_ZmT},
+    {"smmla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
+    {"ummla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
+    {"usmmla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
 };
 
 Disassembler::Disassembler() {
@@ -10047,6 +10052,11 @@ void Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm(const Instruction *instr) {
 void Disassembler::Disassemble_ZdaH_ZnH_ZmH_imm_const(
     const Instruction *instr) {
   const char *form = "'Zd.h, 'Zn.h, z'u1816.h['u2019], #'u1110*90";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_ZdaS_ZnB_ZmB(const Instruction *instr) {
+  const char *form = "'Zd.s, 'Zn.b, 'Zm.b";
   Format(instr, mnemonic_.c_str(), form);
 }
 

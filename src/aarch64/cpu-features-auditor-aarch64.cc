@@ -1646,6 +1646,13 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
         {"whilerw_p_rr", CPUFeatures::kSVE2},
         {"whilewr_p_rr", CPUFeatures::kSVE2},
         {"xar_z_zzi", CPUFeatures::kSVE2},
+        {"smmla_z_zzz", CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM)},
+        {"ummla_z_zzz", CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM)},
+        {"usmmla_z_zzz", CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM)},
+        {"fmmla_z_zzz_s",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF32MM)},
+        {"fmmla_z_zzz_d",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
     };
 
     if (features.count(form) > 0) {

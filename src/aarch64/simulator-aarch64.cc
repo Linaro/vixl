@@ -349,6 +349,11 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"whilerw_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"whilewr_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"xar_z_zzi", &Simulator::SimulateSVEExclusiveOrRotate},
+    {"smmla_z_zzz", &Simulator::SimulateSVEMatrixMul},
+    {"ummla_z_zzz", &Simulator::SimulateSVEMatrixMul},
+    {"usmmla_z_zzz", &Simulator::SimulateSVEMatrixMul},
+    {"fmmla_z_zzz_s", &Simulator::SimulateSVEFPMatrixMul},
+    {"fmmla_z_zzz_d", &Simulator::SimulateSVEFPMatrixMul},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
@@ -12734,6 +12739,47 @@ void Simulator::VisitSVEMulIndex(const Instruction* instr) {
            zn,
            ReadVRegister(instr->ExtractBits(18, 16)),
            instr->ExtractBits(20, 19));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+}
+
+void Simulator::SimulateSVEMatrixMul(const Instruction* instr) {
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  bool zn_signed = false;
+  bool zm_signed = false;
+  switch (form_hash_) {
+    case Hash("smmla_z_zzz"):
+      zn_signed = zm_signed = true;
+      break;
+    case Hash("ummla_z_zzz"):
+      // Nothing to do.
+      break;
+    case Hash("usmmla_z_zzz"):
+      zm_signed = true;
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+  matmul(zdn, zn, zm, zn_signed, zm_signed);
+}
+
+void Simulator::SimulateSVEFPMatrixMul(const Instruction* instr) {
+  VectorFormat vform = instr->GetSVEVectorFormat();
+  SimVRegister& zdn = ReadVRegister(instr->GetRd());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+
+  switch (form_hash_) {
+    case Hash("fmmla_z_zzz_s"):
+    case Hash("fmmla_z_zzz_d"):
+      fmatmul(vform, zdn, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();

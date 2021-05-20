@@ -1858,7 +1858,11 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
   V(Sqdmlslbt, sqdmlslbt, FourRegDestructiveHelper) \
   V(Sqdmlslt, sqdmlslt, FourRegDestructiveHelper)   \
   V(Sqrdmlah, sqrdmlah, FourRegDestructiveHelper)   \
-  V(Sqrdmlsh, sqrdmlsh, FourRegDestructiveHelper)
+  V(Sqrdmlsh, sqrdmlsh, FourRegDestructiveHelper)   \
+  V(Fmmla, fmmla, FourRegDestructiveHelper)         \
+  V(Smmla, smmla, FourRegDestructiveHelper)         \
+  V(Ummla, ummla, FourRegDestructiveHelper)         \
+  V(Usmmla, usmmla, FourRegDestructiveHelper)
 
 #define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN, HELPER) \
   void MacroAssembler::MASMFN(const ZRegister& zd,   \

@@ -7436,6 +7436,22 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       xar(zd, zd, zm, shift);
     }
   }
+  void Fmmla(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
+  void Smmla(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
+  void Ummla(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
+  void Usmmla(const ZRegister& zd,
+              const ZRegister& za,
+              const ZRegister& zn,
+              const ZRegister& zm);
 
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {

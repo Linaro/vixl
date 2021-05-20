@@ -9053,5 +9053,38 @@ TEST(sve2_extract) {
   CLEANUP();
 }
 
+TEST(sve_matmul) {
+  SETUP();
+
+  COMPARE_MACRO(Fmmla(z2.VnS(), z2.VnS(), z3.VnS(), z20.VnS()),
+                "fmmla z2.s, z3.s, z20.s");
+  COMPARE_MACRO(Fmmla(z21.VnD(), z21.VnD(), z30.VnD(), z2.VnD()),
+                "fmmla z21.d, z30.d, z2.d");
+  COMPARE_MACRO(Smmla(z31.VnS(), z31.VnS(), z7.VnB(), z19.VnB()),
+                "smmla z31.s, z7.b, z19.b");
+  COMPARE_MACRO(Ummla(z0.VnS(), z0.VnS(), z1.VnB(), z2.VnB()),
+                "ummla z0.s, z1.b, z2.b");
+  COMPARE_MACRO(Usmmla(z30.VnS(), z30.VnS(), z31.VnB(), z4.VnB()),
+                "usmmla z30.s, z31.b, z4.b");
+
+  COMPARE_MACRO(Fmmla(z0.VnS(), z1.VnS(), z2.VnS(), z3.VnS()),
+                "movprfx z0, z1\n"
+                "fmmla z0.s, z2.s, z3.s");
+  COMPARE_MACRO(Smmla(z0.VnS(), z1.VnS(), z0.VnB(), z3.VnB()),
+                "movprfx z31, z1\n"
+                "smmla z31.s, z0.b, z3.b\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Ummla(z0.VnS(), z1.VnS(), z2.VnB(), z0.VnB()),
+                "movprfx z31, z1\n"
+                "ummla z31.s, z2.b, z0.b\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Usmmla(z0.VnS(), z1.VnS(), z0.VnB(), z0.VnB()),
+                "movprfx z31, z1\n"
+                "usmmla z31.s, z0.b, z0.b\n"
+                "mov z0.d, z31.d");
+
+  CLEANUP();
+}
+
 }  // namespace aarch64
 }  // namespace vixl

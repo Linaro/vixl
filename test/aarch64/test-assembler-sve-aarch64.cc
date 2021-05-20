@@ -19635,5 +19635,126 @@ TEST_SVE(sve2_flogb_simple) {
     ASSERT_EQUAL_SVE(expected_z3, z3.VnD());
   }
 }
+
+// Manually constructed simulator test to avoid creating a VL128 variant.
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+void Testsve_fmatmul(Test* config) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM);
+
+  // Only double-precision matrix multiply is tested here. Single-precision is
+  // tested in the simulator tests using a generated sequence. The (templated)
+  // code used in the simulator for both cases is the same, which is why the
+  // tests here don't need to be comprehensive.
+  START();
+  Label vl_too_short;
+  __ Rdvl(x0, 1);
+  __ Cmp(x0, 32);
+  __ B(lt, &vl_too_short);  // Skip testing VL128.
+
+  __ Fdup(z0.VnD(), 1.0);
+  __ Fdup(z1.VnD(), 2.0);
+  __ Mov(z2.VnD(), 0);
+
+  // Build 2x2 identity matrix in z3.
+  Label iden_loop;
+  __ Lsr(x0, x0, 5);
+  __ Bind(&iden_loop);
+  __ Insr(z3.VnD(), d0);
+  __ Insr(z3.VnD(), d2);
+  __ Insr(z3.VnD(), d2);
+  __ Insr(z3.VnD(), d0);
+  __ Sub(x0, x0, 1);
+  __ Cbnz(x0, &iden_loop);
+
+  __ Fmmla(z1.VnD(), z1.VnD(), z0.VnD(), z0.VnD());
+  __ Fmmla(z2.VnD(), z2.VnD(), z1.VnD(), z3.VnD());
+
+  __ Ptrue(p0.VnB());
+  __ Index(z4.VnD(), -8, 3);
+  __ Scvtf(z4.VnD(), p0.Merging(), z4.VnD());
+  __ Mov(z5.VnD(), 0);
+  __ Fmmla(z4.VnD(), z4.VnD(), z4.VnD(), z4.VnD());
+  __ Fmmla(z5.VnD(), z5.VnD(), z4.VnD(), z3.VnD());
+
+  __ Bind(&vl_too_short);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    if (vl >= 256) {
+      ASSERT_EQUAL_SVE(z1, z2);
+      ASSERT_EQUAL_SVE(z4, z5);
+
+      switch (vl) {
+        case 256:
+        case 384: {
+          // All results are 4.0 (1 * 1 + 2). Results for elements beyond a VL
+          // that's a multiple of 256 bits should be zero.
+          uint64_t z1_expected[] = {0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x4010000000000000,
+                                    0x4010000000000000,
+                                    0x4010000000000000,
+                                    0x4010000000000000};
+          ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+
+          uint64_t z4_expected[] = {0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x4018000000000000,   // 6.0
+                                    0x4022000000000000,   // 9.0
+                                    0x4018000000000000,   // 6.0
+                                    0x4054400000000000};  // 81.0
+          ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+          break;
+        }
+        case 2048: {
+          uint64_t z1_expected[] =
+              {0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+               0x4010000000000000, 0x4010000000000000};
+          ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+
+          uint64_t z4_expected[] = {
+              0x40cb690000000000, 0x40c9728000000000, 0x40c9710000000000,
+              0x40c79e8000000000, 0x40c41f0000000000, 0x40c2708000000000,
+              0x40c26f0000000000, 0x40c0e48000000000, 0x40bbea0000000000,
+              0x40b91d0000000000, 0x40b91a0000000000, 0x40b6950000000000,
+              0x40b1d60000000000, 0x40af320000000000, 0x40af2c0000000000,
+              0x40ab420000000000, 0x40a4040000000000, 0x40a0aa0000000000,
+              0x40a0a40000000000, 0x409bb40000000000, 0x4091b80000000000,
+              0x408a880000000000, 0x408a700000000000, 0x4083c80000000000,
+              0x4071a00000000000, 0x4061a00000000000, 0x4061400000000000,
+              0x4051400000000000, 0x4018000000000000, 0x4022000000000000,
+              0x4018000000000000, 0x4054400000000000,
+          };
+          ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+          break;
+        }
+        default:
+          printf("WARNING: Some tests skipped due to unexpected VL.\n");
+          break;
+      }
+    }
+  }
+}
+Test* test_sve_fmatmul_list[] =
+    {Test::MakeSVETest(256, "AARCH64_ASM_sve_fmatmul_vl256", &Testsve_fmatmul),
+     Test::MakeSVETest(384, "AARCH64_ASM_sve_fmatmul_vl384", &Testsve_fmatmul),
+     Test::MakeSVETest(2048,
+                       "AARCH64_ASM_sve_fmatmul_vl2048",
+                       &Testsve_fmatmul)};
+#endif
+
 }  // namespace aarch64
 }  // namespace vixl

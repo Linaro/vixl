@@ -1238,6 +1238,8 @@ class Simulator : public DecoderVisitor {
   void SimulateSVESaturatingMulAddHigh(const Instruction* instr);
   void SimulateSVESaturatingMulHighIndex(const Instruction* instr);
   void SimulateSVEFPConvertLong(const Instruction* instr);
+  void SimulateSVEMatrixMul(const Instruction* instr);
+  void SimulateSVEFPMatrixMul(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -4065,6 +4067,20 @@ class Simulator : public DecoderVisitor {
                          LogicVRegister dst,
                          const LogicVRegister& src1,
                          const LogicVRegister& src2);
+  LogicVRegister matmul(LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2,
+                        bool src1_signed,
+                        bool src2_signed);
+  template <typename T>
+  LogicVRegister fmatmul(VectorFormat vform,
+                         LogicVRegister srcdst,
+                         const LogicVRegister& src1,
+                         const LogicVRegister& src2);
+  LogicVRegister fmatmul(VectorFormat vform,
+                         LogicVRegister srcdst,
+                         const LogicVRegister& src1,
+                         const LogicVRegister& src2);
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \
   V(addhn2)                      \
@@ -4522,6 +4538,9 @@ class Simulator : public DecoderVisitor {
 
   template <typename T>
   T FPMinNM(T a, T b);
+
+  template <typename T>
+  T FPMulNaNs(T op1, T op2);
 
   template <typename T>
   T FPMul(T op1, T op2);

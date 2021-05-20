@@ -2907,8 +2907,6 @@
       {"bfmlalt_z_zzz_", &VISITORCLASS::VisitUnimplemented},                   \
       {"bfmlalt_z_zzzi_", &VISITORCLASS::VisitUnimplemented},                  \
       {"bfmmla_z_zzz_", &VISITORCLASS::VisitUnimplemented},                    \
-      {"fmmla_z_zzz_d", &VISITORCLASS::VisitUnimplemented},                    \
-      {"fmmla_z_zzz_s", &VISITORCLASS::VisitUnimplemented},                    \
       {"ld1rob_z_p_bi_u8", &VISITORCLASS::VisitUnimplemented},                 \
       {"ld1rob_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented},         \
       {"ld1rod_z_p_bi_u64", &VISITORCLASS::VisitUnimplemented},                \
@@ -2916,9 +2914,6 @@
       {"ld1roh_z_p_bi_u16", &VISITORCLASS::VisitUnimplemented},                \
       {"ld1roh_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented},         \
       {"ld1row_z_p_bi_u32", &VISITORCLASS::VisitUnimplemented},                \
-      {"ld1row_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented},         \
-      {"smmla_z_zzz_", &VISITORCLASS::VisitUnimplemented},                     \
-      {"ummla_z_zzz_", &VISITORCLASS::VisitUnimplemented},                     \
-      {"usmmla_z_zzz_", &VISITORCLASS::VisitUnimplemented}, {                  \
+      {"ld1row_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented}, {       \
     "Unallocated", &VISITORCLASS::VisitUnallocated                             \
   }

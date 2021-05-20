@@ -179,6 +179,7 @@ class Disassembler : public DecoderVisitor {
   void Disassemble_ZtD_Pg_ZnD_Xm(const Instruction* instr);
   void Disassemble_ZtS_PgZ_ZnS_Xm(const Instruction* instr);
   void Disassemble_ZtS_Pg_ZnS_Xm(const Instruction* instr);
+  void Disassemble_ZdaS_ZnB_ZmB(const Instruction* instr);
 
   void DisassembleSVEShiftLeftImm(const Instruction* instr);
   void DisassembleSVEShiftRightImm(const Instruction* instr);

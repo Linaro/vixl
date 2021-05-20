@@ -98,11 +98,11 @@ TEST(movprfx_negative_aliasing) {
   // Test that CanTakeSVEMovprfx() checks that the movprfx destination does not
   // alias an input to the prefixed instruction.
   Assembler assm;
-  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM);
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 73;
+    static const size_t kPairCount = 76;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z0.VnB(), p0.Merging(), z9.VnB());
@@ -323,6 +323,15 @@ TEST(movprfx_negative_aliasing) {
 
     __ movprfx(z14, z5);
     __ uxtw(z14.VnD(), p3.Merging(), z14.VnD());
+
+    __ movprfx(z22, z5);
+    __ smmla(z22.VnS(), z22.VnB(), z0.VnB());
+
+    __ movprfx(z1, z5);
+    __ ummla(z1.VnS(), z10.VnB(), z1.VnB());
+
+    __ movprfx(z30, z5);
+    __ usmmla(z30.VnS(), z30.VnB(), z18.VnB());
   }
   assm.FinalizeCode();
 
@@ -333,11 +342,13 @@ TEST(movprfx_negative_aliasing_fp) {
   // Test that CanTakeSVEMovprfx() checks that the movprfx destination does not
   // alias an input to the prefixed instruction.
   Assembler assm;
-  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE,
+                                 CPUFeatures::kSVEF32MM,
+                                 CPUFeatures::kSVEF64MM);
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 78;
+    static const size_t kPairCount = 80;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z17.VnS(), p1.Zeroing(), z12.VnS());
@@ -573,6 +584,12 @@ TEST(movprfx_negative_aliasing_fp) {
 
     __ movprfx(z0.VnD(), p5.Zeroing(), z12.VnD());
     __ ucvtf(z0.VnH(), p5.Merging(), z0.VnD());
+
+    __ movprfx(z30, z5);
+    __ fmmla(z30.VnS(), z30.VnS(), z18.VnS());
+
+    __ movprfx(z31, z5);
+    __ fmmla(z31.VnD(), z31.VnD(), z18.VnD());
   }
   assm.FinalizeCode();
 
@@ -1058,11 +1075,11 @@ TEST(movprfx_negative_predication) {
   // Test that CanTakeSVEMovprfx() is false when a predicated movprfx appears
   // before an unpredicated instruction.
   Assembler assm;
-  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM);
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 54;
+    static const size_t kPairCount = 57;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z27.VnS(), p1.Zeroing(), z12.VnS());
@@ -1226,6 +1243,15 @@ TEST(movprfx_negative_predication) {
 
     __ movprfx(z9.VnD(), p0.Zeroing(), z16.VnD());
     __ uqsub(z9.VnD(), z9.VnD(), 42);
+
+    __ movprfx(z22.VnS(), p0.Zeroing(), z5.VnS());
+    __ smmla(z22.VnS(), z21.VnB(), z0.VnB());
+
+    __ movprfx(z1.VnS(), p0.Zeroing(), z5.VnS());
+    __ ummla(z1.VnS(), z10.VnB(), z2.VnB());
+
+    __ movprfx(z30.VnS(), p0.Zeroing(), z5.VnS());
+    __ usmmla(z30.VnS(), z29.VnB(), z18.VnB());
   }
   assm.FinalizeCode();
 
@@ -1236,11 +1262,13 @@ TEST(movprfx_negative_predication_fp) {
   // Test that CanTakeSVEMovprfx() is false when a predicated movprfx appears
   // before an unpredicated instruction.
   Assembler assm;
-  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE,
+                                 CPUFeatures::kSVEF32MM,
+                                 CPUFeatures::kSVEF64MM);
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 9;
+    static const size_t kPairCount = 11;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z10.VnH(), p3.Zeroing(), z3.VnH());
@@ -1267,9 +1295,15 @@ TEST(movprfx_negative_predication_fp) {
     __ movprfx(z2.VnS(), p1.Zeroing(), z0.VnS());
     __ fmls(z2.VnS(), z9.VnS(), z0.VnS(), 3);
 
-    // Note that ftsmul and ftssel _cannot_ take movprfx.
+    // Note that ftsmul and ftssel cannot take movprfx.
     __ movprfx(z22.VnD(), p6.Merging(), z16.VnD());
     __ ftmad(z22.VnD(), z22.VnD(), z20.VnD(), 2);
+
+    __ movprfx(z30.VnS(), p0.Zeroing(), z5.VnS());
+    __ fmmla(z30.VnS(), z29.VnS(), z18.VnS());
+
+    __ movprfx(z31.VnD(), p1.Merging(), z5.VnD());
+    __ fmmla(z31.VnD(), z30.VnD(), z18.VnD());
   }
   assm.FinalizeCode();
 
@@ -1278,11 +1312,11 @@ TEST(movprfx_negative_predication_fp) {
 
 TEST(movprfx_positive) {
   Assembler assm;
-  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM);
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 117;
+    static const size_t kPairCount = 120;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z17, z28);
@@ -1633,6 +1667,15 @@ TEST(movprfx_positive) {
 
     __ movprfx(z18.VnD(), p7.Merging(), z25.VnD());
     __ uxtw(z18.VnD(), p7.Merging(), z25.VnD());
+
+    __ movprfx(z22, z5);
+    __ smmla(z22.VnS(), z21.VnB(), z0.VnB());
+
+    __ movprfx(z1, z5);
+    __ ummla(z1.VnS(), z10.VnB(), z0.VnB());
+
+    __ movprfx(z30, z5);
+    __ usmmla(z30.VnS(), z31.VnB(), z18.VnB());
   }
   assm.FinalizeCode();
 
@@ -1641,11 +1684,13 @@ TEST(movprfx_positive) {
 
 TEST(movprfx_positive_fp) {
   Assembler assm;
-  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
+  assm.GetCPUFeatures()->Combine(CPUFeatures::kSVE,
+                                 CPUFeatures::kSVEF32MM,
+                                 CPUFeatures::kSVEF64MM);
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 73;
+    static const size_t kPairCount = 75;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z18.VnS(), p6.Zeroing(), z20.VnS());
@@ -1868,6 +1913,12 @@ TEST(movprfx_positive_fp) {
 
     __ movprfx(z17.VnD(), p4.Merging(), z22.VnD());
     __ ucvtf(z17.VnH(), p4.Merging(), z4.VnD());
+
+    __ movprfx(z30, z5);
+    __ fmmla(z30.VnS(), z29.VnS(), z18.VnS());
+
+    __ movprfx(z31, z5);
+    __ fmmla(z31.VnD(), z30.VnD(), z18.VnD());
   }
   assm.FinalizeCode();
 

@@ -4723,6 +4723,11 @@ T Simulator::FPSub(T op1, T op2) {
   }
 }
 
+template <typename T>
+T Simulator::FPMulNaNs(T op1, T op2) {
+  T result = FPProcessNaNs(op1, op2);
+  return IsNaN(result) ? result : FPMul(op1, op2);
+}
 
 template <typename T>
 T Simulator::FPMul(T op1, T op2) {
@@ -7946,6 +7951,115 @@ LogicVRegister Simulator::adcl(VectorFormat vform,
     // Set odd lanes to the carry flag from the addition.
     uint64_t carry_out = (val_and_flags.second >> 1) & 1;
     dst.SetUint(vform, i + 1, carry_out);
+  }
+  return dst;
+}
+
+// Multiply the 2x8 8-bit matrix in src1 by the 8x2 8-bit matrix in src2, add
+// the 2x2 32-bit result to the matrix in srcdst, and write back to srcdst.
+//
+// Matrices of the form:
+//
+//  src1 = ( a b c d e f g h )  src2 = ( A B )
+//         ( i j k l m n o p )         ( C D )
+//                                     ( E F )
+//                                     ( G H )
+//                                     ( I J )
+//                                     ( K L )
+//                                     ( M N )
+//                                     ( O P )
+//
+// Are stored in the input vector registers as:
+//
+//           15  14  13  12  11  10  9   8   7   6   5   4   3   2   1   0
+//  src1 = [ p | o | n | m | l | k | j | i | h | g | f | e | d | c | b | a ]
+//  src2 = [ P | N | L | J | H | F | D | B | O | M | K | I | G | E | C | A ]
+//
+LogicVRegister Simulator::matmul(LogicVRegister srcdst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2,
+                                 bool src1_signed,
+                                 bool src2_signed) {
+  int b_per_segment = kQRegSize / kBRegSize;
+  int s_per_segment = kQRegSize / kSRegSize;
+  VectorFormat vform = kFormatVnB;
+  int64_t result[kZRegMaxSizeInBytes / kSRegSizeInBytes];
+  for (int seg = 0; seg < LaneCountFromFormat(kFormatVnQ); seg++) {
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        int dstidx = (2 * i) + j + (seg * s_per_segment);
+        int64_t sum = srcdst.Int(kFormatVnS, dstidx);
+        for (int k = 0; k < 8; k++) {
+          int idx1 = (8 * i) + k + (seg * b_per_segment);
+          int idx2 = (8 * j) + k + (seg * b_per_segment);
+          int64_t e1 =
+              src1_signed ? src1.Int(vform, idx1) : src1.Uint(vform, idx1);
+          int64_t e2 =
+              src2_signed ? src2.Int(vform, idx2) : src2.Uint(vform, idx2);
+          sum += e1 * e2;
+        }
+        result[dstidx] = sum;
+      }
+    }
+  }
+  srcdst.SetIntArray(kFormatVnS, result);
+  return srcdst;
+}
+
+// Multiply the 2x2 FP matrix in src1 by the 2x2 FP matrix in src2, add the 2x2
+// result to the matrix in srcdst, and write back to srcdst.
+//
+// Matrices of the form:
+//
+//  src1 = ( a b )  src2 = ( A B )
+//         ( c d )         ( C D )
+//
+// Are stored in the input vector registers as:
+//
+//           3   2   1   0
+//  src1 = [ d | c | b | a ]
+//  src2 = [ D | B | C | A ]
+//
+template <typename T>
+LogicVRegister Simulator::fmatmul(VectorFormat vform,
+                                  LogicVRegister srcdst,
+                                  const LogicVRegister& src1,
+                                  const LogicVRegister& src2) {
+  T result[kZRegMaxSizeInBytes / sizeof(T)];
+  int T_per_segment = 4;
+  int segment_count = GetVectorLengthInBytes() / (T_per_segment * sizeof(T));
+  for (int seg = 0; seg < segment_count; seg++) {
+    int segoff = seg * T_per_segment;
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 2; j++) {
+        T prod0 = FPMulNaNs(src1.Float<T>(2 * i + 0 + segoff),
+                            src2.Float<T>(2 * j + 0 + segoff));
+        T prod1 = FPMulNaNs(src1.Float<T>(2 * i + 1 + segoff),
+                            src2.Float<T>(2 * j + 1 + segoff));
+        T sum = FPAdd(srcdst.Float<T>(2 * i + j + segoff), prod0);
+        result[2 * i + j + segoff] = FPAdd(sum, prod1);
+      }
+    }
+  }
+  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+    // Elements outside a multiple of 4T are set to zero. This happens only
+    // for double precision operations, when the VL is a multiple of 128 bits,
+    // but not a mutiple of 256 bits.
+    T value = (i < (T_per_segment * segment_count)) ? result[i] : 0;
+    srcdst.SetFloat<T>(vform, i, value);
+  }
+  return srcdst;
+}
+
+LogicVRegister Simulator::fmatmul(VectorFormat vform,
+                                  LogicVRegister dst,
+                                  const LogicVRegister& src1,
+                                  const LogicVRegister& src2) {
+  if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
+    fmatmul<float>(vform, dst, src1, src2);
+  } else {
+    VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kDRegSize);
+    fmatmul<double>(vform, dst, src1, src2);
   }
   return dst;
 }

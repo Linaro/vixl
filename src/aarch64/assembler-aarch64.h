@@ -6844,6 +6844,18 @@ class Assembler : public vixl::internal::AssemblerBase {
            const ZRegister& zm,
            int shift);
 
+  // Floating-point matrix multiply-accumulate.
+  void fmmla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
+  // Signed integer matrix multiply-accumulate.
+  void smmla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned by signed integer matrix multiply-accumulate.
+  void usmmla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned integer matrix multiply-accumulate.
+  void ummla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.
