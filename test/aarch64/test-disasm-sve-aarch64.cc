@@ -3098,6 +3098,24 @@ TEST(sve_int_unary_arithmetic_predicated) {
   COMPARE_PREFIX(uxtw(z14.VnD(), p1.Merging(), z13.VnD()),
                  "uxtw z14.d, p1/m, z13.d");
 
+  // Check related but undefined encodings.
+  COMPARE_PREFIX(dci(0x0410a000), "unallocated (Unallocated)");  // sxtb b
+  COMPARE_PREFIX(dci(0x0412a000), "unallocated (Unallocated)");  // sxth b
+  COMPARE_PREFIX(dci(0x0452a000), "unallocated (Unallocated)");  // sxth h
+  COMPARE_PREFIX(dci(0x0414a000), "unallocated (Unallocated)");  // sxtw b
+  COMPARE_PREFIX(dci(0x0454a000), "unallocated (Unallocated)");  // sxtw h
+  COMPARE_PREFIX(dci(0x0494a000), "unallocated (Unallocated)");  // sxtw s
+
+  COMPARE_PREFIX(dci(0x0411a000), "unallocated (Unallocated)");  // uxtb b
+  COMPARE_PREFIX(dci(0x0413a000), "unallocated (Unallocated)");  // uxth b
+  COMPARE_PREFIX(dci(0x0453a000), "unallocated (Unallocated)");  // uxth h
+  COMPARE_PREFIX(dci(0x0415a000), "unallocated (Unallocated)");  // uxtw b
+  COMPARE_PREFIX(dci(0x0455a000), "unallocated (Unallocated)");  // uxtw h
+  COMPARE_PREFIX(dci(0x0495a000), "unallocated (Unallocated)");  // uxtw s
+
+  COMPARE_PREFIX(dci(0x041ca000), "unallocated (Unallocated)");  // fabs b
+  COMPARE_PREFIX(dci(0x041da000), "unallocated (Unallocated)");  // fneg b
+
   CLEANUP();
 }
 

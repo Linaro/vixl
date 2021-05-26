@@ -9366,66 +9366,36 @@ void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
 
 void Disassembler::VisitSVEIntUnaryArithmeticPredicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Zd.'t, 'Pgl/m, 'Zn.'t";
+  VectorFormat vform = instr->GetSVEVectorFormat();
 
-  switch (instr->Mask(SVEIntUnaryArithmeticPredicatedMask)) {
-    case ABS_z_p_z:
-      mnemonic = "abs";
-      break;
-    case CLS_z_p_z:
-      mnemonic = "cls";
-      break;
-    case CLZ_z_p_z:
-      mnemonic = "clz";
-      break;
-    case CNOT_z_p_z:
-      mnemonic = "cnot";
-      break;
-    case CNT_z_p_z:
-      mnemonic = "cnt";
-      break;
-    case FABS_z_p_z:
-      if (instr->GetSVEVectorFormat() == kFormatVnB) {
-        form = "(SVEIntUnaryArithmeticPredicated)";
-      } else {
-        mnemonic = "fabs";
+  switch (form_hash_) {
+    case Hash("sxtw_z_p_z"):
+    case Hash("uxtw_z_p_z"):
+      if (vform == kFormatVnS) {
+        VisitUnallocated(instr);
+        return;
       }
-      break;
-    case FNEG_z_p_z:
-      if (instr->GetSVEVectorFormat() == kFormatVnB) {
-        form = "(SVEIntUnaryArithmeticPredicated)";
-      } else {
-        mnemonic = "fneg";
+      VIXL_FALLTHROUGH();
+    case Hash("sxth_z_p_z"):
+    case Hash("uxth_z_p_z"):
+      if (vform == kFormatVnH) {
+        VisitUnallocated(instr);
+        return;
       }
-      break;
-    case NEG_z_p_z:
-      mnemonic = "neg";
-      break;
-    case NOT_z_p_z:
-      mnemonic = "not";
-      break;
-    case SXTB_z_p_z:
-      mnemonic = "sxtb";
-      break;
-    case SXTH_z_p_z:
-      mnemonic = "sxth";
-      break;
-    case SXTW_z_p_z:
-      mnemonic = "sxtw";
-      break;
-    case UXTB_z_p_z:
-      mnemonic = "uxtb";
-      break;
-    case UXTH_z_p_z:
-      mnemonic = "uxth";
-      break;
-    case UXTW_z_p_z:
-      mnemonic = "uxtw";
-      break;
-    default:
+      VIXL_FALLTHROUGH();
+    case Hash("sxtb_z_p_z"):
+    case Hash("uxtb_z_p_z"):
+    case Hash("fabs_z_p_z"):
+    case Hash("fneg_z_p_z"):
+      if (vform == kFormatVnB) {
+        VisitUnallocated(instr);
+        return;
+      }
       break;
   }
+
   Format(instr, mnemonic, form);
 }
 
