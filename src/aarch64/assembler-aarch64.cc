@@ -5224,6 +5224,32 @@ void Assembler::uqrshrn2(const VRegister& vd, const VRegister& vn, int shift) {
   NEONShiftImmediateN(vd, vn, shift, NEON_UQRSHRN);
 }
 
+void Assembler::smmla(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kI8MM));
+  VIXL_ASSERT(vd.IsLaneSizeS());
+  VIXL_ASSERT(vn.IsLaneSizeB() && vm.IsLaneSizeB());
+
+  Emit(0x4e80a400 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::usmmla(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kI8MM));
+  VIXL_ASSERT(vd.IsLaneSizeS());
+  VIXL_ASSERT(vn.IsLaneSizeB() && vm.IsLaneSizeB());
+
+  Emit(0x4e80ac00 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::ummla(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kI8MM));
+  VIXL_ASSERT(vd.IsLaneSizeS());
+  VIXL_ASSERT(vn.IsLaneSizeB() && vm.IsLaneSizeB());
+
+  Emit(0x6e80a400 | Rd(vd) | Rn(vn) | Rm(vm));
+}
 
 // Note:
 // For all ToImm instructions below, a difference in case

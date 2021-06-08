@@ -7975,34 +7975,39 @@ LogicVRegister Simulator::adcl(VectorFormat vform,
 //  src1 = [ p | o | n | m | l | k | j | i | h | g | f | e | d | c | b | a ]
 //  src2 = [ P | N | L | J | H | F | D | B | O | M | K | I | G | E | C | A ]
 //
-LogicVRegister Simulator::matmul(LogicVRegister srcdst,
+LogicVRegister Simulator::matmul(VectorFormat vform_dst,
+                                 LogicVRegister srcdst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2,
                                  bool src1_signed,
                                  bool src2_signed) {
+  // Two destination forms are supported: Q register containing four S-sized
+  // elements (4S) and Z register containing n S-sized elements (VnS).
+  VIXL_ASSERT((vform_dst == kFormat4S) || (vform_dst == kFormatVnS));
+  VectorFormat vform_src = kFormatVnB;
   int b_per_segment = kQRegSize / kBRegSize;
   int s_per_segment = kQRegSize / kSRegSize;
-  VectorFormat vform = kFormatVnB;
   int64_t result[kZRegMaxSizeInBytes / kSRegSizeInBytes];
-  for (int seg = 0; seg < LaneCountFromFormat(kFormatVnQ); seg++) {
+  int segment_count = LaneCountFromFormat(vform_dst) / 4;
+  for (int seg = 0; seg < segment_count; seg++) {
     for (int i = 0; i < 2; i++) {
       for (int j = 0; j < 2; j++) {
         int dstidx = (2 * i) + j + (seg * s_per_segment);
-        int64_t sum = srcdst.Int(kFormatVnS, dstidx);
+        int64_t sum = srcdst.Int(vform_dst, dstidx);
         for (int k = 0; k < 8; k++) {
           int idx1 = (8 * i) + k + (seg * b_per_segment);
           int idx2 = (8 * j) + k + (seg * b_per_segment);
-          int64_t e1 =
-              src1_signed ? src1.Int(vform, idx1) : src1.Uint(vform, idx1);
-          int64_t e2 =
-              src2_signed ? src2.Int(vform, idx2) : src2.Uint(vform, idx2);
+          int64_t e1 = src1_signed ? src1.Int(vform_src, idx1)
+                                   : src1.Uint(vform_src, idx1);
+          int64_t e2 = src2_signed ? src2.Int(vform_src, idx2)
+                                   : src2.Uint(vform_src, idx2);
           sum += e1 * e2;
         }
         result[dstidx] = sum;
       }
     }
   }
-  srcdst.SetIntArray(kFormatVnS, result);
+  srcdst.SetIntArray(vform_dst, result);
   return srcdst;
 }
 

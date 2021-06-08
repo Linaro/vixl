@@ -1653,6 +1653,12 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
          CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF32MM)},
         {"fmmla_z_zzz_d",
          CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"smmla_asimdsame2_g",
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kI8MM)},
+        {"ummla_asimdsame2_g",
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kI8MM)},
+        {"usmmla_asimdsame2_g",
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kI8MM)},
     };
 
     if (features.count(form) > 0) {

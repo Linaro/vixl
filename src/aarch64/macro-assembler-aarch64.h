@@ -2816,7 +2816,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(uzp1, Uzp1)                  \
   V(uzp2, Uzp2)                  \
   V(zip1, Zip1)                  \
-  V(zip2, Zip2)
+  V(zip2, Zip2)                  \
+  V(smmla, Smmla)                \
+  V(ummla, Ummla)                \
+  V(usmmla, Usmmla)
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)                                     \
   void MASM(const VRegister& vd, const VRegister& vn, const VRegister& vm) { \

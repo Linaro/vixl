@@ -19636,6 +19636,42 @@ TEST_SVE(sve2_flogb_simple) {
   }
 }
 
+TEST_SVE(neon_matmul) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                          CPUFeatures::kSVEI8MM,
+                          CPUFeatures::kNEON,
+                          CPUFeatures::kI8MM);
+
+  // Test Neon integer matrix multiply against SVE.
+  START();
+  __ Movi(v0.V2D(), 0xffeeddccbbaa9988, 0x77665544332211);
+  __ Movi(v1.V2D(), 0xaa5555aa55555555, 0x55aaaa55aaaaaa);
+  __ Movi(v2.V2D(), 0, 0);
+  __ Movi(v3.V2D(), 0, 0);
+  __ Movi(v4.V2D(), 0, 0);
+  __ Movi(v5.V2D(), 0, 0);
+  __ Movi(v6.V2D(), 0, 0);
+  __ Movi(v7.V2D(), 0, 0);
+
+  __ Smmla(v2.V4S(), v0.V16B(), v1.V16B());
+  __ Smmla(z3.VnS(), z3.VnS(), z0.VnB(), z1.VnB());
+  __ Ummla(v4.V4S(), v0.V16B(), v1.V16B());
+  __ Ummla(z5.VnS(), z5.VnS(), z0.VnB(), z1.VnB());
+  __ Usmmla(v6.V4S(), v0.V16B(), v1.V16B());
+  __ Usmmla(z7.VnS(), z7.VnS(), z0.VnB(), z1.VnB());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // The inputs as Z registers are zero beyond the least-significant 128 bits,
+    // so the Neon and SVE results should be equal for any VL.
+    ASSERT_EQUAL_SVE(z3, z2);
+    ASSERT_EQUAL_SVE(z5, z4);
+    ASSERT_EQUAL_SVE(z7, z6);
+  }
+}
+
 // Manually constructed simulator test to avoid creating a VL128 variant.
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64

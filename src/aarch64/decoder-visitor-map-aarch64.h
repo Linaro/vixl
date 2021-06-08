@@ -2859,7 +2859,6 @@
       {"sm3tt2b_vvv_crypto3_imm2", &VISITORCLASS::VisitUnimplemented},         \
       {"sm4ekey_vvv4_cryptosha512_3", &VISITORCLASS::VisitUnimplemented},      \
       {"sm4e_vv4_cryptosha512_2", &VISITORCLASS::VisitUnimplemented},          \
-      {"smmla_asimdsame2_g", &VISITORCLASS::VisitUnimplemented},               \
       {"st2g_64soffset_ldsttags", &VISITORCLASS::VisitUnimplemented},          \
       {"st2g_64spost_ldsttags", &VISITORCLASS::VisitUnimplemented},            \
       {"st2g_64spre_ldsttags", &VISITORCLASS::VisitUnimplemented},             \
@@ -2891,10 +2890,8 @@
       {"tcancel_ex_exception", &VISITORCLASS::VisitUnimplemented},             \
       {"tstart_br_systemresult", &VISITORCLASS::VisitUnimplemented},           \
       {"ttest_br_systemresult", &VISITORCLASS::VisitUnimplemented},            \
-      {"ummla_asimdsame2_g", &VISITORCLASS::VisitUnimplemented},               \
       {"usdot_asimdelem_d", &VISITORCLASS::VisitUnimplemented},                \
       {"usdot_asimdsame2_d", &VISITORCLASS::VisitUnimplemented},               \
-      {"usmmla_asimdsame2_g", &VISITORCLASS::VisitUnimplemented},              \
       {"wfet_only_systeminstrswithreg", &VISITORCLASS::VisitUnimplemented},    \
       {"wfit_only_systeminstrswithreg", &VISITORCLASS::VisitUnimplemented},    \
       {"xar_vvv2_crypto3_imm6", &VISITORCLASS::VisitUnimplemented},            \

@@ -4357,5 +4357,18 @@ TEST(neon_shift_immediate) {
   CLEANUP();
 }
 
+TEST(neon_matmul) {
+  SETUP();
+
+  COMPARE_MACRO(Smmla(v0.V4S(), v1.V16B(), v2.V16B()),
+                "smmla v0.4s, v1.16b, v2.16b");
+  COMPARE_MACRO(Ummla(v20.V4S(), v30.V16B(), v31.V16B()),
+                "ummla v20.4s, v30.16b, v31.16b");
+  COMPARE_MACRO(Usmmla(v3.V4S(), v29.V16B(), v13.V16B()),
+                "usmmla v3.4s, v29.16b, v13.16b");
+
+  CLEANUP();
+}
+
 }  // namespace aarch64
 }  // namespace vixl

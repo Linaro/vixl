@@ -349,9 +349,12 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"whilerw_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"whilewr_p_rr", &Simulator::Simulate_PdT_Xn_Xm},
     {"xar_z_zzi", &Simulator::SimulateSVEExclusiveOrRotate},
-    {"smmla_z_zzz", &Simulator::SimulateSVEMatrixMul},
-    {"ummla_z_zzz", &Simulator::SimulateSVEMatrixMul},
-    {"usmmla_z_zzz", &Simulator::SimulateSVEMatrixMul},
+    {"smmla_z_zzz", &Simulator::SimulateMatrixMul},
+    {"ummla_z_zzz", &Simulator::SimulateMatrixMul},
+    {"usmmla_z_zzz", &Simulator::SimulateMatrixMul},
+    {"smmla_asimdsame2_g", &Simulator::SimulateMatrixMul},
+    {"ummla_asimdsame2_g", &Simulator::SimulateMatrixMul},
+    {"usmmla_asimdsame2_g", &Simulator::SimulateMatrixMul},
     {"fmmla_z_zzz_s", &Simulator::SimulateSVEFPMatrixMul},
     {"fmmla_z_zzz_d", &Simulator::SimulateSVEFPMatrixMul},
 };
@@ -12746,28 +12749,38 @@ void Simulator::VisitSVEMulIndex(const Instruction* instr) {
   }
 }
 
-void Simulator::SimulateSVEMatrixMul(const Instruction* instr) {
-  SimVRegister& zdn = ReadVRegister(instr->GetRd());
-  SimVRegister& zn = ReadVRegister(instr->GetRn());
-  SimVRegister& zm = ReadVRegister(instr->GetRm());
+void Simulator::SimulateMatrixMul(const Instruction* instr) {
+  VectorFormat vform = kFormatVnS;
+  SimVRegister& dn = ReadVRegister(instr->GetRd());
+  SimVRegister& n = ReadVRegister(instr->GetRn());
+  SimVRegister& m = ReadVRegister(instr->GetRm());
 
-  bool zn_signed = false;
-  bool zm_signed = false;
+  bool n_signed = false;
+  bool m_signed = false;
   switch (form_hash_) {
+    case Hash("smmla_asimdsame2_g"):
+      vform = kFormat4S;
+      VIXL_FALLTHROUGH();
     case Hash("smmla_z_zzz"):
-      zn_signed = zm_signed = true;
+      n_signed = m_signed = true;
       break;
+    case Hash("ummla_asimdsame2_g"):
+      vform = kFormat4S;
+      VIXL_FALLTHROUGH();
     case Hash("ummla_z_zzz"):
       // Nothing to do.
       break;
+    case Hash("usmmla_asimdsame2_g"):
+      vform = kFormat4S;
+      VIXL_FALLTHROUGH();
     case Hash("usmmla_z_zzz"):
-      zm_signed = true;
+      m_signed = true;
       break;
     default:
       VIXL_UNIMPLEMENTED();
       break;
   }
-  matmul(zdn, zn, zm, zn_signed, zm_signed);
+  matmul(vform, dn, n, m, n_signed, m_signed);
 }
 
 void Simulator::SimulateSVEFPMatrixMul(const Instruction* instr) {

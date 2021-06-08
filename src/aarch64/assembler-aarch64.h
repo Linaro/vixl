@@ -3593,6 +3593,15 @@ class Assembler : public vixl::internal::AssemblerBase {
              const VRegister& vm,
              int rot);
 
+  // Signed 8-bit integer matrix multiply-accumulate (vector).
+  void smmla(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // Unsigned and signed 8-bit integer matrix multiply-accumulate (vector).
+  void usmmla(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // Unsigned 8-bit integer matrix multiply-accumulate (vector).
+  void ummla(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

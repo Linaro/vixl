@@ -10842,6 +10842,5 @@ TEST(neon_tbl) {
   }
 }
 
-
 }  // namespace aarch64
 }  // namespace vixl

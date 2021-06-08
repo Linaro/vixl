@@ -1238,7 +1238,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVESaturatingMulAddHigh(const Instruction* instr);
   void SimulateSVESaturatingMulHighIndex(const Instruction* instr);
   void SimulateSVEFPConvertLong(const Instruction* instr);
-  void SimulateSVEMatrixMul(const Instruction* instr);
+  void SimulateMatrixMul(const Instruction* instr);
   void SimulateSVEFPMatrixMul(const Instruction* instr);
 
   // Integer register accessors.
@@ -4067,7 +4067,8 @@ class Simulator : public DecoderVisitor {
                          LogicVRegister dst,
                          const LogicVRegister& src1,
                          const LogicVRegister& src2);
-  LogicVRegister matmul(LogicVRegister dst,
+  LogicVRegister matmul(VectorFormat vform_dst,
+                        LogicVRegister dst,
                         const LogicVRegister& src1,
                         const LogicVRegister& src2,
                         bool src1_signed,

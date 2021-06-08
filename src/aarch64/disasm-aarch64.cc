@@ -329,6 +329,9 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"smmla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
     {"ummla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
     {"usmmla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
+    {"smmla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
+    {"ummla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
+    {"usmmla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
 };
 
 Disassembler::Disassembler() {
@@ -5215,6 +5218,11 @@ void Disassembler::VisitNEONPerm(const Instruction *instr) {
       form = "(NEONPerm)";
   }
   Format(instr, mnemonic, nfd.Substitute(form));
+}
+
+void Disassembler::Disassemble_Vd4S_Vn16B_Vm16B(const Instruction *instr) {
+  const char *form = "'Vd.4s, 'Vn.16b, 'Vm.16b";
+  Format(instr, mnemonic_.c_str(), form);
 }
 
 void Disassembler::
