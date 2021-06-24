@@ -143,7 +143,7 @@ def ClangTidyFiles(files, clang_tidy, jobs = 1, progress_prefix = ''):
     return -1
 
   opts = ['--', '-DVIXL_INCLUDE_TARGET_AARCH64', '-DVIXL_CODE_BUFFER_MALLOC',
-          '-DVIXL_DEBUG','-DVIXL_INCLUDE_SIMLUATOR_AARCH64',
+          '-DVIXL_DEBUG','-DVIXL_INCLUDE_SIMULATOR_AARCH64',
           '-DVIXL_INCLUDE_TARGET_A32','-DVIXL_INCLUDE_TARGET_T32',
           '-DVIXL_INCLUDE_TARGET_A64']
   opts += ['-I%s' % config.dir_src_vixl]

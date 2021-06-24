@@ -7823,11 +7823,11 @@ void Simulator::VisitNEONCopy(const Instruction* instr) {
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   int imm5 = instr->GetImmNEON5();
   int tz = CountTrailingZeros(imm5, 32);
-  int reg_index = imm5 >> (tz + 1);
+  int reg_index = ExtractSignedBitfield32(31, tz + 1, imm5);
 
   if (instr->Mask(NEONCopyInsElementMask) == NEON_INS_ELEMENT) {
     int imm4 = instr->GetImmNEON4();
-    int rn_index = imm4 >> tz;
+    int rn_index = ExtractSignedBitfield32(31, tz, imm4);
     ins_element(vf, rd, reg_index, rn, rn_index);
   } else if (instr->Mask(NEONCopyInsGeneralMask) == NEON_INS_GENERAL) {
     ins_immediate(vf, rd, reg_index, ReadXRegister(instr->GetRn()));
@@ -8884,7 +8884,7 @@ void Simulator::VisitNEONScalarCopy(const Instruction* instr) {
   if (instr->Mask(NEONScalarCopyMask) == NEON_DUP_ELEMENT_scalar) {
     int imm5 = instr->GetImmNEON5();
     int tz = CountTrailingZeros(imm5, 32);
-    int rn_index = imm5 >> (tz + 1);
+    int rn_index = ExtractSignedBitfield32(31, tz + 1, imm5);
     dup_element(vf, rd, rn, rn_index);
   } else {
     VIXL_UNIMPLEMENTED();
@@ -9356,7 +9356,7 @@ void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRm());
   Instr op = instr->Mask(SVEBitwiseLogicalUnpredicatedMask);
 
-  LogicalOp logical_op;
+  LogicalOp logical_op = LogicalOpMask;
   switch (op) {
     case AND_z_zz:
       logical_op = AND;
@@ -9371,7 +9371,6 @@ void Simulator::VisitSVEBitwiseLogicalUnpredicated(const Instruction* instr) {
       logical_op = ORR;
       break;
     default:
-      logical_op = LogicalOpMask;
       VIXL_UNIMPLEMENTED();
       break;
   }
@@ -9544,7 +9543,7 @@ void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
   SimVRegister& zd = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
 
-  Shift shift_op;
+  Shift shift_op = NO_SHIFT;
   switch (instr->Mask(SVEBitwiseShiftUnpredicatedMask)) {
     case ASR_z_zi:
     case ASR_z_zw:
@@ -9559,7 +9558,6 @@ void Simulator::VisitSVEBitwiseShiftUnpredicated(const Instruction* instr) {
       shift_op = LSR;
       break;
     default:
-      shift_op = NO_SHIFT;
       VIXL_UNIMPLEMENTED();
       break;
   }
@@ -11003,7 +11001,7 @@ void Simulator::VisitSVEConditionallyTerminateScalars(
   bool is_64_bit = instr->ExtractBit(22) == 1;
   uint64_t src1 = is_64_bit ? ReadXRegister(rn_code) : ReadWRegister(rn_code);
   uint64_t src2 = is_64_bit ? ReadXRegister(rm_code) : ReadWRegister(rm_code);
-  bool term;
+  bool term = false;
   switch (instr->Mask(SVEConditionallyTerminateScalarsMask)) {
     case CTERMEQ_rr:
       term = src1 == src2;
@@ -11012,7 +11010,6 @@ void Simulator::VisitSVEConditionallyTerminateScalars(
       term = src1 != src2;
       break;
     default:
-      term = false;
       VIXL_UNIMPLEMENTED();
       break;
   }
@@ -11023,7 +11020,7 @@ void Simulator::VisitSVEConditionallyTerminateScalars(
 
 void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
   bool commute_inputs = false;
-  Condition cond;
+  Condition cond = al;
   switch (instr->Mask(SVEIntCompareSignedImmMask)) {
     case CMPEQ_p_p_zi:
       cond = eq;
@@ -11046,7 +11043,6 @@ void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
       cond = ne;
       break;
     default:
-      cond = al;
       VIXL_UNIMPLEMENTED();
       break;
   }
@@ -11068,7 +11064,7 @@ void Simulator::VisitSVEIntCompareSignedImm(const Instruction* instr) {
 
 void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
   bool commute_inputs = false;
-  Condition cond;
+  Condition cond = al;
   switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
     case CMPHI_p_p_zi:
       cond = hi;
@@ -11085,7 +11081,6 @@ void Simulator::VisitSVEIntCompareUnsignedImm(const Instruction* instr) {
       commute_inputs = true;
       break;
     default:
-      cond = al;
       VIXL_UNIMPLEMENTED();
       break;
   }
