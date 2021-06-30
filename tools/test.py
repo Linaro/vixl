@@ -168,6 +168,8 @@ def BuildOptions():
                                  help='Do not run clang-tidy.')
   general_arguments.add_argument('--notest', action='store_true',
                                  help='Do not run tests.')
+  general_arguments.add_argument('--nocheck-code-coverage', action='store_true',
+                                 help='Do not check code coverage results log.')
   general_arguments.add_argument('--fail-early', action='store_true',
                                  help='Exit as soon as a test fails.')
   general_arguments.add_argument(
@@ -273,6 +275,10 @@ def RunClangTidy(clang_path, jobs):
                                    jobs = jobs,
                                    progress_prefix = 'clang-tidy: ')
 
+def CheckCodeCoverage():
+  command = ['tools/check_recent_coverage.sh']
+  return RunCommand(command)
+
 def BuildAll(build_options, jobs, environment_options):
   scons_command = ['scons', '-C', dir_root, 'all', '-j', str(jobs)]
   if util.IsCommandAvailable('ccache'):
@@ -358,6 +364,9 @@ if __name__ == '__main__':
 
   if args.under_valgrind:
     util.require_program('valgrind')
+
+  if not args.nocheck_code_coverage:
+    rc.Combine(CheckCodeCoverage())
 
   tests = test_runner.TestQueue()
   if not args.nolint and not args.dry_run:

@@ -29,44 +29,23 @@
 # This code coverage script assumes a Linux-like environment, and has been
 # tested on Ubuntu 18.04.
 
-if ! hash pv 2>/dev/null ; then
-  echo "This script requires 'pv'"
-  echo "On Ubuntu, install it with 'sudo apt-get install pv'"
-  exit 1;
+COVERAGELOG="tools/code_coverage.log"
+MONTHSECONDS=$(( 60*60*24*30 ))
+
+if [ ! -f "$COVERAGELOG" ]; then
+  echo "No code coverage log found."
+  echo "Run tools/code_coverage.sh to generate one."
+  exit 2;
 fi
 
-export CXX=clang++
-export LLVM_PROFILE_FILE=$(mktemp)
-PROFDATA=$(mktemp)
-BUILDDIR="obj/target_a64/mode_debug/symbols_on/compiler_clang++/std_c++14/simulator_aarch64/negative_testing_off/code_buffer_allocator_mmap"
-RUNNER="$BUILDDIR/test/test-runner"
+LASTCOMMIT=`git log -1 --date=format:%s | grep -P "^Date:" | grep -Po "\d+"`
+LASTCOVERAGE=`tail -n1 $COVERAGELOG | cut -d' ' -f1`
 
-# Build with code coverage instrumentation enabled.
-scons mode=debug coverage=on target=a64 all -j8
-
-if [ ! -f "$RUNNER" ]; then
-    echo "$RUNNER not found."
-    echo "No test-runner for profiling."
-    exit 1;
+d=$(( $LASTCOMMIT - $LASTCOVERAGE ))
+if (( d < $MONTHSECONDS )); then
+  exit 0;
 fi
 
-# Count the number of tests.
-tests=`$RUNNER --list | wc -l`
-
-# Generate a raw profile for a run using all tests.
-echo "Running $tests tests. This may take a while..."
-$RUNNER --run-all 2>&1 | grep -P "^Running [A-Z0-9]{3,}_" | pv -lbp -w 40 -s $tests >/dev/null
-
-# Process the raw profile data for reporting.
-llvm-profdata merge -sparse $LLVM_PROFILE_FILE -o $PROFDATA
-
-# Print a coverage report for the source files in src/
-REPORT="llvm-cov report $RUNNER -instr-profile=$PROFDATA $BUILDDIR/src/"
-eval $REPORT
-
-# Log the report summary line.
-eval $REPORT | tail -n1 | tr -s " " | cut -d" " -f4,7,10 | xargs -i printf "%s %s\n" `date +%s` {} >>tools/code_coverage.log
-
-# Clean up.
-rm -f $LLVM_PROFILE_FILE
-rm -f $PROFDATA
+echo "Code coverage record too old."
+echo "Run tools/code_coverage.sh to generate a newer one."
+exit 1;
