@@ -815,12 +815,20 @@ class NEONFormatDecoder {
                          SubstitutionMode mode0 = kFormat,
                          SubstitutionMode mode1 = kFormat,
                          SubstitutionMode mode2 = kFormat) {
+    const char* subst0 = GetSubstitute(0, mode0);
+    const char* subst1 = GetSubstitute(1, mode1);
+    const char* subst2 = GetSubstitute(2, mode2);
+
+    if ((subst0 == NULL) || (subst1 == NULL) || (subst2 == NULL)) {
+      return NULL;
+    }
+
     snprintf(form_buffer_,
              sizeof(form_buffer_),
              string,
-             GetSubstitute(0, mode0),
-             GetSubstitute(1, mode1),
-             GetSubstitute(2, mode2));
+             subst0,
+             subst1,
+             subst2);
     return form_buffer_;
   }
 
@@ -994,7 +1002,7 @@ class NEONFormatDecoder {
   static const char* NEONFormatAsString(NEONFormat format) {
     // clang-format off
     static const char* formats[] = {
-      "undefined",
+      NULL,
       "8b", "16b", "4h", "8h", "2s", "4s", "1d", "2d",
       "b", "h", "s", "d"
     };
@@ -1009,9 +1017,9 @@ class NEONFormatDecoder {
                 (format == NF_D) || (format == NF_UNDEF));
     // clang-format off
     static const char* formats[] = {
-      "undefined",
-      "undefined", "undefined", "undefined", "undefined",
-      "undefined", "undefined", "undefined", "undefined",
+      NULL,
+      NULL, NULL, NULL, NULL,
+      NULL, NULL, NULL, NULL,
       "'B", "'H", "'S", "'D"
     };
     // clang-format on

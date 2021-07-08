@@ -3164,9 +3164,9 @@ TEST(neon_2regmisc) {
   COMPARE_MACRO(Shll2(v6.V2D(), v4.V4S(), 32), "shll2 v6.2d, v4.4s, #32");
 
   // An unallocated form of shll.
-  COMPARE(dci(0x2ee13bff), "unallocated (NEON2RegMisc)");
+  COMPARE(dci(0x2ee13bff), "unallocated (Unallocated)");
   // An unallocated form of shll2.
-  COMPARE(dci(0x6ee13bff), "unallocated (NEON2RegMisc)");
+  COMPARE(dci(0x6ee13bff), "unallocated (Unallocated)");
 
 #define DISASM_INST(M, S) \
   COMPARE_MACRO(Cmeq(v0.M, v1.M, 0), "cmeq v0." S ", v1." S ", #0");

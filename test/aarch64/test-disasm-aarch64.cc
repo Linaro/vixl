@@ -3549,10 +3549,10 @@ TEST(architecture_features) {
   // COMPARE_PREFIX(dci(0xd503223f), "psb");   // PSB_HC_hints
 
   // ARMv8.3 - FCMA
-  COMPARE_PREFIX(dci(0x2e00c400), "fcmla");  // FCMLA_asimdsame2_C
+  COMPARE_PREFIX(dci(0x2e40c400), "fcmla");  // FCMLA_asimdsame2_C
   COMPARE_PREFIX(dci(0x2e00e400), "fcadd");  // FCADD_asimdsame2_C
   COMPARE_PREFIX(dci(0x2f401000), "fcmla");  // FCMLA_asimdelem_C_H
-  COMPARE_PREFIX(dci(0x2f801000), "fcmla");  // FCMLA_asimdelem_C_S
+  COMPARE_PREFIX(dci(0x6f801000), "fcmla");  // FCMLA_asimdelem_C_S
 
   // ARMv8.3 - JSCVT
   COMPARE_PREFIX(dci(0x1e7e0000), "fjcvtzs");  // FJCVTZS_32D_float2int
