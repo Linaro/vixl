@@ -5412,6 +5412,15 @@ void Simulator::VisitBitfield(const Instruction* instr) {
   int64_t reg_mask = instr->GetSixtyFourBits() ? kXRegMask : kWRegMask;
   int R = instr->GetImmR();
   int S = instr->GetImmS();
+
+  if (instr->GetSixtyFourBits() != instr->GetBitN()) {
+    VisitUnallocated(instr);
+  }
+
+  if ((instr->GetSixtyFourBits() == 0) && ((S > 31) || (R > 31))) {
+    VisitUnallocated(instr);
+  }
+
   int diff = S - R;
   uint64_t mask;
   if (diff >= 0) {

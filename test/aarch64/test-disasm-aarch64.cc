@@ -569,6 +569,19 @@ TEST(bitfield) {
   CLEANUP();
 }
 
+TEST(bitfield_regression_test) {
+  SETUP();
+
+  COMPARE(dci(0x533ae450), "unallocated (Unallocated)");
+  COMPARE(dci(0x133c464c), "unallocated (Unallocated)");
+  COMPARE(dci(0x133c4e6d), "unallocated (Unallocated)");
+  COMPARE(dci(0x133c5e45), "unallocated (Unallocated)");
+  COMPARE(dci(0x1335853c), "unallocated (Unallocated)");
+  COMPARE(dci(0x1335a73d), "unallocated (Unallocated)");
+
+  CLEANUP();
+}
+
 
 TEST(crc32b) {
   SETUP();

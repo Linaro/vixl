@@ -827,6 +827,16 @@ void Disassembler::VisitBitfield(const Instruction *instr) {
   const char *form_bfx = "'Rd, 'Rn, 'IBr, 'IBs-r+1";
   const char *form_lsl = "'Rd, 'Rn, 'IBZ-r";
 
+  if (instr->GetSixtyFourBits() != instr->GetBitN()) {
+    VisitUnallocated(instr);
+    return;
+  }
+
+  if ((instr->GetSixtyFourBits() == 0) && ((s > 31) || (r > 31))) {
+    VisitUnallocated(instr);
+    return;
+  }
+
   switch (instr->Mask(BitfieldMask)) {
     case SBFM_w:
     case SBFM_x: {
