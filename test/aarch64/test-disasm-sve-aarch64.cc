@@ -4865,6 +4865,31 @@ TEST(sve_mem_contiguous_store) {
   CLEANUP();
 }
 
+TEST(sve_load_broadcast_octo) {
+  SETUP();
+
+  COMPARE_MACRO(Ld1rob(z3.VnB(), p1.Zeroing(), SVEMemOperand(x0, x1)),
+                "ld1rob {z3.b}, p1/z, [x0, x1]");
+  COMPARE_MACRO(Ld1roh(z6.VnH(), p4.Zeroing(), SVEMemOperand(sp, x31, LSL, 1)),
+                "ld1roh {z6.h}, p4/z, [sp]");
+  COMPARE_MACRO(Ld1roh(z6.VnH(), p4.Zeroing(), SVEMemOperand(sp, x30, LSL, 1)),
+                "ld1roh {z6.h}, p4/z, [sp, x30, lsl #1]");
+  COMPARE_MACRO(Ld1row(z2.VnS(), p6.Zeroing(), SVEMemOperand(x30, x30, LSL, 2)),
+                "ld1row {z2.s}, p6/z, [x30, x30, lsl #2]");
+  COMPARE_MACRO(Ld1rod(z30.VnD(), p7.Zeroing(), SVEMemOperand(x21, x5, LSL, 3)),
+                "ld1rod {z30.d}, p7/z, [x21, x5, lsl #3]");
+  COMPARE_MACRO(Ld1rob(z9.VnB(), p0.Zeroing(), SVEMemOperand(sp, 32)),
+                "ld1rob {z9.b}, p0/z, [sp, #32]");
+  COMPARE_MACRO(Ld1roh(z19.VnH(), p3.Zeroing(), SVEMemOperand(x4)),
+                "ld1roh {z19.h}, p3/z, [x4]");
+  COMPARE_MACRO(Ld1row(z21.VnS(), p3.Zeroing(), SVEMemOperand(x11, 224)),
+                "ld1row {z21.s}, p3/z, [x11, #224]");
+  COMPARE_MACRO(Ld1rod(z0.VnD(), p2.Zeroing(), SVEMemOperand(x16, -256)),
+                "ld1rod {z0.d}, p2/z, [x16, #-256]");
+
+  CLEANUP();
+}
+
 TEST(sve_ldr_str_simple) {
   SETUP();
 

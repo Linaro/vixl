@@ -352,21 +352,21 @@
       {"ld1rh_z_p_bi_u32", &VISITORCLASS::VisitSVELoadAndBroadcastElement},    \
       {"ld1rh_z_p_bi_u64", &VISITORCLASS::VisitSVELoadAndBroadcastElement},    \
       {"ld1rqb_z_p_bi_u8",                                                     \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm},         \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},           \
       {"ld1rqb_z_p_br_contiguous",                                             \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar},      \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},        \
       {"ld1rqd_z_p_bi_u64",                                                    \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm},         \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},           \
       {"ld1rqd_z_p_br_contiguous",                                             \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar},      \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},        \
       {"ld1rqh_z_p_bi_u16",                                                    \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm},         \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},           \
       {"ld1rqh_z_p_br_contiguous",                                             \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar},      \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},        \
       {"ld1rqw_z_p_bi_u32",                                                    \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm},         \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},           \
       {"ld1rqw_z_p_br_contiguous",                                             \
-       &VISITORCLASS::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar},      \
+       &VISITORCLASS::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},        \
       {"ld1rsb_z_p_bi_s16", &VISITORCLASS::VisitSVELoadAndBroadcastElement},   \
       {"ld1rsb_z_p_bi_s32", &VISITORCLASS::VisitSVELoadAndBroadcastElement},   \
       {"ld1rsb_z_p_bi_s64", &VISITORCLASS::VisitSVELoadAndBroadcastElement},   \
@@ -2903,14 +2903,6 @@
       {"bfmlalb_z_zzzi_", &VISITORCLASS::VisitUnimplemented},                  \
       {"bfmlalt_z_zzz_", &VISITORCLASS::VisitUnimplemented},                   \
       {"bfmlalt_z_zzzi_", &VISITORCLASS::VisitUnimplemented},                  \
-      {"bfmmla_z_zzz_", &VISITORCLASS::VisitUnimplemented},                    \
-      {"ld1rob_z_p_bi_u8", &VISITORCLASS::VisitUnimplemented},                 \
-      {"ld1rob_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented},         \
-      {"ld1rod_z_p_bi_u64", &VISITORCLASS::VisitUnimplemented},                \
-      {"ld1rod_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented},         \
-      {"ld1roh_z_p_bi_u16", &VISITORCLASS::VisitUnimplemented},                \
-      {"ld1roh_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented},         \
-      {"ld1row_z_p_bi_u32", &VISITORCLASS::VisitUnimplemented},                \
-      {"ld1row_z_p_br_contiguous", &VISITORCLASS::VisitUnimplemented}, {       \
+      {"bfmmla_z_zzz_", &VISITORCLASS::VisitUnimplemented}, {                  \
     "Unallocated", &VISITORCLASS::VisitUnallocated                             \
   }

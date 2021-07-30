@@ -19790,6 +19790,134 @@ Test* test_sve_fmatmul_list[] =
      Test::MakeSVETest(2048,
                        "AARCH64_ASM_sve_fmatmul_vl2048",
                        &Testsve_fmatmul)};
+
+void Testsve_ld1ro(Test* config) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM);
+  START();
+
+  int data_size = (kQRegSizeInBytes + 128) * 4;
+  uint8_t* data = new uint8_t[data_size];
+  for (int i = 0; i < data_size; i++) {
+    data[i] = i & 0xff;
+  }
+
+  // Set the base to just past half-way through the buffer so we can use
+  // negative indices.
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[7 + data_size / 2]));
+
+  __ Index(z0.VnB(), 0, 1);
+  __ Ptrue(p0.VnB());
+  __ Cmplo(p0.VnB(), p0.Zeroing(), z0.VnB(), 4);
+  __ Pfalse(p1.VnB());
+  __ Zip1(p1.VnB(), p0.VnB(), p1.VnB());
+  __ Ptrue(p2.VnB());
+
+  __ Mov(x1, -32);
+  __ Ld1rob(z0.VnB(), p1.Zeroing(), SVEMemOperand(x0, -32));
+  __ Ld1rob(z1.VnB(), p1.Zeroing(), SVEMemOperand(x0, x1));
+
+  __ Mov(x1, 64 / 2);
+  __ Ld1roh(z2.VnH(), p2.Zeroing(), SVEMemOperand(x0, 64));
+  __ Ld1roh(z3.VnH(), p2.Zeroing(), SVEMemOperand(x0, x1, LSL, 1));
+
+  __ Mov(x1, -96 / 4);
+  __ Ld1row(z4.VnS(), p2.Zeroing(), SVEMemOperand(x0, -96));
+  __ Ld1row(z5.VnS(), p2.Zeroing(), SVEMemOperand(x0, x1, LSL, 2));
+
+  __ Mov(x1, 128 / 8);
+  __ Ld1rod(z6.VnD(), p2.Zeroing(), SVEMemOperand(x0, 128));
+  __ Ld1rod(z7.VnD(), p2.Zeroing(), SVEMemOperand(x0, x1, LSL, 3));
+
+  // Check that all 256-bit segments match by rotating the vector by one
+  // segment, eoring, and orring across the vector.
+  __ Dup(z11.VnQ(), z0.VnQ(), 2);
+  __ Mov(z8, z0);
+  __ Ext(z8.VnB(), z8.VnB(), z8.VnB(), 32);
+  __ Eor(z8.VnB(), z8.VnB(), z0.VnB());
+  __ Orv(b9, p2, z8.VnB());
+
+  __ Mov(z8, z2);
+  __ Ext(z8.VnB(), z8.VnB(), z8.VnB(), 32);
+  __ Eor(z8.VnB(), z8.VnB(), z2.VnB());
+  __ Orv(b8, p2, z8.VnB());
+  __ Orr(z9, z9, z8);
+
+  __ Mov(z8, z4);
+  __ Ext(z8.VnB(), z8.VnB(), z8.VnB(), 32);
+  __ Eor(z8.VnB(), z8.VnB(), z4.VnB());
+  __ Orv(b8, p2, z8.VnB());
+  __ Orr(z9, z9, z8);
+
+  __ Mov(z8, z6);
+  __ Ext(z8.VnB(), z8.VnB(), z8.VnB(), 32);
+  __ Eor(z8.VnB(), z8.VnB(), z6.VnB());
+  __ Orv(b8, p2, z8.VnB());
+  __ Orr(z9, z9, z8);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int vl = core.GetSVELaneCount(kBRegSize) * 8;
+    if (vl >= 256) {
+      ASSERT_EQUAL_SVE(z0, z1);
+      ASSERT_EQUAL_SVE(z2, z3);
+      ASSERT_EQUAL_SVE(z4, z5);
+      ASSERT_EQUAL_SVE(z6, z7);
+
+      switch (vl) {
+        case 256:
+        case 2048: {
+          // Check the result of the rotate/eor sequence.
+          uint64_t expected_z9[] = {0, 0};
+          ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
+          break;
+        }
+        case 384: {
+          // For non-multiple-of-256 VL, the top 128-bits must be zero, which
+          // breaks the rotate/eor sequence. Check the results explicitly.
+          uint64_t z0_expected[] = {0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x000d000b00090007};
+          uint64_t z2_expected[] = {0x0000000000000000,
+                                    0x0000000000000000,
+                                    0x868584838281807f,
+                                    0x7e7d7c7b7a797877,
+                                    0x767574737271706f,
+                                    0x6e6d6c6b6a696867};
+          uint64_t z4_expected[] = {0x0000000000000000,
+                                    0x0000000000000000,
+                                    0xe6e5e4e3e2e1e0df,
+                                    0xdedddcdbdad9d8d7,
+                                    0xd6d5d4d3d2d1d0cf,
+                                    0xcecdcccbcac9c8c7};
+          uint64_t z6_expected[] = {0x0000000000000000,
+                                    0x0000000000000000,
+                                    0xc6c5c4c3c2c1c0bf,
+                                    0xbebdbcbbbab9b8b7,
+                                    0xb6b5b4b3b2b1b0af,
+                                    0xaeadacabaaa9a8a7};
+          ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
+          ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
+          ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
+          ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
+          break;
+        }
+        default:
+          printf("WARNING: Some tests skipped due to unexpected VL.\n");
+          break;
+      }
+    }
+  }
+}
+Test* test_sve_ld1ro_list[] =
+    {Test::MakeSVETest(256, "AARCH64_ASM_sve_ld1ro_vl256", &Testsve_ld1ro),
+     Test::MakeSVETest(384, "AARCH64_ASM_sve_ld1ro_vl384", &Testsve_ld1ro),
+     Test::MakeSVETest(2048, "AARCH64_ASM_sve_ld1ro_vl2048", &Testsve_ld1ro)};
 #endif
 
 }  // namespace aarch64

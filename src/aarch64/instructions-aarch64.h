@@ -199,8 +199,11 @@ enum VectorFormat {
 
   // An artificial value, used to distinguish from NEON format category.
   kFormatSVE = 0x0000fffd,
-  // An artificial value. Q lane size isn't encoded in the usual size field.
-  kFormatSVEQ = 0x000f0000,
+  // Artificial values. Q and O lane sizes aren't encoded in the usual size
+  // field.
+  kFormatSVEQ = 0x00080000,
+  kFormatSVEO = 0x00040000,
+
   // Vector element width of SVE register with the unknown lane count since
   // the vector length is implementation dependent.
   kFormatVnB = SVE_B | kFormatSVE,
@@ -208,6 +211,7 @@ enum VectorFormat {
   kFormatVnS = SVE_S | kFormatSVE,
   kFormatVnD = SVE_D | kFormatSVE,
   kFormatVnQ = kFormatSVEQ | kFormatSVE,
+  kFormatVnO = kFormatSVEO | kFormatSVE,
 
   // An artificial value, used by simulator trace tests and a few oddball
   // instructions (such as FMLAL).

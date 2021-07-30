@@ -357,6 +357,22 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"usmmla_asimdsame2_g", &Simulator::SimulateMatrixMul},
     {"fmmla_z_zzz_s", &Simulator::SimulateSVEFPMatrixMul},
     {"fmmla_z_zzz_d", &Simulator::SimulateSVEFPMatrixMul},
+    {"ld1row_z_p_bi_u32",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1row_z_p_br_contiguous",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"ld1rod_z_p_bi_u64",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1rod_z_p_br_contiguous",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"ld1rob_z_p_bi_u8",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1rob_z_p_br_contiguous",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"ld1roh_z_p_bi_u16",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1roh_z_p_br_contiguous",
+     &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
@@ -12107,69 +12123,59 @@ void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
                           /* is_signed = */ false);
 }
 
-void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
+void Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm(
     const Instruction* instr) {
   SimVRegister& zt = ReadVRegister(instr->GetRt());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  uint64_t dwords = 2;
+  VectorFormat vform_dst = kFormatVnQ;
+  if ((form_hash_ == Hash("ld1rob_z_p_bi_u8")) ||
+      (form_hash_ == Hash("ld1roh_z_p_bi_u16")) ||
+      (form_hash_ == Hash("ld1row_z_p_bi_u32")) ||
+      (form_hash_ == Hash("ld1rod_z_p_bi_u64"))) {
+    dwords = 4;
+    vform_dst = kFormatVnO;
+  }
 
   uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  uint64_t offset = instr->ExtractSignedBits(19, 16) * 16;
+  uint64_t offset =
+      instr->ExtractSignedBits(19, 16) * dwords * kDRegSizeInBytes;
+  int msz = instr->ExtractBits(24, 23);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
 
-  VectorFormat vform = kFormatUndefined;
-  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
-    case LD1RQB_z_p_bi_u8:
-      vform = kFormatVnB;
-      break;
-    case LD1RQD_z_p_bi_u64:
-      vform = kFormatVnD;
-      break;
-    case LD1RQH_z_p_bi_u16:
-      vform = kFormatVnH;
-      break;
-    case LD1RQW_z_p_bi_u32:
-      vform = kFormatVnS;
-      break;
-    default:
-      addr = offset = 0;
-      break;
+  for (unsigned i = 0; i < dwords; i++) {
+    ld1(kFormatVnD, zt, i, addr + offset + (i * kDRegSizeInBytes));
   }
-  ld1(kFormat16B, zt, addr + offset);
   mov_zeroing(vform, zt, pg, zt);
-  dup_element(kFormatVnQ, zt, zt, 0);
+  dup_element(vform_dst, zt, zt, 0);
 }
 
-void Simulator::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
+void Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar(
     const Instruction* instr) {
   SimVRegister& zt = ReadVRegister(instr->GetRt());
   SimPRegister& pg = ReadPRegister(instr->GetPgLow8());
+
+  uint64_t bytes = 16;
+  VectorFormat vform_dst = kFormatVnQ;
+  if ((form_hash_ == Hash("ld1rob_z_p_br_contiguous")) ||
+      (form_hash_ == Hash("ld1roh_z_p_br_contiguous")) ||
+      (form_hash_ == Hash("ld1row_z_p_br_contiguous")) ||
+      (form_hash_ == Hash("ld1rod_z_p_br_contiguous"))) {
+    bytes = 32;
+    vform_dst = kFormatVnO;
+  }
 
   uint64_t addr = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = ReadXRegister(instr->GetRm());
-
-  VectorFormat vform = kFormatUndefined;
-  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
-    case LD1RQB_z_p_br_contiguous:
-      vform = kFormatVnB;
-      break;
-    case LD1RQD_z_p_br_contiguous:
-      vform = kFormatVnD;
-      offset <<= 3;
-      break;
-    case LD1RQH_z_p_br_contiguous:
-      vform = kFormatVnH;
-      offset <<= 1;
-      break;
-    case LD1RQW_z_p_br_contiguous:
-      vform = kFormatVnS;
-      offset <<= 2;
-      break;
-    default:
-      addr = offset = 0;
-      break;
+  int msz = instr->ExtractBits(24, 23);
+  VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
+  offset <<= msz;
+  for (unsigned i = 0; i < bytes; i++) {
+    ld1(kFormatVnB, zt, i, addr + offset + i);
   }
-  ld1(kFormat16B, zt, addr + offset);
   mov_zeroing(vform, zt, pg, zt);
-  dup_element(kFormatVnQ, zt, zt, 0);
+  dup_element(vform_dst, zt, zt, 0);
 }
 
 void Simulator::VisitSVELoadMultipleStructures_ScalarPlusImm(

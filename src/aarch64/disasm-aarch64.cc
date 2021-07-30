@@ -332,6 +332,22 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"smmla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
     {"ummla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
     {"usmmla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
+    {"ld1row_z_p_bi_u32",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1row_z_p_br_contiguous",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"ld1rod_z_p_bi_u64",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1rod_z_p_br_contiguous",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"ld1rob_z_p_bi_u8",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1rob_z_p_br_contiguous",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"ld1roh_z_p_bi_u16",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
+    {"ld1roh_z_p_br_contiguous",
+     &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
 };
 
 Disassembler::Disassembler() {
@@ -7727,64 +7743,58 @@ void Disassembler::VisitSVELoadAndBroadcastElement(const Instruction *instr) {
   Format(instr, mnemonic, form, suffix);
 }
 
-void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusImm(
+void Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVELoadAndBroadcastQuadword_ScalarPlusImm)";
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "{'Zt.'tmsz}, 'Pgl/z, ['Xns";
+  const char *suffix = ", #'s1916*16]";
 
-  const char *suffix =
-      (instr->ExtractBits(19, 16) == 0) ? "]" : ", #'s1916*16]";
-
-  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusImmMask)) {
-    case LD1RQB_z_p_bi_u8:
-      mnemonic = "ld1rqb";
-      form = "{'Zt.b}, 'Pgl/z, ['Xns";
+  switch (form_hash_) {
+    case Hash("ld1rqb_z_p_bi_u8"):
+    case Hash("ld1rqd_z_p_bi_u64"):
+    case Hash("ld1rqh_z_p_bi_u16"):
+    case Hash("ld1rqw_z_p_bi_u32"):
+      // Nothing to do.
       break;
-    case LD1RQD_z_p_bi_u64:
-      mnemonic = "ld1rqd";
-      form = "{'Zt.d}, 'Pgl/z, ['Xns";
-      break;
-    case LD1RQH_z_p_bi_u16:
-      mnemonic = "ld1rqh";
-      form = "{'Zt.h}, 'Pgl/z, ['Xns";
-      break;
-    case LD1RQW_z_p_bi_u32:
-      mnemonic = "ld1rqw";
-      form = "{'Zt.s}, 'Pgl/z, ['Xns";
+    case Hash("ld1rob_z_p_bi_u8"):
+    case Hash("ld1rod_z_p_bi_u64"):
+    case Hash("ld1roh_z_p_bi_u16"):
+    case Hash("ld1row_z_p_bi_u32"):
+      suffix = ", #'s1916*32]";
       break;
     default:
-      suffix = NULL;
+      VIXL_UNREACHABLE();
       break;
   }
+  if (instr->ExtractBits(19, 16) == 0) suffix = "]";
+
   Format(instr, mnemonic, form, suffix);
 }
 
-void Disassembler::VisitSVELoadAndBroadcastQuadword_ScalarPlusScalar(
+void Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVELoadAndBroadcastQuadword_ScalarPlusScalar)";
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "{'Zt.'tmsz}, 'Pgl/z, ['Xns, ";
+  const char *suffix = "'Rm, lsl #'u2423]";
 
-  switch (instr->Mask(SVELoadAndBroadcastQuadword_ScalarPlusScalarMask)) {
-    case LD1RQB_z_p_br_contiguous:
-      mnemonic = "ld1rqb";
-      form = "{'Zt.b}, 'Pgl/z, ['Xns, 'Rm]";
+  switch (form_hash_) {
+    case Hash("ld1rqb_z_p_br_contiguous"):
+    case Hash("ld1rob_z_p_br_contiguous"):
+      suffix = "'Rm]";
       break;
-    case LD1RQD_z_p_br_contiguous:
-      mnemonic = "ld1rqd";
-      form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Rm, lsl #3]";
-      break;
-    case LD1RQH_z_p_br_contiguous:
-      mnemonic = "ld1rqh";
-      form = "{'Zt.h}, 'Pgl/z, ['Xns, 'Rm, lsl #1]";
-      break;
-    case LD1RQW_z_p_br_contiguous:
-      mnemonic = "ld1rqw";
-      form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Rm, lsl #2]";
+    case Hash("ld1rqd_z_p_br_contiguous"):
+    case Hash("ld1rod_z_p_br_contiguous"):
+    case Hash("ld1rqh_z_p_br_contiguous"):
+    case Hash("ld1roh_z_p_br_contiguous"):
+    case Hash("ld1rqw_z_p_br_contiguous"):
+    case Hash("ld1row_z_p_br_contiguous"):
+      // Nothing to do.
       break;
     default:
+      VIXL_UNREACHABLE();
       break;
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 void Disassembler::VisitSVELoadMultipleStructures_ScalarPlusImm(

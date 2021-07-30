@@ -3097,16 +3097,17 @@ LogicVRegister Simulator::dup_element(VectorFormat vform,
                                       LogicVRegister dst,
                                       const LogicVRegister& src,
                                       int src_index) {
-  if (vform == kFormatVnQ) {
-    // When duplicating a 128-bit value, split it into two 64-bit parts, and
-    // then copy the two to their slots on destination register.
-    uint64_t low = src.Uint(kFormatVnD, src_index * 2);
-    uint64_t high = src.Uint(kFormatVnD, (src_index * 2) + 1);
-    dst.ClearForWrite(vform);
-    for (int d_lane = 0; d_lane < LaneCountFromFormat(kFormatVnD);
-         d_lane += 2) {
-      dst.SetUint(kFormatVnD, d_lane, low);
-      dst.SetUint(kFormatVnD, d_lane + 1, high);
+  if ((vform == kFormatVnQ) || (vform == kFormatVnO)) {
+    // When duplicating an element larger than 64 bits, split the element into
+    // 64-bit parts, and duplicate the parts across the destination.
+    uint64_t d[4];
+    int count = (vform == kFormatVnQ) ? 2 : 4;
+    for (int i = 0; i < count; i++) {
+      d[i] = src.Uint(kFormatVnD, (src_index * count) + i);
+    }
+    dst.Clear();
+    for (int i = 0; i < LaneCountFromFormat(vform) * count; i++) {
+      dst.SetUint(kFormatVnD, i, d[i % count]);
     }
   } else {
     int lane_count = LaneCountFromFormat(vform);

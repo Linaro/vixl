@@ -4869,6 +4869,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Ld1rqw(const ZRegister& zt,
               const PRegisterZ& pg,
               const SVEMemOperand& addr);
+  void Ld1rob(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+  void Ld1rod(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+  void Ld1roh(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+  void Ld1row(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
   void Ld1rsb(const ZRegister& zt,
               const PRegisterZ& pg,
               const SVEMemOperand& addr) {

@@ -4600,6 +4600,26 @@ class Assembler : public vixl::internal::AssemblerBase {
               const PRegisterZ& pg,
               const SVEMemOperand& addr);
 
+  // Contiguous load and replicate thirty-two bytes.
+  void ld1rob(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load and replicate sixteen halfwords.
+  void ld1roh(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load and replicate eight words.
+  void ld1row(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
+  // Contiguous load and replicate four doublewords.
+  void ld1rod(const ZRegister& zt,
+              const PRegisterZ& pg,
+              const SVEMemOperand& addr);
+
   // Load and broadcast signed byte to vector.
   void ld1rsb(const ZRegister& zt,
               const PRegisterZ& pg,

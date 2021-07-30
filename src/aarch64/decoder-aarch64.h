@@ -2865,8 +2865,8 @@
   V(SVEIntMulImm_Unpredicated)                                   \
   V(SVEIntMulVectors_Predicated)                                 \
   V(SVELoadAndBroadcastElement)                                  \
-  V(SVELoadAndBroadcastQuadword_ScalarPlusImm)                   \
-  V(SVELoadAndBroadcastQuadword_ScalarPlusScalar)                \
+  V(SVELoadAndBroadcastQOWord_ScalarPlusImm)                     \
+  V(SVELoadAndBroadcastQOWord_ScalarPlusScalar)                  \
   V(SVELoadMultipleStructures_ScalarPlusImm)                     \
   V(SVELoadMultipleStructures_ScalarPlusScalar)                  \
   V(SVELoadPredicateRegister)                                    \

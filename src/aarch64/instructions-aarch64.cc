@@ -1162,6 +1162,7 @@ bool IsSVEFormat(VectorFormat vform) {
     case kFormatVnS:
     case kFormatVnD:
     case kFormatVnQ:
+    case kFormatVnO:
       return true;
     default:
       return false;
@@ -1283,6 +1284,8 @@ unsigned LaneSizeInBitsFromFormat(VectorFormat vform) {
       return 64;
     case kFormatVnQ:
       return 128;
+    case kFormatVnO:
+      return 256;
     default:
       VIXL_UNREACHABLE();
       return 0;

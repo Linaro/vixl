@@ -645,6 +645,8 @@ class LogicVRegister {
     register_.Insert(index, value);
   }
 
+  void Clear() { register_.Clear(); }
+
   // When setting a result in a register larger than the result itself, the top
   // bits of the register must be cleared.
   void ClearForWrite(VectorFormat vform) const {

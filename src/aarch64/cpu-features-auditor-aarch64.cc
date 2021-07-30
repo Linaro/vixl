@@ -1189,8 +1189,8 @@ void CPUFeaturesAuditor::VisitPCRelAddressing(const Instruction* instr) {
   V(SVEIntMulImm_Unpredicated)                                   \
   V(SVEIntMulVectors_Predicated)                                 \
   V(SVELoadAndBroadcastElement)                                  \
-  V(SVELoadAndBroadcastQuadword_ScalarPlusImm)                   \
-  V(SVELoadAndBroadcastQuadword_ScalarPlusScalar)                \
+  V(SVELoadAndBroadcastQOWord_ScalarPlusImm)                     \
+  V(SVELoadAndBroadcastQOWord_ScalarPlusScalar)                  \
   V(SVELoadMultipleStructures_ScalarPlusImm)                     \
   V(SVELoadMultipleStructures_ScalarPlusScalar)                  \
   V(SVELoadPredicateRegister)                                    \
@@ -1659,6 +1659,22 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
          CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kI8MM)},
         {"usmmla_asimdsame2_g",
          CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kI8MM)},
+        {"ld1row_z_p_bi_u32",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1row_z_p_br_contiguous",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1rod_z_p_bi_u64",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1rod_z_p_br_contiguous",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1rob_z_p_bi_u8",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1rob_z_p_br_contiguous",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1roh_z_p_bi_u16",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"ld1roh_z_p_br_contiguous",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
     };
 
     if (features.count(form) > 0) {

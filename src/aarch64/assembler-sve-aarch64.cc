@@ -4801,57 +4801,29 @@ void Assembler::SVESt1VecScaHelper(const ZRegister& zt,
        SVEMemOperandHelper(msize_bytes_log2, 1, addr, true));
 }
 
-void Assembler::ld1rqb(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(0));
-  VIXL_ASSERT(zt.IsLaneSizeB());
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LD1RQB_z_p_br_contiguous,
-                        LD1RQB_z_p_bi_u8,
-                        16);
-}
+#define VIXL_SVE_LD1R_LIST(V)                                  \
+  V(qb, 0, B, LD1RQB_z_p_br_contiguous, LD1RQB_z_p_bi_u8, 16)  \
+  V(qh, 1, H, LD1RQH_z_p_br_contiguous, LD1RQH_z_p_bi_u16, 16) \
+  V(qw, 2, S, LD1RQW_z_p_br_contiguous, LD1RQW_z_p_bi_u32, 16) \
+  V(qd, 3, D, LD1RQD_z_p_br_contiguous, LD1RQD_z_p_bi_u64, 16) \
+  V(ob, 0, B, 0xa4200000, 0xa4202000, 32)                      \
+  V(oh, 1, H, 0xa4a00000, 0xa4a02000, 32)                      \
+  V(ow, 2, S, 0xa5200000, 0xa5202000, 32)                      \
+  V(od, 3, D, 0xa5a00000, 0xa5a02000, 32)
 
-void Assembler::ld1rqd(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(3));
-  VIXL_ASSERT(zt.IsLaneSizeD());
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LD1RQD_z_p_br_contiguous,
-                        LD1RQD_z_p_bi_u64,
-                        16);
-}
-
-void Assembler::ld1rqh(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(1));
-  VIXL_ASSERT(zt.IsLaneSizeH());
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LD1RQH_z_p_br_contiguous,
-                        LD1RQH_z_p_bi_u16,
-                        16);
-}
-
-void Assembler::ld1rqw(const ZRegister& zt,
-                       const PRegisterZ& pg,
-                       const SVEMemOperand& addr) {
-  VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(2));
-  VIXL_ASSERT(zt.IsLaneSizeS());
-  SVELd1St1ScaImmHelper(zt,
-                        pg,
-                        addr,
-                        LD1RQW_z_p_br_contiguous,
-                        LD1RQW_z_p_bi_u32,
-                        16);
-}
+#define VIXL_DEFINE_ASM_FUNC(FN, SH, SZ, SCA, IMM, BYTES)                    \
+  void Assembler::ld1r##FN(const ZRegister& zt,                              \
+                           const PRegisterZ& pg,                             \
+                           const SVEMemOperand& addr) {                      \
+    VIXL_ASSERT((BYTES == 16) ||                                             \
+                ((BYTES == 32) && (CPUHas(CPUFeatures::kSVEF64MM))));        \
+    VIXL_ASSERT(addr.IsScalarPlusImmediate() || addr.IsEquivalentToLSL(SH)); \
+    VIXL_ASSERT(zt.IsLaneSize##SZ());                                        \
+    SVELd1St1ScaImmHelper(zt, pg, addr, SCA, IMM, BYTES);                    \
+  }
+VIXL_SVE_LD1R_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
+#undef VIXL_SVE_LD1R_LIST
 
 #define VIXL_DEFINE_LDFF1(MSZ, LANE_SIZE)                                  \
   void Assembler::ldff1##MSZ(const ZRegister& zt,                          \

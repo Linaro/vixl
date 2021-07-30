@@ -1498,61 +1498,28 @@ void MacroAssembler::Ldff1sw(const ZRegister& zt,
                   static_cast<SVELoad1Fn>(&Assembler::ldff1sw));
 }
 
-void MacroAssembler::Ld1rqb(const ZRegister& zt,
-                            const PRegisterZ& pg,
-                            const SVEMemOperand& addr) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreNTBroadcastQOHelper(zt,
-                                  pg,
-                                  addr,
-                                  &MacroAssembler::ld1rqb,
-                                  4,
-                                  4,
-                                  NO_SVE_OFFSET_MODIFIER,
-                                  -1);
-}
+#define VIXL_SVE_LD1R_LIST(V) \
+  V(qb, 4) V(qh, 4) V(qw, 4) V(qd, 4) V(ob, 5) V(oh, 5) V(ow, 5) V(od, 5)
 
-void MacroAssembler::Ld1rqd(const ZRegister& zt,
-                            const PRegisterZ& pg,
-                            const SVEMemOperand& addr) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreNTBroadcastQOHelper(zt,
-                                  pg,
-                                  addr,
-                                  &MacroAssembler::ld1rqd,
-                                  4,
-                                  4,
-                                  NO_SVE_OFFSET_MODIFIER,
-                                  -1);
-}
+#define VIXL_DEFINE_MASM_FUNC(SZ, SH)                          \
+  void MacroAssembler::Ld1r##SZ(const ZRegister& zt,           \
+                                const PRegisterZ& pg,          \
+                                const SVEMemOperand& addr) {   \
+    VIXL_ASSERT(allow_macro_instructions_);                    \
+    SVELoadStoreNTBroadcastQOHelper(zt,                        \
+                                    pg,                        \
+                                    addr,                      \
+                                    &MacroAssembler::ld1r##SZ, \
+                                    4,                         \
+                                    SH,                        \
+                                    NO_SVE_OFFSET_MODIFIER,    \
+                                    -1);                       \
+  }
 
-void MacroAssembler::Ld1rqh(const ZRegister& zt,
-                            const PRegisterZ& pg,
-                            const SVEMemOperand& addr) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreNTBroadcastQOHelper(zt,
-                                  pg,
-                                  addr,
-                                  &MacroAssembler::ld1rqh,
-                                  4,
-                                  4,
-                                  NO_SVE_OFFSET_MODIFIER,
-                                  -1);
-}
+VIXL_SVE_LD1R_LIST(VIXL_DEFINE_MASM_FUNC)
 
-void MacroAssembler::Ld1rqw(const ZRegister& zt,
-                            const PRegisterZ& pg,
-                            const SVEMemOperand& addr) {
-  VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreNTBroadcastQOHelper(zt,
-                                  pg,
-                                  addr,
-                                  &MacroAssembler::ld1rqw,
-                                  4,
-                                  4,
-                                  NO_SVE_OFFSET_MODIFIER,
-                                  -1);
-}
+#undef VIXL_DEFINE_MASM_FUNC
+#undef VIXL_SVE_LD1R_LIST
 
 void MacroAssembler::Ldnt1b(const ZRegister& zt,
                             const PRegisterZ& pg,
