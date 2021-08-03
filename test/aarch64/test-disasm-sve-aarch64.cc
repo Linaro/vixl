@@ -4626,6 +4626,19 @@ TEST(sve_mem_contiguous_load) {
   COMPARE_PREFIX(ld1rqw(z22.VnS(), p3.Zeroing(), SVEMemOperand(sp, -128)),
                  "ld1rqw {z22.s}, p3/z, [sp, #-128]");
 
+  COMPARE_MACRO(Ld1rqb(z0.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1)),
+                "ld1rqb {z0.b}, p0/z, [x0, x1]");
+  COMPARE_MACRO(Ld1rqh(z0.VnH(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 1)),
+                "ld1rqh {z0.h}, p0/z, [x0, x1, lsl #1]");
+  COMPARE_MACRO(Ld1rqw(z0.VnS(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 2)),
+                "ld1rqw {z0.s}, p0/z, [x0, x1, lsl #2]");
+  COMPARE_MACRO(Ld1rqd(z0.VnD(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 3)),
+                "ld1rqd {z0.d}, p0/z, [x0, x1, lsl #3]");
+  COMPARE_MACRO(Ld1rqh(z11.VnH(), p1.Zeroing(), SVEMemOperand(x0, 112)),
+                "ld1rqh {z11.h}, p1/z, [x0, #112]");
+  COMPARE_MACRO(Ld1rqw(z22.VnS(), p3.Zeroing(), SVEMemOperand(sp, -128)),
+                "ld1rqw {z22.s}, p3/z, [sp, #-128]");
+
   COMPARE_MACRO(Ld1rqb(z0.VnB(), p0.Zeroing(), SVEMemOperand(x0, 2222)),
                 "add x16, x0, #0x8ae (2222)\n"
                 "ld1rqb {z0.b}, p0/z, [x16]");
@@ -4650,6 +4663,22 @@ TEST(sve_mem_contiguous_load) {
                  "ldnt1w {z0.s}, p4/z, [x11, x1, lsl #2]");
   COMPARE_PREFIX(ldnt1w(z0.VnS(), p4.Zeroing(), SVEMemOperand(sp, xzr, LSL, 2)),
                  "ldnt1w {z0.s}, p4/z, [sp, xzr, lsl #2]");
+
+  COMPARE_MACRO(Ldnt1b(z0.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1)),
+                "ldnt1b {z0.b}, p0/z, [x0, x1]");
+  COMPARE_MACRO(Ldnt1h(z0.VnH(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 1)),
+                "ldnt1h {z0.h}, p0/z, [x0, x1, lsl #1]");
+  COMPARE_MACRO(Ldnt1w(z0.VnS(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 2)),
+                "ldnt1w {z0.s}, p0/z, [x0, x1, lsl #2]");
+  COMPARE_MACRO(Ldnt1d(z0.VnD(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 3)),
+                "ldnt1d {z0.d}, p0/z, [x0, x1, lsl #3]");
+
+  COMPARE_MACRO(Ldnt1w(z0.VnS(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 3)),
+                "add x16, x0, x1, lsl #3\n"
+                "ldnt1w {z0.s}, p0/z, [x16]");
+  COMPARE_MACRO(Ldnt1d(z0.VnD(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 4)),
+                "add x16, x0, x1, lsl #4\n"
+                "ldnt1d {z0.d}, p0/z, [x16]");
 
   COMPARE_PREFIX(ldnt1b(z1.VnB(), p3.Zeroing(), SVEMemOperand(x11)),
                  "ldnt1b {z1.b}, p3/z, [x11]");
@@ -4823,6 +4852,15 @@ TEST(sve_mem_contiguous_store) {
                 "rdvl x17, #1\n"
                 "madd x16, x16, x17, x12\n"
                 "stnt1w {z4.s}, p2, [x16]");
+
+  COMPARE_MACRO(Stnt1b(z0.VnB(), p0.Zeroing(), SVEMemOperand(x0, x1)),
+                "stnt1b {z0.b}, p0, [x0, x1]");
+  COMPARE_MACRO(Stnt1h(z0.VnH(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 1)),
+                "stnt1h {z0.h}, p0, [x0, x1, lsl #1]");
+  COMPARE_MACRO(Stnt1w(z0.VnS(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 2)),
+                "stnt1w {z0.s}, p0, [x0, x1, lsl #2]");
+  COMPARE_MACRO(Stnt1d(z0.VnD(), p0.Zeroing(), SVEMemOperand(x0, x1, LSL, 3)),
+                "stnt1d {z0.d}, p0, [x0, x1, lsl #3]");
 
   CLEANUP();
 }

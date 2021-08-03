@@ -1153,7 +1153,7 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(const CPURegister& rt,
 }
 
 template <typename Tg, typename Tf>
-void MacroAssembler::SVELoadStoreScalarImmHelper(
+void MacroAssembler::SVELoadStoreNTBroadcastQOHelper(
     const ZRegister& zt,
     const Tg& pg,
     const SVEMemOperand& addr,
@@ -1170,6 +1170,13 @@ void MacroAssembler::SVELoadStoreScalarImmHelper(
        IsIntN(imm_bits, addr.GetImmediateOffset() / imm_divisor) &&
        ((addr.GetImmediateOffset() % imm_divisor) == 0) &&
        (addr.GetOffsetModifier() == supported_modifier))) {
+    SingleEmissionCheckScope guard(this);
+    (this->*fn)(zt, pg, addr);
+    return;
+  }
+
+  if (addr.IsScalarPlusScalar() && !addr.GetScalarOffset().IsZero() &&
+      addr.IsEquivalentToLSL(zt.GetLaneSizeInBytesLog2())) {
     SingleEmissionCheckScope guard(this);
     (this->*fn)(zt, pg, addr);
     return;
@@ -1495,56 +1502,56 @@ void MacroAssembler::Ld1rqb(const ZRegister& zt,
                             const PRegisterZ& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::ld1rqb,
-                              4,
-                              4,
-                              NO_SVE_OFFSET_MODIFIER,
-                              -1);
+  SVELoadStoreNTBroadcastQOHelper(zt,
+                                  pg,
+                                  addr,
+                                  &MacroAssembler::ld1rqb,
+                                  4,
+                                  4,
+                                  NO_SVE_OFFSET_MODIFIER,
+                                  -1);
 }
 
 void MacroAssembler::Ld1rqd(const ZRegister& zt,
                             const PRegisterZ& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::ld1rqd,
-                              4,
-                              4,
-                              NO_SVE_OFFSET_MODIFIER,
-                              -1);
+  SVELoadStoreNTBroadcastQOHelper(zt,
+                                  pg,
+                                  addr,
+                                  &MacroAssembler::ld1rqd,
+                                  4,
+                                  4,
+                                  NO_SVE_OFFSET_MODIFIER,
+                                  -1);
 }
 
 void MacroAssembler::Ld1rqh(const ZRegister& zt,
                             const PRegisterZ& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::ld1rqh,
-                              4,
-                              4,
-                              NO_SVE_OFFSET_MODIFIER,
-                              -1);
+  SVELoadStoreNTBroadcastQOHelper(zt,
+                                  pg,
+                                  addr,
+                                  &MacroAssembler::ld1rqh,
+                                  4,
+                                  4,
+                                  NO_SVE_OFFSET_MODIFIER,
+                                  -1);
 }
 
 void MacroAssembler::Ld1rqw(const ZRegister& zt,
                             const PRegisterZ& pg,
                             const SVEMemOperand& addr) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVELoadStoreScalarImmHelper(zt,
-                              pg,
-                              addr,
-                              &MacroAssembler::ld1rqw,
-                              4,
-                              4,
-                              NO_SVE_OFFSET_MODIFIER,
-                              -1);
+  SVELoadStoreNTBroadcastQOHelper(zt,
+                                  pg,
+                                  addr,
+                                  &MacroAssembler::ld1rqw,
+                                  4,
+                                  4,
+                                  NO_SVE_OFFSET_MODIFIER,
+                                  -1);
 }
 
 void MacroAssembler::Ldnt1b(const ZRegister& zt,
@@ -1555,13 +1562,13 @@ void MacroAssembler::Ldnt1b(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     ldnt1b(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::ldnt1b,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::ldnt1b,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 
@@ -1573,13 +1580,13 @@ void MacroAssembler::Ldnt1d(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     ldnt1d(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::ldnt1d,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::ldnt1d,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 
@@ -1591,13 +1598,13 @@ void MacroAssembler::Ldnt1h(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     ldnt1h(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::ldnt1h,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::ldnt1h,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 
@@ -1609,13 +1616,13 @@ void MacroAssembler::Ldnt1w(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     ldnt1w(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::ldnt1w,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::ldnt1w,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 
@@ -1627,13 +1634,13 @@ void MacroAssembler::Stnt1b(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     stnt1b(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::stnt1b,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::stnt1b,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 void MacroAssembler::Stnt1d(const ZRegister& zt,
@@ -1644,13 +1651,13 @@ void MacroAssembler::Stnt1d(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     stnt1d(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::stnt1d,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::stnt1d,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 void MacroAssembler::Stnt1h(const ZRegister& zt,
@@ -1661,13 +1668,13 @@ void MacroAssembler::Stnt1h(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     stnt1h(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::stnt1h,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::stnt1h,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 void MacroAssembler::Stnt1w(const ZRegister& zt,
@@ -1678,13 +1685,13 @@ void MacroAssembler::Stnt1w(const ZRegister& zt,
     SingleEmissionCheckScope guard(this);
     stnt1w(zt, pg, addr);
   } else {
-    SVELoadStoreScalarImmHelper(zt,
-                                pg,
-                                addr,
-                                &MacroAssembler::stnt1w,
-                                4,
-                                0,
-                                SVE_MUL_VL);
+    SVELoadStoreNTBroadcastQOHelper(zt,
+                                    pg,
+                                    addr,
+                                    &MacroAssembler::stnt1w,
+                                    4,
+                                    0,
+                                    SVE_MUL_VL);
   }
 }
 

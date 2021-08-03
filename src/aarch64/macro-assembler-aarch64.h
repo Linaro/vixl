@@ -7873,7 +7873,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // SVE_MUL_VL). The ratio log2 of VL to memory access size is passed as
   // vl_divisor_log2; pass -1 to indicate no dependency.
   template <typename Tg, typename Tf>
-  void SVELoadStoreScalarImmHelper(
+  void SVELoadStoreNTBroadcastQOHelper(
       const ZRegister& zt,
       const Tg& pg,
       const SVEMemOperand& addr,
