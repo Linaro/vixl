@@ -102,7 +102,7 @@ TEST(movprfx_negative_aliasing) {
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 76;
+    static const size_t kPairCount = 79;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z0.VnB(), p0.Merging(), z9.VnB());
@@ -332,6 +332,15 @@ TEST(movprfx_negative_aliasing) {
 
     __ movprfx(z30, z5);
     __ usmmla(z30.VnS(), z30.VnB(), z18.VnB());
+
+    __ movprfx(z4, z5);
+    __ usdot(z4.VnS(), z3.VnB(), z4.VnB());
+
+    __ movprfx(z10, z5);
+    __ usdot(z10.VnS(), z10.VnB(), z0.VnB(), 0);
+
+    __ movprfx(z1, z5);
+    __ sudot(z1.VnS(), z10.VnB(), z1.VnB(), 1);
   }
   assm.FinalizeCode();
 
@@ -1079,7 +1088,7 @@ TEST(movprfx_negative_predication) {
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 57;
+    static const size_t kPairCount = 60;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z27.VnS(), p1.Zeroing(), z12.VnS());
@@ -1252,6 +1261,15 @@ TEST(movprfx_negative_predication) {
 
     __ movprfx(z30.VnS(), p0.Zeroing(), z5.VnS());
     __ usmmla(z30.VnS(), z29.VnB(), z18.VnB());
+
+    __ movprfx(z4.VnS(), p0.Zeroing(), z5.VnS());
+    __ usdot(z4.VnS(), z3.VnB(), z4.VnB());
+
+    __ movprfx(z10.VnS(), p0.Zeroing(), z5.VnS());
+    __ usdot(z10.VnS(), z10.VnB(), z0.VnB(), 0);
+
+    __ movprfx(z1.VnS(), p0.Zeroing(), z5.VnS());
+    __ sudot(z1.VnS(), z10.VnB(), z1.VnB(), 1);
   }
   assm.FinalizeCode();
 
@@ -1316,7 +1334,7 @@ TEST(movprfx_positive) {
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 120;
+    static const size_t kPairCount = 123;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z17, z28);
@@ -1676,6 +1694,15 @@ TEST(movprfx_positive) {
 
     __ movprfx(z30, z5);
     __ usmmla(z30.VnS(), z31.VnB(), z18.VnB());
+
+    __ movprfx(z4, z5);
+    __ usdot(z4.VnS(), z3.VnB(), z3.VnB());
+
+    __ movprfx(z10, z5);
+    __ usdot(z10.VnS(), z9.VnB(), z0.VnB(), 0);
+
+    __ movprfx(z1, z5);
+    __ sudot(z1.VnS(), z10.VnB(), z2.VnB(), 1);
   }
   assm.FinalizeCode();
 

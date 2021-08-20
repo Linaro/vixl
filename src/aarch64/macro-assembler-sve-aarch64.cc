@@ -1662,12 +1662,12 @@ void MacroAssembler::Stnt1w(const ZRegister& zt,
   }
 }
 
-void MacroAssembler::SVESdotUdotIndexHelper(ZZZImmFn fn,
-                                            const ZRegister& zd,
-                                            const ZRegister& za,
-                                            const ZRegister& zn,
-                                            const ZRegister& zm,
-                                            int index) {
+void MacroAssembler::SVEDotIndexHelper(ZZZImmFn fn,
+                                       const ZRegister& zd,
+                                       const ZRegister& za,
+                                       const ZRegister& zn,
+                                       const ZRegister& zm,
+                                       int index) {
   if (zd.Aliases(za)) {
     // zda = zda + (zn . zm)
     SingleEmissionCheckScope guard(this);
@@ -1836,7 +1836,8 @@ void MacroAssembler::AbsoluteDifferenceAccumulate(Int3ArithFn fn,
   V(Fmmla, fmmla, FourRegDestructiveHelper)         \
   V(Smmla, smmla, FourRegDestructiveHelper)         \
   V(Ummla, ummla, FourRegDestructiveHelper)         \
-  V(Usmmla, usmmla, FourRegDestructiveHelper)
+  V(Usmmla, usmmla, FourRegDestructiveHelper)       \
+  V(Usdot, usdot, FourRegDestructiveHelper)
 
 #define VIXL_DEFINE_MASM_FUNC(MASMFN, ASMFN, HELPER) \
   void MacroAssembler::MASMFN(const ZRegister& zd,   \
@@ -1891,7 +1892,7 @@ void MacroAssembler::Sdot(const ZRegister& zd,
                           const ZRegister& zm,
                           int index) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVESdotUdotIndexHelper(&Assembler::sdot, zd, za, zn, zm, index);
+  SVEDotIndexHelper(&Assembler::sdot, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::Udot(const ZRegister& zd,
@@ -1900,7 +1901,25 @@ void MacroAssembler::Udot(const ZRegister& zd,
                           const ZRegister& zm,
                           int index) {
   VIXL_ASSERT(allow_macro_instructions_);
-  SVESdotUdotIndexHelper(&Assembler::udot, zd, za, zn, zm, index);
+  SVEDotIndexHelper(&Assembler::udot, zd, za, zn, zm, index);
+}
+
+void MacroAssembler::Sudot(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           int index) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVEDotIndexHelper(&Assembler::sudot, zd, za, zn, zm, index);
+}
+
+void MacroAssembler::Usdot(const ZRegister& zd,
+                           const ZRegister& za,
+                           const ZRegister& zn,
+                           const ZRegister& zm,
+                           int index) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SVEDotIndexHelper(&Assembler::usdot, zd, za, zn, zm, index);
 }
 
 void MacroAssembler::Cdot(const ZRegister& zd,

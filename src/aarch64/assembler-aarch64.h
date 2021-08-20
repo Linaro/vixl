@@ -6885,6 +6885,21 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Unsigned integer matrix multiply-accumulate.
   void ummla(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
 
+  // Unsigned by signed integer dot product.
+  void usdot(const ZRegister& zda, const ZRegister& zn, const ZRegister& zm);
+
+  // Unsigned by signed integer indexed dot product.
+  void usdot(const ZRegister& zda,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int index);
+
+  // Signed by unsigned integer indexed dot product.
+  void sudot(const ZRegister& zda,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int index);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.

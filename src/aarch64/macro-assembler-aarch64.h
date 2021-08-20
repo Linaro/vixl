@@ -7467,6 +7467,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
               const ZRegister& za,
               const ZRegister& zn,
               const ZRegister& zm);
+  void Usdot(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm);
+  void Usdot(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int index);
+  void Sudot(const ZRegister& zd,
+             const ZRegister& za,
+             const ZRegister& zn,
+             const ZRegister& zm,
+             int index);
 
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
@@ -7985,12 +7999,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                 const ZRegister& zn,
                                 const ZRegister& zm);
 
-  void SVESdotUdotIndexHelper(ZZZImmFn fn,
-                              const ZRegister& zd,
-                              const ZRegister& za,
-                              const ZRegister& zn,
-                              const ZRegister& zm,
-                              int index);
+  void SVEDotIndexHelper(ZZZImmFn fn,
+                         const ZRegister& zd,
+                         const ZRegister& za,
+                         const ZRegister& zn,
+                         const ZRegister& zm,
+                         int index);
 
   // For noncommutative arithmetic operations.
   void NoncommutativeArithmeticHelper(const ZRegister& zd,

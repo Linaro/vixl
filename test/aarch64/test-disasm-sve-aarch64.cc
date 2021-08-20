@@ -9149,5 +9149,48 @@ TEST(sve_matmul) {
   CLEANUP();
 }
 
+TEST(sve_usdot_sudot) {
+  SETUP();
+
+  COMPARE_MACRO(Usdot(z30.VnS(), z30.VnS(), z31.VnB(), z4.VnB()),
+                "usdot z30.s, z31.b, z4.b");
+  COMPARE_MACRO(Usdot(z30.VnS(), z30.VnS(), z31.VnB(), z4.VnB(), 0),
+                "usdot z30.s, z31.b, z4.b[0]");
+  COMPARE_MACRO(Sudot(z30.VnS(), z30.VnS(), z31.VnB(), z4.VnB(), 3),
+                "sudot z30.s, z31.b, z4.b[3]");
+
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z29.VnB(), z28.VnB()),
+                "movprfx z0, z30\n"
+                "usdot z0.s, z29.b, z28.b");
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z29.VnB(), z0.VnB()),
+                "movprfx z31, z30\n"
+                "usdot z31.s, z29.b, z0.b\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z0.VnB(), z28.VnB()),
+                "movprfx z31, z30\n"
+                "usdot z31.s, z0.b, z28.b\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z0.VnB(), z0.VnB()),
+                "movprfx z31, z30\n"
+                "usdot z31.s, z0.b, z0.b\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z29.VnB(), z4.VnB(), 0),
+                "movprfx z0, z30\n"
+                "usdot z0.s, z29.b, z4.b[0]");
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z0.VnB(), z4.VnB(), 0),
+                "movprfx z31, z30\n"
+                "usdot z31.s, z0.b, z4.b[0]\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Sudot(z0.VnS(), z30.VnS(), z29.VnB(), z0.VnB(), 0),
+                "movprfx z31, z30\n"
+                "sudot z31.s, z29.b, z0.b[0]\n"
+                "mov z0.d, z31.d");
+  COMPARE_MACRO(Usdot(z0.VnS(), z30.VnS(), z0.VnB(), z0.VnB(), 0),
+                "movprfx z31, z30\n"
+                "usdot z31.s, z0.b, z0.b[0]\n"
+                "mov z0.d, z31.d");
+
+  CLEANUP();
+}
 }  // namespace aarch64
 }  // namespace vixl

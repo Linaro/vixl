@@ -373,6 +373,9 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
      &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
     {"ld1roh_z_p_br_contiguous",
      &Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"usdot_z_zzz_s", &Simulator::VisitSVEIntMulAddUnpredicated},
+    {"sudot_z_zzzi_s", &Simulator::VisitSVEMulIndex},
+    {"usdot_z_zzzi_s", &Simulator::VisitSVEMulIndex},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
@@ -11282,12 +11285,15 @@ void Simulator::VisitSVEIntMulAddUnpredicated(const Instruction* instr) {
   SimVRegister& zn = ReadVRegister(instr->GetRn());
   SimVRegister& zm = ReadVRegister(instr->GetRm());
 
-  switch (instr->Mask(SVEIntMulAddUnpredicatedMask)) {
-    case SDOT_z_zzz:
+  switch (form_hash_) {
+    case Hash("sdot_z_zzz"):
       sdot(vform, zda, zn, zm);
       break;
-    case UDOT_z_zzz:
+    case Hash("udot_z_zzz"):
       udot(vform, zda, zn, zm);
+      break;
+    case Hash("usdot_z_zzz_s"):
+      usdot(vform, zda, zn, zm);
       break;
     default:
       VIXL_UNIMPLEMENTED();
@@ -12723,35 +12729,27 @@ void Simulator::VisitSVEMulIndex(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zda = ReadVRegister(instr->GetRd());
   SimVRegister& zn = ReadVRegister(instr->GetRn());
+  std::pair<int, int> zm_and_index = instr->GetSVEMulZmAndIndex();
+  SimVRegister zm = ReadVRegister(zm_and_index.first);
+  int index = zm_and_index.second;
 
-  switch (instr->Mask(SVEMulIndexMask)) {
-    case SDOT_z_zzzi_d:
-      sdot(vform,
-           zda,
-           zn,
-           ReadVRegister(instr->ExtractBits(19, 16)),
-           instr->ExtractBit(20));
+  SimVRegister temp;
+  dup_elements_to_segments(vform, temp, zm, index);
+
+  switch (form_hash_) {
+    case Hash("sdot_z_zzzi_d"):
+    case Hash("sdot_z_zzzi_s"):
+      sdot(vform, zda, zn, temp);
       break;
-    case SDOT_z_zzzi_s:
-      sdot(vform,
-           zda,
-           zn,
-           ReadVRegister(instr->ExtractBits(18, 16)),
-           instr->ExtractBits(20, 19));
+    case Hash("udot_z_zzzi_d"):
+    case Hash("udot_z_zzzi_s"):
+      udot(vform, zda, zn, temp);
       break;
-    case UDOT_z_zzzi_d:
-      udot(vform,
-           zda,
-           zn,
-           ReadVRegister(instr->ExtractBits(19, 16)),
-           instr->ExtractBit(20));
+    case Hash("sudot_z_zzzi_s"):
+      usdot(vform, zda, temp, zn);
       break;
-    case UDOT_z_zzzi_s:
-      udot(vform,
-           zda,
-           zn,
-           ReadVRegister(instr->ExtractBits(18, 16)),
-           instr->ExtractBits(20, 19));
+    case Hash("usdot_z_zzzi_s"):
+      usdot(vform, zda, zn, temp);
       break;
     default:
       VIXL_UNIMPLEMENTED();

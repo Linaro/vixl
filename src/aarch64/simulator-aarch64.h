@@ -4015,7 +4015,8 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicVRegister& src1,
                      const LogicVRegister& src2,
-                     bool is_signed);
+                     bool is_src1_signed,
+                     bool is_src2_signed);
   LogicVRegister sdot(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& src1,
@@ -4024,6 +4025,10 @@ class Simulator : public DecoderVisitor {
                       LogicVRegister dst,
                       const LogicVRegister& src1,
                       const LogicVRegister& src2);
+  LogicVRegister usdot(VectorFormat vform,
+                       LogicVRegister dst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2);
   LogicVRegister cdot(VectorFormat vform,
                       LogicVRegister dst,
                       const LogicVRegister& acc,

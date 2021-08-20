@@ -4216,7 +4216,8 @@ LogicVRegister Simulator::dot(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src1,
                               const LogicVRegister& src2,
-                              bool is_signed) {
+                              bool is_src1_signed,
+                              bool is_src2_signed) {
   VectorFormat quarter_vform =
       VectorFormatHalfWidthDoubleLanes(VectorFormatHalfWidthDoubleLanes(vform));
 
@@ -4226,11 +4227,14 @@ LogicVRegister Simulator::dot(VectorFormat vform,
     int64_t element1, element2;
     for (int i = 0; i < 4; i++) {
       int index = 4 * e + i;
-      if (is_signed) {
+      if (is_src1_signed) {
         element1 = src1.Int(quarter_vform, index);
-        element2 = src2.Int(quarter_vform, index);
       } else {
         element1 = src1.Uint(quarter_vform, index);
+      }
+      if (is_src2_signed) {
+        element2 = src2.Int(quarter_vform, index);
+      } else {
         element2 = src2.Uint(quarter_vform, index);
       }
       result += element1 * element2;
@@ -4245,7 +4249,7 @@ LogicVRegister Simulator::sdot(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  return dot(vform, dst, src1, src2, true);
+  return dot(vform, dst, src1, src2, true, true);
 }
 
 
@@ -4253,7 +4257,14 @@ LogicVRegister Simulator::udot(VectorFormat vform,
                                LogicVRegister dst,
                                const LogicVRegister& src1,
                                const LogicVRegister& src2) {
-  return dot(vform, dst, src1, src2, false);
+  return dot(vform, dst, src1, src2, false, false);
+}
+
+LogicVRegister Simulator::usdot(VectorFormat vform,
+                                LogicVRegister dst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2) {
+  return dot(vform, dst, src1, src2, false, true);
 }
 
 LogicVRegister Simulator::cdot(VectorFormat vform,

@@ -329,6 +329,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"smmla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
     {"ummla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
     {"usmmla_z_zzz", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
+    {"usdot_z_zzz_s", &Disassembler::Disassemble_ZdaS_ZnB_ZmB},
     {"smmla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
     {"ummla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
     {"usmmla_asimdsame2_g", &Disassembler::Disassemble_Vd4S_Vn16B_Vm16B},
@@ -348,6 +349,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
      &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm},
     {"ld1roh_z_p_br_contiguous",
      &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
+    {"usdot_z_zzzi_s", &Disassembler::VisitSVEMulIndex},
+    {"sudot_z_zzzi_s", &Disassembler::VisitSVEMulIndex},
 };
 
 Disassembler::Disassembler() {
@@ -9433,24 +9436,18 @@ void Disassembler::VisitSVEIntUnaryArithmeticPredicated(
 }
 
 void Disassembler::VisitSVEMulIndex(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "(SVEMulIndex)";
 
-  switch (instr->Mask(SVEMulIndexMask)) {
-    case SDOT_z_zzzi_d:
-      mnemonic = "sdot";
+  switch (form_hash_) {
+    case Hash("sdot_z_zzzi_d"):
+    case Hash("udot_z_zzzi_d"):
       form = "'Zd.d, 'Zn.h, z'u1916.h['u2020]";
       break;
-    case SDOT_z_zzzi_s:
-      mnemonic = "sdot";
-      form = "'Zd.s, 'Zn.b, z'u1816.b['u2019]";
-      break;
-    case UDOT_z_zzzi_d:
-      mnemonic = "udot";
-      form = "'Zd.d, 'Zn.h, z'u1916.h['u2020]";
-      break;
-    case UDOT_z_zzzi_s:
-      mnemonic = "udot";
+    case Hash("sdot_z_zzzi_s"):
+    case Hash("sudot_z_zzzi_s"):
+    case Hash("udot_z_zzzi_s"):
+    case Hash("usdot_z_zzzi_s"):
       form = "'Zd.s, 'Zn.b, z'u1816.b['u2019]";
       break;
     default:

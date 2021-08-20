@@ -19672,6 +19672,60 @@ TEST_SVE(neon_matmul) {
   }
 }
 
+TEST_SVE(sudot_usdot) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                          CPUFeatures::kSVE2,
+                          CPUFeatures::kSVEI8MM);
+
+  START();
+  __ Ptrue(p0.VnB());
+  __ Index(z0.VnS(), -424242, 77777);
+  __ Index(z1.VnB(), 127, -1);
+  __ Sqabs(z1.VnB(), p0.Merging(), z1.VnB());
+  __ Index(z2.VnB(), 0, 1);
+  __ Sqabs(z2.VnB(), p0.Merging(), z2.VnB());
+  __ Index(z3.VnB(), -128, 1);
+  __ Mov(z4.VnD(), 0);
+
+  // Test Usdot against Udot/Sdot over the range of inputs where they should be
+  // equal.
+  __ Usdot(z5.VnS(), z0.VnS(), z1.VnB(), z2.VnB());
+  __ Udot(z6.VnS(), z0.VnS(), z1.VnB(), z2.VnB());
+  __ Usdot(z7.VnS(), z0.VnS(), z1.VnB(), z3.VnB());
+  __ Sdot(z8.VnS(), z0.VnS(), z1.VnB(), z3.VnB());
+
+  // Construct values which, when interpreted correctly as signed/unsigned,
+  // should give a zero result for dot product.
+  __ Mov(z10.VnS(), 0x8101ff40);  // [-127, 1, -1, 64] as signed bytes.
+  __ Mov(z11.VnS(), 0x02fe8002);  // [2, 254, 128, 2] as unsigned bytes.
+  __ Usdot(z12.VnS(), z4.VnS(), z11.VnB(), z10.VnB());
+  __ Usdot(z13.VnS(), z4.VnS(), z10.VnB(), z11.VnB());
+
+  // Construct a vector with duplicated values across segments. This allows
+  // testing indexed dot product against the already tested variant.
+  __ Mov(z14.VnS(), 1);
+  __ Mul(z15.VnS(), z14.VnS(), z3.VnS(), 1);
+
+  __ Usdot(z16.VnS(), z0.VnS(), z3.VnB(), z3.VnB(), 1);
+  __ Usdot(z17.VnS(), z0.VnS(), z3.VnB(), z15.VnB());
+  __ Sudot(z18.VnS(), z0.VnS(), z3.VnB(), z3.VnB(), 1);
+  __ Usdot(z19.VnS(), z0.VnS(), z15.VnB(), z3.VnB());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z6, z5);
+    ASSERT_EQUAL_SVE(z8, z7);
+    ASSERT_EQUAL_SVE(z4, z12);
+
+    uint64_t z13_expected[] = {0xffff8200ffff8200, 0xffff8200ffff8200};
+    ASSERT_EQUAL_SVE(z13_expected, z13.VnD());
+
+    ASSERT_EQUAL_SVE(z17, z16);
+    ASSERT_EQUAL_SVE(z19, z18);
+  }
+}
+
 // Manually constructed simulator test to avoid creating a VL128 variant.
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64

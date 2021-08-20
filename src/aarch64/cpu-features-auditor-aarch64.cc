@@ -1675,6 +1675,12 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
          CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
         {"ld1roh_z_p_br_contiguous",
          CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM)},
+        {"usdot_z_zzz_s",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM)},
+        {"usdot_z_zzzi_s",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM)},
+        {"sudot_z_zzzi_s",
+         CPUFeatures(CPUFeatures::kSVE, CPUFeatures::kSVEI8MM)},
     };
 
     if (features.count(form) > 0) {
