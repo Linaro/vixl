@@ -2236,38 +2236,13 @@
       {"uaddlv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},           \
       {"umaxv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},            \
       {"uminv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},            \
-      {"fcmla_asimdelem_c_h", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fcmla_asimdelem_c_s", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmlal2_asimdelem_lh", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmlal_asimdelem_lh", &VISITORCLASS::VisitNEONByIndexedElement},        \
-      {"fmla_asimdelem_rh_h", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmla_asimdelem_r_sd", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmlsl2_asimdelem_lh", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmlsl_asimdelem_lh", &VISITORCLASS::VisitNEONByIndexedElement},        \
-      {"fmls_asimdelem_rh_h", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmls_asimdelem_r_sd", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmulx_asimdelem_rh_h", &VISITORCLASS::VisitNEONByIndexedElement},      \
-      {"fmulx_asimdelem_r_sd", &VISITORCLASS::VisitNEONByIndexedElement},      \
-      {"fmul_asimdelem_rh_h", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"fmul_asimdelem_r_sd", &VISITORCLASS::VisitNEONByIndexedElement},       \
       {"mla_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},           \
       {"mls_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},           \
       {"mul_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},           \
-      {"sdot_asimdelem_d", &VISITORCLASS::VisitNEONByIndexedElement},          \
-      {"smlal_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},         \
-      {"smlsl_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},         \
-      {"smull_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},         \
-      {"sqdmlal_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"sqdmlsl_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},       \
       {"sqdmulh_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},       \
-      {"sqdmull_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},       \
       {"sqrdmlah_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},      \
       {"sqrdmlsh_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},      \
       {"sqrdmulh_asimdelem_r", &VISITORCLASS::VisitNEONByIndexedElement},      \
-      {"udot_asimdelem_d", &VISITORCLASS::VisitNEONByIndexedElement},          \
-      {"umlal_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},         \
-      {"umlsl_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},         \
-      {"umull_asimdelem_l", &VISITORCLASS::VisitNEONByIndexedElement},         \
       {"dup_asimdins_dr_r", &VISITORCLASS::VisitNEONCopy},                     \
       {"dup_asimdins_dv_v", &VISITORCLASS::VisitNEONCopy},                     \
       {"ins_asimdins_ir_r", &VISITORCLASS::VisitNEONCopy},                     \

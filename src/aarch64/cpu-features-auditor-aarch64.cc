@@ -35,7 +35,33 @@ namespace vixl {
 namespace aarch64 {
 
 CPUFeaturesAuditor::FormToVisitorFnMap CPUFeaturesAuditor::form_to_visitor_ = {
-    DEFAULT_FORM_TO_VISITOR_MAP(CPUFeaturesAuditor)};
+    DEFAULT_FORM_TO_VISITOR_MAP(CPUFeaturesAuditor),
+    {"fcmla_asimdelem_c_h", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fcmla_asimdelem_c_s", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmlal2_asimdelem_lh", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmlal_asimdelem_lh", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmla_asimdelem_rh_h", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmla_asimdelem_r_sd", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmlsl2_asimdelem_lh", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmlsl_asimdelem_lh", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmls_asimdelem_rh_h", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmls_asimdelem_r_sd", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmulx_asimdelem_rh_h", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmulx_asimdelem_r_sd", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmul_asimdelem_rh_h", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"fmul_asimdelem_r_sd", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"sdot_asimdelem_d", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"smlal_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"smlsl_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"smull_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"sqdmlal_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"sqdmlsl_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"sqdmull_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"udot_asimdelem_d", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"umlal_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"umlsl_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+    {"umull_asimdelem_l", &CPUFeaturesAuditor::VisitNEONByIndexedElement},
+};
 
 // Every instruction must update last_instruction_, even if only to clear it,
 // and every instruction must also update seen_ once it has been fully handled.

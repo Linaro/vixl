@@ -35,6 +35,31 @@ namespace aarch64 {
 
 Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     DEFAULT_FORM_TO_VISITOR_MAP(Disassembler),
+    {"smlal_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"smlsl_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"smull_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"umlal_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"umlsl_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"umull_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"sqdmull_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"sqdmlal_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"sqdmlsl_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
+    {"sdot_asimdelem_d", &Disassembler::DisassembleNEONDotProdByElement},
+    {"udot_asimdelem_d", &Disassembler::DisassembleNEONDotProdByElement},
+    {"fmlal2_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
+    {"fmlal_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
+    {"fmlsl2_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
+    {"fmlsl_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
+    {"fcmla_asimdelem_c_h", &Disassembler::DisassembleNEONComplexMulByElement},
+    {"fcmla_asimdelem_c_s", &Disassembler::DisassembleNEONComplexMulByElement},
+    {"fmla_asimdelem_rh_h", &Disassembler::DisassembleNEONHalfFPMulByElement},
+    {"fmls_asimdelem_rh_h", &Disassembler::DisassembleNEONHalfFPMulByElement},
+    {"fmulx_asimdelem_rh_h", &Disassembler::DisassembleNEONHalfFPMulByElement},
+    {"fmul_asimdelem_rh_h", &Disassembler::DisassembleNEONHalfFPMulByElement},
+    {"fmla_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
+    {"fmls_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
+    {"fmulx_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
+    {"fmul_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -3518,187 +3543,65 @@ void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
   }
 }
 
-
 void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  bool l_instr = false;
-  bool fp_instr = false;
-  bool cn_instr = false;
-  bool half_instr = false;
-  bool fhm_instr = false;  // FMLAL{2}, FMLSL{2}
-
   const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
+  // TODO: Disallow undefined element types for this instruction.
+  NEONFormatDecoder nfd(instr,
+                        NEONFormatDecoder::IntegerFormatMap(),
+                        NEONFormatDecoder::IntegerFormatMap(),
+                        NEONFormatDecoder::ScalarFormatMap());
+  Format(instr, mnemonic_.c_str(), nfd.Substitute(form));
+}
 
+void Disassembler::DisassembleNEONMulByElementLong(const Instruction *instr) {
+  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
+  // TODO: Disallow undefined element types for this instruction.
   static const NEONFormatMap map_ta = {{23, 22}, {NF_UNDEF, NF_4S, NF_2D}};
-  static const NEONFormatMap map_cn =
-      {{23, 22, 30},
-       {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_UNDEF, NF_4S, NF_UNDEF, NF_UNDEF}};
-  static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
-  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
-
   NEONFormatDecoder nfd(instr,
                         &map_ta,
                         NEONFormatDecoder::IntegerFormatMap(),
                         NEONFormatDecoder::ScalarFormatMap());
-
-  switch (instr->Mask(NEONByIndexedElementMask)) {
-    case NEON_SMULL_byelement:
-      mnemonic = "smull";
-      l_instr = true;
-      break;
-    case NEON_UMULL_byelement:
-      mnemonic = "umull";
-      l_instr = true;
-      break;
-    case NEON_SMLAL_byelement:
-      mnemonic = "smlal";
-      l_instr = true;
-      break;
-    case NEON_UMLAL_byelement:
-      mnemonic = "umlal";
-      l_instr = true;
-      break;
-    case NEON_SMLSL_byelement:
-      mnemonic = "smlsl";
-      l_instr = true;
-      break;
-    case NEON_UMLSL_byelement:
-      mnemonic = "umlsl";
-      l_instr = true;
-      break;
-    case NEON_SQDMULL_byelement:
-      mnemonic = "sqdmull";
-      l_instr = true;
-      break;
-    case NEON_SQDMLAL_byelement:
-      mnemonic = "sqdmlal";
-      l_instr = true;
-      break;
-    case NEON_SQDMLSL_byelement:
-      mnemonic = "sqdmlsl";
-      l_instr = true;
-      break;
-    case NEON_MUL_byelement:
-      mnemonic = "mul";
-      break;
-    case NEON_MLA_byelement:
-      mnemonic = "mla";
-      break;
-    case NEON_MLS_byelement:
-      mnemonic = "mls";
-      break;
-    case NEON_SQDMULH_byelement:
-      mnemonic = "sqdmulh";
-      break;
-    case NEON_SQRDMULH_byelement:
-      mnemonic = "sqrdmulh";
-      break;
-    case NEON_SDOT_byelement:
-      mnemonic = "sdot";
-      form = "'Vd.%s, 'Vn.%s, 'Ve.4b['IVByElemIndex]";
-      nfd.SetFormatMap(1, &map_usdot);
-      break;
-    case NEON_SQRDMLAH_byelement:
-      mnemonic = "sqrdmlah";
-      break;
-    case NEON_UDOT_byelement:
-      mnemonic = "udot";
-      form = "'Vd.%s, 'Vn.%s, 'Ve.4b['IVByElemIndex]";
-      nfd.SetFormatMap(1, &map_usdot);
-      break;
-    case NEON_SQRDMLSH_byelement:
-      mnemonic = "sqrdmlsh";
-      break;
-    default: {
-      switch (instr->Mask(NEONByIndexedElementFPLongMask)) {
-        case NEON_FMLAL_H_byelement:
-          mnemonic = "fmlal";
-          fhm_instr = true;
-          break;
-        case NEON_FMLAL2_H_byelement:
-          mnemonic = "fmlal2";
-          fhm_instr = true;
-          break;
-        case NEON_FMLSL_H_byelement:
-          mnemonic = "fmlsl";
-          fhm_instr = true;
-          break;
-        case NEON_FMLSL2_H_byelement:
-          mnemonic = "fmlsl2";
-          fhm_instr = true;
-          break;
-        default:
-          switch (instr->Mask(NEONByIndexedElementFPMask)) {
-            case NEON_FMUL_byelement:
-              mnemonic = "fmul";
-              fp_instr = true;
-              break;
-            case NEON_FMLA_byelement:
-              mnemonic = "fmla";
-              fp_instr = true;
-              break;
-            case NEON_FMLS_byelement:
-              mnemonic = "fmls";
-              fp_instr = true;
-              break;
-            case NEON_FMULX_byelement:
-              mnemonic = "fmulx";
-              fp_instr = true;
-              break;
-            case NEON_FMLA_H_byelement:
-              mnemonic = "fmla";
-              half_instr = true;
-              break;
-            case NEON_FMLS_H_byelement:
-              mnemonic = "fmls";
-              half_instr = true;
-              break;
-            case NEON_FMUL_H_byelement:
-              mnemonic = "fmul";
-              half_instr = true;
-              break;
-            case NEON_FMULX_H_byelement:
-              mnemonic = "fmulx";
-              half_instr = true;
-              break;
-            default:
-              switch (instr->Mask(NEONByIndexedElementFPComplexMask)) {
-                case NEON_FCMLA_byelement:
-                  mnemonic = "fcmla";
-                  cn_instr = true;
-                  form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndexRot], 'ILFCNR";
-                  break;
-              }
-          }
-      }
-    }
-  }
-
-  if (fhm_instr) {
-    // These are oddballs. Set the format manually.
-    form = (instr->Mask(NEON_Q) == 0)
-               ? "'Vd.2s, 'Vn.2h, 'Ve.h['IVByElemIndexFHM]"
-               : "'Vd.4s, 'Vn.4h, 'Ve.h['IVByElemIndexFHM]";
-    Format(instr, mnemonic, nfd.Substitute(form));
-  } else if (half_instr) {
-    form = "'Vd.%s, 'Vn.%s, 'Ve.h['IVByElemIndex]";
-    nfd.SetFormatMaps(&map_half, &map_half);
-    Format(instr, mnemonic, nfd.Substitute(form));
-  } else if (l_instr) {
-    Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
-  } else if (fp_instr) {
-    nfd.SetFormatMap(0, nfd.FPFormatMap());
-    Format(instr, mnemonic, nfd.Substitute(form));
-  } else if (cn_instr) {
-    nfd.SetFormatMap(0, &map_cn);
-    nfd.SetFormatMap(1, &map_cn);
-    Format(instr, mnemonic, nfd.Substitute(form));
-  } else {
-    nfd.SetFormatMap(0, nfd.IntegerFormatMap());
-    Format(instr, mnemonic, nfd.Substitute(form));
-  }
+  Format(instr, nfd.Mnemonic(mnemonic_.c_str()), nfd.Substitute(form));
 }
 
+void Disassembler::DisassembleNEONDotProdByElement(const Instruction *instr) {
+  const char *form = instr->ExtractBit(30) ? "'Vd.4s, 'Vn.16" : "'Vd.2s, 'Vn.8";
+  const char *suffix = "b, 'Ve.4b['IVByElemIndex]";
+  Format(instr, mnemonic_.c_str(), form, suffix);
+}
+
+void Disassembler::DisassembleNEONFPMulByElement(const Instruction *instr) {
+  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
+  NEONFormatDecoder nfd(instr,
+                        NEONFormatDecoder::FPFormatMap(),
+                        NEONFormatDecoder::FPFormatMap(),
+                        NEONFormatDecoder::FPScalarFormatMap());
+  Format(instr, mnemonic_.c_str(), nfd.Substitute(form));
+}
+
+void Disassembler::DisassembleNEONHalfFPMulByElement(const Instruction *instr) {
+  const char *form = "'Vd.'?30:84h, 'Vn.'?30:84h, 'Ve.h['IVByElemIndex]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleNEONFPMulByElementLong(const Instruction *instr) {
+  const char *form = "'Vd.'?30:42s, 'Vn.'?30:42h, 'Ve.h['IVByElemIndexFHM]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleNEONComplexMulByElement(
+    const Instruction *instr) {
+  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndexRot], #'u1413*90";
+  // TODO: Disallow undefined element types for this instruction.
+  static const NEONFormatMap map_cn =
+      {{23, 22, 30},
+       {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_UNDEF, NF_4S, NF_UNDEF, NF_UNDEF}};
+  NEONFormatDecoder nfd(instr,
+                        &map_cn,
+                        &map_cn,
+                        NEONFormatDecoder::ScalarFormatMap());
+  Format(instr, mnemonic_.c_str(), nfd.Substitute(form));
+}
 
 void Disassembler::VisitNEONCopy(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
@@ -10716,10 +10619,6 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             AppendToOutput(", #%" PRId32, instr->GetImmLSUnsigned() << shift);
           }
           return 3;
-        }
-        case 'F': {  // ILF(CNR) - Immediate Rotation Value for Complex Numbers
-          AppendToOutput("#%" PRId32, instr->GetImmRotFcmlaSca() * 90);
-          return strlen("ILFCNR");
         }
         case 'A': {  // ILA - Immediate Load with pointer authentication.
           if (instr->GetImmLSPAC() != 0) {

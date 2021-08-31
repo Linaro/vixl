@@ -824,7 +824,7 @@ class NEONFormatDecoder {
     return form_buffer_;
   }
 
-  // Append a "2" to a mnemonic string based of the state of the Q bit.
+  // Append a "2" to a mnemonic string based on the state of the Q bit.
   const char* Mnemonic(const char* mnemonic) {
     if ((instrbits_ & NEON_Q) != 0) {
       snprintf(mne_buffer_, sizeof(mne_buffer_), "%s2", mnemonic);
