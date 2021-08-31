@@ -46,6 +46,8 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sqdmlsl_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
     {"sdot_asimdelem_d", &Disassembler::DisassembleNEONDotProdByElement},
     {"udot_asimdelem_d", &Disassembler::DisassembleNEONDotProdByElement},
+    {"usdot_asimdelem_d", &Disassembler::DisassembleNEONDotProdByElement},
+    {"sudot_asimdelem_d", &Disassembler::DisassembleNEONDotProdByElement},
     {"fmlal2_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
     {"fmlal_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
     {"fmlsl2_asimdelem_lh", &Disassembler::DisassembleNEONFPMulByElementLong},
@@ -376,6 +378,7 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
      &Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar},
     {"usdot_z_zzzi_s", &Disassembler::VisitSVEMulIndex},
     {"sudot_z_zzzi_s", &Disassembler::VisitSVEMulIndex},
+    {"usdot_asimdsame2_d", &Disassembler::VisitNEON3SameExtra},
 };
 
 Disassembler::Disassembler() {
@@ -3309,40 +3312,32 @@ void Disassembler::VisitNEON3SameFP16(const Instruction *instr) {
 void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
   static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
 
-  const char *mnemonic = "unallocated";
-  const char *form = "(NEON3SameExtra)";
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *suffix = NULL;
 
   NEONFormatDecoder nfd(instr);
 
-  if (instr->Mask(NEON3SameExtraFCMLAMask) == NEON_FCMLA) {
-    mnemonic = "fcmla";
-    form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNM";
-  } else if (instr->Mask(NEON3SameExtraFCADDMask) == NEON_FCADD) {
-    mnemonic = "fcadd";
-    form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVFCNA";
-  } else {
-    form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
-    switch (instr->Mask(NEON3SameExtraMask)) {
-      case NEON_SDOT:
-        mnemonic = "sdot";
-        nfd.SetFormatMap(1, &map_usdot);
-        nfd.SetFormatMap(2, &map_usdot);
-        break;
-      case NEON_SQRDMLAH:
-        mnemonic = "sqrdmlah";
-        break;
-      case NEON_UDOT:
-        mnemonic = "udot";
-        nfd.SetFormatMap(1, &map_usdot);
-        nfd.SetFormatMap(2, &map_usdot);
-        break;
-      case NEON_SQRDMLSH:
-        mnemonic = "sqrdmlsh";
-        break;
-    }
+  switch (form_hash_) {
+    case Hash("fcmla_asimdsame2_c"):
+      suffix = ", #'u1211*90";
+      break;
+    case Hash("fcadd_asimdsame2_c"):
+      // Bit 10 is always set, so this gives 90 * 1 or 3.
+      suffix = ", #'u1212:1010*90";
+      break;
+    case Hash("sdot_asimdsame2_d"):
+    case Hash("udot_asimdsame2_d"):
+    case Hash("usdot_asimdsame2_d"):
+      nfd.SetFormatMap(1, &map_usdot);
+      nfd.SetFormatMap(2, &map_usdot);
+      break;
+    default:
+      // sqrdml[as]h - nothing to do.
+      break;
   }
 
-  Format(instr, mnemonic, nfd.Substitute(form));
+  Format(instr, mnemonic, nfd.Substitute(form), suffix);
 }
 
 
@@ -3566,7 +3561,7 @@ void Disassembler::DisassembleNEONMulByElementLong(const Instruction *instr) {
 
 void Disassembler::DisassembleNEONDotProdByElement(const Instruction *instr) {
   const char *form = instr->ExtractBit(30) ? "'Vd.4s, 'Vn.16" : "'Vd.2s, 'Vn.8";
-  const char *suffix = "b, 'Ve.4b['IVByElemIndex]";
+  const char *suffix = "b, 'Vm.4b['u1111:2121]";
   Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
@@ -10790,19 +10785,6 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 'V': {  // Immediate Vector.
       switch (format[2]) {
-        case 'F': {
-          switch (format[5]) {
-            // Convert 'rot' bit encodings into equivalent angle rotation
-            case 'A':
-              AppendToOutput("#%" PRId32,
-                             instr->GetImmRotFcadd() == 1 ? 270 : 90);
-              break;
-            case 'M':
-              AppendToOutput("#%" PRId32, instr->GetImmRotFcmlaVec() * 90);
-              break;
-          }
-          return strlen("IVFCN") + 1;
-        }
         case 'E': {  // IVExtract.
           AppendToOutput("#%" PRId32, instr->GetImmNEONExt());
           return 9;

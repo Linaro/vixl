@@ -2819,7 +2819,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(zip2, Zip2)                  \
   V(smmla, Smmla)                \
   V(ummla, Ummla)                \
-  V(usmmla, Usmmla)
+  V(usmmla, Usmmla)              \
+  V(usdot, Usdot)
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)                                     \
   void MASM(const VRegister& vd, const VRegister& vn, const VRegister& vm) { \
@@ -2971,7 +2972,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(umlal, Umlal)                    \
   V(umlal2, Umlal2)                  \
   V(umlsl, Umlsl)                    \
-  V(umlsl2, Umlsl2)
+  V(umlsl2, Umlsl2)                  \
+  V(sudot, Sudot)                    \
+  V(usdot, Usdot)
+
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)    \
   void MASM(const VRegister& vd,            \

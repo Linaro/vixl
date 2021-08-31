@@ -2861,12 +2861,9 @@
       {"subg_64_addsub_immtags", &VISITORCLASS::VisitUnimplemented},           \
       {"subps_64s_dp_2src", &VISITORCLASS::VisitUnimplemented},                \
       {"subp_64s_dp_2src", &VISITORCLASS::VisitUnimplemented},                 \
-      {"sudot_asimdelem_d", &VISITORCLASS::VisitUnimplemented},                \
       {"tcancel_ex_exception", &VISITORCLASS::VisitUnimplemented},             \
       {"tstart_br_systemresult", &VISITORCLASS::VisitUnimplemented},           \
       {"ttest_br_systemresult", &VISITORCLASS::VisitUnimplemented},            \
-      {"usdot_asimdelem_d", &VISITORCLASS::VisitUnimplemented},                \
-      {"usdot_asimdsame2_d", &VISITORCLASS::VisitUnimplemented},               \
       {"wfet_only_systeminstrswithreg", &VISITORCLASS::VisitUnimplemented},    \
       {"wfit_only_systeminstrswithreg", &VISITORCLASS::VisitUnimplemented},    \
       {"xar_vvv2_crypto3_imm6", &VISITORCLASS::VisitUnimplemented},            \

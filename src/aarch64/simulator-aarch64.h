@@ -1246,6 +1246,7 @@ class Simulator : public DecoderVisitor {
   void SimulateNEONFPMulByElement(const Instruction* instr);
   void SimulateNEONFPMulByElementLong(const Instruction* instr);
   void SimulateNEONComplexMulByElement(const Instruction* instr);
+  void SimulateNEONDotProdByElement(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -3174,21 +3175,11 @@ class Simulator : public DecoderVisitor {
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,
                           int index);
-  LogicVRegister sdot(VectorFormat vform,
-                      LogicVRegister dst,
-                      const LogicVRegister& src1,
-                      const LogicVRegister& src2,
-                      int index);
   LogicVRegister sqrdmlah(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src1,
                           const LogicVRegister& src2,
                           int index);
-  LogicVRegister udot(VectorFormat vform,
-                      LogicVRegister dst,
-                      const LogicVRegister& src1,
-                      const LogicVRegister& src2,
-                      int index);
   LogicVRegister sqrdmlsh(VectorFormat vform,
                           LogicVRegister dst,
                           const LogicVRegister& src1,

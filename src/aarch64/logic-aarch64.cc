@@ -859,23 +859,6 @@ LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
 }
 
 
-LogicVRegister Simulator::sdot(VectorFormat vform,
-                               LogicVRegister dst,
-                               const LogicVRegister& src1,
-                               const LogicVRegister& src2,
-                               int index) {
-  SimVRegister temp;
-  // NEON indexed `dot` allows the index value exceed the register size.
-  // Promote the format to Q-sized vector format before the duplication.
-  dup_elements_to_segments(IsSVEFormat(vform) ? vform
-                                              : VectorFormatFillQ(vform),
-                           temp,
-                           src2,
-                           index);
-  return sdot(vform, dst, src1, temp);
-}
-
-
 LogicVRegister Simulator::sqrdmlah(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
@@ -884,23 +867,6 @@ LogicVRegister Simulator::sqrdmlah(VectorFormat vform,
   SimVRegister temp;
   VectorFormat indexform = VectorFormatFillQ(vform);
   return sqrdmlah(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::udot(VectorFormat vform,
-                               LogicVRegister dst,
-                               const LogicVRegister& src1,
-                               const LogicVRegister& src2,
-                               int index) {
-  SimVRegister temp;
-  // NEON indexed `dot` allows the index value exceed the register size.
-  // Promote the format to Q-sized vector format before the duplication.
-  dup_elements_to_segments(IsSVEFormat(vform) ? vform
-                                              : VectorFormatFillQ(vform),
-                           temp,
-                           src2,
-                           index);
-  return udot(vform, dst, src1, temp);
 }
 
 

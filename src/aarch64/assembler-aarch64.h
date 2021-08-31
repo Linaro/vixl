@@ -3367,6 +3367,21 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Unsigned dot product [Armv8.2].
   void udot(const VRegister& vd, const VRegister& vn, const VRegister& vm);
 
+  // Dot Product with unsigned and signed integers (vector).
+  void usdot(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // Dot product with signed and unsigned integers (vector, by element).
+  void sudot(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int vm_index);
+
+  // Dot product with unsigned and signed integers (vector, by element).
+  void usdot(const VRegister& vd,
+             const VRegister& vn,
+             const VRegister& vm,
+             int vm_index);
+
   // Signed saturating rounding doubling multiply subtract returning high half
   // [Armv8.1].
   void sqrdmlsh(const VRegister& vd, const VRegister& vn, const VRegister& vm);

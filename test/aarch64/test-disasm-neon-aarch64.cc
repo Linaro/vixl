@@ -1745,6 +1745,11 @@ TEST(neon_3same) {
   COMPARE_MACRO(Udot(v1.V4S(), v2.V16B(), v3.V16B()),
                 "udot v1.4s, v2.16b, v3.16b");
 
+  COMPARE_MACRO(Usdot(v7.V2S(), v9.V8B(), v30.V8B()),
+                "usdot v7.2s, v9.8b, v30.8b");
+  COMPARE_MACRO(Usdot(v7.V4S(), v9.V16B(), v30.V16B()),
+                "usdot v7.4s, v9.16b, v30.16b");
+
   COMPARE_MACRO(And(v6.V8B(), v7.V8B(), v8.V8B()), "and v6.8b, v7.8b, v8.8b");
   COMPARE_MACRO(And(v6.V16B(), v7.V16B(), v8.V16B()),
                 "and v6.16b, v7.16b, v8.16b");
@@ -2424,6 +2429,15 @@ TEST(neon_byelement) {
                 "fmlsl v9.4s, v4.4h, v3.h[1]");
   COMPARE_MACRO(Fmlsl2(v28.V4S(), v28.V4H(), v7.H(), 0),
                 "fmlsl2 v28.4s, v28.4h, v7.h[0]");
+
+  COMPARE_MACRO(Sudot(v10.V2S(), v21.V8B(), v31.S4B(), 0),
+                "sudot v10.2s, v21.8b, v31.4b[0]");
+  COMPARE_MACRO(Sudot(v12.V4S(), v23.V16B(), v16.S4B(), 3),
+                "sudot v12.4s, v23.16b, v16.4b[3]");
+  COMPARE_MACRO(Usdot(v10.V2S(), v21.V8B(), v31.S4B(), 0),
+                "usdot v10.2s, v21.8b, v31.4b[0]");
+  COMPARE_MACRO(Usdot(v12.V4S(), v23.V16B(), v16.S4B(), 3),
+                "usdot v12.4s, v23.16b, v16.4b[3]");
 
   CLEANUP();
 }

@@ -92,8 +92,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"fmls_asimdelem_r_sd", &Simulator::SimulateNEONFPMulByElement},
     {"fmulx_asimdelem_r_sd", &Simulator::SimulateNEONFPMulByElement},
     {"fmul_asimdelem_r_sd", &Simulator::SimulateNEONFPMulByElement},
-    {"sdot_asimdelem_d", &Simulator::VisitNEONByIndexedElement},
-    {"udot_asimdelem_d", &Simulator::VisitNEONByIndexedElement},
+    {"sdot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
+    {"udot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
     {"adclb_z_zzz", &Simulator::SimulateSVEAddSubCarry},
     {"adclt_z_zzz", &Simulator::SimulateSVEAddSubCarry},
     {"addhnb_z_zz", &Simulator::SimulateSVEAddSubHigh},
@@ -401,6 +401,9 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"usdot_z_zzz_s", &Simulator::VisitSVEIntMulAddUnpredicated},
     {"sudot_z_zzzi_s", &Simulator::VisitSVEMulIndex},
     {"usdot_z_zzzi_s", &Simulator::VisitSVEMulIndex},
+    {"usdot_asimdsame2_d", &Simulator::VisitNEON3SameExtra},
+    {"sudot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
+    {"usdot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
@@ -7388,30 +7391,31 @@ void Simulator::VisitNEON3SameExtra(const Instruction* instr) {
   SimVRegister& rm = ReadVRegister(instr->GetRm());
   int rot = 0;
   VectorFormat vf = nfd.GetVectorFormat();
-  if (instr->Mask(NEON3SameExtraFCMLAMask) == NEON_FCMLA) {
-    rot = instr->GetImmRotFcmlaVec();
-    fcmla(vf, rd, rn, rm, rd, rot);
-  } else if (instr->Mask(NEON3SameExtraFCADDMask) == NEON_FCADD) {
-    rot = instr->GetImmRotFcadd();
-    fcadd(vf, rd, rn, rm, rot);
-  } else {
-    switch (instr->Mask(NEON3SameExtraMask)) {
-      case NEON_SDOT:
-        sdot(vf, rd, rn, rm);
-        break;
-      case NEON_SQRDMLAH:
-        sqrdmlah(vf, rd, rn, rm);
-        break;
-      case NEON_UDOT:
-        udot(vf, rd, rn, rm);
-        break;
-      case NEON_SQRDMLSH:
-        sqrdmlsh(vf, rd, rn, rm);
-        break;
-      default:
-        VIXL_UNIMPLEMENTED();
-        break;
-    }
+
+  switch (form_hash_) {
+    case Hash("fcmla_asimdsame2_c"):
+      rot = instr->GetImmRotFcmlaVec();
+      fcmla(vf, rd, rn, rm, rd, rot);
+      break;
+    case Hash("fcadd_asimdsame2_c"):
+      rot = instr->GetImmRotFcadd();
+      fcadd(vf, rd, rn, rm, rot);
+      break;
+    case Hash("sdot_asimdsame2_d"):
+      sdot(vf, rd, rn, rm);
+      break;
+    case Hash("udot_asimdsame2_d"):
+      udot(vf, rd, rn, rm);
+      break;
+    case Hash("usdot_asimdsame2_d"):
+      usdot(vf, rd, rn, rm);
+      break;
+    case Hash("sqrdmlah_asimdsame2_only"):
+      sqrdmlah(vf, rd, rn, rm);
+      break;
+    case Hash("sqrdmlsh_asimdsame2_only"):
+      sqrdmlsh(vf, rd, rn, rm);
+      break;
   }
 }
 
@@ -7815,6 +7819,35 @@ void Simulator::SimulateNEONComplexMulByElement(const Instruction* instr) {
   }
 }
 
+void Simulator::SimulateNEONDotProdByElement(const Instruction* instr) {
+  VectorFormat vform = instr->GetNEONQ() ? kFormat4S : kFormat2S;
+
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+  int index = (instr->GetNEONH() << 1) | instr->GetNEONL();
+
+  SimVRegister temp;
+  // NEON indexed `dot` allows the index value exceed the register size.
+  // Promote the format to Q-sized vector format before the duplication.
+  dup_elements_to_segments(VectorFormatFillQ(vform), temp, rm, index);
+
+  switch (form_hash_) {
+    case Hash("sdot_asimdelem_d"):
+      sdot(vform, rd, rn, temp);
+      break;
+    case Hash("udot_asimdelem_d"):
+      udot(vform, rd, rn, temp);
+      break;
+    case Hash("sudot_asimdelem_d"):
+      usdot(vform, rd, temp, rn);
+      break;
+    case Hash("usdot_asimdelem_d"):
+      usdot(vform, rd, rn, temp);
+      break;
+  }
+}
+
 void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);
   VectorFormat vform = nfd.GetVectorFormat();
@@ -7848,14 +7881,8 @@ void Simulator::VisitNEONByIndexedElement(const Instruction* instr) {
     case Hash("sqrdmulh_asimdelem_r"):
       sqrdmulh(vform, rd, rn, rm, index);
       break;
-    case Hash("sdot_asimdelem_d"):
-      sdot(vform, rd, rn, rm, index);
-      break;
     case Hash("sqrdmlah_asimdelem_r"):
       sqrdmlah(vform, rd, rn, rm, index);
-      break;
-    case Hash("udot_asimdelem_d"):
-      udot(vform, rd, rn, rm, index);
       break;
     case Hash("sqrdmlsh_asimdelem_r"):
       sqrdmlsh(vform, rd, rn, rm, index);

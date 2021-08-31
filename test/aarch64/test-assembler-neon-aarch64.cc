@@ -10842,5 +10842,101 @@ TEST(neon_tbl) {
   }
 }
 
+TEST(neon_usdot) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON,
+                      CPUFeatures::kDotProduct,
+                      CPUFeatures::kI8MM);
+
+  START();
+  __ Movi(v0.V2D(), 0xffffffffffffffff, 0xffffffffffffffff);
+  __ Movi(v1.V2D(), 0x7f7f7f7f7f7f7f7f, 0x7f7f7f7f7f7f7f7f);
+  __ Movi(v2.V2D(), 0x8080808080808080, 0x8080808080808080);
+  __ Movi(v3.V2D(), 0, 0);
+  __ Mov(q4, q3);
+  __ Mov(q5, q3);
+  __ Mov(q6, q3);
+  __ Mov(q7, q3);
+  __ Mov(q8, q3);
+  __ Mov(q9, q3);
+  __ Mov(q10, q3);
+  __ Mov(q11, q3);
+
+  // Test Usdot against Udot/Sdot over the range of inputs where they should be
+  // equal.
+  __ Usdot(v3.V2S(), v0.V8B(), v1.V8B());
+  __ Udot(v4.V2S(), v0.V8B(), v1.V8B());
+  __ Cmeq(v3.V4S(), v3.V4S(), v4.V4S());
+  __ Usdot(v5.V4S(), v0.V16B(), v1.V16B());
+  __ Udot(v6.V4S(), v0.V16B(), v1.V16B());
+  __ Cmeq(v5.V4S(), v5.V4S(), v6.V4S());
+
+  __ Usdot(v7.V2S(), v1.V8B(), v2.V8B());
+  __ Sdot(v8.V2S(), v1.V8B(), v2.V8B());
+  __ Cmeq(v7.V4S(), v7.V4S(), v8.V4S());
+  __ Usdot(v9.V4S(), v1.V16B(), v2.V16B());
+  __ Sdot(v10.V4S(), v1.V16B(), v2.V16B());
+  __ Cmeq(v9.V4S(), v9.V4S(), v10.V4S());
+
+  // Construct values which, when interpreted correctly as signed/unsigned,
+  // should give a zero result for dot product.
+  __ Mov(w0, 0x8101ff40);  // [-127, 1, -1, 64] as signed bytes.
+  __ Mov(w1, 0x02fe8002);  // [2, 254, 128, 2] as unsigned bytes.
+  __ Dup(v0.V4S(), w0);
+  __ Dup(v1.V4S(), w1);
+  __ Usdot(v11.V4S(), v1.V16B(), v0.V16B());
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_128(-1, -1, q3);
+    ASSERT_EQUAL_128(-1, -1, q5);
+    ASSERT_EQUAL_128(-1, -1, q7);
+    ASSERT_EQUAL_128(-1, -1, q9);
+    ASSERT_EQUAL_128(0, 0, q11);
+  }
+}
+
+TEST(neon_usdot_element) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kI8MM);
+
+  START();
+  __ Movi(v0.V2D(), 0xfedcba9876543210, 0x0123456789abcdef);
+  __ Movi(v1.V2D(), 0x4242424242424242, 0x5555aaaaaaaa5555);
+
+  // Test element Usdot against vector variant.
+  __ Dup(v2.V4S(), v1.V4S(), 0);
+  __ Dup(v3.V4S(), v1.V4S(), 1);
+  __ Dup(v4.V4S(), v1.V4S(), 3);
+
+  __ Mov(q10, q1);
+  __ Usdot(v10.V2S(), v0.V8B(), v2.V8B());
+  __ Mov(q11, q1);
+  __ Usdot(v11.V2S(), v0.V8B(), v1.S4B(), 0);
+  __ Cmeq(v11.V4S(), v11.V4S(), v10.V4S());
+
+  __ Mov(q12, q1);
+  __ Usdot(v12.V4S(), v0.V16B(), v3.V16B());
+  __ Mov(q13, q1);
+  __ Usdot(v13.V4S(), v0.V16B(), v1.S4B(), 1);
+  __ Cmeq(v13.V4S(), v13.V4S(), v12.V4S());
+
+  __ Mov(q14, q1);
+  __ Usdot(v14.V4S(), v4.V16B(), v0.V16B());
+  __ Mov(q15, q1);
+  __ Sudot(v15.V4S(), v0.V16B(), v1.S4B(), 3);
+  __ Cmeq(v15.V4S(), v15.V4S(), v14.V4S());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_128(-1, -1, q11);
+    ASSERT_EQUAL_128(-1, -1, q13);
+    ASSERT_EQUAL_128(-1, -1, q15);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
