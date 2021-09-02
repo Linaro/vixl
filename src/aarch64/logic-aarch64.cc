@@ -804,151 +804,6 @@ LogicVRegister Simulator::mls(VectorFormat vform,
   return mls(vform, dst, dst, src1, dup_element(indexform, temp, src2, index));
 }
 
-
-LogicVRegister Simulator::smull(VectorFormat vform,
-                                LogicVRegister dst,
-                                const LogicVRegister& src1,
-                                const LogicVRegister& src2,
-                                int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return smull(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::smull2(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src1,
-                                 const LogicVRegister& src2,
-                                 int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return smull2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::umull(VectorFormat vform,
-                                LogicVRegister dst,
-                                const LogicVRegister& src1,
-                                const LogicVRegister& src2,
-                                int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return umull(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::umull2(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src1,
-                                 const LogicVRegister& src2,
-                                 int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return umull2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::smlal(VectorFormat vform,
-                                LogicVRegister dst,
-                                const LogicVRegister& src1,
-                                const LogicVRegister& src2,
-                                int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return smlal(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::smlal2(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src1,
-                                 const LogicVRegister& src2,
-                                 int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return smlal2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::umlal(VectorFormat vform,
-                                LogicVRegister dst,
-                                const LogicVRegister& src1,
-                                const LogicVRegister& src2,
-                                int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return umlal(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::umlal2(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src1,
-                                 const LogicVRegister& src2,
-                                 int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return umlal2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::smlsl(VectorFormat vform,
-                                LogicVRegister dst,
-                                const LogicVRegister& src1,
-                                const LogicVRegister& src2,
-                                int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return smlsl(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::smlsl2(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src1,
-                                 const LogicVRegister& src2,
-                                 int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return smlsl2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::umlsl(VectorFormat vform,
-                                LogicVRegister dst,
-                                const LogicVRegister& src1,
-                                const LogicVRegister& src2,
-                                int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return umlsl(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
-LogicVRegister Simulator::umlsl2(VectorFormat vform,
-                                 LogicVRegister dst,
-                                 const LogicVRegister& src1,
-                                 const LogicVRegister& src2,
-                                 int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return umlsl2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
 LogicVRegister Simulator::sqdmull(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
@@ -959,19 +814,6 @@ LogicVRegister Simulator::sqdmull(VectorFormat vform,
       VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
   return sqdmull(vform, dst, src1, dup_element(indexform, temp, src2, index));
 }
-
-
-LogicVRegister Simulator::sqdmull2(VectorFormat vform,
-                                   LogicVRegister dst,
-                                   const LogicVRegister& src1,
-                                   const LogicVRegister& src2,
-                                   int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return sqdmull2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
 
 LogicVRegister Simulator::sqdmlal(VectorFormat vform,
                                   LogicVRegister dst,
@@ -984,19 +826,6 @@ LogicVRegister Simulator::sqdmlal(VectorFormat vform,
   return sqdmlal(vform, dst, src1, dup_element(indexform, temp, src2, index));
 }
 
-
-LogicVRegister Simulator::sqdmlal2(VectorFormat vform,
-                                   LogicVRegister dst,
-                                   const LogicVRegister& src1,
-                                   const LogicVRegister& src2,
-                                   int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return sqdmlal2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
-
 LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
@@ -1007,19 +836,6 @@ LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
       VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
   return sqdmlsl(vform, dst, src1, dup_element(indexform, temp, src2, index));
 }
-
-
-LogicVRegister Simulator::sqdmlsl2(VectorFormat vform,
-                                   LogicVRegister dst,
-                                   const LogicVRegister& src1,
-                                   const LogicVRegister& src2,
-                                   int index) {
-  SimVRegister temp;
-  VectorFormat indexform =
-      VectorFormatHalfWidthDoubleLanes(VectorFormatFillQ(vform));
-  return sqdmlsl2(vform, dst, src1, dup_element(indexform, temp, src2, index));
-}
-
 
 LogicVRegister Simulator::sqdmulh(VectorFormat vform,
                                   LogicVRegister dst,
@@ -3318,12 +3134,15 @@ LogicVRegister Simulator::orr(VectorFormat vform,
 
 LogicVRegister Simulator::uxtl(VectorFormat vform,
                                LogicVRegister dst,
-                               const LogicVRegister& src) {
+                               const LogicVRegister& src,
+                               bool is_2) {
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  int lane_count = LaneCountFromFormat(vform);
+  int src_offset = is_2 ? lane_count : 0;
 
   dst.ClearForWrite(vform);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.SetUint(vform, i, src.Uint(vform_half, i));
+  for (int i = 0; i < lane_count; i++) {
+    dst.SetUint(vform, i, src.Uint(vform_half, src_offset + i));
   }
   return dst;
 }
@@ -3331,12 +3150,15 @@ LogicVRegister Simulator::uxtl(VectorFormat vform,
 
 LogicVRegister Simulator::sxtl(VectorFormat vform,
                                LogicVRegister dst,
-                               const LogicVRegister& src) {
+                               const LogicVRegister& src,
+                               bool is_2) {
   VectorFormat vform_half = VectorFormatHalfWidth(vform);
+  int lane_count = LaneCountFromFormat(vform);
+  int src_offset = is_2 ? lane_count : 0;
 
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.SetInt(vform, i, src.Int(vform_half, i));
+    dst.SetInt(vform, i, src.Int(vform_half, src_offset + i));
   }
   return dst;
 }
@@ -3345,28 +3167,14 @@ LogicVRegister Simulator::sxtl(VectorFormat vform,
 LogicVRegister Simulator::uxtl2(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  VectorFormat vform_half = VectorFormatHalfWidth(vform);
-  int lane_count = LaneCountFromFormat(vform);
-
-  dst.ClearForWrite(vform);
-  for (int i = 0; i < lane_count; i++) {
-    dst.SetUint(vform, i, src.Uint(vform_half, lane_count + i));
-  }
-  return dst;
+  return uxtl(vform, dst, src, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::sxtl2(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
-  VectorFormat vform_half = VectorFormatHalfWidth(vform);
-  int lane_count = LaneCountFromFormat(vform);
-
-  dst.ClearForWrite(vform);
-  for (int i = 0; i < lane_count; i++) {
-    dst.SetInt(vform, i, src.Int(vform_half, lane_count + i));
-  }
-  return dst;
+  return sxtl(vform, dst, src, /* is_2 = */ true);
 }
 
 
@@ -3968,10 +3776,11 @@ LogicVRegister Simulator::sabdl2(VectorFormat vform,
 LogicVRegister Simulator::umull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
-                                const LogicVRegister& src2) {
+                                const LogicVRegister& src2,
+                                bool is_2) {
   SimVRegister temp1, temp2;
-  uxtl(vform, temp1, src1);
-  uxtl(vform, temp2, src2);
+  uxtl(vform, temp1, src1, is_2);
+  uxtl(vform, temp2, src2, is_2);
   mul(vform, dst, temp1, temp2);
   return dst;
 }
@@ -3981,21 +3790,18 @@ LogicVRegister Simulator::umull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister temp1, temp2;
-  uxtl2(vform, temp1, src1);
-  uxtl2(vform, temp2, src2);
-  mul(vform, dst, temp1, temp2);
-  return dst;
+  return umull(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::smull(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
-                                const LogicVRegister& src2) {
+                                const LogicVRegister& src2,
+                                bool is_2) {
   SimVRegister temp1, temp2;
-  sxtl(vform, temp1, src1);
-  sxtl(vform, temp2, src2);
+  sxtl(vform, temp1, src1, is_2);
+  sxtl(vform, temp2, src2, is_2);
   mul(vform, dst, temp1, temp2);
   return dst;
 }
@@ -4005,21 +3811,18 @@ LogicVRegister Simulator::smull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister temp1, temp2;
-  sxtl2(vform, temp1, src1);
-  sxtl2(vform, temp2, src2);
-  mul(vform, dst, temp1, temp2);
-  return dst;
+  return smull(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::umlsl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
-                                const LogicVRegister& src2) {
+                                const LogicVRegister& src2,
+                                bool is_2) {
   SimVRegister temp1, temp2;
-  uxtl(vform, temp1, src1);
-  uxtl(vform, temp2, src2);
+  uxtl(vform, temp1, src1, is_2);
+  uxtl(vform, temp2, src2, is_2);
   mls(vform, dst, dst, temp1, temp2);
   return dst;
 }
@@ -4029,21 +3832,18 @@ LogicVRegister Simulator::umlsl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister temp1, temp2;
-  uxtl2(vform, temp1, src1);
-  uxtl2(vform, temp2, src2);
-  mls(vform, dst, dst, temp1, temp2);
-  return dst;
+  return umlsl(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::smlsl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
-                                const LogicVRegister& src2) {
+                                const LogicVRegister& src2,
+                                bool is_2) {
   SimVRegister temp1, temp2;
-  sxtl(vform, temp1, src1);
-  sxtl(vform, temp2, src2);
+  sxtl(vform, temp1, src1, is_2);
+  sxtl(vform, temp2, src2, is_2);
   mls(vform, dst, dst, temp1, temp2);
   return dst;
 }
@@ -4053,21 +3853,18 @@ LogicVRegister Simulator::smlsl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister temp1, temp2;
-  sxtl2(vform, temp1, src1);
-  sxtl2(vform, temp2, src2);
-  mls(vform, dst, dst, temp1, temp2);
-  return dst;
+  return smlsl(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::umlal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
-                                const LogicVRegister& src2) {
+                                const LogicVRegister& src2,
+                                bool is_2) {
   SimVRegister temp1, temp2;
-  uxtl(vform, temp1, src1);
-  uxtl(vform, temp2, src2);
+  uxtl(vform, temp1, src1, is_2);
+  uxtl(vform, temp2, src2, is_2);
   mla(vform, dst, dst, temp1, temp2);
   return dst;
 }
@@ -4077,21 +3874,18 @@ LogicVRegister Simulator::umlal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister temp1, temp2;
-  uxtl2(vform, temp1, src1);
-  uxtl2(vform, temp2, src2);
-  mla(vform, dst, dst, temp1, temp2);
-  return dst;
+  return umlal(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::smlal(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src1,
-                                const LogicVRegister& src2) {
+                                const LogicVRegister& src2,
+                                bool is_2) {
   SimVRegister temp1, temp2;
-  sxtl(vform, temp1, src1);
-  sxtl(vform, temp2, src2);
+  sxtl(vform, temp1, src1, is_2);
+  sxtl(vform, temp2, src2, is_2);
   mla(vform, dst, dst, temp1, temp2);
   return dst;
 }
@@ -4101,20 +3895,17 @@ LogicVRegister Simulator::smlal2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  SimVRegister temp1, temp2;
-  sxtl2(vform, temp1, src1);
-  sxtl2(vform, temp2, src2);
-  mla(vform, dst, dst, temp1, temp2);
-  return dst;
+  return smlal(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::sqdmlal(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
-                                  const LogicVRegister& src2) {
+                                  const LogicVRegister& src2,
+                                  bool is_2) {
   SimVRegister temp;
-  LogicVRegister product = sqdmull(vform, temp, src1, src2);
+  LogicVRegister product = sqdmull(vform, temp, src1, src2, is_2);
   return add(vform, dst, dst, product).SignedSaturate(vform);
 }
 
@@ -4123,18 +3914,17 @@ LogicVRegister Simulator::sqdmlal2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2) {
-  SimVRegister temp;
-  LogicVRegister product = sqdmull2(vform, temp, src1, src2);
-  return add(vform, dst, dst, product).SignedSaturate(vform);
+  return sqdmlal(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::sqdmlsl(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
-                                  const LogicVRegister& src2) {
+                                  const LogicVRegister& src2,
+                                  bool is_2) {
   SimVRegister temp;
-  LogicVRegister product = sqdmull(vform, temp, src1, src2);
+  LogicVRegister product = sqdmull(vform, temp, src1, src2, is_2);
   return sub(vform, dst, dst, product).SignedSaturate(vform);
 }
 
@@ -4143,18 +3933,17 @@ LogicVRegister Simulator::sqdmlsl2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2) {
-  SimVRegister temp;
-  LogicVRegister product = sqdmull2(vform, temp, src1, src2);
-  return sub(vform, dst, dst, product).SignedSaturate(vform);
+  return sqdmlsl(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 
 LogicVRegister Simulator::sqdmull(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src1,
-                                  const LogicVRegister& src2) {
+                                  const LogicVRegister& src2,
+                                  bool is_2) {
   SimVRegister temp;
-  LogicVRegister product = smull(vform, temp, src1, src2);
+  LogicVRegister product = smull(vform, temp, src1, src2, is_2);
   return add(vform, dst, product, product).SignedSaturate(vform);
 }
 
@@ -4163,9 +3952,7 @@ LogicVRegister Simulator::sqdmull2(VectorFormat vform,
                                    LogicVRegister dst,
                                    const LogicVRegister& src1,
                                    const LogicVRegister& src2) {
-  SimVRegister temp;
-  LogicVRegister product = smull2(vform, temp, src1, src2);
-  return add(vform, dst, product, product).SignedSaturate(vform);
+  return sqdmull(vform, dst, src1, src2, /* is_2 = */ true);
 }
 
 LogicVRegister Simulator::sqrdmulh(VectorFormat vform,
