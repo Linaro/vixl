@@ -2719,48 +2719,20 @@
       {"adrp_only_pcreladdr", &VISITORCLASS::VisitPCRelAddressing},            \
       {"adr_only_pcreladdr", &VISITORCLASS::VisitPCRelAddressing},             \
       {"rmif_only_rmif", &VISITORCLASS::VisitRotateRightIntoFlags},            \
-      {"autia1716_hi_hints", &VISITORCLASS::VisitSystem},                      \
-      {"autiasp_hi_hints", &VISITORCLASS::VisitSystem},                        \
-      {"autiaz_hi_hints", &VISITORCLASS::VisitSystem},                         \
-      {"autib1716_hi_hints", &VISITORCLASS::VisitSystem},                      \
-      {"autibsp_hi_hints", &VISITORCLASS::VisitSystem},                        \
-      {"autibz_hi_hints", &VISITORCLASS::VisitSystem},                         \
-      {"axflag_m_pstate", &VISITORCLASS::VisitSystem},                         \
       {"bti_hb_hints", &VISITORCLASS::VisitSystem},                            \
-      {"cfinv_m_pstate", &VISITORCLASS::VisitSystem},                          \
       {"clrex_bn_barriers", &VISITORCLASS::VisitSystem},                       \
-      {"csdb_hi_hints", &VISITORCLASS::VisitSystem},                           \
-      {"dgh_hi_hints", &VISITORCLASS::VisitSystem},                            \
       {"dmb_bo_barriers", &VISITORCLASS::VisitSystem},                         \
       {"dsb_bo_barriers", &VISITORCLASS::VisitSystem},                         \
-      {"esb_hi_hints", &VISITORCLASS::VisitSystem},                            \
       {"hint_hm_hints", &VISITORCLASS::VisitSystem},                           \
-      {"isb_bi_barriers", &VISITORCLASS::VisitSystem},                         \
       {"mrs_rs_systemmove", &VISITORCLASS::VisitSystem},                       \
       {"msr_si_pstate", &VISITORCLASS::VisitSystem},                           \
       {"msr_sr_systemmove", &VISITORCLASS::VisitSystem},                       \
-      {"nop_hi_hints", &VISITORCLASS::VisitSystem},                            \
-      {"pacia1716_hi_hints", &VISITORCLASS::VisitSystem},                      \
-      {"paciasp_hi_hints", &VISITORCLASS::VisitSystem},                        \
-      {"paciaz_hi_hints", &VISITORCLASS::VisitSystem},                         \
-      {"pacib1716_hi_hints", &VISITORCLASS::VisitSystem},                      \
-      {"pacibsp_hi_hints", &VISITORCLASS::VisitSystem},                        \
-      {"pacibz_hi_hints", &VISITORCLASS::VisitSystem},                         \
       {"psb_hc_hints", &VISITORCLASS::VisitSystem},                            \
-      {"pssbb_only_barriers", &VISITORCLASS::VisitSystem},                     \
       {"sb_only_barriers", &VISITORCLASS::VisitSystem},                        \
-      {"sevl_hi_hints", &VISITORCLASS::VisitSystem},                           \
-      {"sev_hi_hints", &VISITORCLASS::VisitSystem},                            \
-      {"ssbb_only_barriers", &VISITORCLASS::VisitSystem},                      \
       {"sysl_rc_systeminstrs", &VISITORCLASS::VisitSystem},                    \
       {"sys_cr_systeminstrs", &VISITORCLASS::VisitSystem},                     \
       {"tcommit_only_barriers", &VISITORCLASS::VisitSystem},                   \
       {"tsb_hc_hints", &VISITORCLASS::VisitSystem},                            \
-      {"wfe_hi_hints", &VISITORCLASS::VisitSystem},                            \
-      {"wfi_hi_hints", &VISITORCLASS::VisitSystem},                            \
-      {"xaflag_m_pstate", &VISITORCLASS::VisitSystem},                         \
-      {"xpaclri_hi_hints", &VISITORCLASS::VisitSystem},                        \
-      {"yield_hi_hints", &VISITORCLASS::VisitSystem},                          \
       {"tbnz_only_testbranch", &VISITORCLASS::VisitTestBranch},                \
       {"tbz_only_testbranch", &VISITORCLASS::VisitTestBranch},                 \
       {"bl_only_branch_imm", &VISITORCLASS::VisitUnconditionalBranch},         \

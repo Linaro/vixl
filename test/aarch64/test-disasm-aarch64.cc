@@ -2941,8 +2941,8 @@ TEST(barriers) {
 
   COMPARE_MACRO(Dsb(FullSystem, BarrierOther), "dsb sy (0b1100)");
   COMPARE_MACRO(Dsb(InnerShareable, BarrierOther), "dsb sy (0b1000)");
-  COMPARE_MACRO(Dsb(NonShareable, BarrierOther), "dsb sy (0b0100)");
-  COMPARE_MACRO(Dsb(OuterShareable, BarrierOther), "dsb sy (0b0000)");
+  COMPARE_MACRO(Dsb(NonShareable, BarrierOther), "pssbb");
+  COMPARE_MACRO(Dsb(OuterShareable, BarrierOther), "ssbb");
 
   // ISB
   COMPARE_MACRO(Isb(), "isb");
@@ -3043,7 +3043,7 @@ TEST(hint) {
   COMPARE(hint(WFI), "wfi");
   COMPARE(hint(SEV), "sev");
   COMPARE(hint(SEVL), "sevl");
-  COMPARE(hint(6), "hint #6");
+  COMPARE(hint(6), "dgh");
   COMPARE(hint(ESB), "esb");
   COMPARE(hint(CSDB), "csdb");
   COMPARE(hint(42), "hint #42");

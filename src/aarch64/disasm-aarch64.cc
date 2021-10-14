@@ -35,6 +35,34 @@ namespace aarch64 {
 
 Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     DEFAULT_FORM_TO_VISITOR_MAP(Disassembler),
+    {"autia1716_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"autiasp_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"autiaz_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"autib1716_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"autibsp_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"autibz_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"axflag_m_pstate", &Disassembler::DisassembleNoArgs},
+    {"cfinv_m_pstate", &Disassembler::DisassembleNoArgs},
+    {"csdb_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"dgh_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"ssbb_only_barriers", &Disassembler::DisassembleNoArgs},
+    {"pssbb_only_barriers", &Disassembler::DisassembleNoArgs},
+    {"esb_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"isb_bi_barriers", &Disassembler::DisassembleNoArgs},
+    {"nop_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"pacia1716_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"paciasp_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"paciaz_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"pacib1716_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"pacibsp_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"pacibz_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"sev_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"sevl_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"wfe_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"wfi_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"xaflag_m_pstate", &Disassembler::DisassembleNoArgs},
+    {"xpaclri_hi_hints", &Disassembler::DisassembleNoArgs},
+    {"yield_hi_hints", &Disassembler::DisassembleNoArgs},
     {"smlal_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
     {"smlsl_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
     {"smull_asimdelem_l", &Disassembler::DisassembleNEONMulByElementLong},
@@ -1003,70 +1031,27 @@ void Disassembler::VisitConditionalBranch(const Instruction *instr) {
 
 void Disassembler::VisitUnconditionalBranchToRegister(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form;
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Xn";
 
-  switch (instr->Mask(UnconditionalBranchToRegisterMask)) {
-    case BR:
-      mnemonic = "br";
-      form = "'Xn";
-      break;
-    case BLR:
-      mnemonic = "blr";
-      form = "'Xn";
-      break;
-    case RET: {
-      mnemonic = "ret";
+  switch (form_hash_) {
+    case Hash("ret_64r_branch_reg"):
       if (instr->GetRn() == kLinkRegCode) {
-        form = NULL;
-      } else {
-        form = "'Xn";
+        form = "";
       }
       break;
-    }
-    case BRAAZ:
-      mnemonic = "braaz";
-      form = "'Xn";
+    case Hash("retaa_64e_branch_reg"):
+    case Hash("retab_64e_branch_reg"):
+      form = "";
       break;
-    case BRABZ:
-      mnemonic = "brabz";
-      form = "'Xn";
-      break;
-    case BLRAAZ:
-      mnemonic = "blraaz";
-      form = "'Xn";
-      break;
-    case BLRABZ:
-      mnemonic = "blrabz";
-      form = "'Xn";
-      break;
-    case RETAA:
-      mnemonic = "retaa";
-      form = NULL;
-      break;
-    case RETAB:
-      mnemonic = "retab";
-      form = NULL;
-      break;
-    case BRAA:
-      mnemonic = "braa";
+    case Hash("braa_64p_branch_reg"):
+    case Hash("brab_64p_branch_reg"):
+    case Hash("blraa_64p_branch_reg"):
+    case Hash("blrab_64p_branch_reg"):
       form = "'Xn, 'Xds";
       break;
-    case BRAB:
-      mnemonic = "brab";
-      form = "'Xn, 'Xds";
-      break;
-    case BLRAA:
-      mnemonic = "blraa";
-      form = "'Xn, 'Xds";
-      break;
-    case BLRAB:
-      mnemonic = "blrab";
-      form = "'Xn, 'Xds";
-      break;
-    default:
-      form = "(UnconditionalBranchToRegister)";
   }
+
   Format(instr, mnemonic, form);
 }
 
@@ -2461,183 +2446,85 @@ void Disassembler::VisitFPFixedPointConvert(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
-// clang-format off
-#define PAUTH_SYSTEM_MNEMONICS(V) \
-  V(PACIA1716, "pacia1716")       \
-  V(PACIB1716, "pacib1716")       \
-  V(AUTIA1716, "autia1716")       \
-  V(AUTIB1716, "autib1716")       \
-  V(PACIAZ,    "paciaz")          \
-  V(PACIASP,   "paciasp")         \
-  V(PACIBZ,    "pacibz")          \
-  V(PACIBSP,   "pacibsp")         \
-  V(AUTIAZ,    "autiaz")          \
-  V(AUTIASP,   "autiasp")         \
-  V(AUTIBZ,    "autibz")          \
-  V(AUTIBSP,   "autibsp")
-// clang-format on
+void Disassembler::DisassembleNoArgs(const Instruction *instr) {
+  Format(instr, mnemonic_.c_str(), "");
+}
 
 void Disassembler::VisitSystem(const Instruction *instr) {
-  // Some system instructions hijack their Op and Cp fields to represent a
-  // range of immediates instead of indicating a different instruction. This
-  // makes the decoding tricky.
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "(System)";
-  if (instr->GetInstructionBits() == XPACLRI) {
-    mnemonic = "xpaclri";
-    form = NULL;
-  } else if (instr->Mask(SystemPStateFMask) == SystemPStateFixed) {
-    switch (instr->Mask(SystemPStateMask)) {
-      case CFINV:
-        mnemonic = "cfinv";
-        form = NULL;
-        break;
-      case AXFLAG:
-        mnemonic = "axflag";
-        form = NULL;
-        break;
-      case XAFLAG:
-        mnemonic = "xaflag";
-        form = NULL;
-        break;
-    }
-  } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
-    switch (instr->Mask(SystemPAuthMask)) {
-#define PAUTH_CASE(NAME, MN) \
-  case NAME:                 \
-    mnemonic = MN;           \
-    form = NULL;             \
-    break;
+  const char *suffix = NULL;
 
-      PAUTH_SYSTEM_MNEMONICS(PAUTH_CASE)
-#undef PAUTH_CASE
-    }
-  } else if (instr->Mask(SystemExclusiveMonitorFMask) ==
-             SystemExclusiveMonitorFixed) {
-    switch (instr->Mask(SystemExclusiveMonitorMask)) {
-      case CLREX: {
-        mnemonic = "clrex";
-        form = (instr->GetCRm() == 0xf) ? NULL : "'IX";
-        break;
+  switch (form_hash_) {
+    case Hash("clrex_bn_barriers"):
+      form = (instr->GetCRm() == 0xf) ? "" : "'IX";
+      break;
+    case Hash("mrs_rs_systemmove"):
+      form = "'Xt, 'IY";
+      break;
+    case Hash("msr_si_pstate"):
+    case Hash("msr_sr_systemmove"):
+      form = "'IY, 'Xt";
+      break;
+    case Hash("bti_hb_hints"):
+      switch (instr->ExtractBits(7, 6)) {
+        case 0:
+          form = "";
+          break;
+        case 1:
+          form = "c";
+          break;
+        case 2:
+          form = "j";
+          break;
+        case 3:
+          form = "jc";
+          break;
       }
-    }
-  } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
-    switch (instr->Mask(SystemSysRegMask)) {
-      case MRS: {
-        mnemonic = "mrs";
-        form = "'Xt, 'IY";
-        break;
-      }
-      case MSR: {
-        mnemonic = "msr";
-        form = "'IY, 'Xt";
-        break;
-      }
-    }
-  } else if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
-    form = NULL;
-    switch (instr->GetImmHint()) {
-      case NOP:
-        mnemonic = "nop";
-        break;
-      case YIELD:
-        mnemonic = "yield";
-        break;
-      case WFE:
-        mnemonic = "wfe";
-        break;
-      case WFI:
-        mnemonic = "wfi";
-        break;
-      case SEV:
-        mnemonic = "sev";
-        break;
-      case SEVL:
-        mnemonic = "sevl";
-        break;
-      case ESB:
-        mnemonic = "esb";
-        break;
-      case CSDB:
-        mnemonic = "csdb";
-        break;
-      case BTI:
-        mnemonic = "bti";
-        break;
-      case BTI_c:
-        mnemonic = "bti c";
-        break;
-      case BTI_j:
-        mnemonic = "bti j";
-        break;
-      case BTI_jc:
-        mnemonic = "bti jc";
-        break;
-      default:
-        // Fall back to 'hint #<imm7>'.
-        form = "'IH";
-        mnemonic = "hint";
-        break;
-    }
-  } else if (instr->Mask(MemBarrierFMask) == MemBarrierFixed) {
-    switch (instr->Mask(MemBarrierMask)) {
-      case DMB: {
-        mnemonic = "dmb";
-        form = "'M";
-        break;
-      }
-      case DSB: {
-        mnemonic = "dsb";
-        form = "'M";
-        break;
-      }
-      case ISB: {
-        mnemonic = "isb";
-        form = NULL;
-        break;
-      }
-    }
-  } else if (instr->Mask(SystemSysFMask) == SystemSysFixed) {
-    switch (instr->GetSysOp()) {
-      case IVAU:
-        mnemonic = "ic";
-        form = "ivau, 'Xt";
-        break;
-      case CVAC:
-        mnemonic = "dc";
-        form = "cvac, 'Xt";
-        break;
-      case CVAU:
-        mnemonic = "dc";
-        form = "cvau, 'Xt";
-        break;
-      case CVAP:
-        mnemonic = "dc";
-        form = "cvap, 'Xt";
-        break;
-      case CVADP:
-        mnemonic = "dc";
-        form = "cvadp, 'Xt";
-        break;
-      case CIVAC:
-        mnemonic = "dc";
-        form = "civac, 'Xt";
-        break;
-      case ZVA:
-        mnemonic = "dc";
-        form = "zva, 'Xt";
-        break;
-      default:
-        mnemonic = "sys";
-        if (instr->GetRt() == 31) {
+      break;
+    case Hash("hint_hm_hints"):
+      form = "'IH";
+      break;
+    case Hash("dmb_bo_barriers"):
+    case Hash("dsb_bo_barriers"):
+      form = "'M";
+      break;
+    case Hash("sys_cr_systeminstrs"):
+      mnemonic = "dc";
+      suffix = ", 'Xt";
+      switch (instr->GetSysOp()) {
+        case IVAU:
+          mnemonic = "ic";
+          form = "ivau";
+          break;
+        case CVAC:
+          form = "cvac";
+          break;
+        case CVAU:
+          form = "cvau";
+          break;
+        case CVAP:
+          form = "cvap";
+          break;
+        case CVADP:
+          form = "cvadp";
+          break;
+        case CIVAC:
+          form = "civac";
+          break;
+        case ZVA:
+          form = "zva";
+          break;
+        default:
+          mnemonic = "sys";
           form = "'G1, 'Kn, 'Km, 'G2";
-        } else {
-          form = "'G1, 'Kn, 'Km, 'G2, 'Xt";
-        }
-        break;
-    }
+          if (instr->GetRt() == 31) {
+            suffix = NULL;
+          }
+          break;
+      }
   }
-  Format(instr, mnemonic, form);
+  Format(instr, mnemonic, form, suffix);
 }
 
 
@@ -10251,9 +10138,10 @@ void Disassembler::Format(const Instruction *instr,
                           const char *format0,
                           const char *format1) {
   VIXL_ASSERT(mnemonic != NULL);
+  VIXL_ASSERT(format0 != NULL);
   ResetOutput();
   Substitute(instr, mnemonic);
-  if (format0 != NULL) {
+  if (format0[0] != 0) {  // Not a zero-length string.
     VIXL_ASSERT(buffer_pos_ < buffer_size_);
     buffer_[buffer_pos_++] = ' ';
     Substitute(instr, format0);

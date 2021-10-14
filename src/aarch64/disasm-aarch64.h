@@ -191,6 +191,8 @@ class Disassembler : public DecoderVisitor {
   void DisassembleSVEFlogb(const Instruction* instr);
   void DisassembleSVEFPPair(const Instruction* instr);
 
+  void DisassembleNoArgs(const Instruction* instr);
+
   void DisassembleNEONMulByElementLong(const Instruction* instr);
   void DisassembleNEONDotProdByElement(const Instruction* instr);
   void DisassembleNEONFPMulByElement(const Instruction* instr);
