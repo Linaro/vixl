@@ -70,26 +70,31 @@ package is also installed.
 Supported Arm Architecture Features
 ===================================
 
-| Feature | VIXL CPUFeatures Flag | Notes                           |
-|---------|-----------------------|---------------------------------|
-| LOR     | kLORegions            |                                 |
-| LSE     | kAtomics              |                                 |
-| RDM     | kRDM                  |                                 |
-| DotProd | kDotProduct           |                                 |
-| FHM     | kFHM                  |                                 |
-| FP16    | kFPHalf, kNEONHalf    |                                 |
-| RAS     | kRAS                  |                                 |
-| SVE     | kSVE                  |                                 |
-| FCMA    | kFcma                 |                                 |
-| JSCVT   | kJSCVT                |                                 |
-| LRCPC   | kRCpc                 |                                 |
-| PAuth   | kPAuth, kPAuthGeneric | Not ERETAA, ERETAB              |
-| FlagM   | kFlagM                |                                 |
-| LRCPC2  | kRCpcImm              |                                 |
-| BTI     | kBTI                  | Per-page enabling not supported |
-| FRINTTS | kFrintToFixedSizedInt |                                 |
-| FlagM2  | kAXFlag               |                                 |
-| SVE2    | kSVE2                 |                                 |
+| Feature    | VIXL CPUFeatures Flag | Notes                           |
+|------------|-----------------------|---------------------------------|
+| BTI        | kBTI                  | Per-page enabling not supported |
+| DotProd    | kDotProduct           |                                 |
+| FCMA       | kFcma                 |                                 |
+| FHM        | kFHM                  |                                 |
+| FP16       | kFPHalf, kNEONHalf    |                                 |
+| FRINTTS    | kFrintToFixedSizedInt |                                 |
+| FlagM      | kFlagM                |                                 |
+| FlagM2     | kAXFlag               |                                 |
+| I8MM       | kI8MM                 |                                 |
+| JSCVT      | kJSCVT                |                                 |
+| LOR        | kLORegions            |                                 |
+| LRCPC      | kRCpc                 |                                 |
+| LRCPC2     | kRCpcImm              |                                 |
+| LSE        | kAtomics              |                                 |
+| PAuth      | kPAuth, kPAuthGeneric | Not ERETAA, ERETAB              |
+| RAS        | kRAS                  |                                 |
+| RDM        | kRDM                  |                                 |
+| SVE        | kSVE                  |                                 |
+| SVE2       | kSVE2                 |                                 |
+| SVEBitPerm | kSVEBitPerm           |                                 |
+| SVEF32MM   | kSVEF32MM             |                                 |
+| SVEF64MM   | kSVEF64MM             |                                 |
+| SVEI8MM    | kSVEI8MM              |                                 |
 
 Enable generating code for an architecture feature by combining a flag with
 the MacroAssembler's defaults. For example, to generate code for SVE, use

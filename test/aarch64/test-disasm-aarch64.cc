@@ -3700,12 +3700,12 @@ TEST(architecture_features) {
   // COMPARE_PREFIX(dci(0xd50320df), "dgh");   // DGH_HI_hints
 
   // ARMv8.6 - I8MM
-  // COMPARE_PREFIX(dci(0x0e809c00), "usdot");   // USDOT_asimdsame2_D
-  // COMPARE_PREFIX(dci(0x0f00f000), "sudot");   // SUDOT_asimdelem_D
-  // COMPARE_PREFIX(dci(0x0f80f000), "usdot");   // USDOT_asimdelem_D
-  // COMPARE_PREFIX(dci(0x4e80a400), "smmla");   // SMMLA_asimdsame2_G
-  // COMPARE_PREFIX(dci(0x4e80ac00), "usmmla");   // USMMLA_asimdsame2_G
-  // COMPARE_PREFIX(dci(0x6e80a400), "ummla");   // UMMLA_asimdsame2_G
+  COMPARE_PREFIX(dci(0x0e809c00), "usdot");   // USDOT_asimdsame2_D
+  COMPARE_PREFIX(dci(0x0f00f000), "sudot");   // SUDOT_asimdelem_D
+  COMPARE_PREFIX(dci(0x0f80f000), "usdot");   // USDOT_asimdelem_D
+  COMPARE_PREFIX(dci(0x4e80a400), "smmla");   // SMMLA_asimdsame2_G
+  COMPARE_PREFIX(dci(0x4e80ac00), "usmmla");  // USMMLA_asimdsame2_G
+  COMPARE_PREFIX(dci(0x6e80a400), "ummla");   // UMMLA_asimdsame2_G
 
   // ARMv8.7 - LS64
   // COMPARE_PREFIX(dci(0xf83f9000), "st64b");   // ST64B_64L_memop
