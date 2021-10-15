@@ -156,6 +156,40 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"fmls_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
     {"fmulx_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
     {"fmul_asimdelem_r_sd", &Disassembler::DisassembleNEONFPMulByElement},
+    {"mla_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"mls_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"mul_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"saba_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"sabd_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"shadd_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"shsub_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"smaxp_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"smax_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"sminp_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"smin_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"srhadd_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"uaba_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"uabd_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"uhadd_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"uhsub_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"umaxp_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"umax_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"uminp_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"umin_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"urhadd_asimdsame_only", &Disassembler::DisassembleNEON3SameNoD},
+    {"and_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"bic_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"bif_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"bit_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"bsl_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"eor_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"orr_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"orn_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"pmul_asimdsame_only", &Disassembler::DisassembleNEON3SameLogical},
+    {"fmlal2_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
+    {"fmlal_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
+    {"fmlsl2_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
+    {"fmlsl_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -2680,8 +2714,17 @@ void Disassembler::DisassembleNEON2RegFPConvert(const Instruction *instr) {
   static const NEONFormatMap map_cvt_tb = {{22, 30},
                                            {NF_4H, NF_8H, NF_2S, NF_4S}};
   NEONFormatDecoder nfd(instr, &map_cvt_tb, &map_cvt_ta);
-  if (form_hash_ == Hash("fcvtl_asimdmisc_l")) {
-    nfd.SetFormatMaps(&map_cvt_ta, &map_cvt_tb);
+
+  VectorFormat vform_dst = nfd.GetVectorFormat(0);
+  switch (form_hash_) {
+    case Hash("fcvtl_asimdmisc_l"):
+      nfd.SetFormatMaps(&map_cvt_ta, &map_cvt_tb);
+      break;
+    case Hash("fcvtxn_asimdmisc_n"):
+      if ((vform_dst != kFormat2S) && (vform_dst != kFormat4S)) {
+        mnemonic = NULL;
+      }
+      break;
   }
   Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
 }
@@ -2732,6 +2775,38 @@ void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Vd.%s, 'Vn.%s";
   NEONFormatDecoder nfd(instr);
+
+  VectorFormat vform_dst = nfd.GetVectorFormat(0);
+  if (vform_dst != kFormatUndefined) {
+    uint32_t ls_dst = LaneSizeInBitsFromFormat(vform_dst);
+    switch (form_hash_) {
+      case Hash("cnt_asimdmisc_r"):
+      case Hash("rev16_asimdmisc_r"):
+        if (ls_dst != kBRegSize) {
+          mnemonic = NULL;
+        }
+        break;
+      case Hash("rev32_asimdmisc_r"):
+        if ((ls_dst == kDRegSize) || (ls_dst == kSRegSize)) {
+          mnemonic = NULL;
+        }
+        break;
+      case Hash("urecpe_asimdmisc_r"):
+      case Hash("ursqrte_asimdmisc_r"):
+        // For urecpe and ursqrte, only S-sized elements are supported. The MSB
+        // of the size field is always set by the instruction (0b1x) so we need
+        // only check and discard D-sized elements here.
+        VIXL_ASSERT((ls_dst == kSRegSize) || (ls_dst == kDRegSize));
+        VIXL_FALLTHROUGH();
+      case Hash("clz_asimdmisc_r"):
+      case Hash("cls_asimdmisc_r"):
+      case Hash("rev64_asimdmisc_r"):
+        if (ls_dst == kDRegSize) {
+          mnemonic = NULL;
+        }
+        break;
+    }
+  }
 
   Format(instr, mnemonic, nfd.Substitute(form));
 }
@@ -2803,221 +2878,54 @@ void Disassembler::VisitNEON2RegMiscFP16(const Instruction *instr) {
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
+void Disassembler::DisassembleNEON3SameLogical(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
+
+  if ((form_hash_ == Hash("orr_asimdsame_only")) &&
+      (instr->GetRm() == instr->GetRn())) {
+    mnemonic = "mov";
+    form = "'Vd.%s, 'Vn.%s";
+  }
+  Format(instr, mnemonic, nfd.Substitute(form));
+}
+
+void Disassembler::DisassembleNEON3SameFHM(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.'?30:42s, 'Vn.'?30:42h, 'Vm.'?30:42h";
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::DisassembleNEON3SameNoD(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  static const NEONFormatMap map =
+      {{23, 22, 30},
+       {NF_8B, NF_16B, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_UNDEF}};
+  NEONFormatDecoder nfd(instr, &map);
+  Format(instr, mnemonic, nfd.Substitute(form));
+}
 
 void Disassembler::VisitNEON3Same(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
   NEONFormatDecoder nfd(instr);
 
-  if (instr->Mask(NEON3SameLogicalFMask) == NEON3SameLogicalFixed) {
-    switch (instr->Mask(NEON3SameLogicalMask)) {
-      case NEON_AND:
-        mnemonic = "and";
-        break;
-      case NEON_ORR:
-        mnemonic = "orr";
-        if (instr->GetRm() == instr->GetRn()) {
-          mnemonic = "mov";
-          form = "'Vd.%s, 'Vn.%s";
+  if (instr->Mask(NEON3SameFPFMask) == NEON3SameFPFixed) {
+    nfd.SetFormatMaps(nfd.FPFormatMap());
+  }
+
+  VectorFormat vform_dst = nfd.GetVectorFormat(0);
+  if (vform_dst != kFormatUndefined) {
+    uint32_t ls_dst = LaneSizeInBitsFromFormat(vform_dst);
+    switch (form_hash_) {
+      case Hash("sqdmulh_asimdsame_only"):
+      case Hash("sqrdmulh_asimdsame_only"):
+        if ((ls_dst == kBRegSize) || (ls_dst == kDRegSize)) {
+          mnemonic = NULL;
         }
         break;
-      case NEON_ORN:
-        mnemonic = "orn";
-        break;
-      case NEON_EOR:
-        mnemonic = "eor";
-        break;
-      case NEON_BIC:
-        mnemonic = "bic";
-        break;
-      case NEON_BIF:
-        mnemonic = "bif";
-        break;
-      case NEON_BIT:
-        mnemonic = "bit";
-        break;
-      case NEON_BSL:
-        mnemonic = "bsl";
-        break;
-      default:
-        form = "(NEON3Same)";
-    }
-    nfd.SetFormatMaps(nfd.LogicalFormatMap());
-  } else {
-    static const char kUnknown[] = "unallocated";
-    static const char *mnemonics[] = {"shadd",
-                                      "uhadd",
-                                      "shadd",
-                                      "uhadd",
-                                      "sqadd",
-                                      "uqadd",
-                                      "sqadd",
-                                      "uqadd",
-                                      "srhadd",
-                                      "urhadd",
-                                      "srhadd",
-                                      "urhadd",
-                                      // Handled by logical cases above.
-                                      NULL,
-                                      NULL,
-                                      NULL,
-                                      NULL,
-                                      "shsub",
-                                      "uhsub",
-                                      "shsub",
-                                      "uhsub",
-                                      "sqsub",
-                                      "uqsub",
-                                      "sqsub",
-                                      "uqsub",
-                                      "cmgt",
-                                      "cmhi",
-                                      "cmgt",
-                                      "cmhi",
-                                      "cmge",
-                                      "cmhs",
-                                      "cmge",
-                                      "cmhs",
-                                      "sshl",
-                                      "ushl",
-                                      "sshl",
-                                      "ushl",
-                                      "sqshl",
-                                      "uqshl",
-                                      "sqshl",
-                                      "uqshl",
-                                      "srshl",
-                                      "urshl",
-                                      "srshl",
-                                      "urshl",
-                                      "sqrshl",
-                                      "uqrshl",
-                                      "sqrshl",
-                                      "uqrshl",
-                                      "smax",
-                                      "umax",
-                                      "smax",
-                                      "umax",
-                                      "smin",
-                                      "umin",
-                                      "smin",
-                                      "umin",
-                                      "sabd",
-                                      "uabd",
-                                      "sabd",
-                                      "uabd",
-                                      "saba",
-                                      "uaba",
-                                      "saba",
-                                      "uaba",
-                                      "add",
-                                      "sub",
-                                      "add",
-                                      "sub",
-                                      "cmtst",
-                                      "cmeq",
-                                      "cmtst",
-                                      "cmeq",
-                                      "mla",
-                                      "mls",
-                                      "mla",
-                                      "mls",
-                                      "mul",
-                                      "pmul",
-                                      "mul",
-                                      "pmul",
-                                      "smaxp",
-                                      "umaxp",
-                                      "smaxp",
-                                      "umaxp",
-                                      "sminp",
-                                      "uminp",
-                                      "sminp",
-                                      "uminp",
-                                      "sqdmulh",
-                                      "sqrdmulh",
-                                      "sqdmulh",
-                                      "sqrdmulh",
-                                      "addp",
-                                      kUnknown,
-                                      "addp",
-                                      kUnknown,
-                                      "fmaxnm",
-                                      "fmaxnmp",
-                                      "fminnm",
-                                      "fminnmp",
-                                      "fmla",
-                                      kUnknown,  // FMLAL2 or unallocated
-                                      "fmls",
-                                      kUnknown,  // FMLSL2 or unallocated
-                                      "fadd",
-                                      "faddp",
-                                      "fsub",
-                                      "fabd",
-                                      "fmulx",
-                                      "fmul",
-                                      kUnknown,
-                                      kUnknown,
-                                      "fcmeq",
-                                      "fcmge",
-                                      kUnknown,
-                                      "fcmgt",
-                                      kUnknown,  // FMLAL or unallocated
-                                      "facge",
-                                      kUnknown,  // FMLSL or unallocated
-                                      "facgt",
-                                      "fmax",
-                                      "fmaxp",
-                                      "fmin",
-                                      "fminp",
-                                      "frecps",
-                                      "fdiv",
-                                      "frsqrts",
-                                      kUnknown};
-
-    // Operation is determined by the opcode bits (15-11), the top bit of
-    // size (23) and the U bit (29).
-    unsigned index = (instr->ExtractBits(15, 11) << 2) |
-                     (instr->ExtractBit(23) << 1) | instr->ExtractBit(29);
-    VIXL_ASSERT(index < ArrayLength(mnemonics));
-    mnemonic = mnemonics[index];
-    // Assert that index is not one of the previously handled logical
-    // instructions.
-    VIXL_ASSERT(mnemonic != NULL);
-
-    if (mnemonic == kUnknown) {
-      // Catch special cases where we need to check more bits than we have in
-      // the table index. Anything not matched here is unallocated.
-
-      const char *fhm_form = (instr->Mask(NEON_Q) == 0)
-                                 ? "'Vd.2s, 'Vn.2h, 'Vm.2h"
-                                 : "'Vd.4s, 'Vn.4h, 'Vm.4h";
-      switch (instr->Mask(NEON3SameFHMMask)) {
-        case NEON_FMLAL:
-          mnemonic = "fmlal";
-          form = fhm_form;
-          break;
-        case NEON_FMLAL2:
-          mnemonic = "fmlal2";
-          form = fhm_form;
-          break;
-        case NEON_FMLSL:
-          mnemonic = "fmlsl";
-          form = fhm_form;
-          break;
-        case NEON_FMLSL2:
-          mnemonic = "fmlsl2";
-          form = fhm_form;
-          break;
-        default:
-          VIXL_ASSERT(strcmp(mnemonic, "unallocated") == 0);
-          form = "(NEON3Same)";
-          break;
-      }
-    }
-
-    if (instr->Mask(NEON3SameFPFMask) == NEON3SameFPFixed) {
-      nfd.SetFormatMaps(nfd.FPFormatMap());
     }
   }
   Format(instr, mnemonic, nfd.Substitute(form));
