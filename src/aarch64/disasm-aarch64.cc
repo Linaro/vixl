@@ -3008,106 +3008,31 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
 
 
 void Disassembler::VisitNEON3Different(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
 
   NEONFormatDecoder nfd(instr);
   nfd.SetFormatMap(0, nfd.LongIntegerFormatMap());
 
-  // Ignore the Q bit. Appending a "2" suffix is handled later.
-  switch (instr->Mask(NEON3DifferentMask) & ~NEON_Q) {
-    case NEON_PMULL:
-      mnemonic = "pmull";
-      break;
-    case NEON_SABAL:
-      mnemonic = "sabal";
-      break;
-    case NEON_SABDL:
-      mnemonic = "sabdl";
-      break;
-    case NEON_SADDL:
-      mnemonic = "saddl";
-      break;
-    case NEON_SMLAL:
-      mnemonic = "smlal";
-      break;
-    case NEON_SMLSL:
-      mnemonic = "smlsl";
-      break;
-    case NEON_SMULL:
-      mnemonic = "smull";
-      break;
-    case NEON_SSUBL:
-      mnemonic = "ssubl";
-      break;
-    case NEON_SQDMLAL:
-      mnemonic = "sqdmlal";
-      break;
-    case NEON_SQDMLSL:
-      mnemonic = "sqdmlsl";
-      break;
-    case NEON_SQDMULL:
-      mnemonic = "sqdmull";
-      break;
-    case NEON_UABAL:
-      mnemonic = "uabal";
-      break;
-    case NEON_UABDL:
-      mnemonic = "uabdl";
-      break;
-    case NEON_UADDL:
-      mnemonic = "uaddl";
-      break;
-    case NEON_UMLAL:
-      mnemonic = "umlal";
-      break;
-    case NEON_UMLSL:
-      mnemonic = "umlsl";
-      break;
-    case NEON_UMULL:
-      mnemonic = "umull";
-      break;
-    case NEON_USUBL:
-      mnemonic = "usubl";
-      break;
-    case NEON_SADDW:
-      mnemonic = "saddw";
+  switch (form_hash_) {
+    case Hash("saddw_asimddiff_w"):
+    case Hash("ssubw_asimddiff_w"):
+    case Hash("uaddw_asimddiff_w"):
+    case Hash("usubw_asimddiff_w"):
       nfd.SetFormatMap(1, nfd.LongIntegerFormatMap());
       break;
-    case NEON_SSUBW:
-      mnemonic = "ssubw";
-      nfd.SetFormatMap(1, nfd.LongIntegerFormatMap());
-      break;
-    case NEON_UADDW:
-      mnemonic = "uaddw";
-      nfd.SetFormatMap(1, nfd.LongIntegerFormatMap());
-      break;
-    case NEON_USUBW:
-      mnemonic = "usubw";
-      nfd.SetFormatMap(1, nfd.LongIntegerFormatMap());
-      break;
-    case NEON_ADDHN:
-      mnemonic = "addhn";
+    case Hash("addhn_asimddiff_n"):
+    case Hash("raddhn_asimddiff_n"):
+    case Hash("rsubhn_asimddiff_n"):
+    case Hash("subhn_asimddiff_n"):
       nfd.SetFormatMaps(nfd.LongIntegerFormatMap());
       nfd.SetFormatMap(0, nfd.IntegerFormatMap());
       break;
-    case NEON_RADDHN:
-      mnemonic = "raddhn";
-      nfd.SetFormatMaps(nfd.LongIntegerFormatMap());
-      nfd.SetFormatMap(0, nfd.IntegerFormatMap());
+    case Hash("pmull_asimddiff_l"):
+      if (nfd.GetVectorFormat(0) != kFormat8H) {
+        mnemonic = NULL;
+      }
       break;
-    case NEON_RSUBHN:
-      mnemonic = "rsubhn";
-      nfd.SetFormatMaps(nfd.LongIntegerFormatMap());
-      nfd.SetFormatMap(0, nfd.IntegerFormatMap());
-      break;
-    case NEON_SUBHN:
-      mnemonic = "subhn";
-      nfd.SetFormatMaps(nfd.LongIntegerFormatMap());
-      nfd.SetFormatMap(0, nfd.IntegerFormatMap());
-      break;
-    default:
-      form = "(NEON3Different)";
   }
   Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
 }
@@ -3316,12 +3241,11 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
 
 
 void Disassembler::VisitNEONExtract(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(NEONExtract)";
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVExtract";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
-  if (instr->Mask(NEONExtractMask) == NEON_EXT) {
-    mnemonic = "ext";
-    form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVExtract";
+  if ((instr->GetImmNEONExt() > 7) && (instr->GetNEONQ() == 0)) {
+    mnemonic = NULL;
   }
   Format(instr, mnemonic, nfd.Substitute(form));
 }
