@@ -190,6 +190,29 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"fmlal_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
     {"fmlsl2_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
     {"fmlsl_asimdsame_f", &Disassembler::DisassembleNEON3SameFHM},
+    {"sri_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"srshr_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"srsra_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"sshr_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"ssra_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"urshr_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"ursra_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"ushr_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"usra_asimdshf_r", &Disassembler::DisassembleNEONShiftRightImm},
+    {"scvtf_asimdshf_c", &Disassembler::DisassembleNEONShiftRightImm},
+    {"ucvtf_asimdshf_c", &Disassembler::DisassembleNEONShiftRightImm},
+    {"fcvtzs_asimdshf_c", &Disassembler::DisassembleNEONShiftRightImm},
+    {"fcvtzu_asimdshf_c", &Disassembler::DisassembleNEONShiftRightImm},
+    {"ushll_asimdshf_l", &Disassembler::DisassembleNEONShiftLeftLongImm},
+    {"sshll_asimdshf_l", &Disassembler::DisassembleNEONShiftLeftLongImm},
+    {"shrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"rshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"sqshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"sqrshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"sqshrun_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"sqrshrun_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"uqshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"uqrshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -3033,6 +3056,13 @@ void Disassembler::VisitNEON3Different(const Instruction *instr) {
         mnemonic = NULL;
       }
       break;
+    case Hash("sqdmlal_asimddiff_l"):
+    case Hash("sqdmlsl_asimddiff_l"):
+    case Hash("sqdmull_asimddiff_l"):
+      if (nfd.GetVectorFormat(0) == kFormat8H) {
+        mnemonic = NULL;
+      }
+      break;
   }
   Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
 }
@@ -3131,11 +3161,12 @@ void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
 
 void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
   const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
-  // TODO: Disallow undefined element types for this instruction.
-  NEONFormatDecoder nfd(instr,
-                        NEONFormatDecoder::IntegerFormatMap(),
-                        NEONFormatDecoder::IntegerFormatMap(),
-                        NEONFormatDecoder::ScalarFormatMap());
+  static const NEONFormatMap map_v =
+      {{23, 22, 30},
+       {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_UNDEF}};
+  static const NEONFormatMap map_s = {{23, 22},
+                                      {NF_UNDEF, NF_H, NF_S, NF_UNDEF}};
+  NEONFormatDecoder nfd(instr, &map_v, &map_v, &map_s);
   Format(instr, mnemonic_.c_str(), nfd.Substitute(form));
 }
 
@@ -4379,8 +4410,8 @@ void Disassembler::VisitNEONScalarPairwise(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
   const char *mnemonic = "unimplemented";
-  const char *form = "%sd, %sn, 'Is1";
-  const char *form_2 = "%sd, %sn, 'Is2";
+  const char *form = "%sd, %sn, 'IsR";
+  const char *form_2 = "%sd, %sn, 'IsL";
 
   static const NEONFormatMap map_shift = {{22, 21, 20, 19},
                                           {NF_UNDEF,
@@ -4497,151 +4528,62 @@ void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
 
+void Disassembler::DisassembleNEONShiftLeftLongImm(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *suffix = ", 'IsL";
+
+  NEONFormatDecoder nfd(instr,
+                        NEONFormatDecoder::ShiftLongNarrowImmFormatMap(),
+                        NEONFormatDecoder::ShiftImmFormatMap());
+
+  if (instr->GetImmNEONImmb() == 0 &&
+      CountSetBits(instr->GetImmNEONImmh(), 32) == 1) {  // xtl variant.
+    VIXL_ASSERT((form_hash_ == Hash("sshll_asimdshf_l")) ||
+                (form_hash_ == Hash("ushll_asimdshf_l")));
+    mnemonic = (form_hash_ == Hash("sshll_asimdshf_l")) ? "sxtl" : "uxtl";
+    suffix = NULL;
+  }
+  Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form), suffix);
+}
+
+void Disassembler::DisassembleNEONShiftRightImm(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'IsR";
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::ShiftImmFormatMap());
+
+  VectorFormat vform_dst = nfd.GetVectorFormat(0);
+  if (vform_dst != kFormatUndefined) {
+    uint32_t ls_dst = LaneSizeInBitsFromFormat(vform_dst);
+    switch (form_hash_) {
+      case Hash("scvtf_asimdshf_c"):
+      case Hash("ucvtf_asimdshf_c"):
+      case Hash("fcvtzs_asimdshf_c"):
+      case Hash("fcvtzu_asimdshf_c"):
+        if (ls_dst == kBRegSize) {
+          mnemonic = NULL;
+        }
+        break;
+    }
+  }
+  Format(instr, mnemonic, nfd.Substitute(form));
+}
+
+void Disassembler::DisassembleNEONShiftRightNarrowImm(
+    const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'IsR";
+
+  NEONFormatDecoder nfd(instr,
+                        NEONFormatDecoder::ShiftImmFormatMap(),
+                        NEONFormatDecoder::ShiftLongNarrowImmFormatMap());
+  Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
+}
 
 void Disassembler::VisitNEONShiftImmediate(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Vd.%s, 'Vn.%s, 'Is1";
-  const char *form_shift_2 = "'Vd.%s, 'Vn.%s, 'Is2";
-  const char *form_xtl = "'Vd.%s, 'Vn.%s";
-
-  // 0001->8H, 001x->4S, 01xx->2D, all others undefined.
-  static const NEONFormatMap map_shift_ta =
-      {{22, 21, 20, 19},
-       {NF_UNDEF, NF_8H, NF_4S, NF_4S, NF_2D, NF_2D, NF_2D, NF_2D}};
-
-  // 00010->8B, 00011->16B, 001x0->4H, 001x1->8H,
-  // 01xx0->2S, 01xx1->4S, 1xxx1->2D, all others undefined.
-  static const NEONFormatMap map_shift_tb =
-      {{22, 21, 20, 19, 30},
-       {NF_UNDEF, NF_UNDEF, NF_8B,    NF_16B,   NF_4H,    NF_8H,    NF_4H,
-        NF_8H,    NF_2S,    NF_4S,    NF_2S,    NF_4S,    NF_2S,    NF_4S,
-        NF_2S,    NF_4S,    NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,    NF_UNDEF,
-        NF_2D,    NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
-        NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D}};
-
-  NEONFormatDecoder nfd(instr, &map_shift_tb);
-
-  if (instr->GetImmNEONImmh()) {  // immh has to be non-zero.
-    switch (instr->Mask(NEONShiftImmediateMask)) {
-      case NEON_SQSHLU:
-        mnemonic = "sqshlu";
-        form = form_shift_2;
-        break;
-      case NEON_SQSHL_imm:
-        mnemonic = "sqshl";
-        form = form_shift_2;
-        break;
-      case NEON_UQSHL_imm:
-        mnemonic = "uqshl";
-        form = form_shift_2;
-        break;
-      case NEON_SHL:
-        mnemonic = "shl";
-        form = form_shift_2;
-        break;
-      case NEON_SLI:
-        mnemonic = "sli";
-        form = form_shift_2;
-        break;
-      case NEON_SCVTF_imm:
-        mnemonic = "scvtf";
-        break;
-      case NEON_UCVTF_imm:
-        mnemonic = "ucvtf";
-        break;
-      case NEON_FCVTZU_imm:
-        mnemonic = "fcvtzu";
-        break;
-      case NEON_FCVTZS_imm:
-        mnemonic = "fcvtzs";
-        break;
-      case NEON_SRI:
-        mnemonic = "sri";
-        break;
-      case NEON_SSHR:
-        mnemonic = "sshr";
-        break;
-      case NEON_USHR:
-        mnemonic = "ushr";
-        break;
-      case NEON_SRSHR:
-        mnemonic = "srshr";
-        break;
-      case NEON_URSHR:
-        mnemonic = "urshr";
-        break;
-      case NEON_SSRA:
-        mnemonic = "ssra";
-        break;
-      case NEON_USRA:
-        mnemonic = "usra";
-        break;
-      case NEON_SRSRA:
-        mnemonic = "srsra";
-        break;
-      case NEON_URSRA:
-        mnemonic = "ursra";
-        break;
-      case NEON_SHRN:
-        mnemonic = instr->Mask(NEON_Q) ? "shrn2" : "shrn";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_RSHRN:
-        mnemonic = instr->Mask(NEON_Q) ? "rshrn2" : "rshrn";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_UQSHRN:
-        mnemonic = instr->Mask(NEON_Q) ? "uqshrn2" : "uqshrn";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_UQRSHRN:
-        mnemonic = instr->Mask(NEON_Q) ? "uqrshrn2" : "uqrshrn";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_SQSHRN:
-        mnemonic = instr->Mask(NEON_Q) ? "sqshrn2" : "sqshrn";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_SQRSHRN:
-        mnemonic = instr->Mask(NEON_Q) ? "sqrshrn2" : "sqrshrn";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_SQSHRUN:
-        mnemonic = instr->Mask(NEON_Q) ? "sqshrun2" : "sqshrun";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_SQRSHRUN:
-        mnemonic = instr->Mask(NEON_Q) ? "sqrshrun2" : "sqrshrun";
-        nfd.SetFormatMap(1, &map_shift_ta);
-        break;
-      case NEON_SSHLL:
-        nfd.SetFormatMap(0, &map_shift_ta);
-        if (instr->GetImmNEONImmb() == 0 &&
-            CountSetBits(instr->GetImmNEONImmh(), 32) == 1) {  // sxtl variant.
-          form = form_xtl;
-          mnemonic = instr->Mask(NEON_Q) ? "sxtl2" : "sxtl";
-        } else {  // sshll variant.
-          form = form_shift_2;
-          mnemonic = instr->Mask(NEON_Q) ? "sshll2" : "sshll";
-        }
-        break;
-      case NEON_USHLL:
-        nfd.SetFormatMap(0, &map_shift_ta);
-        if (instr->GetImmNEONImmb() == 0 &&
-            CountSetBits(instr->GetImmNEONImmh(), 32) == 1) {  // uxtl variant.
-          form = form_xtl;
-          mnemonic = instr->Mask(NEON_Q) ? "uxtl2" : "uxtl";
-        } else {  // ushll variant.
-          form = form_shift_2;
-          mnemonic = instr->Mask(NEON_Q) ? "ushll2" : "ushll";
-        }
-        break;
-      default:
-        form = "(NEONShiftImmediate)";
-    }
-  } else {
-    form = "(NEONShiftImmediate)";
-  }
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Vd.%s, 'Vn.%s, 'IsL";
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::ShiftImmFormatMap());
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
@@ -10351,13 +10293,13 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 's': {  // Is - Shift (immediate).
       switch (format[2]) {
-        case '1': {  // Is1 - SSHR.
+        case 'R': {  // IsR - right shifts.
           int shift = 16 << HighestSetBitPosition(instr->GetImmNEONImmh());
           shift -= instr->GetImmNEONImmhImmb();
           AppendToOutput("#%d", shift);
           return 3;
         }
-        case '2': {  // Is2 - SLI.
+        case 'L': {  // IsL - left shifts.
           int shift = instr->GetImmNEONImmhImmb();
           shift -= 8 << HighestSetBitPosition(instr->GetImmNEONImmh());
           AppendToOutput("#%d", shift);

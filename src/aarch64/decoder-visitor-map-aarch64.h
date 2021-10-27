@@ -2580,34 +2580,11 @@
       {"ursra_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
       {"ushr_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},       \
       {"usra_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},       \
-      {"fcvtzs_asimdshf_c", &VISITORCLASS::VisitNEONShiftImmediate},           \
-      {"fcvtzu_asimdshf_c", &VISITORCLASS::VisitNEONShiftImmediate},           \
-      {"rshrn_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"scvtf_asimdshf_c", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"shl_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},              \
-      {"shrn_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},             \
-      {"sli_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},              \
-      {"sqrshrn_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},          \
-      {"sqrshrun_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},         \
       {"sqshlu_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},           \
       {"sqshl_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"sqshrn_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},           \
-      {"sqshrun_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},          \
-      {"sri_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},              \
-      {"srshr_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"srsra_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"sshll_asimdshf_l", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"sshr_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},             \
-      {"ssra_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},             \
-      {"ucvtf_asimdshf_c", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"uqrshrn_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},          \
       {"uqshl_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"uqshrn_asimdshf_n", &VISITORCLASS::VisitNEONShiftImmediate},           \
-      {"urshr_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"ursra_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"ushll_asimdshf_l", &VISITORCLASS::VisitNEONShiftImmediate},            \
-      {"ushr_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},             \
-      {"usra_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},             \
+      {"shl_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},              \
+      {"sli_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},              \
       {"tbl_asimdtbl_l1_1", &VISITORCLASS::VisitNEONTable},                    \
       {"tbl_asimdtbl_l2_2", &VISITORCLASS::VisitNEONTable},                    \
       {"tbl_asimdtbl_l3_3", &VISITORCLASS::VisitNEONTable},                    \

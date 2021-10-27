@@ -929,6 +929,33 @@ class NEONFormatDecoder {
     return &map;
   }
 
+  // The shift immediate map uses between two and five bits to encode the NEON
+  // vector format:
+  // 00010->8B, 00011->16B, 001x0->4H, 001x1->8H,
+  // 01xx0->2S, 01xx1->4S, 1xxx1->2D, all others undefined.
+  static const NEONFormatMap* ShiftImmFormatMap() {
+    static const NEONFormatMap map = {{22, 21, 20, 19, 30},
+                                      {NF_UNDEF, NF_UNDEF, NF_8B,    NF_16B,
+                                       NF_4H,    NF_8H,    NF_4H,    NF_8H,
+                                       NF_2S,    NF_4S,    NF_2S,    NF_4S,
+                                       NF_2S,    NF_4S,    NF_2S,    NF_4S,
+                                       NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
+                                       NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
+                                       NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D,
+                                       NF_UNDEF, NF_2D,    NF_UNDEF, NF_2D}};
+    return &map;
+  }
+
+  // The shift long/narrow immediate map uses between two and four bits to
+  // encode the NEON vector format:
+  // 0001->8H, 001x->4S, 01xx->2D, all others undefined.
+  static const NEONFormatMap* ShiftLongNarrowImmFormatMap() {
+    static const NEONFormatMap map =
+        {{22, 21, 20, 19},
+         {NF_UNDEF, NF_8H, NF_4S, NF_4S, NF_2D, NF_2D, NF_2D, NF_2D}};
+    return &map;
+  }
+
   // The scalar format map uses two bits (size<1:0>) to encode the NEON scalar
   // formats: NF_B, NF_H, NF_S, NF_D.
   static const NEONFormatMap* ScalarFormatMap() {
