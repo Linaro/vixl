@@ -10679,24 +10679,29 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         }
         case 'B': {  // IVByElemIndex.
           int ret = strlen("IVByElemIndex");
-          int vm_index = (instr->GetNEONH() << 1) | instr->GetNEONL();
+          uint32_t vm_index = instr->GetNEONH() << 2;
+          vm_index |= instr->GetNEONL() << 1;
+          vm_index |= instr->GetNEONM();
+
           static const char *format_rot = "IVByElemIndexRot";
           static const char *format_fhm = "IVByElemIndexFHM";
-          bool is_fhm = strncmp(format, format_fhm, strlen(format_fhm)) == 0;
           if (strncmp(format, format_rot, strlen(format_rot)) == 0) {
             // FCMLA uses 'H' bit index when SIZE is 2, else H:L
-            if (instr->GetNEONSize() == 2) {
-              vm_index = instr->GetNEONH();
-            }
+            VIXL_ASSERT((instr->GetNEONSize() == 1) ||
+                        (instr->GetNEONSize() == 2));
+            vm_index >>= instr->GetNEONSize();
             ret = static_cast<int>(strlen(format_rot));
-          } else if (is_fhm || (instr->GetNEONSize() == 0)) {
-            // Half-precision FP ops use H:L:M bit index
-            // Widening operations with H-sized operands also use H:L:M.
-            vm_index = (instr->GetNEONH() << 2) | (instr->GetNEONL() << 1) |
-                       instr->GetNEONM();
-            if (is_fhm) ret = static_cast<int>(strlen(format_fhm));
-          } else if (instr->GetNEONSize() == 1) {
-            vm_index = (vm_index << 1) | instr->GetNEONM();
+          } else if (strncmp(format, format_fhm, strlen(format_fhm)) == 0) {
+            // Nothing to do - FMLAL and FMLSL use H:L:M.
+            ret = static_cast<int>(strlen(format_fhm));
+          } else {
+            if (instr->GetNEONSize() == 2) {
+              // S-sized elements use H:L.
+              vm_index >>= 1;
+            } else if (instr->GetNEONSize() == 3) {
+              // D-sized elements use H.
+              vm_index >>= 2;
+            }
           }
           AppendToOutput("%d", vm_index);
           return ret;
