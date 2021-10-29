@@ -2524,20 +2524,7 @@
       {"fmulx_asisdsamefp16_only", &VISITORCLASS::VisitNEONScalar3SameFP16},   \
       {"frecps_asisdsamefp16_only", &VISITORCLASS::VisitNEONScalar3SameFP16},  \
       {"frsqrts_asisdsamefp16_only", &VISITORCLASS::VisitNEONScalar3SameFP16}, \
-      {"fmla_asisdelem_rh_h", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"fmla_asisdelem_r_sd", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"fmls_asisdelem_rh_h", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"fmls_asisdelem_r_sd", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"fmulx_asisdelem_rh_h",                                                 \
-       &VISITORCLASS::VisitNEONScalarByIndexedElement},                        \
-      {"fmulx_asisdelem_r_sd",                                                 \
-       &VISITORCLASS::VisitNEONScalarByIndexedElement},                        \
-      {"fmul_asisdelem_rh_h", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"fmul_asisdelem_r_sd", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"sqdmlal_asisdelem_l", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"sqdmlsl_asisdelem_l", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
       {"sqdmulh_asisdelem_r", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
-      {"sqdmull_asisdelem_l", &VISITORCLASS::VisitNEONScalarByIndexedElement}, \
       {"sqrdmlah_asisdelem_r",                                                 \
        &VISITORCLASS::VisitNEONScalarByIndexedElement},                        \
       {"sqrdmlsh_asisdelem_r",                                                 \

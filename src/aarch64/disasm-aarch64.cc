@@ -213,6 +213,20 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"sqrshrun_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
     {"uqshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
     {"uqrshrn_asimdshf_n", &Disassembler::DisassembleNEONShiftRightNarrowImm},
+    {"sqdmlal_asisdelem_l",
+     &Disassembler::DisassembleNEONScalarSatMulLongIndex},
+    {"sqdmlsl_asisdelem_l",
+     &Disassembler::DisassembleNEONScalarSatMulLongIndex},
+    {"sqdmull_asisdelem_l",
+     &Disassembler::DisassembleNEONScalarSatMulLongIndex},
+    {"fmla_asisdelem_rh_h", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmla_asisdelem_r_sd", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmls_asisdelem_rh_h", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmls_asisdelem_r_sd", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmulx_asisdelem_rh_h", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmulx_asisdelem_r_sd", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmul_asisdelem_rh_h", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fmul_asisdelem_r_sd", &Disassembler::DisassembleNEONFPScalarMulIndex},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -4066,24 +4080,13 @@ void Disassembler::VisitNEONScalar2RegMiscFP16(const Instruction *instr) {
 
 
 void Disassembler::VisitNEONScalar3Diff(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "%sd, %sn, %sm";
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::LongScalarFormatMap(),
                         NEONFormatDecoder::ScalarFormatMap());
-
-  switch (instr->Mask(NEONScalar3DiffMask)) {
-    case NEON_SQDMLAL_scalar:
-      mnemonic = "sqdmlal";
-      break;
-    case NEON_SQDMLSL_scalar:
-      mnemonic = "sqdmlsl";
-      break;
-    case NEON_SQDMULL_scalar:
-      mnemonic = "sqdmull";
-      break;
-    default:
-      form = "(NEONScalar3Diff)";
+  if (nfd.GetVectorFormat(0) == kFormatH) {
+    mnemonic = NULL;
   }
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
@@ -4258,79 +4261,35 @@ void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
 
+void Disassembler::DisassembleNEONScalarSatMulLongIndex(
+    const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
+  NEONFormatDecoder nfd(instr,
+                        NEONFormatDecoder::LongScalarFormatMap(),
+                        NEONFormatDecoder::ScalarFormatMap());
+  if (nfd.GetVectorFormat(0) == kFormatH) {
+    mnemonic = NULL;
+  }
+  Format(instr,
+         mnemonic,
+         nfd.Substitute(form, nfd.kPlaceholder, nfd.kPlaceholder, nfd.kFormat));
+}
+
+void Disassembler::DisassembleNEONFPScalarMulIndex(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
+  static const NEONFormatMap map = {{23, 22}, {NF_H, NF_UNDEF, NF_S, NF_D}};
+  NEONFormatDecoder nfd(instr, &map);
+  Format(instr,
+         mnemonic,
+         nfd.Substitute(form, nfd.kPlaceholder, nfd.kPlaceholder, nfd.kFormat));
+}
 
 void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
-  const char *form_half = "'Hd, 'Hn, 'Ve.h['IVByElemIndex]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
-  bool long_instr = false;
-
-  switch (instr->Mask(NEONScalarByIndexedElementMask)) {
-    case NEON_SQDMULL_byelement_scalar:
-      mnemonic = "sqdmull";
-      long_instr = true;
-      break;
-    case NEON_SQDMLAL_byelement_scalar:
-      mnemonic = "sqdmlal";
-      long_instr = true;
-      break;
-    case NEON_SQDMLSL_byelement_scalar:
-      mnemonic = "sqdmlsl";
-      long_instr = true;
-      break;
-    case NEON_SQDMULH_byelement_scalar:
-      mnemonic = "sqdmulh";
-      break;
-    case NEON_SQRDMULH_byelement_scalar:
-      mnemonic = "sqrdmulh";
-      break;
-    case NEON_SQRDMLAH_byelement_scalar:
-      mnemonic = "sqrdmlah";
-      break;
-    case NEON_SQRDMLSH_byelement_scalar:
-      mnemonic = "sqrdmlsh";
-      break;
-    default:
-      nfd.SetFormatMap(0, nfd.FPScalarFormatMap());
-      switch (instr->Mask(NEONScalarByIndexedElementFPMask)) {
-        case NEON_FMUL_byelement_scalar:
-          mnemonic = "fmul";
-          break;
-        case NEON_FMLA_byelement_scalar:
-          mnemonic = "fmla";
-          break;
-        case NEON_FMLS_byelement_scalar:
-          mnemonic = "fmls";
-          break;
-        case NEON_FMULX_byelement_scalar:
-          mnemonic = "fmulx";
-          break;
-        case NEON_FMLA_H_byelement_scalar:
-          mnemonic = "fmla";
-          form = form_half;
-          break;
-        case NEON_FMLS_H_byelement_scalar:
-          mnemonic = "fmls";
-          form = form_half;
-          break;
-        case NEON_FMUL_H_byelement_scalar:
-          mnemonic = "fmul";
-          form = form_half;
-          break;
-        case NEON_FMULX_H_byelement_scalar:
-          mnemonic = "fmulx";
-          form = form_half;
-          break;
-        default:
-          form = "(NEONScalarByIndexedElement)";
-      }
-  }
-
-  if (long_instr) {
-    nfd.SetFormatMap(0, nfd.LongScalarFormatMap());
-  }
-
   Format(instr,
          mnemonic,
          nfd.Substitute(form, nfd.kPlaceholder, nfd.kPlaceholder, nfd.kFormat));
