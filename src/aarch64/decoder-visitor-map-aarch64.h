@@ -2482,22 +2482,6 @@
       {"sqdmlal_asisddiff_only", &VISITORCLASS::VisitNEONScalar3Diff},         \
       {"sqdmlsl_asisddiff_only", &VISITORCLASS::VisitNEONScalar3Diff},         \
       {"sqdmull_asisddiff_only", &VISITORCLASS::VisitNEONScalar3Diff},         \
-      {"add_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},             \
-      {"cmeq_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"cmge_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"cmgt_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"cmhi_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"cmhs_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"cmtst_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"fabd_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"facge_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"facgt_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"fcmeq_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"fcmge_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"fcmgt_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"fmulx_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
-      {"frecps_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},          \
-      {"frsqrts_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},         \
       {"sqadd_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"sqdmulh_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},         \
       {"sqrdmulh_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},        \
@@ -2506,7 +2490,6 @@
       {"sqsub_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"srshl_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"sshl_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"sub_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},             \
       {"uqadd_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"uqrshl_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},          \
       {"uqshl_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \

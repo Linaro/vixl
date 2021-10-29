@@ -214,6 +214,8 @@ class Disassembler : public DecoderVisitor {
   void DisassembleNEONShiftRightNarrowImm(const Instruction* instr);
   void DisassembleNEONScalarSatMulLongIndex(const Instruction* instr);
   void DisassembleNEONFPScalarMulIndex(const Instruction* instr);
+  void DisassembleNEONFPScalar3Same(const Instruction* instr);
+  void DisassembleNEONScalar3SameOnlyD(const Instruction* instr);
 
   void Format(const Instruction* instr,
               const char* mnemonic,

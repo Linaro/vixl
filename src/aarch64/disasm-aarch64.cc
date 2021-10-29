@@ -227,6 +227,23 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"fmulx_asisdelem_r_sd", &Disassembler::DisassembleNEONFPScalarMulIndex},
     {"fmul_asisdelem_rh_h", &Disassembler::DisassembleNEONFPScalarMulIndex},
     {"fmul_asisdelem_r_sd", &Disassembler::DisassembleNEONFPScalarMulIndex},
+    {"fabd_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"facge_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"facgt_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"fcmeq_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"fcmge_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"fcmgt_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"fmulx_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"frecps_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"frsqrts_asisdsame_only", &Disassembler::DisassembleNEONFPScalar3Same},
+    {"cmeq_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"cmge_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"cmgt_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"cmhi_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"cmhs_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"cmtst_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"add_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"sub_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -4091,155 +4108,48 @@ void Disassembler::VisitNEONScalar3Diff(const Instruction *instr) {
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
 
+void Disassembler::DisassembleNEONFPScalar3Same(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "%sd, %sn, %sm";
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap());
+  Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
+}
+
+void Disassembler::DisassembleNEONScalar3SameOnlyD(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Dd, 'Dn, 'Dm";
+  if (instr->GetNEONSize() != 3) {
+    mnemonic = NULL;
+  }
+  Format(instr, mnemonic, form);
+}
 
 void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "%sd, %sn, %sm";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
-
-  if (instr->Mask(NEONScalar3SameFPFMask) == NEONScalar3SameFPFixed) {
-    nfd.SetFormatMaps(nfd.FPScalarFormatMap());
-    switch (instr->Mask(NEONScalar3SameFPMask)) {
-      case NEON_FACGE_scalar:
-        mnemonic = "facge";
-        break;
-      case NEON_FACGT_scalar:
-        mnemonic = "facgt";
-        break;
-      case NEON_FCMEQ_scalar:
-        mnemonic = "fcmeq";
-        break;
-      case NEON_FCMGE_scalar:
-        mnemonic = "fcmge";
-        break;
-      case NEON_FCMGT_scalar:
-        mnemonic = "fcmgt";
-        break;
-      case NEON_FMULX_scalar:
-        mnemonic = "fmulx";
-        break;
-      case NEON_FRECPS_scalar:
-        mnemonic = "frecps";
-        break;
-      case NEON_FRSQRTS_scalar:
-        mnemonic = "frsqrts";
-        break;
-      case NEON_FABD_scalar:
-        mnemonic = "fabd";
-        break;
-      default:
-        form = "(NEONScalar3Same)";
-    }
-  } else {
-    switch (instr->Mask(NEONScalar3SameMask)) {
-      case NEON_ADD_scalar:
-        mnemonic = "add";
-        break;
-      case NEON_SUB_scalar:
-        mnemonic = "sub";
-        break;
-      case NEON_CMEQ_scalar:
-        mnemonic = "cmeq";
-        break;
-      case NEON_CMGE_scalar:
-        mnemonic = "cmge";
-        break;
-      case NEON_CMGT_scalar:
-        mnemonic = "cmgt";
-        break;
-      case NEON_CMHI_scalar:
-        mnemonic = "cmhi";
-        break;
-      case NEON_CMHS_scalar:
-        mnemonic = "cmhs";
-        break;
-      case NEON_CMTST_scalar:
-        mnemonic = "cmtst";
-        break;
-      case NEON_UQADD_scalar:
-        mnemonic = "uqadd";
-        break;
-      case NEON_SQADD_scalar:
-        mnemonic = "sqadd";
-        break;
-      case NEON_UQSUB_scalar:
-        mnemonic = "uqsub";
-        break;
-      case NEON_SQSUB_scalar:
-        mnemonic = "sqsub";
-        break;
-      case NEON_USHL_scalar:
-        mnemonic = "ushl";
-        break;
-      case NEON_SSHL_scalar:
-        mnemonic = "sshl";
-        break;
-      case NEON_UQSHL_scalar:
-        mnemonic = "uqshl";
-        break;
-      case NEON_SQSHL_scalar:
-        mnemonic = "sqshl";
-        break;
-      case NEON_URSHL_scalar:
-        mnemonic = "urshl";
-        break;
-      case NEON_SRSHL_scalar:
-        mnemonic = "srshl";
-        break;
-      case NEON_UQRSHL_scalar:
-        mnemonic = "uqrshl";
-        break;
-      case NEON_SQRSHL_scalar:
-        mnemonic = "sqrshl";
-        break;
-      case NEON_SQDMULH_scalar:
-        mnemonic = "sqdmulh";
-        break;
-      case NEON_SQRDMULH_scalar:
-        mnemonic = "sqrdmulh";
-        break;
-      default:
-        form = "(NEONScalar3Same)";
-    }
+  VectorFormat vform = nfd.GetVectorFormat(0);
+  switch (form_hash_) {
+    case Hash("srshl_asisdsame_only"):
+    case Hash("urshl_asisdsame_only"):
+    case Hash("sshl_asisdsame_only"):
+    case Hash("ushl_asisdsame_only"):
+      if (vform != kFormatD) {
+        mnemonic = NULL;
+      }
+      break;
+    case Hash("sqdmulh_asisdsame_only"):
+    case Hash("sqrdmulh_asisdsame_only"):
+      if ((vform == kFormatB) || (vform == kFormatD)) {
+        mnemonic = NULL;
+      }
   }
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
 
 void Disassembler::VisitNEONScalar3SameFP16(const Instruction *instr) {
-  const char *mnemonic = NULL;
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Hd, 'Hn, 'Hm";
-
-  switch (instr->Mask(NEONScalar3SameFP16Mask)) {
-    case NEON_FABD_H_scalar:
-      mnemonic = "fabd";
-      break;
-    case NEON_FMULX_H_scalar:
-      mnemonic = "fmulx";
-      break;
-    case NEON_FCMEQ_H_scalar:
-      mnemonic = "fcmeq";
-      break;
-    case NEON_FCMGE_H_scalar:
-      mnemonic = "fcmge";
-      break;
-    case NEON_FCMGT_H_scalar:
-      mnemonic = "fcmgt";
-      break;
-    case NEON_FACGE_H_scalar:
-      mnemonic = "facge";
-      break;
-    case NEON_FACGT_H_scalar:
-      mnemonic = "facgt";
-      break;
-    case NEON_FRECPS_H_scalar:
-      mnemonic = "frecps";
-      break;
-    case NEON_FRSQRTS_H_scalar:
-      mnemonic = "frsqrts";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
   Format(instr, mnemonic, form);
 }
 
