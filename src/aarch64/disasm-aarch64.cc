@@ -2996,10 +2996,17 @@ void Disassembler::DisassembleNEON3SameLogical(const Instruction *instr) {
   const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
 
-  if ((form_hash_ == Hash("orr_asimdsame_only")) &&
-      (instr->GetRm() == instr->GetRn())) {
-    mnemonic = "mov";
-    form = "'Vd.%s, 'Vn.%s";
+  switch (form_hash_) {
+    case Hash("orr_asimdsame_only"):
+      if (instr->GetRm() == instr->GetRn()) {
+        mnemonic = "mov";
+        form = "'Vd.%s, 'Vn.%s";
+      }
+      break;
+    case Hash("pmul_asimdsame_only"):
+      if (instr->GetNEONSize() != 0) {
+        mnemonic = NULL;
+      }
   }
   Format(instr, mnemonic, nfd.Substitute(form));
 }
@@ -3260,51 +3267,60 @@ void Disassembler::DisassembleNEONComplexMulByElement(
 }
 
 void Disassembler::VisitNEONCopy(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "(NEONCopy)";
 
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::TriangularFormatMap(),
                         NEONFormatDecoder::TriangularScalarFormatMap());
 
-  if (instr->Mask(NEONCopyInsElementMask) == NEON_INS_ELEMENT) {
-    mnemonic = "mov";
-    nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
-    form = "'Vd.%s['IVInsIndex1], 'Vn.%s['IVInsIndex2]";
-  } else if (instr->Mask(NEONCopyInsGeneralMask) == NEON_INS_GENERAL) {
-    mnemonic = "mov";
-    nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
-    if (nfd.GetVectorFormat() == kFormatD) {
-      form = "'Vd.%s['IVInsIndex1], 'Xn";
-    } else {
-      form = "'Vd.%s['IVInsIndex1], 'Wn";
-    }
-  } else if (instr->Mask(NEONCopyUmovMask) == NEON_UMOV) {
-    if (instr->Mask(NEON_Q) || ((instr->GetImmNEON5() & 7) == 4)) {
+  switch (form_hash_) {
+    case Hash("ins_asimdins_iv_v"):
       mnemonic = "mov";
-    } else {
-      mnemonic = "umov";
+      nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
+      form = "'Vd.%s['IVInsIndex1], 'Vn.%s['IVInsIndex2]";
+      break;
+    case Hash("ins_asimdins_ir_r"):
+      mnemonic = "mov";
+      nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
+      if (nfd.GetVectorFormat() == kFormatD) {
+        form = "'Vd.%s['IVInsIndex1], 'Xn";
+      } else {
+        form = "'Vd.%s['IVInsIndex1], 'Wn";
+      }
+      break;
+    case Hash("umov_asimdins_w_w"):
+    case Hash("umov_asimdins_x_x"):
+      if (instr->Mask(NEON_Q) || ((instr->GetImmNEON5() & 7) == 4)) {
+        mnemonic = "mov";
+      }
+      nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
+      if (nfd.GetVectorFormat() == kFormatD) {
+        form = "'Xd, 'Vn.%s['IVInsIndex1]";
+      } else {
+        form = "'Wd, 'Vn.%s['IVInsIndex1]";
+      }
+      break;
+    case Hash("smov_asimdins_w_w"):
+    case Hash("smov_asimdins_x_x"): {
+      nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
+      VectorFormat vform = nfd.GetVectorFormat();
+      if ((vform == kFormatD) ||
+          ((vform == kFormatS) && (instr->ExtractBit(30) == 0))) {
+        mnemonic = NULL;
+      }
+      form = "'R30d, 'Vn.%s['IVInsIndex1]";
+      break;
     }
-    nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
-    if (nfd.GetVectorFormat() == kFormatD) {
-      form = "'Xd, 'Vn.%s['IVInsIndex1]";
-    } else {
-      form = "'Wd, 'Vn.%s['IVInsIndex1]";
-    }
-  } else if (instr->Mask(NEONCopySmovMask) == NEON_SMOV) {
-    mnemonic = "smov";
-    nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
-    form = "'R30d, 'Vn.%s['IVInsIndex1]";
-  } else if (instr->Mask(NEONCopyDupElementMask) == NEON_DUP_ELEMENT) {
-    mnemonic = "dup";
-    form = "'Vd.%s, 'Vn.%s['IVInsIndex1]";
-  } else if (instr->Mask(NEONCopyDupGeneralMask) == NEON_DUP_GENERAL) {
-    mnemonic = "dup";
-    if (nfd.GetVectorFormat() == kFormat2D) {
-      form = "'Vd.%s, 'Xn";
-    } else {
-      form = "'Vd.%s, 'Wn";
-    }
+    case Hash("dup_asimdins_dv_v"):
+      form = "'Vd.%s, 'Vn.%s['IVInsIndex1]";
+      break;
+    case Hash("dup_asimdins_dr_r"):
+      if (nfd.GetVectorFormat() == kFormat2D) {
+        form = "'Vd.%s, 'Xn";
+      } else {
+        form = "'Vd.%s, 'Wn";
+      }
   }
   Format(instr, mnemonic, nfd.Substitute(form));
 }
@@ -4110,6 +4126,10 @@ void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
   const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
+  VectorFormat vform_dst = nfd.GetVectorFormat(0);
+  if ((vform_dst == kFormatB) || (vform_dst == kFormatD)) {
+    mnemonic = NULL;
+  }
   Format(instr,
          mnemonic,
          nfd.Substitute(form, nfd.kPlaceholder, nfd.kPlaceholder, nfd.kFormat));
@@ -4132,58 +4152,25 @@ void Disassembler::VisitNEONScalarCopy(const Instruction *instr) {
 
 
 void Disassembler::VisitNEONScalarPairwise(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "%sd, 'Vn.%s";
-  NEONFormatMap map = {{22}, {NF_2S, NF_2D}};
-  NEONFormatDecoder nfd(instr,
-                        NEONFormatDecoder::FPScalarPairwiseFormatMap(),
-                        &map);
+  const char *mnemonic = mnemonic_.c_str();
+  if (form_hash_ == Hash("addp_asisdpair_only")) {
+    // All pairwise operations except ADDP use bit U to differentiate FP16
+    // from FP32/FP64 variations.
+    if (instr->GetNEONSize() != 3) {
+      mnemonic = NULL;
+    }
+    Format(instr, mnemonic, "'Dd, 'Vn.2d");
+  } else {
+    const char *form = "%sd, 'Vn.2%s";
+    NEONFormatDecoder nfd(instr,
+                          NEONFormatDecoder::FPScalarPairwiseFormatMap());
 
-  switch (instr->Mask(NEONScalarPairwiseMask)) {
-    case NEON_ADDP_scalar:
-      // All pairwise operations except ADDP use bit U to differentiate FP16
-      // from FP32/FP64 variations.
-      nfd.SetFormatMap(0, NEONFormatDecoder::FPScalarFormatMap());
-      mnemonic = "addp";
-      break;
-    case NEON_FADDP_h_scalar:
-      form = "%sd, 'Vn.2h";
-      VIXL_FALLTHROUGH();
-    case NEON_FADDP_scalar:
-      mnemonic = "faddp";
-      break;
-    case NEON_FMAXP_h_scalar:
-      form = "%sd, 'Vn.2h";
-      VIXL_FALLTHROUGH();
-    case NEON_FMAXP_scalar:
-      mnemonic = "fmaxp";
-      break;
-    case NEON_FMAXNMP_h_scalar:
-      form = "%sd, 'Vn.2h";
-      VIXL_FALLTHROUGH();
-    case NEON_FMAXNMP_scalar:
-      mnemonic = "fmaxnmp";
-      break;
-    case NEON_FMINP_h_scalar:
-      form = "%sd, 'Vn.2h";
-      VIXL_FALLTHROUGH();
-    case NEON_FMINP_scalar:
-      mnemonic = "fminp";
-      break;
-    case NEON_FMINNMP_h_scalar:
-      form = "%sd, 'Vn.2h";
-      VIXL_FALLTHROUGH();
-    case NEON_FMINNMP_scalar:
-      mnemonic = "fminnmp";
-      break;
-    default:
-      form = "(NEONScalarPairwise)";
+    Format(instr,
+           mnemonic,
+           nfd.Substitute(form,
+                          NEONFormatDecoder::kPlaceholder,
+                          NEONFormatDecoder::kFormat));
   }
-  Format(instr,
-         mnemonic,
-         nfd.Substitute(form,
-                        NEONFormatDecoder::kPlaceholder,
-                        NEONFormatDecoder::kFormat));
 }
 
 void Disassembler::DisassembleNEONScalarShiftImmOnlyD(
