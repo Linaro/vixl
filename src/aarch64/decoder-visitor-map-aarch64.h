@@ -2521,27 +2521,10 @@
       {"fcvtzs_asisdshf_c", &VISITORCLASS::VisitNEONScalarShiftImmediate},     \
       {"fcvtzu_asisdshf_c", &VISITORCLASS::VisitNEONScalarShiftImmediate},     \
       {"scvtf_asisdshf_c", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"shl_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},        \
-      {"sli_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},        \
-      {"sqrshrn_asisdshf_n", &VISITORCLASS::VisitNEONScalarShiftImmediate},    \
-      {"sqrshrun_asisdshf_n", &VISITORCLASS::VisitNEONScalarShiftImmediate},   \
       {"sqshlu_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},     \
       {"sqshl_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"sqshrn_asisdshf_n", &VISITORCLASS::VisitNEONScalarShiftImmediate},     \
-      {"sqshrun_asisdshf_n", &VISITORCLASS::VisitNEONScalarShiftImmediate},    \
-      {"sri_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},        \
-      {"srshr_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"srsra_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"sshr_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},       \
-      {"ssra_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},       \
       {"ucvtf_asisdshf_c", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"uqrshrn_asisdshf_n", &VISITORCLASS::VisitNEONScalarShiftImmediate},    \
       {"uqshl_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"uqshrn_asisdshf_n", &VISITORCLASS::VisitNEONScalarShiftImmediate},     \
-      {"urshr_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"ursra_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},      \
-      {"ushr_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},       \
-      {"usra_asisdshf_r", &VISITORCLASS::VisitNEONScalarShiftImmediate},       \
       {"sqshlu_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},           \
       {"sqshl_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \
       {"uqshl_asimdshf_r", &VISITORCLASS::VisitNEONShiftImmediate},            \

@@ -252,6 +252,29 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"fminnmv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
     {"fmaxv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
     {"fminv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
+    {"shl_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"sli_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"sri_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"srshr_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"srsra_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"sshr_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"ssra_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"urshr_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"ursra_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"ushr_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"usra_asisdshf_r", &Disassembler::DisassembleNEONScalarShiftImmOnlyD},
+    {"sqrshrn_asisdshf_n",
+     &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
+    {"sqrshrun_asisdshf_n",
+     &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
+    {"sqshrn_asisdshf_n",
+     &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
+    {"sqshrun_asisdshf_n",
+     &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
+    {"uqrshrn_asisdshf_n",
+     &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
+    {"uqshrn_asisdshf_n",
+     &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -4233,125 +4256,63 @@ void Disassembler::VisitNEONScalarPairwise(const Instruction *instr) {
                         NEONFormatDecoder::kFormat));
 }
 
+void Disassembler::DisassembleNEONScalarShiftImmOnlyD(
+    const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Dd, 'Dn, ";
+  const char *suffix = "'IsR";
+
+  if (instr->ExtractBit(22) == 0) {
+    // Only D registers are supported.
+    mnemonic = NULL;
+  }
+
+  switch (form_hash_) {
+    case Hash("shl_asisdshf_r"):
+    case Hash("sli_asisdshf_r"):
+      suffix = "'IsL";
+  }
+
+  Format(instr, mnemonic, form, suffix);
+}
+
+void Disassembler::DisassembleNEONScalarShiftRightNarrowImm(
+    const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "%sd, %sn, 'IsR";
+  static const NEONFormatMap map_dst =
+      {{22, 21, 20, 19}, {NF_UNDEF, NF_B, NF_H, NF_H, NF_S, NF_S, NF_S, NF_S}};
+  static const NEONFormatMap map_src =
+      {{22, 21, 20, 19}, {NF_UNDEF, NF_H, NF_S, NF_S, NF_D, NF_D, NF_D, NF_D}};
+  NEONFormatDecoder nfd(instr, &map_dst, &map_src);
+  Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
+}
 
 void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "%sd, %sn, 'IsR";
-  const char *form_2 = "%sd, %sn, 'IsL";
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "%sd, %sn, ";
+  const char *suffix = "'IsR";
 
-  static const NEONFormatMap map_shift = {{22, 21, 20, 19},
-                                          {NF_UNDEF,
-                                           NF_B,
-                                           NF_H,
-                                           NF_H,
-                                           NF_S,
-                                           NF_S,
-                                           NF_S,
-                                           NF_S,
-                                           NF_D,
-                                           NF_D,
-                                           NF_D,
-                                           NF_D,
-                                           NF_D,
-                                           NF_D,
-                                           NF_D,
-                                           NF_D}};
-  static const NEONFormatMap map_shift_narrow =
-      {{21, 20, 19}, {NF_UNDEF, NF_H, NF_S, NF_S, NF_D, NF_D, NF_D, NF_D}};
-  NEONFormatDecoder nfd(instr, &map_shift);
-
-  if (instr->GetImmNEONImmh()) {  // immh has to be non-zero.
-    switch (instr->Mask(NEONScalarShiftImmediateMask)) {
-      case NEON_FCVTZU_imm_scalar:
-        mnemonic = "fcvtzu";
-        break;
-      case NEON_FCVTZS_imm_scalar:
-        mnemonic = "fcvtzs";
-        break;
-      case NEON_SCVTF_imm_scalar:
-        mnemonic = "scvtf";
-        break;
-      case NEON_UCVTF_imm_scalar:
-        mnemonic = "ucvtf";
-        break;
-      case NEON_SRI_scalar:
-        mnemonic = "sri";
-        break;
-      case NEON_SSHR_scalar:
-        mnemonic = "sshr";
-        break;
-      case NEON_USHR_scalar:
-        mnemonic = "ushr";
-        break;
-      case NEON_SRSHR_scalar:
-        mnemonic = "srshr";
-        break;
-      case NEON_URSHR_scalar:
-        mnemonic = "urshr";
-        break;
-      case NEON_SSRA_scalar:
-        mnemonic = "ssra";
-        break;
-      case NEON_USRA_scalar:
-        mnemonic = "usra";
-        break;
-      case NEON_SRSRA_scalar:
-        mnemonic = "srsra";
-        break;
-      case NEON_URSRA_scalar:
-        mnemonic = "ursra";
-        break;
-      case NEON_SHL_scalar:
-        mnemonic = "shl";
-        form = form_2;
-        break;
-      case NEON_SLI_scalar:
-        mnemonic = "sli";
-        form = form_2;
-        break;
-      case NEON_SQSHLU_scalar:
-        mnemonic = "sqshlu";
-        form = form_2;
-        break;
-      case NEON_SQSHL_imm_scalar:
-        mnemonic = "sqshl";
-        form = form_2;
-        break;
-      case NEON_UQSHL_imm_scalar:
-        mnemonic = "uqshl";
-        form = form_2;
-        break;
-      case NEON_UQSHRN_scalar:
-        mnemonic = "uqshrn";
-        nfd.SetFormatMap(1, &map_shift_narrow);
-        break;
-      case NEON_UQRSHRN_scalar:
-        mnemonic = "uqrshrn";
-        nfd.SetFormatMap(1, &map_shift_narrow);
-        break;
-      case NEON_SQSHRN_scalar:
-        mnemonic = "sqshrn";
-        nfd.SetFormatMap(1, &map_shift_narrow);
-        break;
-      case NEON_SQRSHRN_scalar:
-        mnemonic = "sqrshrn";
-        nfd.SetFormatMap(1, &map_shift_narrow);
-        break;
-      case NEON_SQSHRUN_scalar:
-        mnemonic = "sqshrun";
-        nfd.SetFormatMap(1, &map_shift_narrow);
-        break;
-      case NEON_SQRSHRUN_scalar:
-        mnemonic = "sqrshrun";
-        nfd.SetFormatMap(1, &map_shift_narrow);
-        break;
-      default:
-        form = "(NEONScalarShiftImmediate)";
-    }
-  } else {
-    form = "(NEONScalarShiftImmediate)";
+  // clang-format off
+  static const NEONFormatMap map = {{22, 21, 20, 19},
+                                    {NF_UNDEF, NF_B, NF_H, NF_H,
+                                     NF_S,     NF_S, NF_S, NF_S,
+                                     NF_D,     NF_D, NF_D, NF_D,
+                                     NF_D,     NF_D, NF_D, NF_D}};
+  // clang-format on
+  NEONFormatDecoder nfd(instr, &map);
+  switch (form_hash_) {
+    case Hash("sqshlu_asisdshf_r"):
+    case Hash("sqshl_asisdshf_r"):
+    case Hash("uqshl_asisdshf_r"):
+      suffix = "'IsL";
+      break;
+    default:
+      if (nfd.GetVectorFormat(0) == kFormatB) {
+        mnemonic = NULL;
+      }
   }
-  Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
+  Format(instr, mnemonic, nfd.SubstitutePlaceholders(form), suffix);
 }
 
 void Disassembler::DisassembleNEONShiftLeftLongImm(const Instruction *instr) {
