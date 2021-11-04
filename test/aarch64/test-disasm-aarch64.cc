@@ -3388,8 +3388,8 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0x2e21b800), "fcvtmu");   // FCVTMU_asimdmisc_R
   COMPARE_PREFIX(dci(0x2e21c800), "fcvtau");   // FCVTAU_asimdmisc_R
   COMPARE_PREFIX(dci(0x2e21d800), "ucvtf");    // UCVTF_asimdmisc_R
-  COMPARE_PREFIX(dci(0x2e30c800), "fmaxnmv");  // FMAXNMV_asimdall_only_SD
-  COMPARE_PREFIX(dci(0x2e30f800), "fmaxv");    // FMAXV_asimdall_only_SD
+  COMPARE_PREFIX(dci(0x6e30c800), "fmaxnmv");  // FMAXNMV_asimdall_only_SD
+  COMPARE_PREFIX(dci(0x6e30f800), "fmaxv");    // FMAXV_asimdall_only_SD
   COMPARE_PREFIX(dci(0x2e400400), "fmaxnmp");  // FMAXNMP_asimdsamefp16_only
   COMPARE_PREFIX(dci(0x2e401400), "faddp");    // FADDP_asimdsamefp16_only
   COMPARE_PREFIX(dci(0x2e401c00), "fmul");     // FMUL_asimdsamefp16_only
@@ -3416,8 +3416,8 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0x2ea1b800), "fcvtzu");   // FCVTZU_asimdmisc_R
   COMPARE_PREFIX(dci(0x2ea1d800), "frsqrte");  // FRSQRTE_asimdmisc_R
   COMPARE_PREFIX(dci(0x2ea1f800), "fsqrt");    // FSQRT_asimdmisc_R
-  COMPARE_PREFIX(dci(0x2eb0c800), "fminnmv");  // FMINNMV_asimdall_only_SD
-  COMPARE_PREFIX(dci(0x2eb0f800), "fminv");    // FMINV_asimdall_only_SD
+  COMPARE_PREFIX(dci(0x6eb0c800), "fminnmv");  // FMINNMV_asimdall_only_SD
+  COMPARE_PREFIX(dci(0x6eb0f800), "fminv");    // FMINV_asimdall_only_SD
   COMPARE_PREFIX(dci(0x2ec00400), "fminnmp");  // FMINNMP_asimdsamefp16_only
   COMPARE_PREFIX(dci(0x2ec01400), "fabd");     // FABD_asimdsamefp16_only
   COMPARE_PREFIX(dci(0x2ec02400), "fcmgt");    // FCMGT_asimdsamefp16_only

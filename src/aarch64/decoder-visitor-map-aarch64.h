@@ -2122,14 +2122,6 @@
       {"frsqrts_asimdsamefp16_only", &VISITORCLASS::VisitNEON3SameFP16},       \
       {"fsub_asimdsamefp16_only", &VISITORCLASS::VisitNEON3SameFP16},          \
       {"addv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},             \
-      {"fmaxnmv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},        \
-      {"fmaxnmv_asimdall_only_sd", &VISITORCLASS::VisitNEONAcrossLanes},       \
-      {"fmaxv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},          \
-      {"fmaxv_asimdall_only_sd", &VISITORCLASS::VisitNEONAcrossLanes},         \
-      {"fminnmv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},        \
-      {"fminnmv_asimdall_only_sd", &VISITORCLASS::VisitNEONAcrossLanes},       \
-      {"fminv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},          \
-      {"fminv_asimdall_only_sd", &VISITORCLASS::VisitNEONAcrossLanes},         \
       {"saddlv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},           \
       {"smaxv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},            \
       {"sminv_asimdall_only", &VISITORCLASS::VisitNEONAcrossLanes},            \

@@ -244,6 +244,14 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"cmtst_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
     {"add_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
     {"sub_asisdsame_only", &Disassembler::DisassembleNEONScalar3SameOnlyD},
+    {"fmaxnmv_asimdall_only_h", &Disassembler::DisassembleNEONFP16AcrossLanes},
+    {"fmaxv_asimdall_only_h", &Disassembler::DisassembleNEONFP16AcrossLanes},
+    {"fminnmv_asimdall_only_h", &Disassembler::DisassembleNEONFP16AcrossLanes},
+    {"fminv_asimdall_only_h", &Disassembler::DisassembleNEONFP16AcrossLanes},
+    {"fmaxnmv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
+    {"fminnmv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
+    {"fmaxv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
+    {"fminv_asimdall_only_sd", &Disassembler::DisassembleNEONFPAcrossLanes},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -3098,96 +3106,45 @@ void Disassembler::VisitNEON3Different(const Instruction *instr) {
   Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
 }
 
+void Disassembler::DisassembleNEONFPAcrossLanes(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Sd, 'Vn.4s";
+  if ((instr->GetNEONQ() == 0) || (instr->ExtractBit(22) == 1)) {
+    mnemonic = NULL;
+  }
+  Format(instr, mnemonic, form);
+}
+
+void Disassembler::DisassembleNEONFP16AcrossLanes(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Hd, 'Vn.'?30:84h";
+  Format(instr, mnemonic, form);
+}
 
 void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "%sd, 'Vn.%s";
-  const char *form_half = "'Hd, 'Vn.%s";
-  bool half_op = false;
-  static const NEONFormatMap map_half = {{30}, {NF_4H, NF_8H}};
 
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::ScalarFormatMap(),
                         NEONFormatDecoder::IntegerFormatMap());
 
-  if (instr->Mask(NEONAcrossLanesFP16FMask) == NEONAcrossLanesFP16Fixed) {
-    half_op = true;
-    form = form_half;
-    nfd.SetFormatMaps(&map_half);
-    switch (instr->Mask(NEONAcrossLanesFP16Mask)) {
-      case NEON_FMAXV_H:
-        mnemonic = "fmaxv";
-        break;
-      case NEON_FMINV_H:
-        mnemonic = "fminv";
-        break;
-      case NEON_FMAXNMV_H:
-        mnemonic = "fmaxnmv";
-        break;
-      case NEON_FMINNMV_H:
-        mnemonic = "fminnmv";
-        break;
-    }
-  } else if (instr->Mask(NEONAcrossLanesFPFMask) == NEONAcrossLanesFPFixed) {
-    nfd.SetFormatMap(0, nfd.FPScalarFormatMap());
-    nfd.SetFormatMap(1, nfd.FPFormatMap());
-    switch (instr->Mask(NEONAcrossLanesFPMask)) {
-      case NEON_FMAXV:
-        mnemonic = "fmaxv";
-        break;
-      case NEON_FMINV:
-        mnemonic = "fminv";
-        break;
-      case NEON_FMAXNMV:
-        mnemonic = "fmaxnmv";
-        break;
-      case NEON_FMINNMV:
-        mnemonic = "fminnmv";
-        break;
-      default:
-        form = "(NEONAcrossLanes)";
-        break;
-    }
-  } else if (instr->Mask(NEONAcrossLanesFMask) == NEONAcrossLanesFixed) {
-    switch (instr->Mask(NEONAcrossLanesMask)) {
-      case NEON_ADDV:
-        mnemonic = "addv";
-        break;
-      case NEON_SMAXV:
-        mnemonic = "smaxv";
-        break;
-      case NEON_SMINV:
-        mnemonic = "sminv";
-        break;
-      case NEON_UMAXV:
-        mnemonic = "umaxv";
-        break;
-      case NEON_UMINV:
-        mnemonic = "uminv";
-        break;
-      case NEON_SADDLV:
-        mnemonic = "saddlv";
-        nfd.SetFormatMap(0, nfd.LongScalarFormatMap());
-        break;
-      case NEON_UADDLV:
-        mnemonic = "uaddlv";
-        nfd.SetFormatMap(0, nfd.LongScalarFormatMap());
-        break;
-      default:
-        form = "(NEONAcrossLanes)";
-        break;
-    }
+  switch (form_hash_) {
+    case Hash("saddlv_asimdall_only"):
+    case Hash("uaddlv_asimdall_only"):
+      nfd.SetFormatMap(0, nfd.LongScalarFormatMap());
   }
 
-  if (half_op) {
-    Format(instr, mnemonic, nfd.Substitute(form));
-  } else {
-    Format(instr,
-           mnemonic,
-           nfd.Substitute(form,
-                          NEONFormatDecoder::kPlaceholder,
-                          NEONFormatDecoder::kFormat));
+  VectorFormat vform_src = nfd.GetVectorFormat(1);
+  if ((vform_src == kFormat2S) || (vform_src == kFormat2D)) {
+    mnemonic = NULL;
   }
+
+  Format(instr,
+         mnemonic,
+         nfd.Substitute(form,
+                        NEONFormatDecoder::kPlaceholder,
+                        NEONFormatDecoder::kFormat));
 }
 
 void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {

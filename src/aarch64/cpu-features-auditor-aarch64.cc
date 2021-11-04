@@ -251,6 +251,14 @@ CPUFeaturesAuditor::FormToVisitorFnMap CPUFeaturesAuditor::form_to_visitor_ = {
     {"cmtst_asisdsame_only", &CPUFeaturesAuditor::VisitNEONScalar3Same},
     {"add_asisdsame_only", &CPUFeaturesAuditor::VisitNEONScalar3Same},
     {"sub_asisdsame_only", &CPUFeaturesAuditor::VisitNEONScalar3Same},
+    {"fmaxnmv_asimdall_only_h", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fmaxv_asimdall_only_h", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fminnmv_asimdall_only_h", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fminv_asimdall_only_h", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fmaxnmv_asimdall_only_sd", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fminnmv_asimdall_only_sd", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fmaxv_asimdall_only_sd", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
+    {"fminv_asimdall_only_sd", &CPUFeaturesAuditor::VisitNEONAcrossLanes},
 };
 
 // Every instruction must update last_instruction_, even if only to clear it,
