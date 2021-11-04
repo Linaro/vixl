@@ -275,6 +275,34 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
      &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
     {"uqshrn_asisdshf_n",
      &Disassembler::DisassembleNEONScalarShiftRightNarrowImm},
+    {"cmeq_asisdmisc_z", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"cmge_asisdmisc_z", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"cmgt_asisdmisc_z", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"cmle_asisdmisc_z", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"cmlt_asisdmisc_z", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"abs_asisdmisc_r", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"neg_asisdmisc_r", &Disassembler::DisassembleNEONScalar2RegMiscOnlyD},
+    {"fcmeq_asisdmisc_fz", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcmge_asisdmisc_fz", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcmgt_asisdmisc_fz", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcmle_asisdmisc_fz", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcmlt_asisdmisc_fz", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtas_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtau_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtms_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtmu_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtns_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtnu_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtps_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtpu_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtxn_asisdmisc_n", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtzs_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"fcvtzu_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"frecpe_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"frecpx_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"frsqrte_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"scvtf_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
+    {"ucvtf_asisdmisc_r", &Disassembler::DisassembleNEONFPScalar2RegMisc},
     {"adclb_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"adclt_z_zzz", &Disassembler::DisassembleSVEAddSubCarry},
     {"addhnb_z_zz", &Disassembler::DisassembleSVEAddSubHigh},
@@ -3880,151 +3908,53 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
+void Disassembler::DisassembleNEONScalar2RegMiscOnlyD(
+    const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "'Dd, 'Dn";
+  const char *suffix = ", #0";
+  if (instr->GetNEONSize() != 3) {
+    mnemonic = NULL;
+  }
+  switch (form_hash_) {
+    case Hash("abs_asisdmisc_r"):
+    case Hash("neg_asisdmisc_r"):
+      suffix = NULL;
+  }
+  Format(instr, mnemonic, form, suffix);
+}
+
+void Disassembler::DisassembleNEONFPScalar2RegMisc(const Instruction *instr) {
+  const char *mnemonic = mnemonic_.c_str();
+  const char *form = "%sd, %sn";
+  const char *suffix = NULL;
+  NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap());
+  switch (form_hash_) {
+    case Hash("fcmeq_asisdmisc_fz"):
+    case Hash("fcmge_asisdmisc_fz"):
+    case Hash("fcmgt_asisdmisc_fz"):
+    case Hash("fcmle_asisdmisc_fz"):
+    case Hash("fcmlt_asisdmisc_fz"):
+      suffix = ", #0.0";
+      break;
+    case Hash("fcvtxn_asisdmisc_n"):
+      if (nfd.GetVectorFormat(0) == kFormatS) {  // Source format.
+        mnemonic = NULL;
+      }
+      form = "'Sd, 'Dn";
+  }
+  Format(instr, mnemonic, nfd.SubstitutePlaceholders(form), suffix);
+}
 
 void Disassembler::VisitNEONScalar2RegMisc(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
+  const char *mnemonic = mnemonic_.c_str();
   const char *form = "%sd, %sn";
-  const char *form_0 = "%sd, %sn, #0";
-  const char *form_fp0 = "%sd, %sn, #0.0";
-
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
-
-  if (instr->Mask(NEON2RegMiscOpcode) <= NEON_NEG_scalar_opcode) {
-    // These instructions all use a two bit size field, except NOT and RBIT,
-    // which use the field to encode the operation.
-    switch (instr->Mask(NEONScalar2RegMiscMask)) {
-      case NEON_CMGT_zero_scalar:
-        mnemonic = "cmgt";
-        form = form_0;
-        break;
-      case NEON_CMGE_zero_scalar:
-        mnemonic = "cmge";
-        form = form_0;
-        break;
-      case NEON_CMLE_zero_scalar:
-        mnemonic = "cmle";
-        form = form_0;
-        break;
-      case NEON_CMLT_zero_scalar:
-        mnemonic = "cmlt";
-        form = form_0;
-        break;
-      case NEON_CMEQ_zero_scalar:
-        mnemonic = "cmeq";
-        form = form_0;
-        break;
-      case NEON_NEG_scalar:
-        mnemonic = "neg";
-        break;
-      case NEON_SQNEG_scalar:
-        mnemonic = "sqneg";
-        break;
-      case NEON_ABS_scalar:
-        mnemonic = "abs";
-        break;
-      case NEON_SQABS_scalar:
-        mnemonic = "sqabs";
-        break;
-      case NEON_SUQADD_scalar:
-        mnemonic = "suqadd";
-        break;
-      case NEON_USQADD_scalar:
-        mnemonic = "usqadd";
-        break;
-      default:
-        form = "(NEONScalar2RegMisc)";
-    }
-  } else {
-    // These instructions all use a one bit size field, except SQXTUN, SQXTN
-    // and UQXTN, which use a two bit size field.
-    nfd.SetFormatMaps(nfd.FPScalarFormatMap());
-    switch (instr->Mask(NEONScalar2RegMiscFPMask)) {
-      case NEON_FRSQRTE_scalar:
-        mnemonic = "frsqrte";
-        break;
-      case NEON_FRECPE_scalar:
-        mnemonic = "frecpe";
-        break;
-      case NEON_SCVTF_scalar:
-        mnemonic = "scvtf";
-        break;
-      case NEON_UCVTF_scalar:
-        mnemonic = "ucvtf";
-        break;
-      case NEON_FCMGT_zero_scalar:
-        mnemonic = "fcmgt";
-        form = form_fp0;
-        break;
-      case NEON_FCMGE_zero_scalar:
-        mnemonic = "fcmge";
-        form = form_fp0;
-        break;
-      case NEON_FCMLE_zero_scalar:
-        mnemonic = "fcmle";
-        form = form_fp0;
-        break;
-      case NEON_FCMLT_zero_scalar:
-        mnemonic = "fcmlt";
-        form = form_fp0;
-        break;
-      case NEON_FCMEQ_zero_scalar:
-        mnemonic = "fcmeq";
-        form = form_fp0;
-        break;
-      case NEON_FRECPX_scalar:
-        mnemonic = "frecpx";
-        break;
-      case NEON_FCVTNS_scalar:
-        mnemonic = "fcvtns";
-        break;
-      case NEON_FCVTNU_scalar:
-        mnemonic = "fcvtnu";
-        break;
-      case NEON_FCVTPS_scalar:
-        mnemonic = "fcvtps";
-        break;
-      case NEON_FCVTPU_scalar:
-        mnemonic = "fcvtpu";
-        break;
-      case NEON_FCVTMS_scalar:
-        mnemonic = "fcvtms";
-        break;
-      case NEON_FCVTMU_scalar:
-        mnemonic = "fcvtmu";
-        break;
-      case NEON_FCVTZS_scalar:
-        mnemonic = "fcvtzs";
-        break;
-      case NEON_FCVTZU_scalar:
-        mnemonic = "fcvtzu";
-        break;
-      case NEON_FCVTAS_scalar:
-        mnemonic = "fcvtas";
-        break;
-      case NEON_FCVTAU_scalar:
-        mnemonic = "fcvtau";
-        break;
-      case NEON_FCVTXN_scalar:
-        nfd.SetFormatMap(0, nfd.LongScalarFormatMap());
-        mnemonic = "fcvtxn";
-        break;
-      default:
-        nfd.SetFormatMap(0, nfd.ScalarFormatMap());
-        nfd.SetFormatMap(1, nfd.LongScalarFormatMap());
-        switch (instr->Mask(NEONScalar2RegMiscMask)) {
-          case NEON_SQXTN_scalar:
-            mnemonic = "sqxtn";
-            break;
-          case NEON_UQXTN_scalar:
-            mnemonic = "uqxtn";
-            break;
-          case NEON_SQXTUN_scalar:
-            mnemonic = "sqxtun";
-            break;
-          default:
-            form = "(NEONScalar2RegMisc)";
-        }
-    }
+  switch (form_hash_) {
+    case Hash("sqxtn_asisdmisc_n"):
+    case Hash("sqxtun_asisdmisc_n"):
+    case Hash("uqxtn_asisdmisc_n"):
+      nfd.SetFormatMap(1, nfd.LongScalarFormatMap());
   }
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
