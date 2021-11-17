@@ -2460,8 +2460,6 @@
       {"uqsub_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"urshl_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"ushl_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},            \
-      {"sqrdmlah_asisdsame2_only", &VISITORCLASS::VisitNEONScalar3SameExtra},  \
-      {"sqrdmlsh_asisdsame2_only", &VISITORCLASS::VisitNEONScalar3SameExtra},  \
       {"fabd_asisdsamefp16_only", &VISITORCLASS::VisitNEONScalar3SameFP16},    \
       {"facge_asisdsamefp16_only", &VISITORCLASS::VisitNEONScalar3SameFP16},   \
       {"facgt_asisdsamefp16_only", &VISITORCLASS::VisitNEONScalar3SameFP16},   \
@@ -2827,6 +2825,8 @@
       {"cmtst_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},           \
       {"add_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},             \
       {"sub_asisdsame_only", &VISITORCLASS::VisitNEONScalar3Same},             \
+      {"sqrdmlah_asisdsame2_only", &VISITORCLASS::VisitNEONScalar3SameExtra},  \
+      {"sqrdmlsh_asisdsame2_only", &VISITORCLASS::VisitNEONScalar3SameExtra},  \
       {"fmaxnmv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},        \
       {"fmaxv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},          \
       {"fminnmv_asimdall_only_h", &VISITORCLASS::VisitNEONAcrossLanes},        \
