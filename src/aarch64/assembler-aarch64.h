@@ -7081,11 +7081,11 @@ class Assembler : public vixl::internal::AssemblerBase {
   static Instr ImmTestBranchBit(unsigned bit_pos) {
     VIXL_ASSERT(IsUint6(bit_pos));
     // Subtract five from the shift offset, as we need bit 5 from bit_pos.
-    unsigned b5 = bit_pos << (ImmTestBranchBit5_offset - 5);
-    unsigned b40 = bit_pos << ImmTestBranchBit40_offset;
-    b5 &= ImmTestBranchBit5_mask;
-    b40 &= ImmTestBranchBit40_mask;
-    return b5 | b40;
+    unsigned bit5 = bit_pos << (ImmTestBranchBit5_offset - 5);
+    unsigned bit40 = bit_pos << ImmTestBranchBit40_offset;
+    bit5 &= ImmTestBranchBit5_mask;
+    bit40 &= ImmTestBranchBit40_mask;
+    return bit5 | bit40;
   }
 
   // Data Processing encoding.
