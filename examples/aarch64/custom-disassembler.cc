@@ -113,7 +113,8 @@ void CustomDisassembler::Visit(Metadata* metadata, const Instruction* instr) {
 
   // Match the forms for 32/64-bit add/subtract with shift, with optional flag
   // setting.
-  if (std::regex_match(form,
+  if (!form.empty() &&
+      std::regex_match(form,
                        std::regex("(?:add|sub)s?_(?:32|64)_addsub_shift"))) {
     if (instr->GetRd() == 10) {
       AppendToOutput(" // add/sub to x10");
