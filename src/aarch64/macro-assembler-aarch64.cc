@@ -133,14 +133,14 @@ void LiteralPool::Emit(EmitOption option) {
     masm_->SetAllowMacroInstructions(false);
 #endif
     if (option == kBranchRequired) {
-      ExactAssemblyScopeWithoutPoolsCheck guard(masm_, kInstructionSize);
+      ExactAssemblyScopeWithoutPoolsCheck eas_guard(masm_, kInstructionSize);
       masm_->b(&end_of_pool);
     }
 
     {
       // Marker indicating the size of the literal pool in 32-bit words.
       VIXL_ASSERT((pool_size % kWRegSizeInBytes) == 0);
-      ExactAssemblyScopeWithoutPoolsCheck guard(masm_, kInstructionSize);
+      ExactAssemblyScopeWithoutPoolsCheck eas_guard(masm_, kInstructionSize);
       masm_->ldr(xzr, static_cast<int>(pool_size / kWRegSizeInBytes));
     }
 

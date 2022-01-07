@@ -2557,10 +2557,11 @@ void Assembler::adr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= 0) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
@@ -2588,10 +2589,11 @@ void Assembler::adr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           int32_t target;
           if ((offset >= 0) && (offset <= 4095)) {
             target = offset;
@@ -2622,10 +2624,11 @@ void Assembler::adr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           int32_t target;
           ImmediateA32 positive_immediate_a32(offset);
           if (positive_immediate_a32.IsValid()) {
@@ -3024,10 +3027,10 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -256) && (offset <= 254) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
@@ -3051,10 +3054,10 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -2048) && (offset <= 2046) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
@@ -3075,10 +3078,10 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -1048576) && (offset <= 1048574) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
@@ -3104,10 +3107,10 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777214) &&
                       ((offset & 0x1) == 0));
           int32_t target = offset >> 1;
@@ -3132,10 +3135,10 @@ void Assembler::b(Condition cond, EncodingSize size, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -33554432) && (offset <= 33554428) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
@@ -3462,10 +3465,10 @@ void Assembler::bl(Condition cond, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777214) &&
                       ((offset & 0x1) == 0));
           int32_t target = offset >> 1;
@@ -3490,10 +3493,10 @@ void Assembler::bl(Condition cond, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kA32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= -33554432) && (offset <= 33554428) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
@@ -3549,10 +3552,11 @@ void Assembler::blx(Condition cond, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -16777216) && (offset <= 16777212) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -3577,12 +3581,12 @@ void Assembler::blx(Condition cond, Location* location) {
          public:
           EmitOp() : Location::EmitOperator(A32) {}
           virtual uint32_t Encode(uint32_t instr,
-                                  Location::Offset pc,
+                                  Location::Offset program_counter,
                                   const Location* location) const
               VIXL_OVERRIDE {
-            pc += kA32PcDelta;
+            program_counter += kA32PcDelta;
             Location::Offset offset =
-                location->GetLocation() - AlignDown(pc, 4);
+                location->GetLocation() - AlignDown(program_counter, 4);
             VIXL_ASSERT((offset >= -33554432) && (offset <= 33554430) &&
                         ((offset & 0x1) == 0));
             const int32_t target = offset >> 1;
@@ -3698,10 +3702,10 @@ void Assembler::cbnz(Register rn, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= 0) && (offset <= 126) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
@@ -3748,10 +3752,10 @@ void Assembler::cbz(Register rn, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - pc;
+          program_counter += kT32PcDelta;
+          Location::Offset offset = location->GetLocation() - program_counter;
           VIXL_ASSERT((offset >= 0) && (offset <= 126) &&
                       ((offset & 0x1) == 0));
           const int32_t target = offset >> 1;
@@ -5208,10 +5212,11 @@ void Assembler::ldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= 0) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           const int32_t target = offset >> 2;
@@ -5233,10 +5238,11 @@ void Assembler::ldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -5259,10 +5265,11 @@ void Assembler::ldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -5505,10 +5512,11 @@ void Assembler::ldrb(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -5531,10 +5539,11 @@ void Assembler::ldrb(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -5747,10 +5756,11 @@ void Assembler::ldrd(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -5777,10 +5787,11 @@ void Assembler::ldrd(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -6129,10 +6140,11 @@ void Assembler::ldrh(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -6155,10 +6167,11 @@ void Assembler::ldrh(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -6382,10 +6395,11 @@ void Assembler::ldrsb(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -6408,10 +6422,11 @@ void Assembler::ldrsb(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -6635,10 +6650,11 @@ void Assembler::ldrsh(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -6661,10 +6677,11 @@ void Assembler::ldrsh(Condition cond, Register rt, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -255) && (offset <= 255));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 8);
@@ -8039,10 +8056,11 @@ void Assembler::pld(Condition cond, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -8062,12 +8080,12 @@ void Assembler::pld(Condition cond, Location* location) {
          public:
           EmitOp() : Location::EmitOperator(A32) {}
           virtual uint32_t Encode(uint32_t instr,
-                                  Location::Offset pc,
+                                  Location::Offset program_counter,
                                   const Location* location) const
               VIXL_OVERRIDE {
-            pc += kA32PcDelta;
+            program_counter += kA32PcDelta;
             Location::Offset offset =
-                location->GetLocation() - AlignDown(pc, 4);
+                location->GetLocation() - AlignDown(program_counter, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
             uint32_t U = (offset >= 0);
             int32_t target = abs(offset) | (U << 12);
@@ -8403,10 +8421,11 @@ void Assembler::pli(Condition cond, Location* location) {
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
           uint32_t U = (offset >= 0);
           int32_t target = abs(offset) | (U << 12);
@@ -8426,12 +8445,12 @@ void Assembler::pli(Condition cond, Location* location) {
          public:
           EmitOp() : Location::EmitOperator(A32) {}
           virtual uint32_t Encode(uint32_t instr,
-                                  Location::Offset pc,
+                                  Location::Offset program_counter,
                                   const Location* location) const
               VIXL_OVERRIDE {
-            pc += kA32PcDelta;
+            program_counter += kA32PcDelta;
             Location::Offset offset =
-                location->GetLocation() - AlignDown(pc, 4);
+                location->GetLocation() - AlignDown(program_counter, 4);
             VIXL_ASSERT((offset >= -4095) && (offset <= 4095));
             uint32_t U = (offset >= 0);
             int32_t target = abs(offset) | (U << 12);
@@ -19616,10 +19635,11 @@ void Assembler::vldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19646,10 +19666,11 @@ void Assembler::vldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19770,10 +19791,11 @@ void Assembler::vldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(T32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kT32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kT32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;
@@ -19800,10 +19822,11 @@ void Assembler::vldr(Condition cond,
        public:
         EmitOp() : Location::EmitOperator(A32) {}
         virtual uint32_t Encode(uint32_t instr,
-                                Location::Offset pc,
+                                Location::Offset program_counter,
                                 const Location* location) const VIXL_OVERRIDE {
-          pc += kA32PcDelta;
-          Location::Offset offset = location->GetLocation() - AlignDown(pc, 4);
+          program_counter += kA32PcDelta;
+          Location::Offset offset =
+              location->GetLocation() - AlignDown(program_counter, 4);
           VIXL_ASSERT((offset >= -1020) && (offset <= 1020) &&
                       ((offset & 0x3) == 0));
           int32_t target = offset >> 2;

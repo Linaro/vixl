@@ -10317,10 +10317,10 @@ int Disassembler::SubstitutePrefetchField(const Instruction *instr,
   int placeholder_length = is_sve ? 9 : 6;
   static const char *stream_options[] = {"keep", "strm"};
 
-  auto get_hints = [](bool is_sve) -> std::vector<std::string> {
+  auto get_hints = [](bool want_sve_hint) -> std::vector<std::string> {
     static const std::vector<std::string> sve_hints = {"ld", "st"};
     static const std::vector<std::string> core_hints = {"ld", "li", "st"};
-    return (is_sve) ? sve_hints : core_hints;
+    return (want_sve_hint) ? sve_hints : core_hints;
   };
 
   std::vector<std::string> hints = get_hints(is_sve);

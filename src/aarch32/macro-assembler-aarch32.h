@@ -402,13 +402,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       VIXL_ASSERT(GetBuffer()->Is32bitAligned());
     }
     // If we need to add padding, check if we have to emit the pool.
-    const int32_t pc = GetCursorOffset();
-    if (label->Needs16BitPadding(pc)) {
+    const int32_t cursor = GetCursorOffset();
+    if (label->Needs16BitPadding(cursor)) {
       const int kPaddingBytes = 2;
-      if (pool_manager_.MustEmit(pc, kPaddingBytes)) {
-        int32_t new_pc = pool_manager_.Emit(this, pc, kPaddingBytes);
-        USE(new_pc);
-        VIXL_ASSERT(new_pc == GetCursorOffset());
+      if (pool_manager_.MustEmit(cursor, kPaddingBytes)) {
+        int32_t new_cursor = pool_manager_.Emit(this, cursor, kPaddingBytes);
+        USE(new_cursor);
+        VIXL_ASSERT(new_cursor == GetCursorOffset());
       }
     }
     pool_manager_.Bind(this, label, GetCursorOffset());
@@ -430,30 +430,30 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                                    Location* location,
                                    Condition* cond = NULL) {
     int size = info->size;
-    int32_t pc = GetCursorOffset();
+    int32_t cursor = GetCursorOffset();
     // If we need to emit a branch over the instruction, take this into account.
     if ((cond != NULL) && NeedBranch(cond)) {
       size += kBranchSize;
-      pc += kBranchSize;
+      cursor += kBranchSize;
     }
-    int32_t from = pc;
+    int32_t from = cursor;
     from += IsUsingT32() ? kT32PcDelta : kA32PcDelta;
     if (info->pc_needs_aligning) from = AlignDown(from, 4);
     int32_t min = from + info->min_offset;
     int32_t max = from + info->max_offset;
-    ForwardReference<int32_t> temp_ref(pc,
+    ForwardReference<int32_t> temp_ref(cursor,
                                        info->size,
                                        min,
                                        max,
                                        info->alignment);
     if (pool_manager_.MustEmit(GetCursorOffset(), size, &temp_ref, location)) {
-      int32_t new_pc = pool_manager_.Emit(this,
-                                          GetCursorOffset(),
-                                          info->size,
-                                          &temp_ref,
-                                          location);
-      USE(new_pc);
-      VIXL_ASSERT(new_pc == GetCursorOffset());
+      int32_t new_cursor = pool_manager_.Emit(this,
+                                              GetCursorOffset(),
+                                              info->size,
+                                              &temp_ref,
+                                              location);
+      USE(new_cursor);
+      VIXL_ASSERT(new_cursor == GetCursorOffset());
     }
   }
 
@@ -464,13 +464,13 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     // into account, as well as potential 16-bit padding needed to reach the
     // minimum accessible location.
     int alignment = literal->GetMaxAlignment();
-    int32_t pc = GetCursorOffset();
-    int total_size = AlignUp(pc, alignment) - pc + literal->GetSize();
-    if (literal->Needs16BitPadding(pc)) total_size += 2;
-    if (pool_manager_.MustEmit(pc, total_size)) {
-      int32_t new_pc = pool_manager_.Emit(this, pc, total_size);
-      USE(new_pc);
-      VIXL_ASSERT(new_pc == GetCursorOffset());
+    int32_t cursor = GetCursorOffset();
+    int total_size = AlignUp(cursor, alignment) - cursor + literal->GetSize();
+    if (literal->Needs16BitPadding(cursor)) total_size += 2;
+    if (pool_manager_.MustEmit(cursor, total_size)) {
+      int32_t new_cursor = pool_manager_.Emit(this, cursor, total_size);
+      USE(new_cursor);
+      VIXL_ASSERT(new_cursor == GetCursorOffset());
     }
     pool_manager_.Bind(this, literal, GetCursorOffset());
     literal->EmitPoolObject(this);

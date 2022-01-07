@@ -164,6 +164,9 @@ TEST(sve_address_generation) {
 }
 
 TEST(sve_calculate_sve_address) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
   // Shadow the `MacroAssembler` type so that the test macros work without
   // modification.
   typedef CalculateSVEAddressMacroAssembler MacroAssembler;
@@ -208,6 +211,8 @@ TEST(sve_calculate_sve_address) {
                 "add x22, sp, x3, lsl #2");
 
   CLEANUP();
+
+#pragma GCC diagnostic pop
 }
 
 TEST(sve_bitwise_imm) {
@@ -1134,6 +1139,9 @@ TEST(sve_fp_arithmetic_predicated) {
 }
 
 TEST(sve_fp_arithmetic_predicated_macro_fast_nan_propagation) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
   // Shadow the `MacroAssembler` type so that the test macros work without
   // modification.
   typedef FastNaNPropagationMacroAssembler MacroAssembler;
@@ -1183,9 +1191,14 @@ TEST(sve_fp_arithmetic_predicated_macro_fast_nan_propagation) {
                 "fmin z15.d, p6/m, z15.d, z8.d");
 
   CLEANUP();
+
+#pragma GCC diagnostic pop
 }
 
 TEST(sve_fp_arithmetic_predicated_macro_strict_nan_propagation) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
   // Shadow the `MacroAssembler` type so that the test macros work without
   // modification.
   typedef StrictNaNPropagationMacroAssembler MacroAssembler;
@@ -1239,6 +1252,8 @@ TEST(sve_fp_arithmetic_predicated_macro_strict_nan_propagation) {
                 "fmin z15.d, p6/m, z15.d, z8.d");
 
   CLEANUP();
+
+#pragma GCC diagnostic pop
 }
 
 TEST(sve_fp_arithmetic_unpredicated) {
@@ -1623,6 +1638,9 @@ TEST(sve_fp_mul_add) {
 }
 
 TEST(sve_fp_mul_add_macro_strict_nan_propagation) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
   // Shadow the `MacroAssembler` type so that the test macros work without
   // modification.
   typedef StrictNaNPropagationMacroAssembler MacroAssembler;
@@ -1678,9 +1696,14 @@ TEST(sve_fp_mul_add_macro_strict_nan_propagation) {
                 "fnmls z15.d, p0/m, z17.d, z18.d");
 
   CLEANUP();
+
+#pragma GCC diagnostic pop
 }
 
 TEST(sve_fp_mul_add_macro_fast_nan_propagation) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
   // Shadow the `MacroAssembler` type so that the test macros work without
   // modification.
   typedef FastNaNPropagationMacroAssembler MacroAssembler;
@@ -1728,6 +1751,8 @@ TEST(sve_fp_mul_add_macro_fast_nan_propagation) {
                 "fnmls z15.d, p0/m, z17.d, z18.d");
 
   CLEANUP();
+
+#pragma GCC diagnostic pop
 }
 
 TEST(sve_fp_mul_add_index) {

@@ -73,11 +73,11 @@ class CustomDisassembler : public PrintDisassembler {
   CustomStream* GetStream() const {
     return reinterpret_cast<CustomStream*>(&os());
   }
-  virtual void PrintCodeAddress(uint32_t pc) VIXL_OVERRIDE {
+  virtual void PrintCodeAddress(uint32_t addr) VIXL_OVERRIDE {
     // If the address matches a label, then print the label. Otherwise, print
     // nothing.
     std::map<Location::Offset, const char*>::iterator symbol =
-        GetStream()->GetSymbols().find(pc);
+        GetStream()->GetSymbols().find(addr);
     if (symbol != GetStream()->GetSymbols().end()) {
       os().os() << symbol->second << ":" << std::endl;
     }

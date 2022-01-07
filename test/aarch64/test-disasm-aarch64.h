@@ -54,9 +54,10 @@
   do {                                                                      \
     printf("----\n");                                                       \
     PrintDisassembler print_disasm(stdout);                                 \
-    Instruction* start = masm.GetBuffer()->GetStartAddress<Instruction*>(); \
-    Instruction* end = masm.GetBuffer()->GetEndAddress<Instruction*>();     \
-    print_disasm.DisassembleBuffer(start, end);                             \
+    Instruction* dis_start =                                                \
+        masm.GetBuffer()->GetStartAddress<Instruction*>();                  \
+    Instruction* dis_end = masm.GetBuffer()->GetEndAddress<Instruction*>(); \
+    print_disasm.DisassembleBuffer(dis_start, dis_end);                     \
   } while (0)
 
 #define COMPARE(ASM, EXP)                                                \

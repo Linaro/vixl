@@ -905,95 +905,209 @@ TEST(fmadd_fmsub_float) {
 
 TEST(fmadd_fmsub_double_nans) {
   // Make sure that NaN propagation works correctly.
-  double s1 = RawbitsToDouble(0x7ff5555511111111);
-  double s2 = RawbitsToDouble(0x7ff5555522222222);
-  double sa = RawbitsToDouble(0x7ff55555aaaaaaaa);
-  double q1 = RawbitsToDouble(0x7ffaaaaa11111111);
-  double q2 = RawbitsToDouble(0x7ffaaaaa22222222);
-  double qa = RawbitsToDouble(0x7ffaaaaaaaaaaaaa);
-  VIXL_ASSERT(IsSignallingNaN(s1));
-  VIXL_ASSERT(IsSignallingNaN(s2));
-  VIXL_ASSERT(IsSignallingNaN(sa));
-  VIXL_ASSERT(IsQuietNaN(q1));
-  VIXL_ASSERT(IsQuietNaN(q2));
-  VIXL_ASSERT(IsQuietNaN(qa));
+  double sig1 = RawbitsToDouble(0x7ff5555511111111);
+  double sig2 = RawbitsToDouble(0x7ff5555522222222);
+  double siga = RawbitsToDouble(0x7ff55555aaaaaaaa);
+  double qui1 = RawbitsToDouble(0x7ffaaaaa11111111);
+  double qui2 = RawbitsToDouble(0x7ffaaaaa22222222);
+  double quia = RawbitsToDouble(0x7ffaaaaaaaaaaaaa);
+  VIXL_ASSERT(IsSignallingNaN(sig1));
+  VIXL_ASSERT(IsSignallingNaN(sig2));
+  VIXL_ASSERT(IsSignallingNaN(siga));
+  VIXL_ASSERT(IsQuietNaN(qui1));
+  VIXL_ASSERT(IsQuietNaN(qui2));
+  VIXL_ASSERT(IsQuietNaN(quia));
 
   // The input NaNs after passing through ProcessNaN.
-  double s1_proc = RawbitsToDouble(0x7ffd555511111111);
-  double s2_proc = RawbitsToDouble(0x7ffd555522222222);
-  double sa_proc = RawbitsToDouble(0x7ffd5555aaaaaaaa);
-  double q1_proc = q1;
-  double q2_proc = q2;
-  double qa_proc = qa;
-  VIXL_ASSERT(IsQuietNaN(s1_proc));
-  VIXL_ASSERT(IsQuietNaN(s2_proc));
-  VIXL_ASSERT(IsQuietNaN(sa_proc));
-  VIXL_ASSERT(IsQuietNaN(q1_proc));
-  VIXL_ASSERT(IsQuietNaN(q2_proc));
-  VIXL_ASSERT(IsQuietNaN(qa_proc));
+  double sig1_proc = RawbitsToDouble(0x7ffd555511111111);
+  double sig2_proc = RawbitsToDouble(0x7ffd555522222222);
+  double siga_proc = RawbitsToDouble(0x7ffd5555aaaaaaaa);
+  double qui1_proc = qui1;
+  double qui2_proc = qui2;
+  double quia_proc = quia;
+  VIXL_ASSERT(IsQuietNaN(sig1_proc));
+  VIXL_ASSERT(IsQuietNaN(sig2_proc));
+  VIXL_ASSERT(IsQuietNaN(siga_proc));
+  VIXL_ASSERT(IsQuietNaN(qui1_proc));
+  VIXL_ASSERT(IsQuietNaN(qui2_proc));
+  VIXL_ASSERT(IsQuietNaN(quia_proc));
 
   // Negated NaNs as it would be done on ARMv8 hardware.
-  double s1_proc_neg = RawbitsToDouble(0xfffd555511111111);
-  double sa_proc_neg = RawbitsToDouble(0xfffd5555aaaaaaaa);
-  double q1_proc_neg = RawbitsToDouble(0xfffaaaaa11111111);
-  double qa_proc_neg = RawbitsToDouble(0xfffaaaaaaaaaaaaa);
-  VIXL_ASSERT(IsQuietNaN(s1_proc_neg));
-  VIXL_ASSERT(IsQuietNaN(sa_proc_neg));
-  VIXL_ASSERT(IsQuietNaN(q1_proc_neg));
-  VIXL_ASSERT(IsQuietNaN(qa_proc_neg));
+  double sig1_proc_neg = RawbitsToDouble(0xfffd555511111111);
+  double siga_proc_neg = RawbitsToDouble(0xfffd5555aaaaaaaa);
+  double qui1_proc_neg = RawbitsToDouble(0xfffaaaaa11111111);
+  double quia_proc_neg = RawbitsToDouble(0xfffaaaaaaaaaaaaa);
+  VIXL_ASSERT(IsQuietNaN(sig1_proc_neg));
+  VIXL_ASSERT(IsQuietNaN(siga_proc_neg));
+  VIXL_ASSERT(IsQuietNaN(qui1_proc_neg));
+  VIXL_ASSERT(IsQuietNaN(quia_proc_neg));
 
   // Quiet NaNs are propagated.
-  FmaddFmsubHelper(q1, 0, 0, q1_proc, q1_proc_neg, q1_proc_neg, q1_proc);
-  FmaddFmsubHelper(0, q2, 0, q2_proc, q2_proc, q2_proc, q2_proc);
-  FmaddFmsubHelper(0, 0, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
-  FmaddFmsubHelper(q1, q2, 0, q1_proc, q1_proc_neg, q1_proc_neg, q1_proc);
-  FmaddFmsubHelper(0, q2, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
-  FmaddFmsubHelper(q1, 0, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
-  FmaddFmsubHelper(q1, q2, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   0,
+                   0,
+                   qui1_proc,
+                   qui1_proc_neg,
+                   qui1_proc_neg,
+                   qui1_proc);
+  FmaddFmsubHelper(0, qui2, 0, qui2_proc, qui2_proc, qui2_proc, qui2_proc);
+  FmaddFmsubHelper(0,
+                   0,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   qui2,
+                   0,
+                   qui1_proc,
+                   qui1_proc_neg,
+                   qui1_proc_neg,
+                   qui1_proc);
+  FmaddFmsubHelper(0,
+                   qui2,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   0,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   qui2,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
 
   // Signalling NaNs are propagated, and made quiet.
-  FmaddFmsubHelper(s1, 0, 0, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(0, s2, 0, s2_proc, s2_proc, s2_proc, s2_proc);
-  FmaddFmsubHelper(0, 0, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, 0, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(0, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, 0, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   0,
+                   0,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(0, sig2, 0, sig2_proc, sig2_proc, sig2_proc, sig2_proc);
+  FmaddFmsubHelper(0,
+                   0,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   0,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(0,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   0,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
 
   // Signalling NaNs take precedence over quiet NaNs.
-  FmaddFmsubHelper(s1, q2, qa, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(q1, s2, qa, s2_proc, s2_proc, s2_proc, s2_proc);
-  FmaddFmsubHelper(q1, q2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, qa, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(q1, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, q2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   qui2,
+                   quia,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(qui1,
+                   sig2,
+                   quia,
+                   sig2_proc,
+                   sig2_proc,
+                   sig2_proc,
+                   sig2_proc);
+  FmaddFmsubHelper(qui1,
+                   qui2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   quia,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(qui1,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   qui2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
 
   // A NaN generated by the intermediate op1 * op2 overrides a quiet NaN in a.
   FmaddFmsubHelper(0,
                    kFP64PositiveInfinity,
-                   qa,
+                   quia,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN);
   FmaddFmsubHelper(kFP64PositiveInfinity,
                    0,
-                   qa,
+                   quia,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN);
   FmaddFmsubHelper(0,
                    kFP64NegativeInfinity,
-                   qa,
+                   quia,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN);
   FmaddFmsubHelper(kFP64NegativeInfinity,
                    0,
-                   qa,
+                   quia,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
                    kFP64DefaultNaN,
@@ -1003,95 +1117,209 @@ TEST(fmadd_fmsub_double_nans) {
 
 TEST(fmadd_fmsub_float_nans) {
   // Make sure that NaN propagation works correctly.
-  float s1 = RawbitsToFloat(0x7f951111);
-  float s2 = RawbitsToFloat(0x7f952222);
-  float sa = RawbitsToFloat(0x7f95aaaa);
-  float q1 = RawbitsToFloat(0x7fea1111);
-  float q2 = RawbitsToFloat(0x7fea2222);
-  float qa = RawbitsToFloat(0x7feaaaaa);
-  VIXL_ASSERT(IsSignallingNaN(s1));
-  VIXL_ASSERT(IsSignallingNaN(s2));
-  VIXL_ASSERT(IsSignallingNaN(sa));
-  VIXL_ASSERT(IsQuietNaN(q1));
-  VIXL_ASSERT(IsQuietNaN(q2));
-  VIXL_ASSERT(IsQuietNaN(qa));
+  float sig1 = RawbitsToFloat(0x7f951111);
+  float sig2 = RawbitsToFloat(0x7f952222);
+  float siga = RawbitsToFloat(0x7f95aaaa);
+  float qui1 = RawbitsToFloat(0x7fea1111);
+  float qui2 = RawbitsToFloat(0x7fea2222);
+  float quia = RawbitsToFloat(0x7feaaaaa);
+  VIXL_ASSERT(IsSignallingNaN(sig1));
+  VIXL_ASSERT(IsSignallingNaN(sig2));
+  VIXL_ASSERT(IsSignallingNaN(siga));
+  VIXL_ASSERT(IsQuietNaN(qui1));
+  VIXL_ASSERT(IsQuietNaN(qui2));
+  VIXL_ASSERT(IsQuietNaN(quia));
 
   // The input NaNs after passing through ProcessNaN.
-  float s1_proc = RawbitsToFloat(0x7fd51111);
-  float s2_proc = RawbitsToFloat(0x7fd52222);
-  float sa_proc = RawbitsToFloat(0x7fd5aaaa);
-  float q1_proc = q1;
-  float q2_proc = q2;
-  float qa_proc = qa;
-  VIXL_ASSERT(IsQuietNaN(s1_proc));
-  VIXL_ASSERT(IsQuietNaN(s2_proc));
-  VIXL_ASSERT(IsQuietNaN(sa_proc));
-  VIXL_ASSERT(IsQuietNaN(q1_proc));
-  VIXL_ASSERT(IsQuietNaN(q2_proc));
-  VIXL_ASSERT(IsQuietNaN(qa_proc));
+  float sig1_proc = RawbitsToFloat(0x7fd51111);
+  float sig2_proc = RawbitsToFloat(0x7fd52222);
+  float siga_proc = RawbitsToFloat(0x7fd5aaaa);
+  float qui1_proc = qui1;
+  float qui2_proc = qui2;
+  float quia_proc = quia;
+  VIXL_ASSERT(IsQuietNaN(sig1_proc));
+  VIXL_ASSERT(IsQuietNaN(sig2_proc));
+  VIXL_ASSERT(IsQuietNaN(siga_proc));
+  VIXL_ASSERT(IsQuietNaN(qui1_proc));
+  VIXL_ASSERT(IsQuietNaN(qui2_proc));
+  VIXL_ASSERT(IsQuietNaN(quia_proc));
 
   // Negated NaNs as it would be done on ARMv8 hardware.
-  float s1_proc_neg = RawbitsToFloat(0xffd51111);
-  float sa_proc_neg = RawbitsToFloat(0xffd5aaaa);
-  float q1_proc_neg = RawbitsToFloat(0xffea1111);
-  float qa_proc_neg = RawbitsToFloat(0xffeaaaaa);
-  VIXL_ASSERT(IsQuietNaN(s1_proc_neg));
-  VIXL_ASSERT(IsQuietNaN(sa_proc_neg));
-  VIXL_ASSERT(IsQuietNaN(q1_proc_neg));
-  VIXL_ASSERT(IsQuietNaN(qa_proc_neg));
+  float sig1_proc_neg = RawbitsToFloat(0xffd51111);
+  float siga_proc_neg = RawbitsToFloat(0xffd5aaaa);
+  float qui1_proc_neg = RawbitsToFloat(0xffea1111);
+  float quia_proc_neg = RawbitsToFloat(0xffeaaaaa);
+  VIXL_ASSERT(IsQuietNaN(sig1_proc_neg));
+  VIXL_ASSERT(IsQuietNaN(siga_proc_neg));
+  VIXL_ASSERT(IsQuietNaN(qui1_proc_neg));
+  VIXL_ASSERT(IsQuietNaN(quia_proc_neg));
 
   // Quiet NaNs are propagated.
-  FmaddFmsubHelper(q1, 0, 0, q1_proc, q1_proc_neg, q1_proc_neg, q1_proc);
-  FmaddFmsubHelper(0, q2, 0, q2_proc, q2_proc, q2_proc, q2_proc);
-  FmaddFmsubHelper(0, 0, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
-  FmaddFmsubHelper(q1, q2, 0, q1_proc, q1_proc_neg, q1_proc_neg, q1_proc);
-  FmaddFmsubHelper(0, q2, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
-  FmaddFmsubHelper(q1, 0, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
-  FmaddFmsubHelper(q1, q2, qa, qa_proc, qa_proc, qa_proc_neg, qa_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   0,
+                   0,
+                   qui1_proc,
+                   qui1_proc_neg,
+                   qui1_proc_neg,
+                   qui1_proc);
+  FmaddFmsubHelper(0, qui2, 0, qui2_proc, qui2_proc, qui2_proc, qui2_proc);
+  FmaddFmsubHelper(0,
+                   0,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   qui2,
+                   0,
+                   qui1_proc,
+                   qui1_proc_neg,
+                   qui1_proc_neg,
+                   qui1_proc);
+  FmaddFmsubHelper(0,
+                   qui2,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   0,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
+  FmaddFmsubHelper(qui1,
+                   qui2,
+                   quia,
+                   quia_proc,
+                   quia_proc,
+                   quia_proc_neg,
+                   quia_proc_neg);
 
   // Signalling NaNs are propagated, and made quiet.
-  FmaddFmsubHelper(s1, 0, 0, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(0, s2, 0, s2_proc, s2_proc, s2_proc, s2_proc);
-  FmaddFmsubHelper(0, 0, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, 0, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(0, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, 0, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   0,
+                   0,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(0, sig2, 0, sig2_proc, sig2_proc, sig2_proc, sig2_proc);
+  FmaddFmsubHelper(0,
+                   0,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   0,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(0,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   0,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
 
   // Signalling NaNs take precedence over quiet NaNs.
-  FmaddFmsubHelper(s1, q2, qa, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(q1, s2, qa, s2_proc, s2_proc, s2_proc, s2_proc);
-  FmaddFmsubHelper(q1, q2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, qa, s1_proc, s1_proc_neg, s1_proc_neg, s1_proc);
-  FmaddFmsubHelper(q1, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, q2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
-  FmaddFmsubHelper(s1, s2, sa, sa_proc, sa_proc, sa_proc_neg, sa_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   qui2,
+                   quia,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(qui1,
+                   sig2,
+                   quia,
+                   sig2_proc,
+                   sig2_proc,
+                   sig2_proc,
+                   sig2_proc);
+  FmaddFmsubHelper(qui1,
+                   qui2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   quia,
+                   sig1_proc,
+                   sig1_proc_neg,
+                   sig1_proc_neg,
+                   sig1_proc);
+  FmaddFmsubHelper(qui1,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   qui2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
+  FmaddFmsubHelper(sig1,
+                   sig2,
+                   siga,
+                   siga_proc,
+                   siga_proc,
+                   siga_proc_neg,
+                   siga_proc_neg);
 
   // A NaN generated by the intermediate op1 * op2 overrides a quiet NaN in a.
   FmaddFmsubHelper(0,
                    kFP32PositiveInfinity,
-                   qa,
+                   quia,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN);
   FmaddFmsubHelper(kFP32PositiveInfinity,
                    0,
-                   qa,
+                   quia,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN);
   FmaddFmsubHelper(0,
                    kFP32NegativeInfinity,
-                   qa,
+                   quia,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN);
   FmaddFmsubHelper(kFP32NegativeInfinity,
                    0,
-                   qa,
+                   quia,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,
                    kFP32DefaultNaN,

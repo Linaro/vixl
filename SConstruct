@@ -84,6 +84,7 @@ options = {
                    '-pedantic',
                    '-Wwrite-strings',
                    '-Wunused',
+                   '-Wshadow',
                    '-Wno-missing-noreturn'],
       'CPPPATH' : [config.dir_src_vixl]
       },

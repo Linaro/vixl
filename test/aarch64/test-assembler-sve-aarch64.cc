@@ -5472,6 +5472,9 @@ TEST_SVE(sve_addpl) {
 }
 
 TEST_SVE(sve_calculate_sve_address) {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wshadow"
+
   // Shadow the `MacroAssembler` type so that the test macros work without
   // modification.
   typedef CalculateSVEAddressMacroAssembler MacroAssembler;
@@ -5581,6 +5584,7 @@ TEST_SVE(sve_calculate_sve_address) {
     ASSERT_EQUAL_64(0xabcd404400000000 - 48, x28);
     ASSERT_EQUAL_64(0xabcd505500000000 - (48 << 4), x29);
   }
+#pragma GCC diagnostic pop
 }
 
 TEST_SVE(sve_permute_vector_unpredicated) {
@@ -11620,19 +11624,19 @@ static void SdotUdotHelper(Test* config,
                     const ZRegister& za,
                     const ZRegister& zn,
                     const ZRegister& zm,
-                    bool is_signed,
-                    int index) {
-    if (is_signed) {
-      if (index < 0) {
+                    bool is_signed_fn,
+                    int index_fn) {
+    if (is_signed_fn) {
+      if (index_fn < 0) {
         __ Sdot(zd, za, zn, zm);
       } else {
-        __ Sdot(zd, za, zn, zm, index);
+        __ Sdot(zd, za, zn, zm, index_fn);
       }
     } else {
-      if (index < 0) {
+      if (index_fn < 0) {
         __ Udot(zd, za, zn, zm);
       } else {
-        __ Udot(zd, za, zn, zm, index);
+        __ Udot(zd, za, zn, zm, index_fn);
       }
     }
   };

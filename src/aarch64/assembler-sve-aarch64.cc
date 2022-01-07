@@ -4794,9 +4794,9 @@ void Assembler::SVESt1VecScaHelper(const ZRegister& zt,
   VIXL_ASSERT(zn.IsLaneSizeS() || zn.IsLaneSizeD());
   VIXL_ASSERT(AreSameLaneSize(zn, zt));
 
-  uint32_t b22 = zn.IsLaneSizeS() ? (1 << 22) : 0;
+  uint32_t bit22 = zn.IsLaneSizeS() ? (1 << 22) : 0;
   Instr op = 0xe4002000;  // STNT1 with vector plus scalar addressing mode.
-  op |= b22 | (msize_bytes_log2 << 23);
+  op |= bit22 | (msize_bytes_log2 << 23);
   Emit(op | Rt(zt) | PgLow8(pg) |
        SVEMemOperandHelper(msize_bytes_log2, 1, addr, true));
 }

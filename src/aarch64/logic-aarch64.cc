@@ -6064,14 +6064,14 @@ LogicVRegister Simulator::fcvtxn2(VectorFormat vform,
 
 // Based on reference C function recip_sqrt_estimate from ARM ARM.
 double Simulator::recip_sqrt_estimate(double a) {
-  int q0, q1, s;
+  int quot0, quot1, s;
   double r;
   if (a < 0.5) {
-    q0 = static_cast<int>(a * 512.0);
-    r = 1.0 / sqrt((static_cast<double>(q0) + 0.5) / 512.0);
+    quot0 = static_cast<int>(a * 512.0);
+    r = 1.0 / sqrt((static_cast<double>(quot0) + 0.5) / 512.0);
   } else {
-    q1 = static_cast<int>(a * 256.0);
-    r = 1.0 / sqrt((static_cast<double>(q1) + 0.5) / 256.0);
+    quot1 = static_cast<int>(a * 256.0);
+    r = 1.0 / sqrt((static_cast<double>(quot1) + 0.5) / 256.0);
   }
   s = static_cast<int>(256.0 * r + 0.5);
   return static_cast<double>(s) / 256.0;
@@ -6239,7 +6239,6 @@ T Simulator::FPRecipEstimate(T op, FPRounding rounding) {
   } else {
     uint64_t fraction;
     int exp, result_exp;
-    uint32_t sign;
 
     if (IsFloat16<T>()) {
       sign = Float16Sign(op);
@@ -6779,8 +6778,8 @@ LogicVRegister Simulator::fscale(VectorFormat vform,
                                  const LogicVRegister& src2) {
   T two = T(2.0);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    T s1 = src1.Float<T>(i);
-    if (!IsNaN(s1)) {
+    T src1_val = src1.Float<T>(i);
+    if (!IsNaN(src1_val)) {
       int64_t scale = src2.Int(vform, i);
       // TODO: this is a low-performance implementation, but it's simple and
       // less likely to be buggy. Consider replacing it with something faster.
@@ -6789,19 +6788,19 @@ LogicVRegister Simulator::fscale(VectorFormat vform,
       // point iterating further.
       scale = std::min<int64_t>(std::max<int64_t>(scale, -2048), 2048);
 
-      // Compute s1 * 2 ^ scale. If scale is positive, multiply by two and
+      // Compute src1_val * 2 ^ scale. If scale is positive, multiply by two and
       // decrement scale until it's zero.
       while (scale-- > 0) {
-        s1 = FPMul(s1, two);
+        src1_val = FPMul(src1_val, two);
       }
 
       // If scale is negative, divide by two and increment scale until it's
       // zero. Initially, scale is (src2 - 1), so we pre-increment.
       while (++scale < 0) {
-        s1 = FPDiv(s1, two);
+        src1_val = FPDiv(src1_val, two);
       }
     }
-    dst.SetFloat<T>(i, s1);
+    dst.SetFloat<T>(i, src1_val);
   }
   return dst;
 }

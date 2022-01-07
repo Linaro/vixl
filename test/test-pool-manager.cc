@@ -421,9 +421,9 @@ TEST(FuzzObjectDeletedWhenPlaced) {
     // Remove bound objects.
     for (std::vector<TestObject *>::iterator iter = objects.begin();
          iter != objects.end();) {
-      TestObject *object = *iter;
-      if (object->IsBound()) {
-        delete object;
+      TestObject *obj = *iter;
+      if (obj->IsBound()) {
+        delete obj;
         iter = objects.erase(iter);
       } else {
         ++iter;
@@ -494,7 +494,7 @@ TEST(FuzzObjectUpdatedWhenPlaced) {
     // Pick another random label to bind.
     const int kProbabilityToBind = 20;
     if ((Random() % 100) < kProbabilityToBind) {
-      TestBranchObject *object = objects[RandomObjectID(objects.size())];
+      TestBranchObject *object2 = objects[RandomObjectID(objects.size())];
       // Binding can cause the pool emission, so check if we need to emit
       // the pools. The actual backends will know the max alignment we
       // might need here, so can simplify the check (won't need to check
@@ -503,15 +503,15 @@ TEST(FuzzObjectUpdatedWhenPlaced) {
       if (pool_manager.MustEmit(pc, max_padding)) {
         pc = pool_manager.Emit(&masm, pc, max_padding);
       }
-      pc = pool_manager.Bind(&masm, object, pc);
+      pc = pool_manager.Bind(&masm, object2, pc);
     }
 
     // Remove bound objects.
     for (std::vector<TestBranchObject *>::iterator iter = objects.begin();
          iter != objects.end();) {
-      TestBranchObject *object = *iter;
-      if (object->IsBound()) {
-        delete object;
+      TestBranchObject *obj = *iter;
+      if (obj->IsBound()) {
+        delete obj;
         iter = objects.erase(iter);
       } else {
         ++iter;
@@ -818,9 +818,9 @@ TEST(MustEmitNewReferenceDueToSizeOfObject) {
   {
     // If the object is smaller, we can emit the reference.
     TestObject smaller_object(kBigObjectSize - 4, 1);
-    ForwardReference<int32_t> temp_ref(pc, kBranchSize, pc, pc + kPoolSize);
+    ForwardReference<int32_t> temp_ref2(pc, kBranchSize, pc, pc + kPoolSize);
     VIXL_ASSERT(
-        !pool_manager.MustEmit(pc, kBranchSize, &temp_ref, &smaller_object));
+        !pool_manager.MustEmit(pc, kBranchSize, &temp_ref2, &smaller_object));
 
     // If the reference is going to be added after the current objects in the
     // pool, we can still emit it.

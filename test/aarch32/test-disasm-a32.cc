@@ -348,8 +348,9 @@ namespace aarch32 {
 
 class TestDisassembler : public PrintDisassembler {
  public:
-  TestDisassembler(std::ostream& os, uint32_t pc)  // NOLINT(runtime/references)
-      : PrintDisassembler(os, pc) {}
+  TestDisassembler(std::ostream& os,
+                   uint32_t program_counter)  // NOLINT(runtime/references)
+      : PrintDisassembler(os, program_counter) {}
 
   virtual void PrintCodeAddress(uint32_t code_address) VIXL_OVERRIDE {
     USE(code_address);
