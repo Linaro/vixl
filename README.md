@@ -40,6 +40,8 @@ Licence
 This software is covered by the licence described in the [LICENCE](LICENCE)
 file.
 
+Contributions, as pull requests or via other means, are accepted under the terms
+of the same [LICENCE](LICENCE).
 
 Requirements
 ============
