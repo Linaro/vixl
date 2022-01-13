@@ -24,6 +24,7 @@ AArch64 integer instructions
 ----------------------------
 
 <a id="integer-a">
+
 ### ADC ###
 
 Add with carry bit.
@@ -214,6 +215,7 @@ Convert floating-point condition flags from Arm format to alternative format _(A
 
 
 <a id="integer-b">
+
 ### B ###
 
 Conditional branch to PC offset.
@@ -392,6 +394,7 @@ Branch target identification.
 
 
 <a id="integer-c">
+
 ### CAS ###
 
 Compare and Swap word or doubleword in memory _(Armv8.1)_.
@@ -749,6 +752,7 @@ Conditional select negation: rd = cond ? rn : -rm.
 
 
 <a id="integer-d">
+
 ### DC ###
 
 System data cache operation.
@@ -771,6 +775,7 @@ Data synchronization barrier.
 
 
 <a id="integer-e">
+
 ### EON ###
 
 Bitwise enor/xnor (A ^ ~B).
@@ -803,6 +808,7 @@ Extract.
 
 
 <a id="integer-h">
+
 ### HINT ###
 
 System hint (named type).
@@ -825,6 +831,7 @@ Halting debug-mode breakpoint.
 
 
 <a id="integer-i">
+
 ### IC ###
 
 System instruction cache operation.
@@ -840,6 +847,7 @@ Instruction synchronization barrier.
 
 
 <a id="integer-l">
+
 ### LDADD ###
 
 Atomic add on word or doubleword in memory _(Armv8.1)_
@@ -1877,6 +1885,7 @@ Logical shift right by variable.
 
 
 <a id="integer-m">
+
 ### MADD ###
 
 Multiply and accumulate.
@@ -1968,6 +1977,7 @@ Move inverted operand to register.
 
 
 <a id="integer-n">
+
 ### NEG ###
 
 Negate.
@@ -2004,6 +2014,7 @@ No-op.
 
 
 <a id="integer-o">
+
 ### ORN ###
 
 Bitwise nor (A | ~B).
@@ -2019,6 +2030,7 @@ Bitwise or (A | B).
 
 
 <a id="integer-p">
+
 ### PACDA ###
 
 Pointer Authentication Code for Data address, using key A _(Armv8.3)_.
@@ -2189,6 +2201,7 @@ Prefetch memory (with unscaled offset, allowing unallocated hints).
 
 
 <a id="integer-r">
+
 ### RBIT ###
 
 Bit reverse.
@@ -2267,6 +2280,7 @@ Rotate right by variable.
 
 
 <a id="integer-s">
+
 ### SBC ###
 
 Subtract with carry bit.
@@ -3040,6 +3054,7 @@ System instruction.
 
 
 <a id="integer-t">
+
 ### TBNZ ###
 
 Test bit and branch to PC offset if not zero.
@@ -3076,6 +3091,7 @@ Bit test and set flags.
 
 
 <a id="integer-u">
+
 ### UBFIZ ###
 
 Unsigned bitfield insert with zero at right.
@@ -3176,6 +3192,7 @@ Unsigned extend word.
 
 
 <a id="integer-x">
+
 ### XAFLAG ###
 
 Convert floating-point condition flags from alternative format to Arm format _(Armv8.5)_.
@@ -3209,6 +3226,7 @@ AArch64 floating point and NEON instructions
 --------------------------------------------
 
 <a id="float-a">
+
 ### ABS ###
 
 Absolute value.
@@ -3266,6 +3284,7 @@ Bitwise and.
 
 
 <a id="float-b">
+
 ### BIC ###
 
 Bit clear immediate.
@@ -3302,6 +3321,7 @@ Bitwise select.
 
 
 <a id="float-c">
+
 ### CLS ###
 
 Count leading sign bits.
@@ -3401,6 +3421,7 @@ Population count per byte.
 
 
 <a id="float-d">
+
 ### DUP ###
 
 Duplicate general-purpose register to vector.
@@ -3416,6 +3437,7 @@ Duplicate vector element to vector or scalar.
 
 
 <a id="float-e">
+
 ### EOR ###
 
 Bitwise eor.
@@ -3434,6 +3456,7 @@ Extract vector from pair of vectors.
 
 
 <a id="float-f">
+
 ### FABD ###
 
 FP absolute difference.
@@ -4316,6 +4339,7 @@ FP subtract.
 
 
 <a id="float-i">
+
 ### INS ###
 
 Insert vector element from another vector element.
@@ -4334,6 +4358,7 @@ Insert vector element from general-purpose register.
 
 
 <a id="float-l">
+
 ### LD1 ###
 
 One-element single structure load to one lane.
@@ -4473,6 +4498,7 @@ Four-element single structure load to all lanes.
 
 
 <a id="float-m">
+
 ### MLA ###
 
 Multiply-add by scalar element.
@@ -4590,6 +4616,7 @@ Vector move inverted immediate.
 
 
 <a id="float-n">
+
 ### NEG ###
 
 Negate.
@@ -4605,6 +4632,7 @@ Bitwise not.
 
 
 <a id="float-o">
+
 ### ORN ###
 
 Bitwise orn.
@@ -4627,6 +4655,7 @@ Bitwise or.
 
 
 <a id="float-p">
+
 ### PMUL ###
 
 Polynomial multiply.
@@ -4649,6 +4678,7 @@ Polynomial multiply long (second part).
 
 
 <a id="float-r">
+
 ### RADDHN ###
 
 Rounding add narrow returning high half.
@@ -4720,6 +4750,7 @@ Rounding subtract narrow returning high half (second part).
 
 
 <a id="float-s">
+
 ### SABA ###
 
 Signed absolute difference and accumulate.
@@ -5620,6 +5651,7 @@ Signed extend long (second part).
 
 
 <a id="float-t">
+
 ### TBL ###
 
 Table lookup from four registers.
@@ -5715,6 +5747,7 @@ Transpose vectors (secondary).
 
 
 <a id="float-u">
+
 ### UABA ###
 
 Unsigned absolute difference and accumulate.
@@ -6251,6 +6284,7 @@ Unzip vectors (secondary).
 
 
 <a id="float-x">
+
 ### XTN ###
 
 Extract narrow.
@@ -6266,6 +6300,7 @@ Extract narrow (second part).
 
 
 <a id="float-z">
+
 ### ZIP1 ###
 
 Zip vectors (primary).
@@ -6285,6 +6320,7 @@ AArch64 Scalable Vector Extension (SVE) instructions
 ----------------------------------------------------
 
 <a id="sve-a">
+
 ### ABS ###
 
 Absolute value (predicated).
@@ -6481,6 +6517,7 @@ Reversed arithmetic shift right by vector (predicated).
 
 
 <a id="sve-b">
+
 ### BCAX ###
 
 Bitwise clear and exclusive OR.
@@ -6683,6 +6720,7 @@ Bitwise select with second input inverted.
 
 
 <a id="sve-c">
+
 ### CADD ###
 
 Complex integer add with rotate.
@@ -7114,6 +7152,7 @@ Compare and terminate loop.
 
 
 <a id="sve-d">
+
 ### DECB ###
 
 Decrement scalar by multiple of predicate constraint element count.
@@ -7206,6 +7245,7 @@ Broadcast logical bitmask immediate to vector (unpredicated).
 
 
 <a id="sve-e">
+
 ### EON ###
 
 Bitwise exclusive OR with inverted immediate (unpredicated).
@@ -7299,6 +7339,7 @@ Extract vector from pair of vectors.
 
 
 <a id="sve-f">
+
 ### FABD ###
 
 Floating-point absolute difference (predicated).
@@ -8208,6 +8249,7 @@ Floating-point trigonometric select coefficient.
 
 
 <a id="sve-h">
+
 ### HISTCNT ###
 
 Count matching elements in vector.
@@ -8226,6 +8268,7 @@ Count matching elements in vector segments.
 
 
 <a id="sve-i">
+
 ### INCB ###
 
 Increment scalar by multiple of predicate constraint element count.
@@ -8332,6 +8375,7 @@ Insert general-purpose register in shifted vector.
 
 
 <a id="sve-l">
+
 ### LASTA ###
 
 Extract element after last to SIMD&FP scalar register.
@@ -9115,6 +9159,7 @@ Reversed logical shift right by vector (predicated).
 
 
 <a id="sve-m">
+
 ### MAD ###
 
 Multiply-add vectors (predicated), writing multiplicand [Zdn = Za + Zdn * Zm].
@@ -9345,6 +9390,7 @@ Multiply vectors (unpredicated).
 
 
 <a id="sve-n">
+
 ### NAND ###
 
 Bitwise NAND predicates.
@@ -9438,6 +9484,7 @@ Bitwise invert predicate, setting the condition flags.
 
 
 <a id="sve-o">
+
 ### ORN ###
 
 Bitwise OR inverted predicate.
@@ -9517,6 +9564,7 @@ Bitwise OR reduction to scalar.
 
 
 <a id="sve-p">
+
 ### PFALSE ###
 
 Set all predicate elements to false.
@@ -9637,6 +9685,7 @@ Unpack and widen half of predicate.
 
 
 <a id="sve-r">
+
 ### RADDHNB ###
 
 Rounding add narrow high part (bottom).
@@ -9750,6 +9799,7 @@ Rounding subtract narrow high part (top).
 
 
 <a id="sve-s">
+
 ### SABA ###
 
 Signed absolute difference and accumulate.
@@ -11288,6 +11338,7 @@ Signed word extend (predicated).
 
 
 <a id="sve-t">
+
 ### TBL ###
 
 Programmable table lookup in one or two vector table (zeroing).
@@ -11345,6 +11396,7 @@ Interleave even or odd elements from two vectors.
 
 
 <a id="sve-u">
+
 ### UABA ###
 
 Unsigned absolute difference and accumulate.
@@ -12194,6 +12246,7 @@ Concatenate even or odd elements from two vectors.
 
 
 <a id="sve-w">
+
 ### WHILEGE ###
 
 While decrementing signed scalar greater than or equal to scalar.
@@ -12292,6 +12345,7 @@ Write the first-fault register.
 
 
 <a id="sve-x">
+
 ### XAR ###
 
 Bitwise exclusive OR and rotate right by immediate.
@@ -12303,6 +12357,7 @@ Bitwise exclusive OR and rotate right by immediate.
 
 
 <a id="sve-z">
+
 ### ZIP1 ###
 
 Interleave elements from two half predicates.
@@ -12340,6 +12395,7 @@ Additional or pseudo instructions
 ---------------------------------
 
 <a id="pseudo-b">
+
 ### BIND ###
 
 Bind a label to the current PC.
@@ -12348,6 +12404,7 @@ Bind a label to the current PC.
 
 
 <a id="pseudo-d">
+
 ### DC ###
 
 Emit data in the instruction stream.
@@ -12377,6 +12434,7 @@ Emit raw instructions into the instruction stream.
 
 
 <a id="pseudo-p">
+
 ### PLACE ###
 
 Place a literal at the current PC.

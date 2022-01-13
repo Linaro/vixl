@@ -176,7 +176,7 @@ sub describe_insts
     next if($inst{$i}->{'type'} ne $type);
     unless ($last_initial eq $inst{$i}->{'initial'}) {
       $last_initial = $inst{$i}->{'initial'};
-      $result .= sprintf("<a id=\"%s-%s\">\n", lc($type), $last_initial);
+      $result .= sprintf("<a id=\"%s-%s\">\n\n", lc($type), $last_initial);
     }
     $result .= sprintf("### %s ###\n\n%s\n\n",
                        uc($inst{$i}->{'mnemonic'}),
