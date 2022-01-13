@@ -891,14 +891,14 @@ void MacroAssembler::Index(const ZRegister& zd,
     static IndexOperand Prepare(MacroAssembler* masm,
                                 UseScratchRegisterScope* temps,
                                 const Operand& op,
-                                const ZRegister& zd) {
+                                const ZRegister& zd_inner) {
       // Look for encodable immediates.
       int imm;
       if (op.IsImmediate()) {
-        if (IntegerOperand(op).TryEncodeAsIntNForLane<5>(zd, &imm)) {
+        if (IntegerOperand(op).TryEncodeAsIntNForLane<5>(zd_inner, &imm)) {
           return IndexOperand(imm);
         }
-        Register scratch = temps->AcquireRegisterToHoldLane(zd);
+        Register scratch = temps->AcquireRegisterToHoldLane(zd_inner);
         masm->Mov(scratch, op);
         return IndexOperand(scratch);
       } else {
