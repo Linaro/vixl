@@ -6901,6 +6901,45 @@ class Assembler : public vixl::internal::AssemblerBase {
              const ZRegister& zm,
              int index);
 
+  // Add with Tag.
+  void addg(const Register& xd, const Register& xn, int uimm6, int uimm4);
+
+  // Tag Mask Insert.
+  void gmi(const Register& rd, const Register& xn, const Register& rm);
+
+  // Insert Random Tag.
+  void irg(const Register& xd, const Register& xn, const Register& rm);
+
+  // Load Allocation Tag.
+  void ldg(const Register& xt, const Register& xn, int imm9);
+
+  // Store Allocation Tags.
+  void st2g(const Register& xn, int imm9);
+
+  // Store Allocation Tag.
+  void stg(const Register& xn, int imm9);
+
+  // Store Allocation Tag and Pair of registers.
+  void stgp(const Register& xt1,
+            const Register& xt2,
+            const Register& xn,
+            int imm7);
+
+  // Store Allocation Tags, Zeroing.
+  void stz2g(const Register& xn, int imm9);
+
+  // Store Allocation Tag, Zeroing.
+  void stzg(const Register& xn, int imm9);
+
+  // Subtract with Tag.
+  void subg(const Register& xd, const Register& xn, int uimm6, int uimm4);
+
+  // Subtract Pointer.
+  void subp(const Register& rd, const Register& xn);
+
+  // Subtract Pointer, setting Flags.
+  void subps(const Register& rd, const Register& xn);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.

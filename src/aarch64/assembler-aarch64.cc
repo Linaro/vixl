@@ -1939,6 +1939,167 @@ void Assembler::hint(int imm7) {
 }
 
 
+// MTE.
+
+void Assembler::addg(const Register& xd,
+                     const Register& xn,
+                     int uimm6,
+                     int uimm4) {
+  // ADDG <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>
+  //  1001 0001 10.. .... .... .... .... ....
+  //  sf<31> | op<30> | S<29> | o2<22> | uimm6<21:16> | op3<15:14> |
+  //  uimm4<13:10> | Rn<9:5> | Rd<4:0> | <Xd|SP><> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0x91800000 | RdSP(xd) | RnSP(xn) | ImmField<21, 16>(uimm6) |
+       ImmField<13, 10>(uimm4));
+}
+
+void Assembler::gmi(const Register& rd,
+                    const Register& xn,
+                    const Register& rm) {
+  // GMI <Xd>, <Xn|SP>, <Xm>
+  //  1001 1010 110. .... 0001 01.. .... ....
+  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0x9ac01400 | Rd(rd) | RnSP(xn) | Rm(rm));
+}
+
+void Assembler::irg(const Register& xd,
+                    const Register& xn,
+                    const Register& rm) {
+  // IRG <Xd|SP>, <Xn|SP>{, <Xm>}
+  //  1001 1010 110. .... 0001 00.. .... ....
+  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
+  //  | <Xd|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0x9ac01000 | RdSP(xd) | RnSP(xn) | Rm(rm));
+}
+
+void Assembler::ldg(const Register& xt, const Register& xn, int imm9) {
+  // LDG <Xt>, [<Xn|SP>{, #<simm>}]
+  //  1101 1001 011. .... .... 00.. .... ....
+  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xd9600000 | Rt(xt) | RnSP(xn) | ImmField<20, 12>(imm9));
+}
+
+// This prototype maps to 3 instruction encodings:
+//  ST2G_64Soffset_ldsttags
+//  ST2G_64Spost_ldsttags
+//  ST2G_64Spre_ldsttags
+void Assembler::st2g(const Register& xn, int imm9) {
+  // ST2G <Xt|SP>, [<Xn|SP>{, #<simm>}]
+  //  1101 1001 101. .... .... 10.. .... ....
+  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xd9a00800 | RnSP(xn) | ImmField<20, 12>(imm9));
+}
+
+// This prototype maps to 3 instruction encodings:
+//  STG_64Soffset_ldsttags
+//  STG_64Spost_ldsttags
+//  STG_64Spre_ldsttags
+void Assembler::stg(const Register& xn, int imm9) {
+  // STG <Xt|SP>, [<Xn|SP>{, #<simm>}]
+  //  1101 1001 001. .... .... 10.. .... ....
+  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xd9200800 | RnSP(xn) | ImmField<20, 12>(imm9));
+}
+
+// This prototype maps to 3 instruction encodings:
+//  STGP_64_ldstpair_off
+//  STGP_64_ldstpair_post
+//  STGP_64_ldstpair_pre
+void Assembler::stgp(const Register& xt1,
+                     const Register& xt2,
+                     const Register& xn,
+                     int imm7) {
+  // STGP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
+  //  0110 1001 00.. .... .... .... .... ....
+  //  opc<31:30> | V<26> | L<22> | imm7<21:15> | Rt2<14:10> | Rn<9:5> | Rt<4:0>
+  //  | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0x69000000 | RnSP(xn) | ImmField<21, 15>(imm7) | Rt2(xt2) | Rt(xt1));
+}
+
+// This prototype maps to 3 instruction encodings:
+//  STZ2G_64Soffset_ldsttags
+//  STZ2G_64Spost_ldsttags
+//  STZ2G_64Spre_ldsttags
+void Assembler::stz2g(const Register& xn, int imm9) {
+  // STZ2G <Xt|SP>, [<Xn|SP>{, #<simm>}]
+  //  1101 1001 111. .... .... 10.. .... ....
+  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xd9e00800 | RnSP(xn) | ImmField<20, 12>(imm9));
+}
+
+// This prototype maps to 3 instruction encodings:
+//  STZG_64Soffset_ldsttags
+//  STZG_64Spost_ldsttags
+//  STZG_64Spre_ldsttags
+void Assembler::stzg(const Register& xn, int imm9) {
+  // STZG <Xt|SP>, [<Xn|SP>{, #<simm>}]
+  //  1101 1001 011. .... .... 10.. .... ....
+  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xd9600800 | RnSP(xn) | ImmField<20, 12>(imm9));
+}
+
+void Assembler::subg(const Register& xd,
+                     const Register& xn,
+                     int uimm6,
+                     int uimm4) {
+  // SUBG <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>
+  //  1101 0001 10.. .... .... .... .... ....
+  //  sf<31> | op<30> | S<29> | o2<22> | uimm6<21:16> | op3<15:14> |
+  //  uimm4<13:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><> | <Xd|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xd1800000 | RdSP(xd) | RnSP(xn) | ImmField<21, 16>(uimm6) |
+       ImmField<13, 10>(uimm4));
+}
+
+void Assembler::subp(const Register& rd, const Register& xn) {
+  // SUBP <Xd>, <Xn|SP>, <Xm|SP>
+  //  1001 1010 110. .... 0000 00.. .... ....
+  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0x9ac00000 | Rd(rd) | RnSP(xn));
+}
+
+void Assembler::subps(const Register& rd, const Register& xn) {
+  // SUBPS <Xd>, <Xn|SP>, <Xm|SP>
+  //  1011 1010 110. .... 0000 00.. .... ....
+  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
+
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+
+  Emit(0xbac00000 | Rd(rd) | RnSP(xn));
+}
+
 // NEON structure loads and stores.
 Instr Assembler::LoadStoreStructAddrModeField(const MemOperand& addr) {
   Instr addr_field = RnSP(addr.GetBaseRegister());
