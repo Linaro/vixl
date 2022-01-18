@@ -294,7 +294,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        // Bits 48+
        CPUFeatures::kRNG,
        CPUFeatures::kBTI,
-       CPUFeatures::kNone,   // "MTE"
+       CPUFeatures::kMTE,
        CPUFeatures::kNone,  // "ECV"
        CPUFeatures::kAFP,
        CPUFeatures::kNone};  // "RPRES"
@@ -308,6 +308,10 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
   VIXL_STATIC_ASSERT(ArrayLength(kFeatureBits) < 64);
   for (size_t i = 0; i < ArrayLength(kFeatureBits); i++) {
     if (hwcap & (UINT64_C(1) << i)) features.Combine(kFeatureBits[i]);
+  }
+  // MTE support from HWCAP2 signifies FEAT_MTE1 and FEAT_MTE2 support
+  if (features.Has(CPUFeatures::kMTE)) {
+    features.Combine(CPUFeatures::kMTEInstructions);
   }
 #endif  // VIXL_USE_LINUX_HWCAP
 
