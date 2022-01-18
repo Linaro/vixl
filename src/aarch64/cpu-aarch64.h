@@ -168,6 +168,7 @@ class AA64MMFR1 : public IDRegister {
 
  private:
   static const Field kLO;
+  static const Field kAFP;
 };
 
 class AA64MMFR2 : public IDRegister {
