@@ -3383,8 +3383,10 @@ static void PtrueHelper(Test* config,
     typedef void (
         MacroAssembler::*AssemblePtrueFn)(const PRegisterWithLaneSize& pd,
                                           int pattern);
-    AssemblePtrueFn assemble =
-        (s == SetFlags) ? &MacroAssembler::ptrues : &MacroAssembler::ptrue;
+    AssemblePtrueFn assemble = &MacroAssembler::ptrue;
+    if (s == SetFlags) {
+      assemble = &MacroAssembler::ptrues;
+    }
 
     ExactAssemblyScope guard(&masm, 12 * kInstructionSize);
     __ msr(NZCV, x20);
