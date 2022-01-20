@@ -405,6 +405,28 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"usdot_asimdsame2_d", &Simulator::VisitNEON3SameExtra},
     {"sudot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
     {"usdot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
+    {"addg_64_addsub_immtags", &Simulator::Simulate_XdSP_XnSP_uimm6_uimm4},
+    {"gmi_64g_dp_2src", &Simulator::Simulate_Xd_XnSP_Xm},
+    {"irg_64i_dp_2src", &Simulator::Simulate_XdSP_XnSP_Xm},
+    {"ldg_64loffset_ldsttags", &Simulator::Simulate_Xt_XnSP_simm},
+    {"st2g_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"st2g_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"st2g_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
+    {"stgp_64_ldstpair_off", &Simulator::Simulate_Xt1_Xt2_XnSP_imm},
+    {"stgp_64_ldstpair_post", &Simulator::Simulate_Xt1_Xt2_XnSP_imm},
+    {"stgp_64_ldstpair_pre", &Simulator::Simulate_Xt1_Xt2_XnSP_imm_excl},
+    {"stg_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"stg_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"stg_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
+    {"stz2g_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"stz2g_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"stz2g_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
+    {"stzg_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"stzg_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
+    {"stzg_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
+    {"subg_64_addsub_immtags", &Simulator::Simulate_XdSP_XnSP_uimm6_uimm4},
+    {"subps_64s_dp_2src", &Simulator::Simulate_Xd_XnSP_XmSP},
+    {"subp_64s_dp_2src", &Simulator::Simulate_Xd_XnSP_XmSP},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
@@ -13811,6 +13833,157 @@ void Simulator::DoUnreachable(const Instruction* instr) {
   abort();
 }
 
+void Simulator::Simulate_XdSP_XnSP_Xm(const Instruction* instr) {
+  uint64_t rd = ReadXRegister(instr->GetRd(), Reg31IsStackPointer);
+  USE(rd);
+  uint64_t rm = ReadXRegister(instr->GetRm());
+  USE(rm);
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+
+  switch (form_hash_) {
+    case Hash("irg_64I_dp_2src"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_XdSP_XnSP_uimm6_uimm4(const Instruction* instr) {
+  uint64_t rd = ReadXRegister(instr->GetRd(), Reg31IsStackPointer);
+  USE(rd);
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+
+  switch (form_hash_) {
+    case Hash("addg_64_addsub_immtags"):
+      break;
+    case Hash("subg_64_addsub_immtags"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_Xd_XnSP_Xm(const Instruction* instr) {
+  uint64_t rd = ReadXRegister(instr->GetRd());
+  USE(rd);
+  uint64_t rm = ReadXRegister(instr->GetRm());
+  USE(rm);
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+
+  switch (form_hash_) {
+    case Hash("gmi_64g_dp_2src"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_Xd_XnSP_XmSP(const Instruction* instr) {
+  uint64_t rd = ReadXRegister(instr->GetRd());
+  USE(rd);
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+
+  switch (form_hash_) {
+    case Hash("subps_64s_dp_2src"):
+      break;
+    case Hash("subp_64s_dp_2src"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr) {
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+  uint64_t rt1 = ReadXRegister(instr->GetRt());
+  USE(rt1);
+
+  switch (form_hash_) {
+    case Hash("stgp_64_ldstpair_off"):
+      break;
+    case Hash("stgp_64_ldstpair_post"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_Xt1_Xt2_XnSP_imm_excl(const Instruction* instr) {
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+  uint64_t rt1 = ReadXRegister(instr->GetRt());
+  USE(rt1);
+
+  switch (form_hash_) {
+    case Hash("stgp_64_ldstpair_pre"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_XtSP_XnSP_simm(const Instruction* instr) {
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+
+  switch (form_hash_) {
+    case Hash("st2g_64soffset_ldsttags"):
+      break;
+    case Hash("st2g_64spost_ldsttags"):
+      break;
+    case Hash("stg_64soffset_ldsttags"):
+      break;
+    case Hash("stg_64spost_ldsttags"):
+      break;
+    case Hash("stz2g_64soffset_ldsttags"):
+      break;
+    case Hash("stz2g_64spost_ldsttags"):
+      break;
+    case Hash("stzg_64soffset_ldsttags"):
+      break;
+    case Hash("stzg_64spost_ldsttags"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_XtSP_XnSP_simm_excl(const Instruction* instr) {
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+
+  switch (form_hash_) {
+    case Hash("st2g_64spre_ldsttags"):
+      break;
+    case Hash("stg_64spre_ldsttags"):
+      break;
+    case Hash("stz2g_64spre_ldsttags"):
+      break;
+    case Hash("stzg_64spre_ldsttags"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::Simulate_Xt_XnSP_simm(const Instruction* instr) {
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+  USE(rn);
+  uint64_t rt = ReadXRegister(instr->GetRt());
+  USE(rt);
+
+  switch (form_hash_) {
+    case Hash("ldg_64loffset_ldsttags"):
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+  }
+}
 
 void Simulator::DoTrace(const Instruction* instr) {
   VIXL_ASSERT((instr->Mask(ExceptionMask) == HLT) &&

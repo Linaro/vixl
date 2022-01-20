@@ -1248,6 +1248,16 @@ class Simulator : public DecoderVisitor {
   void SimulateNEONComplexMulByElement(const Instruction* instr);
   void SimulateNEONDotProdByElement(const Instruction* instr);
 
+  void Simulate_XdSP_XnSP_Xm(const Instruction* instr);
+  void Simulate_XdSP_XnSP_uimm6_uimm4(const Instruction* instr);
+  void Simulate_Xd_XnSP_Xm(const Instruction* instr);
+  void Simulate_Xd_XnSP_XmSP(const Instruction* instr);
+  void Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr);
+  void Simulate_Xt1_Xt2_XnSP_imm_excl(const Instruction* instr);
+  void Simulate_XtSP_XnSP_simm(const Instruction* instr);
+  void Simulate_XtSP_XnSP_simm_excl(const Instruction* instr);
+  void Simulate_Xt_XnSP_simm(const Instruction* instr);
+
   // Integer register accessors.
 
   // Basic accessor: Read the register as the specified type.

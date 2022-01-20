@@ -3099,6 +3099,37 @@ TEST(udf) {
   CLEANUP();
 }
 
+TEST(mte) {
+  SETUP();
+
+#if 0
+  COMPARE_PREFIX(addg(x26, x26, int uimm6, int uimm4), "addg <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>");
+  COMPARE_PREFIX(gmi(x3, x3, x3), "gmi <Xd>, <Xn|SP>, <Xm>");
+  COMPARE_PREFIX(irg(x24, x24, x24), "irg <Xd|SP>, <Xn|SP>{, <Xm>}");
+  COMPARE_PREFIX(ldg(x2, x2, int imm9), "ldg <Xt>, [<Xn|SP>{, #<simm>}]");
+  COMPARE_PREFIX(st2g(x3, int imm9), "st2g <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE_PREFIX(st2g(x31, int imm9), "st2g <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE_PREFIX(st2g(x30, int imm9), "st2g <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE_PREFIX(stgp(x301, x302, x30, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]");
+  COMPARE_PREFIX(stgp(x201, x202, x20, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>], #<imm>");
+  COMPARE_PREFIX(stgp(x161, x162, x16, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!");
+  COMPARE_PREFIX(stg(x9, int imm9), "stg <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE_PREFIX(stg(x20, int imm9), "stg <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE_PREFIX(stg(x29, int imm9), "stg <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE_PREFIX(stz2g(x9, int imm9), "stz2g <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE_PREFIX(stz2g(x28, int imm9), "stz2g <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE_PREFIX(stz2g(x7, int imm9), "stz2g <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE_PREFIX(stzg(x20, int imm9), "stzg <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE_PREFIX(stzg(x6, int imm9), "stzg <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE_PREFIX(stzg(x28, int imm9), "stzg <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE_PREFIX(subg(x19, x19, int uimm6, int uimm4), "subg <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>");
+  COMPARE_PREFIX(subps(x0, x0), "subps <Xd>, <Xn|SP>, <Xm|SP>");
+  COMPARE_PREFIX(subp(x28, x28), "subp <Xd>, <Xn|SP>, <Xm|SP>");
+#endif
+
+  CLEANUP();
+}
+
 TEST(architecture_features) {
   SETUP();
 

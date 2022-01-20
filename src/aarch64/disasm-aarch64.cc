@@ -622,6 +622,30 @@ Disassembler::FormToVisitorFnMap Disassembler::form_to_visitor_ = {
     {"usdot_z_zzzi_s", &Disassembler::VisitSVEMulIndex},
     {"sudot_z_zzzi_s", &Disassembler::VisitSVEMulIndex},
     {"usdot_asimdsame2_d", &Disassembler::VisitNEON3SameExtra},
+    {"addg_64_addsub_immtags",
+     &Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4},
+    {"gmi_64g_dp_2src", &Disassembler::Disassemble_Xd_XnSP_Xm},
+    {"irg_64i_dp_2src", &Disassembler::Disassemble_XdSP_XnSP_Xm},
+    {"ldg_64loffset_ldsttags", &Disassembler::Disassemble_Xt_XnSP_simm},
+    {"st2g_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"st2g_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"st2g_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
+    {"stgp_64_ldstpair_off", &Disassembler::Disassemble_Xt1_Xt2_XnSP_imm},
+    {"stgp_64_ldstpair_post", &Disassembler::Disassemble_Xt1_Xt2_XnSP_imm},
+    {"stgp_64_ldstpair_pre", &Disassembler::Disassemble_Xt1_Xt2_XnSP_imm_excl},
+    {"stg_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"stg_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"stg_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
+    {"stz2g_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"stz2g_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"stz2g_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
+    {"stzg_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"stzg_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
+    {"stzg_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
+    {"subg_64_addsub_immtags",
+     &Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4},
+    {"subps_64s_dp_2src", &Disassembler::Disassemble_Xd_XnSP_XmSP},
+    {"subp_64s_dp_2src", &Disassembler::Disassemble_Xd_XnSP_XmSP},
 };
 
 Disassembler::Disassembler() {
@@ -9181,6 +9205,51 @@ void Disassembler::Disassemble_ZtS_Pg_ZnS_Xm(const Instruction *instr) {
   const char *form = "{'Zt.s}, 'Pgl, ['Zn.s";
   const char *suffix = instr->GetRm() == 31 ? "]" : ", 'Xm]";
   Format(instr, mnemonic_.c_str(), form, suffix);
+}
+
+void Disassembler::Disassemble_XdSP_XnSP_Xm(const Instruction *instr) {
+  const char *form = "'Xds, 'Xns{, 'Rm}";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4(const Instruction *instr) {
+  const char *form = "'Xds, 'Xns, #'u2116, #'u1310";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_Xd_XnSP_Xm(const Instruction *instr) {
+  const char *form = "'Rd, 'Xns, 'Rm";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_Xd_XnSP_XmSP(const Instruction *instr) {
+  const char *form = "'Rd, 'Xns, <Xm|SP>";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_Xt1_Xt2_XnSP_imm(const Instruction *instr) {
+  const char *form = "'Xt, 'Xt2, ['Xns{, #'u2115}]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_Xt1_Xt2_XnSP_imm_excl(const Instruction *instr) {
+  const char *form = "'Xt, 'Xt2, ['Xns, #<imm>]!";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_XtSP_XnSP_simm(const Instruction *instr) {
+  const char *form = "<Xt|SP>, ['Xns{, #'u2012}]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_XtSP_XnSP_simm_excl(const Instruction *instr) {
+  const char *form = "<Xt|SP>, ['Xns, #<simm>]!";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::Disassemble_Xt_XnSP_simm(const Instruction *instr) {
+  const char *form = "'Xt, ['Xns{, #'u2012}]";
+  Format(instr, mnemonic_.c_str(), form);
 }
 
 void Disassembler::ProcessOutput(const Instruction * /*instr*/) {

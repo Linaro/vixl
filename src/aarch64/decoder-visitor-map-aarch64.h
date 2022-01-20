@@ -1423,8 +1423,6 @@
       {"crc32h_32c_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},       \
       {"crc32w_32c_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},       \
       {"crc32x_64c_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},       \
-      {"gmi_64g_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},          \
-      {"irg_64i_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},          \
       {"lslv_32_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},          \
       {"lslv_64_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},          \
       {"lsrv_32_dp_2src", &VISITORCLASS::VisitDataProcessing2Source},          \
@@ -2562,7 +2560,6 @@
        &VISITORCLASS::VisitUnconditionalBranchToRegister},                     \
       {"ret_64r_branch_reg",                                                   \
        &VISITORCLASS::VisitUnconditionalBranchToRegister},                     \
-      {"addg_64_addsub_immtags", &VISITORCLASS::VisitUnimplemented},           \
       {"bcax_vvv16_crypto4", &VISITORCLASS::VisitUnimplemented},               \
       {"bfcvtn_asimdmisc_4s", &VISITORCLASS::VisitUnimplemented},              \
       {"bfdot_asimdelem_e", &VISITORCLASS::VisitUnimplemented},                \
@@ -2574,7 +2571,6 @@
       {"eor3_vvv16_crypto4", &VISITORCLASS::VisitUnimplemented},               \
       {"ld64b_64l_memop", &VISITORCLASS::VisitUnimplemented},                  \
       {"ldgm_64bulk_ldsttags", &VISITORCLASS::VisitUnimplemented},             \
-      {"ldg_64loffset_ldsttags", &VISITORCLASS::VisitUnimplemented},           \
       {"ldtrb_32_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},             \
       {"ldtrh_32_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},             \
       {"ldtrsb_32_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},            \
@@ -2598,33 +2594,15 @@
       {"sm3tt2b_vvv_crypto3_imm2", &VISITORCLASS::VisitUnimplemented},         \
       {"sm4ekey_vvv4_cryptosha512_3", &VISITORCLASS::VisitUnimplemented},      \
       {"sm4e_vv4_cryptosha512_2", &VISITORCLASS::VisitUnimplemented},          \
-      {"st2g_64soffset_ldsttags", &VISITORCLASS::VisitUnimplemented},          \
-      {"st2g_64spost_ldsttags", &VISITORCLASS::VisitUnimplemented},            \
-      {"st2g_64spre_ldsttags", &VISITORCLASS::VisitUnimplemented},             \
       {"st64b_64l_memop", &VISITORCLASS::VisitUnimplemented},                  \
       {"st64bv_64_memop", &VISITORCLASS::VisitUnimplemented},                  \
       {"st64bv0_64_memop", &VISITORCLASS::VisitUnimplemented},                 \
       {"stgm_64bulk_ldsttags", &VISITORCLASS::VisitUnimplemented},             \
-      {"stgp_64_ldstpair_off", &VISITORCLASS::VisitUnimplemented},             \
-      {"stgp_64_ldstpair_post", &VISITORCLASS::VisitUnimplemented},            \
-      {"stgp_64_ldstpair_pre", &VISITORCLASS::VisitUnimplemented},             \
-      {"stg_64soffset_ldsttags", &VISITORCLASS::VisitUnimplemented},           \
-      {"stg_64spost_ldsttags", &VISITORCLASS::VisitUnimplemented},             \
-      {"stg_64spre_ldsttags", &VISITORCLASS::VisitUnimplemented},              \
       {"sttrb_32_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},             \
       {"sttrh_32_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},             \
       {"sttr_32_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},              \
       {"sttr_64_ldst_unpriv", &VISITORCLASS::VisitUnimplemented},              \
-      {"stz2g_64soffset_ldsttags", &VISITORCLASS::VisitUnimplemented},         \
-      {"stz2g_64spost_ldsttags", &VISITORCLASS::VisitUnimplemented},           \
-      {"stz2g_64spre_ldsttags", &VISITORCLASS::VisitUnimplemented},            \
       {"stzgm_64bulk_ldsttags", &VISITORCLASS::VisitUnimplemented},            \
-      {"stzg_64soffset_ldsttags", &VISITORCLASS::VisitUnimplemented},          \
-      {"stzg_64spost_ldsttags", &VISITORCLASS::VisitUnimplemented},            \
-      {"stzg_64spre_ldsttags", &VISITORCLASS::VisitUnimplemented},             \
-      {"subg_64_addsub_immtags", &VISITORCLASS::VisitUnimplemented},           \
-      {"subps_64s_dp_2src", &VISITORCLASS::VisitUnimplemented},                \
-      {"subp_64s_dp_2src", &VISITORCLASS::VisitUnimplemented},                 \
       {"tcancel_ex_exception", &VISITORCLASS::VisitUnimplemented},             \
       {"tstart_br_systemresult", &VISITORCLASS::VisitUnimplemented},           \
       {"ttest_br_systemresult", &VISITORCLASS::VisitUnimplemented},            \
