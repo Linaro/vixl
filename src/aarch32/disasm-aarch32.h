@@ -639,6 +639,14 @@ class Disassembler {
 
   void adr(Condition cond, EncodingSize size, Register rd, Location* location);
 
+  void aesd(Condition cond, DataType dt, QRegister rd, QRegister rm);
+
+  void aese(Condition cond, DataType dt, QRegister rd, QRegister rm);
+
+  void aesimc(Condition cond, DataType dt, QRegister rd, QRegister rm);
+
+  void aesmc(Condition cond, DataType dt, QRegister rd, QRegister rm);
+
   void and_(Condition cond,
             EncodingSize size,
             Register rd,
