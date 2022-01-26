@@ -1840,7 +1840,11 @@ enum Crypto3RegSHAOp {
 // Crypto - AES.
 enum CryptoAESOp {
   CryptoAESFixed = 0x4E280800,
-  CryptoAESFMask = 0xFF3E0C00
+  CryptoAESFMask = 0xFF3E0C00,
+  NEON_AESE      = CryptoAESFixed | 0x00004000,
+  NEON_AESD      = CryptoAESFixed | 0x00005000,
+  NEON_AESMC     = CryptoAESFixed | 0x00006000,
+  NEON_AESIMC    = CryptoAESFixed | 0x00007000
 };
 
 // NEON instructions with two register operands.
