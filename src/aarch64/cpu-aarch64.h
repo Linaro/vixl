@@ -160,6 +160,16 @@ class AA64ISAR1 : public IDRegister {
   static const Field kI8MM;
 };
 
+class AA64MMFR0 : public IDRegister {
+ public:
+  explicit AA64MMFR0(uint64_t value) : IDRegister(value) {}
+
+  CPUFeatures GetCPUFeatures() const;
+
+ private:
+  static const Field kECV;
+};
+
 class AA64MMFR1 : public IDRegister {
  public:
   explicit AA64MMFR1(uint64_t value) : IDRegister(value) {}
@@ -261,6 +271,7 @@ class CPU {
   V(AA64PFR1, "ID_AA64PFR1_EL1")                                              \
   V(AA64ISAR0, "ID_AA64ISAR0_EL1")                                            \
   V(AA64ISAR1, "ID_AA64ISAR1_EL1")                                            \
+  V(AA64MMFR0, "ID_AA64MMFR0_EL1")                                            \
   V(AA64MMFR1, "ID_AA64MMFR1_EL1")                                            \
   /* These registers are RES0 in the baseline Arm8.0. We can always safely */ \
   /* read them, but some compilers don't accept the symbolic names. */        \

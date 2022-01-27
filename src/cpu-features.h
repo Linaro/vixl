@@ -179,7 +179,9 @@ namespace vixl {
   V(kSVEAES,              "SVE AES",                "sveaes")                  \
   V(kSVEPmull128,         "SVE Pmull128",           "svepmull")                \
   /* Alternate floating-point behavior                                      */ \
-  V(kAFP,                 "AFP",                    "afp")
+  V(kAFP,                 "AFP",                    "afp")                     \
+  /* Enhanced Counter Virtualization                                        */ \
+  V(kECV,                 "ECV",                    "ecv")
 // clang-format on
 
 
