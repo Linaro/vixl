@@ -1943,42 +1943,30 @@ void Assembler::hint(int imm7) {
 
 void Assembler::addg(const Register& xd,
                      const Register& xn,
-                     int uimm6,
-                     int uimm4) {
-  // ADDG <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>
-  //  1001 0001 10.. .... .... .... .... ....
-  //  sf<31> | op<30> | S<29> | o2<22> | uimm6<21:16> | op3<15:14> |
-  //  uimm4<13:10> | Rn<9:5> | Rd<4:0> | <Xd|SP><> | <Xn|SP><>
-
+                     int offset,
+                     int tag_offset) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+  VIXL_ASSERT(IsMultiple(offset, kMTETagGranuleInBytes));
 
-  Emit(0x91800000 | RdSP(xd) | RnSP(xn) | ImmField<21, 16>(uimm6) |
-       ImmField<13, 10>(uimm4));
+  Emit(0x91800000 | RdSP(xd) | RnSP(xn) |
+       ImmUnsignedField<21, 16>(offset / kMTETagGranuleInBytes) |
+       ImmUnsignedField<13, 10>(tag_offset));
 }
 
-void Assembler::gmi(const Register& rd,
+void Assembler::gmi(const Register& xd,
                     const Register& xn,
-                    const Register& rm) {
-  // GMI <Xd>, <Xn|SP>, <Xm>
-  //  1001 1010 110. .... 0001 01.. .... ....
-  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
-
+                    const Register& xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
 
-  Emit(0x9ac01400 | Rd(rd) | RnSP(xn) | Rm(rm));
+  Emit(0x9ac01400 | Rd(xd) | RnSP(xn) | Rm(xm));
 }
 
 void Assembler::irg(const Register& xd,
                     const Register& xn,
-                    const Register& rm) {
-  // IRG <Xd|SP>, <Xn|SP>{, <Xm>}
-  //  1001 1010 110. .... 0001 00.. .... ....
-  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
-  //  | <Xd|SP><>
-
+                    const Register& xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
 
-  Emit(0x9ac01000 | RdSP(xd) | RnSP(xn) | Rm(rm));
+  Emit(0x9ac01000 | RdSP(xd) | RnSP(xn) | Rm(xm));
 }
 
 void Assembler::ldg(const Register& xt, const Register& xn, int imm9) {
@@ -2067,37 +2055,30 @@ void Assembler::stzg(const Register& xn, int imm9) {
 
 void Assembler::subg(const Register& xd,
                      const Register& xn,
-                     int uimm6,
-                     int uimm4) {
-  // SUBG <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>
-  //  1101 0001 10.. .... .... .... .... ....
-  //  sf<31> | op<30> | S<29> | o2<22> | uimm6<21:16> | op3<15:14> |
-  //  uimm4<13:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><> | <Xd|SP><>
-
+                     int offset,
+                     int tag_offset) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+  VIXL_ASSERT(IsMultiple(offset, kMTETagGranuleInBytes));
 
-  Emit(0xd1800000 | RdSP(xd) | RnSP(xn) | ImmField<21, 16>(uimm6) |
-       ImmField<13, 10>(uimm4));
+  Emit(0xd1800000 | RdSP(xd) | RnSP(xn) |
+       ImmUnsignedField<21, 16>(offset / kMTETagGranuleInBytes) |
+       ImmUnsignedField<13, 10>(tag_offset));
 }
 
-void Assembler::subp(const Register& rd, const Register& xn) {
-  // SUBP <Xd>, <Xn|SP>, <Xm|SP>
-  //  1001 1010 110. .... 0000 00.. .... ....
-  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
-
+void Assembler::subp(const Register& xd,
+                     const Register& xn,
+                     const Register& xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
 
-  Emit(0x9ac00000 | Rd(rd) | RnSP(xn));
+  Emit(0x9ac00000 | Rd(xd) | RnSP(xn) | RmSP(xm));
 }
 
-void Assembler::subps(const Register& rd, const Register& xn) {
-  // SUBPS <Xd>, <Xn|SP>, <Xm|SP>
-  //  1011 1010 110. .... 0000 00.. .... ....
-  //  sf<31> | S<29> | Rm<20:16> | opcode<15:10> | Rn<9:5> | Rd<4:0> | <Xn|SP><>
-
+void Assembler::subps(const Register& xd,
+                      const Register& xn,
+                      const Register& xm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
 
-  Emit(0xbac00000 | Rd(rd) | RnSP(xn));
+  Emit(0xbac00000 | Rd(xd) | RnSP(xn) | RmSP(xm));
 }
 
 // NEON structure loads and stores.

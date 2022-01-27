@@ -13416,6 +13416,204 @@ TEST(nop) {
   masm.FinalizeCode();
 }
 
+
+TEST(mte_addg_subg) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMTE);
+
+  START();
+  __ Mov(x0, 0x5555000055555555);
+
+  // Add/subtract an address offset, changing tag each time.
+  __ Addg(x1, x0, 16, 2);
+  __ Subg(x2, x1, 16, 1);
+
+  // Add/subtract address offsets, keep tag.
+  __ Addg(x3, x0, 1008, 0);
+  __ Subg(x4, x3, 1008, 0);
+
+  // Change tag only. Check wraparound.
+  __ Addg(x5, x0, 0, 15);
+  __ Subg(x6, x0, 0, 14);
+
+  // Do nothing.
+  __ Addg(x7, x0, 0, 0);
+  __ Subg(x8, x0, 0, 0);
+
+  // Use stack pointer as source/destination.
+  __ Mov(x20, sp);  // Store original sp.
+
+  __ Subg(sp, sp, 32, 0);  // Claim 32 bytes.
+  __ Sub(x9, sp, x20);     // Subtract original sp and store difference.
+
+  __ Mov(sp, x20);  // Restore original sp.
+  __ Claim(32);
+  __ Addg(sp, sp, 32, 0);  // Drop 32 bytes.
+  __ Sub(x10, sp, x20);    // Subtract original sp and store difference.
+
+  __ Mov(sp, x20);        // Restore sp (should be no-op)
+  __ Addg(sp, sp, 0, 1);  // Tag the sp.
+  __ Sub(x11, sp, x20);  // Subtract original sp and store for later comparison.
+  __ Mov(sp, x20);       // Restore sp.
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0x5755000055555565, x1);
+    ASSERT_EQUAL_64(0x5855000055555555, x2);
+    ASSERT_EQUAL_64(0x5555000055555945, x3);
+    ASSERT_EQUAL_64(0x5555000055555555, x4);
+    ASSERT_EQUAL_64(0x5455000055555555, x5);
+    ASSERT_EQUAL_64(0x5355000055555555, x6);
+    ASSERT_EQUAL_64(0x5555000055555555, x7);
+    ASSERT_EQUAL_64(0x5555000055555555, x8);
+    ASSERT_EQUAL_64(-32, x9);
+    ASSERT_EQUAL_64(0, x10);
+    ASSERT_EQUAL_64(UINT64_C(1) << 56, x11);
+  }
+}
+
+TEST(mte_subp) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMTE);
+
+  START();
+  __ Mov(x0, 0x5555555555555555);
+  __ Mov(x1, -42);
+
+  // Test subp with equivalent sbfx/sub(s) operations.
+  __ Sbfx(x10, x0, 0, 56);
+  __ Sbfx(x11, x1, 0, 56);
+
+  __ Subp(x4, x0, x1);
+  __ Sub(x5, x10, x11);
+
+  __ Subp(x6, x1, x0);
+  __ Sub(x7, x11, x10);
+
+  __ Subps(x8, x0, x1);
+  __ Mrs(x18, NZCV);
+  __ Subs(x9, x10, x11);
+  __ Mrs(x19, NZCV);
+
+  __ Cmpp(x1, x0);
+  __ Mrs(x20, NZCV);
+  __ Cmp(x11, x10);
+  __ Mrs(x21, NZCV);
+
+  // Test equal pointers with mismatched tags compare equal and produce a zero
+  // difference with subps.
+  __ Mov(x2, 0x20);  // Exclude tag 5.
+  __ Irg(x3, x0, x2);
+  __ Subps(x22, x0, x3);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(x5, x4);
+    ASSERT_EQUAL_64(x7, x6);
+    ASSERT_EQUAL_64(x9, x8);
+    ASSERT_EQUAL_64(x19, x18);
+    ASSERT_EQUAL_64(x20, x21);
+    ASSERT_EQUAL_64(0, x22);
+    ASSERT_EQUAL_NZCV(ZCFlag);
+  }
+}
+
+TEST(mte_gmi) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMTE);
+
+  START();
+  __ Mov(x0, 0xaaaa);
+  __ Mov(x20, 0x12345678);
+
+  __ Gmi(x0, x20, x0);  // Add mask bit 0.
+  __ Addg(x20, x20, 0, 1);
+  __ Gmi(x1, x20, x0);  // No effect.
+  __ Addg(x20, x20, 0, 1);
+  __ Gmi(x2, x20, x1);  // Add mask bit 2.
+  __ Addg(x20, x20, 0, 1);
+  __ Gmi(x3, x20, x2);  // No effect.
+  __ Addg(x20, x20, 0, 1);
+  __ Gmi(x4, x20, x3);  // Add mask bit 4.
+  __ Addg(x20, x20, 0, 1);
+  __ Gmi(x5, x20, x4);  // No effect.
+  __ Addg(x20, x20, 0, 9);
+  __ Gmi(x6, x20, x5);   // Add mask bit 14.
+  __ Gmi(x7, x20, xzr);  // Only mask bit 14.
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0xaaab, x0);
+    ASSERT_EQUAL_64(0xaaab, x1);
+    ASSERT_EQUAL_64(0xaaaf, x2);
+    ASSERT_EQUAL_64(0xaaaf, x3);
+    ASSERT_EQUAL_64(0xaabf, x4);
+    ASSERT_EQUAL_64(0xaabf, x5);
+    ASSERT_EQUAL_64(0xeabf, x6);
+    ASSERT_EQUAL_64(0x4000, x7);
+  }
+}
+
+TEST(mte_irg) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMTE);
+
+  START();
+  __ Mov(x10, 8);
+  __ Mov(x0, 0x5555555555555555);
+  // Insert a random tag repeatedly. If the loop doesn't exit in the expected
+  // way, it's statistically likely that a random tag was never inserted.
+  Label loop, failed, done;
+  __ Bind(&loop);
+  __ Irg(x1, x0);
+  __ Sub(x10, x10, 1);
+  __ Cbz(x10, &failed);  // Exit if loop count exceeded.
+  __ Cmp(x1, 0x5555555555555555);
+  __ B(eq, &loop);  // Loop if the tag hasn't changed.
+
+  // Check non-tag bits have not changed.
+  __ Bic(x1, x1, 0x0f00000000000000);
+  __ Subs(x1, x1, 0x5055555555555555);
+  __ B(&done);
+
+  __ Bind(&failed);
+  __ Mov(x1, 1);
+
+  __ Bind(&done);
+
+  // Insert random tags, excluding oddly-numbered tags, then orr them together.
+  // After 128 rounds, it's statistically likely that all but the least
+  // significant bit will be set.
+  __ Mov(x3, 0);
+  __ Mov(x10, 128);
+  __ Mov(x11, 0xaaaa);
+
+  Label loop2;
+  __ Bind(&loop2);
+  __ Irg(x2, x1, x11);
+  __ Orr(x3, x3, x2);
+  __ Subs(x10, x10, 1);
+  __ B(ne, &loop2);
+  __ Lsr(x2, x3, 56);
+
+  // Check that excluding all tags results in zero tag insertion.
+  __ Mov(x3, 0xffffffffffffffff);
+  __ Irg(x3, x3, x3);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0, x1);
+    ASSERT_EQUAL_64(0xe, x2);
+    ASSERT_EQUAL_64(0xf0ffffffffffffff, x3);
+  }
+}
+
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Test the pseudo-instructions that control CPUFeatures dynamically in the
 // Simulator. These are used by the test infrastructure itself, but in a fairly

@@ -2680,6 +2680,44 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     uxtw(rd, rn);
   }
 
+  void Addg(const Register& xd,
+            const Register& xn,
+            int offset,
+            int tag_offset) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    addg(xd, xn, offset, tag_offset);
+  }
+  void Gmi(const Register& xd, const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gmi(xd, xn, xm);
+  }
+  void Irg(const Register& xd, const Register& xn, const Register& xm = xzr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    irg(xd, xn, xm);
+  }
+  void Subg(const Register& xd,
+            const Register& xn,
+            int offset,
+            int tag_offset) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    subg(xd, xn, offset, tag_offset);
+  }
+  void Subp(const Register& xd, const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    subp(xd, xn, xm);
+  }
+  void Subps(const Register& xd, const Register& xn, const Register& xm) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    subps(xd, xn, xm);
+  }
+  void Cmpp(const Register& xn, const Register& xm) { Subps(xzr, xn, xm); }
+
 // NEON 3 vector register instructions.
 #define NEON_3VREG_MACRO_LIST(V) \
   V(add, Add)                    \

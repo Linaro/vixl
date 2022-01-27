@@ -6902,13 +6902,13 @@ class Assembler : public vixl::internal::AssemblerBase {
              int index);
 
   // Add with Tag.
-  void addg(const Register& xd, const Register& xn, int uimm6, int uimm4);
+  void addg(const Register& xd, const Register& xn, int offset, int tag_offset);
 
   // Tag Mask Insert.
-  void gmi(const Register& rd, const Register& xn, const Register& rm);
+  void gmi(const Register& xd, const Register& xn, const Register& xm);
 
   // Insert Random Tag.
-  void irg(const Register& xd, const Register& xn, const Register& rm);
+  void irg(const Register& xd, const Register& xn, const Register& xm = xzr);
 
   // Load Allocation Tag.
   void ldg(const Register& xt, const Register& xn, int imm9);
@@ -6932,13 +6932,16 @@ class Assembler : public vixl::internal::AssemblerBase {
   void stzg(const Register& xn, int imm9);
 
   // Subtract with Tag.
-  void subg(const Register& xd, const Register& xn, int uimm6, int uimm4);
+  void subg(const Register& xd, const Register& xn, int offset, int tag_offset);
 
   // Subtract Pointer.
-  void subp(const Register& rd, const Register& xn);
+  void subp(const Register& xd, const Register& xn, const Register& xm);
 
   // Subtract Pointer, setting Flags.
-  void subps(const Register& rd, const Register& xn);
+  void subps(const Register& xd, const Register& xn, const Register& xm);
+
+  // Compare with Tag.
+  void cmpp(const Register& xn, const Register& xm) { subps(xzr, xn, xm); }
 
   // Emit generic instructions.
 

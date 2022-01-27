@@ -3103,29 +3103,63 @@ TEST(mte) {
   SETUP();
 
 #if 0
-  COMPARE_PREFIX(addg(x26, x26, int uimm6, int uimm4), "addg <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>");
-  COMPARE_PREFIX(gmi(x3, x3, x3), "gmi <Xd>, <Xn|SP>, <Xm>");
-  COMPARE_PREFIX(irg(x24, x24, x24), "irg <Xd|SP>, <Xn|SP>{, <Xm>}");
-  COMPARE_PREFIX(ldg(x2, x2, int imm9), "ldg <Xt>, [<Xn|SP>{, #<simm>}]");
-  COMPARE_PREFIX(st2g(x3, int imm9), "st2g <Xt|SP>, [<Xn|SP>{, #<simm>}]");
-  COMPARE_PREFIX(st2g(x31, int imm9), "st2g <Xt|SP>, [<Xn|SP>], #<simm>");
-  COMPARE_PREFIX(st2g(x30, int imm9), "st2g <Xt|SP>, [<Xn|SP>, #<simm>]!");
-  COMPARE_PREFIX(stgp(x301, x302, x30, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]");
-  COMPARE_PREFIX(stgp(x201, x202, x20, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>], #<imm>");
-  COMPARE_PREFIX(stgp(x161, x162, x16, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!");
-  COMPARE_PREFIX(stg(x9, int imm9), "stg <Xt|SP>, [<Xn|SP>{, #<simm>}]");
-  COMPARE_PREFIX(stg(x20, int imm9), "stg <Xt|SP>, [<Xn|SP>], #<simm>");
-  COMPARE_PREFIX(stg(x29, int imm9), "stg <Xt|SP>, [<Xn|SP>, #<simm>]!");
-  COMPARE_PREFIX(stz2g(x9, int imm9), "stz2g <Xt|SP>, [<Xn|SP>{, #<simm>}]");
-  COMPARE_PREFIX(stz2g(x28, int imm9), "stz2g <Xt|SP>, [<Xn|SP>], #<simm>");
-  COMPARE_PREFIX(stz2g(x7, int imm9), "stz2g <Xt|SP>, [<Xn|SP>, #<simm>]!");
-  COMPARE_PREFIX(stzg(x20, int imm9), "stzg <Xt|SP>, [<Xn|SP>{, #<simm>}]");
-  COMPARE_PREFIX(stzg(x6, int imm9), "stzg <Xt|SP>, [<Xn|SP>], #<simm>");
-  COMPARE_PREFIX(stzg(x28, int imm9), "stzg <Xt|SP>, [<Xn|SP>, #<simm>]!");
-  COMPARE_PREFIX(subg(x19, x19, int uimm6, int uimm4), "subg <Xd|SP>, <Xn|SP>, #<uimm6>, #<uimm4>");
-  COMPARE_PREFIX(subps(x0, x0), "subps <Xd>, <Xn|SP>, <Xm|SP>");
-  COMPARE_PREFIX(subp(x28, x28), "subp <Xd>, <Xn|SP>, <Xm|SP>");
+  COMPARE(ldg(x2, x2, int imm9), "ldg <Xt>, [<Xn|SP>{, #<simm>}]");
+  COMPARE(st2g(x3, int imm9), "st2g <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE(st2g(x31, int imm9), "st2g <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE(st2g(x30, int imm9), "st2g <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE(stgp(x301, x302, x30, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]");
+  COMPARE(stgp(x201, x202, x20, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>], #<imm>");
+  COMPARE(stgp(x161, x162, x16, int imm7), "stgp <Xt1>, <Xt2>, [<Xn|SP>, #<imm>]!");
+  COMPARE(stg(x9, int imm9), "stg <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE(stg(x20, int imm9), "stg <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE(stg(x29, int imm9), "stg <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE(stz2g(x9, int imm9), "stz2g <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE(stz2g(x28, int imm9), "stz2g <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE(stz2g(x7, int imm9), "stz2g <Xt|SP>, [<Xn|SP>, #<simm>]!");
+  COMPARE(stzg(x20, int imm9), "stzg <Xt|SP>, [<Xn|SP>{, #<simm>}]");
+  COMPARE(stzg(x6, int imm9), "stzg <Xt|SP>, [<Xn|SP>], #<simm>");
+  COMPARE(stzg(x28, int imm9), "stzg <Xt|SP>, [<Xn|SP>, #<simm>]!");
 #endif
+
+  CLEANUP();
+}
+
+TEST(mte_dp) {
+  SETUP();
+
+  COMPARE(addg(x26, x27, 0, 0), "addg x26, x27, #0, #0");
+  COMPARE(addg(x26, x27, 512, 2), "addg x26, x27, #512, #2");
+  COMPARE(addg(x26, x27, 1008, 15), "addg x26, x27, #1008, #15");
+  COMPARE(addg(sp, x27, 1008, 15), "addg sp, x27, #1008, #15");
+  COMPARE(addg(x26, sp, 1008, 15), "addg x26, sp, #1008, #15");
+  COMPARE(addg(sp, sp, 1008, 15), "addg sp, sp, #1008, #15");
+  COMPARE(subg(x6, x7, 0, 0), "subg x6, x7, #0, #0");
+  COMPARE(subg(x6, x7, 640, 9), "subg x6, x7, #640, #9");
+  COMPARE(subg(x6, x7, 1008, 15), "subg x6, x7, #1008, #15");
+  COMPARE(subg(sp, x7, 1008, 15), "subg sp, x7, #1008, #15");
+  COMPARE(subg(x6, sp, 1008, 15), "subg x6, sp, #1008, #15");
+  COMPARE(subg(sp, sp, 1008, 15), "subg sp, sp, #1008, #15");
+  COMPARE(gmi(x3, x5, x4), "gmi x3, x5, x4");
+  COMPARE(gmi(x3, sp, x4), "gmi x3, sp, x4");
+  COMPARE(gmi(xzr, sp, xzr), "gmi xzr, sp, xzr");
+  COMPARE(irg(x24, x23, x22), "irg x24, x23, x22");
+  COMPARE(irg(sp, x23, x22), "irg sp, x23, x22");
+  COMPARE(irg(x24, sp, x22), "irg x24, sp, x22");
+  COMPARE(irg(sp, sp, x22), "irg sp, sp, x22");
+  COMPARE(irg(x24, x23, xzr), "irg x24, x23");
+  COMPARE(irg(x24, x23), "irg x24, x23");
+  COMPARE(subp(x28, x29, x30), "subp x28, x29, x30");
+  COMPARE(subp(x28, sp, x30), "subp x28, sp, x30");
+  COMPARE(subp(x28, x29, sp), "subp x28, x29, sp");
+  COMPARE(subp(x28, sp, sp), "subp x28, sp, sp");
+  COMPARE(subp(xzr, sp, sp), "subp xzr, sp, sp");
+  COMPARE(subps(x2, x10, x0), "subps x2, x10, x0");
+  COMPARE(subps(x2, sp, x0), "subps x2, sp, x0");
+  COMPARE(subps(x2, x10, sp), "subps x2, x10, sp");
+  COMPARE(subps(x2, sp, sp), "subps x2, sp, sp");
+  COMPARE(subps(xzr, sp, sp), "cmpp sp, sp");
+  COMPARE(subps(xzr, x2, sp), "cmpp x2, sp");
+  COMPARE(cmpp(x6, x30), "cmpp x6, x30");
 
   CLEANUP();
 }

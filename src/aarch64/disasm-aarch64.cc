@@ -9208,12 +9208,14 @@ void Disassembler::Disassemble_ZtS_Pg_ZnS_Xm(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_XdSP_XnSP_Xm(const Instruction *instr) {
-  const char *form = "'Xds, 'Xns{, 'Rm}";
-  Format(instr, mnemonic_.c_str(), form);
+  const char *form = "'Xds, 'Xns";
+  const char *suffix = instr->GetRm() == 31 ? "" : ", 'Xm";
+  Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
 void Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4(const Instruction *instr) {
-  const char *form = "'Xds, 'Xns, #'u2116, #'u1310";
+  VIXL_STATIC_ASSERT(kMTETagGranuleInBytes == 16);
+  const char *form = "'Xds, 'Xns, #'u2116*16, #'u1310";
   Format(instr, mnemonic_.c_str(), form);
 }
 
@@ -9223,8 +9225,12 @@ void Disassembler::Disassemble_Xd_XnSP_Xm(const Instruction *instr) {
 }
 
 void Disassembler::Disassemble_Xd_XnSP_XmSP(const Instruction *instr) {
-  const char *form = "'Rd, 'Xns, <Xm|SP>";
-  Format(instr, mnemonic_.c_str(), form);
+  if ((form_hash_ == Hash("subps_64s_dp_2src")) && (instr->GetRd() == 31)) {
+    Format(instr, "cmpp", "'Xns, 'Xms");
+  } else {
+    const char *form = "'Xd, 'Xns, 'Xms";
+    Format(instr, mnemonic_.c_str(), form);
+  }
 }
 
 void Disassembler::Disassemble_Xt1_Xt2_XnSP_imm(const Instruction *instr) {

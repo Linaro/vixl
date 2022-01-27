@@ -1249,9 +1249,9 @@ class Simulator : public DecoderVisitor {
   void SimulateNEONDotProdByElement(const Instruction* instr);
 
   void Simulate_XdSP_XnSP_Xm(const Instruction* instr);
-  void Simulate_XdSP_XnSP_uimm6_uimm4(const Instruction* instr);
-  void Simulate_Xd_XnSP_Xm(const Instruction* instr);
-  void Simulate_Xd_XnSP_XmSP(const Instruction* instr);
+  void SimulateMTEAddSubTag(const Instruction* instr);
+  void SimulateMTETagMaskInsert(const Instruction* instr);
+  void SimulateMTESubPointer(const Instruction* instr);
   void Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr);
   void Simulate_Xt1_Xt2_XnSP_imm_excl(const Instruction* instr);
   void Simulate_XtSP_XnSP_simm(const Instruction* instr);
@@ -2597,6 +2597,39 @@ class Simulator : public DecoderVisitor {
                    PointerType type);
   uint64_t AddPAC(uint64_t ptr, uint64_t context, PACKey key, PointerType type);
   uint64_t StripPAC(uint64_t ptr, PointerType type);
+
+  // Armv8.5 MTE helpers.
+  int GetAllocationTagFromAddress(uint64_t address) {
+    return static_cast<int>(ExtractUnsignedBitfield64(59, 56, address));
+  }
+  uint64_t ChooseNonExcludedTag(uint64_t tag,
+                                uint64_t offset,
+                                uint64_t exclude = 0) {
+    VIXL_ASSERT(IsUint4(tag) && IsUint4(offset) && IsUint16(exclude));
+
+    if (exclude == 0xffff) {
+      return 0;
+    }
+
+    if (offset == 0) {
+      while ((exclude & (1 << tag)) != 0) {
+        tag = (tag + 1) % 16;
+      }
+    }
+
+    while (offset > 0) {
+      offset--;
+      tag = (tag + 1) % 16;
+      while ((exclude & (1 << tag)) != 0) {
+        tag = (tag + 1) % 16;
+      }
+    }
+    return tag;
+  }
+  uint64_t GetAddressWithAllocationTag(uint64_t addr, uint64_t tag) {
+    VIXL_ASSERT(IsUint4(tag));
+    return (addr & ~(UINT64_C(0xf) << 56)) | (tag << 56);
+  }
 
   // The common CPUFeatures interface with the set of available features.
 

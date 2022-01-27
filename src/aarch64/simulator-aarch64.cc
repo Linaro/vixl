@@ -405,8 +405,8 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"usdot_asimdsame2_d", &Simulator::VisitNEON3SameExtra},
     {"sudot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
     {"usdot_asimdelem_d", &Simulator::SimulateNEONDotProdByElement},
-    {"addg_64_addsub_immtags", &Simulator::Simulate_XdSP_XnSP_uimm6_uimm4},
-    {"gmi_64g_dp_2src", &Simulator::Simulate_Xd_XnSP_Xm},
+    {"addg_64_addsub_immtags", &Simulator::SimulateMTEAddSubTag},
+    {"gmi_64g_dp_2src", &Simulator::SimulateMTETagMaskInsert},
     {"irg_64i_dp_2src", &Simulator::Simulate_XdSP_XnSP_Xm},
     {"ldg_64loffset_ldsttags", &Simulator::Simulate_Xt_XnSP_simm},
     {"st2g_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
@@ -424,9 +424,9 @@ Simulator::FormToVisitorFnMap Simulator::form_to_visitor_ = {
     {"stzg_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
     {"stzg_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
     {"stzg_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
-    {"subg_64_addsub_immtags", &Simulator::Simulate_XdSP_XnSP_uimm6_uimm4},
-    {"subps_64s_dp_2src", &Simulator::Simulate_Xd_XnSP_XmSP},
-    {"subp_64s_dp_2src", &Simulator::Simulate_Xd_XnSP_XmSP},
+    {"subg_64_addsub_immtags", &Simulator::SimulateMTEAddSubTag},
+    {"subps_64s_dp_2src", &Simulator::SimulateMTESubPointer},
+    {"subp_64s_dp_2src", &Simulator::SimulateMTESubPointer},
 };
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
@@ -13834,67 +13834,64 @@ void Simulator::DoUnreachable(const Instruction* instr) {
 }
 
 void Simulator::Simulate_XdSP_XnSP_Xm(const Instruction* instr) {
-  uint64_t rd = ReadXRegister(instr->GetRd(), Reg31IsStackPointer);
-  USE(rd);
+  VIXL_ASSERT(form_hash_ == Hash("irg_64i_dp_2src"));
+  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t rm = ReadXRegister(instr->GetRm());
-  USE(rm);
-  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
 
-  switch (form_hash_) {
-    case Hash("irg_64I_dp_2src"):
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
+  uint64_t rtag = nrand48(rand_state_) >> 28;
+  VIXL_ASSERT(IsUint4(rtag));
+
+  // TODO: implement this to better match the specification, which calls for a
+  // true random mode, and a pseudo-random mode with state (EL1.TAG) modified by
+  // PRNG.
+  uint64_t exclude = rm & 0xffff;
+  uint64_t tag = ChooseNonExcludedTag(rtag, 0, exclude);
+  uint64_t new_val = GetAddressWithAllocationTag(rn, tag);
+  WriteXRegister(instr->GetRd(), new_val, LogRegWrites, Reg31IsStackPointer);
 }
 
-void Simulator::Simulate_XdSP_XnSP_uimm6_uimm4(const Instruction* instr) {
-  uint64_t rd = ReadXRegister(instr->GetRd(), Reg31IsStackPointer);
-  USE(rd);
+void Simulator::SimulateMTEAddSubTag(const Instruction* instr) {
   uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
+  uint64_t rn_tag = GetAllocationTagFromAddress(rn);
+  uint64_t tag_offset = instr->ExtractBits(13, 10);
+  // TODO: implement GCR_EL1.Exclude to provide a tag exclusion list.
+  uint64_t new_tag = ChooseNonExcludedTag(rn_tag, tag_offset);
 
-  switch (form_hash_) {
-    case Hash("addg_64_addsub_immtags"):
-      break;
-    case Hash("subg_64_addsub_immtags"):
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
+  uint64_t offset = instr->ExtractBits(21, 16) * kMTETagGranuleInBytes;
+  int carry = 0;
+  if (form_hash_ == Hash("subg_64_addsub_immtags")) {
+    offset = ~offset;
+    carry = 1;
+  } else {
+    VIXL_ASSERT(form_hash_ == Hash("addg_64_addsub_immtags"));
   }
+  uint64_t new_val =
+      AddWithCarry(kXRegSize, /* set_flags = */ false, rn, offset, carry);
+  new_val = GetAddressWithAllocationTag(new_val, new_tag);
+  WriteXRegister(instr->GetRd(), new_val, LogRegWrites, Reg31IsStackPointer);
 }
 
-void Simulator::Simulate_Xd_XnSP_Xm(const Instruction* instr) {
-  uint64_t rd = ReadXRegister(instr->GetRd());
-  USE(rd);
-  uint64_t rm = ReadXRegister(instr->GetRm());
-  USE(rm);
-  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
-
-  switch (form_hash_) {
-    case Hash("gmi_64g_dp_2src"):
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
+void Simulator::SimulateMTETagMaskInsert(const Instruction* instr) {
+  VIXL_ASSERT(form_hash_ == Hash("gmi_64g_dp_2src"));
+  uint64_t mask = ReadXRegister(instr->GetRm());
+  uint64_t tag = GetAllocationTagFromAddress(
+      ReadXRegister(instr->GetRn(), Reg31IsStackPointer));
+  uint64_t mask_bit = 1 << tag;
+  WriteXRegister(instr->GetRd(), mask | mask_bit);
 }
 
-void Simulator::Simulate_Xd_XnSP_XmSP(const Instruction* instr) {
-  uint64_t rd = ReadXRegister(instr->GetRd());
-  USE(rd);
+void Simulator::SimulateMTESubPointer(const Instruction* instr) {
   uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
+  uint64_t rm = ReadXRegister(instr->GetRm(), Reg31IsStackPointer);
 
-  switch (form_hash_) {
-    case Hash("subps_64s_dp_2src"):
-      break;
-    case Hash("subp_64s_dp_2src"):
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
+  VIXL_ASSERT((form_hash_ == Hash("subps_64s_dp_2src")) ||
+              (form_hash_ == Hash("subp_64s_dp_2src")));
+  bool set_flags = (form_hash_ == Hash("subps_64s_dp_2src"));
+
+  rn = ExtractSignedBitfield64(55, 0, rn);
+  rm = ExtractSignedBitfield64(55, 0, rm);
+  uint64_t new_val = AddWithCarry(kXRegSize, set_flags, rn, ~rm, 1);
+  WriteXRegister(instr->GetRd(), new_val);
 }
 
 void Simulator::Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr) {

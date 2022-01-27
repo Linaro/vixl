@@ -141,6 +141,9 @@ const unsigned kPRegMaxSizeLog2 = kZRegMaxSizeLog2 - 3;
 const unsigned kPRegMaxSizeInBytes = kPRegMaxSize / 8;
 const unsigned kPRegMaxSizeInBytesLog2 = kPRegMaxSizeLog2 - 3;
 
+const unsigned kMTETagGranuleInBytes = 16;
+const unsigned kMTETagWidth = 4;
+
 // Make these moved float constants backwards compatible
 // with explicit vixl::aarch64:: namespace references.
 using vixl::kDoubleMantissaBits;
