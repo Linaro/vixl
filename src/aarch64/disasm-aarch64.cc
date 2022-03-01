@@ -645,7 +645,7 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"usdot_asimdsame2_d", &Disassembler::VisitNEON3SameExtra},
   };
   return &form_to_visitor;
-}
+}  // NOLINT(readability/fn_size)
 
 Disassembler::Disassembler() {
   buffer_size_ = 256;
