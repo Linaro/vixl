@@ -4812,11 +4812,17 @@ void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
     __sync_synchronize();
   }
 
-  MemWrite<T>(address, result);
   WriteRegister<T>(rt, data, NoRegLog);
 
-  PrintRegisterFormat format = GetPrintRegisterFormatForSize(element_size);
-  LogRead(rt, format, address);
+  unsigned register_size = element_size;
+  if (element_size < kXRegSizeInBytes) {
+    register_size = kWRegSizeInBytes;
+  }
+  PrintRegisterFormat format = GetPrintRegisterFormatForSize(register_size);
+  LogExtendingRead(rt, format, element_size, address);
+
+  MemWrite<T>(address, result);
+  format = GetPrintRegisterFormatForSize(element_size);
   LogWrite(rs, format, address);
 }
 

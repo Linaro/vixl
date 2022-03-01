@@ -2881,6 +2881,55 @@ static void GenerateTestSequenceSVE(MacroAssembler* masm) {
           SVEMemOperand(x0, 4, SVE_MUL_VL));
 }
 
+static void GenerateTestSequenceAtomics(MacroAssembler* masm) {
+  ExactAssemblyScope guard(masm,
+                           masm->GetBuffer()->GetRemainingBytes(),
+                           ExactAssemblyScope::kMaximumSize);
+  CPUFeaturesScope feature_guard(masm, CPUFeatures::kAtomics);
+  __ sub(sp, sp, 16);  // Claim some working space on the stack.
+  __ mov(x0, 0x5555555555555555);
+  __ str(x0, MemOperand(sp));  // Initialise working space.
+
+#define INST_LIST(OP)                     \
+  __ ld##OP##b(w0, w0, MemOperand(sp));   \
+  __ ld##OP##ab(w0, w1, MemOperand(sp));  \
+  __ ld##OP##lb(w0, w2, MemOperand(sp));  \
+  __ ld##OP##alb(w0, w3, MemOperand(sp)); \
+  __ ld##OP##h(w0, w0, MemOperand(sp));   \
+  __ ld##OP##ah(w0, w1, MemOperand(sp));  \
+  __ ld##OP##lh(w0, w2, MemOperand(sp));  \
+  __ ld##OP##alh(w0, w3, MemOperand(sp)); \
+  __ ld##OP(w0, w0, MemOperand(sp));      \
+  __ ld##OP##a(w0, w1, MemOperand(sp));   \
+  __ ld##OP##l(w0, w2, MemOperand(sp));   \
+  __ ld##OP##al(w0, w3, MemOperand(sp));  \
+  __ ld##OP(x0, x0, MemOperand(sp));      \
+  __ ld##OP##a(x0, x1, MemOperand(sp));   \
+  __ ld##OP##l(x0, x2, MemOperand(sp));   \
+  __ ld##OP##al(x0, x3, MemOperand(sp));  \
+  __ st##OP##b(w0, MemOperand(sp));       \
+  __ st##OP##lb(w0, MemOperand(sp));      \
+  __ st##OP##h(w0, MemOperand(sp));       \
+  __ st##OP##lh(w0, MemOperand(sp));      \
+  __ st##OP(w0, MemOperand(sp));          \
+  __ st##OP##l(w0, MemOperand(sp));       \
+  __ st##OP(x0, MemOperand(sp));          \
+  __ st##OP##l(x0, MemOperand(sp));
+
+  INST_LIST(add);
+  INST_LIST(set);
+  INST_LIST(eor);
+  INST_LIST(smin);
+  INST_LIST(smax);
+  INST_LIST(umin);
+  INST_LIST(umax);
+  INST_LIST(clr);
+
+#undef INST_LIST
+
+  __ add(sp, sp, 16);  // Restore stack pointer.
+}
+
 static void MaskAddresses(const char* trace) {
 #define VIXL_COLOUR "(\x1b\\[[01];([0-9][0-9])?m)?"
   // All patterns are replaced with "$1~~~~~~~~~~~~~~~~".
@@ -3036,6 +3085,7 @@ static void TraceTestHelper(bool coloured_trace,
   GenerateTestSequenceNEON(&masm);
   GenerateTestSequenceNEONFP(&masm);
   GenerateTestSequenceSVE(&masm);
+  GenerateTestSequenceAtomics(&masm);
   masm.Ret();
   masm.FinalizeCode();
 
@@ -3127,6 +3177,7 @@ static void PrintDisassemblerTestHelper(const char* prefix,
   GenerateTestSequenceNEON(&masm);
   GenerateTestSequenceNEONFP(&masm);
   GenerateTestSequenceSVE(&masm);
+  GenerateTestSequenceAtomics(&masm);
   masm.FinalizeCode();
 
   Decoder decoder;
