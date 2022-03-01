@@ -2449,3 +2449,199 @@
 0x~~~~~~~~~~~~~~~~  a4e1f81a		ld4h {z26.h, z27.h, z28.h, z29.h}, p6/z, [x0, #4, mul vl]  // Needs: SVE
 0x~~~~~~~~~~~~~~~~  a562d81b		ld4w {z27.s, z28.s, z29.s, z30.s}, p6/z, [x0, x2, lsl #2]  // Needs: SVE
 0x~~~~~~~~~~~~~~~~  a5e1f41c		ld4d {z28.d, z29.d, z30.d, z31.d}, p5/z, [x0, #4, mul vl]  // Needs: SVE
+0x~~~~~~~~~~~~~~~~  d10043ff		sub sp, sp, #0x10 (16)
+0x~~~~~~~~~~~~~~~~  b200f3e0		mov x0, #0x5555555555555555
+0x~~~~~~~~~~~~~~~~  f90003e0		str x0, [sp]
+0x~~~~~~~~~~~~~~~~  382003e0		ldaddb w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a003e1		ldaddab w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386003e2		ldaddlb w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e003e3		ldaddalb w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782003e0		ldaddh w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a003e1		ldaddah w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786003e2		ldaddlh w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e003e3		ldaddalh w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82003e0		ldadd w0, w0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a003e1		ldadda w0, w1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86003e2		ldaddl w0, w2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e003e3		ldaddal w0, w3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82003e0		ldadd x0, x0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a003e1		ldadda x0, x1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86003e2		ldaddl x0, x2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e003e3		ldaddal x0, x3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382003ff		staddb w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386003ff		staddlb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782003ff		staddh w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786003ff		staddlh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82003ff		stadd w0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86003ff		staddl w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82003ff		stadd x0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86003ff		staddl x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382033e0		ldsetb w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a033e1		ldsetab w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386033e2		ldsetlb w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e033e3		ldsetalb w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782033e0		ldseth w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a033e1		ldsetah w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786033e2		ldsetlh w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e033e3		ldsetalh w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82033e0		ldset w0, w0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a033e1		ldseta w0, w1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86033e2		ldsetl w0, w2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e033e3		ldsetal w0, w3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82033e0		ldset x0, x0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a033e1		ldseta x0, x1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86033e2		ldsetl x0, x2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e033e3		ldsetal x0, x3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382033ff		stsetb w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386033ff		stsetlb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782033ff		stseth w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786033ff		stsetlh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82033ff		stset w0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86033ff		stsetl w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82033ff		stset x0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86033ff		stsetl x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382023e0		ldeorb w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a023e1		ldeorab w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386023e2		ldeorlb w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e023e3		ldeoralb w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782023e0		ldeorh w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a023e1		ldeorah w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786023e2		ldeorlh w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e023e3		ldeoralh w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82023e0		ldeor w0, w0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a023e1		ldeora w0, w1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86023e2		ldeorl w0, w2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e023e3		ldeoral w0, w3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82023e0		ldeor x0, x0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a023e1		ldeora x0, x1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86023e2		ldeorl x0, x2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e023e3		ldeoral x0, x3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382023ff		steorb w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386023ff		steorlb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782023ff		steorh w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786023ff		steorlh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82023ff		steor w0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86023ff		steorl w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82023ff		steor x0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86023ff		steorl x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382053e0		ldsminb w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a053e1		ldsminab w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386053e2		ldsminlb w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e053e3		ldsminalb w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782053e0		ldsminh w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a053e1		ldsminah w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786053e2		ldsminlh w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e053e3		ldsminalh w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82053e0		ldsmin w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a053e1		ldsmina w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86053e2		ldsminl w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e053e3		ldsminal w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82053e0		ldsmin x0, x0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a053e1		ldsmina x0, x1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86053e2		ldsminl x0, x2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e053e3		ldsminal x0, x3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382053ff		stsminb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386053ff		stsminlb w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782053ff		stsminh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786053ff		stsminlh w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82053ff		stsmin w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86053ff		stsminl w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82053ff		stsmin x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86053ff		stsminl x0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382043e0		ldsmaxb w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a043e1		ldsmaxab w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386043e2		ldsmaxlb w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e043e3		ldsmaxalb w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782043e0		ldsmaxh w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a043e1		ldsmaxah w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786043e2		ldsmaxlh w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e043e3		ldsmaxalh w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82043e0		ldsmax w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a043e1		ldsmaxa w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86043e2		ldsmaxl w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e043e3		ldsmaxal w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82043e0		ldsmax x0, x0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a043e1		ldsmaxa x0, x1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86043e2		ldsmaxl x0, x2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e043e3		ldsmaxal x0, x3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382043ff		stsmaxb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386043ff		stsmaxlb w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782043ff		stsmaxh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786043ff		stsmaxlh w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82043ff		stsmax w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86043ff		stsmaxl w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82043ff		stsmax x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86043ff		stsmaxl x0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382073e0		lduminb w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a073e1		lduminab w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386073e2		lduminlb w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e073e3		lduminalb w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782073e0		lduminh w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a073e1		lduminah w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786073e2		lduminlh w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e073e3		lduminalh w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82073e0		ldumin w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a073e1		ldumina w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86073e2		lduminl w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e073e3		lduminal w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82073e0		ldumin x0, x0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a073e1		ldumina x0, x1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86073e2		lduminl x0, x2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e073e3		lduminal x0, x3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382073ff		stuminb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386073ff		stuminlb w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782073ff		stuminh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786073ff		stuminlh w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82073ff		stumin w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86073ff		stuminl w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82073ff		stumin x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86073ff		stuminl x0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382063e0		ldumaxb w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a063e1		ldumaxab w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386063e2		ldumaxlb w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e063e3		ldumaxalb w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782063e0		ldumaxh w0, w0, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a063e1		ldumaxah w0, w1, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786063e2		ldumaxlh w0, w2, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e063e3		ldumaxalh w0, w3, [sp]                  // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82063e0		ldumax w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a063e1		ldumaxa w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86063e2		ldumaxl w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e063e3		ldumaxal w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82063e0		ldumax x0, x0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a063e1		ldumaxa x0, x1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86063e2		ldumaxl x0, x2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e063e3		ldumaxal x0, x3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382063ff		stumaxb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386063ff		stumaxlb w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782063ff		stumaxh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786063ff		stumaxlh w0, [sp]                       // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82063ff		stumax w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86063ff		stumaxl w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82063ff		stumax x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86063ff		stumaxl x0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382013e0		ldclrb w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38a013e1		ldclrab w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386013e2		ldclrlb w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  38e013e3		ldclralb w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782013e0		ldclrh w0, w0, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78a013e1		ldclrah w0, w1, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786013e2		ldclrlh w0, w2, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  78e013e3		ldclralh w0, w3, [sp]                   // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82013e0		ldclr w0, w0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8a013e1		ldclra w0, w1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86013e2		ldclrl w0, w2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b8e013e3		ldclral w0, w3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82013e0		ldclr x0, x0, [sp]                      // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8a013e1		ldclra x0, x1, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86013e2		ldclrl x0, x2, [sp]                     // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f8e013e3		ldclral x0, x3, [sp]                    // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  382013ff		stclrb w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  386013ff		stclrlb w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  782013ff		stclrh w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  786013ff		stclrlh w0, [sp]                        // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b82013ff		stclr w0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  b86013ff		stclrl w0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f82013ff		stclr x0, [sp]                          // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  f86013ff		stclrl x0, [sp]                         // Needs: Atomics
+0x~~~~~~~~~~~~~~~~  910043ff		add sp, sp, #0x10 (16)
