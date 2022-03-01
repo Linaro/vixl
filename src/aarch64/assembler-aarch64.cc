@@ -1134,10 +1134,10 @@ void Assembler::LoadStorePair(const CPURegister& rt,
   if (addr.IsImmediateOffset()) {
     addrmodeop = LoadStorePairOffsetFixed;
   } else {
-    if (addr.IsPreIndex()) {
+    if (addr.IsImmediatePreIndex()) {
       addrmodeop = LoadStorePairPreIndexFixed;
     } else {
-      VIXL_ASSERT(addr.IsPostIndex());
+      VIXL_ASSERT(addr.IsImmediatePostIndex());
       addrmodeop = LoadStorePairPostIndexFixed;
     }
   }
@@ -5793,11 +5793,11 @@ Instr Assembler::LoadStoreMemOperand(const MemOperand& addr,
            ExtendMode(ext) | ImmShiftLS((shift_amount > 0) ? 1 : 0);
   }
 
-  if (addr.IsPreIndex() && IsImmLSUnscaled(offset)) {
+  if (addr.IsImmediatePreIndex() && IsImmLSUnscaled(offset)) {
     return base | LoadStorePreIndexFixed | ImmLS(offset);
   }
 
-  if (addr.IsPostIndex() && IsImmLSUnscaled(offset)) {
+  if (addr.IsImmediatePostIndex() && IsImmLSUnscaled(offset)) {
     return base | LoadStorePostIndexFixed | ImmLS(offset);
   }
 
@@ -5819,10 +5819,10 @@ void Assembler::LoadStorePAC(const Register& xt,
                              const MemOperand& addr,
                              LoadStorePACOp op) {
   VIXL_ASSERT(xt.Is64Bits());
-  VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsPreIndex());
+  VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsImmediatePreIndex());
 
   Instr pac_op = op;
-  if (addr.IsPreIndex()) {
+  if (addr.IsImmediatePreIndex()) {
     pac_op |= LoadStorePACPreBit;
   }
 

@@ -1912,6 +1912,9 @@ LS_MACRO_LIST(DEFINE_FUNCTION)
 void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
                                     const MemOperand& addr,
                                     LoadStoreOp op) {
+  VIXL_ASSERT(addr.IsImmediateOffset() || addr.IsImmediatePostIndex() ||
+              addr.IsImmediatePreIndex() || addr.IsRegisterOffset());
+
   // Worst case is ldr/str pre/post index:
   //  * 1 instruction for ldr/str
   //  * up to 4 instructions to materialise the constant
@@ -1932,11 +1935,11 @@ void MacroAssembler::LoadStoreMacro(const CPURegister& rt,
     Register temp = temps.AcquireSameSizeAs(addr.GetBaseRegister());
     Mov(temp, addr.GetOffset());
     LoadStore(rt, MemOperand(addr.GetBaseRegister(), temp), op);
-  } else if (addr.IsPostIndex() && !IsImmLSUnscaled(offset)) {
+  } else if (addr.IsImmediatePostIndex() && !IsImmLSUnscaled(offset)) {
     // Post-index beyond unscaled addressing range.
     LoadStore(rt, MemOperand(addr.GetBaseRegister()), op);
     Add(addr.GetBaseRegister(), addr.GetBaseRegister(), Operand(offset));
-  } else if (addr.IsPreIndex() && !IsImmLSUnscaled(offset)) {
+  } else if (addr.IsImmediatePreIndex() && !IsImmLSUnscaled(offset)) {
     // Pre-index beyond unscaled addressing range.
     Add(addr.GetBaseRegister(), addr.GetBaseRegister(), Operand(offset));
     LoadStore(rt, MemOperand(addr.GetBaseRegister()), op);
@@ -1984,11 +1987,11 @@ void MacroAssembler::LoadStorePairMacro(const CPURegister& rt,
       Register temp = temps.AcquireSameSizeAs(base);
       Add(temp, base, offset);
       LoadStorePair(rt, rt2, MemOperand(temp), op);
-    } else if (addr.IsPostIndex()) {
+    } else if (addr.IsImmediatePostIndex()) {
       LoadStorePair(rt, rt2, MemOperand(base), op);
       Add(base, base, offset);
     } else {
-      VIXL_ASSERT(addr.IsPreIndex());
+      VIXL_ASSERT(addr.IsImmediatePreIndex());
       Add(base, base, offset);
       LoadStorePair(rt, rt2, MemOperand(base), op);
     }
