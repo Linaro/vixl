@@ -1305,6 +1305,16 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
   } else if (instr->Mask(SystemSysMask) == SYS) {
     switch (instr->GetSysOp()) {
       // DC instruction variants.
+      case CGVAC:
+      case CGDVAC:
+      case CGVAP:
+      case CGDVAP:
+      case CIGVAC:
+      case CIGDVAC:
+      case GVA:
+      case GZVA:
+        scope.Record(CPUFeatures::kMTE);
+        break;
       case CVAP:
         scope.Record(CPUFeatures::kDCPoP);
         break;
@@ -1315,6 +1325,7 @@ void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
       case CVAC:
       case CVAU:
       case CIVAC:
+      case ZVA:
         // No special CPU features.
         break;
     }

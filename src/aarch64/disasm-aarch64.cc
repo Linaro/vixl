@@ -2750,40 +2750,43 @@ void Disassembler::VisitSystem(const Instruction *instr) {
     case Hash("dsb_bo_barriers"):
       form = "'M";
       break;
-    case Hash("sys_cr_systeminstrs"):
+    case Hash("sys_cr_systeminstrs"): {
       mnemonic = "dc";
       suffix = ", 'Xt";
-      switch (instr->GetSysOp()) {
-        case IVAU:
+
+      const std::map<uint32_t, const char *> dcop = {
+          {IVAU, "ivau"},
+          {CVAC, "cvac"},
+          {CVAU, "cvau"},
+          {CVAP, "cvap"},
+          {CVADP, "cvadp"},
+          {CIVAC, "civac"},
+          {ZVA, "zva"},
+          {GVA, "gva"},
+          {GZVA, "gzva"},
+          {CGVAC, "cgvac"},
+          {CGDVAC, "cgdvac"},
+          {CGVAP, "cgvap"},
+          {CGDVAP, "cgdvap"},
+          {CIGVAC, "cigvac"},
+          {CIGDVAC, "cigdvac"},
+      };
+
+      uint32_t sysop = instr->GetSysOp();
+      if (dcop.count(sysop)) {
+        if (sysop == IVAU) {
           mnemonic = "ic";
-          form = "ivau";
-          break;
-        case CVAC:
-          form = "cvac";
-          break;
-        case CVAU:
-          form = "cvau";
-          break;
-        case CVAP:
-          form = "cvap";
-          break;
-        case CVADP:
-          form = "cvadp";
-          break;
-        case CIVAC:
-          form = "civac";
-          break;
-        case ZVA:
-          form = "zva";
-          break;
-        default:
-          mnemonic = "sys";
-          form = "'G1, 'Kn, 'Km, 'G2";
-          if (instr->GetRt() == 31) {
-            suffix = NULL;
-          }
-          break;
+        }
+        form = dcop.at(sysop);
+      } else {
+        mnemonic = "sys";
+        form = "'G1, 'Kn, 'Km, 'G2";
+        if (instr->GetRt() == 31) {
+          suffix = NULL;
+        }
+        break;
       }
+    }
   }
   Format(instr, mnemonic, form, suffix);
 }

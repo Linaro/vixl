@@ -12507,6 +12507,26 @@ TEST(system_dccvadp) {
   }
 }
 
+TEST(system_dc_mte) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMTE);
+  const char* msg = "DC MTE test!";
+  uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
+
+  START();
+  __ Mov(x20, msg_addr);
+  __ Dc(CGVAC, x20);
+  __ Dc(CGDVAC, x20);
+  __ Dc(CGVAP, x20);
+  __ Dc(CGDVAP, x20);
+  __ Dc(CIGVAC, x20);
+  __ Dc(CIGDVAC, x20);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(msg_addr, x20);
+  }
+}
 
 // We currently disable tests for CRC32 instructions when running natively.
 // Support for this family of instruction is optional, and so native platforms
