@@ -6461,12 +6461,22 @@ void Simulator::SysOp_W(int op, int64_t val) {
     case CVAU:
     case CVAP:
     case CVADP:
-    case CIVAC: {
+    case CIVAC:
+    case CGVAC:
+    case CGDVAC:
+    case CGVAP:
+    case CGDVAP:
+    case CIGVAC:
+    case CIGDVAC: {
       // Perform a placeholder memory access to ensure that we have read access
-      // to the specified address.
+      // to the specified address. The read access does not require a tag match,
+      // so temporarily disable MTE.
+      bool mte_enabled = MetaDataDepot::MetaDataMTE::IsActive();
+      MetaDataDepot::MetaDataMTE::SetActive(false);
       volatile uint8_t y = MemRead<uint8_t>(val);
+      MetaDataDepot::MetaDataMTE::SetActive(mte_enabled);
       USE(y);
-      // TODO: Implement "case ZVA:".
+      // TODO: Implement ZVA, GVA, GZVA.
       break;
     }
     default:

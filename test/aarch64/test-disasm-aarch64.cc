@@ -2694,6 +2694,20 @@ TEST(system_dc) {
   CLEANUP();
 }
 
+TEST(system_dc_mte) {
+  SETUP();
+
+  COMPARE(dc(GVA, x0), "dc gva, x0");
+  COMPARE(dc(GZVA, x1), "dc gzva, x1");
+  COMPARE(dc(CGVAC, x2), "dc cgvac, x2");
+  COMPARE(dc(CGDVAC, x3), "dc cgdvac, x3");
+  COMPARE(dc(CGVAP, x3), "dc cgvap, x3");
+  COMPARE(dc(CGDVAP, x3), "dc cgdvap, x3");
+  COMPARE(dc(CIGVAC, x4), "dc cigvac, x4");
+  COMPARE(dc(CIGDVAC, x4), "dc cigdvac, x4");
+
+  CLEANUP();
+}
 
 TEST(system_nop) {
   SETUP();
