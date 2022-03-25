@@ -142,6 +142,7 @@ const unsigned kPRegMaxSizeInBytes = kPRegMaxSize / 8;
 const unsigned kPRegMaxSizeInBytesLog2 = kPRegMaxSizeLog2 - 3;
 
 const unsigned kMTETagGranuleInBytes = 16;
+const unsigned kMTETagGranuleInBytesLog2 = 4;
 const unsigned kMTETagWidth = 4;
 
 // Make these moved float constants backwards compatible

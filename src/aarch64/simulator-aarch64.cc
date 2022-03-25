@@ -42,6 +42,8 @@ using vixl::internal::SimFloat16;
 
 const Instruction* Simulator::kEndOfSimAddress = NULL;
 
+bool MetaDataDepot::MetaDataMTE::is_active = false;
+
 void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
   int width = msb - lsb + 1;
   VIXL_ASSERT(IsUintN(width, bits) || IsIntN(width, bits));
@@ -447,6 +449,9 @@ Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
   stream_ = stream;
 
   print_disasm_ = new PrintDisassembler(stream_);
+
+  memory_.AppendMetaData(&meta_data_);
+
   // The Simulator and Disassembler share the same available list, held by the
   // auditor. The Disassembler only annotates instructions with features that
   // are _not_ available, so registering the auditor should have no effect
@@ -3686,8 +3691,8 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
     }
   }
 
-  WritePc(Instruction::Cast(addr));
   WriteNextBType(GetBTypeFromInstruction(instr));
+  WritePc(Instruction::Cast(addr));
 }
 
 
@@ -6660,6 +6665,12 @@ void Simulator::VisitException(const Instruction* instr) {
           return;
         case kRestoreCPUFeaturesOpcode:
           DoRestoreCPUFeatures(instr);
+          return;
+        case kMTEActive:
+          MetaDataDepot::MetaDataMTE::SetActive(true);
+          return;
+        case kMTEInactive:
+          MetaDataDepot::MetaDataMTE::SetActive(false);
           return;
         default:
           HostBreakpoint();
@@ -13837,15 +13848,7 @@ void Simulator::Simulate_XdSP_XnSP_Xm(const Instruction* instr) {
   VIXL_ASSERT(form_hash_ == Hash("irg_64i_dp_2src"));
   uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t rm = ReadXRegister(instr->GetRm());
-
-  uint64_t rtag = nrand48(rand_state_) >> 28;
-  VIXL_ASSERT(IsUint4(rtag));
-
-  // TODO: implement this to better match the specification, which calls for a
-  // true random mode, and a pseudo-random mode with state (EL1.TAG) modified by
-  // PRNG.
-  uint64_t exclude = rm & 0xffff;
-  uint64_t tag = ChooseNonExcludedTag(rtag, 0, exclude);
+  uint64_t tag = GenerateRandomTag(rm & 0xffff);
   uint64_t new_val = GetAddressWithAllocationTag(rn, tag);
   WriteXRegister(instr->GetRd(), new_val, LogRegWrites, Reg31IsStackPointer);
 }

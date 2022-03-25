@@ -69,24 +69,33 @@ namespace aarch64 {
   Simulator simulator(&decoder);                 \
   simulator.SetColouredTrace(Test::coloured_trace());
 
-#define START()                         \
-  masm.Reset();                         \
-  simulator.ResetState();               \
-  __ PushCalleeSavedRegisters();        \
-  if (Test::trace_reg()) {              \
-    __ Trace(LOG_STATE, TRACE_ENABLE);  \
-  }                                     \
-  if (Test::trace_write()) {            \
-    __ Trace(LOG_WRITE, TRACE_ENABLE);  \
-  }                                     \
-  if (Test::trace_sim()) {              \
-    __ Trace(LOG_DISASM, TRACE_ENABLE); \
+#define START()                                                          \
+  masm.Reset();                                                          \
+  simulator.ResetState();                                                \
+  __ PushCalleeSavedRegisters();                                         \
+  /* The infrastructure code hasn't been covered at the moment, e.g. */  \
+  /* prologue/epilogue. Suppress tagging mis-match exception before this \
+   * point. */                                                           \
+  if (masm.GetCPUFeatures()->Has(CPUFeatures::kMTE)) {                   \
+    __ Hlt(DebugHltOpcode::kMTEActive);                                  \
+  }                                                                      \
+  if (Test::trace_reg()) {                                               \
+    __ Trace(LOG_STATE, TRACE_ENABLE);                                   \
+  }                                                                      \
+  if (Test::trace_write()) {                                             \
+    __ Trace(LOG_WRITE, TRACE_ENABLE);                                   \
+  }                                                                      \
+  if (Test::trace_sim()) {                                               \
+    __ Trace(LOG_DISASM, TRACE_ENABLE);                                  \
   }
 
-#define END()                       \
-  __ Trace(LOG_ALL, TRACE_DISABLE); \
-  __ PopCalleeSavedRegisters();     \
-  __ Ret();                         \
+#define END()                                          \
+  if (masm.GetCPUFeatures()->Has(CPUFeatures::kMTE)) { \
+    __ Hlt(DebugHltOpcode::kMTEInactive);              \
+  }                                                    \
+  __ Trace(LOG_ALL, TRACE_DISABLE);                    \
+  __ PopCalleeSavedRegisters();                        \
+  __ Ret();                                            \
   masm.FinalizeCode()
 
 #define TRY_RUN(skipped)                                                \

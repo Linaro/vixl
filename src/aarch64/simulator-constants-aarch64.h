@@ -56,6 +56,8 @@ enum DebugHltOpcode {
   kDisableCPUFeaturesOpcode,
   kSaveCPUFeaturesOpcode,
   kRestoreCPUFeaturesOpcode,
+  kMTEActive,
+  kMTEInactive,
   // Aliases.
   kDebugHltFirstOpcode = kUnreachableOpcode,
   kDebugHltLastOpcode = kLogOpcode
