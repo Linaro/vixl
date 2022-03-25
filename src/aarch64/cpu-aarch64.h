@@ -31,6 +31,7 @@
 #include "../globals-vixl.h"
 
 #include "instructions-aarch64.h"
+#include "simulator-aarch64.h"
 
 #ifndef VIXL_INCLUDE_TARGET_AARCH64
 // The supporting .cc file is only compiled when the A64 target is selected.
@@ -228,6 +229,20 @@ class CPU {
 
   // Query the SVE vector length. This requires CPUFeatures::kSVE.
   static int ReadSVEVectorLengthInBits();
+
+  static void *Mmap(void *address,
+                    size_t length,
+                    int prot,
+                    int flags,
+                    int fd,
+                    off_t offset,
+                    Simulator *simulator = nullptr,
+                    CPUFeatures features = CPUFeatures::None());
+
+  static int Munmap(void *address,
+                    size_t length,
+                    Simulator *simulator = nullptr,
+                    CPUFeatures features = CPUFeatures::None());
 
   // Handle tagged pointers.
   template <typename T>

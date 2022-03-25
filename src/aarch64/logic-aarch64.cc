@@ -167,6 +167,21 @@ SimFloat16 Simulator::UFixedToFloat16(uint64_t src,
 }
 
 
+uint64_t Simulator::GenerateRandomTag(uint16_t exclude) {
+  uint64_t rtag = nrand48(rand_state_) >> 28;
+  VIXL_ASSERT(IsUint4(rtag));
+
+  if (exclude == 0) {
+    exclude = nrand48(rand_state_) >> 27;
+  }
+
+  // TODO: implement this to better match the specification, which calls for a
+  // true random mode, and a pseudo-random mode with state (EL1.TAG) modified by
+  // PRNG.
+  return ChooseNonExcludedTag(rtag, 0, exclude);
+}
+
+
 void Simulator::ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
