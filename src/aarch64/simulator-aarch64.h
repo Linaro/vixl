@@ -4945,9 +4945,10 @@ class Simulator : public DecoderVisitor {
 
  private:
   using FormToVisitorFnMap =
-      std::map<const std::string,
-               const std::function<void(Simulator*, const Instruction*)>>;
-  static FormToVisitorFnMap form_to_visitor_;
+      std::unordered_map<std::string,
+                         std::function<void(Simulator*, const Instruction*)>>;
+  static const FormToVisitorFnMap* GetFormToVisitorFnMap();
+
   uint32_t form_hash_;
 
   static const PACKey kPACKeyIA;

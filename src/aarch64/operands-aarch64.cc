@@ -360,12 +360,16 @@ bool MemOperand::IsRegisterOffset() const {
   return (addrmode_ == Offset) && !regoffset_.Is(NoReg);
 }
 
-
 bool MemOperand::IsPreIndex() const { return addrmode_ == PreIndex; }
-
-
 bool MemOperand::IsPostIndex() const { return addrmode_ == PostIndex; }
 
+bool MemOperand::IsImmediatePreIndex() const {
+  return IsPreIndex() && regoffset_.Is(NoReg);
+}
+
+bool MemOperand::IsImmediatePostIndex() const {
+  return IsPostIndex() && regoffset_.Is(NoReg);
+}
 
 void MemOperand::AddOffset(int64_t offset) {
   VIXL_ASSERT(IsImmediateOffset());

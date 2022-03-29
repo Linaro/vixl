@@ -28,6 +28,7 @@
 #define VIXL_AARCH64_DISASM_AARCH64_H
 
 #include <functional>
+#include <unordered_map>
 #include <utility>
 
 #include "../globals-vixl.h"
@@ -116,10 +117,11 @@ class Disassembler : public DecoderVisitor {
   VISITOR_LIST(DECLARE)
 #undef DECLARE
 
-  using FormToVisitorFnMap =
-      std::map<const std::string,
-               const std::function<void(Disassembler*, const Instruction*)>>;
-  static FormToVisitorFnMap form_to_visitor_;
+  using FormToVisitorFnMap = std::unordered_map<
+      std::string,
+      std::function<void(Disassembler*, const Instruction*)>>;
+  static const FormToVisitorFnMap* GetFormToVisitorFnMap();
+
   std::string mnemonic_;
   uint32_t form_hash_;
 

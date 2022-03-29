@@ -29,6 +29,7 @@
 
 #include <functional>
 #include <iostream>
+#include <unordered_map>
 
 #include "cpu-features.h"
 #include "decoder-aarch64.h"
@@ -121,10 +122,10 @@ class CPUFeaturesAuditor : public DecoderVisitor {
 
   Decoder* decoder_;
 
-  using FormToVisitorFnMap = std::map<
-      const std::string,
-      const std::function<void(CPUFeaturesAuditor*, const Instruction*)>>;
-  static FormToVisitorFnMap form_to_visitor_;
+  using FormToVisitorFnMap = std::unordered_map<
+      std::string,
+      std::function<void(CPUFeaturesAuditor*, const Instruction*)>>;
+  static const FormToVisitorFnMap* GetFormToVisitorFnMap();
 };
 
 }  // namespace aarch64

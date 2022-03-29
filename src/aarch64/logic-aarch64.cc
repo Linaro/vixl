@@ -6845,6 +6845,7 @@ LogicVRegister Simulator::scvtf(VectorFormat vform,
                                 int fbits) {
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+  dst.ClearForWrite(vform);
 
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     if (!pg.IsActive(vform, i)) continue;
@@ -6903,6 +6904,7 @@ LogicVRegister Simulator::ucvtf(VectorFormat vform,
                                 int fbits) {
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= dst_data_size_in_bits);
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) >= src_data_size_in_bits);
+  dst.ClearForWrite(vform);
 
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     if (!pg.IsActive(vform, i)) continue;

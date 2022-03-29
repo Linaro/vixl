@@ -434,9 +434,14 @@ class MemOperand {
   bool IsImmediateOffset() const;
   // True for register-offset (but not indexed) MemOperands.
   bool IsRegisterOffset() const;
-
+  // True for immediate or register pre-indexed MemOperands.
   bool IsPreIndex() const;
+  // True for immediate or register post-indexed MemOperands.
   bool IsPostIndex() const;
+  // True for immediate pre-indexed MemOperands, [reg, #imm]!
+  bool IsImmediatePreIndex() const;
+  // True for immediate post-indexed MemOperands, [reg], #imm
+  bool IsImmediatePostIndex() const;
 
   void AddOffset(int64_t offset);
 

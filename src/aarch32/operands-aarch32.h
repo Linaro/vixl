@@ -293,7 +293,7 @@ class NeonImmediate {
 
   bool IsInteger32() const { return immediate_type_.Is(I32); }
   bool IsInteger64() const { return immediate_type_.Is(I64); }
-  bool IsInteger() const { return IsInteger32() | IsInteger64(); }
+  bool IsInteger() const { return IsInteger32() || IsInteger64(); }
   bool IsFloat() const { return immediate_type_.Is(F32); }
   bool IsDouble() const { return immediate_type_.Is(F64); }
   bool IsFloatZero() const {

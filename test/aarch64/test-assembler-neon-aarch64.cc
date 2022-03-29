@@ -10938,5 +10938,1275 @@ TEST(neon_usdot_element) {
   }
 }
 
+TEST(zero_high_b) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON, CPUFeatures::kRDM);
+  START();
+
+  __ Mov(x0, 0x55aa42ffaa42ff55);
+  __ Mov(x1, 4);
+  __ Movi(q30.V16B(), 0);
+
+  // Iterate over the SISD instructions using different input values on each
+  // loop.
+  Label loop;
+  __ Bind(&loop);
+
+  __ Dup(q0.V16B(), w0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q1.V16B(), w0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q2.V16B(), w0);
+  __ Ror(x0, x0, 8);
+
+  {
+    ExactAssemblyScope scope(&masm, 81 * kInstructionSize);
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e010409);  // mov b9, v0.b[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e207809);  // sqabs b9, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e200c29);  // sqadd b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e207809);  // sqneg b9, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e008429);  // sqrdmlah b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e008c29);  // sqrdmlsh b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e205c29);  // sqrshl b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f089c09);  // sqrshrn b9, h0, #8
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f088c09);  // sqrshrun b9, h0, #8
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e204c29);  // sqshl b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f087409);  // sqshl b9, b0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f086409);  // sqshlu b9, b0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f089409);  // sqshrn b9, h0, #8
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f088409);  // sqshrun b9, h0, #8
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e202c29);  // sqsub b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e214809);  // sqxtn b9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e212809);  // sqxtun b9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e203809);  // suqadd b9, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e200c29);  // uqadd b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e205c29);  // uqrshl b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f089c09);  // uqrshrn b9, h0, #8
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e204c29);  // uqshl b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f087409);  // uqshl b9, b0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f089409);  // uqshrn b9, h0, #8
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e202c29);  // uqsub b9, b1, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e214809);  // uqxtn b9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e203809);  // usqadd b9, b0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+  }
+  __ Sub(x1, x1, 1);
+  __ Cbnz(x1, &loop);
+
+  __ Ins(q30.V16B(), 0, wzr);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_128(0, 0, q30);
+  }
+}
+
+TEST(zero_high_h) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                      CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kNEONHalf,
+                      CPUFeatures::kRDM);
+  START();
+
+  __ Mov(x0, 0x55aa42ffaa42ff55);
+  __ Mov(x1, 4);
+  __ Movi(q30.V16B(), 0);
+
+  // Iterate over the SISD instructions using different input values on each
+  // loop.
+  Label loop;
+  __ Bind(&loop);
+
+  __ Dup(q0.V8H(), w0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q1.V8H(), w0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q2.V8H(), w0);
+  __ Ror(x0, x0, 8);
+
+  {
+    ExactAssemblyScope scope(&masm, 225 * kInstructionSize);
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e020409);  // mov h9, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ec01429);  // fabd h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e402c29);  // facge h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ec02c29);  // facgt h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e30d809);  // faddp h9, v0.2h
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef8d809);  // fcmeq h9, h0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e402429);  // fcmeq h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef8c809);  // fcmge h9, h0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e402429);  // fcmge h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef8c809);  // fcmgt h9, h0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ec02429);  // fcmgt h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef8d809);  // fcmle h9, h0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef8e809);  // fcmlt h9, h0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e79c809);  // fcvtas h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e79c809);  // fcvtau h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e79b809);  // fcvtms h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e79b809);  // fcvtmu h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e79a809);  // fcvtns h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e79a809);  // fcvtnu h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef9a809);  // fcvtps h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef9a809);  // fcvtpu h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef9b809);  // fcvtzs h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f10fc09);  // fcvtzs h9, h0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef9b809);  // fcvtzu h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f10fc09);  // fcvtzu h9, h0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e30c809);  // fmaxnmp h9, v0.2h
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e30f809);  // fmaxp h9, v0.2h
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5eb0c809);  // fminnmp h9, v0.2h
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5eb0f809);  // fminp h9, v0.2h
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f001029);  // fmla h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f005029);  // fmls h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f009029);  // fmul h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f009029);  // fmulx h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e401c29);  // fmulx h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef9d809);  // frecpe h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e403c29);  // frecps h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef9f809);  // frecpx h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef9d809);  // frsqrte h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ec03c29);  // frsqrts h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e79d809);  // scvtf h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f10e409);  // scvtf h9, h0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e607809);  // sqabs h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e600c29);  // sqadd h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f40c029);  // sqdmulh h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e60b429);  // sqdmulh h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e607809);  // sqneg h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f40d029);  // sqrdmlah h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e408429);  // sqrdmlah h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f40f029);  // sqrdmlsh h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e408c29);  // sqrdmlsh h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f40d029);  // sqrdmulh h9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e60b429);  // sqrdmulh h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e605c29);  // sqrshl h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f109c09);  // sqrshrn h9, s0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f108c09);  // sqrshrun h9, s0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e604c29);  // sqshl h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f107409);  // sqshl h9, h0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f106409);  // sqshlu h9, h0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f109409);  // sqshrn h9, s0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f108409);  // sqshrun h9, s0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e602c29);  // sqsub h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e614809);  // sqxtn h9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e612809);  // sqxtun h9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e603809);  // suqadd h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e79d809);  // ucvtf h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f10e409);  // ucvtf h9, h0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e600c29);  // uqadd h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e605c29);  // uqrshl h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f109c09);  // uqrshrn h9, s0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e604c29);  // uqshl h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f107409);  // uqshl h9, h0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f109409);  // uqshrn h9, s0, #16
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e602c29);  // uqsub h9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e614809);  // uqxtn h9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e603809);  // usqadd h9, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+  }
+  __ Sub(x1, x1, 1);
+  __ Cbnz(x1, &loop);
+
+  __ Ins(q30.V8H(), 0, wzr);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_128(0, 0, q30);
+  }
+}
+
+TEST(zero_high_s) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                      CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kRDM);
+  START();
+
+  __ Mov(x0, 0x55aa42ffaa42ff55);
+  __ Mov(x1, 4);
+  __ Movi(q30.V16B(), 0);
+
+  // Iterate over the SISD instructions using different input values on each
+  // loop.
+  Label loop;
+  __ Bind(&loop);
+
+  __ Dup(q0.V4S(), w0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q1.V4S(), w0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q2.V4S(), w0);
+  __ Ror(x0, x0, 8);
+
+  {
+    ExactAssemblyScope scope(&masm, 246 * kInstructionSize);
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e040409);  // mov s9, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea0d429);  // fabd s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e20ec29);  // facge s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea0ec29);  // facgt s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e30d809);  // faddp s9, v0.2s
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0d809);  // fcmeq s9, s0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e20e429);  // fcmeq s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea0c809);  // fcmge s9, s0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e20e429);  // fcmge s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0c809);  // fcmgt s9, s0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea0e429);  // fcmgt s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea0d809);  // fcmle s9, s0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0e809);  // fcmlt s9, s0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e21c809);  // fcvtas s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e21c809);  // fcvtau s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e21b809);  // fcvtms s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e21b809);  // fcvtmu s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e21a809);  // fcvtns s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e21a809);  // fcvtnu s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea1a809);  // fcvtps s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea1a809);  // fcvtpu s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e616809);  // fcvtxn s9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea1b809);  // fcvtzs s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f20fc09);  // fcvtzs s9, s0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea1b809);  // fcvtzu s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f20fc09);  // fcvtzu s9, s0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e30c809);  // fmaxnmp s9, v0.2s
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e30f809);  // fmaxp s9, v0.2s
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7eb0c809);  // fminnmp s9, v0.2s
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7eb0f809);  // fminp s9, v0.2s
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f801029);  // fmla s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f805029);  // fmls s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f809029);  // fmul s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f809029);  // fmulx s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e20dc29);  // fmulx s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea1d809);  // frecpe s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e20fc29);  // frecps s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea1f809);  // frecpx s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea1d809);  // frsqrte s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0fc29);  // frsqrts s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e21d809);  // scvtf s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f20e409);  // scvtf s9, s0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea07809);  // sqabs s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea00c29);  // sqadd s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e609029);  // sqdmlal s9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f403029);  // sqdmlal s9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e60b029);  // sqdmlsl s9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f407029);  // sqdmlsl s9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f80c029);  // sqdmulh s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0b429);  // sqdmulh s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e60d029);  // sqdmull s9, h1, h0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f40b029);  // sqdmull s9, h1, v0.h[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea07809);  // sqneg s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f80d029);  // sqrdmlah s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e808429);  // sqrdmlah s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f80f029);  // sqrdmlsh s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e808c29);  // sqrdmlsh s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f80d029);  // sqrdmulh s9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea0b429);  // sqrdmulh s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea05c29);  // sqrshl s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f209c09);  // sqrshrn s9, d0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f208c09);  // sqrshrun s9, d0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea04c29);  // sqshl s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f207409);  // sqshl s9, s0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f206409);  // sqshlu s9, s0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f209409);  // sqshrn s9, d0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f208409);  // sqshrun s9, d0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea02c29);  // sqsub s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea14809);  // sqxtn s9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea12809);  // sqxtun s9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea03809);  // suqadd s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e21d809);  // ucvtf s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f20e409);  // ucvtf s9, s0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea00c29);  // uqadd s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea05c29);  // uqrshl s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f209c09);  // uqrshrn s9, d0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea04c29);  // uqshl s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f207409);  // uqshl s9, s0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f209409);  // uqshrn s9, d0, #32
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea02c29);  // uqsub s9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea14809);  // uqxtn s9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ea03809);  // usqadd s9, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+  }
+  __ Sub(x1, x1, 1);
+  __ Cbnz(x1, &loop);
+
+  __ Ins(q30.V4S(), 0, wzr);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_128(0, 0, q30);
+  }
+}
+
+TEST(zero_high_d) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                      CPUFeatures::kNEON,
+                      CPUFeatures::kFP,
+                      CPUFeatures::kRDM);
+  START();
+
+  __ Mov(x0, 0x55aa42ffaa42ff55);
+  __ Mov(x1, 4);
+  __ Movi(q30.V16B(), 0);
+
+  // Iterate over the SISD instructions using different input values on each
+  // loop.
+  Label loop;
+  __ Bind(&loop);
+
+  __ Dup(q0.V2D(), x0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q1.V2D(), x0);
+  __ Ror(x0, x0, 8);
+  __ Dup(q2.V2D(), x0);
+  __ Ror(x0, x0, 8);
+
+  {
+    ExactAssemblyScope scope(&masm, 291 * kInstructionSize);
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee0b809);  // abs d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee08429);  // add d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ef1b809);  // addp d9, v0.2d
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee09809);  // cmeq d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee08c29);  // cmeq d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee08809);  // cmge d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee03c29);  // cmge d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee08809);  // cmgt d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee03429);  // cmgt d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee03429);  // cmhi d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee03c29);  // cmhs d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee09809);  // cmle d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee0a809);  // cmlt d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee08c29);  // cmtst d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e080409);  // mov d9, v0.d[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee0d429);  // fabd d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e60ec29);  // facge d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee0ec29);  // facgt d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e70d809);  // faddp d9, v0.2d
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee0d809);  // fcmeq d9, d0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e60e429);  // fcmeq d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee0c809);  // fcmge d9, d0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e60e429);  // fcmge d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee0c809);  // fcmgt d9, d0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee0e429);  // fcmgt d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee0d809);  // fcmle d9, d0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee0e809);  // fcmlt d9, d0, #0.0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e61c809);  // fcvtas d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e61c809);  // fcvtau d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e61b809);  // fcvtms d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e61b809);  // fcvtmu d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e61a809);  // fcvtns d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e61a809);  // fcvtnu d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee1a809);  // fcvtps d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee1a809);  // fcvtpu d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee1b809);  // fcvtzs d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f40fc09);  // fcvtzs d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee1b809);  // fcvtzu d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f40fc09);  // fcvtzu d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e70c809);  // fmaxnmp d9, v0.2d
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e70f809);  // fmaxp d9, v0.2d
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef0c809);  // fminnmp d9, v0.2d
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ef0f809);  // fminp d9, v0.2d
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5fc01029);  // fmla d9, d1, v0.d[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5fc05029);  // fmls d9, d1, v0.d[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5fc09029);  // fmul d9, d1, v0.d[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7fc09029);  // fmulx d9, d1, v0.d[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e60dc29);  // fmulx d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee1d809);  // frecpe d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e60fc29);  // frecps d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee1f809);  // frecpx d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee1d809);  // frsqrte d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee0fc29);  // frsqrts d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee0b809);  // neg d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5e61d809);  // scvtf d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f40e409);  // scvtf d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f405409);  // shl d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f405409);  // sli d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee07809);  // sqabs d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee00c29);  // sqadd d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea09029);  // sqdmlal d9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f803029);  // sqdmlal d9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0b029);  // sqdmlsl d9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f807029);  // sqdmlsl d9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ea0d029);  // sqdmull d9, s1, s0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f80b029);  // sqdmull d9, s1, v0.s[0]
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee07809);  // sqneg d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ec08429);  // sqrdmlah d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ec08c29);  // sqrdmlsh d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee05c29);  // sqrshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee04c29);  // sqshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f407409);  // sqshl d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f406409);  // sqshlu d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee02c29);  // sqsub d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f404409);  // sri d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee05429);  // srshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f402409);  // srshr d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f403409);  // srsra d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee04429);  // sshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f400409);  // sshr d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5f401409);  // ssra d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee08429);  // sub d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x5ee03809);  // suqadd d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7e61d809);  // ucvtf d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f40e409);  // ucvtf d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee00c29);  // uqadd d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee05c29);  // uqrshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee04c29);  // uqshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f407409);  // uqshl d9, d0, #0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee02c29);  // uqsub d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee05429);  // urshl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f402409);  // urshr d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f403409);  // ursra d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee04429);  // ushl d9, d1, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f400409);  // ushr d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7ee03809);  // usqadd d9, d0
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+
+    __ movi(q9.V16B(), 0x55);
+    __ dci(0x7f401409);  // usra d9, d0, #64
+    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
+  }
+  __ Sub(x1, x1, 1);
+  __ Cbnz(x1, &loop);
+
+  __ Ins(q30.V2D(), 0, xzr);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_128(0, 0, q30);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
