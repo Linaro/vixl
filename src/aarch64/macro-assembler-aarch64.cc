@@ -1411,6 +1411,43 @@ void MacroAssembler::Adds(const Register& rd,
   Add(rd, rn, operand, SetFlags);
 }
 
+void MacroAssembler::St2g(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  st2g(rt, addr);
+}
+
+void MacroAssembler::Stg(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  stg(rt, addr);
+}
+
+void MacroAssembler::Stgp(const Register& rt1,
+                          const Register& rt2,
+                          const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  stgp(rt1, rt2, addr);
+}
+
+void MacroAssembler::Stz2g(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  stz2g(rt, addr);
+}
+
+void MacroAssembler::Stzg(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  stzg(rt, addr);
+}
+
+void MacroAssembler::Ldg(const Register& rt, const MemOperand& addr) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  SingleEmissionCheckScope guard(this);
+  ldg(rt, addr);
+}
 
 void MacroAssembler::Sub(const Register& rd,
                          const Register& rn,

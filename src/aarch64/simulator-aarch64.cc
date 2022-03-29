@@ -410,22 +410,22 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
       {"addg_64_addsub_immtags", &Simulator::SimulateMTEAddSubTag},
       {"gmi_64g_dp_2src", &Simulator::SimulateMTETagMaskInsert},
       {"irg_64i_dp_2src", &Simulator::Simulate_XdSP_XnSP_Xm},
-      {"ldg_64loffset_ldsttags", &Simulator::Simulate_Xt_XnSP_simm},
-      {"st2g_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"st2g_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"st2g_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
-      {"stgp_64_ldstpair_off", &Simulator::Simulate_Xt1_Xt2_XnSP_imm},
-      {"stgp_64_ldstpair_post", &Simulator::Simulate_Xt1_Xt2_XnSP_imm},
-      {"stgp_64_ldstpair_pre", &Simulator::Simulate_Xt1_Xt2_XnSP_imm_excl},
-      {"stg_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"stg_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"stg_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
-      {"stz2g_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"stz2g_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"stz2g_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
-      {"stzg_64soffset_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"stzg_64spost_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm},
-      {"stzg_64spre_ldsttags", &Simulator::Simulate_XtSP_XnSP_simm_excl},
+      {"ldg_64loffset_ldsttags", &Simulator::SimulateMTELoadTag},
+      {"st2g_64soffset_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"st2g_64spost_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"st2g_64spre_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stgp_64_ldstpair_off", &Simulator::SimulateMTEStoreTagPair},
+      {"stgp_64_ldstpair_post", &Simulator::SimulateMTEStoreTagPair},
+      {"stgp_64_ldstpair_pre", &Simulator::SimulateMTEStoreTagPair},
+      {"stg_64soffset_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stg_64spost_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stg_64spre_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stz2g_64soffset_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stz2g_64spost_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stz2g_64spre_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stzg_64soffset_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stzg_64spost_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
+      {"stzg_64spre_ldsttags", &Simulator::Simulator::SimulateMTEStoreTag},
       {"subg_64_addsub_immtags", &Simulator::SimulateMTEAddSubTag},
       {"subps_64s_dp_2src", &Simulator::SimulateMTESubPointer},
       {"subp_64s_dp_2src", &Simulator::SimulateMTESubPointer},
@@ -13906,59 +13906,121 @@ void Simulator::SimulateMTESubPointer(const Instruction* instr) {
   WriteXRegister(instr->GetRd(), new_val);
 }
 
-void Simulator::Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr) {
+void Simulator::SimulateMTEStoreTagPair(const Instruction* instr) {
   uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
-  uint64_t rt1 = ReadXRegister(instr->GetRt());
-  USE(rt1);
+  uint64_t rt = ReadXRegister(instr->GetRt());
+  uint64_t rt2 = ReadXRegister(instr->GetRt2());
+  int offset = instr->GetImmLSPair() * static_cast<int>(kMTETagGranuleInBytes);
 
+  AddrMode addr_mode = Offset;
   switch (form_hash_) {
     case Hash("stgp_64_ldstpair_off"):
+      // Default is the offset mode.
       break;
     case Hash("stgp_64_ldstpair_post"):
+      addr_mode = PostIndex;
       break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
-void Simulator::Simulate_Xt1_Xt2_XnSP_imm_excl(const Instruction* instr) {
-  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
-  uint64_t rt1 = ReadXRegister(instr->GetRt());
-  USE(rt1);
-
-  switch (form_hash_) {
     case Hash("stgp_64_ldstpair_pre"):
+      addr_mode = PreIndex;
       break;
     default:
       VIXL_UNIMPLEMENTED();
   }
+
+  uintptr_t address = AddressModeHelper(instr->GetRn(), offset, addr_mode);
+  if (!IsAligned(address, kMTETagGranuleInBytes)) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  int tag = GetAllocationTagFromAddress(rn);
+  meta_data_.SetMTETag(address, tag);
+
+  MemWrite<uint64_t>(address, rt);
+  MemWrite<uint64_t>(address + kXRegSizeInBytes, rt2);
 }
 
-void Simulator::Simulate_XtSP_XnSP_simm(const Instruction* instr) {
-  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
+void Simulator::SimulateMTEStoreTag(const Instruction* instr) {
+  uint64_t rt = ReadXRegister(instr->GetRt(), Reg31IsStackPointer);
+  int offset = instr->GetImmLS() * static_cast<int>(kMTETagGranuleInBytes);
 
+  AddrMode addr_mode = Offset;
   switch (form_hash_) {
     case Hash("st2g_64soffset_ldsttags"):
+    case Hash("stg_64soffset_ldsttags"):
+    case Hash("stz2g_64soffset_ldsttags"):
+    case Hash("stzg_64soffset_ldsttags"):
+      // Default is the offset mode.
       break;
     case Hash("st2g_64spost_ldsttags"):
-      break;
-    case Hash("stg_64soffset_ldsttags"):
-      break;
     case Hash("stg_64spost_ldsttags"):
-      break;
-    case Hash("stz2g_64soffset_ldsttags"):
-      break;
     case Hash("stz2g_64spost_ldsttags"):
-      break;
-    case Hash("stzg_64soffset_ldsttags"):
-      break;
     case Hash("stzg_64spost_ldsttags"):
+      addr_mode = PostIndex;
+      break;
+    case Hash("st2g_64spre_ldsttags"):
+    case Hash("stg_64spre_ldsttags"):
+    case Hash("stz2g_64spre_ldsttags"):
+    case Hash("stzg_64spre_ldsttags"):
+      addr_mode = PreIndex;
       break;
     default:
       VIXL_UNIMPLEMENTED();
+  }
+
+  bool is_pair = false;
+  switch (form_hash_) {
+    case Hash("st2g_64soffset_ldsttags"):
+    case Hash("st2g_64spost_ldsttags"):
+    case Hash("st2g_64spre_ldsttags"):
+    case Hash("stz2g_64soffset_ldsttags"):
+    case Hash("stz2g_64spost_ldsttags"):
+    case Hash("stz2g_64spre_ldsttags"):
+      is_pair = true;
+      break;
+    default:
+      break;
+  }
+
+  bool is_zeroing = false;
+  switch (form_hash_) {
+    case Hash("stz2g_64soffset_ldsttags"):
+    case Hash("stz2g_64spost_ldsttags"):
+    case Hash("stz2g_64spre_ldsttags"):
+    case Hash("stzg_64soffset_ldsttags"):
+    case Hash("stzg_64spost_ldsttags"):
+    case Hash("stzg_64spre_ldsttags"):
+      is_zeroing = true;
+      break;
+    default:
+      break;
+  }
+
+  uintptr_t address = AddressModeHelper(instr->GetRn(), offset, addr_mode);
+
+  if (is_zeroing) {
+    if (!IsAligned(reinterpret_cast<uintptr_t>(address),
+                   kMTETagGranuleInBytes)) {
+      VIXL_ALIGNMENT_EXCEPTION();
+    }
+    VIXL_STATIC_ASSERT(kMTETagGranuleInBytes >= sizeof(uint64_t));
+    VIXL_STATIC_ASSERT(kMTETagGranuleInBytes % sizeof(uint64_t) == 0);
+
+    size_t fill_size = kMTETagGranuleInBytes;
+    if (is_pair) {
+      fill_size += kMTETagGranuleInBytes;
+    }
+
+    size_t fill_offset = 0;
+    while (fill_offset < fill_size) {
+      MemWrite<uint64_t>(address + fill_offset, 0);
+      fill_offset += sizeof(uint64_t);
+    }
+  }
+
+  int tag = GetAllocationTagFromAddress(rt);
+  meta_data_.SetMTETag(address, tag, instr);
+  if (is_pair) {
+    meta_data_.SetMTETag(address + kMTETagGranuleInBytes, tag, instr);
   }
 }
 
@@ -13967,8 +14029,6 @@ void Simulator::Simulate_XtSP_XnSP_simm_excl(const Instruction* instr) {
   USE(rn);
 
   switch (form_hash_) {
-    case Hash("st2g_64spre_ldsttags"):
-      break;
     case Hash("stg_64spre_ldsttags"):
       break;
     case Hash("stz2g_64spre_ldsttags"):
@@ -13980,11 +14040,9 @@ void Simulator::Simulate_XtSP_XnSP_simm_excl(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_Xt_XnSP_simm(const Instruction* instr) {
-  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
+void Simulator::SimulateMTELoadTag(const Instruction* instr) {
   uint64_t rt = ReadXRegister(instr->GetRt());
-  USE(rt);
+  int offset = instr->GetImmLS() * static_cast<int>(kMTETagGranuleInBytes);
 
   switch (form_hash_) {
     case Hash("ldg_64loffset_ldsttags"):
@@ -13992,6 +14050,11 @@ void Simulator::Simulate_Xt_XnSP_simm(const Instruction* instr) {
     default:
       VIXL_UNIMPLEMENTED();
   }
+
+  uintptr_t address = AddressModeHelper(instr->GetRn(), offset, Offset);
+  address = AlignDown(address, kMTETagGranuleInBytes);
+  uint64_t tag = meta_data_.GetMTETag(address, instr);
+  WriteXRegister(instr->GetRt(), GetAddressWithAllocationTag(rt, tag));
 }
 
 void Simulator::DoTrace(const Instruction* instr) {

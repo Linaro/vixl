@@ -976,6 +976,69 @@ TEST(branch) {
   CLEANUP();
 }
 
+TEST(mte_load_store) {
+  SETUP();
+
+  COMPARE(ldg(x0, MemOperand(sp)), "ldg x0, [sp]");
+  COMPARE(ldg(x22, MemOperand(x3, 32)), "ldg x22, [x3, #32]");
+  COMPARE(st2g(x3, MemOperand(sp)), "st2g x3, [sp]");
+  COMPARE(st2g(sp, MemOperand(sp, -320)), "st2g sp, [sp, #-320]");
+  COMPARE(st2g(x30, MemOperand(x4, 160, PreIndex)), "st2g x30, [x4, #160]!");
+  COMPARE(st2g(x22, MemOperand(x24, 1600, PostIndex)),
+          "st2g x22, [x24], #1600");
+  COMPARE(stg(x0, MemOperand(x1)), "stg x0, [x1]");
+  COMPARE(stg(x2, MemOperand(x3, 16)), "stg x2, [x3, #16]");
+  COMPARE(stg(sp, MemOperand(x1, -16, PreIndex)), "stg sp, [x1, #-16]!");
+  COMPARE(stg(x4, MemOperand(sp, -256, PostIndex)), "stg x4, [sp], #-256");
+  COMPARE(stgp(x29, x14, MemOperand(sp)), "stgp x29, x14, [sp]");
+  COMPARE(stgp(x3, x4, MemOperand(x3, -1024)), "stgp x3, x4, [x3, #-1024]");
+  COMPARE(stgp(x17, x7, MemOperand(x18, -64, PreIndex)),
+          "stgp x17, x7, [x18, #-64]!");
+  COMPARE(stgp(x5, x21, MemOperand(sp, 1008, PostIndex)),
+          "stgp x5, x21, [sp], #1008");
+  COMPARE(stzg(x20, MemOperand(x1)), "stzg x20, [x1]");
+  COMPARE(stzg(x22, MemOperand(x3, -32)), "stzg x22, [x3, #-32]");
+  COMPARE(stzg(sp, MemOperand(x1, 32, PreIndex)), "stzg sp, [x1, #32]!");
+  COMPARE(stzg(x5, MemOperand(sp, -2560, PostIndex)), "stzg x5, [sp], #-2560");
+  COMPARE(stz2g(x6, MemOperand(x21)), "stz2g x6, [x21]");
+  COMPARE(stz2g(x18, MemOperand(x13, 16)), "stz2g x18, [x13, #16]");
+  COMPARE(stz2g(sp, MemOperand(sp, -384, PreIndex)), "stz2g sp, [sp, #-384]!");
+  COMPARE(stz2g(sp, MemOperand(x7, -256, PostIndex)), "stz2g sp, [x7], #-256");
+
+  COMPARE_MACRO(Ldg(x10, MemOperand(x17)), "ldg x10, [x17]");
+  COMPARE_MACRO(Ldg(x15, MemOperand(sp, -4096)), "ldg x15, [sp, #-4096]");
+  COMPARE_MACRO(St2g(x3, MemOperand(x15)), "st2g x3, [x15]");
+  COMPARE_MACRO(St2g(sp, MemOperand(sp, -1600)), "st2g sp, [sp, #-1600]");
+  COMPARE_MACRO(St2g(x30, MemOperand(x4, 3216, PreIndex)),
+                "st2g x30, [x4, #3216]!");
+  COMPARE_MACRO(St2g(x18, MemOperand(x2, 352, PostIndex)),
+                "st2g x18, [x2], #352");
+  COMPARE_MACRO(Stg(x10, MemOperand(x17)), "stg x10, [x17]");
+  COMPARE_MACRO(Stg(sp, MemOperand(x3, -4096)), "stg sp, [x3, #-4096]");
+  COMPARE_MACRO(Stg(sp, MemOperand(sp, 4080, PreIndex)),
+                "stg sp, [sp, #4080]!");
+  COMPARE_MACRO(Stg(x14, MemOperand(x20, 1024, PostIndex)),
+                "stg x14, [x20], #1024");
+  COMPARE_MACRO(Stgp(x3, x5, MemOperand(x7)), "stgp x3, x5, [x7]");
+  COMPARE_MACRO(Stgp(x8, x4, MemOperand(x2, -496)), "stgp x8, x4, [x2, #-496]");
+  COMPARE_MACRO(Stgp(x27, x7, MemOperand(sp, -672, PreIndex)),
+                "stgp x27, x7, [sp, #-672]!");
+  COMPARE_MACRO(Stgp(x14, x16, MemOperand(x0, 576, PostIndex)),
+                "stgp x14, x16, [x0], #576");
+  COMPARE_MACRO(Stz2g(x22, MemOperand(x12)), "stz2g x22, [x12]");
+  COMPARE_MACRO(Stz2g(sp, MemOperand(sp, -704)), "stz2g sp, [sp, #-704]");
+  COMPARE_MACRO(Stz2g(x3, MemOperand(x4, 272, PreIndex)),
+                "stz2g x3, [x4, #272]!");
+  COMPARE_MACRO(Stz2g(sp, MemOperand(sp, 1024, PostIndex)),
+                "stz2g sp, [sp], #1024");
+  COMPARE_MACRO(Stzg(x17, MemOperand(x11)), "stzg x17, [x11]");
+  COMPARE_MACRO(Stzg(x29, MemOperand(x3, -3552)), "stzg x29, [x3, #-3552]");
+  COMPARE_MACRO(Stzg(x2, MemOperand(x15, 784, PreIndex)),
+                "stzg x2, [x15, #784]!");
+  COMPARE_MACRO(Stzg(x8, MemOperand(x3, 1488, PostIndex)),
+                "stzg x8, [x3], #1488");
+  CLEANUP();
+}
 
 TEST(load_store) {
   SETUP();

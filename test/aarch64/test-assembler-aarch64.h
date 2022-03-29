@@ -133,8 +133,8 @@ namespace aarch64 {
     __ PushCalleeSavedRegisters();                                            \
   }                                                                           \
   /* The infrastructure code hasn't been covered at the moment, e.g. */       \
-  /* prologue/epilogue. Suppress tagging mis-match exception before this      \
-   * point. */                                                                \
+  /* prologue/epilogue. Suppress tagging mis-match exception before  */       \
+  /* this point. */                                                           \
   if (masm.GetCPUFeatures()->Has(CPUFeatures::kMTE)) {                        \
     __ Hlt(DebugHltOpcode::kMTEActive);                                       \
   }                                                                           \

@@ -2858,6 +2858,356 @@ TEST(branch_type) {
   }
 }
 
+enum MTEStgAttribute {
+  StgNoSideEffect = 0,
+  StgPairTag = 1,
+  StgZeroing = 2,
+  StgPairReg = 4
+};
+
+// Support st2g, stg, stz2g and stzg.
+template <typename Op>
+static void MTEStoreTagHelper(Op op,
+                              AddrMode addr_mode,
+                              int attr = StgNoSideEffect) {
+  CPUFeatures features(CPUFeatures::kMTE);
+  SETUP_WITH_FEATURES(features);
+  START();
+
+  // This method does nothing when the size is zero. i.e. stg and st2g.
+  // Reserve x9 and x10.
+  auto LoadDataAndSum = [&](Register reg, int off, unsigned size_in_bytes) {
+    VIXL_ASSERT(size_in_bytes >= 0);
+    for (unsigned j = 0; j < size_in_bytes / kXRegSizeInBytes; j++) {
+      __ Ldr(x9, MemOperand(reg, off));
+      __ Add(x10, x9, x10);
+      off += kXRegSizeInBytes;
+    }
+  };
+
+  // Initialize registers to zero.
+  for (int i = 0; i < 29; i++) {
+    __ Mov(XRegister(i), 0);
+  }
+
+  const int data_size = 640;
+  uint32_t* data_ptr =
+      reinterpret_cast<uint32_t*>(CPU::Mmap(NULL,
+                                            data_size * sizeof(uint32_t),
+                                            PROT_READ | PROT_WRITE,
+                                            MAP_PRIVATE | MAP_ANONYMOUS,
+                                            0,
+                                            0,
+                                            &simulator,
+                                            features));
+
+  VIXL_ASSERT(data_ptr != nullptr);
+  uint32_t* untagged_ptr = AddressUntag(data_ptr);
+  memset(untagged_ptr, 0xae, data_size * sizeof(uint32_t));
+
+  Register base = x28;
+  Register base_tag = x27;
+  __ Mov(base, reinterpret_cast<uint64_t>(&data_ptr[data_size / 2]));
+
+  VIXL_STATIC_ASSERT(kMTETagGranuleInBytes == 16);
+  const int tag_granule = kMTETagGranuleInBytes;
+  int size = ((attr & StgZeroing) != 0) ? tag_granule : 0;
+  // lsb of MTE tag field.
+  const int tag_lsb = 56;
+
+  for (int i = 1; i < 7; i++) {
+    uint64_t tag = static_cast<uint64_t>(i) << tag_lsb;
+    int offset = 2 * i * tag_granule;
+    __ Mov(XRegister(i), tag);
+    (masm.*op)(XRegister(i), MemOperand(base, offset, addr_mode));
+
+    // The address tag has been changed after the execution of store tag
+    // instructions, so update the pointer tag as well.
+    __ Bic(base_tag, base, 0x0f00000000000000);
+    __ Orr(base_tag, base_tag, XRegister(i));
+
+    switch (addr_mode) {
+      case Offset:
+        __ Ldg(XRegister(i + 10), MemOperand(base_tag, offset));
+        LoadDataAndSum(base_tag, offset, size);
+        if ((attr & StgPairTag) != 0) {
+          __ Ldg(XRegister(i + 20), MemOperand(base_tag, offset + tag_granule));
+          LoadDataAndSum(base_tag, offset + tag_granule, size);
+        }
+        break;
+
+      case PreIndex:
+        __ Ldg(XRegister(i + 10), MemOperand(base_tag));
+        LoadDataAndSum(base_tag, 0, size);
+        if ((attr & StgPairTag) != 0) {
+          __ Ldg(XRegister(i + 20), MemOperand(base_tag, tag_granule));
+          LoadDataAndSum(base_tag, tag_granule, size);
+        }
+        break;
+
+      case PostIndex:
+        __ Ldg(XRegister(i + 10), MemOperand(base_tag, -offset));
+        LoadDataAndSum(base_tag, -offset, size);
+        if ((attr & StgPairTag) != 0) {
+          __ Ldg(XRegister(i + 20),
+                 MemOperand(base_tag, -offset + tag_granule));
+          LoadDataAndSum(base_tag, -offset + tag_granule, size);
+        }
+        break;
+
+      default:
+        VIXL_UNIMPLEMENTED();
+        break;
+    }
+
+    // Switch the sign to test both positive and negative offsets.
+    offset = -offset;
+  }
+
+  int pos_offset = 304;
+  int neg_offset = -256;
+
+  // Backup stack pointer and others.
+  __ Mov(x7, sp);
+  __ Mov(base_tag, base);
+
+  // Test the cases where operand is the stack pointer.
+  __ Mov(x8, 11UL << tag_lsb);
+  __ Mov(sp, x8);
+  (masm.*op)(sp, MemOperand(base, neg_offset, addr_mode));
+
+  // Synthesise a new address with new tag and assign to the stack pointer.
+  __ Add(sp, base_tag, 32);
+  (masm.*op)(x8, MemOperand(sp, pos_offset, addr_mode));
+
+  switch (addr_mode) {
+    case Offset:
+      __ Ldg(x17, MemOperand(base, neg_offset));
+      __ Ldg(x19, MemOperand(sp, pos_offset));
+      if ((attr & StgPairTag) != 0) {
+        __ Ldg(x18, MemOperand(base, neg_offset + tag_granule));
+        __ Ldg(x20, MemOperand(sp, pos_offset + tag_granule));
+      }
+      break;
+    case PreIndex:
+      __ Ldg(x17, MemOperand(base));
+      __ Ldg(x19, MemOperand(sp));
+      if ((attr & StgPairTag) != 0) {
+        __ Ldg(x18, MemOperand(base, tag_granule));
+        __ Ldg(x20, MemOperand(sp, tag_granule));
+      }
+      break;
+    case PostIndex:
+      __ Ldg(x17, MemOperand(base, -neg_offset));
+      __ Ldg(x19, MemOperand(sp, -pos_offset));
+      if ((attr & StgPairTag) != 0) {
+        __ Ldg(x18, MemOperand(base, -neg_offset + tag_granule));
+        __ Ldg(x20, MemOperand(sp, -pos_offset + tag_granule));
+      }
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
+
+  // Restore stack pointer.
+  __ Mov(sp, x7);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(1UL << tag_lsb, x11);
+    ASSERT_EQUAL_64(2UL << tag_lsb, x12);
+    ASSERT_EQUAL_64(3UL << tag_lsb, x13);
+    ASSERT_EQUAL_64(4UL << tag_lsb, x14);
+    ASSERT_EQUAL_64(5UL << tag_lsb, x15);
+    ASSERT_EQUAL_64(6UL << tag_lsb, x16);
+    ASSERT_EQUAL_64(11UL << tag_lsb, x17);
+    ASSERT_EQUAL_64(11UL << tag_lsb, x19);
+
+    if ((attr & StgPairTag) != 0) {
+      ASSERT_EQUAL_64(1UL << tag_lsb, x21);
+      ASSERT_EQUAL_64(2UL << tag_lsb, x22);
+      ASSERT_EQUAL_64(3UL << tag_lsb, x23);
+      ASSERT_EQUAL_64(4UL << tag_lsb, x24);
+      ASSERT_EQUAL_64(5UL << tag_lsb, x25);
+      ASSERT_EQUAL_64(6UL << tag_lsb, x26);
+      ASSERT_EQUAL_64(11UL << tag_lsb, x18);
+      ASSERT_EQUAL_64(11UL << tag_lsb, x20);
+    }
+
+    if ((attr & StgZeroing) != 0) {
+      ASSERT_EQUAL_64(0, x10);
+    }
+  }
+
+  VIXL_CHECK(CPU::Munmap(untagged_ptr, data_size, &simulator, features) == 0);
+}
+
+TEST(st2g_ldg) {
+  MTEStoreTagHelper(&MacroAssembler::St2g, Offset, StgPairTag);
+  MTEStoreTagHelper(&MacroAssembler::St2g, PreIndex, StgPairTag);
+  MTEStoreTagHelper(&MacroAssembler::St2g, PostIndex, StgPairTag);
+}
+
+TEST(stg_ldg) {
+  MTEStoreTagHelper(&MacroAssembler::Stg, Offset);
+  MTEStoreTagHelper(&MacroAssembler::Stg, PreIndex);
+  MTEStoreTagHelper(&MacroAssembler::Stg, PostIndex);
+}
+
+TEST(stz2g_ldg) {
+  MTEStoreTagHelper(&MacroAssembler::Stz2g, Offset, StgPairTag | StgZeroing);
+  MTEStoreTagHelper(&MacroAssembler::Stz2g, PreIndex, StgPairTag | StgZeroing);
+  MTEStoreTagHelper(&MacroAssembler::Stz2g, PostIndex, StgPairTag | StgZeroing);
+}
+
+TEST(stzg_ldg) {
+  MTEStoreTagHelper(&MacroAssembler::Stzg, Offset, StgZeroing);
+  MTEStoreTagHelper(&MacroAssembler::Stzg, PreIndex, StgZeroing);
+  MTEStoreTagHelper(&MacroAssembler::Stzg, PostIndex, StgZeroing);
+}
+
+TEST(stgp_ldg) {
+  CPUFeatures features(CPUFeatures::kMTE);
+  SETUP_WITH_FEATURES(features);
+  START();
+
+  // Initialize registers to zero.
+  for (int i = 0; i < 29; i++) {
+    __ Mov(XRegister(i), 0);
+  }
+
+  // Reserve x14 and x15.
+  auto LoadDataAndSum = [&](Register reg, int off) {
+    __ Ldr(x14, MemOperand(reg, off));
+    __ Add(x15, x14, x15);
+    __ Ldr(x14, MemOperand(reg, off + static_cast<int>(kXRegSizeInBytes)));
+    __ Add(x15, x14, x15);
+  };
+
+  const int data_size = 640;
+  uint32_t* data_ptr =
+      reinterpret_cast<uint32_t*>(CPU::Mmap(NULL,
+                                            data_size * sizeof(uint32_t),
+                                            PROT_READ | PROT_WRITE,
+                                            MAP_PRIVATE | MAP_ANONYMOUS,
+                                            0,
+                                            0,
+                                            &simulator,
+                                            features));
+
+  VIXL_ASSERT(data_ptr != nullptr);
+  uint64_t init_tag = CPU::GetPointerTag(data_ptr);
+  uint32_t* untagged_ptr = AddressUntag(data_ptr);
+  memset(untagged_ptr, 0xc9, data_size * sizeof(uint32_t));
+
+  Register base = x28;
+  __ Mov(base, reinterpret_cast<uint64_t>(&data_ptr[data_size / 2]));
+
+  // lsb of MTE tag field.
+  const int tag_lsb = 56;
+  for (int i = 0; i < 11; i++) {
+    // <63..60> <59..56> <55........5> <4..0>
+    //        0       i             0      i
+    __ Mov(XRegister(i), i | (static_cast<uint64_t>(i) << tag_lsb));
+  }
+
+  // Backup stack pointer.
+  __ Mov(x0, sp);
+
+  int offset = -16;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x1, x2, MemOperand(base, offset, Offset));
+  // Make sure `ldg` works well with address that isn't tag-granule aligned.
+  __ Add(x29, base, 8);
+  __ Ldg(x18, MemOperand(x29, offset));
+  LoadDataAndSum(base, offset);
+
+  offset = -304;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x2, x3, MemOperand(base, offset, Offset));
+  __ Add(x29, base, 4);
+  __ Ldg(x19, MemOperand(x29, offset));
+  LoadDataAndSum(base, offset);
+
+  offset = 128;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x3, x4, MemOperand(base, offset, Offset));
+  __ Mov(sp, base);
+  __ Ldg(x20, MemOperand(sp, offset));
+  LoadDataAndSum(base, offset);
+
+  offset = -48;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x4, x5, MemOperand(base, offset, PreIndex));
+  __ Add(x29, base, 8);
+  __ Ldg(x21, MemOperand(x29));
+  LoadDataAndSum(base, 0);
+
+  offset = 64;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x5, x6, MemOperand(base, offset, PreIndex));
+  __ Add(x29, base, 4);
+  __ Ldg(x22, MemOperand(x29));
+  LoadDataAndSum(base, 0);
+
+  offset = -288;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x6, x7, MemOperand(base, offset, PreIndex));
+  __ Mov(sp, base);
+  __ Ldg(x23, MemOperand(sp));
+  LoadDataAndSum(base, 0);
+
+  offset = -96;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x7, x8, MemOperand(base, offset, PostIndex));
+  __ Add(x29, base, 8);
+  __ Ldg(x24, MemOperand(x29, -offset));
+  LoadDataAndSum(base, -offset);
+
+  offset = 80;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x8, x9, MemOperand(base, offset, PostIndex));
+  __ Add(x29, base, 4);
+  __ Ldg(x25, MemOperand(x29, -offset));
+  LoadDataAndSum(base, -offset);
+
+  offset = -224;
+  __ Addg(base, base, 0, 1);
+  __ Stgp(x9, x10, MemOperand(base, offset, PostIndex));
+  __ Mov(sp, base);
+  __ Ldg(x26, MemOperand(sp, -offset));
+  LoadDataAndSum(base, -offset);
+
+  __ Mov(sp, x0);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    const uint64_t k = kMTETagGranuleInBytes;
+    USE(k);
+    ASSERT_EQUAL_64(((init_tag + 1) % k) << tag_lsb, x18);
+    ASSERT_EQUAL_64(((init_tag + 2) % k) << tag_lsb, x19);
+    ASSERT_EQUAL_64(((init_tag + 3) % k) << tag_lsb, x20);
+    ASSERT_EQUAL_64(((init_tag + 4) % k) << tag_lsb, x21);
+    ASSERT_EQUAL_64(((init_tag + 5) % k) << tag_lsb, x22);
+    ASSERT_EQUAL_64(((init_tag + 6) % k) << tag_lsb, x23);
+    ASSERT_EQUAL_64(((init_tag + 7) % k) << tag_lsb, x24);
+    ASSERT_EQUAL_64(((init_tag + 8) % k) << tag_lsb, x25);
+    ASSERT_EQUAL_64(((init_tag + 9) % k) << tag_lsb, x26);
+
+    // We store 1, 2, 2, 3, 3, 4, ....9, 9, 10 to memory, so the total sum of
+    // these values is 1 + (2 * (2 + 9) * 8 / 2) + 10 = 99.
+    ASSERT_EQUAL_64((99UL << tag_lsb | 99UL), x15);
+  }
+
+  VIXL_CHECK(CPU::Munmap(untagged_ptr, data_size, &simulator, features) == 0);
+}
 
 TEST(ldr_str_offset) {
   SETUP();
