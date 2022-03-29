@@ -6911,25 +6911,24 @@ class Assembler : public vixl::internal::AssemblerBase {
   void irg(const Register& xd, const Register& xn, const Register& xm = xzr);
 
   // Load Allocation Tag.
-  void ldg(const Register& xt, const Register& xn, int imm9);
+  void ldg(const Register& xt, const MemOperand& addr);
+
+  void StoreTagHelper(const Register& xt, const MemOperand& addr, Instr op);
 
   // Store Allocation Tags.
-  void st2g(const Register& xn, int imm9);
+  void st2g(const Register& xt, const MemOperand& addr);
 
   // Store Allocation Tag.
-  void stg(const Register& xn, int imm9);
+  void stg(const Register& xt, const MemOperand& addr);
 
   // Store Allocation Tag and Pair of registers.
-  void stgp(const Register& xt1,
-            const Register& xt2,
-            const Register& xn,
-            int imm7);
+  void stgp(const Register& xt1, const Register& xt2, const MemOperand& addr);
 
   // Store Allocation Tags, Zeroing.
-  void stz2g(const Register& xn, int imm9);
+  void stz2g(const Register& xt, const MemOperand& addr);
 
   // Store Allocation Tag, Zeroing.
-  void stzg(const Register& xn, int imm9);
+  void stzg(const Register& xt, const MemOperand& addr);
 
   // Subtract with Tag.
   void subg(const Register& xd, const Register& xn, int offset, int tag_offset);

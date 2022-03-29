@@ -7524,6 +7524,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
              const ZRegister& zm,
              int index);
 
+  // MTE
+  void St2g(const Register& rt, const MemOperand& addr);
+  void Stg(const Register& rt, const MemOperand& addr);
+  void Stgp(const Register& rt1, const Register& rt2, const MemOperand& addr);
+  void Stz2g(const Register& rt, const MemOperand& addr);
+  void Stzg(const Register& rt, const MemOperand& addr);
+  void Ldg(const Register& rt, const MemOperand& addr);
+
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
     return new Literal<T>(value,

@@ -1373,11 +1373,10 @@ class Simulator : public DecoderVisitor {
   void SimulateMTEAddSubTag(const Instruction* instr);
   void SimulateMTETagMaskInsert(const Instruction* instr);
   void SimulateMTESubPointer(const Instruction* instr);
-  void Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr);
-  void Simulate_Xt1_Xt2_XnSP_imm_excl(const Instruction* instr);
-  void Simulate_XtSP_XnSP_simm(const Instruction* instr);
+  void SimulateMTELoadTag(const Instruction* instr);
+  void SimulateMTEStoreTag(const Instruction* instr);
+  void SimulateMTEStoreTagPair(const Instruction* instr);
   void Simulate_XtSP_XnSP_simm_excl(const Instruction* instr);
-  void Simulate_Xt_XnSP_simm(const Instruction* instr);
 
   // Integer register accessors.
 
