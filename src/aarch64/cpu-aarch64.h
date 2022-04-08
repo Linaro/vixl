@@ -250,20 +250,6 @@ class CPU {
   // Query the SVE vector length. This requires CPUFeatures::kSVE.
   static int ReadSVEVectorLengthInBits();
 
-  static void *Mmap(void *address,
-                    size_t length,
-                    int prot,
-                    int flags,
-                    int fd,
-                    off_t offset,
-                    Simulator *simulator = nullptr,
-                    CPUFeatures features = CPUFeatures::None());
-
-  static int Munmap(void *address,
-                    size_t length,
-                    Simulator *simulator = nullptr,
-                    CPUFeatures features = CPUFeatures::None());
-
   // Handle tagged pointers.
   template <typename T>
   static T SetPointerTag(T pointer, uint64_t tag) {

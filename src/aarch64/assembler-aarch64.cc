@@ -1969,88 +1969,76 @@ void Assembler::irg(const Register& xd,
   Emit(0x9ac01000 | RdSP(xd) | RnSP(xn) | Rm(xm));
 }
 
-void Assembler::ldg(const Register& xt, const Register& xn, int imm9) {
-  // LDG <Xt>, [<Xn|SP>{, #<simm>}]
-  //  1101 1001 011. .... .... 00.. .... ....
-  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
-
+void Assembler::ldg(const Register& xt, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+  VIXL_ASSERT(addr.IsImmediateOffset());
+  int offset = static_cast<int>(addr.GetOffset());
+  VIXL_ASSERT(IsMultiple(offset, kMTETagGranuleInBytes));
 
-  Emit(0xd9600000 | Rt(xt) | RnSP(xn) | ImmField<20, 12>(imm9));
+  Emit(0xd9600000 | Rt(xt) | RnSP(addr.GetBaseRegister()) |
+       ImmField<20, 12>(offset / static_cast<int>(kMTETagGranuleInBytes)));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  ST2G_64Soffset_ldsttags
-//  ST2G_64Spost_ldsttags
-//  ST2G_64Spre_ldsttags
-void Assembler::st2g(const Register& xn, int imm9) {
-  // ST2G <Xt|SP>, [<Xn|SP>{, #<simm>}]
-  //  1101 1001 101. .... .... 10.. .... ....
-  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
+void Assembler::StoreTagHelper(const Register& xt,
+                               const MemOperand& addr,
+                               Instr op) {
+  int offset = static_cast<int>(addr.GetOffset());
+  VIXL_ASSERT(IsMultiple(offset, kMTETagGranuleInBytes));
 
-  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+  Instr addr_mode;
+  if (addr.IsImmediateOffset()) {
+    addr_mode = 2;
+  } else if (addr.IsImmediatePreIndex()) {
+    addr_mode = 3;
+  } else {
+    VIXL_ASSERT(addr.IsImmediatePostIndex());
+    addr_mode = 1;
+  }
 
-  Emit(0xd9a00800 | RnSP(xn) | ImmField<20, 12>(imm9));
+  Emit(op | RdSP(xt) | RnSP(addr.GetBaseRegister()) | (addr_mode << 10) |
+       ImmField<20, 12>(offset / static_cast<int>(kMTETagGranuleInBytes)));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  STG_64Soffset_ldsttags
-//  STG_64Spost_ldsttags
-//  STG_64Spre_ldsttags
-void Assembler::stg(const Register& xn, int imm9) {
-  // STG <Xt|SP>, [<Xn|SP>{, #<simm>}]
-  //  1101 1001 001. .... .... 10.. .... ....
-  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
-
+void Assembler::st2g(const Register& xt, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
-
-  Emit(0xd9200800 | RnSP(xn) | ImmField<20, 12>(imm9));
+  StoreTagHelper(xt, addr, 0xd9a00000);
 }
 
-// This prototype maps to 3 instruction encodings:
-//  STGP_64_ldstpair_off
-//  STGP_64_ldstpair_post
-//  STGP_64_ldstpair_pre
+void Assembler::stg(const Register& xt, const MemOperand& addr) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+  StoreTagHelper(xt, addr, 0xd9200000);
+}
+
 void Assembler::stgp(const Register& xt1,
                      const Register& xt2,
-                     const Register& xn,
-                     int imm7) {
-  // STGP <Xt1>, <Xt2>, [<Xn|SP>{, #<imm>}]
-  //  0110 1001 00.. .... .... .... .... ....
-  //  opc<31:30> | V<26> | L<22> | imm7<21:15> | Rt2<14:10> | Rn<9:5> | Rt<4:0>
-  //  | <Xn|SP><>
-
+                     const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
+  int offset = static_cast<int>(addr.GetOffset());
+  VIXL_ASSERT(IsMultiple(offset, kMTETagGranuleInBytes));
 
-  Emit(0x69000000 | RnSP(xn) | ImmField<21, 15>(imm7) | Rt2(xt2) | Rt(xt1));
+  Instr addr_mode;
+  if (addr.IsImmediateOffset()) {
+    addr_mode = 2;
+  } else if (addr.IsImmediatePreIndex()) {
+    addr_mode = 3;
+  } else {
+    VIXL_ASSERT(addr.IsImmediatePostIndex());
+    addr_mode = 1;
+  }
+
+  Emit(0x68000000 | RnSP(addr.GetBaseRegister()) | (addr_mode << 23) |
+       ImmField<21, 15>(offset / static_cast<int>(kMTETagGranuleInBytes)) |
+       Rt2(xt2) | Rt(xt1));
 }
 
-// This prototype maps to 3 instruction encodings:
-//  STZ2G_64Soffset_ldsttags
-//  STZ2G_64Spost_ldsttags
-//  STZ2G_64Spre_ldsttags
-void Assembler::stz2g(const Register& xn, int imm9) {
-  // STZ2G <Xt|SP>, [<Xn|SP>{, #<simm>}]
-  //  1101 1001 111. .... .... 10.. .... ....
-  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
-
+void Assembler::stz2g(const Register& xt, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
-
-  Emit(0xd9e00800 | RnSP(xn) | ImmField<20, 12>(imm9));
+  StoreTagHelper(xt, addr, 0xd9e00000);
 }
 
-// This prototype maps to 3 instruction encodings:
-//  STZG_64Soffset_ldsttags
-//  STZG_64Spost_ldsttags
-//  STZG_64Spre_ldsttags
-void Assembler::stzg(const Register& xn, int imm9) {
-  // STZG <Xt|SP>, [<Xn|SP>{, #<simm>}]
-  //  1101 1001 011. .... .... 10.. .... ....
-  //  opc<23:22> | imm9<20:12> | op2<11:10> | Rn<9:5> | Rt<4:0> | <Xn|SP><>
-
+void Assembler::stzg(const Register& xt, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMTE));
-
-  Emit(0xd9600800 | RnSP(xn) | ImmField<20, 12>(imm9));
+  StoreTagHelper(xt, addr, 0xd9600000);
 }
 
 void Assembler::subg(const Register& xd,

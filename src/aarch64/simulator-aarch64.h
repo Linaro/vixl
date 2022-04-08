@@ -53,6 +53,14 @@
 #endif
 #endif
 
+// The hosts that Simulator running on may not have these flags defined.
+#ifndef PROT_BTI
+#define PROT_BTI 0x10
+#endif
+#ifndef PROT_MTE
+#define PROT_MTE 0x20
+#endif
+
 namespace vixl {
 namespace aarch64 {
 
@@ -1373,11 +1381,10 @@ class Simulator : public DecoderVisitor {
   void SimulateMTEAddSubTag(const Instruction* instr);
   void SimulateMTETagMaskInsert(const Instruction* instr);
   void SimulateMTESubPointer(const Instruction* instr);
-  void Simulate_Xt1_Xt2_XnSP_imm(const Instruction* instr);
-  void Simulate_Xt1_Xt2_XnSP_imm_excl(const Instruction* instr);
-  void Simulate_XtSP_XnSP_simm(const Instruction* instr);
+  void SimulateMTELoadTag(const Instruction* instr);
+  void SimulateMTEStoreTag(const Instruction* instr);
+  void SimulateMTEStoreTagPair(const Instruction* instr);
   void Simulate_XtSP_XnSP_simm_excl(const Instruction* instr);
-  void Simulate_Xt_XnSP_simm(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -2746,10 +2753,18 @@ class Simulator : public DecoderVisitor {
     }
     return tag;
   }
+
   uint64_t GetAddressWithAllocationTag(uint64_t addr, uint64_t tag) {
     VIXL_ASSERT(IsUint4(tag));
     return (addr & ~(UINT64_C(0xf) << 56)) | (tag << 56);
   }
+
+  // Create or remove a mapping with memory protection. Memory attributes such
+  // as MTE and BTI are represented by metadata in Simulator.
+  void* Mmap(
+      void* address, size_t length, int prot, int flags, int fd, off_t offset);
+
+  int Munmap(void* address, size_t length, int prot);
 
   // The common CPUFeatures interface with the set of available features.
 
@@ -2954,6 +2969,19 @@ class Simulator : public DecoderVisitor {
     for (size_t offset = 0; offset < length; offset += kMTETagGranuleInBytes) {
       count +=
           meta_data_.CleanMTETag(reinterpret_cast<uintptr_t>(address) + offset);
+    }
+    size_t expected =
+        length / kMTETagGranuleInBytes + (length % kMTETagGranuleInBytes != 0);
+
+    // Give a warning when the memory region that is being unmapped isn't all
+    // either MTE protected or not.
+    if (count != expected) {
+      std::stringstream sstream;
+      sstream << std::hex << "MTE WARNING : the memory region being unmapped "
+                             "starting at address 0x"
+              << reinterpret_cast<uint64_t>(address)
+              << "is not fully MTE protected.\n";
+      VIXL_WARNING(sstream.str().c_str());
     }
     return count;
   }
