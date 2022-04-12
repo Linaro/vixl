@@ -7527,6 +7527,17 @@ TEST(unguarded_bti_is_nop) {
   }
 }
 
+#define ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(ptr, num)        \
+  ptr = reinterpret_cast<byte*>(mmap(NULL,                        \
+                                     num * kPageSize,             \
+                                     PROT_READ | PROT_WRITE,      \
+                                     MAP_PRIVATE | MAP_ANONYMOUS, \
+                                     -1,                          \
+                                     0));                         \
+  MacroAssembler masm(ptr, num* kPageSize);                       \
+  SETUP_COMMON();                                                 \
+  masm.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+
 #ifdef VIXL_NEGATIVE_TESTING
 TEST(bti_jump_to_ip_unidentified) {
   SETUP_WITH_FEATURES(CPUFeatures::kBTI);
@@ -7647,7 +7658,89 @@ TEST(bti_call_to_j) {
     MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI j with wrong BType.");
   }
 }
+
+// Here test the rest unaccecpted indirect branches which aren't covered in the
+// above tests. They are
+// - BR from unguarded page by BTI.
+// - BLR from unguarded page by BTI j.
+TEST(bti_jump_unguarded) {
+  // Allocate two pages.
+  byte* data_start = nullptr;
+  ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(data_start, 2);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  SETUP_COMMON_SIM();
+  simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+  START();
+  Label caller, target;
+
+  // The following code is generated in a unguarded page.
+  __ Adr(x0, &target);
+  __ Br(x0);
+
+  for (int i = 0; i < 1024; ++i) {
+    __ Nop();
+  }
+
+  // The code below is generated in another guarded page.
+  // BR from an unguarded page.
+  __ Bind(&target, EmitBTI);
+
+  END();
+
+  if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    simulator.SetGuardedPages(data_start + kPageSize);
+    VIXL_ASSERT(!simulator.PcIsInGuardedPage(data_start));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target)));
+#else
+    VIXL_UNIMPLEMENTED();
+#endif
+    MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI with wrong BType.");
+  }
+}
+
+TEST(bti_call_to_j_unguarded) {
+  // Allocate two pages.
+  byte* data_start = nullptr;
+  ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(data_start, 2);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  SETUP_COMMON_SIM();
+  simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+  START();
+  Label caller, target;
+
+  // The following code is generated in a unguarded page.
+  __ Adr(x18, &target);
+  __ Blr(x18);
+  for (int i = 0; i < 1024; ++i) {
+    __ Nop();
+  }
+
+  // The code below is generated in another guarded page.
+  // BLR from unguarded page.
+  __ Bind(&target, EmitBTI_j);
+
+  END();
+
+  if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    simulator.SetGuardedPages(data_start + kPageSize);
+    VIXL_ASSERT(!simulator.PcIsInGuardedPage(data_start));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target)));
+#else
+    VIXL_UNIMPLEMENTED();
+#endif
+    MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI j with wrong BType.");
+  }
+}
 #endif  // VIXL_NEGATIVE_TESTING
+
 
 TEST(fall_through_bti) {
   SETUP_WITH_FEATURES(CPUFeatures::kBTI, CPUFeatures::kPAuth);
@@ -7676,6 +7769,341 @@ TEST(fall_through_bti) {
 
     ASSERT_EQUAL_64(4, x0);
   }
+}
+
+// The following indirect branches are accecpted by BTI c.
+// - BR from an unguarded page.
+// - BR from guarded page, to x16 or x17.
+// - BLR from guarded page.
+// - BLR from unguarded page.
+TEST(bti_call_to_c_accepted) {
+  // Allocate two pages.
+  byte* data_start = nullptr;
+  ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(data_start, 2);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  SETUP_COMMON_SIM();
+  simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+  START();
+  Label caller, target_c_1, target_c_2, target_c_3, target_c_4;
+
+  // The following code is generated in a unguarded page.
+  __ Adr(x0, &target_c_1);
+  __ Br(x0);
+
+  // BTI isn't needed in unguarded page.
+  __ Bind(&caller);
+  __ Adr(x18, &target_c_4);
+  __ Blr(x18);
+  for (int i = 0; i < 1024; ++i) {
+    __ Nop();
+  }
+
+  // The code below is generated in another guarded page.
+  // BR from an unguarded page.
+  __ Bind(&target_c_1, EmitBTI_c);
+  __ Adr(x16, &target_c_3);
+  __ Br(x16);
+  __ Nop();
+
+  // BLR from a guarded page (the same page).
+  __ Bind(&target_c_2, EmitBTI_c);
+  __ Ret();
+
+  // BR from a guarded page (the same page), to x16 or x17.
+  __ Bind(&target_c_3, EmitBTI_c);
+  __ Adr(x1, &target_c_2);
+  __ Blr(x1);
+  __ Nop();
+
+  __ Adr(x1, &caller);
+  __ Blr(x1);
+
+  // BLR from unguarded page.
+  __ Bind(&target_c_4, EmitBTI_c);
+
+  END();
+
+  if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    simulator.SetGuardedPages(data_start + kPageSize);
+    VIXL_ASSERT(!simulator.PcIsInGuardedPage(data_start));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target_c_1)));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target_c_4)));
+#else
+    VIXL_UNIMPLEMENTED();
+#endif
+    RUN();
+  }
+}
+
+// The following indirect branches are accecpted by BTI j.
+// - BR from an unguarded page.
+// - BR from guarded page, to x16 or x17.
+// - BR from guarded page, not to x16 or x17.
+TEST(bti_jump_to_j_accepted) {
+  // Allocate two pages.
+  byte* data_start = nullptr;
+  ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(data_start, 2);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  SETUP_COMMON_SIM();
+  simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+  START();
+  Label target_j_1, target_j_2, target_j_3;
+
+  // The following code is generated in a unguarded page.
+  __ Adr(x0, &target_j_1);
+  __ Br(x0);
+  for (int i = 0; i < 1024; ++i) {
+    __ Nop();
+  }
+
+  // The code below is generated in another guarded page.
+  // BR from an unguarded page.
+  __ Bind(&target_j_1, EmitBTI_j);
+  __ Adr(x16, &target_j_2);
+  __ Br(x16);
+  __ Nop();
+
+  // BR from a guarded page (the same page), to x16 or x17.
+  __ Bind(&target_j_2, EmitBTI_j);
+  __ Adr(x1, &target_j_3);
+  __ Br(x1);
+  __ Nop();
+
+  // BR from a guarded page (the same page), not to x16 or x17.
+  __ Bind(&target_j_3, EmitBTI_j);
+
+  END();
+
+  if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    simulator.SetGuardedPages(data_start + kPageSize);
+    VIXL_ASSERT(!simulator.PcIsInGuardedPage(data_start));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target_j_1)));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target_j_3)));
+#else
+    VIXL_UNIMPLEMENTED();
+#endif
+    RUN();
+  }
+}
+
+// The following indirect branches are accecpted by BTI jc.
+// - BR from an unguarded page.
+// - BR from guarded page, to x16 or x17.
+// - BR from guarded page, not to x16 or x17.
+// - BLR from guarded page.
+// - BLR from unguarded page.
+TEST(bti_jump_call_to_jc_accepted) {
+  // Allocate two pages.
+  byte* data_start = nullptr;
+  ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(data_start, 2);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  SETUP_COMMON_SIM();
+  simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+  START();
+  Label caller, target_jc_1, target_jc_2, target_jc_3, target_jc_4, target_jc_5;
+
+  // The following code is generated in a unguarded page.
+  __ Adr(x0, &target_jc_1);
+  __ Br(x0);
+
+  // BTI isn't needed in unguarded page.
+  __ Bind(&caller);
+  __ Adr(x18, &target_jc_5);
+  __ Blr(x18);
+  for (int i = 0; i < 1024; ++i) {
+    __ Nop();
+  }
+
+  // The code below is generated in another guarded page.
+  // BR from an unguarded page.
+  __ Bind(&target_jc_1, EmitBTI_jc);
+  __ Adr(x16, &target_jc_3);
+  __ Br(x16);
+  __ Nop();
+
+  // BLR from a guarded page (the same page).
+  __ Bind(&target_jc_2, EmitBTI_jc);
+  __ Ret();
+
+  // BR from a guarded page (the same page), to x16 or x17.
+  __ Bind(&target_jc_3, EmitBTI_jc);
+  __ Adr(x1, &target_jc_4);
+  __ Br(x1);
+  __ Nop();
+
+  // BR from a guarded page (the same page), not to x16 or x17.
+  __ Bind(&target_jc_4, EmitBTI_jc);
+  __ Adr(x2, &target_jc_2);
+  __ Blr(x2);
+  __ Nop();
+
+  // Return to the caller here and then it calls this callee again through BLR.
+  __ Adr(x1, &caller);
+  __ Blr(x1);
+
+  // BLR from unguarded page.
+  __ Bind(&target_jc_5, EmitBTI_jc);
+
+  END();
+
+  if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    simulator.SetGuardedPages(data_start + kPageSize);
+    VIXL_ASSERT(!simulator.PcIsInGuardedPage(data_start));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target_jc_1)));
+    VIXL_ASSERT(simulator.PcIsInGuardedPage(
+        masm.GetLabelAddress<Instruction*>(&target_jc_5)));
+#else
+    VIXL_UNIMPLEMENTED();
+#endif
+    RUN();
+  }
+}
+
+// Execution of instruction on a guarded page is allowed if the branch meets the
+// target BTI attribute requirement, as below.
+// ------------------------------------------------------------------
+// | Last-executed instruction  |            Accecpted by           |
+// |                            |  BTI   | BTI j  | BTI c  | BTI jc |
+// ------------------------------------------------------------------
+// | BR from an unguarded page. |        |   *    |   *    |    *   |
+// ------------------------------------------------------------------
+// | BR from guarded page,      |        |   *    |   *    |    *   |
+// | to x16 or x17.             |        |        |        |        |
+// ------------------------------------------------------------------
+// | BR from guarded page,      |        |   *    |        |    *   |
+// | not to x16 or x17.         |        |        |        |        |
+// ------------------------------------------------------------------
+// | BLR from guarded page.     |        |        |   *    |    *   |
+// ------------------------------------------------------------------
+// | BLR from unguarded page.   |        |        |   *    |    *   |
+// ------------------------------------------------------------------
+// Each BTI variant has its dedicated test above. This test focuses on checking
+// if the memory metadata works correctly with BTI across more pages. Pick `BTI
+// jc` on this test for convenience.
+TEST(bti_across_multiple_pages) {
+  // The number of guarded pages for callees.
+  constexpr int guarded_pages = 3;
+  // The number of instructions in each code block.
+  constexpr int code_block_size = 45;
+  // The number of code block in each page.
+  constexpr int code_blocks = kPageSize / (kInstructionSize * code_block_size);
+  uint64_t cb_start[guarded_pages][code_blocks];
+  byte* callee_buffer[guarded_pages];
+
+  for (int i = 0; i < guarded_pages; ++i) {
+    // Generate a number of code blocks in each guarded page.
+    ALLOCATE_PAGES_AND_SETUP_COMMON_WITH_BTI(callee_buffer[i], 1);
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    SETUP_COMMON_SIM();
+    simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+    START();
+
+    Label target_jc_1[code_blocks], target_jc_2[code_blocks],
+        target_jc_3[code_blocks], target_jc_4[code_blocks],
+        target_jc_5[code_blocks];
+
+    for (int j = 0; j < code_blocks; ++j) {
+      // BR from an unguarded page.
+      __ Bind(&target_jc_1[j], EmitBTI_jc);
+      __ Adr(x16, &target_jc_2[j]);
+      __ Br(x16);  // Branch to `target_jc_2`.
+
+      // BR from a guarded page (same page), to x16 or x17.
+      __ Bind(&target_jc_2[j], EmitBTI_jc);
+      __ Adr(x1, &target_jc_3[j]);
+      __ Blr(x1);  // Branch to `target_jc_3`.
+
+      // BR from a guarded page (same page), not to x16 or x17.
+      __ Bind(&target_jc_4[j], EmitBTI_jc);
+      __ Adr(x19, &target_jc_5[j]);
+      __ Pop(lr, xzr);
+      // Return to the caller that is in a unguarded page.
+      __ Ret();
+
+      // BLR from a unguarded page.
+      __ Bind(&target_jc_5[j], EmitBTI_jc);
+      // Since the link register is alive, return to the caller by RET.
+      __ Ret();
+
+      // BLR from a guarded page (same page).
+      __ Bind(&target_jc_3[j], EmitBTI_jc);
+      __ Adr(x10, &target_jc_4[j]);
+      __ Br(x10);  // Branch to `target_jc_4`.
+
+      cb_start[i][j] = masm.GetLabelAddress<uint64_t>(&target_jc_1[j]);
+    }
+
+    END();
+  }
+
+  // Unguarded page.
+  byte* caller_buffer =
+      reinterpret_cast<byte*>(mmap(NULL,
+                                   kPageSize,
+                                   PROT_READ | PROT_WRITE,
+                                   MAP_PRIVATE | MAP_ANONYMOUS,
+                                   -1,
+                                   0));
+
+  Label done[guarded_pages][code_blocks];
+  MacroAssembler masm(caller_buffer, kPageSize);
+  SETUP_COMMON();
+  masm.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  SETUP_COMMON_SIM();
+  simulator.SetCPUFeatures(CPUFeatures(CPUFeatures::kBTI));
+#endif
+
+  START();
+
+  for (int i = 0; i < guarded_pages; ++i) {
+    for (int j = 0; j < code_blocks; ++j) {
+      // Record the address for the callee to return back.
+      __ Adr(lr, &done[i][j]);
+      __ Push(xzr, lr);
+      __ Ldr(x13, cb_start[i][j]);
+      __ Br(x13);  // Branch to `target_jc_1`.
+      // BTI isn't needed in unguarded page.
+      __ Bind(&done[i][j]);
+      __ Blr(x19);  // Branch to `target_jc_5`.
+    }
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+    for (int i = 0; i < guarded_pages; ++i) {
+      simulator.SetGuardedPages(callee_buffer[i]);
+      VIXL_ASSERT(simulator.PcIsInGuardedPage(callee_buffer[i]));
+    }
+    VIXL_ASSERT(!simulator.PcIsInGuardedPage(caller_buffer));
+    simulator.RunFrom(reinterpret_cast<Instruction*>(caller_buffer));
+#else
+    VIXL_UNIMPLEMENTED();
+#endif
+  }
+
+  for (int i = 0; i < guarded_pages; ++i) {
+    munmap(callee_buffer[i], kPageSize);
+  }
+  munmap(caller_buffer, kPageSize);
 }
 
 TEST(zero_dest) {
