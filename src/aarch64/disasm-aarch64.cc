@@ -646,23 +646,22 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
        &Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4},
       {"gmi_64g_dp_2src", &Disassembler::Disassemble_Xd_XnSP_Xm},
       {"irg_64i_dp_2src", &Disassembler::Disassemble_XdSP_XnSP_Xm},
-      {"ldg_64loffset_ldsttags", &Disassembler::Disassemble_Xt_XnSP_simm},
-      {"st2g_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"st2g_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"st2g_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
-      {"stgp_64_ldstpair_off", &Disassembler::Disassemble_Xt1_Xt2_XnSP_imm},
-      {"stgp_64_ldstpair_post", &Disassembler::Disassemble_Xt1_Xt2_XnSP_imm},
-      {"stgp_64_ldstpair_pre",
-       &Disassembler::Disassemble_Xt1_Xt2_XnSP_imm_excl},
-      {"stg_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"stg_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"stg_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
-      {"stz2g_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"stz2g_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"stz2g_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
-      {"stzg_64soffset_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"stzg_64spost_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm},
-      {"stzg_64spre_ldsttags", &Disassembler::Disassemble_XtSP_XnSP_simm_excl},
+      {"ldg_64loffset_ldsttags", &Disassembler::DisassembleMTELoadTag},
+      {"st2g_64soffset_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"st2g_64spost_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"st2g_64spre_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stgp_64_ldstpair_off", &Disassembler::DisassembleMTEStoreTagPair},
+      {"stgp_64_ldstpair_post", &Disassembler::DisassembleMTEStoreTagPair},
+      {"stgp_64_ldstpair_pre", &Disassembler::DisassembleMTEStoreTagPair},
+      {"stg_64soffset_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stg_64spost_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stg_64spre_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stz2g_64soffset_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stz2g_64spost_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stz2g_64spre_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stzg_64soffset_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stzg_64spost_ldsttags", &Disassembler::DisassembleMTEStoreTag},
+      {"stzg_64spre_ldsttags", &Disassembler::DisassembleMTEStoreTag},
       {"subg_64_addsub_immtags",
        &Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4},
       {"subps_64s_dp_2src", &Disassembler::Disassemble_Xd_XnSP_XmSP},
@@ -9257,28 +9256,68 @@ void Disassembler::Disassemble_Xd_XnSP_XmSP(const Instruction *instr) {
   }
 }
 
-void Disassembler::Disassemble_Xt1_Xt2_XnSP_imm(const Instruction *instr) {
-  const char *form = "'Xt, 'Xt2, ['Xns{, #'u2115}]";
-  Format(instr, mnemonic_.c_str(), form);
+void Disassembler::DisassembleMTEStoreTagPair(const Instruction *instr) {
+  const char *form = "'Xt, 'Xt2, ['Xns";
+  const char *suffix = NULL;
+  switch (form_hash_) {
+    case Hash("stgp_64_ldstpair_off"):
+      suffix = ", #'s2115*16]";
+      break;
+    case Hash("stgp_64_ldstpair_post"):
+      suffix = "], #'s2115*16";
+      break;
+    case Hash("stgp_64_ldstpair_pre"):
+      suffix = ", #'s2115*16]!";
+      break;
+    default:
+      mnemonic_ = "unimplemented";
+      break;
+  }
+
+  if (instr->GetImmLSPair() == 0) {
+    suffix = "]";
+  }
+
+  Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
-void Disassembler::Disassemble_Xt1_Xt2_XnSP_imm_excl(const Instruction *instr) {
-  const char *form = "'Xt, 'Xt2, ['Xns, #<imm>]!";
-  Format(instr, mnemonic_.c_str(), form);
+void Disassembler::DisassembleMTEStoreTag(const Instruction *instr) {
+  const char *form = "'Xds, ['Xns";
+  const char *suffix = NULL;
+  switch (form_hash_) {
+    case Hash("st2g_64soffset_ldsttags"):
+    case Hash("stg_64soffset_ldsttags"):
+    case Hash("stz2g_64soffset_ldsttags"):
+    case Hash("stzg_64soffset_ldsttags"):
+      suffix = ", #'s2012*16]";
+      break;
+    case Hash("st2g_64spost_ldsttags"):
+    case Hash("stg_64spost_ldsttags"):
+    case Hash("stz2g_64spost_ldsttags"):
+    case Hash("stzg_64spost_ldsttags"):
+      suffix = "], #'s2012*16";
+      break;
+    case Hash("st2g_64spre_ldsttags"):
+    case Hash("stg_64spre_ldsttags"):
+    case Hash("stz2g_64spre_ldsttags"):
+    case Hash("stzg_64spre_ldsttags"):
+      suffix = ", #'s2012*16]!";
+      break;
+    default:
+      mnemonic_ = "unimplemented";
+      break;
+  }
+
+  if (instr->GetImmLS() == 0) {
+    suffix = "]";
+  }
+
+  Format(instr, mnemonic_.c_str(), form, suffix);
 }
 
-void Disassembler::Disassemble_XtSP_XnSP_simm(const Instruction *instr) {
-  const char *form = "<Xt|SP>, ['Xns{, #'u2012}]";
-  Format(instr, mnemonic_.c_str(), form);
-}
-
-void Disassembler::Disassemble_XtSP_XnSP_simm_excl(const Instruction *instr) {
-  const char *form = "<Xt|SP>, ['Xns, #<simm>]!";
-  Format(instr, mnemonic_.c_str(), form);
-}
-
-void Disassembler::Disassemble_Xt_XnSP_simm(const Instruction *instr) {
-  const char *form = "'Xt, ['Xns{, #'u2012}]";
+void Disassembler::DisassembleMTELoadTag(const Instruction *instr) {
+  const char *form =
+      (instr->GetImmLS() == 0) ? "'Xt, ['Xns]" : "'Xt, ['Xns, #'s2012*16]";
   Format(instr, mnemonic_.c_str(), form);
 }
 

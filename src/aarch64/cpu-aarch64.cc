@@ -29,8 +29,6 @@
 #define VIXL_USE_LINUX_HWCAP 1
 #endif
 
-#include <sys/mman.h>
-
 #include "../utils-vixl.h"
 
 #include "cpu-aarch64.h"
@@ -523,64 +521,6 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
   // doesn't have to do anything.
   USE(address, length);
 #endif
-}
-
-
-// Below functions creating/removing a mapping with memory protection
-// for both native and simulated execution environment.
-// Note that the protection flags for the Simulator are passed through the
-// features argument.
-void *CPU::Mmap(void *address,
-                size_t length,
-                int prot,
-                int flags,
-                int fd,
-                off_t offset,
-                Simulator *simulator,
-                CPUFeatures features) {
-  uint64_t address2 = reinterpret_cast<uint64_t>(
-      mmap(address, length, prot, flags, fd, offset));
-
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-  VIXL_ASSERT(simulator != nullptr);
-
-  if (features.Has(CPUFeatures::kMTE)) {
-    // If runing on the simulator, the returning address of `mmap` isn't tagged.
-    // Geneate a random tag.
-    int tag = static_cast<int>(simulator->GenerateRandomTag());
-    simulator->SetGranuleTag(address2, tag, length);
-    address2 = simulator->GetAddressWithAllocationTag(address2, tag);
-  }
-#else
-  VIXL_ASSERT(simulator == nullptr);
-#endif
-
-  return reinterpret_cast<void *>(address2);
-}
-
-
-int CPU::Munmap(void *address,
-                size_t length,
-                Simulator *simulator,
-                CPUFeatures features) {
-#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-  VIXL_ASSERT(simulator != nullptr);
-
-  if (features.Has(CPUFeatures::kMTE)) {
-    // Untag the address since `munmap` doesn't recognize the memory tagging
-    // managed by the Simulator.
-    address = AddressUntag(address);
-    size_t count =
-        simulator->CleanGranuleTag(reinterpret_cast<char *>(address), length);
-    size_t expected =
-        length / kMTETagGranuleInBytes + (length % kMTETagGranuleInBytes != 0);
-    VIXL_CHECK(count == expected);
-  }
-#else
-  VIXL_ASSERT(simulator == nullptr);
-#endif
-
-  return munmap(address, length);
 }
 
 

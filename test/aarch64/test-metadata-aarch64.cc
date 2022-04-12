@@ -41,20 +41,17 @@
 namespace vixl {
 namespace aarch64 {
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 TEST(test_metadata_mte) {
-  CPUFeatures features(CPUFeatures::kMTE);
-  SETUP_WITH_FEATURES(features);
+  SETUP_WITH_FEATURES(CPUFeatures::kMTE);
 
   size_t data_size = 320;
-  uintptr_t tagged_address =
-      reinterpret_cast<uintptr_t>(CPU::Mmap(NULL,
-                                            data_size,
-                                            PROT_READ | PROT_WRITE,
-                                            MAP_PRIVATE | MAP_ANONYMOUS,
-                                            -1,
-                                            0,
-                                            &simulator,
-                                            features));
+  void* tagged_address = simulator.Mmap(NULL,
+                                        data_size,
+                                        PROT_READ | PROT_WRITE | PROT_MTE,
+                                        MAP_PRIVATE | MAP_ANONYMOUS,
+                                        -1,
+                                        0);
 
   START();
 
@@ -76,10 +73,7 @@ TEST(test_metadata_mte) {
     RUN();
   }
 
-  VIXL_CHECK(CPU::Munmap(reinterpret_cast<char*>(tagged_address),
-                         data_size,
-                         &simulator,
-                         features) == 0);
+  simulator.Munmap(tagged_address, data_size, PROT_MTE);
 }
 
 #ifdef VIXL_NEGATIVE_TESTING
@@ -87,15 +81,12 @@ TEST(test_metadata_mte_neg) {
   CPUFeatures features(CPUFeatures::kMTE);
   SETUP_WITH_FEATURES(features);
   size_t data_size = 320;
-  uintptr_t tagged_address =
-      reinterpret_cast<uintptr_t>(CPU::Mmap(NULL,
-                                            data_size,
-                                            PROT_READ | PROT_WRITE,
-                                            MAP_PRIVATE | MAP_ANONYMOUS,
-                                            -1,
-                                            0,
-                                            &simulator,
-                                            features));
+  void* tagged_address = simulator.Mmap(NULL,
+                                        data_size,
+                                        PROT_READ | PROT_WRITE | PROT_MTE,
+                                        MAP_PRIVATE | MAP_ANONYMOUS,
+                                        -1,
+                                        0);
 
   START();
 
@@ -113,21 +104,15 @@ TEST(test_metadata_mte_neg) {
   __ Ldr(w0, MemOperand(tagged_heap_ptr, -8));
   __ Str(w0, MemOperand(tagged_heap_ptr, -16));
 
-  uintptr_t tagged_address_2 =
-      reinterpret_cast<uintptr_t>(CPU::Mmap(NULL,
-                                            data_size,
-                                            PROT_READ | PROT_WRITE,
-                                            MAP_PRIVATE | MAP_ANONYMOUS,
-                                            -1,
-                                            0,
-                                            &simulator,
-                                            features));
+  void* tagged_address_2 = simulator.Mmap(NULL,
+                                          data_size,
+                                          PROT_READ | PROT_WRITE | PROT_MTE,
+                                          MAP_PRIVATE | MAP_ANONYMOUS,
+                                          -1,
+                                          0);
 
   __ Mov(x22, reinterpret_cast<uintptr_t>(tagged_address_2));
-  VIXL_CHECK(CPU::Munmap(reinterpret_cast<char*>(tagged_address_2),
-                         data_size,
-                         &simulator,
-                         features) == 0);
+  simulator.Munmap(tagged_address_2, data_size, PROT_MTE);
 
   // Use-after-free error.
   __ Ldr(w0, MemOperand(x22));
@@ -138,11 +123,9 @@ TEST(test_metadata_mte_neg) {
     MUST_FAIL_WITH_MESSAGE(RUN(), "Tag mismatch.");
   }
 
-  VIXL_CHECK(CPU::Munmap(reinterpret_cast<char*>(tagged_address),
-                         data_size,
-                         &simulator,
-                         features) == 0);
+  simulator.Munmap(tagged_address, data_size, PROT_MTE);
 }
 #endif  // VIXL_NEGATIVE_TESTING
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 }
 }  // namespace vixl::aarch64
