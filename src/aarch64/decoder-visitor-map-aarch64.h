@@ -2640,7 +2640,7 @@
       {"bfmlalt_z_zzz_", &VISITORCLASS::VisitUnimplemented},                   \
       {"bfmlalt_z_zzzi_", &VISITORCLASS::VisitUnimplemented},                  \
       {"bfmmla_z_zzz_", &VISITORCLASS::VisitUnimplemented}, {                  \
-    "Unallocated", &VISITORCLASS::VisitUnallocated                             \
+    "unallocated", &VISITORCLASS::VisitUnallocated                             \
   }
 
 #define SIM_AUD_VISITOR_MAP(VISITORCLASS)                                      \

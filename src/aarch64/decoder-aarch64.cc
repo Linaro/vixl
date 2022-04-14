@@ -49,7 +49,9 @@ void Decoder::Decode(Instruction* instr) {
 }
 
 void Decoder::AddDecodeNode(const DecodeNode& node) {
-  decode_nodes_.insert(std::make_pair(node.GetName(), node));
+  if (decode_nodes_.count(node.GetName()) == 0) {
+    decode_nodes_.insert(std::make_pair(node.GetName(), node));
+  }
 }
 
 DecodeNode* Decoder::GetDecodeNode(std::string name) {
@@ -64,12 +66,21 @@ void Decoder::ConstructDecodeGraph() {
   // Add all of the decoding nodes to the Decoder.
   for (unsigned i = 0; i < ArrayLength(kDecodeMapping); i++) {
     AddDecodeNode(DecodeNode(kDecodeMapping[i], this));
+
+    // Add a node for each instruction form named, identified by having no '_'
+    // prefix on the node name.
+    const DecodeMapping& map = kDecodeMapping[i];
+    for (unsigned j = 0; j < kMaxDecodeMappings; j++) {
+      if ((map.mapping[j].handler != NULL) &&
+          (map.mapping[j].handler[0] != '_')) {
+        AddDecodeNode(DecodeNode(map.mapping[j].handler, this));
+      }
+    }
   }
 
-  // Add the visitor function wrapping nodes to the Decoder.
-  for (unsigned i = 0; i < ArrayLength(kVisitorNodes); i++) {
-    AddDecodeNode(DecodeNode(kVisitorNodes[i], this));
-  }
+  // Add an "unallocated" node, used when an instruction encoding is not
+  // recognised by the decoding graph.
+  AddDecodeNode(DecodeNode("unallocated", this));
 
   // Compile the graph from the root.
   compiled_decoder_root_ = GetDecodeNode("Root")->Compile(this);
@@ -122,16 +133,14 @@ void Decoder::RemoveVisitor(DecoderVisitor* visitor) {
   visitors_.remove(visitor);
 }
 
-#define DEFINE_VISITOR_CALLERS(A)                               \
-  void Decoder::Visit_##A(const Instruction* instr) {           \
-    std::list<DecoderVisitor*>::iterator it;                    \
-    Metadata m = {{"form", #A}};                                \
-    for (it = visitors_.begin(); it != visitors_.end(); it++) { \
-      (*it)->Visit(&m, instr);                                  \
-    }                                                           \
+void Decoder::VisitNamedInstruction(const Instruction* instr,
+                                    const std::string& name) {
+  std::list<DecoderVisitor*>::iterator it;
+  Metadata m = {{"form", name}};
+  for (it = visitors_.begin(); it != visitors_.end(); it++) {
+    (*it)->Visit(&m, instr);
   }
-INSTRUCTION_VISITOR_LIST(DEFINE_VISITOR_CALLERS)
-#undef DEFINE_VISITOR_CALLERS
+}
 
 void DecodeNode::SetSampledBits(const uint8_t* bits, int bit_count) {
   VIXL_ASSERT(!IsCompiled());
@@ -446,7 +455,7 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
       // Set DecodeNode for when the instruction after masking doesn't match the
       // value.
       const char* doesnt_match_handler =
-          (table_size == 1) ? "Visit_Unallocated" : pattern_table_[1].handler;
+          (table_size == 1) ? "unallocated" : pattern_table_[1].handler;
       CompileNodeForBits(decoder, doesnt_match_handler, 0);
 
       // Set DecodeNode for when it does match.
@@ -465,7 +474,7 @@ CompiledDecodeNode* DecodeNode::Compile(Decoder* decoder) {
     CreateVisitorNode();
   } else if (!TryCompileOptimisedDecodeTable(decoder)) {
     // The "otherwise" node is the default next node if no pattern matches.
-    std::string otherwise = "Visit_Unallocated";
+    std::string otherwise = "unallocated";
 
     // For each pattern in pattern_table_, create an entry in matches that
     // has a corresponding mask and value for the pattern.
@@ -520,7 +529,7 @@ void CompiledDecodeNode::Decode(const Instruction* instr) const {
   if (IsLeafNode()) {
     // If this node is a leaf, call the registered visitor function.
     VIXL_ASSERT(decoder_ != NULL);
-    (decoder_->*visitor_fn_)(instr);
+    decoder_->VisitNamedInstruction(instr, instruction_name_);
   } else {
     // Otherwise, using the sampled bit extractor for this node, look up the
     // next node in the decode tree, and call its Decode method.
