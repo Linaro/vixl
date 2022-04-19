@@ -1412,6 +1412,8 @@ constexpr uint32_t Hash(const char* str, uint32_t hash = 0) {
   }
 }
 
+constexpr uint32_t operator"" _h(const char* x, size_t) { return Hash(x); }
+
 }  // namespace vixl
 
 #endif  // VIXL_UTILS_H
