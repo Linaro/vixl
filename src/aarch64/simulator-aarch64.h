@@ -4763,7 +4763,7 @@ class Simulator : public DecoderVisitor {
 
  private:
   using FormToVisitorFnMap =
-      std::unordered_map<std::string,
+      std::unordered_map<uint32_t,
                          std::function<void(Simulator*, const Instruction*)>>;
   static const FormToVisitorFnMap* GetFormToVisitorFnMap();
 
