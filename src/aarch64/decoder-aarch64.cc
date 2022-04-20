@@ -161,9 +161,8 @@ void DecodeNode::AddPatterns(const DecodePattern* patterns) {
   VIXL_ASSERT(!IsCompiled());
   for (unsigned i = 0; i < kMaxDecodeMappings; i++) {
     // Empty string indicates end of patterns.
-    if (patterns[i].pattern == NULL) break;
-    VIXL_ASSERT((strlen(patterns[i].pattern) == GetSampledBitsCount()) ||
-                (strcmp(patterns[i].pattern, "otherwise") == 0));
+    if (patterns[i].pattern == 0) break;
+    VIXL_ASSERT(GetPatternLength(patterns[i].pattern) == GetSampledBitsCount());
     pattern_table_.push_back(patterns[i]);
   }
 }
@@ -427,9 +426,9 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
   if ((table_size <= 2) && (GetSampledBitsCount() > 1)) {
     // TODO: support 'x' in this optimisation by dropping the sampled bit
     // positions before making the mask/value.
-    if ((strchr(pattern_table_[0].pattern, 'x') == NULL) &&
-        ((table_size == 1) ||
-         (strcmp(pattern_table_[1].pattern, "otherwise") == 0))) {
+    if (!PatternContainsSymbol(pattern_table_[0].pattern,
+                               PatternSymbol::kSymbolX) &&
+        (table_size == 1)) {
       // A pattern table consisting of a fixed pattern with no x's, and an
       // "otherwise" or absent case. Optimise this into an instruction mask and
       // value test.
@@ -438,10 +437,11 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
       std::vector<uint8_t> bits = GetSampledBits();
 
       // Construct the instruction mask and value from the pattern.
-      VIXL_ASSERT(bits.size() == strlen(pattern_table_[0].pattern));
+      VIXL_ASSERT(bits.size() == GetPatternLength(pattern_table_[0].pattern));
       for (size_t i = 0; i < bits.size(); i++) {
         single_decode_mask |= 1U << bits[i];
-        if (pattern_table_[0].pattern[i] == '1') {
+        if (GetSymbolAt(pattern_table_[0].pattern, i) ==
+            PatternSymbol::kSymbol1) {
           single_decode_value |= 1U << bits[i];
         }
       }
@@ -480,15 +480,8 @@ CompiledDecodeNode* DecodeNode::Compile(Decoder* decoder) {
     // has a corresponding mask and value for the pattern.
     std::vector<MaskValuePair> matches;
     for (size_t i = 0; i < pattern_table_.size(); i++) {
-      if (strcmp(pattern_table_[i].pattern, "otherwise") == 0) {
-        // "otherwise" must be the last pattern in the list, otherwise the
-        // indices won't match for pattern_table_ and matches.
-        VIXL_ASSERT(i == pattern_table_.size() - 1);
-        otherwise = pattern_table_[i].handler;
-      } else {
-        matches.push_back(GenerateMaskValuePair(
-            GenerateOrderedPattern(pattern_table_[i].pattern)));
-      }
+      matches.push_back(GenerateMaskValuePair(
+          GenerateOrderedPattern(pattern_table_[i].pattern)));
     }
 
     BitExtractFn bit_extract_fn =
@@ -541,33 +534,46 @@ void CompiledDecodeNode::Decode(const Instruction* instr) const {
 }
 
 DecodeNode::MaskValuePair DecodeNode::GenerateMaskValuePair(
-    std::string pattern) const {
+    uint32_t pattern) const {
   uint32_t mask = 0, value = 0;
-  for (size_t i = 0; i < pattern.size(); i++) {
-    mask |= ((pattern[i] == 'x') ? 0 : 1) << i;
-    value |= ((pattern[i] == '1') ? 1 : 0) << i;
+  for (size_t i = 0; i < GetPatternLength(pattern); i++) {
+    PatternSymbol sym = GetSymbolAt(pattern, i);
+    mask = (mask << 1) | ((sym == PatternSymbol::kSymbolX) ? 0 : 1);
+    value = (value << 1) | (static_cast<uint32_t>(sym) & 1);
   }
   return std::make_pair(mask, value);
 }
 
-std::string DecodeNode::GenerateOrderedPattern(std::string pattern) const {
+uint32_t DecodeNode::GenerateOrderedPattern(uint32_t pattern) const {
   std::vector<uint8_t> sampled_bits = GetSampledBits();
-  // Construct a temporary 32-character string containing '_', then at each
-  // sampled bit position, set the corresponding pattern character.
-  std::string temp(32, '_');
+  uint64_t temp = 0xffffffffffffffff;
+
+  // Place symbols into the field of set bits. Symbols are two bits wide and
+  // take values 0, 1 or 2, so 3 will represent "no symbol".
   for (size_t i = 0; i < sampled_bits.size(); i++) {
-    temp[sampled_bits[i]] = pattern[i];
+    int shift = sampled_bits[i] * 2;
+    temp ^= static_cast<uint64_t>(kEndOfPattern) << shift;
+    temp |= static_cast<uint64_t>(GetSymbolAt(pattern, i)) << shift;
   }
 
-  // Iterate through the temporary string, filtering out the non-'_' characters
-  // into a new ordered pattern result string.
-  std::string result;
-  for (size_t i = 0; i < temp.size(); i++) {
-    if (temp[i] != '_') {
-      result.push_back(temp[i]);
+  // Iterate over temp and extract new pattern ordered by sample position.
+  uint32_t result = kEndOfPattern;  // End of pattern marker.
+
+  // Iterate over the pattern one symbol (two bits) at a time.
+  for (int i = 62; i >= 0; i -= 2) {
+    uint32_t sym = (temp >> i) & kPatternSymbolMask;
+
+    // If this is a valid symbol, shift into the result.
+    if (sym != kEndOfPattern) {
+      result = (result << 2) | sym;
     }
   }
-  VIXL_ASSERT(result.size() == sampled_bits.size());
+
+  // The length of the ordered pattern must be the same as the input pattern,
+  // and the number of sampled bits.
+  VIXL_ASSERT(GetPatternLength(result) == GetPatternLength(pattern));
+  VIXL_ASSERT(GetPatternLength(result) == sampled_bits.size());
+
   return result;
 }
 
