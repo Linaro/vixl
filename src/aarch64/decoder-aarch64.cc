@@ -70,7 +70,7 @@ void Decoder::ConstructDecodeGraph() {
     // Add a node for each instruction form named, identified by having no '_'
     // prefix on the node name.
     const DecodeMapping& map = kDecodeMapping[i];
-    for (unsigned j = 0; j < kMaxDecodeMappings; j++) {
+    for (unsigned j = 0; j < map.mapping.size(); j++) {
       if ((map.mapping[j].handler != NULL) &&
           (map.mapping[j].handler[0] != '_')) {
         AddDecodeNode(DecodeNode(map.mapping[j].handler, this));
@@ -142,30 +142,9 @@ void Decoder::VisitNamedInstruction(const Instruction* instr,
   }
 }
 
-void DecodeNode::SetSampledBits(const uint8_t* bits, int bit_count) {
-  VIXL_ASSERT(!IsCompiled());
-
-  sampled_bits_.resize(bit_count);
-  for (int i = 0; i < bit_count; i++) {
-    sampled_bits_[i] = bits[i];
-  }
-}
-
-std::vector<uint8_t> DecodeNode::GetSampledBits() const {
-  return sampled_bits_;
-}
-
-size_t DecodeNode::GetSampledBitsCount() const { return sampled_bits_.size(); }
-
-void DecodeNode::AddPatterns(const DecodePattern* patterns) {
-  VIXL_ASSERT(!IsCompiled());
-  for (unsigned i = 0; i < kMaxDecodeMappings; i++) {
-    // Empty string indicates end of patterns.
-    if (patterns[i].pattern == 0) break;
-    VIXL_ASSERT(GetPatternLength(patterns[i].pattern) == GetSampledBitsCount());
-    pattern_table_.push_back(patterns[i]);
-  }
-}
+// Initialise empty vectors for sampled bits and pattern table.
+const std::vector<uint8_t> DecodeNode::kEmptySampledBits;
+const std::vector<DecodePattern> DecodeNode::kEmptyPatternTable;
 
 void DecodeNode::CompileNodeForBits(Decoder* decoder,
                                     std::string name,
@@ -434,7 +413,7 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
       // value test.
       uint32_t single_decode_mask = 0;
       uint32_t single_decode_value = 0;
-      std::vector<uint8_t> bits = GetSampledBits();
+      const std::vector<uint8_t>& bits = GetSampledBits();
 
       // Construct the instruction mask and value from the pattern.
       VIXL_ASSERT(bits.size() == GetPatternLength(pattern_table_[0].pattern));
@@ -454,9 +433,7 @@ bool DecodeNode::TryCompileOptimisedDecodeTable(Decoder* decoder) {
 
       // Set DecodeNode for when the instruction after masking doesn't match the
       // value.
-      const char* doesnt_match_handler =
-          (table_size == 1) ? "unallocated" : pattern_table_[1].handler;
-      CompileNodeForBits(decoder, doesnt_match_handler, 0);
+      CompileNodeForBits(decoder, "unallocated", 0);
 
       // Set DecodeNode for when it does match.
       CompileNodeForBits(decoder, pattern_table_[0].handler, 1);
@@ -545,7 +522,7 @@ DecodeNode::MaskValuePair DecodeNode::GenerateMaskValuePair(
 }
 
 uint32_t DecodeNode::GenerateOrderedPattern(uint32_t pattern) const {
-  std::vector<uint8_t> sampled_bits = GetSampledBits();
+  const std::vector<uint8_t>& sampled_bits = GetSampledBits();
   uint64_t temp = 0xffffffffffffffff;
 
   // Place symbols into the field of set bits. Symbols are two bits wide and
@@ -578,10 +555,9 @@ uint32_t DecodeNode::GenerateOrderedPattern(uint32_t pattern) const {
 }
 
 uint32_t DecodeNode::GenerateSampledBitsMask() const {
-  std::vector<uint8_t> sampled_bits = GetSampledBits();
   uint32_t mask = 0;
-  for (size_t i = 0; i < sampled_bits.size(); i++) {
-    mask |= 1 << sampled_bits[i];
+  for (int bit : GetSampledBits()) {
+    mask |= 1 << bit;
   }
   return mask;
 }

@@ -394,8 +394,6 @@ class Decoder {
   std::map<std::string, DecodeNode> decode_nodes_;
 };
 
-const int kMaxDecodeSampledBits = 24;
-const int kMaxDecodeMappings = 280;
 typedef void (Decoder::*DecodeFnPtr)(const Instruction*);
 typedef uint32_t (Instruction::*BitExtractFn)(void) const;
 
@@ -425,8 +423,8 @@ struct DecodePattern {
 // sampled bits match to the corresponding name of a node.
 struct DecodeMapping {
   const char* name;
-  const uint8_t sampled_bits[kMaxDecodeSampledBits];
-  const DecodePattern mapping[kMaxDecodeMappings];
+  const std::vector<uint8_t> sampled_bits;
+  const std::vector<DecodePattern> mapping;
 };
 
 // For speed, before nodes can be used for decoding instructions, they must
@@ -512,29 +510,35 @@ class CompiledDecodeNode {
 class DecodeNode {
  public:
   // Default constructor needed for map initialisation.
-  DecodeNode() : compiled_node_(NULL) {}
+  DecodeNode()
+      : sampled_bits_(DecodeNode::kEmptySampledBits),
+        pattern_table_(DecodeNode::kEmptyPatternTable),
+        compiled_node_(NULL) {}
 
   // Constructor for DecodeNode wrappers around visitor functions. These are
   // marked as "compiled", as there is no decoding left to do.
   explicit DecodeNode(const std::string& iname, Decoder* decoder)
       : name_(iname),
+        sampled_bits_(DecodeNode::kEmptySampledBits),
         instruction_name_(iname),
+        pattern_table_(DecodeNode::kEmptyPatternTable),
         decoder_(decoder),
         compiled_node_(NULL) {}
 
   // Constructor for DecodeNodes that map bit patterns to other DecodeNodes.
   explicit DecodeNode(const DecodeMapping& map, Decoder* decoder = NULL)
       : name_(map.name),
+        sampled_bits_(map.sampled_bits),
         instruction_name_("node"),
+        pattern_table_(map.mapping),
         decoder_(decoder),
         compiled_node_(NULL) {
-    // The length of the bit string in the first mapping determines the number
-    // of sampled bits. When adding patterns later, we assert that all mappings
-    // sample the same number of bits.
-    size_t bit_count = GetPatternLength(map.mapping[0].pattern);
-    VIXL_CHECK(bit_count <= 32);
-    SetSampledBits(map.sampled_bits, static_cast<int>(bit_count));
-    AddPatterns(map.mapping);
+    // With the current two bits per symbol encoding scheme, the maximum pattern
+    // length is (32 - 2) / 2 = 15 bits.
+    VIXL_CHECK(GetPatternLength(map.mapping[0].pattern) <= 15);
+    for (const DecodePattern& p : map.mapping) {
+      VIXL_CHECK(GetPatternLength(p.pattern) == map.sampled_bits.size());
+    }
   }
 
   ~DecodeNode() {
@@ -544,17 +548,11 @@ class DecodeNode {
     }
   }
 
-  // Set the bits sampled from the instruction by this node.
-  void SetSampledBits(const uint8_t* bits, int bit_count);
-
   // Get the bits sampled from the instruction by this node.
-  std::vector<uint8_t> GetSampledBits() const;
+  const std::vector<uint8_t>& GetSampledBits() const { return sampled_bits_; }
 
   // Get the number of bits sampled from the instruction by this node.
-  size_t GetSampledBitsCount() const;
-
-  // Add patterns to this node's internal pattern table.
-  void AddPatterns(const DecodePattern* patterns);
+  size_t GetSampledBitsCount() const { return sampled_bits_.size(); }
 
   // A leaf node is a DecodeNode that wraps the visitor function for the
   // identified instruction class.
@@ -671,14 +669,16 @@ class DecodeNode {
 
   // Vector of bits sampled from an instruction to determine which node to look
   // up next in the decode process.
-  std::vector<uint8_t> sampled_bits_;
+  const std::vector<uint8_t>& sampled_bits_;
+  static const std::vector<uint8_t> kEmptySampledBits;
 
   // For leaf nodes, this is the name of the instruction form that the node
   // represents. For other nodes, this is always set to "node".
   std::string instruction_name_;
 
   // Source mapping from bit pattern to name of next decode stage.
-  std::vector<DecodePattern> pattern_table_;
+  const std::vector<DecodePattern>& pattern_table_;
+  static const std::vector<DecodePattern> kEmptyPatternTable;
 
   // Pointer to the decoder containing this node, used to call its visitor
   // function for leaf nodes.
