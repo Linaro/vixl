@@ -409,10 +409,14 @@ struct VisitorNode {
 // compilation stage. After compilation, the decoder is embodied in the graph
 // of CompiledDecodeNodes pointer to by compiled_decoder_root_.
 
-// A DecodePattern maps a pattern of set/unset/don't care (1, 0, x) bits as a
-// string to the name of its handler.
+// A DecodePattern maps a pattern of set/unset/don't care (1, 0, x) bits encoded
+// as uint32_t to its handler.
+// The encoding uses two bits per symbol: 0 => 0b00, 1 => 0b01, x => 0b10.
+// 0b11 marks the edge of the most-significant bits of the pattern, which is
+// required to determine the length. For example, the pattern "1x01"_b is
+// encoded in a uint32_t as 0b11_01_10_00_01.
 struct DecodePattern {
-  const char* pattern;
+  uint32_t pattern;
   const char* handler;
 };
 
@@ -527,10 +531,9 @@ class DecodeNode {
     // The length of the bit string in the first mapping determines the number
     // of sampled bits. When adding patterns later, we assert that all mappings
     // sample the same number of bits.
-    VIXL_CHECK(strcmp(map.mapping[0].pattern, "otherwise") != 0);
-    int bit_count = static_cast<int>(strlen(map.mapping[0].pattern));
-    VIXL_CHECK((bit_count > 0) && (bit_count <= 32));
-    SetSampledBits(map.sampled_bits, bit_count);
+    size_t bit_count = GetPatternLength(map.mapping[0].pattern);
+    VIXL_CHECK(bit_count <= 32);
+    SetSampledBits(map.sampled_bits, static_cast<int>(bit_count));
     AddPatterns(map.mapping);
   }
 
@@ -603,22 +606,53 @@ class DecodeNode {
   CompiledDecodeNode* GetCompiledNode() const { return compiled_node_; }
   bool IsCompiled() const { return GetCompiledNode() != NULL; }
 
- private:
-  // Generate a mask and value pair from a string constructed from 0, 1 and x
-  // (don't care) characters.
-  // For example "10x1" should return mask = 0b1101, value = 0b1001.
-  typedef std::pair<Instr, Instr> MaskValuePair;
-  MaskValuePair GenerateMaskValuePair(std::string pattern) const;
+  enum class PatternSymbol { kSymbol0 = 0, kSymbol1 = 1, kSymbolX = 2 };
+  static const uint32_t kEndOfPattern = 3;
+  static const uint32_t kPatternSymbolMask = 3;
 
-  // Generate a pattern string ordered by the bit positions sampled by this
-  // node. The first character in the string corresponds to the lowest sampled
-  // bit.
-  // For example, a pattern of "1x0" expected when sampling bits 31, 1 and 30
-  // returns the pattern "x01"; bit 1 should be 'x', bit 30 '0' and bit 31 '1'.
+  size_t GetPatternLength(uint32_t pattern) const {
+    uint32_t hsb = HighestSetBitPosition(pattern);
+    // The pattern length is signified by two set bits in a two bit-aligned
+    // position. Ensure that the pattern has a highest set bit, it's at an odd
+    // bit position, and that the bit to the right of the hsb is also set.
+    VIXL_ASSERT(((hsb % 2) == 1) && (pattern >> (hsb - 1)) == kEndOfPattern);
+    return hsb / 2;
+  }
+
+  bool PatternContainsSymbol(uint32_t pattern, PatternSymbol symbol) const {
+    while ((pattern & kPatternSymbolMask) != kEndOfPattern) {
+      if (static_cast<PatternSymbol>(pattern & kPatternSymbolMask) == symbol)
+        return true;
+      pattern >>= 2;
+    }
+    return false;
+  }
+
+  PatternSymbol GetSymbolAt(uint32_t pattern, size_t pos) const {
+    size_t len = GetPatternLength(pattern);
+    VIXL_ASSERT((pos < 15) && (pos < len));
+    uint32_t shift = static_cast<uint32_t>(2 * (len - pos - 1));
+    uint32_t sym = (pattern >> shift) & kPatternSymbolMask;
+    return static_cast<PatternSymbol>(sym);
+  }
+
+ private:
+  // Generate a mask and value pair from a pattern constructed from 0, 1 and x
+  // (don't care) 2-bit symbols.
+  // For example "10x1"_b should return mask = 0b1101, value = 0b1001.
+  typedef std::pair<Instr, Instr> MaskValuePair;
+  MaskValuePair GenerateMaskValuePair(uint32_t pattern) const;
+
+  // Generate a pattern ordered by the bit positions sampled by this node.
+  // The symbol corresponding to the lowest sample position is placed in the
+  // least-significant bits of the result pattern.
+  // For example, a pattern of "1x0"_b expected when sampling bits 31, 1 and 30
+  // returns the pattern "x01"_b; bit 1 should be 'x', bit 30 '0' and bit 31
+  // '1'.
   // This output makes comparisons easier between the pattern and bits sampled
   // from an instruction using the fast "compress" algorithm. See
   // Instruction::Compress().
-  std::string GenerateOrderedPattern(std::string pattern) const;
+  uint32_t GenerateOrderedPattern(uint32_t pattern) const;
 
   // Generate a mask with a bit set at each sample position.
   uint32_t GenerateSampledBitsMask() const;
