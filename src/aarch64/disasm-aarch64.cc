@@ -883,40 +883,12 @@ void Disassembler::VisitAddSubWithCarry(const Instruction *instr) {
 
 
 void Disassembler::VisitRotateRightIntoFlags(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(RotateRightIntoFlags)";
-
-  switch (instr->Mask(RotateRightIntoFlagsMask)) {
-    case RMIF:
-      mnemonic = "rmif";
-      form = "'Xn, 'IRr, 'INzcv";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Xn, 'IRr, 'INzcv");
 }
 
 
 void Disassembler::VisitEvaluateIntoFlags(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(EvaluateIntoFlags)";
-
-  switch (instr->Mask(EvaluateIntoFlagsMask)) {
-    case SETF8:
-      mnemonic = "setf8";
-      form = "'Wn";
-      break;
-    case SETF16:
-      mnemonic = "setf16";
-      form = "'Wn";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Wn");
 }
 
 
@@ -1060,42 +1032,12 @@ void Disassembler::VisitLogicalShifted(const Instruction *instr) {
 
 
 void Disassembler::VisitConditionalCompareRegister(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'Rn, 'Rm, 'INzcv, 'Cond";
-
-  switch (instr->Mask(ConditionalCompareRegisterMask)) {
-    case CCMN_w:
-    case CCMN_x:
-      mnemonic = "ccmn";
-      break;
-    case CCMP_w:
-    case CCMP_x:
-      mnemonic = "ccmp";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Rn, 'Rm, 'INzcv, 'Cond");
 }
 
 
 void Disassembler::VisitConditionalCompareImmediate(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'Rn, 'IP, 'INzcv, 'Cond";
-
-  switch (instr->Mask(ConditionalCompareImmediateMask)) {
-    case CCMN_w_imm:
-    case CCMN_x_imm:
-      mnemonic = "ccmn";
-      break;
-    case CCMP_w_imm:
-    case CCMP_x_imm:
-      mnemonic = "ccmp";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Rn, 'IP, 'INzcv, 'Cond");
 }
 
 
@@ -1324,20 +1266,7 @@ void Disassembler::VisitUnconditionalBranchToRegister(
 
 
 void Disassembler::VisitUnconditionalBranch(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'TImmUncn";
-
-  switch (instr->Mask(UnconditionalBranchMask)) {
-    case B:
-      mnemonic = "b";
-      break;
-    case BL:
-      mnemonic = "bl";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'TImmUncn");
 }
 
 
@@ -1537,22 +1466,7 @@ void Disassembler::VisitDataProcessing3Source(const Instruction *instr) {
 
 
 void Disassembler::VisitCompareBranch(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'Rt, 'TImmCmpa";
-
-  switch (instr->Mask(CompareBranchMask)) {
-    case CBZ_w:
-    case CBZ_x:
-      mnemonic = "cbz";
-      break;
-    case CBNZ_w:
-    case CBNZ_x:
-      mnemonic = "cbnz";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Rt, 'TImmCmpa");
 }
 
 
@@ -2345,41 +2259,12 @@ void Disassembler::VisitFPCompare(const Instruction *instr) {
 
 
 void Disassembler::VisitFPConditionalCompare(const Instruction *instr) {
-  const char *mnemonic = "unmplemented";
-  const char *form = "'Fn, 'Fm, 'INzcv, 'Cond";
-
-  switch (instr->Mask(FPConditionalCompareMask)) {
-    case FCCMP_h:
-    case FCCMP_s:
-    case FCCMP_d:
-      mnemonic = "fccmp";
-      break;
-    case FCCMPE_h:
-    case FCCMPE_s:
-    case FCCMPE_d:
-      mnemonic = "fccmpe";
-      break;
-    default:
-      form = "(FPConditionalCompare)";
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Fn, 'Fm, 'INzcv, 'Cond");
 }
 
 
 void Disassembler::VisitFPConditionalSelect(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'Fd, 'Fn, 'Fm, 'Cond";
-
-  switch (instr->Mask(FPConditionalSelectMask)) {
-    case FCSEL_h:
-    case FCSEL_s:
-    case FCSEL_d:
-      mnemonic = "fcsel";
-      break;
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Fd, 'Fn, 'Fm, 'Cond");
 }
 
 
@@ -2448,53 +2333,12 @@ void Disassembler::VisitFPDataProcessing1Source(const Instruction *instr) {
 
 
 void Disassembler::VisitFPDataProcessing2Source(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'Fd, 'Fn, 'Fm";
-
-  switch (instr->Mask(FPDataProcessing2SourceMask)) {
-#define FORMAT(A, B) \
-  case A##_h:        \
-  case A##_s:        \
-  case A##_d:        \
-    mnemonic = B;    \
-    break;
-    FORMAT(FADD, "fadd");
-    FORMAT(FSUB, "fsub");
-    FORMAT(FMUL, "fmul");
-    FORMAT(FDIV, "fdiv");
-    FORMAT(FMAX, "fmax");
-    FORMAT(FMIN, "fmin");
-    FORMAT(FMAXNM, "fmaxnm");
-    FORMAT(FMINNM, "fminnm");
-    FORMAT(FNMUL, "fnmul");
-#undef FORMAT
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Fd, 'Fn, 'Fm");
 }
 
 
 void Disassembler::VisitFPDataProcessing3Source(const Instruction *instr) {
-  const char *mnemonic = "";
-  const char *form = "'Fd, 'Fn, 'Fm, 'Fa";
-
-  switch (instr->Mask(FPDataProcessing3SourceMask)) {
-#define FORMAT(A, B) \
-  case A##_h:        \
-  case A##_s:        \
-  case A##_d:        \
-    mnemonic = B;    \
-    break;
-    FORMAT(FMADD, "fmadd");
-    FORMAT(FMSUB, "fmsub");
-    FORMAT(FNMADD, "fnmadd");
-    FORMAT(FNMSUB, "fnmsub");
-#undef FORMAT
-    default:
-      VIXL_UNREACHABLE();
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Fd, 'Fn, 'Fm, 'Fa");
 }
 
 
@@ -3996,9 +3840,7 @@ void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
 }
 
 void Disassembler::VisitNEONScalar3SameFP16(const Instruction *instr) {
-  const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Hd, 'Hn, 'Hm";
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Hd, 'Hn, 'Hm");
 }
 
 void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
@@ -4243,10 +4085,8 @@ void Disassembler::VisitNEONTable(const Instruction *instr) {
 
 
 void Disassembler::VisitNEONPerm(const Instruction *instr) {
-  const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
   NEONFormatDecoder nfd(instr);
-  Format(instr, mnemonic, nfd.Substitute(form));
+  FormatWithDecodedMnemonic(instr, nfd.Substitute("'Vd.%s, 'Vn.%s, 'Vm.%s"));
 }
 
 void Disassembler::Disassemble_Vd4S_Vn16B_Vm16B(const Instruction *instr) {
@@ -4283,65 +4123,14 @@ void Disassembler::
 
 void Disassembler::VisitSVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw #2]";
-
-  switch (
-      instr->Mask(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsetsMask)) {
-    case LD1W_z_p_bz_s_x32_scaled:
-      mnemonic = "ld1w";
-      break;
-    case LDFF1W_z_p_bz_s_x32_scaled:
-      mnemonic = "ldff1w";
-      break;
-    default:
-      form = "(SVE32BitGatherLoadWords_ScalarPlus32BitScaledOffsets)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr,
+                            "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw #2]");
 }
 
 void Disassembler::VisitSVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets(
     const Instruction *instr) {
-  const char *form = "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw]";
-
-  const char *mnemonic = "unimplemented";
-  switch (instr->Mask(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsetsMask)) {
-    case LD1B_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1b";
-      break;
-    case LD1H_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1h";
-      break;
-    case LD1SB_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1sb";
-      break;
-    case LD1SH_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1sh";
-      break;
-    case LD1W_z_p_bz_s_x32_unscaled:
-      mnemonic = "ld1w";
-      break;
-    case LDFF1B_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1b";
-      break;
-    case LDFF1H_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1h";
-      break;
-    case LDFF1SB_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1sb";
-      break;
-    case LDFF1SH_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1sh";
-      break;
-    case LDFF1W_z_p_bz_s_x32_unscaled:
-      mnemonic = "ldff1w";
-      break;
-    default:
-      form = "(SVE32BitGatherLoad_ScalarPlus32BitUnscaledOffsets)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr,
+                            "{'Zt.s}, 'Pgl/z, ['Xns, 'Zm.s, '?22:suxtw]");
 }
 
 void Disassembler::VisitSVE32BitGatherLoad_VectorPlusImm(
@@ -4463,44 +4252,13 @@ void Disassembler::VisitSVE32BitGatherPrefetch_VectorPlusImm(
 
 void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.s}, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw #'u2423]";
-
-  switch (instr->Mask(SVE32BitScatterStore_ScalarPlus32BitScaledOffsetsMask)) {
-    case ST1H_z_p_bz_s_x32_scaled:
-      mnemonic = "st1h";
-      break;
-    case ST1W_z_p_bz_s_x32_scaled:
-      mnemonic = "st1w";
-      break;
-    default:
-      form = "(SVE32BitScatterStore_ScalarPlus32BitScaledOffsets)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr,
+                            "{'Zt.s}, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw #'u2423]");
 }
 
 void Disassembler::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.s}, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw]";
-
-  switch (
-      instr->Mask(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsetsMask)) {
-    case ST1B_z_p_bz_s_x32_unscaled:
-      mnemonic = "st1b";
-      break;
-    case ST1H_z_p_bz_s_x32_unscaled:
-      mnemonic = "st1h";
-      break;
-    case ST1W_z_p_bz_s_x32_unscaled:
-      mnemonic = "st1w";
-      break;
-    default:
-      form = "(SVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "{'Zt.s}, 'Pgl, ['Xns, 'Zm.s, '?14:suxtw]");
 }
 
 void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
@@ -4533,143 +4291,20 @@ void Disassembler::VisitSVE32BitScatterStore_VectorPlusImm(
 
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, '?22:suxtw #'u2423]";
-
-  switch (instr->Mask(
-      SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)) {
-    case LD1D_z_p_bz_d_x32_scaled:
-      mnemonic = "ld1d";
-      break;
-    case LD1H_z_p_bz_d_x32_scaled:
-      mnemonic = "ld1h";
-      break;
-    case LD1SH_z_p_bz_d_x32_scaled:
-      mnemonic = "ld1sh";
-      break;
-    case LD1SW_z_p_bz_d_x32_scaled:
-      mnemonic = "ld1sw";
-      break;
-    case LD1W_z_p_bz_d_x32_scaled:
-      mnemonic = "ld1w";
-      break;
-    case LDFF1D_z_p_bz_d_x32_scaled:
-      mnemonic = "ldff1d";
-      break;
-    case LDFF1H_z_p_bz_d_x32_scaled:
-      mnemonic = "ldff1h";
-      break;
-    case LDFF1SH_z_p_bz_d_x32_scaled:
-      mnemonic = "ldff1sh";
-      break;
-    case LDFF1SW_z_p_bz_d_x32_scaled:
-      mnemonic = "ldff1sw";
-      break;
-    case LDFF1W_z_p_bz_d_x32_scaled:
-      mnemonic = "ldff1w";
-      break;
-    default:
-      form = "(SVE64BitGatherLoad_ScalarPlus32BitUnpackedScaledOffsetsMask)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr,
+                            "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, '?22:suxtw "
+                            "#'u2423]");
 }
 
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitScaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, lsl #'u2423]";
-
-  switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)) {
-    case LD1D_z_p_bz_d_64_scaled:
-      mnemonic = "ld1d";
-      break;
-    case LD1H_z_p_bz_d_64_scaled:
-      mnemonic = "ld1h";
-      break;
-    case LD1SH_z_p_bz_d_64_scaled:
-      mnemonic = "ld1sh";
-      break;
-    case LD1SW_z_p_bz_d_64_scaled:
-      mnemonic = "ld1sw";
-      break;
-    case LD1W_z_p_bz_d_64_scaled:
-      mnemonic = "ld1w";
-      break;
-    case LDFF1D_z_p_bz_d_64_scaled:
-      mnemonic = "ldff1d";
-      break;
-    case LDFF1H_z_p_bz_d_64_scaled:
-      mnemonic = "ldff1h";
-      break;
-    case LDFF1SH_z_p_bz_d_64_scaled:
-      mnemonic = "ldff1sh";
-      break;
-    case LDFF1SW_z_p_bz_d_64_scaled:
-      mnemonic = "ldff1sw";
-      break;
-    case LDFF1W_z_p_bz_d_64_scaled:
-      mnemonic = "ldff1w";
-      break;
-    default:
-      form = "(SVE64BitGatherLoad_ScalarPlus64BitScaledOffsetsMask)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr,
+                            "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d, lsl #'u2423]");
 }
 
 void Disassembler::VisitSVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d]";
-
-  switch (instr->Mask(SVE64BitGatherLoad_ScalarPlus64BitUnscaledOffsetsMask)) {
-    case LD1B_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1b";
-      break;
-    case LD1D_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1d";
-      break;
-    case LD1H_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1h";
-      break;
-    case LD1SB_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1sb";
-      break;
-    case LD1SH_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1sh";
-      break;
-    case LD1SW_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1sw";
-      break;
-    case LD1W_z_p_bz_d_64_unscaled:
-      mnemonic = "ld1w";
-      break;
-    case LDFF1B_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1b";
-      break;
-    case LDFF1D_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1d";
-      break;
-    case LDFF1H_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1h";
-      break;
-    case LDFF1SB_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1sb";
-      break;
-    case LDFF1SH_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1sh";
-      break;
-    case LDFF1SW_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1sw";
-      break;
-    case LDFF1W_z_p_bz_d_64_unscaled:
-      mnemonic = "ldff1w";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "{'Zt.d}, 'Pgl/z, ['Xns, 'Zm.d]");
 }
 
 void Disassembler::
@@ -4887,50 +4522,12 @@ void Disassembler::VisitSVE64BitGatherPrefetch_VectorPlusImm(
 
 void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d, lsl #'u2423]";
-
-  switch (instr->Mask(SVE64BitScatterStore_ScalarPlus64BitScaledOffsetsMask)) {
-    case ST1D_z_p_bz_d_64_scaled:
-      mnemonic = "st1d";
-      break;
-    case ST1H_z_p_bz_d_64_scaled:
-      mnemonic = "st1h";
-      break;
-    case ST1W_z_p_bz_d_64_scaled:
-      mnemonic = "st1w";
-      break;
-    default:
-      form = "(SVE64BitScatterStore_ScalarPlus64BitScaledOffsets)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d, lsl #'u2423]");
 }
 
 void Disassembler::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d]";
-
-  switch (
-      instr->Mask(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffsetsMask)) {
-    case ST1B_z_p_bz_d_64_unscaled:
-      mnemonic = "st1b";
-      break;
-    case ST1D_z_p_bz_d_64_unscaled:
-      mnemonic = "st1d";
-      break;
-    case ST1H_z_p_bz_d_64_unscaled:
-      mnemonic = "st1h";
-      break;
-    case ST1W_z_p_bz_d_64_unscaled:
-      mnemonic = "st1w";
-      break;
-    default:
-      form = "(SVE64BitScatterStore_ScalarPlus64BitUnscaledOffset)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "{'Zt.d}, 'Pgl, ['Xns, 'Zm.d]");
 }
 
 void Disassembler::
@@ -5044,26 +4641,7 @@ void Disassembler::VisitSVEBitwiseLogicalWithImm_Unpredicated(
 }
 
 void Disassembler::VisitSVEBitwiseLogical_Predicated(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
-
-  switch (instr->Mask(SVEBitwiseLogical_PredicatedMask)) {
-    case AND_z_p_zz:
-      mnemonic = "and";
-      break;
-    case BIC_z_p_zz:
-      mnemonic = "bic";
-      break;
-    case EOR_z_p_zz:
-      mnemonic = "eor";
-      break;
-    case ORR_z_p_zz:
-      mnemonic = "orr";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEBitwiseShiftByImm_Predicated(
@@ -5102,33 +4680,7 @@ void Disassembler::VisitSVEBitwiseShiftByImm_Predicated(
 
 void Disassembler::VisitSVEBitwiseShiftByVector_Predicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
-
-  switch (instr->Mask(SVEBitwiseShiftByVector_PredicatedMask)) {
-    case ASRR_z_p_zz:
-      mnemonic = "asrr";
-      break;
-    case ASR_z_p_zz:
-      mnemonic = "asr";
-      break;
-    case LSLR_z_p_zz:
-      mnemonic = "lslr";
-      break;
-    case LSL_z_p_zz:
-      mnemonic = "lsl";
-      break;
-    case LSRR_z_p_zz:
-      mnemonic = "lsrr";
-      break;
-    case LSR_z_p_zz:
-      mnemonic = "lsr";
-      break;
-    default:
-      form = "(SVEBitwiseShiftByVector_Predicated)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEBitwiseShiftByWideElements_Predicated(
@@ -5349,39 +4901,18 @@ void Disassembler::VisitSVEBroadcastIntImm_Unpredicated(
 }
 
 void Disassembler::VisitSVECompressActiveElements(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVECompressActiveElements)";
-
-  switch (instr->Mask(SVECompressActiveElementsMask)) {
-    case COMPACT_z_p_z:
-      // The top bit of size is always set for compact, so 't can only be
-      // substituted with types S and D.
-      VIXL_ASSERT(instr->ExtractBit(23) == 1);
-      mnemonic = "compact";
-      form = "'Zd.'t, 'Pgl, 'Zn.'t";
-      break;
-    default:
-      break;
+  // The top bit of size is always set for compact, so 't can only be
+  // substituted with types S and D.
+  if (instr->ExtractBit(23) == 1) {
+    FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl, 'Zn.'t");
+  } else {
+    VisitUnallocated(instr);
   }
-  Format(instr, mnemonic, form);
 }
 
 void Disassembler::VisitSVEConditionallyBroadcastElementToVector(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t";
-
-  switch (instr->Mask(SVEConditionallyBroadcastElementToVectorMask)) {
-    case CLASTA_z_p_zz:
-      mnemonic = "clasta";
-      break;
-    case CLASTB_z_p_zz:
-      mnemonic = "clastb";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEConditionallyExtractElementToGeneralRegister(
@@ -5408,54 +4939,18 @@ void Disassembler::VisitSVEConditionallyExtractElementToGeneralRegister(
 
 void Disassembler::VisitSVEConditionallyExtractElementToSIMDFPScalar(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'t'u0400, 'Pgl, 't'u0400, 'Zn.'t";
-
-  switch (instr->Mask(SVEConditionallyExtractElementToSIMDFPScalarMask)) {
-    case CLASTA_v_p_z:
-      mnemonic = "clasta";
-      break;
-    case CLASTB_v_p_z:
-      mnemonic = "clastb";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'t'u0400, 'Pgl, 't'u0400, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEConditionallyTerminateScalars(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
   const char *form = (instr->ExtractBit(22) == 0) ? "'Wn, 'Wm" : "'Xn, 'Xm";
-
-  switch (instr->Mask(SVEConditionallyTerminateScalarsMask)) {
-    case CTERMEQ_rr:
-      mnemonic = "ctermeq";
-      break;
-    case CTERMNE_rr:
-      mnemonic = "ctermne";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 void Disassembler::VisitSVEConstructivePrefix_Unpredicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEConstructivePrefix_Unpredicated)";
-
-  switch (instr->Mask(SVEConstructivePrefix_UnpredicatedMask)) {
-    case MOVPRFX_z_z:
-      mnemonic = "movprfx";
-      form = "'Zd, 'Zn";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd, 'Zn");
 }
 
 void Disassembler::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
@@ -5764,28 +5259,8 @@ void Disassembler::VisitSVEContiguousStore_ScalarPlusImm(
 
 void Disassembler::VisitSVEContiguousStore_ScalarPlusScalar(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-
   // The 'size' field isn't in the usual place here.
-  const char *form = "{'Zt.'tls}, 'Pgl, ['Xns, 'Xm'NSveS]";
-
-  switch (instr->Mask(SVEContiguousStore_ScalarPlusScalarMask)) {
-    case ST1B_z_p_br:
-      mnemonic = "st1b";
-      break;
-    case ST1D_z_p_br:
-      mnemonic = "st1d";
-      break;
-    case ST1H_z_p_br:
-      mnemonic = "st1h";
-      break;
-    case ST1W_z_p_br:
-      mnemonic = "st1w";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "{'Zt.'tls}, 'Pgl, ['Xns, 'Xm'NSveS]");
 }
 
 void Disassembler::VisitSVECopyFPImm_Predicated(const Instruction *instr) {
@@ -5886,20 +5361,7 @@ void Disassembler::VisitSVEExtractElementToGeneralRegister(
 
 void Disassembler::VisitSVEExtractElementToSIMDFPScalarRegister(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'t'u0400, 'Pgl, 'Zn.'t";
-
-  switch (instr->Mask(SVEExtractElementToSIMDFPScalarRegisterMask)) {
-    case LASTA_v_p_z:
-      mnemonic = "lasta";
-      break;
-    case LASTB_v_p_z:
-      mnemonic = "lastb";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'t'u0400, 'Pgl, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEFFRInitialise(const Instruction *instr) {
@@ -5918,18 +5380,7 @@ void Disassembler::VisitSVEFFRInitialise(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEFFRWriteFromPredicate(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEFFRWriteFromPredicate)";
-
-  switch (instr->Mask(SVEFFRWriteFromPredicateMask)) {
-    case WRFFR_f_p:
-      mnemonic = "wrffr";
-      form = "'Pn.b";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pn.b");
 }
 
 void Disassembler::VisitSVEFPArithmeticWithImm_Predicated(
@@ -6271,40 +5722,9 @@ static const char *IncDecFormHelper(const Instruction *instr,
 
 void Disassembler::VisitSVEIncDecRegisterByElementCount(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
   const char *form =
       IncDecFormHelper(instr, "'Xd, 'Ipc, mul #'u1916+1", "'Xd, 'Ipc", "'Xd");
-
-  switch (instr->Mask(SVEIncDecRegisterByElementCountMask)) {
-    case DECB_r_rs:
-      mnemonic = "decb";
-      break;
-    case DECD_r_rs:
-      mnemonic = "decd";
-      break;
-    case DECH_r_rs:
-      mnemonic = "dech";
-      break;
-    case DECW_r_rs:
-      mnemonic = "decw";
-      break;
-    case INCB_r_rs:
-      mnemonic = "incb";
-      break;
-    case INCD_r_rs:
-      mnemonic = "incd";
-      break;
-    case INCH_r_rs:
-      mnemonic = "inch";
-      break;
-    case INCW_r_rs:
-      mnemonic = "incw";
-      break;
-    default:
-      form = "(SVEIncDecRegisterByElementCount)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 void Disassembler::VisitSVEIncDecVectorByElementCount(
@@ -6362,18 +5782,7 @@ void Disassembler::VisitSVEInsertGeneralRegister(const Instruction *instr) {
 
 void Disassembler::VisitSVEInsertSIMDFPScalarRegister(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEInsertSIMDFPScalarRegister)";
-
-  switch (instr->Mask(SVEInsertSIMDFPScalarRegisterMask)) {
-    case INSR_z_v:
-      mnemonic = "insr";
-      form = "'Zd.'t, 'Vnv";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Vnv");
 }
 
 void Disassembler::VisitSVEIntAddSubtractImm_Unpredicated(
@@ -6414,30 +5823,14 @@ void Disassembler::VisitSVEIntAddSubtractImm_Unpredicated(
 
 void Disassembler::VisitSVEIntAddSubtractVectors_Predicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
-
-  switch (instr->Mask(SVEIntAddSubtractVectors_PredicatedMask)) {
-    case ADD_z_p_zz:
-      mnemonic = "add";
-      break;
-    case SUBR_z_p_zz:
-      mnemonic = "subr";
-      break;
-    case SUB_z_p_zz:
-      mnemonic = "sub";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEIntCompareScalarCountAndLimit(
     const Instruction *instr) {
   const char *form =
       (instr->ExtractBit(12) == 0) ? "'Pd.'t, 'Wn, 'Wm" : "'Pd.'t, 'Xn, 'Xm";
-  Format(instr, mnemonic_.c_str(), form);
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 void Disassembler::VisitSVEIntConvertToFP(const Instruction *instr) {
@@ -6556,32 +5949,7 @@ void Disassembler::VisitSVEIntDivideVectors_Predicated(
 
 void Disassembler::VisitSVEIntMinMaxDifference_Predicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
-
-  switch (instr->Mask(SVEIntMinMaxDifference_PredicatedMask)) {
-    case SABD_z_p_zz:
-      mnemonic = "sabd";
-      break;
-    case SMAX_z_p_zz:
-      mnemonic = "smax";
-      break;
-    case SMIN_z_p_zz:
-      mnemonic = "smin";
-      break;
-    case UABD_z_p_zz:
-      mnemonic = "uabd";
-      break;
-    case UMAX_z_p_zz:
-      mnemonic = "umax";
-      break;
-    case UMIN_z_p_zz:
-      mnemonic = "umin";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEIntMinMaxImm_Unpredicated(const Instruction *instr) {
@@ -6610,38 +5978,11 @@ void Disassembler::VisitSVEIntMinMaxImm_Unpredicated(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEIntMulImm_Unpredicated(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEIntMulImm_Unpredicated)";
-
-  switch (instr->Mask(SVEIntMulImm_UnpredicatedMask)) {
-    case MUL_z_zi:
-      mnemonic = "mul";
-      form = "'Zd.'t, 'Zd.'t, #'s1205";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Zd.'t, #'s1205");
 }
 
 void Disassembler::VisitSVEIntMulVectors_Predicated(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t";
-
-  switch (instr->Mask(SVEIntMulVectors_PredicatedMask)) {
-    case MUL_z_p_zz:
-      mnemonic = "mul";
-      break;
-    case SMULH_z_p_zz:
-      mnemonic = "smulh";
-      break;
-    case UMULH_z_p_zz:
-      mnemonic = "umulh";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl/m, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVELoadAndBroadcastElement(const Instruction *instr) {
@@ -6973,165 +6314,41 @@ void Disassembler::VisitSVELoadVectorRegister(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEPartitionBreakCondition(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.b, p'u1310/'?04:mz, 'Pn.b";
-
-  switch (instr->Mask(SVEPartitionBreakConditionMask)) {
-    case BRKAS_p_p_p_z:
-      mnemonic = "brkas";
-      break;
-    case BRKA_p_p_p:
-      mnemonic = "brka";
-      break;
-    case BRKBS_p_p_p_z:
-      mnemonic = "brkbs";
-      break;
-    case BRKB_p_p_p:
-      mnemonic = "brkb";
-      break;
-    default:
-      form = "(SVEPartitionBreakCondition)";
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b, p'u1310/'?04:mz, 'Pn.b");
 }
 
 void Disassembler::VisitSVEPermutePredicateElements(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.'t, 'Pn.'t, 'Pm.'t";
-
-  switch (instr->Mask(SVEPermutePredicateElementsMask)) {
-    case TRN1_p_pp:
-      mnemonic = "trn1";
-      break;
-    case TRN2_p_pp:
-      mnemonic = "trn2";
-      break;
-    case UZP1_p_pp:
-      mnemonic = "uzp1";
-      break;
-    case UZP2_p_pp:
-      mnemonic = "uzp2";
-      break;
-    case ZIP1_p_pp:
-      mnemonic = "zip1";
-      break;
-    case ZIP2_p_pp:
-      mnemonic = "zip2";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.'t, 'Pn.'t, 'Pm.'t");
 }
 
 void Disassembler::VisitSVEPredicateFirstActive(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateFirstActive)";
-
-  switch (instr->Mask(SVEPredicateFirstActiveMask)) {
-    case PFIRST_p_p_p:
-      mnemonic = "pfirst";
-      form = "'Pd.b, 'Pn, 'Pd.b";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b, 'Pn, 'Pd.b");
 }
 
 void Disassembler::VisitSVEPredicateReadFromFFR_Unpredicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateReadFromFFR_Unpredicated)";
-
-  switch (instr->Mask(SVEPredicateReadFromFFR_UnpredicatedMask)) {
-    case RDFFR_p_f:
-      mnemonic = "rdffr";
-      form = "'Pd.b";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b");
 }
 
 void Disassembler::VisitSVEPredicateTest(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateTest)";
-
-  switch (instr->Mask(SVEPredicateTestMask)) {
-    case PTEST_p_p:
-      mnemonic = "ptest";
-      form = "p'u1310, 'Pn.b";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "p'u1310, 'Pn.b");
 }
 
 void Disassembler::VisitSVEPredicateZero(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateZero)";
-
-  switch (instr->Mask(SVEPredicateZeroMask)) {
-    case PFALSE_p:
-      mnemonic = "pfalse";
-      form = "'Pd.b";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b");
 }
 
 void Disassembler::VisitSVEPropagateBreakToNextPartition(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.b, p'u1310/z, 'Pn.b, 'Pd.b";
-
-  switch (instr->Mask(SVEPropagateBreakToNextPartitionMask)) {
-    case BRKNS_p_p_pp:
-      mnemonic = "brkns";
-      break;
-    case BRKN_p_p_pp:
-      mnemonic = "brkn";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b, p'u1310/z, 'Pn.b, 'Pd.b");
 }
 
 void Disassembler::VisitSVEReversePredicateElements(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEReversePredicateElements)";
-
-  switch (instr->Mask(SVEReversePredicateElementsMask)) {
-    case REV_p_p:
-      mnemonic = "rev";
-      form = "'Pd.'t, 'Pn.'t";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.'t, 'Pn.'t");
 }
 
 void Disassembler::VisitSVEReverseVectorElements(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEReverseVectorElements)";
-
-  switch (instr->Mask(SVEReverseVectorElementsMask)) {
-    case REV_z_z:
-      mnemonic = "rev";
-      form = "'Zd.'t, 'Zn.'t";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEReverseWithinElements(const Instruction *instr) {
@@ -7503,35 +6720,11 @@ void Disassembler::VisitSVEStoreVectorRegister(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVETableLookup(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVETableLookup)";
-
-  switch (instr->Mask(SVETableLookupMask)) {
-    case TBL_z_zz_1:
-      mnemonic = "tbl";
-      form = "'Zd.'t, {'Zn.'t}, 'Zm.'t";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, {'Zn.'t}, 'Zm.'t");
 }
 
 void Disassembler::VisitSVEUnpackPredicateElements(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.h, 'Pn.b";
-
-  switch (instr->Mask(SVEUnpackPredicateElementsMask)) {
-    case PUNPKHI_p_p:
-      mnemonic = "punpkhi";
-      break;
-    case PUNPKLO_p_p:
-      mnemonic = "punpklo";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.h, 'Pn.b");
 }
 
 void Disassembler::VisitSVEUnpackVectorElements(const Instruction *instr) {
@@ -7564,18 +6757,7 @@ void Disassembler::VisitSVEUnpackVectorElements(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEVectorSplice(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEVectorSplice)";
-
-  switch (instr->Mask(SVEVectorSpliceMask)) {
-    case SPLICE_z_p_zz_des:
-      mnemonic = "splice";
-      form = "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl, 'Zd.'t, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEAddressGeneration(const Instruction *instr) {
@@ -7683,27 +6865,9 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEElementCount(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
   const char *form =
       IncDecFormHelper(instr, "'Xd, 'Ipc, mul #'u1916+1", "'Xd, 'Ipc", "'Xd");
-
-  switch (instr->Mask(SVEElementCountMask)) {
-    case CNTB_r_s:
-      mnemonic = "cntb";
-      break;
-    case CNTD_r_s:
-      mnemonic = "cntd";
-      break;
-    case CNTH_r_s:
-      mnemonic = "cnth";
-      break;
-    case CNTW_r_s:
-      mnemonic = "cntw";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 void Disassembler::VisitSVEFPAccumulatingReduction(const Instruction *instr) {
@@ -8148,84 +7312,15 @@ void Disassembler::VisitSVEIndexGeneration(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEIntArithmeticUnpredicated(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
-
-  switch (instr->Mask(SVEIntArithmeticUnpredicatedMask)) {
-    case ADD_z_zz:
-      mnemonic = "add";
-      break;
-    case SQADD_z_zz:
-      mnemonic = "sqadd";
-      break;
-    case SQSUB_z_zz:
-      mnemonic = "sqsub";
-      break;
-    case SUB_z_zz:
-      mnemonic = "sub";
-      break;
-    case UQADD_z_zz:
-      mnemonic = "uqadd";
-      break;
-    case UQSUB_z_zz:
-      mnemonic = "uqsub";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Zn.'t, 'Zm.'t");
 }
 
 void Disassembler::VisitSVEIntCompareSignedImm(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.'t, 'Pgl/z, 'Zn.'t, #'s2016";
-
-  switch (instr->Mask(SVEIntCompareSignedImmMask)) {
-    case CMPEQ_p_p_zi:
-      mnemonic = "cmpeq";
-      break;
-    case CMPGE_p_p_zi:
-      mnemonic = "cmpge";
-      break;
-    case CMPGT_p_p_zi:
-      mnemonic = "cmpgt";
-      break;
-    case CMPLE_p_p_zi:
-      mnemonic = "cmple";
-      break;
-    case CMPLT_p_p_zi:
-      mnemonic = "cmplt";
-      break;
-    case CMPNE_p_p_zi:
-      mnemonic = "cmpne";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.'t, 'Pgl/z, 'Zn.'t, #'s2016");
 }
 
 void Disassembler::VisitSVEIntCompareUnsignedImm(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.'t, 'Pgl/z, 'Zn.'t, #'u2014";
-
-  switch (instr->Mask(SVEIntCompareUnsignedImmMask)) {
-    case CMPHI_p_p_zi:
-      mnemonic = "cmphi";
-      break;
-    case CMPHS_p_p_zi:
-      mnemonic = "cmphs";
-      break;
-    case CMPLO_p_p_zi:
-      mnemonic = "cmplo";
-      break;
-    case CMPLS_p_p_zi:
-      mnemonic = "cmpls";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.'t, 'Pgl/z, 'Zn.'t, #'u2014");
 }
 
 void Disassembler::VisitSVEIntCompareVectors(const Instruction *instr) {
@@ -8342,15 +7437,7 @@ void Disassembler::VisitSVEIntMulAddUnpredicated(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEMovprfx(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEMovprfx)";
-
-  if (instr->Mask(SVEMovprfxMask) == MOVPRFX_z_p_z) {
-    mnemonic = "movprfx";
-    form = "'Zd.'t, 'Pgl/'?16:mz, 'Zn.'t";
-  }
-
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Pgl/'?16:mz, 'Zn.'t");
 }
 
 void Disassembler::VisitSVEIntReduction(const Instruction *instr) {
@@ -8457,62 +7544,15 @@ void Disassembler::VisitSVEMulIndex(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEPermuteVectorExtract(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPermuteVectorExtract)";
-
-  switch (instr->Mask(SVEPermuteVectorExtractMask)) {
-    case EXT_z_zi_des:
-      mnemonic = "ext";
-      form = "'Zd.b, 'Zd.b, 'Zn.b, #'u2016:1210";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.b, 'Zd.b, 'Zn.b, #'u2016:1210");
 }
 
 void Disassembler::VisitSVEPermuteVectorInterleaving(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Zd.'t, 'Zn.'t, 'Zm.'t";
-
-  switch (instr->Mask(SVEPermuteVectorInterleavingMask)) {
-    case TRN1_z_zz:
-      mnemonic = "trn1";
-      break;
-    case TRN2_z_zz:
-      mnemonic = "trn2";
-      break;
-    case UZP1_z_zz:
-      mnemonic = "uzp1";
-      break;
-    case UZP2_z_zz:
-      mnemonic = "uzp2";
-      break;
-    case ZIP1_z_zz:
-      mnemonic = "zip1";
-      break;
-    case ZIP2_z_zz:
-      mnemonic = "zip2";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Zn.'t, 'Zm.'t");
 }
 
 void Disassembler::VisitSVEPredicateCount(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateCount)";
-
-  switch (instr->Mask(SVEPredicateCountMask)) {
-    case CNTP_r_p_p:
-      mnemonic = "cntp";
-      form = "'Xd, p'u1310, 'Pn.'t";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Xd, p'u1310, 'Pn.'t");
 }
 
 void Disassembler::VisitSVEPredicateLogical(const Instruction *instr) {
@@ -8608,100 +7648,31 @@ void Disassembler::VisitSVEPredicateLogical(const Instruction *instr) {
 }
 
 void Disassembler::VisitSVEPredicateInitialize(const Instruction *instr) {
-  // This group only contains PTRUE{S}, and there are no unallocated encodings.
-  VIXL_STATIC_ASSERT(
-      SVEPredicateInitializeMask ==
-      (SVEPredicateInitializeFMask | SVEPredicateInitializeSetFlagsBit));
-  VIXL_ASSERT((instr->Mask(SVEPredicateInitializeMask) == PTRUE_p_s) ||
-              (instr->Mask(SVEPredicateInitializeMask) == PTRUES_p_s));
-
-  const char *mnemonic = instr->ExtractBit(16) ? "ptrues" : "ptrue";
   const char *form = "'Pd.'t, 'Ipc";
   // Omit the pattern if it is the default ('ALL').
   if (instr->ExtractBits(9, 5) == SVE_ALL) form = "'Pd.'t";
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 void Disassembler::VisitSVEPredicateNextActive(const Instruction *instr) {
-  // This group only contains PNEXT, and there are no unallocated encodings.
-  VIXL_STATIC_ASSERT(SVEPredicateNextActiveFMask == SVEPredicateNextActiveMask);
-  VIXL_ASSERT(instr->Mask(SVEPredicateNextActiveMask) == PNEXT_p_p_p);
-
-  Format(instr, "pnext", "'Pd.'t, 'Pn, 'Pd.'t");
+  FormatWithDecodedMnemonic(instr, "'Pd.'t, 'Pn, 'Pd.'t");
 }
 
 void Disassembler::VisitSVEPredicateReadFromFFR_Predicated(
     const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEPredicateReadFromFFR_Predicated)";
-  switch (instr->Mask(SVEPredicateReadFromFFR_PredicatedMask)) {
-    case RDFFR_p_p_f:
-    case RDFFRS_p_p_f:
-      mnemonic = instr->ExtractBit(22) ? "rdffrs" : "rdffr";
-      form = "'Pd.b, 'Pn/z";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b, 'Pn/z");
 }
 
 void Disassembler::VisitSVEPropagateBreak(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Pd.b, p'u1310/z, 'Pn.b, 'Pm.b";
-
-  switch (instr->Mask(SVEPropagateBreakMask)) {
-    case BRKPAS_p_p_pp:
-      mnemonic = "brkpas";
-      break;
-    case BRKPA_p_p_pp:
-      mnemonic = "brkpa";
-      break;
-    case BRKPBS_p_p_pp:
-      mnemonic = "brkpbs";
-      break;
-    case BRKPB_p_p_pp:
-      mnemonic = "brkpb";
-      break;
-    default:
-      break;
-  }
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Pd.b, p'u1310/z, 'Pn.b, 'Pm.b");
 }
 
 void Disassembler::VisitSVEStackFrameAdjustment(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "'Xds, 'Xms, #'s1005";
-
-  switch (instr->Mask(SVEStackFrameAdjustmentMask)) {
-    case ADDPL_r_ri:
-      mnemonic = "addpl";
-      break;
-    case ADDVL_r_ri:
-      mnemonic = "addvl";
-      break;
-    default:
-      form = "(SVEStackFrameAdjustment)";
-      break;
-  }
-
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Xds, 'Xms, #'s1005");
 }
 
 void Disassembler::VisitSVEStackFrameSize(const Instruction *instr) {
-  const char *mnemonic = "unimplemented";
-  const char *form = "(SVEStackFrameSize)";
-
-  switch (instr->Mask(SVEStackFrameSizeMask)) {
-    case RDVL_r_i:
-      mnemonic = "rdvl";
-      form = "'Xd, #'s1005";
-      break;
-    default:
-      break;
-  }
-
-  Format(instr, mnemonic, form);
+  FormatWithDecodedMnemonic(instr, "'Xd, #'s1005");
 }
 
 void Disassembler::VisitSVEVectorSelect(const Instruction *instr) {
@@ -9374,6 +8345,11 @@ void Disassembler::Format(const Instruction *instr,
   }
 }
 
+void Disassembler::FormatWithDecodedMnemonic(const Instruction *instr,
+                                             const char *format0,
+                                             const char *format1) {
+  Format(instr, mnemonic_.c_str(), format0, format1);
+}
 
 void Disassembler::Substitute(const Instruction *instr, const char *string) {
   char chr = *string++;

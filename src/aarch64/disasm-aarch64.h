@@ -229,6 +229,10 @@ class Disassembler : public DecoderVisitor {
               const char* mnemonic,
               const char* format0,
               const char* format1 = NULL);
+  void FormatWithDecodedMnemonic(const Instruction* instr,
+                                 const char* format0,
+                                 const char* format1 = NULL);
+
   void Substitute(const Instruction* instr, const char* string);
   int SubstituteField(const Instruction* instr, const char* format);
   int SubstituteRegisterField(const Instruction* instr, const char* format);
