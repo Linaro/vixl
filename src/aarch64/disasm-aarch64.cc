@@ -1302,19 +1302,19 @@ void Disassembler::VisitUnconditionalBranchToRegister(
   const char *form = "'Xn";
 
   switch (form_hash_) {
-    case Hash("ret_64r_branch_reg"):
+    case "ret_64r_branch_reg"_h:
       if (instr->GetRn() == kLinkRegCode) {
         form = "";
       }
       break;
-    case Hash("retaa_64e_branch_reg"):
-    case Hash("retab_64e_branch_reg"):
+    case "retaa_64e_branch_reg"_h:
+    case "retab_64e_branch_reg"_h:
       form = "";
       break;
-    case Hash("braa_64p_branch_reg"):
-    case Hash("brab_64p_branch_reg"):
-    case Hash("blraa_64p_branch_reg"):
-    case Hash("blrab_64p_branch_reg"):
+    case "braa_64p_branch_reg"_h:
+    case "brab_64p_branch_reg"_h:
+    case "blraa_64p_branch_reg"_h:
+    case "blrab_64p_branch_reg"_h:
       form = "'Xn, 'Xds";
       break;
   }
@@ -2723,17 +2723,17 @@ void Disassembler::VisitSystem(const Instruction *instr) {
   const char *suffix = NULL;
 
   switch (form_hash_) {
-    case Hash("clrex_bn_barriers"):
+    case "clrex_bn_barriers"_h:
       form = (instr->GetCRm() == 0xf) ? "" : "'IX";
       break;
-    case Hash("mrs_rs_systemmove"):
+    case "mrs_rs_systemmove"_h:
       form = "'Xt, 'IY";
       break;
-    case Hash("msr_si_pstate"):
-    case Hash("msr_sr_systemmove"):
+    case "msr_si_pstate"_h:
+    case "msr_sr_systemmove"_h:
       form = "'IY, 'Xt";
       break;
-    case Hash("bti_hb_hints"):
+    case "bti_hb_hints"_h:
       switch (instr->ExtractBits(7, 6)) {
         case 0:
           form = "";
@@ -2749,14 +2749,14 @@ void Disassembler::VisitSystem(const Instruction *instr) {
           break;
       }
       break;
-    case Hash("hint_hm_hints"):
+    case "hint_hm_hints"_h:
       form = "'IH";
       break;
-    case Hash("dmb_bo_barriers"):
-    case Hash("dsb_bo_barriers"):
+    case "dmb_bo_barriers"_h:
+    case "dsb_bo_barriers"_h:
       form = "'M";
       break;
-    case Hash("sys_cr_systeminstrs"):
+    case "sys_cr_systeminstrs"_h:
       mnemonic = "dc";
       suffix = ", 'Xt";
       switch (instr->GetSysOp()) {
@@ -2884,10 +2884,10 @@ void Disassembler::DisassembleNEON2RegFPConvert(const Instruction *instr) {
 
   VectorFormat vform_dst = nfd.GetVectorFormat(0);
   switch (form_hash_) {
-    case Hash("fcvtl_asimdmisc_l"):
+    case "fcvtl_asimdmisc_l"_h:
       nfd.SetFormatMaps(&map_cvt_ta, &map_cvt_tb);
       break;
-    case Hash("fcvtxn_asimdmisc_n"):
+    case "fcvtxn_asimdmisc_n"_h:
       if ((vform_dst != kFormat2S) && (vform_dst != kFormat4S)) {
         mnemonic = NULL;
       }
@@ -2907,7 +2907,7 @@ void Disassembler::DisassembleNEON2RegLogical(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Vd.%s, 'Vn.%s";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
-  if (form_hash_ == Hash("not_asimdmisc_r")) {
+  if (form_hash_ == "not_asimdmisc_r"_h) {
     mnemonic = "mvn";
   }
   Format(instr, mnemonic, nfd.Substitute(form));
@@ -2921,7 +2921,7 @@ void Disassembler::DisassembleNEON2RegExtract(const Instruction *instr) {
                         NEONFormatDecoder::IntegerFormatMap(),
                         NEONFormatDecoder::LongIntegerFormatMap());
 
-  if (form_hash_ == Hash("shll_asimdmisc_s")) {
+  if (form_hash_ == "shll_asimdmisc_s"_h) {
     nfd.SetFormatMaps(nfd.LongIntegerFormatMap(), nfd.IntegerFormatMap());
     switch (instr->GetNEONSize()) {
       case 0:
@@ -2947,27 +2947,27 @@ void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
   if (vform_dst != kFormatUndefined) {
     uint32_t ls_dst = LaneSizeInBitsFromFormat(vform_dst);
     switch (form_hash_) {
-      case Hash("cnt_asimdmisc_r"):
-      case Hash("rev16_asimdmisc_r"):
+      case "cnt_asimdmisc_r"_h:
+      case "rev16_asimdmisc_r"_h:
         if (ls_dst != kBRegSize) {
           mnemonic = NULL;
         }
         break;
-      case Hash("rev32_asimdmisc_r"):
+      case "rev32_asimdmisc_r"_h:
         if ((ls_dst == kDRegSize) || (ls_dst == kSRegSize)) {
           mnemonic = NULL;
         }
         break;
-      case Hash("urecpe_asimdmisc_r"):
-      case Hash("ursqrte_asimdmisc_r"):
+      case "urecpe_asimdmisc_r"_h:
+      case "ursqrte_asimdmisc_r"_h:
         // For urecpe and ursqrte, only S-sized elements are supported. The MSB
         // of the size field is always set by the instruction (0b1x) so we need
         // only check and discard D-sized elements here.
         VIXL_ASSERT((ls_dst == kSRegSize) || (ls_dst == kDRegSize));
         VIXL_FALLTHROUGH();
-      case Hash("clz_asimdmisc_r"):
-      case Hash("cls_asimdmisc_r"):
-      case Hash("rev64_asimdmisc_r"):
+      case "clz_asimdmisc_r"_h:
+      case "cls_asimdmisc_r"_h:
+      case "rev64_asimdmisc_r"_h:
         if (ls_dst == kDRegSize) {
           mnemonic = NULL;
         }
@@ -2984,11 +2984,11 @@ void Disassembler::VisitNEON2RegMiscFP16(const Instruction *instr) {
   const char *suffix = NULL;
 
   switch (form_hash_) {
-    case Hash("fcmeq_asimdmiscfp16_fz"):
-    case Hash("fcmge_asimdmiscfp16_fz"):
-    case Hash("fcmgt_asimdmiscfp16_fz"):
-    case Hash("fcmle_asimdmiscfp16_fz"):
-    case Hash("fcmlt_asimdmiscfp16_fz"):
+    case "fcmeq_asimdmiscfp16_fz"_h:
+    case "fcmge_asimdmiscfp16_fz"_h:
+    case "fcmgt_asimdmiscfp16_fz"_h:
+    case "fcmle_asimdmiscfp16_fz"_h:
+    case "fcmlt_asimdmiscfp16_fz"_h:
       suffix = ", #0.0";
   }
   Format(instr, mnemonic, form, suffix);
@@ -3000,13 +3000,13 @@ void Disassembler::DisassembleNEON3SameLogical(const Instruction *instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
 
   switch (form_hash_) {
-    case Hash("orr_asimdsame_only"):
+    case "orr_asimdsame_only"_h:
       if (instr->GetRm() == instr->GetRn()) {
         mnemonic = "mov";
         form = "'Vd.%s, 'Vn.%s";
       }
       break;
-    case Hash("pmul_asimdsame_only"):
+    case "pmul_asimdsame_only"_h:
       if (instr->GetNEONSize() != 0) {
         mnemonic = NULL;
       }
@@ -3043,8 +3043,8 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
   if (vform_dst != kFormatUndefined) {
     uint32_t ls_dst = LaneSizeInBitsFromFormat(vform_dst);
     switch (form_hash_) {
-      case Hash("sqdmulh_asimdsame_only"):
-      case Hash("sqrdmulh_asimdsame_only"):
+      case "sqdmulh_asimdsame_only"_h:
+      case "sqrdmulh_asimdsame_only"_h:
         if ((ls_dst == kBRegSize) || (ls_dst == kDRegSize)) {
           mnemonic = NULL;
         }
@@ -3072,16 +3072,16 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
   NEONFormatDecoder nfd(instr);
 
   switch (form_hash_) {
-    case Hash("fcmla_asimdsame2_c"):
+    case "fcmla_asimdsame2_c"_h:
       suffix = ", #'u1211*90";
       break;
-    case Hash("fcadd_asimdsame2_c"):
+    case "fcadd_asimdsame2_c"_h:
       // Bit 10 is always set, so this gives 90 * 1 or 3.
       suffix = ", #'u1212:1010*90";
       break;
-    case Hash("sdot_asimdsame2_d"):
-    case Hash("udot_asimdsame2_d"):
-    case Hash("usdot_asimdsame2_d"):
+    case "sdot_asimdsame2_d"_h:
+    case "udot_asimdsame2_d"_h:
+    case "usdot_asimdsame2_d"_h:
       nfd.SetFormatMap(1, &map_usdot);
       nfd.SetFormatMap(2, &map_usdot);
       break;
@@ -3102,27 +3102,27 @@ void Disassembler::VisitNEON3Different(const Instruction *instr) {
   nfd.SetFormatMap(0, nfd.LongIntegerFormatMap());
 
   switch (form_hash_) {
-    case Hash("saddw_asimddiff_w"):
-    case Hash("ssubw_asimddiff_w"):
-    case Hash("uaddw_asimddiff_w"):
-    case Hash("usubw_asimddiff_w"):
+    case "saddw_asimddiff_w"_h:
+    case "ssubw_asimddiff_w"_h:
+    case "uaddw_asimddiff_w"_h:
+    case "usubw_asimddiff_w"_h:
       nfd.SetFormatMap(1, nfd.LongIntegerFormatMap());
       break;
-    case Hash("addhn_asimddiff_n"):
-    case Hash("raddhn_asimddiff_n"):
-    case Hash("rsubhn_asimddiff_n"):
-    case Hash("subhn_asimddiff_n"):
+    case "addhn_asimddiff_n"_h:
+    case "raddhn_asimddiff_n"_h:
+    case "rsubhn_asimddiff_n"_h:
+    case "subhn_asimddiff_n"_h:
       nfd.SetFormatMaps(nfd.LongIntegerFormatMap());
       nfd.SetFormatMap(0, nfd.IntegerFormatMap());
       break;
-    case Hash("pmull_asimddiff_l"):
+    case "pmull_asimddiff_l"_h:
       if (nfd.GetVectorFormat(0) != kFormat8H) {
         mnemonic = NULL;
       }
       break;
-    case Hash("sqdmlal_asimddiff_l"):
-    case Hash("sqdmlsl_asimddiff_l"):
-    case Hash("sqdmull_asimddiff_l"):
+    case "sqdmlal_asimddiff_l"_h:
+    case "sqdmlsl_asimddiff_l"_h:
+    case "sqdmull_asimddiff_l"_h:
       if (nfd.GetVectorFormat(0) == kFormat8H) {
         mnemonic = NULL;
       }
@@ -3155,8 +3155,8 @@ void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
                         NEONFormatDecoder::IntegerFormatMap());
 
   switch (form_hash_) {
-    case Hash("saddlv_asimdall_only"):
-    case Hash("uaddlv_asimdall_only"):
+    case "saddlv_asimdall_only"_h:
+    case "uaddlv_asimdall_only"_h:
       nfd.SetFormatMap(0, nfd.LongScalarFormatMap());
   }
 
@@ -3242,12 +3242,12 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
                         NEONFormatDecoder::TriangularScalarFormatMap());
 
   switch (form_hash_) {
-    case Hash("ins_asimdins_iv_v"):
+    case "ins_asimdins_iv_v"_h:
       mnemonic = "mov";
       nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
       form = "'Vd.%s['IVInsIndex1], 'Vn.%s['IVInsIndex2]";
       break;
-    case Hash("ins_asimdins_ir_r"):
+    case "ins_asimdins_ir_r"_h:
       mnemonic = "mov";
       nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
       if (nfd.GetVectorFormat() == kFormatD) {
@@ -3256,8 +3256,8 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
         form = "'Vd.%s['IVInsIndex1], 'Wn";
       }
       break;
-    case Hash("umov_asimdins_w_w"):
-    case Hash("umov_asimdins_x_x"):
+    case "umov_asimdins_w_w"_h:
+    case "umov_asimdins_x_x"_h:
       if (instr->Mask(NEON_Q) || ((instr->GetImmNEON5() & 7) == 4)) {
         mnemonic = "mov";
       }
@@ -3268,8 +3268,8 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
         form = "'Wd, 'Vn.%s['IVInsIndex1]";
       }
       break;
-    case Hash("smov_asimdins_w_w"):
-    case Hash("smov_asimdins_x_x"): {
+    case "smov_asimdins_w_w"_h:
+    case "smov_asimdins_x_x"_h: {
       nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
       VectorFormat vform = nfd.GetVectorFormat();
       if ((vform == kFormatD) ||
@@ -3279,10 +3279,10 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
       form = "'R30d, 'Vn.%s['IVInsIndex1]";
       break;
     }
-    case Hash("dup_asimdins_dv_v"):
+    case "dup_asimdins_dv_v"_h:
       form = "'Vd.%s, 'Vn.%s['IVInsIndex1]";
       break;
-    case Hash("dup_asimdins_dr_r"):
+    case "dup_asimdins_dr_r"_h:
       if (nfd.GetVectorFormat() == kFormat2D) {
         form = "'Vd.%s, 'Xn";
       } else {
@@ -3835,40 +3835,40 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
 
   switch (form_hash_) {
-    case Hash("movi_asimdimm_n_b"):
+    case "movi_asimdimm_n_b"_h:
       form = "'Vt.%s, 'IVMIImm8";
       break;
-    case Hash("bic_asimdimm_l_hl"):
-    case Hash("movi_asimdimm_l_hl"):
-    case Hash("mvni_asimdimm_l_hl"):
-    case Hash("orr_asimdimm_l_hl"):
+    case "bic_asimdimm_l_hl"_h:
+    case "movi_asimdimm_l_hl"_h:
+    case "mvni_asimdimm_l_hl"_h:
+    case "orr_asimdimm_l_hl"_h:
       nfd.SetFormatMap(0, &map_h);
       break;
-    case Hash("movi_asimdimm_m_sm"):
-    case Hash("mvni_asimdimm_m_sm"):
+    case "movi_asimdimm_m_sm"_h:
+    case "mvni_asimdimm_m_sm"_h:
       form = "'Vt.%s, 'IVMIImm8, msl 'IVMIShiftAmt2";
       VIXL_FALLTHROUGH();
-    case Hash("bic_asimdimm_l_sl"):
-    case Hash("movi_asimdimm_l_sl"):
-    case Hash("mvni_asimdimm_l_sl"):
-    case Hash("orr_asimdimm_l_sl"):
+    case "bic_asimdimm_l_sl"_h:
+    case "movi_asimdimm_l_sl"_h:
+    case "mvni_asimdimm_l_sl"_h:
+    case "orr_asimdimm_l_sl"_h:
       nfd.SetFormatMap(0, &map_s);
       break;
-    case Hash("movi_asimdimm_d_ds"):
+    case "movi_asimdimm_d_ds"_h:
       form = "'Dd, 'IVMIImm";
       break;
-    case Hash("movi_asimdimm_d2_d"):
+    case "movi_asimdimm_d2_d"_h:
       form = "'Vt.2d, 'IVMIImm";
       break;
-    case Hash("fmov_asimdimm_h_h"):
+    case "fmov_asimdimm_h_h"_h:
       form = "'Vt.%s, 'IFPNeon";
       nfd.SetFormatMap(0, &map_h);
       break;
-    case Hash("fmov_asimdimm_s_s"):
+    case "fmov_asimdimm_s_s"_h:
       form = "'Vt.%s, 'IFPNeon";
       nfd.SetFormatMap(0, &map_s);
       break;
-    case Hash("fmov_asimdimm_d2_d"):
+    case "fmov_asimdimm_d2_d"_h:
       form = "'Vt.2d, 'IFPNeon";
       break;
   }
@@ -3885,8 +3885,8 @@ void Disassembler::DisassembleNEONScalar2RegMiscOnlyD(
     mnemonic = NULL;
   }
   switch (form_hash_) {
-    case Hash("abs_asisdmisc_r"):
-    case Hash("neg_asisdmisc_r"):
+    case "abs_asisdmisc_r"_h:
+    case "neg_asisdmisc_r"_h:
       suffix = NULL;
   }
   Format(instr, mnemonic, form, suffix);
@@ -3898,14 +3898,14 @@ void Disassembler::DisassembleNEONFPScalar2RegMisc(const Instruction *instr) {
   const char *suffix = NULL;
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap());
   switch (form_hash_) {
-    case Hash("fcmeq_asisdmisc_fz"):
-    case Hash("fcmge_asisdmisc_fz"):
-    case Hash("fcmgt_asisdmisc_fz"):
-    case Hash("fcmle_asisdmisc_fz"):
-    case Hash("fcmlt_asisdmisc_fz"):
+    case "fcmeq_asisdmisc_fz"_h:
+    case "fcmge_asisdmisc_fz"_h:
+    case "fcmgt_asisdmisc_fz"_h:
+    case "fcmle_asisdmisc_fz"_h:
+    case "fcmlt_asisdmisc_fz"_h:
       suffix = ", #0.0";
       break;
-    case Hash("fcvtxn_asisdmisc_n"):
+    case "fcvtxn_asisdmisc_n"_h:
       if (nfd.GetVectorFormat(0) == kFormatS) {  // Source format.
         mnemonic = NULL;
       }
@@ -3919,9 +3919,9 @@ void Disassembler::VisitNEONScalar2RegMisc(const Instruction *instr) {
   const char *form = "%sd, %sn";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   switch (form_hash_) {
-    case Hash("sqxtn_asisdmisc_n"):
-    case Hash("sqxtun_asisdmisc_n"):
-    case Hash("uqxtn_asisdmisc_n"):
+    case "sqxtn_asisdmisc_n"_h:
+    case "sqxtun_asisdmisc_n"_h:
+    case "uqxtn_asisdmisc_n"_h:
       nfd.SetFormatMap(1, nfd.LongScalarFormatMap());
   }
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
@@ -3933,11 +3933,11 @@ void Disassembler::VisitNEONScalar2RegMiscFP16(const Instruction *instr) {
   const char *suffix = NULL;
 
   switch (form_hash_) {
-    case Hash("fcmeq_asisdmiscfp16_fz"):
-    case Hash("fcmge_asisdmiscfp16_fz"):
-    case Hash("fcmgt_asisdmiscfp16_fz"):
-    case Hash("fcmle_asisdmiscfp16_fz"):
-    case Hash("fcmlt_asisdmiscfp16_fz"):
+    case "fcmeq_asisdmiscfp16_fz"_h:
+    case "fcmge_asisdmiscfp16_fz"_h:
+    case "fcmgt_asisdmiscfp16_fz"_h:
+    case "fcmle_asisdmiscfp16_fz"_h:
+    case "fcmlt_asisdmiscfp16_fz"_h:
       suffix = ", #0.0";
   }
   Format(instr, mnemonic, form, suffix);
@@ -3978,16 +3978,16 @@ void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   VectorFormat vform = nfd.GetVectorFormat(0);
   switch (form_hash_) {
-    case Hash("srshl_asisdsame_only"):
-    case Hash("urshl_asisdsame_only"):
-    case Hash("sshl_asisdsame_only"):
-    case Hash("ushl_asisdsame_only"):
+    case "srshl_asisdsame_only"_h:
+    case "urshl_asisdsame_only"_h:
+    case "sshl_asisdsame_only"_h:
+    case "ushl_asisdsame_only"_h:
       if (vform != kFormatD) {
         mnemonic = NULL;
       }
       break;
-    case Hash("sqdmulh_asisdsame_only"):
-    case Hash("sqrdmulh_asisdsame_only"):
+    case "sqdmulh_asisdsame_only"_h:
+    case "sqrdmulh_asisdsame_only"_h:
       if ((vform == kFormatB) || (vform == kFormatD)) {
         mnemonic = NULL;
       }
@@ -4063,7 +4063,7 @@ void Disassembler::VisitNEONScalarCopy(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalarPairwise(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  if (form_hash_ == Hash("addp_asisdpair_only")) {
+  if (form_hash_ == "addp_asisdpair_only"_h) {
     // All pairwise operations except ADDP use bit U to differentiate FP16
     // from FP32/FP64 variations.
     if (instr->GetNEONSize() != 3) {
@@ -4095,8 +4095,8 @@ void Disassembler::DisassembleNEONScalarShiftImmOnlyD(
   }
 
   switch (form_hash_) {
-    case Hash("shl_asisdshf_r"):
-    case Hash("sli_asisdshf_r"):
+    case "shl_asisdshf_r"_h:
+    case "sli_asisdshf_r"_h:
       suffix = "'IsL";
   }
 
@@ -4129,9 +4129,9 @@ void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
   // clang-format on
   NEONFormatDecoder nfd(instr, &map);
   switch (form_hash_) {
-    case Hash("sqshlu_asisdshf_r"):
-    case Hash("sqshl_asisdshf_r"):
-    case Hash("uqshl_asisdshf_r"):
+    case "sqshlu_asisdshf_r"_h:
+    case "sqshl_asisdshf_r"_h:
+    case "uqshl_asisdshf_r"_h:
       suffix = "'IsL";
       break;
     default:
@@ -4153,9 +4153,9 @@ void Disassembler::DisassembleNEONShiftLeftLongImm(const Instruction *instr) {
 
   if (instr->GetImmNEONImmb() == 0 &&
       CountSetBits(instr->GetImmNEONImmh(), 32) == 1) {  // xtl variant.
-    VIXL_ASSERT((form_hash_ == Hash("sshll_asimdshf_l")) ||
-                (form_hash_ == Hash("ushll_asimdshf_l")));
-    mnemonic = (form_hash_ == Hash("sshll_asimdshf_l")) ? "sxtl" : "uxtl";
+    VIXL_ASSERT((form_hash_ == "sshll_asimdshf_l"_h) ||
+                (form_hash_ == "ushll_asimdshf_l"_h));
+    mnemonic = (form_hash_ == "sshll_asimdshf_l"_h) ? "sxtl" : "uxtl";
     suffix = NULL;
   }
   Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form), suffix);
@@ -4170,10 +4170,10 @@ void Disassembler::DisassembleNEONShiftRightImm(const Instruction *instr) {
   if (vform_dst != kFormatUndefined) {
     uint32_t ls_dst = LaneSizeInBitsFromFormat(vform_dst);
     switch (form_hash_) {
-      case Hash("scvtf_asimdshf_c"):
-      case Hash("ucvtf_asimdshf_c"):
-      case Hash("fcvtzs_asimdshf_c"):
-      case Hash("fcvtzu_asimdshf_c"):
+      case "scvtf_asimdshf_c"_h:
+      case "ucvtf_asimdshf_c"_h:
+      case "fcvtzs_asimdshf_c"_h:
+      case "fcvtzu_asimdshf_c"_h:
         if (ls_dst == kBRegSize) {
           mnemonic = NULL;
         }
@@ -4214,16 +4214,16 @@ void Disassembler::VisitNEONTable(const Instruction *instr) {
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
 
   switch (form_hash_) {
-    case Hash("tbl_asimdtbl_l2_2"):
-    case Hash("tbx_asimdtbl_l2_2"):
+    case "tbl_asimdtbl_l2_2"_h:
+    case "tbx_asimdtbl_l2_2"_h:
       form = form_2v;
       break;
-    case Hash("tbl_asimdtbl_l3_3"):
-    case Hash("tbx_asimdtbl_l3_3"):
+    case "tbl_asimdtbl_l3_3"_h:
+    case "tbx_asimdtbl_l3_3"_h:
       form = form_3v;
       break;
-    case Hash("tbl_asimdtbl_l4_4"):
-    case Hash("tbx_asimdtbl_l4_4"):
+    case "tbl_asimdtbl_l4_4"_h:
+    case "tbx_asimdtbl_l4_4"_h:
       form = form_4v;
       break;
   }
@@ -5078,17 +5078,17 @@ void Disassembler::VisitSVEBitwiseShiftByImm_Predicated(
     form = "(SVEBitwiseShiftByImm_Predicated)";
   } else {
     switch (form_hash_) {
-      case Hash("lsl_z_p_zi"):
-      case Hash("sqshl_z_p_zi"):
-      case Hash("sqshlu_z_p_zi"):
-      case Hash("uqshl_z_p_zi"):
+      case "lsl_z_p_zi"_h:
+      case "sqshl_z_p_zi"_h:
+      case "sqshlu_z_p_zi"_h:
+      case "uqshl_z_p_zi"_h:
         suffix = "'ITriSvep";
         break;
-      case Hash("asrd_z_p_zi"):
-      case Hash("asr_z_p_zi"):
-      case Hash("lsr_z_p_zi"):
-      case Hash("srshr_z_p_zi"):
-      case Hash("urshr_z_p_zi"):
+      case "asrd_z_p_zi"_h:
+      case "asr_z_p_zi"_h:
+      case "lsr_z_p_zi"_h:
+      case "srshr_z_p_zi"_h:
+      case "urshr_z_p_zi"_h:
         suffix = "'ITriSveq";
         break;
       default:
@@ -6753,16 +6753,16 @@ void Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm(
   const char *suffix = ", #'s1916*16]";
 
   switch (form_hash_) {
-    case Hash("ld1rqb_z_p_bi_u8"):
-    case Hash("ld1rqd_z_p_bi_u64"):
-    case Hash("ld1rqh_z_p_bi_u16"):
-    case Hash("ld1rqw_z_p_bi_u32"):
+    case "ld1rqb_z_p_bi_u8"_h:
+    case "ld1rqd_z_p_bi_u64"_h:
+    case "ld1rqh_z_p_bi_u16"_h:
+    case "ld1rqw_z_p_bi_u32"_h:
       // Nothing to do.
       break;
-    case Hash("ld1rob_z_p_bi_u8"):
-    case Hash("ld1rod_z_p_bi_u64"):
-    case Hash("ld1roh_z_p_bi_u16"):
-    case Hash("ld1row_z_p_bi_u32"):
+    case "ld1rob_z_p_bi_u8"_h:
+    case "ld1rod_z_p_bi_u64"_h:
+    case "ld1roh_z_p_bi_u16"_h:
+    case "ld1row_z_p_bi_u32"_h:
       suffix = ", #'s1916*32]";
       break;
     default:
@@ -6781,16 +6781,16 @@ void Disassembler::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar(
   const char *suffix = "'Rm, lsl #'u2423]";
 
   switch (form_hash_) {
-    case Hash("ld1rqb_z_p_br_contiguous"):
-    case Hash("ld1rob_z_p_br_contiguous"):
+    case "ld1rqb_z_p_br_contiguous"_h:
+    case "ld1rob_z_p_br_contiguous"_h:
       suffix = "'Rm]";
       break;
-    case Hash("ld1rqd_z_p_br_contiguous"):
-    case Hash("ld1rod_z_p_br_contiguous"):
-    case Hash("ld1rqh_z_p_br_contiguous"):
-    case Hash("ld1roh_z_p_br_contiguous"):
-    case Hash("ld1rqw_z_p_br_contiguous"):
-    case Hash("ld1row_z_p_br_contiguous"):
+    case "ld1rqd_z_p_br_contiguous"_h:
+    case "ld1rod_z_p_br_contiguous"_h:
+    case "ld1rqh_z_p_br_contiguous"_h:
+    case "ld1roh_z_p_br_contiguous"_h:
+    case "ld1rqw_z_p_br_contiguous"_h:
+    case "ld1row_z_p_br_contiguous"_h:
       // Nothing to do.
       break;
     default:
@@ -7644,13 +7644,13 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
   const char *form_i = "'Zd.'tszs, 'Zn.'tszs, ";
 
   switch (form_hash_) {
-    case Hash("asr_z_zi"):
-    case Hash("lsr_z_zi"):
-    case Hash("sri_z_zzi"):
-    case Hash("srsra_z_zi"):
-    case Hash("ssra_z_zi"):
-    case Hash("ursra_z_zi"):
-    case Hash("usra_z_zi"):
+    case "asr_z_zi"_h:
+    case "lsr_z_zi"_h:
+    case "sri_z_zzi"_h:
+    case "srsra_z_zi"_h:
+    case "ssra_z_zi"_h:
+    case "ursra_z_zi"_h:
+    case "usra_z_zi"_h:
       if (tsize != 0) {
         // The tsz field must not be zero.
         mnemonic = mnemonic_.c_str();
@@ -7658,8 +7658,8 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
         suffix = "'ITriSves";
       }
       break;
-    case Hash("lsl_z_zi"):
-    case Hash("sli_z_zzi"):
+    case "lsl_z_zi"_h:
+    case "sli_z_zzi"_h:
       if (tsize != 0) {
         // The tsz field must not be zero.
         mnemonic = mnemonic_.c_str();
@@ -7667,9 +7667,9 @@ void Disassembler::VisitSVEBitwiseShiftUnpredicated(const Instruction *instr) {
         suffix = "'ITriSver";
       }
       break;
-    case Hash("asr_z_zw"):
-    case Hash("lsl_z_zw"):
-    case Hash("lsr_z_zw"):
+    case "asr_z_zw"_h:
+    case "lsl_z_zw"_h:
+    case "lsr_z_zw"_h:
       if (lane_size <= kSRegSizeInBytesLog2) {
         mnemonic = mnemonic_.c_str();
         form = "'Zd.'t, 'Zn.'t, 'Zm.d";
@@ -8407,24 +8407,24 @@ void Disassembler::VisitSVEIntUnaryArithmeticPredicated(
   VectorFormat vform = instr->GetSVEVectorFormat();
 
   switch (form_hash_) {
-    case Hash("sxtw_z_p_z"):
-    case Hash("uxtw_z_p_z"):
+    case "sxtw_z_p_z"_h:
+    case "uxtw_z_p_z"_h:
       if (vform == kFormatVnS) {
         VisitUnallocated(instr);
         return;
       }
       VIXL_FALLTHROUGH();
-    case Hash("sxth_z_p_z"):
-    case Hash("uxth_z_p_z"):
+    case "sxth_z_p_z"_h:
+    case "uxth_z_p_z"_h:
       if (vform == kFormatVnH) {
         VisitUnallocated(instr);
         return;
       }
       VIXL_FALLTHROUGH();
-    case Hash("sxtb_z_p_z"):
-    case Hash("uxtb_z_p_z"):
-    case Hash("fabs_z_p_z"):
-    case Hash("fneg_z_p_z"):
+    case "sxtb_z_p_z"_h:
+    case "uxtb_z_p_z"_h:
+    case "fabs_z_p_z"_h:
+    case "fneg_z_p_z"_h:
       if (vform == kFormatVnB) {
         VisitUnallocated(instr);
         return;
@@ -8440,14 +8440,14 @@ void Disassembler::VisitSVEMulIndex(const Instruction *instr) {
   const char *form = "(SVEMulIndex)";
 
   switch (form_hash_) {
-    case Hash("sdot_z_zzzi_d"):
-    case Hash("udot_z_zzzi_d"):
+    case "sdot_z_zzzi_d"_h:
+    case "udot_z_zzzi_d"_h:
       form = "'Zd.d, 'Zn.h, z'u1916.h['u2020]";
       break;
-    case Hash("sdot_z_zzzi_s"):
-    case Hash("sudot_z_zzzi_s"):
-    case Hash("udot_z_zzzi_s"):
-    case Hash("usdot_z_zzzi_s"):
+    case "sdot_z_zzzi_s"_h:
+    case "sudot_z_zzzi_s"_h:
+    case "udot_z_zzzi_s"_h:
+    case "usdot_z_zzzi_s"_h:
       form = "'Zd.s, 'Zn.b, z'u1816.b['u2019]";
       break;
     default:
