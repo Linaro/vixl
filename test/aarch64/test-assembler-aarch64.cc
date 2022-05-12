@@ -14001,6 +14001,345 @@ TEST(mte_irg) {
   }
 }
 
+TEST(mops_set) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS);
+
+  uint8_t dst[16];
+  memset(dst, 0x55, ArrayLength(dst));
+  uintptr_t dst_addr = reinterpret_cast<uintptr_t>(dst);
+
+  START();
+  __ Mov(x0, dst_addr);
+  __ Add(x1, x0, 1);
+  __ Mov(x2, 13);
+  __ Mov(x3, 0x1234aa);
+
+  // Set 13 bytes dst[1] onwards to 0xaa.
+  __ Setp(x1, x2, x3);
+  __ Setm(x1, x2, x3);
+  __ Sete(x1, x2, x3);
+
+  // x2 is now zero, so this should do nothing.
+  __ Setp(x1, x2, x3);
+  __ Setm(x1, x2, x3);
+  __ Sete(x1, x2, x3);
+
+  // Set dst[15] to zero using the masm helper.
+  __ Add(x1, x0, 15);
+  __ Mov(x2, 1);
+  __ Set(x1, x2, xzr);
+
+  // Load dst for comparison.
+  __ Ldp(x10, x11, MemOperand(x0));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(dst_addr + 16, x1);
+    ASSERT_EQUAL_64(0, x2);
+    ASSERT_EQUAL_64(0x1234aa, x3);
+    ASSERT_EQUAL_64(0xaaaa'aaaa'aaaa'aa55, x10);
+    ASSERT_EQUAL_64(0x0055'aaaa'aaaa'aaaa, x11);
+  }
+}
+
+TEST(mops_setn) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS);
+
+  // In simulation, non-temporal set is handled by the same code as normal set,
+  // so only a basic test is required beyond that already provided above.
+
+  uint8_t dst[16] = {0x55};
+  uintptr_t dst_addr = reinterpret_cast<uintptr_t>(dst);
+
+  START();
+  __ Mov(x0, dst_addr);
+  __ Mov(x1, x0);
+  __ Mov(x2, 16);
+  __ Mov(x3, 0x42);
+  __ Setn(x1, x2, x3);
+  __ Ldp(x10, x11, MemOperand(x0));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(dst_addr + 16, x1);
+    ASSERT_EQUAL_64(0, x2);
+    ASSERT_EQUAL_64(0x42, x3);
+    ASSERT_EQUAL_64(0x4242'4242'4242'4242, x10);
+    ASSERT_EQUAL_64(0x4242'4242'4242'4242, x11);
+  }
+}
+
+TEST(mops_setg) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS, CPUFeatures::kMTE);
+
+  uint8_t* dst_addr = nullptr;
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  const int dst_size = 32;
+  dst_addr = reinterpret_cast<uint8_t*>(
+      simulator.Mmap(NULL,
+                     dst_size * sizeof(uint8_t),
+                     PROT_READ | PROT_WRITE | PROT_MTE,
+                     MAP_PRIVATE | MAP_ANONYMOUS,
+                     -1,
+                     0));
+
+  VIXL_ASSERT(dst_addr != nullptr);
+  uint8_t* untagged_ptr = AddressUntag(dst_addr);
+  memset(untagged_ptr, 0xc9, dst_size);
+#else
+// TODO: Port the memory allocation to work on MTE supported platform natively.
+// Note that `CAN_RUN` prevents running in MTE-unsupported environments.
+#endif
+
+  START();
+  __ Mov(x0, reinterpret_cast<uint64_t>(dst_addr));
+  __ Gmi(x2, x0, xzr);
+  __ Irg(x1, x0, x2);  // Choose new tag for setg destination.
+  __ Mov(x2, 16);
+  __ Mov(x3, 0x42);
+  __ Setg(x1, x2, x3);
+
+  __ Ubfx(x4, x1, 56, 4);  // Extract new tag.
+  __ Bfi(x0, x4, 56, 4);   // Tag dst_addr so set region can be loaded.
+  __ Ldp(x10, x11, MemOperand(x0));
+
+  __ Mov(x0, reinterpret_cast<uint64_t>(dst_addr));
+  __ Ldp(x12, x13, MemOperand(x0, 16));  // Unset region has original tag.
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(0, x2);
+    ASSERT_EQUAL_64(0x42, x3);
+    ASSERT_EQUAL_64(0x4242'4242'4242'4242, x10);
+    ASSERT_EQUAL_64(0x4242'4242'4242'4242, x11);
+    ASSERT_EQUAL_64(0xc9c9'c9c9'c9c9'c9c9, x12);
+    ASSERT_EQUAL_64(0xc9c9'c9c9'c9c9'c9c9, x13);
+  }
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.Munmap(dst_addr, dst_size, PROT_MTE);
+#endif
+}
+
+TEST(mops_cpy) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS);
+
+  uint8_t buf[16];
+  uintptr_t buf_addr = reinterpret_cast<uintptr_t>(buf);
+
+  for (unsigned i = 0; i < ArrayLength(buf); i++) {
+    buf[i] = i;
+  }
+
+  START();
+  __ Mov(x0, buf_addr);
+
+  // Copy first eight bytes into second eight.
+  __ Mov(x2, x0);     // src = &buf[0]
+  __ Add(x3, x0, 8);  // dst = &buf[8]
+  __ Mov(x4, 8);      // count = 8
+  __ Cpyp(x3, x2, x4);
+  __ Cpym(x3, x2, x4);
+  __ Cpye(x3, x2, x4);
+  __ Ldp(x10, x11, MemOperand(x0));
+  __ Mrs(x20, NZCV);
+
+  // Copy first eight bytes to overlapping offset, causing reverse copy.
+  __ Mov(x5, x0);     // src = &buf[0]
+  __ Add(x6, x0, 4);  // dst = &buf[4]
+  __ Mov(x7, 8);      // count = 8
+  __ Cpy(x6, x5, x7);
+  __ Ldp(x12, x13, MemOperand(x0));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(buf_addr + 8, x2);
+    ASSERT_EQUAL_64(buf_addr + 16, x3);
+    ASSERT_EQUAL_64(0, x4);
+    ASSERT_EQUAL_64(0x0706'0504'0302'0100, x10);
+    ASSERT_EQUAL_64(0x0706'0504'0302'0100, x11);
+    ASSERT_EQUAL_64(CFlag, x20);
+
+    ASSERT_EQUAL_64(buf_addr, x5);
+    ASSERT_EQUAL_64(buf_addr + 4, x6);
+    ASSERT_EQUAL_64(0, x7);
+    ASSERT_EQUAL_64(0x0302'0100'0302'0100, x12);
+    ASSERT_EQUAL_64(0x0706'0504'0706'0504, x13);
+    ASSERT_EQUAL_NZCV(NCFlag);
+  }
+}
+
+TEST(mops_cpyn) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS);
+
+  // In simulation, non-temporal cpy is handled by the same code as normal cpy,
+  // so only a basic test is required beyond that already provided above.
+
+  uint8_t buf[16];
+  uintptr_t buf_addr = reinterpret_cast<uintptr_t>(buf);
+
+  for (unsigned i = 0; i < ArrayLength(buf); i++) {
+    buf[i] = i;
+  }
+
+  START();
+  __ Mov(x0, buf_addr);
+
+  __ Add(x2, x0, 1);  // src = &buf[1]
+  __ Mov(x3, x0);     // dst = &buf[0]
+  __ Mov(x4, 15);     // count = 15
+  __ Cpyn(x3, x2, x4);
+  __ Ldp(x10, x11, MemOperand(x0));
+
+  __ Add(x5, x0, 1);  // src = &buf[1]
+  __ Mov(x6, x0);     // dst = &buf[0]
+  __ Mov(x4, 15);     // count = 15
+  __ Cpyrn(x6, x5, x4);
+  __ Ldp(x12, x13, MemOperand(x0));
+
+  __ Add(x7, x0, 1);  // src = &buf[1]
+  __ Mov(x8, x0);     // dst = &buf[0]
+  __ Mov(x4, 15);     // count = 15
+  __ Cpywn(x8, x7, x4);
+  __ Ldp(x14, x15, MemOperand(x0));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(buf_addr + 16, x2);
+    ASSERT_EQUAL_64(buf_addr + 15, x3);
+    ASSERT_EQUAL_64(0x0807'0605'0403'0201, x10);
+    ASSERT_EQUAL_64(0x0f0f'0e0d'0c0b'0a09, x11);
+
+    ASSERT_EQUAL_64(buf_addr + 16, x5);
+    ASSERT_EQUAL_64(buf_addr + 15, x6);
+    ASSERT_EQUAL_64(0x0908'0706'0504'0302, x12);
+    ASSERT_EQUAL_64(0x0f0f'0f0e'0d0c'0b0a, x13);
+
+    ASSERT_EQUAL_64(buf_addr + 16, x7);
+    ASSERT_EQUAL_64(buf_addr + 15, x8);
+    ASSERT_EQUAL_64(0x0a09'0807'0605'0403, x14);
+    ASSERT_EQUAL_64(0x0f0f'0f0f'0e0d'0c0b, x15);
+
+    ASSERT_EQUAL_64(0, x4);
+    ASSERT_EQUAL_NZCV(CFlag);
+  }
+}
+
+TEST(mops_cpyf) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS);
+
+  uint8_t buf[16];
+  uintptr_t buf_addr = reinterpret_cast<uintptr_t>(buf);
+
+  for (unsigned i = 0; i < ArrayLength(buf); i++) {
+    buf[i] = i;
+  }
+
+  // This test matches the cpy variant above, but using cpyf will result in a
+  // different answer for the overlapping copy.
+  START();
+  __ Mov(x0, buf_addr);
+
+  // Copy first eight bytes into second eight.
+  __ Mov(x2, x0);     // src = &buf[0]
+  __ Add(x3, x0, 8);  // dst = &buf[8]
+  __ Mov(x4, 8);      // count = 8
+  __ Cpyf(x3, x2, x4);
+  __ Ldp(x10, x11, MemOperand(x0));
+  __ Mrs(x20, NZCV);
+
+  // Copy first eight bytes to overlapping offset.
+  __ Mov(x5, x0);     // src = &buf[0]
+  __ Add(x6, x0, 4);  // dst = &buf[4]
+  __ Mov(x7, 8);      // count = 8
+  __ Cpyf(x6, x5, x7);
+  __ Ldp(x12, x13, MemOperand(x0));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(buf_addr + 8, x2);
+    ASSERT_EQUAL_64(buf_addr + 16, x3);
+    ASSERT_EQUAL_64(0, x4);
+    ASSERT_EQUAL_64(0x0706'0504'0302'0100, x10);
+    ASSERT_EQUAL_64(0x0706'0504'0302'0100, x11);
+    ASSERT_EQUAL_64(CFlag, x20);
+
+    ASSERT_EQUAL_64(buf_addr + 8, x5);
+    ASSERT_EQUAL_64(buf_addr + 12, x6);
+    ASSERT_EQUAL_64(0, x7);
+    ASSERT_EQUAL_NZCV(CFlag);
+
+    // These results are not architecturally defined. They may change if the
+    // simulator is implemented in a different, but still architecturally
+    // correct, way.
+    ASSERT_EQUAL_64(0x0302'0100'0302'0100, x12);
+    ASSERT_EQUAL_64(0x0706'0504'0302'0100, x13);
+  }
+}
+
+TEST(mops_cpyfn) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMOPS);
+
+  // In simulation, non-temporal cpy is handled by the same code as normal cpy,
+  // so only a basic test is required beyond that already provided above.
+
+  uint8_t buf[16];
+  uintptr_t buf_addr = reinterpret_cast<uintptr_t>(buf);
+
+  for (unsigned i = 0; i < ArrayLength(buf); i++) {
+    buf[i] = i;
+  }
+
+  START();
+  __ Mov(x0, buf_addr);
+
+  __ Add(x2, x0, 1);  // src = &buf[1]
+  __ Mov(x3, x0);     // dst = &buf[0]
+  __ Mov(x4, 15);     // count = 15
+  __ Cpyfn(x3, x2, x4);
+  __ Ldp(x10, x11, MemOperand(x0));
+
+  __ Add(x5, x0, 1);  // src = &buf[1]
+  __ Mov(x6, x0);     // dst = &buf[0]
+  __ Mov(x4, 15);     // count = 15
+  __ Cpyfrn(x6, x5, x4);
+  __ Ldp(x12, x13, MemOperand(x0));
+
+  __ Add(x7, x0, 1);  // src = &buf[1]
+  __ Mov(x8, x0);     // dst = &buf[0]
+  __ Mov(x4, 15);     // count = 15
+  __ Cpyfwn(x8, x7, x4);
+  __ Ldp(x14, x15, MemOperand(x0));
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(buf_addr + 16, x2);
+    ASSERT_EQUAL_64(buf_addr + 15, x3);
+    ASSERT_EQUAL_64(0x0807'0605'0403'0201, x10);
+    ASSERT_EQUAL_64(0x0f0f'0e0d'0c0b'0a09, x11);
+
+    ASSERT_EQUAL_64(buf_addr + 16, x5);
+    ASSERT_EQUAL_64(buf_addr + 15, x6);
+    ASSERT_EQUAL_64(0x0908'0706'0504'0302, x12);
+    ASSERT_EQUAL_64(0x0f0f'0f0e'0d0c'0b0a, x13);
+
+    ASSERT_EQUAL_64(buf_addr + 16, x7);
+    ASSERT_EQUAL_64(buf_addr + 15, x8);
+    ASSERT_EQUAL_64(0x0a09'0807'0605'0403, x14);
+    ASSERT_EQUAL_64(0x0f0f'0f0f'0e0d'0c0b, x15);
+
+    ASSERT_EQUAL_64(0, x4);
+    ASSERT_EQUAL_NZCV(CFlag);
+  }
+}
+
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Test the pseudo-instructions that control CPUFeatures dynamically in the
 // Simulator. These are used by the test infrastructure itself, but in a fairly

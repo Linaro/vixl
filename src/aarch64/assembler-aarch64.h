@@ -6942,6 +6942,114 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Compare with Tag.
   void cmpp(const Register& xn, const Register& xm) { subps(xzr, xn, xm); }
 
+  // Memory Copy.
+  void cpye(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, reads and writes non-temporal.
+  void cpyen(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, reads non-temporal.
+  void cpyern(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, writes non-temporal.
+  void cpyewn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only.
+  void cpyfe(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, reads and writes non-temporal.
+  void cpyfen(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, reads non-temporal.
+  void cpyfern(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, writes non-temporal.
+  void cpyfewn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only.
+  void cpyfm(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, reads and writes non-temporal.
+  void cpyfmn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, reads non-temporal.
+  void cpyfmrn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, writes non-temporal.
+  void cpyfmwn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only.
+  void cpyfp(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, reads and writes non-temporal.
+  void cpyfpn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, reads non-temporal.
+  void cpyfprn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy Forward-only, writes non-temporal.
+  void cpyfpwn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy.
+  void cpym(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, reads and writes non-temporal.
+  void cpymn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, reads non-temporal.
+  void cpymrn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, writes non-temporal.
+  void cpymwn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy.
+  void cpyp(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, reads and writes non-temporal.
+  void cpypn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, reads non-temporal.
+  void cpyprn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Copy, writes non-temporal.
+  void cpypwn(const Register& rd, const Register& rs, const Register& rn);
+
+  // Memory Set.
+  void sete(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set, non-temporal.
+  void seten(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set with tag setting.
+  void setge(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set with tag setting, non-temporal.
+  void setgen(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set with tag setting.
+  void setgm(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set with tag setting, non-temporal.
+  void setgmn(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set with tag setting.
+  void setgp(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set with tag setting, non-temporal.
+  void setgpn(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set.
+  void setm(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set, non-temporal.
+  void setmn(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set.
+  void setp(const Register& rd, const Register& rn, const Register& rs);
+
+  // Memory Set, non-temporal.
+  void setpn(const Register& rd, const Register& rn, const Register& rs);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.
