@@ -3241,6 +3241,69 @@ TEST(mte_dp) {
   CLEANUP();
 }
 
+TEST(mops) {
+  SETUP();
+
+  COMPARE_MACRO(Cpyen(x4, x5, x6), "cpyen [x4]!, [x5]!, x6!");
+  COMPARE_MACRO(Cpyern(x7, x6, x1), "cpyern [x7]!, [x6]!, x1!");
+  COMPARE_MACRO(Cpyewn(x26, x27, x28), "cpyewn [x26]!, [x27]!, x28!");
+  COMPARE_MACRO(Cpye(x14, x15, x19), "cpye [x14]!, [x15]!, x19!");
+  COMPARE_MACRO(Cpyfen(x13, x1, x9), "cpyfen [x13]!, [x1]!, x9!");
+  COMPARE_MACRO(Cpyfern(x24, x2, x10), "cpyfern [x24]!, [x2]!, x10!");
+  COMPARE_MACRO(Cpyfewn(x12, x2, x11), "cpyfewn [x12]!, [x2]!, x11!");
+  COMPARE_MACRO(Cpyfe(x3, x9, x12), "cpyfe [x3]!, [x9]!, x12!");
+  COMPARE_MACRO(Cpyfmn(x7, x27, x13), "cpyfmn [x7]!, [x27]!, x13!");
+  COMPARE_MACRO(Cpyfmrn(x19, x9, x14), "cpyfmrn [x19]!, [x9]!, x14!");
+  COMPARE_MACRO(Cpyfmwn(x1, x11, x15), "cpyfmwn [x1]!, [x11]!, x15!");
+  COMPARE_MACRO(Cpyfm(x1, x13, x16), "cpyfm [x1]!, [x13]!, x16!");
+  COMPARE_MACRO(Cpyfpn(x3, x13, x17), "cpyfpn [x3]!, [x13]!, x17!");
+  COMPARE_MACRO(Cpyfprn(x18, x8, x17), "cpyfprn [x18]!, [x8]!, x17!");
+  COMPARE_MACRO(Cpyfpwn(x9, x29, x18), "cpyfpwn [x9]!, [x29]!, x18!");
+  COMPARE_MACRO(Cpyfp(x4, x3, x19), "cpyfp [x4]!, [x3]!, x19!");
+  COMPARE_MACRO(Cpymn(x5, x15, x20), "cpymn [x5]!, [x15]!, x20!");
+  COMPARE_MACRO(Cpymrn(x12, x22, x21), "cpymrn [x12]!, [x22]!, x21!");
+  COMPARE_MACRO(Cpymwn(x12, x1, x22), "cpymwn [x12]!, [x1]!, x22!");
+  COMPARE_MACRO(Cpym(x1, x10, x23), "cpym [x1]!, [x10]!, x23!");
+  COMPARE_MACRO(Cpypn(x3, x26, x25), "cpypn [x3]!, [x26]!, x25!");
+  COMPARE_MACRO(Cpyprn(x4, x14, x24), "cpyprn [x4]!, [x14]!, x24!");
+  COMPARE_MACRO(Cpypwn(x9, x29, x26), "cpypwn [x9]!, [x29]!, x26!");
+  COMPARE_MACRO(Cpyp(x0, x30, x28), "cpyp [x0]!, [x30]!, x28!");
+
+  COMPARE_MACRO(Seten(x6, x26, x27), "seten [x6]!, x26!, x27");
+  COMPARE_MACRO(Sete(x3, x23, x1), "sete [x3]!, x23!, x1");
+  COMPARE_MACRO(Setgen(x6, x16, x2), "setgen [x6]!, x16!, x2");
+  COMPARE_MACRO(Setge(x4, x24, x3), "setge [x4]!, x24!, x3");
+  COMPARE_MACRO(Setgmn(x9, x29, x4), "setgmn [x9]!, x29!, x4");
+  COMPARE_MACRO(Setgm(x30, x3, x5), "setgm [x30]!, x3!, x5");
+  COMPARE_MACRO(Setgpn(x11, x1, x6), "setgpn [x11]!, x1!, x6");
+  COMPARE_MACRO(Setgp(x1, x16, x7), "setgp [x1]!, x16!, x7");
+  COMPARE_MACRO(Setmn(x4, x14, x8), "setmn [x4]!, x14!, x8");
+  COMPARE_MACRO(Setm(x8, x7, x9), "setm [x8]!, x7!, x9");
+  COMPARE_MACRO(Setpn(x2, x22, x10), "setpn [x2]!, x22!, x10");
+  COMPARE_MACRO(Setp(x7, x17, x11), "setp [x7]!, x17!, x11");
+
+  // Check unallocated bit patterns.
+  COMPARE_PREFIX(dci(0x1d000422), "cpyp [x2]!, [x0]!, x1!");
+  COMPARE_PREFIX(dci(0xdd000422), "unallocated");  // sz != 0
+  COMPARE_PREFIX(dci(0x1d000442), "unallocated");  // Xd == Xn
+  COMPARE_PREFIX(dci(0x1d020422), "unallocated");  // Xd == Xs
+  COMPARE_PREFIX(dci(0x1d000402), "unallocated");  // Xn == Xs
+  COMPARE_PREFIX(dci(0x1d00043f), "unallocated");  // Xd == 31
+  COMPARE_PREFIX(dci(0x1d0007e2), "unallocated");  // Xn == 31
+  COMPARE_PREFIX(dci(0x1d1f0422), "unallocated");  // Xs == 31
+
+  COMPARE_PREFIX(dci(0x19c02424), "setpn [x4]!, x1!, x0");
+  COMPARE_PREFIX(dci(0xd9c02424), "unallocated");  // sz != 0
+  COMPARE_PREFIX(dci(0x19c0e424), "unallocated");  // op2 == 0xe
+  COMPARE_PREFIX(dci(0x19c02400), "unallocated");  // Xd == Xn
+  COMPARE_PREFIX(dci(0x19c02420), "unallocated");  // Xd == Xs
+  COMPARE_PREFIX(dci(0x19c02404), "unallocated");  // Xn == Xs
+  COMPARE_PREFIX(dci(0x19c0243f), "unallocated");  // Xd == 31
+  COMPARE_PREFIX(dci(0x19c027e4), "unallocated");  // Xn == 31
+
+  CLEANUP();
+}
+
 TEST(architecture_features) {
   SETUP();
 

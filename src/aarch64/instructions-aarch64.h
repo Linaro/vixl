@@ -516,6 +516,65 @@ class Instruction {
     return false;
   }
 
+  bool IsMOPSPrologueOf(const Instruction* instr, uint32_t mops_type) const {
+    VIXL_ASSERT((mops_type == "set"_h) || (mops_type == "setg"_h) ||
+                (mops_type == "cpy"_h));
+    const int op_lsb = (mops_type == "cpy"_h) ? 22 : 14;
+    return GetInstructionBits() == instr->Mask(~(0x3U << op_lsb));
+  }
+
+  bool IsMOPSMainOf(const Instruction* instr, uint32_t mops_type) const {
+    VIXL_ASSERT((mops_type == "set"_h) || (mops_type == "setg"_h) ||
+                (mops_type == "cpy"_h));
+    const int op_lsb = (mops_type == "cpy"_h) ? 22 : 14;
+    return GetInstructionBits() ==
+           (instr->Mask(~(0x3U << op_lsb)) | (0x1 << op_lsb));
+  }
+
+  bool IsMOPSEpilogueOf(const Instruction* instr, uint32_t mops_type) const {
+    VIXL_ASSERT((mops_type == "set"_h) || (mops_type == "setg"_h) ||
+                (mops_type == "cpy"_h));
+    const int op_lsb = (mops_type == "cpy"_h) ? 22 : 14;
+    return GetInstructionBits() ==
+           (instr->Mask(~(0x3U << op_lsb)) | (0x2 << op_lsb));
+  }
+
+  template <uint32_t mops_type>
+  bool IsConsistentMOPSTriplet() const {
+    VIXL_STATIC_ASSERT((mops_type == "set"_h) || (mops_type == "setg"_h) ||
+                       (mops_type == "cpy"_h));
+
+    int64_t isize = static_cast<int64_t>(kInstructionSize);
+    const Instruction* prev2 = GetInstructionAtOffset(-2 * isize);
+    const Instruction* prev1 = GetInstructionAtOffset(-1 * isize);
+    const Instruction* next1 = GetInstructionAtOffset(1 * isize);
+    const Instruction* next2 = GetInstructionAtOffset(2 * isize);
+
+    // Use the encoding of the current instruction to determine the expected
+    // adjacent instructions. NB. this doesn't check if the nearby instructions
+    // are MOPS-type, but checks that they form a consistent triplet if they
+    // are. For example, 'mov x0, #0; mov x0, #512; mov x0, #1024' is a
+    // consistent triplet, but they are not MOPS instructions.
+    const int op_lsb = (mops_type == "cpy"_h) ? 22 : 14;
+    const uint32_t kMOPSOpfield = 0x3 << op_lsb;
+    const uint32_t kMOPSPrologue = 0;
+    const uint32_t kMOPSMain = 0x1 << op_lsb;
+    const uint32_t kMOPSEpilogue = 0x2 << op_lsb;
+    switch (Mask(kMOPSOpfield)) {
+      case kMOPSPrologue:
+        return next1->IsMOPSMainOf(this, mops_type) &&
+               next2->IsMOPSEpilogueOf(this, mops_type);
+      case kMOPSMain:
+        return prev1->IsMOPSPrologueOf(this, mops_type) &&
+               next1->IsMOPSEpilogueOf(this, mops_type);
+      case kMOPSEpilogue:
+        return prev2->IsMOPSPrologueOf(this, mops_type) &&
+               prev1->IsMOPSMainOf(this, mops_type);
+      default:
+        VIXL_ABORT_WITH_MSG("Undefined MOPS operation\n");
+    }
+  }
+
   static int GetImmBranchRangeBitwidth(ImmBranchType branch_type);
   VIXL_DEPRECATED(
       "GetImmBranchRangeBitwidth",

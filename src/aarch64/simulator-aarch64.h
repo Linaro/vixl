@@ -230,8 +230,7 @@ class MetaDataDepot {
 
   template <typename T>
   void SetMTETag(T address, int tag, Instruction const* pc = nullptr) {
-    VIXL_ASSERT(
-        IsAligned(reinterpret_cast<uintptr_t>(address), kMTETagGranuleInBytes));
+    VIXL_ASSERT(IsAligned((uintptr_t)address, kMTETagGranuleInBytes));
     uint64_t key = GenerateMTEkey(address);
     MetaDataMTE* m = GetAttribute<MetaDataMTE*>(&metadata_mte_, key);
 
@@ -1267,6 +1266,8 @@ class Simulator : public DecoderVisitor {
   bool PcIsInGuardedPage() const { return guard_pages_; }
   void SetGuardedPages(bool guard_pages) { guard_pages_ = guard_pages; }
 
+  const Instruction* GetLastExecutedInstruction() const { return last_instr_; }
+
   void ExecuteInstruction() {
     // The program counter should always be aligned.
     VIXL_ASSERT(IsWordAligned(pc_));
@@ -1379,15 +1380,24 @@ class Simulator : public DecoderVisitor {
   void SimulateNEONFPMulByElementLong(const Instruction* instr);
   void SimulateNEONComplexMulByElement(const Instruction* instr);
   void SimulateNEONDotProdByElement(const Instruction* instr);
-
-  void Simulate_XdSP_XnSP_Xm(const Instruction* instr);
   void SimulateMTEAddSubTag(const Instruction* instr);
   void SimulateMTETagMaskInsert(const Instruction* instr);
   void SimulateMTESubPointer(const Instruction* instr);
   void SimulateMTELoadTag(const Instruction* instr);
   void SimulateMTEStoreTag(const Instruction* instr);
   void SimulateMTEStoreTagPair(const Instruction* instr);
-  void Simulate_XtSP_XnSP_simm_excl(const Instruction* instr);
+  void Simulate_XdSP_XnSP_Xm(const Instruction* instr);
+  void SimulateCpy(const Instruction* instr);
+  void SimulateCpyFP(const Instruction* instr);
+  void SimulateCpyP(const Instruction* instr);
+  void SimulateCpyM(const Instruction* instr);
+  void SimulateCpyE(const Instruction* instr);
+  void SimulateSetP(const Instruction* instr);
+  void SimulateSetM(const Instruction* instr);
+  void SimulateSetE(const Instruction* instr);
+  void SimulateSetGP(const Instruction* instr);
+  void SimulateSetGM(const Instruction* instr);
+
 
   // Integer register accessors.
 
@@ -2451,7 +2461,9 @@ class Simulator : public DecoderVisitor {
   void LogPWrite(int rt_code, uintptr_t address) {
     if (ShouldTraceWrites()) PrintPWrite(rt_code, address);
   }
-
+  void LogMemTransfer(uintptr_t dst, uintptr_t src, uint8_t value) {
+    if (ShouldTraceWrites()) PrintMemTransfer(dst, src, value);
+  }
   // Helpers for the above, where the access operation is parameterised.
   // - For loads, set op = "<-".
   // - For stores, set op = "->".
@@ -2463,6 +2475,7 @@ class Simulator : public DecoderVisitor {
                     PrintRegisterFormat format,
                     const char* op,
                     uintptr_t address);
+  void PrintMemTransfer(uintptr_t dst, uintptr_t src, uint8_t value);
   // Simple, unpredicated SVE accesses always access the whole vector, and never
   // know the lane type, so these don't accept a `format`.
   void PrintZAccess(int rt_code, const char* op, uintptr_t address);
@@ -3118,6 +3131,46 @@ class Simulator : public DecoderVisitor {
                                       AddrMode addr_mode);
   void NEONLoadStoreSingleStructHelper(const Instruction* instr,
                                        AddrMode addr_mode);
+  template <uint32_t mops_type>
+  void MOPSPHelper(const Instruction* instr) {
+    VIXL_ASSERT(instr->IsConsistentMOPSTriplet<mops_type>());
+
+    int d = instr->GetRd();
+    int n = instr->GetRn();
+    int s = instr->GetRs();
+
+    // Aliased registers and xzr are disallowed for Xd and Xn.
+    if ((d == n) || (d == s) || (n == s) || (d == 31) || (n == 31)) {
+      VisitUnallocated(instr);
+    }
+
+    // Additionally, Xs may not be xzr for cpy.
+    if ((mops_type == "cpy"_h) && (s == 31)) {
+      VisitUnallocated(instr);
+    }
+
+    // Bits 31 and 30 must be zero.
+    if (instr->ExtractBits(31, 30) != 0) {
+      VisitUnallocated(instr);
+    }
+
+    // Saturate copy count.
+    uint64_t xn = ReadXRegister(n);
+    int saturation_bits = (mops_type == "cpy"_h) ? 55 : 63;
+    if ((xn >> saturation_bits) != 0) {
+      xn = (UINT64_C(1) << saturation_bits) - 1;
+      if (mops_type == "setg"_h) {
+        // Align saturated value to granule.
+        xn &= ~UINT64_C(kMTETagGranuleInBytes - 1);
+      }
+      WriteXRegister(n, xn);
+    }
+
+    ReadNzcv().SetN(0);
+    ReadNzcv().SetZ(0);
+    ReadNzcv().SetC(1);  // Indicates "option B" implementation.
+    ReadNzcv().SetV(0);
+  }
 
   int64_t ShiftOperand(unsigned reg_size,
                        uint64_t value,
@@ -4950,7 +5003,7 @@ class Simulator : public DecoderVisitor {
   const Instruction* pc_;
 
   // Pointer to the last simulated instruction, used for checking the validity
-  // of the current instruction with movprfx.
+  // of the current instruction with the previous instruction, such as movprfx.
   Instruction const* last_instr_;
 
   // Branch type register, used for branch target identification.

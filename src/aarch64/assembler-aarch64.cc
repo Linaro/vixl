@@ -2069,6 +2069,366 @@ void Assembler::subps(const Register& xd,
   Emit(0xbac00000 | Rd(xd) | RnSP(xn) | RmSP(xm));
 }
 
+void Assembler::cpye(const Register& rd,
+                     const Register& rs,
+                     const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d800400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyen(const Register& rd,
+                      const Register& rs,
+                      const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d80c400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyern(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d808400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyewn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d804400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfe(const Register& rd,
+                      const Register& rs,
+                      const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19800400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfen(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1980c400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfern(const Register& rd,
+                        const Register& rs,
+                        const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19808400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfewn(const Register& rd,
+                        const Register& rs,
+                        const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19804400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfm(const Register& rd,
+                      const Register& rs,
+                      const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19400400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfmn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1940c400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfmrn(const Register& rd,
+                        const Register& rs,
+                        const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19408400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfmwn(const Register& rd,
+                        const Register& rs,
+                        const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19404400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfp(const Register& rd,
+                      const Register& rs,
+                      const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19000400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfpn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1900c400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfprn(const Register& rd,
+                        const Register& rs,
+                        const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19008400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyfpwn(const Register& rd,
+                        const Register& rs,
+                        const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x19004400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpym(const Register& rd,
+                     const Register& rs,
+                     const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d400400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpymn(const Register& rd,
+                      const Register& rs,
+                      const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d40c400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpymrn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d408400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpymwn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d404400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyp(const Register& rd,
+                     const Register& rs,
+                     const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d000400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpypn(const Register& rd,
+                      const Register& rs,
+                      const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d00c400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpyprn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d008400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::cpypwn(const Register& rd,
+                       const Register& rs,
+                       const Register& rn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero() && !rs.IsZero());
+
+  Emit(0x1d004400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::sete(const Register& rd,
+                     const Register& rn,
+                     const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x19c08400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::seten(const Register& rd,
+                      const Register& rn,
+                      const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x19c0a400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setge(const Register& rd,
+                      const Register& rn,
+                      const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x1dc08400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setgen(const Register& rd,
+                       const Register& rn,
+                       const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x1dc0a400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setgm(const Register& rd,
+                      const Register& rn,
+                      const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x1dc04400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setgmn(const Register& rd,
+                       const Register& rn,
+                       const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x1dc06400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setgp(const Register& rd,
+                      const Register& rn,
+                      const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x1dc00400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setgpn(const Register& rd,
+                       const Register& rn,
+                       const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x1dc02400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setm(const Register& rd,
+                     const Register& rn,
+                     const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x19c04400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setmn(const Register& rd,
+                      const Register& rn,
+                      const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x19c06400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setp(const Register& rd,
+                     const Register& rn,
+                     const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x19c00400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
+void Assembler::setpn(const Register& rd,
+                      const Register& rn,
+                      const Register& rs) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kMOPS));
+  VIXL_ASSERT(!AreAliased(rd, rn, rs));
+  VIXL_ASSERT(!rd.IsZero() && !rn.IsZero());
+
+  Emit(0x19c02400 | Rd(rd) | Rn(rn) | Rs(rs));
+}
+
 // NEON structure loads and stores.
 Instr Assembler::LoadStoreStructAddrModeField(const MemOperand& addr) {
   Instr addr_field = RnSP(addr.GetBaseRegister());

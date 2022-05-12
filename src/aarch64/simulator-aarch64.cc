@@ -432,6 +432,42 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
       {"subg_64_addsub_immtags"_h, &Simulator::SimulateMTEAddSubTag},
       {"subps_64s_dp_2src"_h, &Simulator::SimulateMTESubPointer},
       {"subp_64s_dp_2src"_h, &Simulator::SimulateMTESubPointer},
+      {"cpyen_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyern_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyewn_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpye_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyfen_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyfern_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyfewn_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyfe_cpy_memcms"_h, &Simulator::SimulateCpyE},
+      {"cpyfmn_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpyfmrn_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpyfmwn_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpyfm_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpyfpn_cpy_memcms"_h, &Simulator::SimulateCpyFP},
+      {"cpyfprn_cpy_memcms"_h, &Simulator::SimulateCpyFP},
+      {"cpyfpwn_cpy_memcms"_h, &Simulator::SimulateCpyFP},
+      {"cpyfp_cpy_memcms"_h, &Simulator::SimulateCpyFP},
+      {"cpymn_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpymrn_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpymwn_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpym_cpy_memcms"_h, &Simulator::SimulateCpyM},
+      {"cpypn_cpy_memcms"_h, &Simulator::SimulateCpyP},
+      {"cpyprn_cpy_memcms"_h, &Simulator::SimulateCpyP},
+      {"cpypwn_cpy_memcms"_h, &Simulator::SimulateCpyP},
+      {"cpyp_cpy_memcms"_h, &Simulator::SimulateCpyP},
+      {"setp_set_memcms"_h, &Simulator::SimulateSetP},
+      {"setpn_set_memcms"_h, &Simulator::SimulateSetP},
+      {"setgp_set_memcms"_h, &Simulator::SimulateSetGP},
+      {"setgpn_set_memcms"_h, &Simulator::SimulateSetGP},
+      {"setm_set_memcms"_h, &Simulator::SimulateSetM},
+      {"setmn_set_memcms"_h, &Simulator::SimulateSetM},
+      {"setgm_set_memcms"_h, &Simulator::SimulateSetGM},
+      {"setgmn_set_memcms"_h, &Simulator::SimulateSetGM},
+      {"sete_set_memcms"_h, &Simulator::SimulateSetE},
+      {"seten_set_memcms"_h, &Simulator::SimulateSetE},
+      {"setge_set_memcms"_h, &Simulator::SimulateSetE},
+      {"setgen_set_memcms"_h, &Simulator::SimulateSetE},
   };
   return &form_to_visitor;
 }
@@ -1925,6 +1961,24 @@ void Simulator::PrintPAccess(int code, const char* op, uintptr_t address) {
             clr_normal);
     address += kQRegSizeInBytes;
   }
+}
+
+void Simulator::PrintMemTransfer(uintptr_t dst, uintptr_t src, uint8_t value) {
+  fprintf(stream_,
+          "#               %s: %s0x%016" PRIxPTR " %s<- %s0x%02x%s",
+          clr_reg_name,
+          clr_memory_address,
+          dst,
+          clr_normal,
+          clr_reg_value,
+          value,
+          clr_normal);
+
+  fprintf(stream_,
+          " <- %s0x%016" PRIxPTR "%s\n",
+          clr_memory_address,
+          src,
+          clr_normal);
 }
 
 void Simulator::PrintRead(int rt_code,
@@ -14036,22 +14090,6 @@ void Simulator::SimulateMTEStoreTag(const Instruction* instr) {
   }
 }
 
-void Simulator::Simulate_XtSP_XnSP_simm_excl(const Instruction* instr) {
-  uint64_t rn = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
-  USE(rn);
-
-  switch (form_hash_) {
-    case Hash("stg_64spre_ldsttags"):
-      break;
-    case Hash("stz2g_64spre_ldsttags"):
-      break;
-    case Hash("stzg_64spre_ldsttags"):
-      break;
-    default:
-      VIXL_UNIMPLEMENTED();
-  }
-}
-
 void Simulator::SimulateMTELoadTag(const Instruction* instr) {
   uint64_t rt = ReadXRegister(instr->GetRt());
   int offset = instr->GetImmLS() * static_cast<int>(kMTETagGranuleInBytes);
@@ -14067,6 +14105,145 @@ void Simulator::SimulateMTELoadTag(const Instruction* instr) {
   address = AlignDown(address, kMTETagGranuleInBytes);
   uint64_t tag = meta_data_.GetMTETag(address, instr);
   WriteXRegister(instr->GetRt(), GetAddressWithAllocationTag(rt, tag));
+}
+
+void Simulator::SimulateCpyFP(const Instruction* instr) {
+  MOPSPHelper<"cpy"_h>(instr);
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::SimulateCpyP(const Instruction* instr) {
+  MOPSPHelper<"cpy"_h>(instr);
+
+  int d = instr->GetRd();
+  int n = instr->GetRn();
+  int s = instr->GetRs();
+
+  // Determine copy direction. For cases in which direction is implementation
+  // defined, use forward.
+  bool is_backwards = false;
+  uint64_t xs = ReadXRegister(s);
+  uint64_t xd = ReadXRegister(d);
+  uint64_t xn = ReadXRegister(n);
+
+  // Ignore the top byte of addresses for comparisons. We can use xn as is,
+  // as it should have zero in bits 63:55.
+  uint64_t xs_tbi = ExtractUnsignedBitfield64(55, 0, xs);
+  uint64_t xd_tbi = ExtractUnsignedBitfield64(55, 0, xd);
+  VIXL_ASSERT(ExtractUnsignedBitfield64(63, 55, xn) == 0);
+  if ((xs_tbi < xd_tbi) && ((xs_tbi + xn) > xd_tbi)) {
+    is_backwards = true;
+    WriteXRegister(s, xs + xn);
+    WriteXRegister(d, xd + xn);
+  }
+
+  ReadNzcv().SetN(is_backwards ? 1 : 0);
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::SimulateCpyM(const Instruction* instr) {
+  VIXL_ASSERT(instr->IsConsistentMOPSTriplet<"cpy"_h>());
+  VIXL_ASSERT(instr->IsMOPSMainOf(GetLastExecutedInstruction(), "cpy"_h));
+
+  int d = instr->GetRd();
+  int n = instr->GetRn();
+  int s = instr->GetRs();
+
+  uint64_t xd = ReadXRegister(d);
+  uint64_t xn = ReadXRegister(n);
+  uint64_t xs = ReadXRegister(s);
+  bool is_backwards = ReadN();
+
+  int step = 1;
+  if (is_backwards) {
+    step = -1;
+    xs--;
+    xd--;
+  }
+
+  while (xn--) {
+    uint8_t temp = MemRead<uint8_t>(xs);
+    MemWrite<uint8_t>(xd, temp);
+    LogMemTransfer(xd, xs, temp);
+    xs += step;
+    xd += step;
+  }
+
+  if (is_backwards) {
+    xs++;
+    xd++;
+  }
+
+  WriteXRegister(d, xd);
+  WriteXRegister(n, 0);
+  WriteXRegister(s, xs);
+}
+
+void Simulator::SimulateCpyE(const Instruction* instr) {
+  USE(instr);
+  VIXL_ASSERT(instr->IsConsistentMOPSTriplet<"cpy"_h>());
+  VIXL_ASSERT(instr->IsMOPSEpilogueOf(GetLastExecutedInstruction(), "cpy"_h));
+  // This implementation does nothing in the epilogue; all copying is completed
+  // in the "main" part.
+}
+
+void Simulator::SimulateSetP(const Instruction* instr) {
+  MOPSPHelper<"set"_h>(instr);
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::SimulateSetM(const Instruction* instr) {
+  VIXL_ASSERT(instr->IsConsistentMOPSTriplet<"set"_h>());
+  VIXL_ASSERT(instr->IsMOPSMainOf(GetLastExecutedInstruction(), "set"_h));
+
+  uint64_t xd = ReadXRegister(instr->GetRd());
+  uint64_t xn = ReadXRegister(instr->GetRn());
+  uint64_t xs = ReadXRegister(instr->GetRs());
+
+  while (xn--) {
+    LogWrite(instr->GetRs(), GetPrintRegPartial(kPrintRegLaneSizeB), xd);
+    MemWrite<uint8_t>(xd++, xs);
+  }
+  WriteXRegister(instr->GetRd(), xd);
+  WriteXRegister(instr->GetRn(), 0);
+}
+
+void Simulator::SimulateSetE(const Instruction* instr) {
+  USE(instr);
+  VIXL_ASSERT(instr->IsConsistentMOPSTriplet<"set"_h>());
+  VIXL_ASSERT(instr->IsMOPSEpilogueOf(GetLastExecutedInstruction(), "set"_h));
+  // This implementation does nothing in the epilogue; all setting is completed
+  // in the "main" part.
+}
+
+void Simulator::SimulateSetGP(const Instruction* instr) {
+  MOPSPHelper<"setg"_h>(instr);
+
+  uint64_t xd = ReadXRegister(instr->GetRd());
+  uint64_t xn = ReadXRegister(instr->GetRn());
+
+  if ((xn > 0) && !IsAligned(xd, kMTETagGranuleInBytes)) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  if (!IsAligned(xn, kMTETagGranuleInBytes)) {
+    VIXL_ALIGNMENT_EXCEPTION();
+  }
+
+  LogSystemRegister(NZCV);
+}
+
+void Simulator::SimulateSetGM(const Instruction* instr) {
+  uint64_t xd = ReadXRegister(instr->GetRd());
+  uint64_t xn = ReadXRegister(instr->GetRn());
+
+  int tag = GetAllocationTagFromAddress(xd);
+  while (xn) {
+    meta_data_.SetMTETag(xd, tag);
+    xd += 16;
+    xn -= 16;
+  }
+  SimulateSetM(instr);
 }
 
 void Simulator::DoTrace(const Instruction* instr) {

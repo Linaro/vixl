@@ -183,7 +183,9 @@ namespace vixl {
   /* Enhanced Counter Virtualization                                        */ \
   V(kECV,                 "ECV",                    "ecv")                     \
   /* Increased precision of Reciprocal Estimate and Square Root Estimate    */ \
-  V(kRPRES,               "RPRES",                  "rpres")
+  V(kRPRES,               "RPRES",                  "rpres")                   \
+  /* Memory operation instructions, for memcpy, memset                      */ \
+  V(kMOPS,                "Memory ops",             NULL)
 // clang-format on
 
 

@@ -47,7 +47,6 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"csdb_hi_hints"_h, &Disassembler::DisassembleNoArgs},
       {"dgh_hi_hints"_h, &Disassembler::DisassembleNoArgs},
       {"ssbb_only_barriers"_h, &Disassembler::DisassembleNoArgs},
-      {"pssbb_only_barriers"_h, &Disassembler::DisassembleNoArgs},
       {"esb_hi_hints"_h, &Disassembler::DisassembleNoArgs},
       {"isb_bi_barriers"_h, &Disassembler::DisassembleNoArgs},
       {"nop_hi_hints"_h, &Disassembler::DisassembleNoArgs},
@@ -695,6 +694,42 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
        &Disassembler::Disassemble_XdSP_XnSP_uimm6_uimm4},
       {"subps_64s_dp_2src"_h, &Disassembler::Disassemble_Xd_XnSP_XmSP},
       {"subp_64s_dp_2src"_h, &Disassembler::Disassemble_Xd_XnSP_XmSP},
+      {"cpyen_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyern_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyewn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpye_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfen_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfern_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfewn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfe_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfmn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfmrn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfmwn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfm_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfpn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfprn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfpwn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyfp_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpymn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpymrn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpymwn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpym_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpypn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyprn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpypwn_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"cpyp_cpy_memcms"_h, &Disassembler::DisassembleCpy},
+      {"seten_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"sete_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setgen_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setge_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setgmn_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setgm_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setgpn_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setgp_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setmn_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setm_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setpn_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"setp_set_memcms"_h, &Disassembler::DisassembleSet},
   };
   return &form_to_visitor;
 }  // NOLINT(readability/fn_size)
@@ -1983,11 +2018,23 @@ void Disassembler::VisitSystem(const Instruction *instr) {
     case "hint_hm_hints"_h:
       form = "'IH";
       break;
-    case "dmb_bo_barriers"_h:
-    case "dsb_bo_barriers"_h:
+    case Hash("dmb_bo_barriers"):
       form = "'M";
       break;
-    case "sys_cr_systeminstrs"_h: {
+    case Hash("dsb_bo_barriers"): {
+      int crm = instr->GetCRm();
+      if (crm == 0) {
+        mnemonic = "ssbb";
+        form = "";
+      } else if (crm == 4) {
+        mnemonic = "pssbb";
+        form = "";
+      } else {
+        form = "'M";
+      }
+      break;
+    }
+    case Hash("sys_cr_systeminstrs"): {
       mnemonic = "dc";
       suffix = ", 'Xt";
 
@@ -5980,6 +6027,46 @@ void Disassembler::DisassembleMTEStoreTag(const Instruction *instr) {
 void Disassembler::DisassembleMTELoadTag(const Instruction *instr) {
   const char *form =
       (instr->GetImmLS() == 0) ? "'Xt, ['Xns]" : "'Xt, ['Xns, #'s2012*16]";
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleCpy(const Instruction *instr) {
+  const char *form = "['Xd]!, ['Xs]!, 'Xn!";
+
+  int d = instr->GetRd();
+  int n = instr->GetRn();
+  int s = instr->GetRs();
+
+  // Aliased registers and sp/zr are disallowed.
+  if ((d == n) || (d == s) || (n == s) || (d == 31) || (n == 31) || (s == 31)) {
+    form = NULL;
+  }
+
+  // Bits 31 and 30 must be zero.
+  if (instr->ExtractBits(31, 30)) {
+    form = NULL;
+  }
+
+  Format(instr, mnemonic_.c_str(), form);
+}
+
+void Disassembler::DisassembleSet(const Instruction *instr) {
+  const char *form = "['Xd]!, 'Xn!, 'Xs";
+
+  int d = instr->GetRd();
+  int n = instr->GetRn();
+  int s = instr->GetRs();
+
+  // Aliased registers are disallowed. Only Xs may be xzr.
+  if ((d == n) || (d == s) || (n == s) || (d == 31) || (n == 31)) {
+    form = NULL;
+  }
+
+  // Bits 31 and 30 must be zero.
+  if (instr->ExtractBits(31, 30)) {
+    form = NULL;
+  }
+
   Format(instr, mnemonic_.c_str(), form);
 }
 

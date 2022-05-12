@@ -7532,6 +7532,248 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Stzg(const Register& rt, const MemOperand& addr);
   void Ldg(const Register& rt, const MemOperand& addr);
 
+  void Cpye(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpye(rd, rs, rn);
+  }
+
+  void Cpyen(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyen(rd, rs, rn);
+  }
+
+  void Cpyern(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyern(rd, rs, rn);
+  }
+
+  void Cpyewn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyewn(rd, rs, rn);
+  }
+
+  void Cpyfe(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfe(rd, rs, rn);
+  }
+
+  void Cpyfen(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfen(rd, rs, rn);
+  }
+
+  void Cpyfern(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfern(rd, rs, rn);
+  }
+
+  void Cpyfewn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfewn(rd, rs, rn);
+  }
+
+  void Cpyfm(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfm(rd, rs, rn);
+  }
+
+  void Cpyfmn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfmn(rd, rs, rn);
+  }
+
+  void Cpyfmrn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfmrn(rd, rs, rn);
+  }
+
+  void Cpyfmwn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfmwn(rd, rs, rn);
+  }
+
+  void Cpyfp(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfp(rd, rs, rn);
+  }
+
+  void Cpyfpn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfpn(rd, rs, rn);
+  }
+
+  void Cpyfprn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfprn(rd, rs, rn);
+  }
+
+  void Cpyfpwn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyfpwn(rd, rs, rn);
+  }
+
+  void Cpym(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpym(rd, rs, rn);
+  }
+
+  void Cpymn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpymn(rd, rs, rn);
+  }
+
+  void Cpymrn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpymrn(rd, rs, rn);
+  }
+
+  void Cpymwn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpymwn(rd, rs, rn);
+  }
+
+  void Cpyp(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyp(rd, rs, rn);
+  }
+
+  void Cpypn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpypn(rd, rs, rn);
+  }
+
+  void Cpyprn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpyprn(rd, rs, rn);
+  }
+
+  void Cpypwn(const Register& rd, const Register& rs, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cpypwn(rd, rs, rn);
+  }
+
+  void Sete(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    sete(rd, rn, rs);
+  }
+
+  void Seten(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    seten(rd, rn, rs);
+  }
+
+  void Setge(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setge(rd, rn, rs);
+  }
+
+  void Setgen(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setgen(rd, rn, rs);
+  }
+
+  void Setgm(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setgm(rd, rn, rs);
+  }
+
+  void Setgmn(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setgmn(rd, rn, rs);
+  }
+
+  void Setgp(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setgp(rd, rn, rs);
+  }
+
+  void Setgpn(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setgpn(rd, rn, rs);
+  }
+
+  void Setm(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setm(rd, rn, rs);
+  }
+
+  void Setmn(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setmn(rd, rn, rs);
+  }
+
+  void Setp(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setp(rd, rn, rs);
+  }
+
+  void Setpn(const Register& rd, const Register& rn, const Register& rs) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    setpn(rd, rn, rs);
+  }
+
+// Macro assembler wrappers that package the MOPS instructions into a single
+// call.
+#define MOPS_LIST(V)  \
+  V(Set, set, )       \
+  V(Setn, set, n)     \
+  V(Setg, setg, )     \
+  V(Setgn, setg, n)   \
+  V(Cpy, cpy, )       \
+  V(Cpyn, cpy, n)     \
+  V(Cpyrn, cpy, rn)   \
+  V(Cpywn, cpy, wn)   \
+  V(Cpyf, cpyf, )     \
+  V(Cpyfn, cpyf, n)   \
+  V(Cpyfrn, cpyf, rn) \
+  V(Cpyfwn, cpyf, wn)
+
+#define DEFINE_MACRO_ASM_FUNC(MASM, ASMPREFIX, ASMSUFFIX)                 \
+  void MASM(const Register& ra, const Register& rb, const Register& rc) { \
+    ExactAssemblyScope scope(this, 3 * kInstructionSize);                 \
+    ASMPREFIX##p##ASMSUFFIX(ra, rb, rc);                                  \
+    ASMPREFIX##m##ASMSUFFIX(ra, rb, rc);                                  \
+    ASMPREFIX##e##ASMSUFFIX(ra, rb, rc);                                  \
+  }
+  MOPS_LIST(DEFINE_MACRO_ASM_FUNC)
+#undef DEFINE_MACRO_ASM_FUNC
+
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
     return new Literal<T>(value,

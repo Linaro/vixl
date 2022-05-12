@@ -2720,7 +2720,6 @@
       {"pacib1716_hi_hints"_h, &VISITORCLASS::VisitSystem},                    \
       {"pacibsp_hi_hints"_h, &VISITORCLASS::VisitSystem},                      \
       {"pacibz_hi_hints"_h, &VISITORCLASS::VisitSystem},                       \
-      {"pssbb_only_barriers"_h, &VISITORCLASS::VisitSystem},                   \
       {"sev_hi_hints"_h, &VISITORCLASS::VisitSystem},                          \
       {"sevl_hi_hints"_h, &VISITORCLASS::VisitSystem},                         \
       {"ssbb_only_barriers"_h, &VISITORCLASS::VisitSystem},                    \
