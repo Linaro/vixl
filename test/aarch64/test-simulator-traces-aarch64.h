@@ -41,19 +41,19 @@ extern "C" {
 #include <stdint.h>
 }
 
-// To add a new simulator test to test-simulator-aarch64.cc, add dummy array(s)
-// below to build test-simulator-aarch64 for reference platform. Then, run
-// tools/generate_simulator_traces.py on a reference platform to regenerate this
-// file and traces files.
+// To add a new simulator test to test-simulator-aarch64.cc, add placeholder
+// array(s) below to build test-simulator-aarch64 for reference platform. Then,
+// run tools/generate_simulator_traces.py on a reference platform to regenerate
+// this file and traces files.
 
 // ---------------------------------------------------------------------
 // ADD DUMMY ARRAYS FOR NEW SIMULATOR TEST HERE.
 // ---------------------------------------------------------------------
-const uint64_t kExpected_dummy_64[] = {0};
-const size_t kExpectedCount_dummy_64 = 0;
+const uint64_t kExpected_placeholder_64[] = {0};
+const size_t kExpectedCount_placeholder_64 = 0;
 
-const uint32_t kExpected_dummy_32[] = {0};
-const size_t kExpectedCount_dummy_32 = 0;
+const uint32_t kExpected_placeholder_32[] = {0};
+const size_t kExpectedCount_placeholder_32 = 0;
 
 // ---------------------------------------------------------------------
 // Simulator test trace output files.

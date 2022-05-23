@@ -1637,45 +1637,45 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
   int p0_s_count = 3;
   int p0_d_count = 2;
 
-  uint64_t dummy_high = 0x1234567800000000;
+  uint64_t placeholder_high = 0x1234567800000000;
 
   // 64-bit operations preserve their high bits.
-  __ Mov(x0, dummy_high + 42);
+  __ Mov(x0, placeholder_high + 42);
   __ Sqdecp(x0, p0.VnB());
 
-  __ Mov(x1, dummy_high + 42);
+  __ Mov(x1, placeholder_high + 42);
   __ Sqincp(x1, p0.VnH());
 
   // 32-bit operations sign-extend into their high bits.
-  __ Mov(x2, dummy_high + 42);
+  __ Mov(x2, placeholder_high + 42);
   __ Sqdecp(x2, p0.VnS(), w2);
 
-  __ Mov(x3, dummy_high + 42);
+  __ Mov(x3, placeholder_high + 42);
   __ Sqincp(x3, p0.VnD(), w3);
 
-  __ Mov(x4, dummy_high + 1);
+  __ Mov(x4, placeholder_high + 1);
   __ Sqdecp(x4, p0.VnS(), w4);
 
-  __ Mov(x5, dummy_high - 1);
+  __ Mov(x5, placeholder_high - 1);
   __ Sqincp(x5, p0.VnD(), w5);
 
   // Check that saturation behaves correctly.
   __ Mov(x10, 0x8000000000000001);  // INT64_MIN + 1
   __ Sqdecp(x10, p0.VnB());
 
-  __ Mov(x11, dummy_high + 0x80000001);  // INT32_MIN + 1
+  __ Mov(x11, placeholder_high + 0x80000001);  // INT32_MIN + 1
   __ Sqdecp(x11, p0.VnH(), w11);
 
   __ Mov(x12, 1);
   __ Sqdecp(x12, p0.VnS());
 
-  __ Mov(x13, dummy_high + 1);
+  __ Mov(x13, placeholder_high + 1);
   __ Sqdecp(x13, p0.VnD(), w13);
 
   __ Mov(x14, 0x7ffffffffffffffe);  // INT64_MAX - 1
   __ Sqincp(x14, p0.VnB());
 
-  __ Mov(x15, dummy_high + 0x7ffffffe);  // INT32_MAX - 1
+  __ Mov(x15, placeholder_high + 0x7ffffffe);  // INT32_MAX - 1
   __ Sqincp(x15, p0.VnH(), w15);
 
   // Don't use x16 and x17 since they are scratch registers by default.
@@ -1683,10 +1683,10 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
   __ Mov(x18, 0xffffffffffffffff);
   __ Sqincp(x18, p0.VnS());
 
-  __ Mov(x19, dummy_high + 0xffffffff);
+  __ Mov(x19, placeholder_high + 0xffffffff);
   __ Sqincp(x19, p0.VnD(), w19);
 
-  __ Mov(x20, dummy_high + 0xffffffff);
+  __ Mov(x20, placeholder_high + 0xffffffff);
   __ Sqdecp(x20, p0.VnB(), w20);
 
   // With an all-true predicate, these instructions increment or decrement by
@@ -1699,10 +1699,10 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
   __ Mov(x22, 0);
   __ Sqincp(x22, p15.VnH());
 
-  __ Mov(x23, dummy_high);
+  __ Mov(x23, placeholder_high);
   __ Sqdecp(x23, p15.VnS(), w23);
 
-  __ Mov(x24, dummy_high);
+  __ Mov(x24, placeholder_high);
   __ Sqincp(x24, p15.VnD(), w24);
 
   END();
@@ -1710,8 +1710,8 @@ TEST_SVE(sve_sqinc_sqdec_p_scalar) {
     RUN();
 
     // 64-bit operations preserve their high bits.
-    ASSERT_EQUAL_64(dummy_high + 42 - p0_b_count, x0);
-    ASSERT_EQUAL_64(dummy_high + 42 + p0_h_count, x1);
+    ASSERT_EQUAL_64(placeholder_high + 42 - p0_b_count, x0);
+    ASSERT_EQUAL_64(placeholder_high + 42 + p0_h_count, x1);
 
     // 32-bit operations sign-extend into their high bits.
     ASSERT_EQUAL_64(42 - p0_s_count, x2);
@@ -1750,45 +1750,45 @@ TEST_SVE(sve_uqinc_uqdec_p_scalar) {
   int p0_s_count = 3;
   int p0_d_count = 2;
 
-  uint64_t dummy_high = 0x1234567800000000;
+  uint64_t placeholder_high = 0x1234567800000000;
 
   // 64-bit operations preserve their high bits.
-  __ Mov(x0, dummy_high + 42);
+  __ Mov(x0, placeholder_high + 42);
   __ Uqdecp(x0, p0.VnB());
 
-  __ Mov(x1, dummy_high + 42);
+  __ Mov(x1, placeholder_high + 42);
   __ Uqincp(x1, p0.VnH());
 
   // 32-bit operations zero-extend into their high bits.
-  __ Mov(x2, dummy_high + 42);
+  __ Mov(x2, placeholder_high + 42);
   __ Uqdecp(x2, p0.VnS(), w2);
 
-  __ Mov(x3, dummy_high + 42);
+  __ Mov(x3, placeholder_high + 42);
   __ Uqincp(x3, p0.VnD(), w3);
 
-  __ Mov(x4, dummy_high + 0x80000001);
+  __ Mov(x4, placeholder_high + 0x80000001);
   __ Uqdecp(x4, p0.VnS(), w4);
 
-  __ Mov(x5, dummy_high + 0x7fffffff);
+  __ Mov(x5, placeholder_high + 0x7fffffff);
   __ Uqincp(x5, p0.VnD(), w5);
 
   // Check that saturation behaves correctly.
   __ Mov(x10, 1);
   __ Uqdecp(x10, p0.VnB(), x10);
 
-  __ Mov(x11, dummy_high + 1);
+  __ Mov(x11, placeholder_high + 1);
   __ Uqdecp(x11, p0.VnH(), w11);
 
   __ Mov(x12, 0x8000000000000000);  // INT64_MAX + 1
   __ Uqdecp(x12, p0.VnS(), x12);
 
-  __ Mov(x13, dummy_high + 0x80000000);  // INT32_MAX + 1
+  __ Mov(x13, placeholder_high + 0x80000000);  // INT32_MAX + 1
   __ Uqdecp(x13, p0.VnD(), w13);
 
   __ Mov(x14, 0xfffffffffffffffe);  // UINT64_MAX - 1
   __ Uqincp(x14, p0.VnB(), x14);
 
-  __ Mov(x15, dummy_high + 0xfffffffe);  // UINT32_MAX - 1
+  __ Mov(x15, placeholder_high + 0xfffffffe);  // UINT32_MAX - 1
   __ Uqincp(x15, p0.VnH(), w15);
 
   // Don't use x16 and x17 since they are scratch registers by default.
@@ -1796,7 +1796,7 @@ TEST_SVE(sve_uqinc_uqdec_p_scalar) {
   __ Mov(x18, 0x7ffffffffffffffe);  // INT64_MAX - 1
   __ Uqincp(x18, p0.VnS(), x18);
 
-  __ Mov(x19, dummy_high + 0x7ffffffe);  // INT32_MAX - 1
+  __ Mov(x19, placeholder_high + 0x7ffffffe);  // INT32_MAX - 1
   __ Uqincp(x19, p0.VnD(), w19);
 
   // With an all-true predicate, these instructions increment or decrement by
@@ -1809,10 +1809,10 @@ TEST_SVE(sve_uqinc_uqdec_p_scalar) {
   __ Mov(x21, 0x4000000000000000);
   __ Uqincp(x21, p15.VnH(), x21);
 
-  __ Mov(x22, dummy_high + 0x40000000);
+  __ Mov(x22, placeholder_high + 0x40000000);
   __ Uqdecp(x22, p15.VnS(), w22);
 
-  __ Mov(x23, dummy_high + 0x40000000);
+  __ Mov(x23, placeholder_high + 0x40000000);
   __ Uqincp(x23, p15.VnD(), w23);
 
   END();
@@ -1820,8 +1820,8 @@ TEST_SVE(sve_uqinc_uqdec_p_scalar) {
     RUN();
 
     // 64-bit operations preserve their high bits.
-    ASSERT_EQUAL_64(dummy_high + 42 - p0_b_count, x0);
-    ASSERT_EQUAL_64(dummy_high + 42 + p0_h_count, x1);
+    ASSERT_EQUAL_64(placeholder_high + 42 - p0_b_count, x0);
+    ASSERT_EQUAL_64(placeholder_high + 42 + p0_h_count, x1);
 
     // 32-bit operations zero-extend into their high bits.
     ASSERT_EQUAL_64(42 - p0_s_count, x2);
@@ -2549,6 +2549,24 @@ TEST(sve_int_compare_count_and_limit_scalars) {
     ASSERT_EQUAL_32(SVEFirstFlag, w13);
     ASSERT_EQUAL_32(SVENoneFlag | SVENotLastFlag, w14);
     ASSERT_EQUAL_32(SVENoneFlag | SVENotLastFlag, w15);
+  }
+}
+
+TEST(sve_int_compare_count_and_limit_scalars_regression_test) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE);
+  START();
+
+  __ Mov(w0, 0x7ffffffd);
+  __ Mov(w1, 0x7fffffff);
+  __ Whilele(p0.VnB(), w0, w1);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    int p0_expected[] = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+    ASSERT_EQUAL_SVE(p0_expected, p0.VnB());
   }
 }
 

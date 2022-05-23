@@ -1090,7 +1090,7 @@ void Assembler::cls(const Register& rd, const Register& rn) {
   void Assembler::PRE##za(const Register& xd) {                    \
     VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));                      \
     VIXL_ASSERT(xd.Is64Bits());                                    \
-    Emit(SF(xd) | OP##ZA | Rd(xd));                                \
+    Emit(SF(xd) | OP##ZA | Rd(xd) | Rn(xzr));                      \
   }                                                                \
                                                                    \
   void Assembler::PRE##b(const Register& xd, const Register& xn) { \
@@ -1102,7 +1102,7 @@ void Assembler::cls(const Register& rd, const Register& rn) {
   void Assembler::PRE##zb(const Register& xd) {                    \
     VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));                      \
     VIXL_ASSERT(xd.Is64Bits());                                    \
-    Emit(SF(xd) | OP##ZB | Rd(xd));                                \
+    Emit(SF(xd) | OP##ZB | Rd(xd) | Rn(xzr));                      \
   }
 
 PAUTH_VARIATIONS(VIXL_DEFINE_ASM_FUNC)
@@ -1119,13 +1119,13 @@ void Assembler::pacga(const Register& xd,
 void Assembler::xpaci(const Register& xd) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
   VIXL_ASSERT(xd.Is64Bits());
-  Emit(SF(xd) | XPACI | Rd(xd));
+  Emit(SF(xd) | XPACI | Rd(xd) | Rn(xzr));
 }
 
 void Assembler::xpacd(const Register& xd) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kPAuth));
   VIXL_ASSERT(xd.Is64Bits());
-  Emit(SF(xd) | XPACD | Rd(xd));
+  Emit(SF(xd) | XPACD | Rd(xd) | Rn(xzr));
 }
 
 
@@ -5556,6 +5556,44 @@ Instr Assembler::ImmFP64(double imm) { return FP64ToImm8(imm) << ImmFP_offset; }
 
 
 // Code generation helpers.
+bool Assembler::OneInstrMoveImmediateHelper(Assembler* assm,
+                                            const Register& dst,
+                                            uint64_t imm) {
+  bool emit_code = assm != NULL;
+  unsigned n, imm_s, imm_r;
+  int reg_size = dst.GetSizeInBits();
+
+  if (IsImmMovz(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move zero instruction. Movz can't write
+    // to the stack pointer.
+    if (emit_code) {
+      assm->movz(dst, imm);
+    }
+    return true;
+  } else if (IsImmMovn(imm, reg_size) && !dst.IsSP()) {
+    // Immediate can be represented in a move negative instruction. Movn can't
+    // write to the stack pointer.
+    if (emit_code) {
+      assm->movn(dst, dst.Is64Bits() ? ~imm : (~imm & kWRegMask));
+    }
+    return true;
+  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
+    // Immediate can be represented in a logical orr instruction.
+    VIXL_ASSERT(!dst.IsZero());
+    if (emit_code) {
+      assm->LogicalImmediate(dst,
+                             AppropriateZeroRegFor(dst),
+                             n,
+                             imm_s,
+                             imm_r,
+                             ORR);
+    }
+    return true;
+  }
+  return false;
+}
+
+
 void Assembler::MoveWide(const Register& rd,
                          uint64_t imm,
                          int shift,

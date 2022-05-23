@@ -8692,7 +8692,7 @@ static void PushPopWXOverlapHelper(int reg_count, int claim) {
     if (active_w_slots > requested_w_slots) {
       __ Drop((active_w_slots - requested_w_slots) * kWRegSizeInBytes);
       // Bump the number of active W-sized slots back to where it should be,
-      // and fill the empty space with a dummy value.
+      // and fill the empty space with a placeholder value.
       do {
         stack[active_w_slots--] = 0xdeadbeef;
       } while (active_w_slots > requested_w_slots);
@@ -10664,10 +10664,10 @@ TEST(atomic_memory_swp) {
 
 
 TEST(ldaprb_ldaprh_ldapr) {
-  uint64_t data0[] = {0x1010101010101010, 0};
-  uint64_t data1[] = {0x1010101010101010, 0};
-  uint64_t data2[] = {0x1010101010101010, 0};
-  uint64_t data3[] = {0x1010101010101010, 0};
+  uint64_t data0[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t data1[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t data2[] = {0x1010101010101010, 0x1010101010101010};
+  uint64_t data3[] = {0x1010101010101010, 0x1010101010101010};
 
   uint64_t* data0_aligned = AlignUp(data0, kXRegSizeInBytes * 2);
   uint64_t* data1_aligned = AlignUp(data1, kXRegSizeInBytes * 2);
@@ -13315,7 +13315,7 @@ TEST(runtime_calls) {
   __ Ret();
   __ Bind(&after_function);
 
-  // Call our dummy function, taking care to preserve the link register.
+  // Call our placeholder function, taking care to preserve the link register.
   __ Push(ip0, lr);
   __ Bl(&function);
   __ Pop(lr, ip0);
@@ -13569,7 +13569,122 @@ static void SimulationCPUFeaturesScopeHelper(const CPUFeatures& base,
 TEST(configure_cpu_features_scope) {
   RunHelperWithFeatureCombinations(SimulationCPUFeaturesScopeHelper);
 }
+#endif
 
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+TEST(large_sim_stack) {
+  SimStack builder;
+  builder.SetUsableSize(16 * 1024);  // The default is 8kB.
+  SimStack::Allocated stack = builder.Allocate();
+  uintptr_t base = reinterpret_cast<uintptr_t>(stack.GetBase());
+  uintptr_t limit = reinterpret_cast<uintptr_t>(stack.GetLimit());
+  SETUP_CUSTOM_SIM(std::move(stack));
+  START();
+
+  // Check that we can access the extremes of the stack.
+  __ Mov(x0, base);
+  __ Mov(x1, limit);
+  __ Mov(x2, sp);
+  __ Add(sp, x1, 1);  // Avoid accessing memory below `sp`.
+
+  __ Mov(x10, 42);
+  __ Poke(x10, 0);
+  __ Peek(x10, base - limit - kXRegSizeInBytes - 1);
+
+  __ Mov(sp, x2);
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+  }
+}
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(sim_stack_limit_guard_read) {
+  SimStack builder;
+  SimStack::Allocated stack = builder.Allocate();
+  uintptr_t limit = reinterpret_cast<uintptr_t>(stack.GetLimit());
+  SETUP_CUSTOM_SIM(std::move(stack));
+  START();
+
+  __ Mov(x1, limit);
+  __ Mov(x2, sp);
+  __ Add(sp, x1, 1);  // Avoid accessing memory below `sp`.
+
+  // `sp` points to the lowest usable byte of the stack.
+  __ Mov(w10, 42);
+  __ Ldrb(w10, MemOperand(sp, -1));
+
+  __ Mov(sp, x2);
+
+  END();
+  if (CAN_RUN()) {
+    MUST_FAIL_WITH_MESSAGE(RUN(), "Attempt to read from stack guard region");
+  }
+}
+
+TEST(sim_stack_limit_guard_write) {
+  SimStack builder;
+  SimStack::Allocated stack = builder.Allocate();
+  uintptr_t limit = reinterpret_cast<uintptr_t>(stack.GetLimit());
+  SETUP_CUSTOM_SIM(std::move(stack));
+  START();
+
+  __ Mov(x1, limit);
+  __ Mov(x2, sp);
+  __ Add(sp, x1, 1);  // Avoid accessing memory below `sp`.
+
+  // `sp` points to the lowest usable byte of the stack.
+  __ Mov(w10, 42);
+  __ Strb(w10, MemOperand(sp, -1));
+
+  __ Mov(sp, x2);
+
+  END();
+  if (CAN_RUN()) {
+    MUST_FAIL_WITH_MESSAGE(RUN(), "Attempt to write to stack guard region");
+  }
+}
+
+TEST(sim_stack_base_guard_read) {
+  SimStack builder;
+  SimStack::Allocated stack = builder.Allocate();
+  uintptr_t base = reinterpret_cast<uintptr_t>(stack.GetBase());
+  SETUP_CUSTOM_SIM(std::move(stack));
+  START();
+
+  __ Mov(x0, base);
+  // `base` (x0) is the byte after the highest usable byte of the stack.
+  // The last byte of this access will hit the guard region.
+  __ Mov(x10, 42);
+  __ Ldr(x10, MemOperand(x0, -static_cast<int64_t>(kXRegSizeInBytes) + 1));
+
+  END();
+  if (CAN_RUN()) {
+    MUST_FAIL_WITH_MESSAGE(RUN(), "Attempt to read from stack guard region");
+  }
+}
+
+TEST(sim_stack_base_guard_write) {
+  SimStack builder;
+  SimStack::Allocated stack = builder.Allocate();
+  uintptr_t base = reinterpret_cast<uintptr_t>(stack.GetBase());
+  SETUP_CUSTOM_SIM(std::move(stack));
+  START();
+
+  __ Mov(x0, base);
+  // `base` (x0) is the byte after the highest usable byte of the stack.
+  // The last byte of this access will hit the guard region.
+  __ Mov(x10, 42);
+  __ Str(x10, MemOperand(x0, -static_cast<int64_t>(kXRegSizeInBytes) + 1));
+
+  END();
+  if (CAN_RUN()) {
+    MUST_FAIL_WITH_MESSAGE(RUN(), "Attempt to write to stack guard region");
+  }
+}
+#endif
 #endif
 
 }  // namespace aarch64

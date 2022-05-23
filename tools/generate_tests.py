@@ -48,7 +48,7 @@ present in the `default_config_files` list. For example:
 - test/aarch32/test-assembler-cond-rd-rn-rm-ge-a32.cc
 
 Because these test cases need traces in order to build, the script will have
-generated dummy trace files in `test/aarch32/traces/`. If you look at them
+generated placeholder trace files in `test/aarch32/traces/`. If you look at them
 you'll see they are basically empty:
 
     $ cat test/aarch32/traces/sim-cond-rd-rn-immediate-adc-a32.h
@@ -692,7 +692,7 @@ def BuildOptions():
                       default=multiprocessing.cpu_count(),
                       help='Allow N jobs at once')
   result.add_argument('--skip-traces', action='store_true',
-                      help='Skip generation of dummy traces.')
+                      help='Skip generation of placeholder traces.')
   return result.parse_args()
 
 
@@ -773,7 +773,7 @@ def GenerateTest(generator, clang_format, skip_traces):
     out, _ = proc.communicate(generated_file.encode())
     f.write(out.decode())
   if not skip_traces:
-    # Write dummy trace files into 'test/aarch32/traces/'.
+    # Write placeholder trace files into 'test/aarch32/traces/'.
     generator.WriteEmptyTraces("test/aarch32/traces/")
   print("Generated {} {} test for \"{}\".".format(generator.test_isa.upper(),
                                                   generator.test_type,

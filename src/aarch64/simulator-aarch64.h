@@ -27,6 +27,7 @@
 #ifndef VIXL_AARCH64_SIMULATOR_AARCH64_H_
 #define VIXL_AARCH64_SIMULATOR_AARCH64_H_
 
+#include <memory>
 #include <vector>
 
 #include "../globals-vixl.h"
@@ -54,11 +55,112 @@
 namespace vixl {
 namespace aarch64 {
 
+class SimStack {
+ public:
+  SimStack() {}
+  explicit SimStack(size_t size) : usable_size_(size) {}
+
+  // Guard against accesses above the stack base. This could occur, for example,
+  // if the first simulated function tries to read stack arguments that haven't
+  // been properly initialised in the Simulator's stack.
+  void SetBaseGuardSize(size_t size) { base_guard_size_ = size; }
+
+  // Guard against stack overflows. The size should be large enough to detect
+  // the largest stride made (by `MacroAssembler::Claim()` or equivalent) whilst
+  // initialising stack objects.
+  void SetLimitGuardSize(size_t size) { limit_guard_size_ = size; }
+
+  // The minimum usable size of the stack.
+  // Equal to "stack base" - "stack limit", in AAPCS64 terminology.
+  void SetUsableSize(size_t size) { usable_size_ = size; }
+
+  // Set the minimum alignment for the stack parameters.
+  void AlignToBytesLog2(int align_log2) { align_log2_ = align_log2; }
+
+  class Allocated {
+   public:
+    // Using AAPCS64 terminology, highest addresses at the top:
+    //
+    //  data_.get() + alloc_size ->
+    //                              |
+    //                              | Base guard
+    //                 GetBase() -> |                  |
+    //                                |                |
+    //                                |                | AAPCS64-legal
+    //                                | Usable stack   | values of 'sp'.
+    //                                |                |
+    //                                |                |
+    //                GetLimit() -> |
+    //                              | Limit guard
+    //               data_.get() -> |
+    //
+    // The Simulator detects (and forbids) accesses to either guard region.
+
+    char* GetBase() const { return base_; }
+    char* GetLimit() const { return limit_; }
+
+    template <typename T>
+    bool IsAccessInGuardRegion(const T* base, size_t size) const {
+      VIXL_ASSERT(size > 0);
+      // Inclusive bounds.
+      const char* start = reinterpret_cast<const char*>(base);
+      const char* end = start + size - 1;
+      const char* data_start = data_.get();
+      const char* data_end = data_start + alloc_size_ - 1;
+      bool in_base_guard = (start <= data_end) && (end >= base_);
+      bool in_limit_guard = (start <= limit_) && (end >= data_start);
+      return in_base_guard || in_limit_guard;
+    }
+
+   private:
+    std::unique_ptr<char[]> data_;
+    char* limit_;
+    char* base_;
+    size_t alloc_size_;
+
+    friend class SimStack;
+  };
+
+  // Allocate the stack, locking the parameters.
+  Allocated Allocate() {
+    size_t align_to = 1 << align_log2_;
+    size_t l = AlignUp(limit_guard_size_, align_to);
+    size_t u = AlignUp(usable_size_, align_to);
+    size_t b = AlignUp(base_guard_size_, align_to);
+    size_t size = l + u + b;
+
+    Allocated a;
+    size_t alloc_size = (align_to - 1) + size;
+    a.data_ = std::make_unique<char[]>(alloc_size);
+    void* data = a.data_.get();
+    auto data_aligned =
+        reinterpret_cast<char*>(std::align(align_to, size, data, alloc_size));
+    a.limit_ = data_aligned + l - 1;
+    a.base_ = data_aligned + l + u;
+    a.alloc_size_ = alloc_size;
+    return a;
+  }
+
+ private:
+  size_t base_guard_size_ = 256;
+  size_t limit_guard_size_ = 4 * 1024;
+  size_t usable_size_ = 8 * 1024;
+  size_t align_log2_ = 4;
+
+  static const size_t kDefaultBaseGuardSize = 256;
+  static const size_t kDefaultLimitGuardSize = 4 * 1024;
+  static const size_t kDefaultUsableSize = 8 * 1024;
+};
+
 // Representation of memory, with typed getters and setters for access.
 class Memory {
  public:
+  explicit Memory(SimStack::Allocated stack) : stack_(std::move(stack)) {}
+
+  const SimStack::Allocated& GetStack() { return stack_; }
+
   template <typename T>
-  static T AddressUntag(T address) {
+  T AddressUntag(T address) const {
     // Cast the address using a C-style cast. A reinterpret_cast would be
     // appropriate, but it can't cast one integral type to another.
     uint64_t bits = (uint64_t)address;
@@ -66,18 +168,35 @@ class Memory {
   }
 
   template <typename T, typename A>
-  static T Read(A address) {
+  T Read(A address) const {
     T value;
     address = AddressUntag(address);
-    VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
-                (sizeof(value) == 4) || (sizeof(value) == 8) ||
-                (sizeof(value) == 16));
-    memcpy(&value, reinterpret_cast<const char*>(address), sizeof(value));
+    VIXL_STATIC_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
+                       (sizeof(value) == 4) || (sizeof(value) == 8) ||
+                       (sizeof(value) == 16));
+    auto base = reinterpret_cast<const char*>(address);
+    if (stack_.IsAccessInGuardRegion(base, sizeof(value))) {
+      VIXL_ABORT_WITH_MSG("Attempt to read from stack guard region");
+    }
+    memcpy(&value, base, sizeof(value));
     return value;
   }
 
+  template <typename T, typename A>
+  void Write(A address, T value) const {
+    address = AddressUntag(address);
+    VIXL_STATIC_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
+                       (sizeof(value) == 4) || (sizeof(value) == 8) ||
+                       (sizeof(value) == 16));
+    auto base = reinterpret_cast<char*>(address);
+    if (stack_.IsAccessInGuardRegion(base, sizeof(value))) {
+      VIXL_ABORT_WITH_MSG("Attempt to write to stack guard region");
+    }
+    memcpy(base, &value, sizeof(value));
+  }
+
   template <typename A>
-  static uint64_t Read(int size_in_bytes, A address) {
+  uint64_t ReadUint(int size_in_bytes, A address) const {
     switch (size_in_bytes) {
       case 1:
         return Read<uint8_t>(address);
@@ -92,14 +211,39 @@ class Memory {
     return 0;
   }
 
-  template <typename T, typename A>
-  static void Write(A address, T value) {
-    address = AddressUntag(address);
-    VIXL_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
-                (sizeof(value) == 4) || (sizeof(value) == 8) ||
-                (sizeof(value) == 16));
-    memcpy(reinterpret_cast<char*>(address), &value, sizeof(value));
+  template <typename A>
+  int64_t ReadInt(int size_in_bytes, A address) const {
+    switch (size_in_bytes) {
+      case 1:
+        return Read<int8_t>(address);
+      case 2:
+        return Read<int16_t>(address);
+      case 4:
+        return Read<int32_t>(address);
+      case 8:
+        return Read<int64_t>(address);
+    }
+    VIXL_UNREACHABLE();
+    return 0;
   }
+
+  template <typename A>
+  void Write(int size_in_bytes, A address, uint64_t value) const {
+    switch (size_in_bytes) {
+      case 1:
+        return Write(address, static_cast<uint8_t>(value));
+      case 2:
+        return Write(address, static_cast<uint16_t>(value));
+      case 4:
+        return Write(address, static_cast<uint32_t>(value));
+      case 8:
+        return Write(address, value);
+    }
+    VIXL_UNREACHABLE();
+  }
+
+ private:
+  SimStack::Allocated stack_;
 };
 
 // Represent a register (r0-r31, v0-v31, z0-z31, p0-p15).
@@ -475,136 +619,6 @@ class LogicVRegister {
     ClearForWrite(vform);
     for (int i = 0; i < LaneCountFromFormat(vform); i++) {
       SetUint(vform, i, src[i]);
-    }
-  }
-
-  void ReadIntFromMem(VectorFormat vform,
-                      unsigned msize_in_bits,
-                      int index,
-                      uint64_t addr) const {
-    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
-    int64_t value;
-    switch (msize_in_bits) {
-      case 8:
-        value = Memory::Read<int8_t>(addr);
-        break;
-      case 16:
-        value = Memory::Read<int16_t>(addr);
-        break;
-      case 32:
-        value = Memory::Read<int32_t>(addr);
-        break;
-      case 64:
-        value = Memory::Read<int64_t>(addr);
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return;
-    }
-
-    unsigned esize_in_bits = LaneSizeInBitsFromFormat(vform);
-    VIXL_ASSERT(esize_in_bits >= msize_in_bits);
-    switch (esize_in_bits) {
-      case 8:
-        register_.Insert(index, static_cast<int8_t>(value));
-        break;
-      case 16:
-        register_.Insert(index, static_cast<int16_t>(value));
-        break;
-      case 32:
-        register_.Insert(index, static_cast<int32_t>(value));
-        break;
-      case 64:
-        register_.Insert(index, static_cast<int64_t>(value));
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return;
-    }
-  }
-
-  void ReadUintFromMem(VectorFormat vform,
-                       unsigned msize_in_bits,
-                       int index,
-                       uint64_t addr) const {
-    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
-    uint64_t value;
-    switch (msize_in_bits) {
-      case 8:
-        value = Memory::Read<uint8_t>(addr);
-        break;
-      case 16:
-        value = Memory::Read<uint16_t>(addr);
-        break;
-      case 32:
-        value = Memory::Read<uint32_t>(addr);
-        break;
-      case 64:
-        value = Memory::Read<uint64_t>(addr);
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return;
-    }
-
-    unsigned esize_in_bits = LaneSizeInBitsFromFormat(vform);
-    VIXL_ASSERT(esize_in_bits >= msize_in_bits);
-    switch (esize_in_bits) {
-      case 8:
-        register_.Insert(index, static_cast<uint8_t>(value));
-        break;
-      case 16:
-        register_.Insert(index, static_cast<uint16_t>(value));
-        break;
-      case 32:
-        register_.Insert(index, static_cast<uint32_t>(value));
-        break;
-      case 64:
-        register_.Insert(index, static_cast<uint64_t>(value));
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return;
-    }
-  }
-
-  void ReadUintFromMem(VectorFormat vform, int index, uint64_t addr) const {
-    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
-    switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8:
-        register_.Insert(index, Memory::Read<uint8_t>(addr));
-        break;
-      case 16:
-        register_.Insert(index, Memory::Read<uint16_t>(addr));
-        break;
-      case 32:
-        register_.Insert(index, Memory::Read<uint32_t>(addr));
-        break;
-      case 64:
-        register_.Insert(index, Memory::Read<uint64_t>(addr));
-        break;
-      default:
-        VIXL_UNREACHABLE();
-        return;
-    }
-  }
-
-  void WriteUintToMem(VectorFormat vform, int index, uint64_t addr) const {
-    if (IsSVEFormat(vform)) register_.NotifyAccessAsZ();
-    uint64_t value = Uint(vform, index);
-    switch (LaneSizeInBitsFromFormat(vform)) {
-      case 8:
-        Memory::Write(addr, static_cast<uint8_t>(value));
-        break;
-      case 16:
-        Memory::Write(addr, static_cast<uint16_t>(value));
-        break;
-      case 32:
-        Memory::Write(addr, static_cast<uint32_t>(value));
-        break;
-      case 64:
-        Memory::Write(addr, value);
-        break;
     }
   }
 
@@ -1005,7 +1019,9 @@ class SimExclusiveGlobalMonitor {
 
 class Simulator : public DecoderVisitor {
  public:
-  explicit Simulator(Decoder* decoder, FILE* stream = stdout);
+  explicit Simulator(Decoder* decoder,
+                     FILE* stream = stdout,
+                     SimStack::Allocated stack = SimStack().Allocate());
   ~Simulator();
 
   void ResetState();
@@ -1083,7 +1099,7 @@ class Simulator : public DecoderVisitor {
   void WritePc(const Instruction* new_pc,
                BranchLogMode log_mode = LogBranches) {
     if (log_mode == LogBranches) LogTakenBranch(new_pc);
-    pc_ = Memory::AddressUntag(new_pc);
+    pc_ = memory_.AddressUntag(new_pc);
     pc_modified_ = true;
   }
   VIXL_DEPRECATED("WritePc", void set_pc(const Instruction* new_pc)) {
@@ -1694,6 +1710,63 @@ class Simulator : public DecoderVisitor {
     }
   }
 
+  template <typename T, typename A>
+  T MemRead(A address) const {
+    return memory_.Read<T>(address);
+  }
+
+  template <typename T, typename A>
+  void MemWrite(A address, T value) const {
+    return memory_.Write(address, value);
+  }
+
+  template <typename A>
+  uint64_t MemReadUint(int size_in_bytes, A address) const {
+    return memory_.ReadUint(size_in_bytes, address);
+  }
+
+  template <typename A>
+  int64_t MemReadInt(int size_in_bytes, A address) const {
+    return memory_.ReadInt(size_in_bytes, address);
+  }
+
+  template <typename A>
+  void MemWrite(int size_in_bytes, A address, uint64_t value) const {
+    return memory_.Write(size_in_bytes, address, value);
+  }
+
+  void LoadLane(LogicVRegister dst,
+                VectorFormat vform,
+                int index,
+                uint64_t addr) const {
+    unsigned msize_in_bytes = LaneSizeInBytesFromFormat(vform);
+    LoadUintToLane(dst, vform, msize_in_bytes, index, addr);
+  }
+
+  void LoadUintToLane(LogicVRegister dst,
+                      VectorFormat vform,
+                      unsigned msize_in_bytes,
+                      int index,
+                      uint64_t addr) const {
+    dst.SetUint(vform, index, MemReadUint(msize_in_bytes, addr));
+  }
+
+  void LoadIntToLane(LogicVRegister dst,
+                     VectorFormat vform,
+                     unsigned msize_in_bytes,
+                     int index,
+                     uint64_t addr) const {
+    dst.SetInt(vform, index, MemReadInt(msize_in_bytes, addr));
+  }
+
+  void StoreLane(const LogicVRegister& src,
+                 VectorFormat vform,
+                 int index,
+                 uint64_t addr) const {
+    unsigned msize_in_bytes = LaneSizeInBytesFromFormat(vform);
+    MemWrite(msize_in_bytes, addr, src.Uint(vform, index));
+  }
+
   uint64_t ComputeMemOperandAddress(const MemOperand& mem_op) const;
 
   template <typename T>
@@ -1702,7 +1775,7 @@ class Simulator : public DecoderVisitor {
       return ReadCPURegister<T>(operand.GetCPURegister());
     } else {
       VIXL_ASSERT(operand.IsMemOperand());
-      return Memory::Read<T>(ComputeMemOperandAddress(operand.GetMemOperand()));
+      return MemRead<T>(ComputeMemOperandAddress(operand.GetMemOperand()));
     }
   }
 
@@ -1723,7 +1796,7 @@ class Simulator : public DecoderVisitor {
       WriteCPURegister(operand.GetCPURegister(), raw, log_mode);
     } else {
       VIXL_ASSERT(operand.IsMemOperand());
-      Memory::Write(ComputeMemOperandAddress(operand.GetMemOperand()), value);
+      MemWrite(ComputeMemOperandAddress(operand.GetMemOperand()), value);
     }
   }
 
@@ -4507,14 +4580,11 @@ class Simulator : public DecoderVisitor {
 
   static const uint32_t kConditionFlagsMask = 0xf0000000;
 
-  // Stack
-  byte* stack_;
-  static const int stack_protection_size_ = 256;
-  // 8 KB stack.
-  // TODO: Make this configurable, or automatically allocate space as it runs
-  // out (like the OS would try to do).
-  static const int stack_size_ = 8 * 1024 + 2 * stack_protection_size_;
-  byte* stack_limit_;
+  Memory memory_;
+
+  static const size_t kDefaultStackGuardStartSize = 0;
+  static const size_t kDefaultStackGuardEndSize = 4 * 1024;
+  static const size_t kDefaultStackUsableSize = 8 * 1024;
 
   Decoder* decoder_;
   // Indicates if the pc has been modified by the instruction and should not be
@@ -4556,10 +4626,10 @@ class Simulator : public DecoderVisitor {
 
   bool CanReadMemory(uintptr_t address, size_t size);
 
-  // CanReadMemory needs dummy file descriptors, so we use a pipe. We can save
-  // some system call overhead by opening them on construction, rather than on
-  // every call to CanReadMemory.
-  int dummy_pipe_fd_[2];
+  // CanReadMemory needs placeholder file descriptors, so we use a pipe. We can
+  // save some system call overhead by opening them on construction, rather than
+  // on every call to CanReadMemory.
+  int placeholder_pipe_fd_[2];
 
   template <typename T>
   static T FPDefaultNaN();

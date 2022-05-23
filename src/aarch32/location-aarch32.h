@@ -58,7 +58,7 @@ class Location : public LocationBase<int32_t> {
   // with the assembler methods for generating instructions, but will never
   // be handled by the pool manager.
   Location()
-      : LocationBase<int32_t>(kRawLocation, 1 /* dummy size*/),
+      : LocationBase<int32_t>(kRawLocation, 1 /* placeholder size*/),
         referenced_(false) {}
 
   typedef int32_t Offset;

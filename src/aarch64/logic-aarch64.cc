@@ -170,7 +170,7 @@ SimFloat16 Simulator::UFixedToFloat16(uint64_t src,
 void Simulator::ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr) {
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.ReadUintFromMem(vform, i, addr);
+    LoadLane(dst, vform, i, addr);
     addr += LaneSizeInBytesFromFormat(vform);
   }
 }
@@ -180,7 +180,7 @@ void Simulator::ld1(VectorFormat vform,
                     LogicVRegister dst,
                     int index,
                     uint64_t addr) {
-  dst.ReadUintFromMem(vform, index, addr);
+  LoadLane(dst, vform, index, addr);
 }
 
 
@@ -189,13 +189,13 @@ void Simulator::ld1r(VectorFormat vform,
                      LogicVRegister dst,
                      uint64_t addr,
                      bool is_signed) {
-  unsigned unpack_size = LaneSizeInBitsFromFormat(unpack_vform);
+  unsigned unpack_size = LaneSizeInBytesFromFormat(unpack_vform);
   dst.ClearForWrite(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     if (is_signed) {
-      dst.ReadIntFromMem(vform, unpack_size, i, addr);
+      LoadIntToLane(dst, vform, unpack_size, i, addr);
     } else {
-      dst.ReadUintFromMem(vform, unpack_size, i, addr);
+      LoadUintToLane(dst, vform, unpack_size, i, addr);
     }
   }
 }
@@ -215,8 +215,8 @@ void Simulator::ld2(VectorFormat vform,
   int esize = LaneSizeInBytesFromFormat(vform);
   uint64_t addr2 = addr1 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst1.ReadUintFromMem(vform, i, addr1);
-    dst2.ReadUintFromMem(vform, i, addr2);
+    LoadLane(dst1, vform, i, addr1);
+    LoadLane(dst2, vform, i, addr2);
     addr1 += 2 * esize;
     addr2 += 2 * esize;
   }
@@ -231,8 +231,8 @@ void Simulator::ld2(VectorFormat vform,
   dst1.ClearForWrite(vform);
   dst2.ClearForWrite(vform);
   uint64_t addr2 = addr1 + LaneSizeInBytesFromFormat(vform);
-  dst1.ReadUintFromMem(vform, index, addr1);
-  dst2.ReadUintFromMem(vform, index, addr2);
+  LoadLane(dst1, vform, index, addr1);
+  LoadLane(dst2, vform, index, addr2);
 }
 
 
@@ -244,8 +244,8 @@ void Simulator::ld2r(VectorFormat vform,
   dst2.ClearForWrite(vform);
   uint64_t addr2 = addr + LaneSizeInBytesFromFormat(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst1.ReadUintFromMem(vform, i, addr);
-    dst2.ReadUintFromMem(vform, i, addr2);
+    LoadLane(dst1, vform, i, addr);
+    LoadLane(dst2, vform, i, addr2);
   }
 }
 
@@ -262,9 +262,9 @@ void Simulator::ld3(VectorFormat vform,
   uint64_t addr2 = addr1 + esize;
   uint64_t addr3 = addr2 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst1.ReadUintFromMem(vform, i, addr1);
-    dst2.ReadUintFromMem(vform, i, addr2);
-    dst3.ReadUintFromMem(vform, i, addr3);
+    LoadLane(dst1, vform, i, addr1);
+    LoadLane(dst2, vform, i, addr2);
+    LoadLane(dst3, vform, i, addr3);
     addr1 += 3 * esize;
     addr2 += 3 * esize;
     addr3 += 3 * esize;
@@ -283,9 +283,9 @@ void Simulator::ld3(VectorFormat vform,
   dst3.ClearForWrite(vform);
   uint64_t addr2 = addr1 + LaneSizeInBytesFromFormat(vform);
   uint64_t addr3 = addr2 + LaneSizeInBytesFromFormat(vform);
-  dst1.ReadUintFromMem(vform, index, addr1);
-  dst2.ReadUintFromMem(vform, index, addr2);
-  dst3.ReadUintFromMem(vform, index, addr3);
+  LoadLane(dst1, vform, index, addr1);
+  LoadLane(dst2, vform, index, addr2);
+  LoadLane(dst3, vform, index, addr3);
 }
 
 
@@ -300,9 +300,9 @@ void Simulator::ld3r(VectorFormat vform,
   uint64_t addr2 = addr + LaneSizeInBytesFromFormat(vform);
   uint64_t addr3 = addr2 + LaneSizeInBytesFromFormat(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst1.ReadUintFromMem(vform, i, addr);
-    dst2.ReadUintFromMem(vform, i, addr2);
-    dst3.ReadUintFromMem(vform, i, addr3);
+    LoadLane(dst1, vform, i, addr);
+    LoadLane(dst2, vform, i, addr2);
+    LoadLane(dst3, vform, i, addr3);
   }
 }
 
@@ -322,10 +322,10 @@ void Simulator::ld4(VectorFormat vform,
   uint64_t addr3 = addr2 + esize;
   uint64_t addr4 = addr3 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst1.ReadUintFromMem(vform, i, addr1);
-    dst2.ReadUintFromMem(vform, i, addr2);
-    dst3.ReadUintFromMem(vform, i, addr3);
-    dst4.ReadUintFromMem(vform, i, addr4);
+    LoadLane(dst1, vform, i, addr1);
+    LoadLane(dst2, vform, i, addr2);
+    LoadLane(dst3, vform, i, addr3);
+    LoadLane(dst4, vform, i, addr4);
     addr1 += 4 * esize;
     addr2 += 4 * esize;
     addr3 += 4 * esize;
@@ -348,10 +348,10 @@ void Simulator::ld4(VectorFormat vform,
   uint64_t addr2 = addr1 + LaneSizeInBytesFromFormat(vform);
   uint64_t addr3 = addr2 + LaneSizeInBytesFromFormat(vform);
   uint64_t addr4 = addr3 + LaneSizeInBytesFromFormat(vform);
-  dst1.ReadUintFromMem(vform, index, addr1);
-  dst2.ReadUintFromMem(vform, index, addr2);
-  dst3.ReadUintFromMem(vform, index, addr3);
-  dst4.ReadUintFromMem(vform, index, addr4);
+  LoadLane(dst1, vform, index, addr1);
+  LoadLane(dst2, vform, index, addr2);
+  LoadLane(dst3, vform, index, addr3);
+  LoadLane(dst4, vform, index, addr4);
 }
 
 
@@ -369,17 +369,17 @@ void Simulator::ld4r(VectorFormat vform,
   uint64_t addr3 = addr2 + LaneSizeInBytesFromFormat(vform);
   uint64_t addr4 = addr3 + LaneSizeInBytesFromFormat(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst1.ReadUintFromMem(vform, i, addr);
-    dst2.ReadUintFromMem(vform, i, addr2);
-    dst3.ReadUintFromMem(vform, i, addr3);
-    dst4.ReadUintFromMem(vform, i, addr4);
+    LoadLane(dst1, vform, i, addr);
+    LoadLane(dst2, vform, i, addr2);
+    LoadLane(dst3, vform, i, addr3);
+    LoadLane(dst4, vform, i, addr4);
   }
 }
 
 
 void Simulator::st1(VectorFormat vform, LogicVRegister src, uint64_t addr) {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    src.WriteUintToMem(vform, i, addr);
+    StoreLane(src, vform, i, addr);
     addr += LaneSizeInBytesFromFormat(vform);
   }
 }
@@ -389,19 +389,19 @@ void Simulator::st1(VectorFormat vform,
                     LogicVRegister src,
                     int index,
                     uint64_t addr) {
-  src.WriteUintToMem(vform, index, addr);
+  StoreLane(src, vform, index, addr);
 }
 
 
 void Simulator::st2(VectorFormat vform,
-                    LogicVRegister dst,
-                    LogicVRegister dst2,
+                    LogicVRegister src,
+                    LogicVRegister src2,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
   uint64_t addr2 = addr + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.WriteUintToMem(vform, i, addr);
-    dst2.WriteUintToMem(vform, i, addr2);
+    StoreLane(src, vform, i, addr);
+    StoreLane(src2, vform, i, addr2);
     addr += 2 * esize;
     addr2 += 2 * esize;
   }
@@ -409,28 +409,28 @@ void Simulator::st2(VectorFormat vform,
 
 
 void Simulator::st2(VectorFormat vform,
-                    LogicVRegister dst,
-                    LogicVRegister dst2,
+                    LogicVRegister src,
+                    LogicVRegister src2,
                     int index,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
-  dst.WriteUintToMem(vform, index, addr);
-  dst2.WriteUintToMem(vform, index, addr + 1 * esize);
+  StoreLane(src, vform, index, addr);
+  StoreLane(src2, vform, index, addr + 1 * esize);
 }
 
 
 void Simulator::st3(VectorFormat vform,
-                    LogicVRegister dst,
-                    LogicVRegister dst2,
-                    LogicVRegister dst3,
+                    LogicVRegister src,
+                    LogicVRegister src2,
+                    LogicVRegister src3,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
   uint64_t addr2 = addr + esize;
   uint64_t addr3 = addr2 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.WriteUintToMem(vform, i, addr);
-    dst2.WriteUintToMem(vform, i, addr2);
-    dst3.WriteUintToMem(vform, i, addr3);
+    StoreLane(src, vform, i, addr);
+    StoreLane(src2, vform, i, addr2);
+    StoreLane(src3, vform, i, addr3);
     addr += 3 * esize;
     addr2 += 3 * esize;
     addr3 += 3 * esize;
@@ -439,33 +439,33 @@ void Simulator::st3(VectorFormat vform,
 
 
 void Simulator::st3(VectorFormat vform,
-                    LogicVRegister dst,
-                    LogicVRegister dst2,
-                    LogicVRegister dst3,
+                    LogicVRegister src,
+                    LogicVRegister src2,
+                    LogicVRegister src3,
                     int index,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
-  dst.WriteUintToMem(vform, index, addr);
-  dst2.WriteUintToMem(vform, index, addr + 1 * esize);
-  dst3.WriteUintToMem(vform, index, addr + 2 * esize);
+  StoreLane(src, vform, index, addr);
+  StoreLane(src2, vform, index, addr + 1 * esize);
+  StoreLane(src3, vform, index, addr + 2 * esize);
 }
 
 
 void Simulator::st4(VectorFormat vform,
-                    LogicVRegister dst,
-                    LogicVRegister dst2,
-                    LogicVRegister dst3,
-                    LogicVRegister dst4,
+                    LogicVRegister src,
+                    LogicVRegister src2,
+                    LogicVRegister src3,
+                    LogicVRegister src4,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
   uint64_t addr2 = addr + esize;
   uint64_t addr3 = addr2 + esize;
   uint64_t addr4 = addr3 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    dst.WriteUintToMem(vform, i, addr);
-    dst2.WriteUintToMem(vform, i, addr2);
-    dst3.WriteUintToMem(vform, i, addr3);
-    dst4.WriteUintToMem(vform, i, addr4);
+    StoreLane(src, vform, i, addr);
+    StoreLane(src2, vform, i, addr2);
+    StoreLane(src3, vform, i, addr3);
+    StoreLane(src4, vform, i, addr4);
     addr += 4 * esize;
     addr2 += 4 * esize;
     addr3 += 4 * esize;
@@ -475,17 +475,17 @@ void Simulator::st4(VectorFormat vform,
 
 
 void Simulator::st4(VectorFormat vform,
-                    LogicVRegister dst,
-                    LogicVRegister dst2,
-                    LogicVRegister dst3,
-                    LogicVRegister dst4,
+                    LogicVRegister src,
+                    LogicVRegister src2,
+                    LogicVRegister src3,
+                    LogicVRegister src4,
                     int index,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
-  dst.WriteUintToMem(vform, index, addr);
-  dst2.WriteUintToMem(vform, index, addr + 1 * esize);
-  dst3.WriteUintToMem(vform, index, addr + 2 * esize);
-  dst4.WriteUintToMem(vform, index, addr + 3 * esize);
+  StoreLane(src, vform, index, addr);
+  StoreLane(src2, vform, index, addr + 1 * esize);
+  StoreLane(src3, vform, index, addr + 2 * esize);
+  StoreLane(src4, vform, index, addr + 3 * esize);
 }
 
 
@@ -4755,7 +4755,9 @@ int32_t Simulator::FPToInt32(double value, FPRounding rmode) {
 
 int64_t Simulator::FPToInt64(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
-  if (value >= kXMaxInt) {
+  // This is equivalent to "if (value >= kXMaxInt)" but avoids rounding issues
+  // as a result of kMaxInt not being representable as a double.
+  if (value >= 9223372036854775808.) {
     return kXMaxInt;
   } else if (value < kXMinInt) {
     return kXMinInt;
@@ -4788,7 +4790,9 @@ uint32_t Simulator::FPToUInt32(double value, FPRounding rmode) {
 
 uint64_t Simulator::FPToUInt64(double value, FPRounding rmode) {
   value = FPRoundInt(value, rmode);
-  if (value >= kXMaxUInt) {
+  // This is equivalent to "if (value >= kXMaxUInt)" but avoids rounding issues
+  // as a result of kMaxUInt not being representable as a double.
+  if (value >= 18446744073709551616.) {
     return kXMaxUInt;
   } else if (value < 0.0) {
     return 0;
@@ -7019,7 +7023,7 @@ void Simulator::SVEStructuredStoreHelper(VectorFormat vform,
 
     for (int r = 0; r < reg_count; r++) {
       uint64_t element_address = addr.GetElementAddress(i, r);
-      zt[r].WriteUintToMem(unpack_vform, i << unpack_shift, element_address);
+      StoreLane(zt[r], unpack_vform, i << unpack_shift, element_address);
     }
   }
 
@@ -7068,9 +7072,6 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
       ReadVRegister(zt_codes[3]),
   };
 
-  VectorFormat unpack_vform =
-      SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
-
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     for (int r = 0; r < reg_count; r++) {
       uint64_t element_address = addr.GetElementAddress(i, r);
@@ -7081,16 +7082,9 @@ void Simulator::SVEStructuredLoadHelper(VectorFormat vform,
       }
 
       if (is_signed) {
-        zt[r].ReadIntFromMem(vform,
-                             LaneSizeInBitsFromFormat(unpack_vform),
-                             i,
-                             element_address);
-
+        LoadIntToLane(zt[r], vform, msize_in_bytes, i, element_address);
       } else {
-        zt[r].ReadUintFromMem(vform,
-                              LaneSizeInBitsFromFormat(unpack_vform),
-                              i,
-                              element_address);
+        LoadUintToLane(zt[r], vform, msize_in_bytes, i, element_address);
       }
     }
   }
@@ -7216,7 +7210,7 @@ void Simulator::SVEFaultTolerantLoadHelper(VectorFormat vform,
         // First-faulting loads always load the first active element, regardless
         // of FFR. The result will be discarded if its FFR lane is inactive, but
         // it could still generate a fault.
-        value = Memory::Read(msize_in_bytes, element_address);
+        value = MemReadUint(msize_in_bytes, element_address);
         // All subsequent elements have non-fault semantics.
         type = kSVENonFaultLoad;
 
@@ -7228,7 +7222,7 @@ void Simulator::SVEFaultTolerantLoadHelper(VectorFormat vform,
         bool can_read = (i < fake_fault_at_lane) &&
                         CanReadMemory(element_address, msize_in_bytes);
         if (can_read) {
-          value = Memory::Read(msize_in_bytes, element_address);
+          value = MemReadUint(msize_in_bytes, element_address);
         } else {
           // Propagate the fault to the end of FFR.
           for (int j = i; j < LaneCountFromFormat(vform); j++) {

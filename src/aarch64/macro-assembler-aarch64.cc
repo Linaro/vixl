@@ -523,44 +523,6 @@ int MacroAssembler::MoveImmediateHelper(MacroAssembler* masm,
 }
 
 
-bool MacroAssembler::OneInstrMoveImmediateHelper(MacroAssembler* masm,
-                                                 const Register& dst,
-                                                 uint64_t imm) {
-  bool emit_code = masm != NULL;
-  unsigned n, imm_s, imm_r;
-  int reg_size = dst.GetSizeInBits();
-
-  if (IsImmMovz(imm, reg_size) && !dst.IsSP()) {
-    // Immediate can be represented in a move zero instruction. Movz can't write
-    // to the stack pointer.
-    if (emit_code) {
-      masm->movz(dst, imm);
-    }
-    return true;
-  } else if (IsImmMovn(imm, reg_size) && !dst.IsSP()) {
-    // Immediate can be represented in a move negative instruction. Movn can't
-    // write to the stack pointer.
-    if (emit_code) {
-      masm->movn(dst, dst.Is64Bits() ? ~imm : (~imm & kWRegMask));
-    }
-    return true;
-  } else if (IsImmLogical(imm, reg_size, &n, &imm_s, &imm_r)) {
-    // Immediate can be represented in a logical orr instruction.
-    VIXL_ASSERT(!dst.IsZero());
-    if (emit_code) {
-      masm->LogicalImmediate(dst,
-                             AppropriateZeroRegFor(dst),
-                             n,
-                             imm_s,
-                             imm_r,
-                             ORR);
-    }
-    return true;
-  }
-  return false;
-}
-
-
 void MacroAssembler::B(Label* label, BranchType type, Register reg, int bit) {
   VIXL_ASSERT((reg.Is(NoReg) || (type >= kBranchTypeFirstUsingReg)) &&
               ((bit == -1) || (type >= kBranchTypeFirstUsingBit)));
@@ -1148,11 +1110,15 @@ void MacroAssembler::Movi(const VRegister& vd,
 void MacroAssembler::Movi(const VRegister& vd, uint64_t hi, uint64_t lo) {
   // TODO: Move 128-bit values in a more efficient way.
   VIXL_ASSERT(vd.Is128Bits());
-  UseScratchRegisterScope temps(this);
   Movi(vd.V2D(), lo);
-  Register temp = temps.AcquireX();
-  Mov(temp, hi);
-  Ins(vd.V2D(), 1, temp);
+  if (hi != lo) {
+    UseScratchRegisterScope temps(this);
+    // TODO: Figure out if using a temporary V register to materialise the
+    // immediate is better.
+    Register temp = temps.AcquireX();
+    Mov(temp, hi);
+    Ins(vd.V2D(), 1, temp);
+  }
 }
 
 
