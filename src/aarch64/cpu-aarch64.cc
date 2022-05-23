@@ -29,6 +29,10 @@
 #define VIXL_USE_LINUX_HWCAP 1
 #endif
 
+#if defined(__FreeBSD__)
+#include <unistd.h>  // getosreldate()
+#endif
+
 #include "../utils-vixl.h"
 
 #include "cpu-aarch64.h"
@@ -294,6 +298,17 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
     if (hwcap & (UINT64_C(1) << i)) features.Combine(kFeatureBits[i]);
   }
 #endif  // VIXL_USE_LINUX_HWCAP
+
+#ifdef __FreeBSD__
+  // FreeBSD does support hwcap, but has not kept them as stable as Linux[1]. We
+  // could read them here, but recent versions (including CheriBSD) provide ID
+  // register emulation[2], so we can just use that for Morello prototyping.
+  //  [1]: https://reviews.freebsd.org/D26329
+  //  [2]: https://reviews.freebsd.org/D16533
+  if (getosreldate() >= 1200077) {
+    features.Combine(CPUFeatures::kIDRegisterEmulation);
+  }
+#endif
 
   if ((option == CPUFeatures::kQueryIDRegistersIfAvailable) &&
       (features.Has(CPUFeatures::kIDRegisterEmulation))) {
