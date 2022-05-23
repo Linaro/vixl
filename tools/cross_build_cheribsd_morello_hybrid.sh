@@ -40,7 +40,7 @@ fi
 CHERI=$1
 shift
 
-CLANG_PREFIX=$CHERI/output/morello-sdk/bin/aarch64-unknown-freebsd13-
+CLANG_PREFIX=$CHERI/output/morello-sdk/bin/
 SYSROOT=$CHERI/output/morello-sdk/sysroot-morello-hybrid
 
 if [ ! -d "$SYSROOT" ]; then
@@ -49,7 +49,7 @@ if [ ! -d "$SYSROOT" ]; then
   exit 1
 fi
 
-export CCFLAGS="--sysroot=$SYSROOT -iwithsysroot/usr/include/c++/v1 -march=morello"
+export CCFLAGS="--config cheribsd-morello-hybrid.cfg"
 export LINKFLAGS="$CCFLAGS"
 
 export CXX=${CLANG_PREFIX}clang++
