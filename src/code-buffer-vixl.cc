@@ -31,6 +31,11 @@ extern "C" {
 #include "code-buffer-vixl.h"
 #include "utils-vixl.h"
 
+// https://reviews.freebsd.org/D18880
+#ifndef PROT_MAX
+#define PROT_MAX(...) 0
+#endif
+
 namespace vixl {
 
 
@@ -46,9 +51,11 @@ CodeBuffer::CodeBuffer(size_t capacity)
 #ifdef VIXL_CODE_BUFFER_MALLOC
   buffer_ = reinterpret_cast<byte*>(malloc(capacity_));
 #elif defined(VIXL_CODE_BUFFER_MMAP)
+  int prot_max = PROT_MAX(PROT_READ | PROT_WRITE | PROT_EXEC);
+  int prot = PROT_READ | PROT_WRITE;
   buffer_ = reinterpret_cast<byte*>(mmap(NULL,
                                          capacity,
-                                         PROT_READ | PROT_WRITE,
+                                         prot | prot_max,
                                          MAP_PRIVATE | MAP_ANONYMOUS,
                                          -1,
                                          0));
