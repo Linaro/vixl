@@ -140,7 +140,7 @@ void GenerateDDCInfo(vixl::aarch64::MacroAssembler* masm);
 //
 // This is not a standalone example, but is used as a result-presentation tool
 // by other capability-manipulation examples.
-void GenerateNewCapinfo(vixl::aarch64::MacroAssembler* masm);
+void GenerateNewCapinfo(vixl::aarch64::MacroAssembler* masm, const char* name);
 
 // Are the specified CPUFeatures available for native execution (i.e. not using
 // the simulator)?

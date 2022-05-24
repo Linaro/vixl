@@ -113,11 +113,14 @@ Capinfo::Capinfo(void* __capability c) : name("Capability") {
 #endif
 
 // Capinfo (*)(void* __capability cap)
-void GenerateNewCapinfo(MacroAssembler* masm) {
+void GenerateNewCapinfo(MacroAssembler* masm, const char* name) {
   // AAPCS64:
   //  - The input (cap) is in c0.
   //  - The caller allocates space for the result and passes it in x8/c8.
   __ Str(c0, MemOperand(x8, offsetof(Capinfo, cap)));
+
+  __ Mov(x10, reinterpret_cast<uintptr_t>(name));
+  __ Str(x10, MemOperand(x8, offsetof(Capinfo, name)));
 
   __ Cfhi(x10, c0);
   __ Str(x10, MemOperand(x8, offsetof(Capinfo, high64)));

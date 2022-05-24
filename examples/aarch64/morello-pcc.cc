@@ -51,7 +51,7 @@ void GeneratePCCInfo(MacroAssembler* masm) {
     }
     __ Bx();
   }
-  GenerateNewCapinfo(masm);
+  GenerateNewCapinfo(masm, "PCC");
 }
 
 #ifndef TEST_EXAMPLES

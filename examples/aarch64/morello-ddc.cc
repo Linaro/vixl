@@ -35,7 +35,7 @@ using namespace vixl::aarch64;
 // Capinfo (*)()
 void GenerateDDCInfo(MacroAssembler* masm) {
   __ Mrs(c0, DDC);
-  GenerateNewCapinfo(masm);
+  GenerateNewCapinfo(masm, "DDC");
 }
 
 #ifndef TEST_EXAMPLES
