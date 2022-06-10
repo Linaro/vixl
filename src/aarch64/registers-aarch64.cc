@@ -54,6 +54,16 @@ std::string CPURegister::GetArchitecturalName() const {
         name << "/z";
         break;
     }
+  } else if (IsRegister()) {
+    if (IsZero()) {
+      name << "xzr";
+    } else if (IsSP()) {
+      name << "sp";
+    } else {
+      name << 'x' << GetCode();
+    }
+  } else if (IsVRegister()) {
+    name << 'v' << GetCode();
   } else {
     VIXL_UNIMPLEMENTED();
   }
