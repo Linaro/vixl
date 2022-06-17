@@ -189,6 +189,8 @@ class PrintDisassembler : public Disassembler {
       : cpu_features_auditor_(NULL),
         cpu_features_prefix_("// Needs: "),
         cpu_features_suffix_(""),
+        default_line_prefix_(""),
+        next_disasm_prefix_(NULL),
         signed_addresses_(false),
         stream_(stream),
         last_printed_isa_(ISA::Data) {}
@@ -224,6 +226,19 @@ class PrintDisassembler : public Disassembler {
     cpu_features_suffix_ = suffix;
   }
 
+  // Set a prefix to appear on each line, unless overridden by
+  // SetNextDisassemblyPrefix.
+  void SetDefaultLinePrefix(const char* prefix) {
+    VIXL_ASSERT(prefix != NULL);
+    default_line_prefix_ = prefix;
+  }
+
+  // Set a prefix to appear on the next disassembly line (but not ISA
+  // annotations). Useful for highlighting specific instruction addresses.
+  void SetNextDisassemblyPrefix(const char* prefix) {
+    next_disasm_prefix_ = prefix;
+  }
+
   // Print a banner when the ISA is changed.
   virtual void SetISA(ISA isa) VIXL_OVERRIDE;
 
@@ -243,6 +258,8 @@ class PrintDisassembler : public Disassembler {
   CPUFeaturesAuditor* cpu_features_auditor_;
   const char* cpu_features_prefix_;
   const char* cpu_features_suffix_;
+  const char* default_line_prefix_;
+  const char* next_disasm_prefix_;
   bool signed_addresses_;
 
  private:

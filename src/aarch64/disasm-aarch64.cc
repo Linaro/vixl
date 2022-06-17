@@ -12478,7 +12478,7 @@ void PrintDisassembler::SetISA(ISA isa) { Disassembler::SetISA(isa); }
 void PrintDisassembler::ProcessOutput(const Instruction *instr) {
   ISA isa = GetISA();
   if (last_printed_isa_ != isa) {
-    fprintf(stream_, "# ISA: %s\n", GetISAName(isa));
+    fprintf(stream_, "%s# ISA: %s\n", default_line_prefix_, GetISAName(isa));
     last_printed_isa_ = isa;
   }
 
@@ -12499,8 +12499,13 @@ void PrintDisassembler::ProcessOutput(const Instruction *instr) {
     abs_address = address;
   }
 
+  const char *prefix =
+      (next_disasm_prefix_ == NULL) ? default_line_prefix_ : next_disasm_prefix_;
+  next_disasm_prefix_ = NULL;
+
   int bytes_printed = fprintf(stream_,
-                              "%s0x%016" PRIx64 "  %08" PRIx32 "\t\t%s",
+                              "%s%s0x%016" PRIx64 "  %08" PRIx32 "\t\t%s",
+                              prefix,
                               sign,
                               abs_address,
                               instr->GetInstructionBits(),

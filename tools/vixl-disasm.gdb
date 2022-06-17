@@ -72,6 +72,8 @@ define vixl-disasm-impl
   output/s $isa
   output " --start-at "
   output/x $address
+  output " --pc "
+  output/x $pc
   set $n = 0
   while $n < $count
     output " "

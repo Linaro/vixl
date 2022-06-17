@@ -39,6 +39,34 @@
 using namespace vixl;
 using namespace vixl::aarch64;
 
+class PrintDisassemblerWithPC : public PrintDisassembler {
+ public:
+  explicit PrintDisassemblerWithPC(FILE* stream)
+      : PrintDisassembler(stream), show_pc_(false), pc_(0) { }
+
+  void ShowPC(int64_t pc) {
+    SetDefaultLinePrefix("   ");
+    show_pc_ = true;
+    pc_ = pc;
+  }
+
+ protected:
+  virtual void ProcessOutput(const Instruction* instr) VIXL_OVERRIDE {
+    // Align, to make sure that C64 bottom-bit-set addresses point to the
+    // right place.
+    uint64_t pc_cmp = AlignDown(pc_, sizeof(Instr));
+    uint64_t addr_cmp = AlignDown(CodeRelativeAddress(instr), sizeof(Instr));
+    if (show_pc_ && (pc_cmp == addr_cmp)) {
+      SetNextDisassemblyPrefix("=> ");
+    }
+    PrintDisassembler::ProcessOutput(instr);
+  }
+
+ private:
+  bool show_pc_;
+  int64_t pc_;
+};
+
 void PrintUsage(char const* name) {
   printf("Usage: %s [OPTION]... <INSTRUCTION>...\n", name);
   printf("\n");
@@ -58,7 +86,9 @@ void PrintUsage(char const* name) {
       "  --c64\n"
       "    Disassemble as C64.\n"
       "\n"
-      "    Defaults to 0.\n"
+      "  --pc <address>\n"
+      "    If included in the output, point to the PC's address. Useful\n"
+      "    for GDB integration with VIXL's `tools/vixl-disasm.gdb`.\n"
       "\n");
   printf(
       "<instruction>\n"
@@ -82,6 +112,11 @@ void PrintUsage(char const* name) {
   printf("  # ISA: C64\n");
   printf("   0x0000000000000420: 10fffe85  adr c5, #-0x30 (addr 0x3f0)\n");
   printf("   0x0000000000000424: c2c273e0  bx #4\n");
+  printf("\n");
+  printf("  $ %s --c64 0x10fffe85 0xc2c273e0 --start-at 0x420 --pc 0x424\n", name);
+  printf("  # ISA: C64\n");
+  printf("      0x0000000000000420: 10fffe85  adr c5, #-0x30 (addr 0x3f0)\n");
+  printf("   => 0x0000000000000424: c2c273e0  bx #4\n");
 }
 
 Instr ParseInstr(char const* arg) {
@@ -110,14 +145,24 @@ int main(int argc, char* argv[]) {
   // Allocate space for one instruction per argument.
   CodeBuffer buffer((argc - 1) * kInstructionSize);
 
+  bool show_pc = false;
+  int64_t pc = 0;
+
   bool expect_start_at = false;
+  bool expect_pc = false;
   for (int i = 1; i < argc; i++) {
     char* arg = argv[i];
     if (expect_start_at) {
       start_address = ParseInt64(arg);
       expect_start_at = false;
+    } else if (expect_pc) {
+      pc = ParseInt64(arg);
+      expect_pc = false;
+      show_pc = true;
     } else if (strcmp(arg, "--start-at") == 0) {
       expect_start_at = true;
+    } else if (strcmp(arg, "--pc") == 0) {
+      expect_pc = true;
     } else if (strcmp(arg, "--a64") == 0) {
       isa = ISA::A64;
     } else if (strcmp(arg, "--c64") == 0) {
@@ -134,6 +179,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  if (expect_pc) {
+    printf("No address given. Use: --pc <address>\n");
+    return 1;
+  }
+
   if (buffer.GetSizeInBytes() == 0) {
     printf("Nothing to disassemble.\n");
     return 0;
@@ -142,7 +192,8 @@ int main(int argc, char* argv[]) {
   // Disassemble the buffer.
   const Instruction* start = buffer.GetStartAddress<Instruction*>();
   const Instruction* end = buffer.GetEndAddress<Instruction*>();
-  vixl::aarch64::PrintDisassembler disasm(stdout);
+  PrintDisassemblerWithPC disasm(stdout);
+  if (show_pc) disasm.ShowPC(pc);
   disasm.PrintSignedAddresses(true);
   disasm.MapCodeAddress(start_address, start);
   ISAMap map(isa);
