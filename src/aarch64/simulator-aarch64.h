@@ -199,8 +199,9 @@ class MetaDataDepot {
   // Generate a key for metadata recording from a untagged address.
   template <typename T>
   uint64_t GenerateMTEkey(T address) const {
-    return reinterpret_cast<uint64_t>(AddressUntag(address)) >>
-           kMTETagGranuleInBytesLog2;
+    // Cast the address using a C-style cast. A reinterpret_cast would be
+    // appropriate, but it can't cast one integral type to another.
+    return (uint64_t)(AddressUntag(address)) >> kMTETagGranuleInBytesLog2;
   }
 
   template <typename R, typename T>
@@ -220,7 +221,7 @@ class MetaDataDepot {
       sstream << std::hex << "MTE ERROR : instruction at 0x"
               << reinterpret_cast<uint64_t>(pc)
               << " touched a unallocated memory location 0x"
-              << reinterpret_cast<uint64_t>(address) << ".\n";
+              << (uint64_t)(address) << ".\n";
       VIXL_ABORT_WITH_MSG(sstream.str().c_str());
     }
 
@@ -243,7 +244,7 @@ class MetaDataDepot {
         sstream << std::hex << "MTE WARNING : instruction at 0x"
                 << reinterpret_cast<uint64_t>(pc)
                 << ", the same tag is assigned to the address 0x"
-                << reinterpret_cast<uint64_t>(address) << ".\n";
+                << (uint64_t)(address) << ".\n";
         VIXL_WARNING(sstream.str().c_str());
       }
       m->SetTag(tag);
@@ -278,9 +279,11 @@ class Memory {
   template <typename A>
   bool IsMTETagsMatched(A address, Instruction const* pc = nullptr) const {
     if (MetaDataDepot::MetaDataMTE::IsActive()) {
-      int pointer_tag = GetAllocationTagFromAddress((uint64_t)address);
-      int memory_tag =
-          metadata_depot_->GetMTETag((uint64_t)AddressUntag(address), pc);
+      // Cast the address using a C-style cast. A reinterpret_cast would be
+      // appropriate, but it can't cast one integral type to another.
+      uint64_t addr = (uint64_t)address;
+      int pointer_tag = GetAllocationTagFromAddress(addr);
+      int memory_tag = metadata_depot_->GetMTETag(AddressUntag(addr), pc);
       return pointer_tag == memory_tag;
     }
     return true;
@@ -2991,7 +2994,7 @@ class Simulator : public DecoderVisitor {
                      int tag,
                      size_t length = kMTETagGranuleInBytes) {
     for (size_t offset = 0; offset < length; offset += kMTETagGranuleInBytes) {
-      meta_data_.SetMTETag(reinterpret_cast<uintptr_t>(address) + offset, tag);
+      meta_data_.SetMTETag((uintptr_t)(address) + offset, tag);
     }
   }
 
