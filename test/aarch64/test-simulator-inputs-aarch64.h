@@ -37,7 +37,7 @@ extern "C" {
 // This header should only be used by test/test-simulator-aarch64.cc, so it
 // doesn't need the usual header guard.
 #ifdef VIXL_AARCH64_TEST_SIMULATOR_INPUTS_AARCH64_H_
-#error This header should be inluded only once.
+#error This header should be included only once.
 #endif
 #define VIXL_AARCH64_TEST_SIMULATOR_INPUTS_AARCH64_H_
 
