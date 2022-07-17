@@ -7244,7 +7244,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_imm) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   __ Index(z14.VnB(), 1, -3);
@@ -7416,7 +7416,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   __ Index(z10.VnB(), -4, 11);
@@ -7589,7 +7589,7 @@ TEST_SVE(sve_ld3_st3_scalar_plus_imm) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld3 by comparing the values loaded with the values stored.
@@ -7795,7 +7795,7 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld3 by comparing the values loaded with the values stored.
@@ -8009,7 +8009,7 @@ TEST_SVE(sve_ld4_st4_scalar_plus_imm) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld4 by comparing the values loaded with the values stored.
@@ -8259,7 +8259,7 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld4 by comparing the values loaded with the values stored.
