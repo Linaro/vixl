@@ -165,7 +165,7 @@ def ParseDescription(data_type_builder, json_description):
   Parse the instruction description into a
   (`generator.OperandList`, `generator.InputList`) tuple.
 
-  Example for an instruction that takes a condidition code, two registers and an
+  Example for an instruction that takes a condition code, two registers and an
   immediate as operand. It will also need inputs for the registers, as well as
   NZCV flags.
   ~~~
