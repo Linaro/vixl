@@ -1508,7 +1508,7 @@ TEST(macro_assembler_Orr) {
 TEST(macro_assembler_InstructionCondSizeRROp) {
   SETUP();
 
-  // Special case for Orr <-> Orn correspondance.
+  // Special case for Orr <-> Orn correspondence.
 
   COMPARE_T32(Orr(r0, r1, 0x00ffffff), "orn r0, r1, #0xff000000\n");
   COMPARE_T32(Orrs(r0, r1, 0x00ffffff), "orns r0, r1, #0xff000000\n");
