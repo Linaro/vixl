@@ -15382,7 +15382,7 @@ static void TestFcvtFrintHelper(Test* config,
   PRegisterWithLaneSize pg_all_active = p0.WithLaneSize(lane_size_in_bits);
   __ Ptrue(pg_all_active);
 
-  // Test floating-point conversions with all lanes actived.
+  // Test floating-point conversions with all lanes activated.
   (masm.*macro_m)(zd_all_active.WithLaneSize(dst_type_size_in_bits),
                   pg_all_active.Merging(),
                   zn.WithLaneSize(src_type_size_in_bits));
@@ -15936,7 +15936,7 @@ static void TestUScvtfHelper(Test* config,
   PRegisterWithLaneSize pg_all_active = p0.WithLaneSize(lane_size_in_bits);
   __ Ptrue(pg_all_active);
 
-  // Test integer conversions with all lanes actived.
+  // Test integer conversions with all lanes activated.
   __ Scvtf(zd_scvtf_all_active.WithLaneSize(dst_type_size_in_bits),
            pg_all_active.Merging(),
            zn.WithLaneSize(src_type_size_in_bits));
