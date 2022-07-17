@@ -113,7 +113,7 @@ class TestCase(object):
   Attributes:
     name            Name of the test case, it is used to name the array to
                     produce.
-    seed            Seed value to use for reproducable random generation.
+    seed            Seed value to use for reproducible random generation.
     operand_names   List of operand names this test case covers.
     input_names     List of input names this test case covers.
     operand_filter  Python expression as a string to filter out operands.
