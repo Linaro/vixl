@@ -897,7 +897,7 @@ int64_t Simulator::ShiftOperand(unsigned reg_size,
     bool is_negative = (uvalue & GetSignMask(reg_size)) != 0;
     // The behavior is undefined in c++ if the shift amount greater than or
     // equal to the register lane size. Work out the shifted result based on
-    // architectural behavior before performing the c++ type shfit operations.
+    // architectural behavior before performing the c++ type shift operations.
     switch (shift_type) {
       case LSL:
         if (amount >= reg_size) {
