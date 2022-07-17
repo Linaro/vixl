@@ -510,7 +510,7 @@ TEST(isvalid_cpu) {
 }
 
 
-TEST(areconsecutive) {
+TEST(are_consecutive) {
   VIXL_CHECK(AreConsecutive(b0, NoVReg));
   VIXL_CHECK(AreConsecutive(b1, b2));
   VIXL_CHECK(AreConsecutive(b3, b4, b5));
