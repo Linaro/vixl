@@ -119,7 +119,7 @@ const uint64_t kTTBRMask = UINT64_C(1) << 55;
 
 // We can't define a static kZRegSize because the size depends on the
 // implementation. However, it is sometimes useful to know the minimum and
-// maxmimum possible sizes.
+// maximum possible sizes.
 const unsigned kZRegMinSize = 128;
 const unsigned kZRegMinSizeLog2 = 7;
 const unsigned kZRegMinSizeInBytes = kZRegMinSize / 8;
