@@ -4849,7 +4849,7 @@ TEST_T32(branch_fuzz_example) {
 
 // Generate a "B" and a "Cbz" which have the same checkpoint. Without proper
 // management (i.e. if the veneers were only generated at the shared
-// checkpoint), one one of the branches would be out of range.
+// checkpoint), one of the branches would be out of range.
 TEST_T32(veneer_simultaneous) {
   SETUP();
 
