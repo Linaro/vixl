@@ -41,7 +41,7 @@ void RegisterDump::Dump(MacroAssembler* masm) {
   Register dump_base = r0;
   Register tmp = r1;
 
-  // Check that the the dump registers can be used
+  // Check that the dump registers can be used
   VIXL_STATIC_ASSERT(sizeof(dump_.r_[0]) == kRegSizeInBytes);
   VIXL_STATIC_ASSERT(sizeof(dump_.d_[0]) == kDRegSizeInBytes);
 
