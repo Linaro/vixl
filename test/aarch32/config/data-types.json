@@ -1700,7 +1700,7 @@
       ],
       "default": "NoFlag"
     },
-    // TODO: Consider having a seperate list for inputs for which we are only
+    // TODO: Consider having a separate list for inputs for which we are only
     // interested in recording the value after the instruction has executed.
     // This applies to `Q` and `GE`.
     {

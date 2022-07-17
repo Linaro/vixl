@@ -400,7 +400,7 @@ def GetTestNameAndISAFromFileName(filename):
   """
   # Strip the ".json" extension
   stripped_basename = os.path.splitext(os.path.basename(filename))[0]
-  # The ISA is the last element in the filename, seperated with "-".
+  # The ISA is the last element in the filename, separated with "-".
   if stripped_basename.endswith(('-a32', '-t32')):
     isa = [stripped_basename[-3:]]
     test_name = stripped_basename[:-4]

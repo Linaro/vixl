@@ -136,7 +136,7 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
   """
   Take an string representing an instruction and convert it to assembly syntax
   for LLVM. VIXL's test generation framework will print instruction
-  representations as a space seperated list. The first element is the mnemonic
+  representations as a space separated list. The first element is the mnemonic
   and the following elements are operands.
   """
 
@@ -309,7 +309,7 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
 
   llvm_instruction = []
 
-  # VIXL may have generated more than one instruction seperated by ';'
+  # VIXL may have generated more than one instruction separated by ';'
   # (an IT instruction for example).
   for instruction in vixl_instruction.split(';'):
     # Strip out extra white spaces.
@@ -401,7 +401,7 @@ def VerifyInstructionsWithLLVMMC(llvm_mc, f, triple):
   # due to IT instructions preceding every instruction under test. VIXL's
   # assembly reference files will contain a single array of 4 bytes encoding
   # both the IT and the following instruction. While LLVM will have decoded them
-  # into two seperate 2 bytes arrays.
+  # into two separate 2 bytes arrays.
   if len(llvm_encodings) == 2 * len(vixl_encodings):
     llvm_encodings = [
         llvm_encodings[i * 2] + llvm_encodings[(i * 2) + 1]
