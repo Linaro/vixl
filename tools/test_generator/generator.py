@@ -83,7 +83,7 @@ class OperandList(object):
 
 class InputList(object):
   """
-  Convevience class representing a list of input objects.
+  Convenience class representing a list of input objects.
 
   This class is an iterator over input objects.
 
