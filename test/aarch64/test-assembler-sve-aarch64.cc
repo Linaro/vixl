@@ -287,7 +287,7 @@ TEST_SVE(sve_v_write_clear) {
                           CPUFeatures::kSVE);
   START();
 
-  // The Simulator has two mechansisms for writing V registers:
+  // The Simulator has two mechanisms for writing V registers:
   //  - Write*Register, calling through to SimRegisterBase::Write.
   //  - LogicVRegister::ClearForWrite followed by one or more lane updates.
   // Try to cover both variants.
