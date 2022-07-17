@@ -764,7 +764,7 @@ class NEONFormatDecoder {
   enum SubstitutionMode { kPlaceholder, kFormat };
 
   // Construct a format decoder with increasingly specific format maps for each
-  // subsitution. If no format map is specified, the default is the integer
+  // substitution. If no format map is specified, the default is the integer
   // format map.
   explicit NEONFormatDecoder(const Instruction* instr) {
     instrbits_ = instr->GetInstructionBits();
