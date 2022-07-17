@@ -320,7 +320,7 @@ class Generator(object):
 
     # A simulator test cannot easily make use of the PC and SP registers.
     if self.test_type == "simulator":
-      # We need to explicitely create our own deep copy the operands before we
+      # We need to explicitly create our own deep copy the operands before we
       # can modify them.
       self.operands = deepcopy(operands)
       self.operands.ExcludeVariants("Register", ["r13", "r15"])
