@@ -18122,7 +18122,7 @@ static void TestFPUnaryPredicatedHelper(Test* config,
                               macro_m,
                               macro_z);
 
-  // The complementary of above precicate to get full input coverage.
+  // The complementary of above predicate to get full input coverage.
   uint64_t pg_c_inputs[] = {0x5aa55aa55aa55aa5,
                             0x5aa55aa55aa55aa5,
                             0x5aa55aa55aa55aa5,
