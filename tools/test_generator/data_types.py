@@ -456,7 +456,7 @@ class Q(U32):
 
   def Prologue(self):
     # When clearing or setting the `Q` bit, we need to make sure the `NZCV`
-    # flags are not overriden. Therefore we use two scratch registers that we
+    # flags are not overridden. Therefore we use two scratch registers that we
     # push on the stack first to allow the instruction to use them as operands.
     code = """{{
           UseScratchRegisterScope temp_registers(&masm);
