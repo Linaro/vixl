@@ -19735,7 +19735,7 @@ TEST_SVE(sudot_usdot) {
 // Manually constructed simulator test to avoid creating a VL128 variant.
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-void Testsve_fmatmul(Test* config) {
+void Test_sve_fmatmul(Test* config) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM);
 
   // Only double-precision matrix multiply is tested here. Single-precision is
@@ -19845,13 +19845,13 @@ void Testsve_fmatmul(Test* config) {
   }
 }
 Test* test_sve_fmatmul_list[] =
-    {Test::MakeSVETest(256, "AARCH64_ASM_sve_fmatmul_vl256", &Testsve_fmatmul),
-     Test::MakeSVETest(384, "AARCH64_ASM_sve_fmatmul_vl384", &Testsve_fmatmul),
+    {Test::MakeSVETest(256, "AARCH64_ASM_sve_fmatmul_vl256", &Test_sve_fmatmul),
+     Test::MakeSVETest(384, "AARCH64_ASM_sve_fmatmul_vl384", &Test_sve_fmatmul),
      Test::MakeSVETest(2048,
                        "AARCH64_ASM_sve_fmatmul_vl2048",
-                       &Testsve_fmatmul)};
+                       &Test_sve_fmatmul)};
 
-void Testsve_ld1ro(Test* config) {
+void Test_sve_ld1ro(Test* config) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM);
   START();
 
@@ -19975,9 +19975,9 @@ void Testsve_ld1ro(Test* config) {
   }
 }
 Test* test_sve_ld1ro_list[] =
-    {Test::MakeSVETest(256, "AARCH64_ASM_sve_ld1ro_vl256", &Testsve_ld1ro),
-     Test::MakeSVETest(384, "AARCH64_ASM_sve_ld1ro_vl384", &Testsve_ld1ro),
-     Test::MakeSVETest(2048, "AARCH64_ASM_sve_ld1ro_vl2048", &Testsve_ld1ro)};
+    {Test::MakeSVETest(256, "AARCH64_ASM_sve_ld1ro_vl256", &Test_sve_ld1ro),
+     Test::MakeSVETest(384, "AARCH64_ASM_sve_ld1ro_vl384", &Test_sve_ld1ro),
+     Test::MakeSVETest(2048, "AARCH64_ASM_sve_ld1ro_vl2048", &Test_sve_ld1ro)};
 #endif
 
 }  // namespace aarch64
