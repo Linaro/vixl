@@ -7810,7 +7810,7 @@ LogicVRegister Simulator::fmatmul(VectorFormat vform,
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     // Elements outside a multiple of 4T are set to zero. This happens only
     // for double precision operations, when the VL is a multiple of 128 bits,
-    // but not a mutiple of 256 bits.
+    // but not a multiple of 256 bits.
     T value = (i < (T_per_segment * segment_count)) ? result[i] : 0;
     srcdst.SetFloat<T>(vform, i, value);
   }
