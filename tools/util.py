@@ -80,7 +80,7 @@ def relrealpath(path, start=os.getcwd()):
 # a dictionary.
 def GetCompilerDirectives(env):
   args = [env['compiler']]
-  # Pass the CXXFLAGS varables to the compile, in case we've used "-m32" to
+  # Pass the CXXFLAGS variables to the compile, in case we've used "-m32" to
   # compile for i386.
   if env['CXXFLAGS']:
     args.append(str(env['CXXFLAGS']))
