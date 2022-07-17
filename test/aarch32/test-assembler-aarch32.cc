@@ -1490,7 +1490,7 @@ void EmitLdrdLiteralTest(MacroAssembler* masm, TestMacroAssembler* test) {
     VIXL_CHECK(masm->GetCursorOffset() == end);
   }
 
-  // Check that the pool has not been emited along the way.
+  // Check that the pool has not been emitted along the way.
   CHECK_POOL_SIZE(8);
   // This extra instruction should trigger an emit of the pool.
   __ Nop();
