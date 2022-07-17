@@ -16006,7 +16006,7 @@ TEST_SVE(scvtf_ucvtf_h_s_d_to_float16) {
   // clang-format off
   CvtfTestDataSet data_set_1[] = {
     // Simple conversions of positive numbers which require no rounding; the
-    // results should not depened on the rounding mode, and ucvtf and scvtf should
+    // results should not depend on the rounding mode, and ucvtf and scvtf should
     // produce the same result.
     {0x0000, 0x0000, 0x0000},
     {0x0001, 0x3c00, 0x3c00},
@@ -16062,7 +16062,7 @@ TEST_SVE(scvtf_ucvtf_s_to_float) {
   int src_lane_size = kSRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x00000000, 0x00000000, 0x00000000},
@@ -16118,7 +16118,7 @@ TEST_SVE(scvtf_ucvtf_d_to_float) {
   int src_lane_size = kDRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x0000000000000000, 0x00000000, 0x00000000},
@@ -16178,7 +16178,7 @@ TEST_SVE(scvtf_ucvtf_d_to_double) {
   int src_lane_size = kDRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
@@ -16237,7 +16237,7 @@ TEST_SVE(scvtf_ucvtf_s_to_double) {
   int src_lane_size = kSRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x00000000, 0x0000000000000000, 0x0000000000000000},
