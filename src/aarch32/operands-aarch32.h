@@ -190,7 +190,7 @@ class Operand {
   }
 
  private:
-// Forbid implicitely creating operands around types that cannot be encoded
+// Forbid implicitly creating operands around types that cannot be encoded
 // into a uint32_t without loss.
 #if __cplusplus >= 201103L
   Operand(int64_t) = delete;   // NOLINT(runtime/explicit)
