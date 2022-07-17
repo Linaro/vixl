@@ -122,7 +122,7 @@ bool CPURegister::IsValid() const {
          IsValidPRegister();
 }
 
-// Most coersions simply invoke the necessary constructor.
+// Most coercions simply invoke the necessary constructor.
 #define VIXL_CPUREG_COERCION_LIST(U) \
   U(Register, W, R)                  \
   U(Register, X, R)                  \
@@ -143,7 +143,7 @@ VIXL_CPUREG_COERCION_LIST(VIXL_DEFINE_CPUREG_COERCION)
 #undef VIXL_CPUREG_COERCION_LIST
 #undef VIXL_DEFINE_CPUREG_COERCION
 
-// NEON lane-format coersions always return VRegisters.
+// NEON lane-format coercions always return VRegisters.
 #define VIXL_CPUREG_NEON_COERCION_LIST(V) \
   V(8, B)                                 \
   V(16, B)                                \
@@ -163,7 +163,7 @@ VIXL_CPUREG_NEON_COERCION_LIST(VIXL_DEFINE_CPUREG_NEON_COERCION)
 #undef VIXL_CPUREG_NEON_COERCION_LIST
 #undef VIXL_DEFINE_CPUREG_NEON_COERCION
 
-// Semantic type coersion for sdot and udot.
+// Semantic type coercion for sdot and udot.
 // TODO: Use the qualifiers_ field to distinguish this from ::S().
 VRegister VRegister::S4B() const {
   VIXL_ASSERT(IsVRegister());
