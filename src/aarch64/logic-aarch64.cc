@@ -2284,7 +2284,7 @@ LogicVRegister Simulator::absdiff(VectorFormat vform,
     bool src1_gt_src2 = is_signed ? (src1.Int(vform, i) > src2.Int(vform, i))
                                   : (src1.Uint(vform, i) > src2.Uint(vform, i));
     // Always calculate the answer using unsigned arithmetic, to avoid
-    // implemenation-defined signed overflow.
+    // implementation-defined signed overflow.
     if (src1_gt_src2) {
       dst.SetUint(vform, i, src1.Uint(vform, i) - src2.Uint(vform, i));
     } else {
