@@ -116,7 +116,7 @@ def GetHostArch(env):
   elif "__aarch64__" in directives:
     return "aarch64"
   else:
-    raise Exception("Unsupported archtecture")
+    raise Exception("Unsupported architecture")
 
 # Class representing the compiler toolchain and version.
 class CompilerInformation(object):
