@@ -75,7 +75,7 @@ void GenerateNEONMatrixMultiply(MacroAssembler* masm) {
   __ Ld1(v16.V4S(), v17.V4S(), v18.V4S(), v19.V4S(), MemOperand(x2));
 
   // Initialise vectors of the output matrix with zeros.
-  // This is only for the purposes of showing how this can be achived
+  // This is only for the purposes of showing how this can be achieved
   // but technically this is not required because we overwrite all lanes
   // of the output vectors.
   __ Movi(v0.V16B(), 0);
