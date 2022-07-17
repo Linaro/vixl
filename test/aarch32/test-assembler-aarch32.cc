@@ -5184,7 +5184,7 @@ TEST_T32(veneer_and_literal5) {
       __ add(r1, r1, 3);
     }
     __ Bind(&labels[test_num]);
-    // Emit the literal pool if it has not beeen emitted (it's the case for
+    // Emit the literal pool if it has not been emitted (it's the case for
     // the lower values of test_num).
     __ EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   }
