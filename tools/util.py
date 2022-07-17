@@ -77,7 +77,7 @@ def relrealpath(path, start=os.getcwd()):
   return os.path.relpath(os.path.realpath(path), start)
 
 # Query the compiler about its preprocessor directives and return all of them as
-# a dictionnary.
+# a dictionary.
 def GetCompilerDirectives(env):
   args = [env['compiler']]
   # Pass the CXXFLAGS varables to the compile, in case we've used "-m32" to
