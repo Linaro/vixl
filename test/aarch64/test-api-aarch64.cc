@@ -1593,7 +1593,7 @@ TEST(scratch_scope_exclude_z) {
     temps.Exclude(ZRegister(12), ZRegister(13, kHRegSize), z14);
     temps.Exclude(CPURegList(z16, z17, z18));
     helper.RecordActionsAndCheck(0x77700);
-    // Exluding a register again has no effect.
+    // Excluding a register again has no effect.
     temps.Exclude(ZRegister(18));
     temps.Exclude(ZRegister(17, kFormatVnB));
     temps.Exclude(CPURegister(z16));
