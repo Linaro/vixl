@@ -5109,7 +5109,7 @@ TEST_T32(veneer_and_literal4) {
   __ Ldr(r11, literal);
 
   // The range for ldr is 4095, the range for cbz is 127. Generate nops
-  // to have the ldr becomming out of range just before the cbz.
+  // to have the ldr becoming out of range just before the cbz.
   const int NUM_NOPS = 2044;
   const int NUM_RANGE = 58;
 
