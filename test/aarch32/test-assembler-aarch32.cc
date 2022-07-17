@@ -3653,7 +3653,7 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
   // below). The cases are split in 4 groups:
   //
   //   - 0..3: Generate various amount of nops.
-  //   - 4..7: Generate various load intstructions with literals.
+  //   - 4..7: Generate various load instructions with literals.
   //   - 8..14: Generate various branch instructions.
   //   - 15..19: Generate various amount of nops.
   //
