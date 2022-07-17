@@ -304,7 +304,7 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
     ]
 
   # Our test generator framework uses mnemonics starting with a capital letters.
-  # We need everythin to be lower case for LLVM.
+  # We need everything to be lower case for LLVM.
   vixl_instruction = vixl_instruction.lower()
 
   llvm_instruction = []
