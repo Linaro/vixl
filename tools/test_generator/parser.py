@@ -405,7 +405,7 @@ def GetTestNameAndISAFromFileName(filename):
     isa = [stripped_basename[-3:]]
     test_name = stripped_basename[:-4]
   else:
-    # If the ISA is ommitted, support both.
+    # If the ISA is omitted, support both.
     isa = ["a32", "t32"]
     test_name = stripped_basename
 

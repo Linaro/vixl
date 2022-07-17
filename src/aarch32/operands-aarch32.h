@@ -615,7 +615,7 @@ class ImmediateVorn : public ImmediateVorr {
 //     - a shifted index register <Rm>, <shift> #<amount>
 //
 //   The index register may have an associated {+/-} sign,
-//   which if ommitted, defaults to + .
+//   which if omitted, defaults to + .
 //
 //   We have two constructors for the offset:
 //
