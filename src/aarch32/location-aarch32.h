@@ -217,7 +217,7 @@ class Location : public LocationBase<int32_t> {
 
  protected:
   // Types passed to LocationBase. Must be distinct for unbound Locations (not
-  // relevant for bound locations, as they don't have a correspoding
+  // relevant for bound locations, as they don't have a corresponding
   // PoolObject).
   static const int kRawLocation = 0;  // Will not be used by the pool manager.
   static const int kVeneerType = 1;
