@@ -97,7 +97,7 @@
       "type": "assembler",
       "test-cases": [
         {
-          "name": "Unconditionnal",
+          "name": "Unconditional",
           "operands": [
             "cond", "rd", "rn", "shift", "rs"
           ],
