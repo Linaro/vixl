@@ -106,7 +106,7 @@ void CustomDisassembler::AppendCodeRelativeCodeAddressToOutput(
 
 // We override this method to add a comment to some instructions. Helpers from
 // the vixl::Instruction class can be used to analyse the instruction being
-// disasssembled.
+// disassembled.
 void CustomDisassembler::Visit(Metadata* metadata, const Instruction* instr) {
   vixl::aarch64::Disassembler::Visit(metadata, instr);
   const std::string& form = (*metadata)["form"];

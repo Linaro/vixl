@@ -31,7 +31,7 @@ Verify generated AArch32 assembler traces against `llvm-mc`.
 
 This script will find all files in `test/aarch32/traces/` with names starting
 will `assembler`, and check them against `llvm-mc`. It checks our assembler is
-correct by looking up what instruction we meant to asssemble, assemble it with
+correct by looking up what instruction we meant to assemble, assemble it with
 `llvm` and check the result is bit identical to what our assembler generated.
 
 You may run the script with no arguments from VIXL's top-level directory as long
