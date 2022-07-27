@@ -81,7 +81,7 @@ void PrintUsage(char const* name) {
   printf("  $ %s --c64 0x10fffe85 0xc2c273e0 --start-at 0x420\n", name);
   printf("  # ISA: C64\n");
   printf("   0x0000000000000420: 10fffe85  adr c5, #-0x30 (addr 0x3f0)\n");
-  printf("   0x0000000000000428: c2c273e0  bx #4\n");
+  printf("   0x0000000000000424: c2c273e0  bx #4\n");
 }
 
 Instr ParseInstr(char const* arg) {
