@@ -29,6 +29,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "../globals-vixl.h"
@@ -261,9 +262,54 @@ class MetaDataDepot {
 
   size_t GetTotalCountMTE() { return metadata_mte_.size(); }
 
+  // BTI
+
+  // All addresses within a page share the same key.
+  uint64_t GenerateBTIKey(uint64_t address) const {
+    return AddressUntag(address) >> kPageSizeLog2;
+  }
+
+  bool InGuardedPage(uintptr_t address) const {
+    uint64_t key = GenerateBTIKey(address);
+    auto m = metadata_bti_.find(key);
+    // Assume the default page attribute is NOT guarded.
+    return m != metadata_bti_.end();
+  }
+
+  void ClearBTIGuard(uintptr_t address, size_t length) {
+    VIXL_ASSERT(IsAligned(address, kPageSize));
+    VIXL_ASSERT(length % kPageSize == 0);
+    for (size_t offset = 0; offset < length; offset += kPageSize) {
+      uint64_t key = GenerateBTIKey(address + offset);
+      if (metadata_bti_.erase(key)) {
+        std::stringstream sstream;
+        sstream << std::hex << "BTI WARNING : The page at 0x" << address
+                << " is already unguarded.\n";
+      }
+    }
+  }
+
+  void SetBTIGuard(uintptr_t address, size_t length) {
+    VIXL_ASSERT(IsAligned(address, kPageSize));
+    VIXL_ASSERT(length % kPageSize == 0);
+    for (size_t offset = 0; offset < length; offset += kPageSize) {
+      uint64_t key = GenerateBTIKey(address + offset);
+      auto m = metadata_bti_.find(key);
+      if (m == metadata_bti_.end()) {
+        metadata_bti_.insert(key);
+      } else {
+        std::stringstream sstream;
+        sstream << std::hex << "BTI WARNING : The page at 0x" << address
+                << " is already guarded.\n";
+      }
+    }
+  }
+
  private:
   // Tag recording of each allocated memory in the tag-granule.
   std::unordered_map<uint64_t, class MetaDataMTE> metadata_mte_;
+  // Recording of BTI-guarded pages.
+  std::unordered_set<uint64_t> metadata_bti_;
 };
 
 
@@ -1264,8 +1310,24 @@ class Simulator : public DecoderVisitor {
   // Helper function to determine BType for branches.
   BType GetBTypeFromInstruction(const Instruction* instr) const;
 
-  bool PcIsInGuardedPage() const { return guard_pages_; }
+  // Query if the page including the specified address is BTI-guarded. The
+  // address is the current PC by default.
+  bool PcIsInGuardedPage(const void* address = nullptr) const {
+    if (guard_pages_) return true;
+    if (address == nullptr) {
+      address = ReadPc();
+    }
+    return meta_data_.InGuardedPage(reinterpret_cast<uintptr_t>(address));
+  }
+
+  // Set the protection to all the pages.
   void SetGuardedPages(bool guard_pages) { guard_pages_ = guard_pages; }
+
+  // Set the protection to the specified consecutive pages.
+  template <typename T>
+  void SetGuardedPages(const T address, size_t length = kPageSize) {
+    meta_data_.SetBTIGuard(reinterpret_cast<uintptr_t>(address), length);
+  }
 
   void ExecuteInstruction() {
     // The program counter should always be aligned.
@@ -3001,6 +3063,11 @@ class Simulator : public DecoderVisitor {
   template <typename T>
   int GetGranuleTag(T address) {
     return meta_data_.GetMTETag(address);
+  }
+
+  template <typename T>
+  void ClearBTIGuard(T address, size_t length) {
+    meta_data_.ClearBTIGuard(reinterpret_cast<uintptr_t>(address), length);
   }
 
   // Generate a random address tag, and any tags specified in the input are

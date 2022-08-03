@@ -24,6 +24,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include <sys/mman.h>
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -1762,6 +1764,35 @@ TEST(sim_stack) {
   VIXL_CHECK(s.IsAccessInGuardRegion(s.GetBase() - 42, 4096));
   VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit() - 1280, 2048));
   VIXL_CHECK(s.IsAccessInGuardRegion(s.GetLimit() - 1280, 10000));
+}
+#endif
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+TEST(bti_set_and_clear) {
+  Decoder simulator_decoder;
+  Simulator simulator(&simulator_decoder);
+  simulator.SetCPUFeatures(CPUFeatures::kBTI);
+
+  // Allocate pages and set up BTI protection.
+  int data_size = 10 * kPageSize;
+  byte* data_start =
+      reinterpret_cast<byte*>(simulator.Mmap(NULL,
+                                             data_size,
+                                             PROT_READ | PROT_WRITE | PROT_BTI,
+                                             MAP_PRIVATE | MAP_ANONYMOUS,
+                                             -1,
+                                             0));
+
+  for (int offset = 0; offset < data_size; offset += kPageSize) {
+    VIXL_CHECK(simulator.PcIsInGuardedPage(data_start + offset));
+  }
+
+  // Unmap above allocated pages and clear BTI protection.
+  simulator.Munmap(data_start, data_size, PROT_BTI);
+
+  for (int offset = 0; offset < data_size; offset += kPageSize) {
+    VIXL_CHECK(!simulator.PcIsInGuardedPage(data_start + offset));
+  }
 }
 #endif
 

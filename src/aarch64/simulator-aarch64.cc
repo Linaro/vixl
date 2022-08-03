@@ -31,6 +31,8 @@
 #include <errno.h>
 #include <unistd.h>
 
+#include <sys/mman.h>
+
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -14320,6 +14322,8 @@ void Simulator::DoRestoreCPUFeatures(const Instruction* instr) {
   saved_cpu_features_.pop_back();
 }
 
+
+// BTI and MTE support in Simulator is not tested on aarch64.
 void* Simulator::Mmap(
     void* address, size_t length, int prot, int flags, int fd, off_t offset) {
   // The underlying system `mmap` in the simulated environment doesn't recognize
@@ -14330,6 +14334,10 @@ void* Simulator::Mmap(
 
   uint64_t address2 = reinterpret_cast<uint64_t>(
       mmap(address, length, prot, flags, fd, offset));
+
+  if (intenal_prot & PROT_BTI) {
+    SetGuardedPages(address2, length);
+  }
 
   if (intenal_prot & PROT_MTE) {
     // The returning address of `mmap` isn't tagged.
@@ -14343,6 +14351,10 @@ void* Simulator::Mmap(
 
 
 int Simulator::Munmap(void* address, size_t length, int prot) {
+  if (prot & PROT_BTI) {
+    ClearBTIGuard(address, length);
+  }
+
   if (prot & PROT_MTE) {
     // Untag the address since `munmap` doesn't recognize the memory tagging
     // managed by the Simulator.
