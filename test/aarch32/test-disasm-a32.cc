@@ -505,11 +505,11 @@ TEST(macro_assembler_t32_rsc) {
 
   // - Immediate form. We can always re-use `rn`.
 
-  // No need for temporay registers.
+  // No need for temporary registers.
   COMPARE_T32(Rsc(r0, r1, 1),
               "mvn r0, r1\n"
               "adc r0, #1\n");
-  // No need for temporay registers.
+  // No need for temporary registers.
   COMPARE_T32(Rscs(r0, r0, 2),
               "mvn r0, r0\n"
               "adcs r0, #2\n");
@@ -568,7 +568,7 @@ TEST(macro_assembler_t32_rsc) {
 
   // - Shifted register form.
 
-  // No need for temporay registers.
+  // No need for temporary registers.
   COMPARE_T32(Rsc(r0, r1, Operand(r2, LSL, 1)),
               "mvn r0, r1\n"
               "adc r0, r2, lsl #1\n");
@@ -1508,7 +1508,7 @@ TEST(macro_assembler_Orr) {
 TEST(macro_assembler_InstructionCondSizeRROp) {
   SETUP();
 
-  // Special case for Orr <-> Orn correspondance.
+  // Special case for Orr <-> Orn correspondence.
 
   COMPARE_T32(Orr(r0, r1, 0x00ffffff), "orn r0, r1, #0xff000000\n");
   COMPARE_T32(Orrs(r0, r1, 0x00ffffff), "orns r0, r1, #0xff000000\n");

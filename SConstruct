@@ -187,7 +187,7 @@ def simulator_validator(env):
                     'AArch64. Set `target` to include `aarch64` or `a64`.')
 
 
-# Default variables may depend on each other, therefore we need this dictionnary
+# Default variables may depend on each other, therefore we need this dictionary
 # to be ordered.
 vars_default_handlers = OrderedDict({
     # variable_name    : [ 'default val', 'handler', 'validator']

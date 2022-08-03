@@ -318,7 +318,7 @@ class SimFloat16 : public Float16 {
   bool operator>(SimFloat16 rhs) const;
   bool operator==(SimFloat16 rhs) const;
   bool operator!=(SimFloat16 rhs) const;
-  // This is necessary for conversions peformed in (macro asm) Fmov.
+  // This is necessary for conversions performed in (macro asm) Fmov.
   bool operator==(double rhs) const;
   operator double() const;
 };

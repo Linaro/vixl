@@ -163,7 +163,7 @@ namespace aarch64 {
   RUN_WITHOUT_SEEN_FEATURE_CHECK();                                            \
   {                                                                            \
     /* We expect the test to use all of the features it requested, plus the */ \
-    /* features that the instructure code requires.                         */ \
+    /* features that the instruction code requires.                         */ \
     CPUFeatures const& expected_features =                                     \
         simulator.GetCPUFeatures()->With(CPUFeatures::kNEON);                  \
     CPUFeatures const& seen = simulator.GetSeenFeatures();                     \

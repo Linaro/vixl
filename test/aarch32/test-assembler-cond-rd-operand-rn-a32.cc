@@ -66,7 +66,7 @@ namespace aarch32 {
 
 
 // The following definitions are defined again in each generated test, therefore
-// we need to place them in an anomymous namespace. It expresses that they are
+// we need to place them in an anonymous namespace. It expresses that they are
 // local to this file only, and the compiler is not allowed to share these types
 // across test files during template instantiation. Specifically, `Operands` has
 // various layouts across generated tests so it absolutely cannot be shared.

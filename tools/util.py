@@ -77,10 +77,10 @@ def relrealpath(path, start=os.getcwd()):
   return os.path.relpath(os.path.realpath(path), start)
 
 # Query the compiler about its preprocessor directives and return all of them as
-# a dictionnary.
+# a dictionary.
 def GetCompilerDirectives(env):
   args = [env['compiler']]
-  # Pass the CXXFLAGS varables to the compile, in case we've used "-m32" to
+  # Pass the CXXFLAGS variables to the compile, in case we've used "-m32" to
   # compile for i386.
   if env['CXXFLAGS']:
     args.append(str(env['CXXFLAGS']))
@@ -116,7 +116,7 @@ def GetHostArch(env):
   elif "__aarch64__" in directives:
     return "aarch64"
   else:
-    raise Exception("Unsupported archtecture")
+    raise Exception("Unsupported architecture")
 
 # Class representing the compiler toolchain and version.
 class CompilerInformation(object):

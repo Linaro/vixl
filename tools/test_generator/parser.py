@@ -165,7 +165,7 @@ def ParseDescription(data_type_builder, json_description):
   Parse the instruction description into a
   (`generator.OperandList`, `generator.InputList`) tuple.
 
-  Example for an instruction that takes a condidition code, two registers and an
+  Example for an instruction that takes a condition code, two registers and an
   immediate as operand. It will also need inputs for the registers, as well as
   NZCV flags.
   ~~~
@@ -400,12 +400,12 @@ def GetTestNameAndISAFromFileName(filename):
   """
   # Strip the ".json" extension
   stripped_basename = os.path.splitext(os.path.basename(filename))[0]
-  # The ISA is the last element in the filename, seperated with "-".
+  # The ISA is the last element in the filename, separated with "-".
   if stripped_basename.endswith(('-a32', '-t32')):
     isa = [stripped_basename[-3:]]
     test_name = stripped_basename[:-4]
   else:
-    # If the ISA is ommitted, support both.
+    # If the ISA is omitted, support both.
     isa = ["a32", "t32"]
     test_name = stripped_basename
 

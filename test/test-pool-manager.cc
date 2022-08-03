@@ -797,7 +797,7 @@ TEST(MustEmitNewReferenceDueToSizeOfObject) {
 
 
   // Increment PC to close to the checkpoint of the pools minus a known
-  // thershold.
+  // threshold.
   const int kBigObjectSize = 1024;
   TestPoolManager test(&pool_manager);
   pc = test.GetPoolCheckpoint() - kBigObjectSize;

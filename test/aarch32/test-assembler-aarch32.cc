@@ -1490,7 +1490,7 @@ void EmitLdrdLiteralTest(MacroAssembler* masm, TestMacroAssembler* test) {
     VIXL_CHECK(masm->GetCursorOffset() == end);
   }
 
-  // Check that the pool has not been emited along the way.
+  // Check that the pool has not been emitted along the way.
   CHECK_POOL_SIZE(8);
   // This extra instruction should trigger an emit of the pool.
   __ Nop();
@@ -3653,7 +3653,7 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
   // below). The cases are split in 4 groups:
   //
   //   - 0..3: Generate various amount of nops.
-  //   - 4..7: Generate various load intstructions with literals.
+  //   - 4..7: Generate various load instructions with literals.
   //   - 8..14: Generate various branch instructions.
   //   - 15..19: Generate various amount of nops.
   //
@@ -4849,7 +4849,7 @@ TEST_T32(branch_fuzz_example) {
 
 // Generate a "B" and a "Cbz" which have the same checkpoint. Without proper
 // management (i.e. if the veneers were only generated at the shared
-// checkpoint), one one of the branches would be out of range.
+// checkpoint), one of the branches would be out of range.
 TEST_T32(veneer_simultaneous) {
   SETUP();
 
@@ -5109,7 +5109,7 @@ TEST_T32(veneer_and_literal4) {
   __ Ldr(r11, literal);
 
   // The range for ldr is 4095, the range for cbz is 127. Generate nops
-  // to have the ldr becomming out of range just before the cbz.
+  // to have the ldr becoming out of range just before the cbz.
   const int NUM_NOPS = 2044;
   const int NUM_RANGE = 58;
 
@@ -5184,7 +5184,7 @@ TEST_T32(veneer_and_literal5) {
       __ add(r1, r1, 3);
     }
     __ Bind(&labels[test_num]);
-    // Emit the literal pool if it has not beeen emitted (it's the case for
+    // Emit the literal pool if it has not been emitted (it's the case for
     // the lower values of test_num).
     __ EmitLiteralPool(PoolManager<int32_t>::kBranchRequired);
   }

@@ -190,7 +190,7 @@ class Operand {
   }
 
  private:
-// Forbid implicitely creating operands around types that cannot be encoded
+// Forbid implicitly creating operands around types that cannot be encoded
 // into a uint32_t without loss.
 #if __cplusplus >= 201103L
   Operand(int64_t) = delete;   // NOLINT(runtime/explicit)
@@ -615,7 +615,7 @@ class ImmediateVorn : public ImmediateVorr {
 //     - a shifted index register <Rm>, <shift> #<amount>
 //
 //   The index register may have an associated {+/-} sign,
-//   which if ommitted, defaults to + .
+//   which if omitted, defaults to + .
 //
 //   We have two constructors for the offset:
 //

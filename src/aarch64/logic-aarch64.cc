@@ -2284,7 +2284,7 @@ LogicVRegister Simulator::absdiff(VectorFormat vform,
     bool src1_gt_src2 = is_signed ? (src1.Int(vform, i) > src2.Int(vform, i))
                                   : (src1.Uint(vform, i) > src2.Uint(vform, i));
     // Always calculate the answer using unsigned arithmetic, to avoid
-    // implemenation-defined signed overflow.
+    // implementation-defined signed overflow.
     if (src1_gt_src2) {
       dst.SetUint(vform, i, src1.Uint(vform, i) - src2.Uint(vform, i));
     } else {
@@ -7810,7 +7810,7 @@ LogicVRegister Simulator::fmatmul(VectorFormat vform,
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     // Elements outside a multiple of 4T are set to zero. This happens only
     // for double precision operations, when the VL is a multiple of 128 bits,
-    // but not a mutiple of 256 bits.
+    // but not a multiple of 256 bits.
     T value = (i < (T_per_segment * segment_count)) ? result[i] : 0;
     srcdst.SetFloat<T>(vform, i, value);
   }
