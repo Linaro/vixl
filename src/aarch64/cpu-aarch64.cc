@@ -119,6 +119,7 @@ CPUFeatures AA64PFR1::GetCPUFeatures() const {
   if (Get(kSSBS) >= 2) f.Combine(CPUFeatures::kSSBSControl);
   if (Get(kMTE) >= 1) f.Combine(CPUFeatures::kMTEInstructions);
   if (Get(kMTE) >= 2) f.Combine(CPUFeatures::kMTE);
+  if (Get(kMTE) >= 3) f.Combine(CPUFeatures::kMTE3);
   return f;
 }
 
@@ -313,7 +314,8 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kMTE,
        CPUFeatures::kECV,
        CPUFeatures::kAFP,
-       CPUFeatures::kRPRES};
+       CPUFeatures::kRPRES,
+       CPUFeatures::kMTE3};
 
   uint64_t hwcap_low32 = getauxval(AT_HWCAP);
   uint64_t hwcap_high32 = getauxval(AT_HWCAP2);

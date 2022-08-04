@@ -166,6 +166,7 @@ namespace vixl {
   /* Memory Tagging Extension.                                              */ \
   V(kMTEInstructions,     "MTE (EL0 instructions)", NULL)                      \
   V(kMTE,                 "MTE",                    NULL)                      \
+  V(kMTE3,                "MTE (asymmetric)",       "mte3")                    \
   /* PAuth extensions.                                                      */ \
   V(kPAuthEnhancedPAC,    "PAuth EnhancedPAC",      NULL)                      \
   V(kPAuthEnhancedPAC2,   "PAuth EnhancedPAC2",     NULL)                      \
