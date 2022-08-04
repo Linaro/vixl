@@ -188,7 +188,8 @@ namespace vixl {
   /* Scalable Matrix Extension (SME)                                        */ \
   V(kSME,                 "SME",                    "sme")                     \
   V(kSMEi16i64,           "SME (i16i64)",           "smei16i64")               \
-  V(kSMEf64f64,           "SME (f64f64)",           "smef64f64")
+  V(kSMEf64f64,           "SME (f64f64)",           "smef64f64")               \
+  V(kSMEi8i32,            "SME (i8i32)",            "smei8i32")
 // clang-format on
 
 
