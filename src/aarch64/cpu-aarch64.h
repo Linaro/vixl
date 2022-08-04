@@ -221,10 +221,13 @@ class AA64ZFR0 : public IDRegister {
 };
 
 class AA64SMFR0 : public IDRegister {
-public:
+ public:
   explicit AA64SMFR0(uint64_t value) : IDRegister(value) {}
 
   CPUFeatures GetCPUFeatures() const;
+
+ private:
+  static const Field kSMEi16i64;
 };
 
 class CPU {

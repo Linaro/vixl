@@ -186,7 +186,8 @@ namespace vixl {
   /* Increased precision of Reciprocal Estimate and Square Root Estimate    */ \
   V(kRPRES,               "RPRES",                  "rpres")                   \
   /* Scalable Matrix Extension (SME)                                        */ \
-  V(kSME,                 "SME",                    "sme")
+  V(kSME,                 "SME",                    "sme")                     \
+  V(kSMEi16i64,           "SME (i16i64)",           "smei16i64")
 // clang-format on
 
 
