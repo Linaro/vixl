@@ -167,6 +167,7 @@ CPUFeatures AA64ISAR1::GetCPUFeatures() const {
   if (Get(kSB) >= 1) f.Combine(CPUFeatures::kSB);
   if (Get(kSPECRES) >= 1) f.Combine(CPUFeatures::kSPECRES);
   if (Get(kBF16) >= 1) f.Combine(CPUFeatures::kBF16);
+  if (Get(kBF16) >= 2) f.Combine(CPUFeatures::kEBF16);
   if (Get(kDGH) >= 1) f.Combine(CPUFeatures::kDGH);
   if (Get(kI8MM) >= 1) f.Combine(CPUFeatures::kI8MM);
 
@@ -352,7 +353,9 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kSMEb16f32,
        CPUFeatures::kSMEf32f32,
        CPUFeatures::kSMEfa64,
-       CPUFeatures::kWFXT};
+       CPUFeatures::kWFXT,
+       // Bits 32-39
+       CPUFeatures::kEBF16};
   VIXL_STATIC_ASSERT(ArrayLength(kFeatureBitsHigh) < 64);
 
   auto combine_features = [&features](uint64_t hwcap,

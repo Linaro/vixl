@@ -195,7 +195,9 @@ namespace vixl {
   V(kSMEf32f32,           "SME (f32f32)",           "smef32f32")               \
   V(kSMEfa64,             "SME (fa64)",             "smefa64")                 \
   /* WFET and WFIT instruction support                                      */ \
-  V(kWFXT,                "WFXT",                   "wfxt")
+  V(kWFXT,                "WFXT",                   "wfxt")                    \
+  /* Extended BFloat16 instructions                                         */ \
+  V(kEBF16,               "EBF16",                  "ebf16")
 // clang-format on
 
 
