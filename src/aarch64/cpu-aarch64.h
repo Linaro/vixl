@@ -233,6 +233,7 @@ class AA64SMFR0 : public IDRegister {
   static const Field kSMEi8i32;
   static const Field kSMEf64f64;
   static const Field kSMEi16i64;
+  static const Field kSMEfa64;
 };
 
 class CPU {
