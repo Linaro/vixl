@@ -275,7 +275,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
   // Map each set bit onto a feature. Ideally, we'd use HWCAP_* macros rather
   // than explicit bits, but explicit bits allow us to identify features that
   // the toolchain doesn't know about.
-  static const CPUFeatures::Feature kFeatureBits[] =
+  static const CPUFeatures::Feature kFeatureBitsLow[] =
       {// Bits 0-7
        CPUFeatures::kFP,
        CPUFeatures::kNEON,
@@ -311,8 +311,11 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kSSBSControl,
        CPUFeatures::kSB,
        CPUFeatures::kPAuth,
-       CPUFeatures::kPAuthGeneric,
-       // Bits 32-39
+       CPUFeatures::kPAuthGeneric};
+  VIXL_STATIC_ASSERT(ArrayLength(kFeatureBitsLow) < 64);
+
+  static const CPUFeatures::Feature kFeatureBitsHigh[] =
+      {// Bits 0-7
        CPUFeatures::kDCCVADP,
        CPUFeatures::kSVE2,
        CPUFeatures::kSVEAES,
@@ -321,7 +324,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kSVESHA3,
        CPUFeatures::kSVESM4,
        CPUFeatures::kAXFlag,
-       // Bits 40-47
+       // Bits 8-15
        CPUFeatures::kFrintToFixedSizedInt,
        CPUFeatures::kSVEI8MM,
        CPUFeatures::kSVEF32MM,
@@ -330,7 +333,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kI8MM,
        CPUFeatures::kBF16,
        CPUFeatures::kDGH,
-       // Bits 48+
+       // Bits 16-23
        CPUFeatures::kRNG,
        CPUFeatures::kBTI,
        CPUFeatures::kMTE,
@@ -339,6 +342,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kRPRES,
        CPUFeatures::kMTE3,
        CPUFeatures::kSME,
+       // Bits 24-31
        CPUFeatures::kSMEi16i64,
        CPUFeatures::kSMEf64f64,
        CPUFeatures::kSMEi8i32,
@@ -346,17 +350,22 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kSMEb16f32,
        CPUFeatures::kSMEf32f32,
        CPUFeatures::kSMEfa64};
+  VIXL_STATIC_ASSERT(ArrayLength(kFeatureBitsHigh) < 64);
 
-  uint64_t hwcap_low32 = getauxval(AT_HWCAP);
-  uint64_t hwcap_high32 = getauxval(AT_HWCAP2);
-  VIXL_ASSERT(IsUint32(hwcap_low32));
-  VIXL_ASSERT(IsUint32(hwcap_high32));
-  uint64_t hwcap = hwcap_low32 | (hwcap_high32 << 32);
+  auto combine_features = [&features](uint64_t hwcap,
+                                      const CPUFeatures::Feature* feature_array,
+                                      size_t features_size) {
+    for (size_t i = 0; i < features_size; i++) {
+      if (hwcap & (UINT64_C(1) << i)) features.Combine(feature_array[i]);
+    }
+  };
 
-  VIXL_STATIC_ASSERT(ArrayLength(kFeatureBits) < 64);
-  for (size_t i = 0; i < ArrayLength(kFeatureBits); i++) {
-    if (hwcap & (UINT64_C(1) << i)) features.Combine(kFeatureBits[i]);
-  }
+  uint64_t hwcap_low = getauxval(AT_HWCAP);
+  uint64_t hwcap_high = getauxval(AT_HWCAP2);
+
+  combine_features(hwcap_low, kFeatureBitsLow, ArrayLength(kFeatureBitsLow));
+  combine_features(hwcap_high, kFeatureBitsHigh, ArrayLength(kFeatureBitsHigh));
+
   // MTE support from HWCAP2 signifies FEAT_MTE1 and FEAT_MTE2 support
   if (features.Has(CPUFeatures::kMTE)) {
     features.Combine(CPUFeatures::kMTEInstructions);
