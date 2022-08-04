@@ -191,7 +191,8 @@ namespace vixl {
   V(kSMEf64f64,           "SME (f64f64)",           "smef64f64")               \
   V(kSMEi8i32,            "SME (i8i32)",            "smei8i32")                \
   V(kSMEf16f32,           "SME (f16f32)",           "smef16f32")               \
-  V(kSMEb16f32,           "SME (b16f32)",           "smeb16f32")
+  V(kSMEb16f32,           "SME (b16f32)",           "smeb16f32")               \
+  V(kSMEf32f32,           "SME (f32f32)",           "smef32f32")
 // clang-format on
 
 

@@ -227,6 +227,7 @@ class AA64SMFR0 : public IDRegister {
   CPUFeatures GetCPUFeatures() const;
 
  private:
+  static const Field kSMEf32f32;
   static const Field kSMEb16f32;
   static const Field kSMEf16f32;
   static const Field kSMEi8i32;
