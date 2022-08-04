@@ -318,7 +318,7 @@ class SimFloat16 : public Float16 {
   bool operator>(SimFloat16 rhs) const;
   bool operator==(SimFloat16 rhs) const;
   bool operator!=(SimFloat16 rhs) const;
-  // This is necessary for conversions peformed in (macro asm) Fmov.
+  // This is necessary for conversions performed in (macro asm) Fmov.
   bool operator==(double rhs) const;
   operator double() const;
 };
@@ -1411,6 +1411,8 @@ constexpr uint32_t Hash(const char* str, uint32_t hash = 0) {
     return Hash(str + 1, hash);
   }
 }
+
+constexpr uint32_t operator"" _h(const char* x, size_t) { return Hash(x); }
 
 }  // namespace vixl
 

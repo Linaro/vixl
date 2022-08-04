@@ -599,7 +599,7 @@ void MacroAssembler::Printf(const char* format,
     Vmsr(FPSCR, tmp);
     Pop(tmp);
     Msr(APSR_nzcvqg, tmp);
-    // Restore the regsisters.
+    // Restore the registers.
     if (Has32DRegs()) Vpop(Untyped64, DRegisterList(d16, 16));
     Vpop(Untyped64, DRegisterList(d0, 8));
     Pop(RegisterList(saved_registers_mask));

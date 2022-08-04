@@ -83,7 +83,7 @@ class OperandList(object):
 
 class InputList(object):
   """
-  Convevience class representing a list of input objects.
+  Convenience class representing a list of input objects.
 
   This class is an iterator over input objects.
 
@@ -113,7 +113,7 @@ class TestCase(object):
   Attributes:
     name            Name of the test case, it is used to name the array to
                     produce.
-    seed            Seed value to use for reproducable random generation.
+    seed            Seed value to use for reproducible random generation.
     operand_names   List of operand names this test case covers.
     input_names     List of input names this test case covers.
     operand_filter  Python expression as a string to filter out operands.
@@ -320,7 +320,7 @@ class Generator(object):
 
     # A simulator test cannot easily make use of the PC and SP registers.
     if self.test_type == "simulator":
-      # We need to explicitely create our own deep copy the operands before we
+      # We need to explicitly create our own deep copy the operands before we
       # can modify them.
       self.operands = deepcopy(operands)
       self.operands.ExcludeVariants("Register", ["r13", "r15"])

@@ -306,7 +306,7 @@ void BenchCodeGenerator::BindPendingLabels(uint64_t bind_mask) {
 
 void BenchCodeGenerator::BindAllPendingLabels() {
   while (!labels_.empty()) {
-    // BindPendingLables generates a branch over each block of bound labels.
+    // BindPendingLabels generates a branch over each block of bound labels.
     // This will be repeated for each call here, but the effect is minimal and
     // (empirically) we rarely accumulate more than 64 pending labels anyway.
     BindPendingLabels(UINT64_MAX);

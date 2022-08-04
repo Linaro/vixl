@@ -31,7 +31,7 @@ Verify generated AArch32 assembler traces against `llvm-mc`.
 
 This script will find all files in `test/aarch32/traces/` with names starting
 will `assembler`, and check them against `llvm-mc`. It checks our assembler is
-correct by looking up what instruction we meant to asssemble, assemble it with
+correct by looking up what instruction we meant to assemble, assemble it with
 `llvm` and check the result is bit identical to what our assembler generated.
 
 You may run the script with no arguments from VIXL's top-level directory as long
@@ -136,7 +136,7 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
   """
   Take an string representing an instruction and convert it to assembly syntax
   for LLVM. VIXL's test generation framework will print instruction
-  representations as a space seperated list. The first element is the mnemonic
+  representations as a space separated list. The first element is the mnemonic
   and the following elements are operands.
   """
 
@@ -304,12 +304,12 @@ def ConvertToLLVMFormat(vixl_instruction, triple):
     ]
 
   # Our test generator framework uses mnemonics starting with a capital letters.
-  # We need everythin to be lower case for LLVM.
+  # We need everything to be lower case for LLVM.
   vixl_instruction = vixl_instruction.lower()
 
   llvm_instruction = []
 
-  # VIXL may have generated more than one instruction seperated by ';'
+  # VIXL may have generated more than one instruction separated by ';'
   # (an IT instruction for example).
   for instruction in vixl_instruction.split(';'):
     # Strip out extra white spaces.
@@ -401,7 +401,7 @@ def VerifyInstructionsWithLLVMMC(llvm_mc, f, triple):
   # due to IT instructions preceding every instruction under test. VIXL's
   # assembly reference files will contain a single array of 4 bytes encoding
   # both the IT and the following instruction. While LLVM will have decoded them
-  # into two seperate 2 bytes arrays.
+  # into two separate 2 bytes arrays.
   if len(llvm_encodings) == 2 * len(vixl_encodings):
     llvm_encodings = [
         llvm_encodings[i * 2] + llvm_encodings[(i * 2) + 1]

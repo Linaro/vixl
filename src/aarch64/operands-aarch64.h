@@ -873,7 +873,7 @@ class IntegerOperand {
     return TryEncodeAsShiftedIntNForLane<N, 0>(zd, imm);
   }
 
-  // As above, but for unsigned fields. This is usuaully a simple operation, but
+  // As above, but for unsigned fields. This is usually a simple operation, but
   // is provided for symmetry.
   template <unsigned N, unsigned kShift, typename T>
   bool TryEncodeAsShiftedUintNForLane(const CPURegister& zd, T* imm) const {

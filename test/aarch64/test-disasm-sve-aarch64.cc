@@ -66,59 +66,59 @@ TEST(sve) {
   CLEANUP();
 }
 
-TEST(sve_unimplemented_fp_byte_type) {
+TEST(sve_unallocated_fp_byte_type) {
   // Ensure disassembly of FP instructions does not report byte-sized lanes.
 
   SETUP();
 
-  COMPARE_PREFIX(dci(0x650003ca), "unimplemented");
-  COMPARE_PREFIX(dci(0x6500230b), "unimplemented");
-  COMPARE_PREFIX(dci(0x6500424c), "unimplemented");
-  COMPARE_PREFIX(dci(0x6500618d), "unimplemented");
-  COMPARE_PREFIX(dci(0x6500a00f), "unimplemented");
-  COMPARE_PREFIX(dci(0x6500de91), "unimplemented");
-  COMPARE_PREFIX(dci(0x6500fdd2), "unimplemented");
-  COMPARE_PREFIX(dci(0x65011d13), "unimplemented");
-  COMPARE_PREFIX(dci(0x65015b95), "unimplemented");
-  COMPARE_PREFIX(dci(0x65017ad6), "unimplemented");
-  COMPARE_PREFIX(dci(0x65019a17), "unimplemented");
-  COMPARE_PREFIX(dci(0x6501b958), "unimplemented");
-  COMPARE_PREFIX(dci(0x6502941f), "unimplemented");
-  COMPARE_PREFIX(dci(0x6502b360), "unimplemented");
-  COMPARE_PREFIX(dci(0x6502d2a1), "unimplemented");
-  COMPARE_PREFIX(dci(0x65038e27), "unimplemented");
-  COMPARE_PREFIX(dci(0x6503ad68), "unimplemented");
-  COMPARE_PREFIX(dci(0x65042a6c), "unimplemented");
-  COMPARE_PREFIX(dci(0x6504882f), "unimplemented");
-  COMPARE_PREFIX(dci(0x6504a770), "unimplemented");
-  COMPARE_PREFIX(dci(0x65052474), "unimplemented");
-  COMPARE_PREFIX(dci(0x65058237), "unimplemented");
-  COMPARE_PREFIX(dci(0x65063dbd), "unimplemented");
-  COMPARE_PREFIX(dci(0x65069b80), "unimplemented");
-  COMPARE_PREFIX(dci(0x6506bac1), "unimplemented");
-  COMPARE_PREFIX(dci(0x65071884), "unimplemented");
-  COMPARE_PREFIX(dci(0x650737c5), "unimplemented");
-  COMPARE_PREFIX(dci(0x65079588), "unimplemented");
-  COMPARE_PREFIX(dci(0x6507b4c9), "unimplemented");
-  COMPARE_PREFIX(dci(0x65088f90), "unimplemented");
-  COMPARE_PREFIX(dci(0x65090c94), "unimplemented");
-  COMPARE_PREFIX(dci(0x65098998), "unimplemented");
-  COMPARE_PREFIX(dci(0x650a83a0), "unimplemented");
-  COMPARE_PREFIX(dci(0x650c96f1), "unimplemented");
-  COMPARE_PREFIX(dci(0x650d90f9), "unimplemented");
-  COMPARE_PREFIX(dci(0x65113a97), "unimplemented");
-  COMPARE_PREFIX(dci(0x65183010), "unimplemented");
-  COMPARE_PREFIX(dci(0x65200050), "unimplemented");
-  COMPARE_PREFIX(dci(0x65203ed2), "unimplemented");
-  COMPARE_PREFIX(dci(0x65205e13), "unimplemented");
-  COMPARE_PREFIX(dci(0x65207d54), "unimplemented");
-  COMPARE_PREFIX(dci(0x65209c95), "unimplemented");
-  COMPARE_PREFIX(dci(0x6520bbd6), "unimplemented");
-  COMPARE_PREFIX(dci(0x6520db17), "unimplemented");
-  COMPARE_PREFIX(dci(0x6520fa58), "unimplemented");
-  COMPARE_PREFIX(dci(0x650f31e1), "unimplemented");
-  COMPARE_PREFIX(dci(0x650e30f7), "unimplemented");
-  COMPARE_PREFIX(dci(0x6511376e), "unimplemented");
+  COMPARE_PREFIX(dci(0x650003ca), "unallocated");
+  COMPARE_PREFIX(dci(0x6500230b), "unallocated");
+  COMPARE_PREFIX(dci(0x6500424c), "unallocated");
+  COMPARE_PREFIX(dci(0x6500618d), "unallocated");
+  COMPARE_PREFIX(dci(0x6500a00f), "unallocated");
+  COMPARE_PREFIX(dci(0x6500de91), "unallocated");
+  COMPARE_PREFIX(dci(0x6500fdd2), "unallocated");
+  COMPARE_PREFIX(dci(0x65011d13), "unallocated");
+  COMPARE_PREFIX(dci(0x65015b95), "unallocated");
+  COMPARE_PREFIX(dci(0x65017ad6), "unallocated");
+  COMPARE_PREFIX(dci(0x65019a17), "unallocated");
+  COMPARE_PREFIX(dci(0x6501b958), "unallocated");
+  COMPARE_PREFIX(dci(0x6502941f), "unallocated");
+  COMPARE_PREFIX(dci(0x6502b360), "unallocated");
+  COMPARE_PREFIX(dci(0x6502d2a1), "unallocated");
+  COMPARE_PREFIX(dci(0x65038e27), "unallocated");
+  COMPARE_PREFIX(dci(0x6503ad68), "unallocated");
+  COMPARE_PREFIX(dci(0x65042a6c), "unallocated");
+  COMPARE_PREFIX(dci(0x6504882f), "unallocated");
+  COMPARE_PREFIX(dci(0x6504a770), "unallocated");
+  COMPARE_PREFIX(dci(0x65052474), "unallocated");
+  COMPARE_PREFIX(dci(0x65058237), "unallocated");
+  COMPARE_PREFIX(dci(0x65063dbd), "unallocated");
+  COMPARE_PREFIX(dci(0x65069b80), "unallocated");
+  COMPARE_PREFIX(dci(0x6506bac1), "unallocated");
+  COMPARE_PREFIX(dci(0x65071884), "unallocated");
+  COMPARE_PREFIX(dci(0x650737c5), "unallocated");
+  COMPARE_PREFIX(dci(0x65079588), "unallocated");
+  COMPARE_PREFIX(dci(0x6507b4c9), "unallocated");
+  COMPARE_PREFIX(dci(0x65088f90), "unallocated");
+  COMPARE_PREFIX(dci(0x65090c94), "unallocated");
+  COMPARE_PREFIX(dci(0x65098998), "unallocated");
+  COMPARE_PREFIX(dci(0x650a83a0), "unallocated");
+  COMPARE_PREFIX(dci(0x650c96f1), "unallocated");
+  COMPARE_PREFIX(dci(0x650d90f9), "unallocated");
+  COMPARE_PREFIX(dci(0x65113a97), "unallocated");
+  COMPARE_PREFIX(dci(0x65183010), "unallocated");
+  COMPARE_PREFIX(dci(0x65200050), "unallocated");
+  COMPARE_PREFIX(dci(0x65203ed2), "unallocated");
+  COMPARE_PREFIX(dci(0x65205e13), "unallocated");
+  COMPARE_PREFIX(dci(0x65207d54), "unallocated");
+  COMPARE_PREFIX(dci(0x65209c95), "unallocated");
+  COMPARE_PREFIX(dci(0x6520bbd6), "unallocated");
+  COMPARE_PREFIX(dci(0x6520db17), "unallocated");
+  COMPARE_PREFIX(dci(0x6520fa58), "unallocated");
+  COMPARE_PREFIX(dci(0x650f31e1), "unallocated");
+  COMPARE_PREFIX(dci(0x650e30f7), "unallocated");
+  COMPARE_PREFIX(dci(0x6511376e), "unallocated");
 
   CLEANUP();
 }

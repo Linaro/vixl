@@ -67,7 +67,8 @@ class PRegisterZ;
 // specialised register types can avoid run-time checks, and should therefore be
 // preferred where run-time polymorphism isn't required.
 //
-// Type-specific modifers are typically implemented only on the derived classes.
+// Type-specific modifiers are typically implemented only on the derived
+// classes.
 //
 // The encoding is such that CPURegister objects are cheap to pass by value.
 class CPURegister {

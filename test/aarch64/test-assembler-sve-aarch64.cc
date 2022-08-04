@@ -287,7 +287,7 @@ TEST_SVE(sve_v_write_clear) {
                           CPUFeatures::kSVE);
   START();
 
-  // The Simulator has two mechansisms for writing V registers:
+  // The Simulator has two mechanisms for writing V registers:
   //  - Write*Register, calling through to SimRegisterBase::Write.
   //  - LogicVRegister::ClearForWrite followed by one or more lane updates.
   // Try to cover both variants.
@@ -7244,7 +7244,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_imm) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   __ Index(z14.VnB(), 1, -3);
@@ -7416,7 +7416,7 @@ TEST_SVE(sve_ld2_st2_scalar_plus_scalar) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   __ Index(z10.VnB(), -4, 11);
@@ -7589,7 +7589,7 @@ TEST_SVE(sve_ld3_st3_scalar_plus_imm) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld3 by comparing the values loaded with the values stored.
@@ -7795,7 +7795,7 @@ TEST_SVE(sve_ld3_st3_scalar_plus_scalar) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld3 by comparing the values loaded with the values stored.
@@ -8009,7 +8009,7 @@ TEST_SVE(sve_ld4_st4_scalar_plus_imm) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld4 by comparing the values loaded with the values stored.
@@ -8259,7 +8259,7 @@ TEST_SVE(sve_ld4_st4_scalar_plus_scalar) {
   uint8_t* data = new uint8_t[data_size];
   memset(data, 0, data_size);
 
-  // Set the base half-way through the buffer so we can use negative indeces.
+  // Set the base half-way through the buffer so we can use negative indices.
   __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size / 2]));
 
   // We can test ld4 by comparing the values loaded with the values stored.
@@ -15382,7 +15382,7 @@ static void TestFcvtFrintHelper(Test* config,
   PRegisterWithLaneSize pg_all_active = p0.WithLaneSize(lane_size_in_bits);
   __ Ptrue(pg_all_active);
 
-  // Test floating-point conversions with all lanes actived.
+  // Test floating-point conversions with all lanes activated.
   (masm.*macro_m)(zd_all_active.WithLaneSize(dst_type_size_in_bits),
                   pg_all_active.Merging(),
                   zn.WithLaneSize(src_type_size_in_bits));
@@ -15936,7 +15936,7 @@ static void TestUScvtfHelper(Test* config,
   PRegisterWithLaneSize pg_all_active = p0.WithLaneSize(lane_size_in_bits);
   __ Ptrue(pg_all_active);
 
-  // Test integer conversions with all lanes actived.
+  // Test integer conversions with all lanes activated.
   __ Scvtf(zd_scvtf_all_active.WithLaneSize(dst_type_size_in_bits),
            pg_all_active.Merging(),
            zn.WithLaneSize(src_type_size_in_bits));
@@ -16006,7 +16006,7 @@ TEST_SVE(scvtf_ucvtf_h_s_d_to_float16) {
   // clang-format off
   CvtfTestDataSet data_set_1[] = {
     // Simple conversions of positive numbers which require no rounding; the
-    // results should not depened on the rounding mode, and ucvtf and scvtf should
+    // results should not depend on the rounding mode, and ucvtf and scvtf should
     // produce the same result.
     {0x0000, 0x0000, 0x0000},
     {0x0001, 0x3c00, 0x3c00},
@@ -16062,7 +16062,7 @@ TEST_SVE(scvtf_ucvtf_s_to_float) {
   int src_lane_size = kSRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x00000000, 0x00000000, 0x00000000},
@@ -16118,7 +16118,7 @@ TEST_SVE(scvtf_ucvtf_d_to_float) {
   int src_lane_size = kDRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x0000000000000000, 0x00000000, 0x00000000},
@@ -16178,7 +16178,7 @@ TEST_SVE(scvtf_ucvtf_d_to_double) {
   int src_lane_size = kDRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x0000000000000000, 0x0000000000000000, 0x0000000000000000},
@@ -16237,7 +16237,7 @@ TEST_SVE(scvtf_ucvtf_s_to_double) {
   int src_lane_size = kSRegSize;
 
   // Simple conversions of positive numbers which require no rounding; the
-  // results should not depened on the rounding mode, and ucvtf and scvtf should
+  // results should not depend on the rounding mode, and ucvtf and scvtf should
   // produce the same result.
   CvtfTestDataSet data_set_1[] = {
     {0x00000000, 0x0000000000000000, 0x0000000000000000},
@@ -18122,7 +18122,7 @@ static void TestFPUnaryPredicatedHelper(Test* config,
                               macro_m,
                               macro_z);
 
-  // The complementary of above precicate to get full input coverage.
+  // The complementary of above predicate to get full input coverage.
   uint64_t pg_c_inputs[] = {0x5aa55aa55aa55aa5,
                             0x5aa55aa55aa55aa5,
                             0x5aa55aa55aa55aa5,
@@ -19735,7 +19735,7 @@ TEST_SVE(sudot_usdot) {
 // Manually constructed simulator test to avoid creating a VL128 variant.
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
-void Testsve_fmatmul(Test* config) {
+void Test_sve_fmatmul(Test* config) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM);
 
   // Only double-precision matrix multiply is tested here. Single-precision is
@@ -19845,13 +19845,13 @@ void Testsve_fmatmul(Test* config) {
   }
 }
 Test* test_sve_fmatmul_list[] =
-    {Test::MakeSVETest(256, "AARCH64_ASM_sve_fmatmul_vl256", &Testsve_fmatmul),
-     Test::MakeSVETest(384, "AARCH64_ASM_sve_fmatmul_vl384", &Testsve_fmatmul),
+    {Test::MakeSVETest(256, "AARCH64_ASM_sve_fmatmul_vl256", &Test_sve_fmatmul),
+     Test::MakeSVETest(384, "AARCH64_ASM_sve_fmatmul_vl384", &Test_sve_fmatmul),
      Test::MakeSVETest(2048,
                        "AARCH64_ASM_sve_fmatmul_vl2048",
-                       &Testsve_fmatmul)};
+                       &Test_sve_fmatmul)};
 
-void Testsve_ld1ro(Test* config) {
+void Test_sve_ld1ro(Test* config) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kSVEF64MM);
   START();
 
@@ -19975,9 +19975,9 @@ void Testsve_ld1ro(Test* config) {
   }
 }
 Test* test_sve_ld1ro_list[] =
-    {Test::MakeSVETest(256, "AARCH64_ASM_sve_ld1ro_vl256", &Testsve_ld1ro),
-     Test::MakeSVETest(384, "AARCH64_ASM_sve_ld1ro_vl384", &Testsve_ld1ro),
-     Test::MakeSVETest(2048, "AARCH64_ASM_sve_ld1ro_vl2048", &Testsve_ld1ro)};
+    {Test::MakeSVETest(256, "AARCH64_ASM_sve_ld1ro_vl256", &Test_sve_ld1ro),
+     Test::MakeSVETest(384, "AARCH64_ASM_sve_ld1ro_vl384", &Test_sve_ld1ro),
+     Test::MakeSVETest(2048, "AARCH64_ASM_sve_ld1ro_vl2048", &Test_sve_ld1ro)};
 #endif
 
 }  // namespace aarch64

@@ -501,7 +501,7 @@ RegList PopulateVRegisterArray(VRegister* s,
                                int reg_count,
                                RegList allowed);
 
-// Ovewrite the contents of the specified registers. This enables tests to
+// Overwrite the contents of the specified registers. This enables tests to
 // check that register contents are written in cases where it's likely that the
 // correct outcome could already be stored in the register.
 //

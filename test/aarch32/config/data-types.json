@@ -1100,7 +1100,7 @@
       "identifier": "OffsetLowerThan4096",
       "type": "int32_t",
       // These variants are a random sample of 500 integers out of all integers
-      // from 1 to 4094 (included). We've added 0 and 4095 explicitely.
+      // from 1 to 4094 (included). We've added 0 and 4095 explicitly.
       "variants": [
         "0",
         "4095",
@@ -1700,7 +1700,7 @@
       ],
       "default": "NoFlag"
     },
-    // TODO: Consider having a seperate list for inputs for which we are only
+    // TODO: Consider having a separate list for inputs for which we are only
     // interested in recording the value after the instruction has executed.
     // This applies to `Q` and `GE`.
     {
@@ -1781,7 +1781,7 @@
       "identifier": "RegisterOffsetLowerThan4096",
       "type": "Register",
       // These values are a random sample of 500 integers out of all integers
-      // from 1 to 4094 (included). We've added 0 and 4095 explicitely.
+      // from 1 to 4094 (included). We've added 0 and 4095 explicitly.
       "values": [
         "0",
         "4095",

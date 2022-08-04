@@ -780,7 +780,7 @@ bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
 }
 
 // Note that the function assumes p0, p1, p2 and p3 are set to all true in b-,
-// h-, s- and d-lane sizes respectively, and p4, p5 are clobberred as a temp
+// h-, s- and d-lane sizes respectively, and p4, p5 are clobbered as a temp
 // predicate.
 template <typename T, size_t N>
 void SetFpData(MacroAssembler* masm,
