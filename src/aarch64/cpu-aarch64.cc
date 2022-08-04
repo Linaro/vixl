@@ -223,6 +223,11 @@ CPUFeatures AA64ZFR0::GetCPUFeatures() const {
   return f;
 }
 
+CPUFeatures AA64SMFR0::GetCPUFeatures() const {
+  CPUFeatures f;
+  return f;
+}
+
 int IDRegister::Get(IDRegister::Field field) const {
   int msb = field.GetMsb();
   int lsb = field.GetLsb();

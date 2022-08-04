@@ -220,6 +220,13 @@ class AA64ZFR0 : public IDRegister {
   static const Field kF64MM;
 };
 
+class AA64SMFR0 : public IDRegister {
+public:
+  explicit AA64SMFR0(uint64_t value) : IDRegister(value) {}
+
+  CPUFeatures GetCPUFeatures() const;
+};
+
 class CPU {
  public:
   // Initialise CPU support.
@@ -286,6 +293,7 @@ class CPU {
   V(AA64MMFR1, "ID_AA64MMFR1_EL1")                                            \
   /* These registers are RES0 in the baseline Arm8.0. We can always safely */ \
   /* read them, but some compilers don't accept the symbolic names. */        \
+  V(AA64SMFR0, "S3_0_C0_C4_5")                                                \
   V(AA64ISAR2, "S3_0_C0_C6_2")                                                \
   V(AA64MMFR2, "S3_0_C0_C7_2")                                                \
   V(AA64ZFR0, "S3_0_C0_C4_4")
