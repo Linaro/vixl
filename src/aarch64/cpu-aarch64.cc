@@ -79,6 +79,7 @@ const IDRegister::Field AA64ISAR1::kBF16(44);
 const IDRegister::Field AA64ISAR1::kDGH(48);
 const IDRegister::Field AA64ISAR1::kI8MM(52);
 
+const IDRegister::Field AA64ISAR2::kWFXT(0);
 const IDRegister::Field AA64ISAR2::kRPRES(4);
 
 const IDRegister::Field AA64MMFR0::kECV(60);
@@ -191,6 +192,7 @@ CPUFeatures AA64ISAR1::GetCPUFeatures() const {
 
 CPUFeatures AA64ISAR2::GetCPUFeatures() const {
   CPUFeatures f;
+  if (Get(kWFXT) >= 2) f.Combine(CPUFeatures::kWFXT);
   if (Get(kRPRES) >= 1) f.Combine(CPUFeatures::kRPRES);
   return f;
 }
@@ -349,7 +351,8 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kSMEf16f32,
        CPUFeatures::kSMEb16f32,
        CPUFeatures::kSMEf32f32,
-       CPUFeatures::kSMEfa64};
+       CPUFeatures::kSMEfa64,
+       CPUFeatures::kWFXT};
   VIXL_STATIC_ASSERT(ArrayLength(kFeatureBitsHigh) < 64);
 
   auto combine_features = [&features](uint64_t hwcap,

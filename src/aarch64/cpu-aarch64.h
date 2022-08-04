@@ -168,6 +168,7 @@ class AA64ISAR2 : public IDRegister {
   CPUFeatures GetCPUFeatures() const;
 
  private:
+  static const Field kWFXT;
   static const Field kRPRES;
 };
 
