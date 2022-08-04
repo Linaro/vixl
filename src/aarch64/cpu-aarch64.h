@@ -113,6 +113,7 @@ class AA64PFR1 : public IDRegister {
   static const Field kBT;
   static const Field kSSBS;
   static const Field kMTE;
+  static const Field kSME;
 };
 
 class AA64ISAR0 : public IDRegister {

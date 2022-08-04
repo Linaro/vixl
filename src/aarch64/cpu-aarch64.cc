@@ -48,6 +48,7 @@ const IDRegister::Field AA64PFR0::kCSV3(60);
 const IDRegister::Field AA64PFR1::kBT(0);
 const IDRegister::Field AA64PFR1::kSSBS(4);
 const IDRegister::Field AA64PFR1::kMTE(8);
+const IDRegister::Field AA64PFR1::kSME(24);
 
 const IDRegister::Field AA64ISAR0::kAES(4);
 const IDRegister::Field AA64ISAR0::kSHA1(8);
@@ -120,6 +121,7 @@ CPUFeatures AA64PFR1::GetCPUFeatures() const {
   if (Get(kMTE) >= 1) f.Combine(CPUFeatures::kMTEInstructions);
   if (Get(kMTE) >= 2) f.Combine(CPUFeatures::kMTE);
   if (Get(kMTE) >= 3) f.Combine(CPUFeatures::kMTE3);
+  if (Get(kSME) >= 1) f.Combine(CPUFeatures::kSME);
   return f;
 }
 
@@ -315,7 +317,8 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
        CPUFeatures::kECV,
        CPUFeatures::kAFP,
        CPUFeatures::kRPRES,
-       CPUFeatures::kMTE3};
+       CPUFeatures::kMTE3,
+       CPUFeatures::kSME};
 
   uint64_t hwcap_low32 = getauxval(AT_HWCAP);
   uint64_t hwcap_high32 = getauxval(AT_HWCAP2);

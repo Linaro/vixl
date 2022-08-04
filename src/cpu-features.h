@@ -184,7 +184,9 @@ namespace vixl {
   /* Enhanced Counter Virtualization                                        */ \
   V(kECV,                 "ECV",                    "ecv")                     \
   /* Increased precision of Reciprocal Estimate and Square Root Estimate    */ \
-  V(kRPRES,               "RPRES",                  "rpres")
+  V(kRPRES,               "RPRES",                  "rpres")                   \
+  /* Scalable Matrix Extension (SME)                                        */ \
+  V(kSME,                 "SME",                    "sme")
 // clang-format on
 
 
