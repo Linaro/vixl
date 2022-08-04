@@ -56,24 +56,24 @@ class IDRegister {
    public:
     enum Type { kUnsigned, kSigned };
 
+    static const int kMaxWidthInBits = 4;
+
     // This needs to be constexpr so that fields have "constant initialisation".
     // This avoids initialisation order problems when these values are used to
     // (dynamically) initialise static variables, etc.
-    explicit constexpr Field(int lsb, Type type = kUnsigned)
-        : lsb_(lsb), type_(type) {}
+    explicit constexpr Field(int lsb,
+                             int bitWidth = kMaxWidthInBits,
+                             Type type = kUnsigned)
+        : lsb_(lsb), bitWidth_(bitWidth), type_(type) {}
 
-    static const int kMaxWidthInBits = 4;
-
-    int GetWidthInBits() const {
-      // All current ID fields have four bits.
-      return kMaxWidthInBits;
-    }
+    int GetWidthInBits() const { return bitWidth_; }
     int GetLsb() const { return lsb_; }
     int GetMsb() const { return lsb_ + GetWidthInBits() - 1; }
     Type GetType() const { return type_; }
 
    private:
     int lsb_;
+    int bitWidth_;
     Type type_;
   };
 
