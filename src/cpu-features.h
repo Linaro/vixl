@@ -166,6 +166,7 @@ namespace vixl {
   /* Memory Tagging Extension.                                              */ \
   V(kMTEInstructions,     "MTE (EL0 instructions)", NULL)                      \
   V(kMTE,                 "MTE",                    NULL)                      \
+  V(kMTE3,                "MTE (asymmetric)",       "mte3")                    \
   /* PAuth extensions.                                                      */ \
   V(kPAuthEnhancedPAC,    "PAuth EnhancedPAC",      NULL)                      \
   V(kPAuthEnhancedPAC2,   "PAuth EnhancedPAC2",     NULL)                      \
@@ -183,7 +184,20 @@ namespace vixl {
   /* Enhanced Counter Virtualization                                        */ \
   V(kECV,                 "ECV",                    "ecv")                     \
   /* Increased precision of Reciprocal Estimate and Square Root Estimate    */ \
-  V(kRPRES,               "RPRES",                  "rpres")
+  V(kRPRES,               "RPRES",                  "rpres")                   \
+  /* Scalable Matrix Extension (SME)                                        */ \
+  V(kSME,                 "SME",                    "sme")                     \
+  V(kSMEi16i64,           "SME (i16i64)",           "smei16i64")               \
+  V(kSMEf64f64,           "SME (f64f64)",           "smef64f64")               \
+  V(kSMEi8i32,            "SME (i8i32)",            "smei8i32")                \
+  V(kSMEf16f32,           "SME (f16f32)",           "smef16f32")               \
+  V(kSMEb16f32,           "SME (b16f32)",           "smeb16f32")               \
+  V(kSMEf32f32,           "SME (f32f32)",           "smef32f32")               \
+  V(kSMEfa64,             "SME (fa64)",             "smefa64")                 \
+  /* WFET and WFIT instruction support                                      */ \
+  V(kWFXT,                "WFXT",                   "wfxt")                    \
+  /* Extended BFloat16 instructions                                         */ \
+  V(kEBF16,               "EBF16",                  "ebf16")
 // clang-format on
 
 

@@ -56,24 +56,24 @@ class IDRegister {
    public:
     enum Type { kUnsigned, kSigned };
 
+    static const int kMaxWidthInBits = 4;
+
     // This needs to be constexpr so that fields have "constant initialisation".
     // This avoids initialisation order problems when these values are used to
     // (dynamically) initialise static variables, etc.
-    explicit constexpr Field(int lsb, Type type = kUnsigned)
-        : lsb_(lsb), type_(type) {}
+    explicit constexpr Field(int lsb,
+                             int bitWidth = kMaxWidthInBits,
+                             Type type = kUnsigned)
+        : lsb_(lsb), bitWidth_(bitWidth), type_(type) {}
 
-    static const int kMaxWidthInBits = 4;
-
-    int GetWidthInBits() const {
-      // All current ID fields have four bits.
-      return kMaxWidthInBits;
-    }
+    int GetWidthInBits() const { return bitWidth_; }
     int GetLsb() const { return lsb_; }
     int GetMsb() const { return lsb_ + GetWidthInBits() - 1; }
     Type GetType() const { return type_; }
 
    private:
     int lsb_;
+    int bitWidth_;
     Type type_;
   };
 
@@ -113,6 +113,7 @@ class AA64PFR1 : public IDRegister {
   static const Field kBT;
   static const Field kSSBS;
   static const Field kMTE;
+  static const Field kSME;
 };
 
 class AA64ISAR0 : public IDRegister {
@@ -167,6 +168,7 @@ class AA64ISAR2 : public IDRegister {
   CPUFeatures GetCPUFeatures() const;
 
  private:
+  static const Field kWFXT;
   static const Field kRPRES;
 };
 
@@ -217,6 +219,22 @@ class AA64ZFR0 : public IDRegister {
   static const Field kI8MM;
   static const Field kF32MM;
   static const Field kF64MM;
+};
+
+class AA64SMFR0 : public IDRegister {
+ public:
+  explicit AA64SMFR0(uint64_t value) : IDRegister(value) {}
+
+  CPUFeatures GetCPUFeatures() const;
+
+ private:
+  static const Field kSMEf32f32;
+  static const Field kSMEb16f32;
+  static const Field kSMEf16f32;
+  static const Field kSMEi8i32;
+  static const Field kSMEf64f64;
+  static const Field kSMEi16i64;
+  static const Field kSMEfa64;
 };
 
 class CPU {
@@ -285,6 +303,7 @@ class CPU {
   V(AA64MMFR1, "ID_AA64MMFR1_EL1")                                            \
   /* These registers are RES0 in the baseline Arm8.0. We can always safely */ \
   /* read them, but some compilers don't accept the symbolic names. */        \
+  V(AA64SMFR0, "S3_0_C0_C4_5")                                                \
   V(AA64ISAR2, "S3_0_C0_C6_2")                                                \
   V(AA64MMFR2, "S3_0_C0_C7_2")                                                \
   V(AA64ZFR0, "S3_0_C0_C4_4")
