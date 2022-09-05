@@ -3242,7 +3242,7 @@ void Assembler::fmov(const VRegister& vd, Float16 imm) {
     Emit(FMOV_h_imm | Rd(vd) | ImmFP16(imm));
   } else {
     VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kNEONHalf));
-    VIXL_ASSERT(vd.Is4H() | vd.Is8H());
+    VIXL_ASSERT(vd.Is4H() || vd.Is8H());
     Instr q = vd.Is8H() ? NEON_Q : 0;
     uint32_t encoded_imm = FP16ToImm8(imm);
     Emit(q | NEONModifiedImmediate_FMOV | ImmNEONabcdefgh(encoded_imm) |
@@ -6426,16 +6426,18 @@ bool Assembler::IsImmFP64(double imm) {
 
 
 bool Assembler::IsImmLSPair(int64_t offset, unsigned access_size_in_bytes_log2) {
+  const auto access_size_in_bytes = 1U << access_size_in_bytes_log2;
   VIXL_ASSERT(access_size_in_bytes_log2 <= kQRegSizeInBytesLog2);
-  return IsMultiple(offset, 1 << access_size_in_bytes_log2) &&
-         IsInt7(offset / (1 << access_size_in_bytes_log2));
+  return IsMultiple(offset, access_size_in_bytes) &&
+         IsInt7(offset / access_size_in_bytes);
 }
 
 
 bool Assembler::IsImmLSScaled(int64_t offset, unsigned access_size_in_bytes_log2) {
+  const auto access_size_in_bytes = 1U << access_size_in_bytes_log2;
   VIXL_ASSERT(access_size_in_bytes_log2 <= kQRegSizeInBytesLog2);
-  return IsMultiple(offset, 1 << access_size_in_bytes_log2) &&
-         IsUint12(offset / (1 << access_size_in_bytes_log2));
+  return IsMultiple(offset, access_size_in_bytes) &&
+         IsUint12(offset / access_size_in_bytes);
 }
 
 

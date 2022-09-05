@@ -6505,7 +6505,7 @@ void Assembler::fmov(const ZRegister& zd, const PRegisterM& pg, double imm) {
 
 void Assembler::fmov(const ZRegister& zd, double imm) {
   if (IsPositiveZero(imm)) {
-    dup(zd, imm);
+    dup(zd, 0);
   } else {
     fdup(zd, imm);
   }

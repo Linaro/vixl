@@ -909,7 +909,7 @@ class IntegerOperand {
   bool IsPositiveOrZero() const { return !is_negative_; }
 
   uint64_t GetMagnitude() const {
-    return is_negative_ ? -raw_bits_ : raw_bits_;
+    return is_negative_ ? UnsignedNegate(raw_bits_) : raw_bits_;
   }
 
  private:

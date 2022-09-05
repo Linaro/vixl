@@ -2876,7 +2876,6 @@ static void MTEStoreTagHelper(Op op,
   // This method does nothing when the size is zero. i.e. stg and st2g.
   // Reserve x9 and x10.
   auto LoadDataAndSum = [&](Register reg, int off, unsigned size_in_bytes) {
-    VIXL_ASSERT(size_in_bytes >= 0);
     for (unsigned j = 0; j < size_in_bytes / kXRegSizeInBytes; j++) {
       __ Ldr(x9, MemOperand(reg, off));
       __ Add(x10, x9, x10);

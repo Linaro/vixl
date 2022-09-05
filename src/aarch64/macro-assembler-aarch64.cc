@@ -3123,7 +3123,6 @@ CPURegList* UseScratchRegisterScope::GetAvailableListFor(
       return masm_->GetScratchVRegisterList();
     case CPURegister::kPRegisterBank:
       return masm_->GetScratchPRegisterList();
-      return NULL;
   }
   VIXL_UNREACHABLE();
   return NULL;
