@@ -2450,7 +2450,7 @@ void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
 }
 
 void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vf.%s['IVByElemIndex]";
   static const NEONFormatMap map_v =
       {{23, 22, 30},
        {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_UNDEF}};
@@ -2461,7 +2461,7 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
 }
 
 void Disassembler::DisassembleNEONMulByElementLong(const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vf.%s['IVByElemIndex]";
   // TODO: Disallow undefined element types for this instruction.
   static const NEONFormatMap map_ta = {{23, 22}, {NF_UNDEF, NF_4S, NF_2D}};
   NEONFormatDecoder nfd(instr,
@@ -2478,7 +2478,7 @@ void Disassembler::DisassembleNEONDotProdByElement(const Instruction *instr) {
 }
 
 void Disassembler::DisassembleNEONFPMulByElement(const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndex]";
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vf.%s['IVByElemIndex]";
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::FPFormatMap(),
                         NEONFormatDecoder::FPFormatMap(),
@@ -2500,7 +2500,7 @@ void Disassembler::DisassembleNEONFPMulByElementLong(const Instruction *instr) {
 
 void Disassembler::DisassembleNEONComplexMulByElement(
     const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Ve.%s['IVByElemIndexRot], #'u1413*90";
+  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s['IVByElemIndexRot], #'u1413*90";
   // TODO: Disallow undefined element types for this instruction.
   static const NEONFormatMap map_cn =
       {{23, 22, 30},
@@ -3287,7 +3287,7 @@ void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
 void Disassembler::DisassembleNEONScalarSatMulLongIndex(
     const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
+  const char *form = "%sd, %sn, 'Vf.%s['IVByElemIndex]";
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::LongScalarFormatMap(),
                         NEONFormatDecoder::ScalarFormatMap());
@@ -3301,7 +3301,7 @@ void Disassembler::DisassembleNEONScalarSatMulLongIndex(
 
 void Disassembler::DisassembleNEONFPScalarMulIndex(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
+  const char *form = "%sd, %sn, 'Vf.%s['IVByElemIndex]";
   static const NEONFormatMap map = {{23, 22}, {NF_H, NF_UNDEF, NF_S, NF_D}};
   NEONFormatDecoder nfd(instr, &map);
   Format(instr,
@@ -3311,7 +3311,7 @@ void Disassembler::DisassembleNEONFPScalarMulIndex(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'Ve.%s['IVByElemIndex]";
+  const char *form = "%sd, %sn, 'Vf.%s['IVByElemIndex]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   VectorFormat vform_dst = nfd.GetVectorFormat(0);
   if ((vform_dst == kFormatB) || (vform_dst == kFormatD)) {
@@ -6302,6 +6302,12 @@ std::pair<unsigned, unsigned> Disassembler::GetRegNumForField(
       // This is register Rm, but using a 4-bit specifier. Used in NEON
       // by-element instructions.
       reg_num = instr->GetRmLow16();
+      break;
+    case 'f':
+      // This is register Rm, but using an element size dependent number of bits
+      // in the register specifier.
+      reg_num =
+          (instr->GetNEONSize() < 2) ? instr->GetRmLow16() : instr->GetRm();
       break;
     case 'a':
       reg_num = instr->GetRa();
