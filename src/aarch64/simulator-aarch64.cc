@@ -11886,7 +11886,7 @@ void Simulator::VisitSVELoadAndBroadcastElement(const Instruction* instr) {
   VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
   uint64_t offset = instr->ExtractBits(21, 16) << msize_in_bytes_log2;
-  uint64_t base = ReadXRegister(instr->GetRn()) + offset;
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer) + offset;
   VectorFormat unpack_vform =
       SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
   SimVRegister temp;
@@ -11904,7 +11904,8 @@ void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {
       int pl = GetPredicateLengthInBytes();
       int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
       uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+      uint64_t address = base + multiplier * pl;
       for (int i = 0; i < pl; i++) {
         pt.Insert(i, MemRead<uint8_t>(address + i));
       }
@@ -11924,7 +11925,8 @@ void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
       int vl = GetVectorLengthInBytes();
       int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
       uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+      uint64_t address = base + multiplier * vl;
       for (int i = 0; i < vl; i++) {
         zt.Insert(i, MemRead<uint8_t>(address + i));
       }
@@ -12162,9 +12164,10 @@ void Simulator::VisitSVEContiguousFirstFaultLoad_ScalarPlusScalar(
   int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
   VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = ReadXRegister(instr->GetRm());
   offset <<= msize_in_bytes_log2;
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEFaultTolerantLoadHelper(vform,
                              ReadPRegister(instr->GetPgLow8()),
@@ -12207,9 +12210,10 @@ void Simulator::VisitSVEContiguousNonFaultLoad_ScalarPlusImm(
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
   int vl = GetVectorLengthInBytes();
   int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset =
       (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEFaultTolerantLoadHelper(vform,
                              ReadPRegister(instr->GetPgLow8()),
@@ -12243,8 +12247,9 @@ void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusImm(
   }
   int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
   int vl = GetVectorLengthInBytes();
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEStructuredLoadHelper(vform,
                           pg,
@@ -12276,8 +12281,9 @@ void Simulator::VisitSVEContiguousNonTemporalLoad_ScalarPlusScalar(
       break;
   }
   int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = ReadXRegister(instr->GetRm()) << msize_in_bytes_log2;
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEStructuredLoadHelper(vform,
                           pg,
@@ -12419,7 +12425,7 @@ void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitScaledOffsets(
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
       int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
-      uint64_t base = ReadXRegister(instr->GetRn());
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       SVEOffsetModifier mod =
           (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
       LogicSVEAddressVector addr(base,
@@ -12449,7 +12455,7 @@ void Simulator::VisitSVE32BitScatterStore_ScalarPlus32BitUnscaledOffsets(
     case ST1W_z_p_bz_s_x32_unscaled: {
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
-      uint64_t base = ReadXRegister(instr->GetRn());
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       SVEOffsetModifier mod =
           (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
       LogicSVEAddressVector addr(base,
@@ -12504,7 +12510,7 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitScaledOffsets(
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
       int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
-      uint64_t base = ReadXRegister(instr->GetRn());
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       LogicSVEAddressVector addr(base,
                                  &ReadVRegister(instr->GetRm()),
                                  kFormatVnD,
@@ -12533,7 +12539,7 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlus64BitUnscaledOffsets(
     case ST1W_z_p_bz_d_64_unscaled: {
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
-      uint64_t base = ReadXRegister(instr->GetRn());
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       LogicSVEAddressVector addr(base,
                                  &ReadVRegister(instr->GetRm()),
                                  kFormatVnD,
@@ -12561,7 +12567,7 @@ void Simulator::VisitSVE64BitScatterStore_ScalarPlusUnpacked32BitScaledOffsets(
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
       int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
-      uint64_t base = ReadXRegister(instr->GetRn());
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       SVEOffsetModifier mod =
           (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
       LogicSVEAddressVector addr(base,
@@ -12593,7 +12599,7 @@ void Simulator::
     case ST1W_z_p_bz_d_x32_unscaled: {
       unsigned msize_in_bytes_log2 = instr->GetSVEMsizeFromDtype(false);
       VIXL_ASSERT(kDRegSizeInBytesLog2 >= msize_in_bytes_log2);
-      uint64_t base = ReadXRegister(instr->GetRn());
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       SVEOffsetModifier mod =
           (instr->ExtractBit(14) == 1) ? SVE_SXTW : SVE_UXTW;
       LogicSVEAddressVector addr(base,
@@ -12666,8 +12672,9 @@ void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusImm(
   }
   int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
   int vl = GetVectorLengthInBytes();
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = instr->ExtractSignedBits(19, 16) * vl;
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEStructuredStoreHelper(vform, pg, instr->GetRt(), addr);
 }
@@ -12695,8 +12702,9 @@ void Simulator::VisitSVEContiguousNonTemporalStore_ScalarPlusScalar(
       break;
   }
   int msize_in_bytes_log2 = LaneSizeInBytesLog2FromFormat(vform);
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = ReadXRegister(instr->GetRm()) << msize_in_bytes_log2;
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEStructuredStoreHelper(vform, pg, instr->GetRt(), addr);
 }
@@ -12713,11 +12721,12 @@ void Simulator::VisitSVEContiguousStore_ScalarPlusImm(
       int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(false);
       VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
       int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       uint64_t offset =
           (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
       VectorFormat vform =
           SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
-      LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+      LogicSVEAddressVector addr(base + offset);
       addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
       SVEStructuredStoreHelper(vform,
                                ReadPRegister(instr->GetPgLow8()),
@@ -12738,11 +12747,12 @@ void Simulator::VisitSVEContiguousStore_ScalarPlusScalar(
     case ST1D_z_p_br:
     case ST1H_z_p_br:
     case ST1W_z_p_br: {
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       uint64_t offset = ReadXRegister(instr->GetRm());
       offset <<= instr->ExtractBits(24, 23);
       VectorFormat vform =
           SVEFormatFromLaneSizeInBytesLog2(instr->ExtractBits(22, 21));
-      LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+      LogicSVEAddressVector addr(base + offset);
       addr.SetMsizeInBytesLog2(instr->ExtractBits(24, 23));
       SVEStructuredStoreHelper(vform,
                                ReadPRegister(instr->GetPgLow8()),
@@ -12849,7 +12859,8 @@ void Simulator::VisitSVEStorePredicateRegister(const Instruction* instr) {
       int pl = GetPredicateLengthInBytes();
       int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
       uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * pl;
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+      uint64_t address = base + multiplier * pl;
       for (int i = 0; i < pl; i++) {
         MemWrite(address + i, pt.GetLane<uint8_t>(i));
       }
@@ -12869,7 +12880,8 @@ void Simulator::VisitSVEStoreVectorRegister(const Instruction* instr) {
       int vl = GetVectorLengthInBytes();
       int imm9 = (instr->ExtractBits(21, 16) << 3) | instr->ExtractBits(12, 10);
       uint64_t multiplier = ExtractSignedBitfield64(8, 0, imm9);
-      uint64_t address = ReadXRegister(instr->GetRn()) + multiplier * vl;
+      uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
+      uint64_t address = base + multiplier * vl;
       for (int i = 0; i < vl; i++) {
         MemWrite(address + i, zt.GetLane<uint8_t>(i));
       }
@@ -13851,10 +13863,11 @@ void Simulator::VisitSVEContiguousLoad_ScalarPlusImm(const Instruction* instr) {
   int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
   VIXL_ASSERT(esize_in_bytes_log2 >= msize_in_bytes_log2);
   int vl_divisor_log2 = esize_in_bytes_log2 - msize_in_bytes_log2;
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset =
       (instr->ExtractSignedBits(19, 16) * vl) / (1 << vl_divisor_log2);
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEStructuredLoadHelper(vform,
                           ReadPRegister(instr->GetPgLow8()),
@@ -13898,9 +13911,10 @@ void Simulator::VisitSVEContiguousLoad_ScalarPlusScalar(
   int esize_in_bytes_log2 = instr->GetSVEEsizeFromDtype(is_signed);
   VIXL_ASSERT(msize_in_bytes_log2 <= esize_in_bytes_log2);
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(esize_in_bytes_log2);
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   uint64_t offset = ReadXRegister(instr->GetRm());
   offset <<= msize_in_bytes_log2;
-  LogicSVEAddressVector addr(ReadXRegister(instr->GetRn()) + offset);
+  LogicSVEAddressVector addr(base + offset);
   addr.SetMsizeInBytesLog2(msize_in_bytes_log2);
   SVEStructuredLoadHelper(vform,
                           ReadPRegister(instr->GetPgLow8()),
