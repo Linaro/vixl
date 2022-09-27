@@ -24,9 +24,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#ifdef VIXL_CODE_BUFFER_MMAP
 extern "C" {
 #include <sys/mman.h>
 }
+#endif
 
 #include "code-buffer-vixl.h"
 #include "utils-vixl.h"
@@ -113,11 +115,12 @@ void CodeBuffer::SetWritable() {
 
 
 void CodeBuffer::EmitString(const char* string) {
-  VIXL_ASSERT(HasSpaceFor(strlen(string) + 1));
+  const auto len = strlen(string) + 1;
+  VIXL_ASSERT(HasSpaceFor(len));
   char* dst = reinterpret_cast<char*>(cursor_);
   dirty_ = true;
-  char* null_char = stpcpy(dst, string);
-  cursor_ = reinterpret_cast<byte*>(null_char) + 1;
+  memcpy(dst, string, len);
+  cursor_ = reinterpret_cast<byte*>(dst + len);
 }
 
 

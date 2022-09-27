@@ -40,6 +40,8 @@ extern "C" {
 
 #if defined(__arm__) && !defined(__SOFTFP__)
 #define HARDFLOAT __attribute__((noinline, pcs("aapcs-vfp")))
+#elif defined(_MSC_VER)
+#define HARDFLOAT __declspec(noinline)
 #else
 #define HARDFLOAT __attribute__((noinline))
 #endif
@@ -1040,7 +1042,9 @@ class Sign {
   const char* GetName() const { return (IsPlus() ? "" : "-"); }
   bool IsPlus() const { return sign_ == plus; }
   bool IsMinus() const { return sign_ == minus; }
-  int32_t ApplyTo(uint32_t value) { return IsPlus() ? value : -value; }
+  int32_t ApplyTo(uint32_t value) {
+    return IsPlus() ? value : UnsignedNegate(value);
+  }
 
  private:
   SignType sign_;

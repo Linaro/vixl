@@ -34,7 +34,7 @@ CPURegister CPURegList::PopLowestIndex(RegList mask) {
   RegList list = list_ & mask;
   if (list == 0) return NoCPUReg;
   int index = CountTrailingZeros(list);
-  VIXL_ASSERT(((1 << index) & list) != 0);
+  VIXL_ASSERT(((static_cast<RegList>(1) << index) & list) != 0);
   Remove(index);
   return CPURegister(index, size_, type_);
 }
@@ -45,7 +45,7 @@ CPURegister CPURegList::PopHighestIndex(RegList mask) {
   if (list == 0) return NoCPUReg;
   int index = CountLeadingZeros(list);
   index = kRegListSizeInBits - 1 - index;
-  VIXL_ASSERT(((1 << index) & list) != 0);
+  VIXL_ASSERT(((static_cast<RegList>(1) << index) & list) != 0);
   Remove(index);
   return CPURegister(index, size_, type_);
 }

@@ -274,7 +274,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
     CPUFeatures::QueryIDRegistersOption option) {
   CPUFeatures features;
 
-#if VIXL_USE_LINUX_HWCAP
+#ifdef VIXL_USE_LINUX_HWCAP
   // Map each set bit onto a feature. Ideally, we'd use HWCAP_* macros rather
   // than explicit bits, but explicit bits allow us to identify features that
   // the toolchain doesn't know about.

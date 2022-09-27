@@ -30,6 +30,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <type_traits>
 #include <vector>
 
 #include "compiler-intrinsics-vixl.h"
@@ -282,17 +283,26 @@ VIXL_DEPRECATED("RawbitsToDouble",
   return RawbitsToDouble(bits);
 }
 
+// Some compilers dislike negating unsigned integers,
+// so we provide an equivalent.
+template <typename T>
+T UnsignedNegate(T value) {
+  VIXL_STATIC_ASSERT(std::is_unsigned<T>::value);
+  return ~value + 1;
+}
+
 // Convert unsigned to signed numbers in a well-defined way (using two's
 // complement representations).
 inline int64_t RawbitsToInt64(uint64_t bits) {
   return (bits >= UINT64_C(0x8000000000000000))
-             ? (-static_cast<int64_t>(-bits - 1) - 1)
+             ? (-static_cast<int64_t>(UnsignedNegate(bits) - 1) - 1)
              : static_cast<int64_t>(bits);
 }
 
 inline int32_t RawbitsToInt32(uint32_t bits) {
-  return (bits >= UINT64_C(0x80000000)) ? (-static_cast<int32_t>(-bits - 1) - 1)
-                                        : static_cast<int32_t>(bits);
+  return (bits >= UINT64_C(0x80000000))
+             ? (-static_cast<int32_t>(UnsignedNegate(bits) - 1) - 1)
+             : static_cast<int32_t>(bits);
 }
 
 namespace internal {
@@ -475,7 +485,9 @@ inline float FusedMultiplyAdd(float op1, float op2, float a) {
 }
 
 
-inline uint64_t LowestSetBit(uint64_t value) { return value & -value; }
+inline uint64_t LowestSetBit(uint64_t value) {
+  return value & UnsignedNegate(value);
+}
 
 
 template <typename T>
@@ -829,7 +841,7 @@ class Uint32 {
   }
   int32_t GetSigned() const { return data_; }
   Uint32 operator~() const { return Uint32(~data_); }
-  Uint32 operator-() const { return Uint32(-data_); }
+  Uint32 operator-() const { return Uint32(UnsignedNegate(data_)); }
   bool operator==(Uint32 value) const { return data_ == value.data_; }
   bool operator!=(Uint32 value) const { return data_ != value.data_; }
   bool operator>(Uint32 value) const { return data_ > value.data_; }
@@ -897,7 +909,7 @@ class Uint64 {
   Uint32 GetHigh32() const { return Uint32(data_ >> 32); }
   Uint32 GetLow32() const { return Uint32(data_ & 0xffffffff); }
   Uint64 operator~() const { return Uint64(~data_); }
-  Uint64 operator-() const { return Uint64(-data_); }
+  Uint64 operator-() const { return Uint64(UnsignedNegate(data_)); }
   bool operator==(Uint64 value) const { return data_ == value.data_; }
   bool operator!=(Uint64 value) const { return data_ != value.data_; }
   Uint64 operator+(Uint64 value) const { return Uint64(data_ + value.data_); }
@@ -1203,7 +1215,7 @@ T FPRound(int64_t sign,
     // For subnormal outputs, the shift must be adjusted by the exponent. The +1
     // is necessary because the exponent of a subnormal value (encoded as 0) is
     // the same as the exponent of the smallest normal value (encoded as 1).
-    shift += -exponent + 1;
+    shift += static_cast<int>(-exponent + 1);
 
     // Handle inputs that would produce a zero output.
     //

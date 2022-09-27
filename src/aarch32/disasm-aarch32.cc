@@ -348,7 +348,7 @@ DataTypeValue Dt_U_opc1_opc2_1_Decode(uint32_t value, unsigned* lane) {
     *lane = (value >> 2) & 1;
     return Untyped32;
   }
-  *lane = -1;
+  *lane = ~0U;
   return kDataTypeValueInvalid;
 }
 
@@ -365,7 +365,7 @@ DataTypeValue Dt_opc1_opc2_1_Decode(uint32_t value, unsigned* lane) {
     *lane = (value >> 2) & 1;
     return Untyped32;
   }
-  *lane = -1;
+  *lane = ~0U;
   return kDataTypeValueInvalid;
 }
 
@@ -382,7 +382,7 @@ DataTypeValue Dt_imm4_1_Decode(uint32_t value, unsigned* lane) {
     *lane = (value >> 3) & 1;
     return Untyped32;
   }
-  *lane = -1;
+  *lane = ~0U;
   return kDataTypeValueInvalid;
 }
 
@@ -60977,7 +60977,7 @@ void Disassembler::DecodeA32(uint32_t instr) {
                         Condition condition((instr >> 28) & 0xf);
                         unsigned rd = (instr >> 12) & 0xf;
                         uint32_t imm = ImmediateA32::Decode(instr & 0xfff);
-                        Location location(-imm, kA32PcDelta);
+                        Location location(UnsignedNegate(imm), kA32PcDelta);
                         // ADR{<c>}{<q>} <Rd>, <label> ; A2
                         adr(condition, Best, Register(rd), &location);
                         break;

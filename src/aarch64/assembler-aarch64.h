@@ -7368,8 +7368,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   }
 
   static Instr ImmLSPair(int64_t imm7, unsigned access_size_in_bytes_log2) {
-    VIXL_ASSERT(IsMultiple(imm7, 1 << access_size_in_bytes_log2));
-    int64_t scaled_imm7 = imm7 / (1 << access_size_in_bytes_log2);
+    const auto access_size_in_bytes = 1U << access_size_in_bytes_log2;
+    VIXL_ASSERT(IsMultiple(imm7, access_size_in_bytes));
+    int64_t scaled_imm7 = imm7 / access_size_in_bytes;
     VIXL_ASSERT(IsInt7(scaled_imm7));
     return TruncateToUint7(scaled_imm7) << ImmLSPair_offset;
   }

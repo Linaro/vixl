@@ -6122,7 +6122,7 @@ void Disassembler::AppendPCRelativeOffsetToOutput(const Instruction *instr,
   USE(instr);
   if (offset < 0) {
     // Cast to uint64_t so that INT64_MIN is handled in a well-defined way.
-    uint64_t abs_offset = -static_cast<uint64_t>(offset);
+    uint64_t abs_offset = UnsignedNegate(static_cast<uint64_t>(offset));
     AppendToOutput("#-0x%" PRIx64, abs_offset);
   } else {
     AppendToOutput("#+0x%" PRIx64, offset);
@@ -6366,7 +6366,7 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
   const char *reg_field = &format[1];
 
   if (reg_prefix == 'R') {
-    bool is_x = instr->GetSixtyFourBits();
+    bool is_x = instr->GetSixtyFourBits() == 1;
     if (strspn(reg_field, "0123456789") == 2) {  // r20d, r31n, etc.
       // Core W or X registers where the type is determined by a specified bit
       // position, eg. 'R20d, 'R05n. This is like the 'Rd syntax, where bit 31
@@ -6397,7 +6397,7 @@ int Disassembler::SubstituteRegisterField(const Instruction *instr,
         field_len = 3;
         char *eimm;
         int imm = static_cast<int>(strtol(&reg_field[2], &eimm, 10));
-        field_len += eimm - &reg_field[2];
+        field_len += static_cast<unsigned>(eimm - &reg_field[2]);
         if (reg_num == 31) {
           switch (reg_field[1]) {
             case 'z':
@@ -6591,12 +6591,12 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
     }
     case 'F': {  // IFP, IFPNeon, IFPSve or IFPFBits.
       int imm8 = 0;
-      int len = strlen("IFP");
+      size_t len = strlen("IFP");
       switch (format[3]) {
         case 'F':
           VIXL_ASSERT(strncmp(format, "IFPFBits", strlen("IFPFBits")) == 0);
           AppendToOutput("#%" PRId32, 64 - instr->GetFPScale());
-          return strlen("IFPFBits");
+          return static_cast<int>(strlen("IFPFBits"));
         case 'N':
           VIXL_ASSERT(strncmp(format, "IFPNeon", strlen("IFPNeon")) == 0);
           imm8 = instr->GetImmNEONabcdefgh();
@@ -6615,7 +6615,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
       AppendToOutput("#0x%" PRIx32 " (%.4f)",
                      imm8,
                      Instruction::Imm8ToFP32(imm8));
-      return len;
+      return static_cast<int>(len);
     }
     case 'H': {  // IH - ImmHint
       AppendToOutput("#%" PRId32, instr->GetImmHint());
@@ -6742,7 +6742,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           return 9;
         }
         case 'B': {  // IVByElemIndex.
-          int ret = strlen("IVByElemIndex");
+          int ret = static_cast<int>(strlen("IVByElemIndex"));
           uint32_t vm_index = instr->GetNEONH() << 2;
           vm_index |= instr->GetNEONL() << 1;
           vm_index |= instr->GetNEONM();
@@ -6781,12 +6781,12 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
               rn_index = imm4 >> tz;
               if (strncmp(format, "IVInsIndex1", strlen("IVInsIndex1")) == 0) {
                 AppendToOutput("%d", rd_index);
-                return strlen("IVInsIndex1");
+                return static_cast<int>(strlen("IVInsIndex1"));
               } else if (strncmp(format,
                                  "IVInsIndex2",
                                  strlen("IVInsIndex2")) == 0) {
                 AppendToOutput("%d", rn_index);
-                return strlen("IVInsIndex2");
+                return static_cast<int>(strlen("IVInsIndex2"));
               }
             }
             return 0;
@@ -6796,7 +6796,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
             std::pair<int, int> index_and_lane_size =
                 instr->GetSVEPermuteIndexAndLaneSizeLog2();
             AppendToOutput("%d", index_and_lane_size.first);
-            return strlen("IVInsSVEIndex");
+            return static_cast<int>(strlen("IVInsSVEIndex"));
           }
           VIXL_FALLTHROUGH();
         }
@@ -6808,31 +6808,31 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           if (strncmp(format, "IVMIImm8", strlen("IVMIImm8")) == 0) {
             uint64_t imm8 = instr->GetImmNEONabcdefgh();
             AppendToOutput("#0x%" PRIx64, imm8);
-            return strlen("IVMIImm8");
+            return static_cast<int>(strlen("IVMIImm8"));
           } else if (strncmp(format, "IVMIImm", strlen("IVMIImm")) == 0) {
             uint64_t imm8 = instr->GetImmNEONabcdefgh();
             uint64_t imm = 0;
             for (int i = 0; i < 8; ++i) {
-              if (imm8 & (1 << i)) {
+              if (imm8 & (UINT64_C(1) << i)) {
                 imm |= (UINT64_C(0xff) << (8 * i));
               }
             }
             AppendToOutput("#0x%" PRIx64, imm);
-            return strlen("IVMIImm");
+            return static_cast<int>(strlen("IVMIImm"));
           } else if (strncmp(format,
                              "IVMIShiftAmt1",
                              strlen("IVMIShiftAmt1")) == 0) {
             int cmode = instr->GetNEONCmode();
             int shift_amount = 8 * ((cmode >> 1) & 3);
             AppendToOutput("#%d", shift_amount);
-            return strlen("IVMIShiftAmt1");
+            return static_cast<int>(strlen("IVMIShiftAmt1"));
           } else if (strncmp(format,
                              "IVMIShiftAmt2",
                              strlen("IVMIShiftAmt2")) == 0) {
             int cmode = instr->GetNEONCmode();
             int shift_amount = 8 << (cmode & 1);
             AppendToOutput("#%d", shift_amount);
-            return strlen("IVMIShiftAmt2");
+            return static_cast<int>(strlen("IVMIShiftAmt2"));
           } else {
             VIXL_UNIMPLEMENTED();
             return 0;
@@ -7339,7 +7339,7 @@ int Disassembler::SubstituteIntField(const Instruction *instr,
     uint64_t value = strtoul(c + 1, &new_c, 10);
     c = new_c;
     VIXL_ASSERT(IsInt32(value));
-    bits += value;
+    bits = static_cast<int32_t>(bits + value);
   } else if (*c == '*') {
     // Similarly, a "*n" trailing the format specifier indicates the extracted
     // value should be multiplied by n. This is for cases where the encoded
@@ -7348,7 +7348,7 @@ int Disassembler::SubstituteIntField(const Instruction *instr,
     uint64_t value = strtoul(c + 1, &new_c, 10);
     c = new_c;
     VIXL_ASSERT(IsInt32(value));
-    bits *= value;
+    bits = static_cast<int32_t>(bits * value);
   }
 
   AppendToOutput("%d", bits);
@@ -7500,7 +7500,7 @@ void PrintDisassembler::ProcessOutput(const Instruction *instr) {
   if (signed_addresses_) {
     if (address < 0) {
       sign = "-";
-      abs_address = -static_cast<uint64_t>(address);
+      abs_address = UnsignedNegate(static_cast<uint64_t>(address));
     } else {
       // Leave a leading space, to maintain alignment.
       sign = " ";
