@@ -2018,7 +2018,7 @@ void Disassembler::DisassembleNoArgs(const Instruction *instr) {
 
 void Disassembler::VisitSystem(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "(System)";
+  const char *form = "";
   const char *suffix = NULL;
 
   switch (form_hash_) {
@@ -2047,6 +2047,10 @@ void Disassembler::VisitSystem(const Instruction *instr) {
           break;
       }
       break;
+    case "chkfeat_hf_hints"_h:
+      mnemonic = "chkfeat";
+      form = "x16";
+      break;
     case "hint_hm_hints"_h:
       form = "'IH";
       break;
@@ -2067,9 +2071,6 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       break;
     }
     case Hash("sys_cr_systeminstrs"): {
-      mnemonic = "dc";
-      suffix = ", 'Xt";
-
       const std::map<uint32_t, const char *> dcop = {
           {IVAU, "ivau"},
           {CVAC, "cvac"},
@@ -2092,17 +2093,36 @@ void Disassembler::VisitSystem(const Instruction *instr) {
       if (dcop.count(sysop)) {
         if (sysop == IVAU) {
           mnemonic = "ic";
+        } else {
+          mnemonic = "dc";
         }
         form = dcop.at(sysop);
+        suffix = ", 'Xt";
+      } else if (sysop == GCSSS1) {
+        mnemonic = "gcsss1";
+        form = "'Xt";
+      } else if (sysop == GCSPUSHM) {
+        mnemonic = "gcspushm";
+        form = "'Xt";
       } else {
         mnemonic = "sys";
         form = "'G1, 'Kn, 'Km, 'G2";
-        if (instr->GetRt() == 31) {
-          suffix = NULL;
+        if (instr->GetRt() < 31) {
+          suffix = ", 'Xt";
         }
-        break;
       }
+      break;
     }
+    case "sysl_rc_systeminstrs"_h:
+      uint32_t sysop = instr->GetSysOp();
+      if (sysop == GCSPOPM) {
+        mnemonic = "gcspopm";
+        form = (instr->GetRt() == 31) ? "" : "'Xt";
+      } else if (sysop == GCSSS2) {
+        mnemonic = "gcsss2";
+        form = "'Xt";
+      }
+      break;
   }
   Format(instr, mnemonic, form, suffix);
 }

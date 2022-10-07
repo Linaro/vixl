@@ -2158,6 +2158,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   // System instruction with pre-encoded op (op1:crn:crm:op2).
   void sys(int op, const Register& xt = xzr);
 
+  // System instruction with result.
+  void sysl(int op, const Register& xt = xzr);
+
   // System data cache operation.
   void dc(DataCacheOp op, const Register& rt);
 
@@ -7071,6 +7074,21 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Unsigned Minimum.
   void umin(const Register& rd, const Register& rn, const Operand& op);
+
+  // Check feature status.
+  void chkfeat(const Register& rd);
+
+  // Guarded Control Stack Push.
+  void gcspushm(const Register& rt);
+
+  // Guarded Control Stack Pop.
+  void gcspopm(const Register& rt);
+
+  // Guarded Control Stack Switch Stack 1.
+  void gcsss1(const Register& rt);
+
+  // Guarded Control Stack Switch Stack 2.
+  void gcsss2(const Register& rt);
 
   // Emit generic instructions.
 
