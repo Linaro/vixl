@@ -10983,6 +10983,17 @@ void Disassembler::AppendAddressToOutput(const Instruction *instr,
 }
 
 
+void Disassembler::AppendSignedDataAddressToOutput(const Instruction *instr,
+                                                   int64_t addr) {
+  USE(instr);
+  if (addr >= 0) {
+    AppendToOutput("(addr 0x%" PRIx64 ")", addr);
+  } else {
+    AppendToOutput("(addr -0x%" PRIx64 ")", -static_cast<uint64_t>(addr));
+  }
+}
+
+
 void Disassembler::AppendCodeAddressToOutput(const Instruction *instr,
                                              const void *addr) {
   AppendAddressToOutput(instr, addr);
@@ -10998,12 +11009,7 @@ void Disassembler::AppendDataAddressToOutput(const Instruction *instr,
 void Disassembler::AppendCodeRelativeAddressToOutput(const Instruction *instr,
                                                      const void *addr) {
   USE(instr);
-  int64_t rel_addr = CodeRelativeAddress(addr);
-  if (rel_addr >= 0) {
-    AppendToOutput("(addr 0x%" PRIx64 ")", rel_addr);
-  } else {
-    AppendToOutput("(addr -0x%" PRIx64 ")", -rel_addr);
-  }
+  AppendSignedDataAddressToOutput(instr, CodeRelativeAddress(addr));
 }
 
 
@@ -11390,8 +11396,8 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         case 'C': {  // ILCLiteral - Immediate Load Literal (capability).
           // The offset is applied to AlignDown(pc, 16), but we disassemble such
           // that `pcc + #imm` refers to the exact address loaded.
-          uint64_t pc = reinterpret_cast<uint64_t>(instr);
-          uint64_t target = instr->GetLiteralAddress<uint64_t>();
+          uint64_t pc = CodeRelativeAddress(instr);
+          uint64_t target = instr->GetLiteralAddress<uint64_t>(pc);
           AppendToOutput("pcc%+" PRId64, RawbitsToInt64(target - pc));
           return 10;
         }
@@ -11876,14 +11882,16 @@ int Disassembler::SubstituteLiteralField(const Instruction *instr,
                                          const char *format) {
   VIXL_ASSERT((strncmp(format, "LValue", 6) == 0) ||
               (strncmp(format, "LCValue", 7) == 0));
-  const void *address = instr->GetLiteralAddress<const void *>();
 
   if (format[1] == 'C') {
     // Load capability literal.
     VIXL_ASSERT(instr->Mask(MorelloLDRMask) == LDR_c_i);
-    AppendCodeRelativeDataAddressToOutput(instr, address);
+    uint64_t pc = CodeRelativeAddress(instr);
+    uint64_t address = instr->GetLiteralAddress<uint64_t>(pc);
+    AppendSignedDataAddressToOutput(instr, RawbitsToInt64(address));
     return 7;
   } else {
+    const void *address = instr->GetLiteralAddress<const void *>();
     switch (instr->Mask(LoadLiteralMask)) {
       case LDR_w_lit:
       case LDR_x_lit:

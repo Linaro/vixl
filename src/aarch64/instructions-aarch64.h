@@ -624,16 +624,30 @@ class Instruction {
   // mutable.
   template <typename T>
   T GetLiteralAddress() const {
-    uint64_t base_raw;
+    // Capability forms are position-dependent and require a pc. Other forms
+    // only require standard instruction alignment.
+    VIXL_ASSERT(Mask(MorelloLDRMask) != LDR_c_i);
+    return GetLiteralAddress<T>(reinterpret_cast<uint64_t>(this));
+  }
+  template <typename T>
+  VIXL_DEPRECATED("GetLiteralAddress", T LiteralAddress() const) {
+    return GetLiteralAddress<T>();
+  }
+
+  // As GetLiteralAddress(), but correctly handling position-dependent forms
+  // (such as loads of capability literals).
+  template <typename T>
+  T GetLiteralAddress(uint64_t pc) const {
+    uint64_t base;
     int64_t offset;
     if (Mask(MorelloLDRMask) == LDR_c_i) {
-      base_raw = AlignDown(reinterpret_cast<uint64_t>(this), kCRegSizeInBytes);
+      base = AlignDown(pc, kCRegSizeInBytes);
       offset = ExtractSignedBits(21, 5) * static_cast<int>(kCRegSizeInBytes);
     } else {
-      base_raw = reinterpret_cast<uint64_t>(this);
+      base = pc;
       offset = GetImmLLiteral() * static_cast<int>(kLiteralEntrySize);
     }
-    uint64_t address_raw = base_raw + offset;
+    uint64_t address_raw = base + offset;
 
     // Cast the address using a C-style cast. A reinterpret_cast would be
     // appropriate, but it can't cast one integral type to another.
@@ -643,10 +657,6 @@ class Instruction {
     VIXL_ASSERT((uint64_t)(address) == address_raw);
 
     return address;
-  }
-  template <typename T>
-  VIXL_DEPRECATED("GetLiteralAddress", T LiteralAddress() const) {
-    return GetLiteralAddress<T>();
   }
 
   uint32_t GetLiteral32() const {

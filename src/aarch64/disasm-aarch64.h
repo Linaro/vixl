@@ -92,8 +92,15 @@ class Disassembler : public DecoderVisitor {
   virtual void AppendCodeRelativeDataAddressToOutput(const Instruction* instr,
                                                      const void* addr);
 
+  // Prints a raw, signed address.
+  // This is used to implement some of the functions above, and also to
+  // disassemble position-dependent instructions (such as capability literal
+  // loads).
+  virtual void AppendSignedDataAddressToOutput(const Instruction* instr,
+                                               int64_t addr);
+
   // Same as the above, but for addresses that are not relative to the code
-  // buffer. They are currently not used by VIXL.
+  // buffer.
   virtual void AppendAddressToOutput(const Instruction* instr,
                                      const void* addr);
   virtual void AppendCodeAddressToOutput(const Instruction* instr,

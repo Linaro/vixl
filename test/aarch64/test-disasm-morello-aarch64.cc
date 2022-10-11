@@ -1019,6 +1019,23 @@ TEST(morello_ldr_c_i_c_sequence) {
                 "ldr c0, pcc-4 (addr 0x12340010)\n"
                 "ldr c0, pcc-8 (addr 0x12340010)\n"
                 "ldr c0, pcc-12 (addr 0x12340010)");
+
+  // Also test an unaligned mapping. This ensures that code_address_offset() is
+  // properly applied.
+  disasm.MapCodeAddress(0x12345678,
+                        masm.GetBuffer()->GetStartAddress<Instruction*>());
+  COMPARE_MACRO(Sequence(make_seq(0)),
+                // PC: 0x12345678-0x1234567c
+                "ldr c0, pcc-8 (addr 0x12345670)\n"
+                "ldr c0, pcc-12 (addr 0x12345670)\n"
+                // PC: 0x12345680-0x1234568c
+                "ldr c0, pcc+0 (addr 0x12345680)\n"
+                "ldr c0, pcc-4 (addr 0x12345680)\n"
+                "ldr c0, pcc-8 (addr 0x12345680)\n"
+                "ldr c0, pcc-12 (addr 0x12345680)\n"
+                // PC: 0x12345690-0x12345694
+                "ldr c0, pcc+0 (addr 0x12345690)\n"
+                "ldr c0, pcc-4 (addr 0x12345690)");
 }
 
 TEST(morello_mrs_c_i_c) {
