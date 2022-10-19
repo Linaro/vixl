@@ -2217,7 +2217,6 @@ LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
     offset = LaneCountFromFormat(dstform) / 2;
   } else {
     offset = 0;
-    dst.ClearForWrite(dstform);
   }
 
   for (int i = 0; i < LaneCountFromFormat(srcform); i++) {
@@ -2256,6 +2255,10 @@ LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
     } else {
       dst.SetUint(dstform, offset + i, result);
     }
+  }
+
+  if (!upperhalf) {
+    dst.ClearForWrite(dstform);
   }
   return dst;
 }
