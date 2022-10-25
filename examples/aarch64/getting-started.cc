@@ -59,7 +59,7 @@ int main() {
 
   simulator.WriteXRegister(0, 0x8899aabbccddeeff);
   simulator.RunFrom(masm.GetLabelAddress<Instruction *>(&demo));
-  printf("x0 = %" PRIx64 "\n", simulator.ReadXRegister(0));
+  printf("x0 = 0x%" PRIx64 "\n", simulator.ReadXRegister(0));
 
 #else
   byte* code = masm.GetBuffer()->GetStartAddress<byte*>();
@@ -70,7 +70,9 @@ int main() {
       memory.GetEntryPoint<uint64_t (*)(uint64_t)>(demo);
   uint64_t input_value = 0x8899aabbccddeeff;
   uint64_t output_value = (*demo_function)(input_value);
-  printf("native: demo(0x%016lx) = 0x%016lx\n", input_value, output_value);
+  printf("native: demo(0x%" PRIx64 ") = 0x%" PRIx64 "\n",
+         input_value,
+         output_value);
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
   return 0;
