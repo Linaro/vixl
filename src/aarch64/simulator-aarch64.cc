@@ -6538,53 +6538,132 @@ void Simulator::SysOp_W(int op, int64_t val) {
   }
 }
 
+void Simulator::PACHelper(int dst,
+                          int src,
+                          PACKey key,
+                          decltype(&Simulator::AddPAC) pac_fn) {
+  VIXL_ASSERT((dst == 17) || (dst == 30));
+  VIXL_ASSERT((src == -1) || (src == 16) || (src == 31));
 
-// clang-format off
-#define PAUTH_SYSTEM_MODES(V)                                     \
-  V(A1716, 17, ReadXRegister(16),                      kPACKeyIA) \
-  V(B1716, 17, ReadXRegister(16),                      kPACKeyIB) \
-  V(AZ,    30, 0x00000000,                             kPACKeyIA) \
-  V(BZ,    30, 0x00000000,                             kPACKeyIB) \
-  V(ASP,   30, ReadXRegister(31, Reg31IsStackPointer), kPACKeyIA) \
-  V(BSP,   30, ReadXRegister(31, Reg31IsStackPointer), kPACKeyIB)
-// clang-format on
-
+  uint64_t modifier = (src == -1) ? 0 : ReadXRegister(src, Reg31IsStackPointer);
+  uint64_t result =
+      (this->*pac_fn)(ReadXRegister(dst), modifier, key, kInstructionPointer);
+  WriteXRegister(dst, result);
+}
 
 void Simulator::VisitSystem(const Instruction* instr) {
-  // Some system instructions hijack their Op and Cp fields to represent a
-  // range of immediates instead of indicating a different instruction. This
-  // makes the decoding tricky.
-  if (instr->GetInstructionBits() == XPACLRI) {
-    WriteXRegister(30, StripPAC(ReadXRegister(30), kInstructionPointer));
-  } else if (instr->Mask(SystemPStateFMask) == SystemPStateFixed) {
-    switch (instr->Mask(SystemPStateMask)) {
-      case CFINV:
-        ReadNzcv().SetC(!ReadC());
-        break;
-      case AXFLAG:
-        ReadNzcv().SetN(0);
-        ReadNzcv().SetZ(ReadNzcv().GetZ() | ReadNzcv().GetV());
-        ReadNzcv().SetC(ReadNzcv().GetC() & ~ReadNzcv().GetV());
-        ReadNzcv().SetV(0);
-        break;
-      case XAFLAG: {
-        // Can't set the flags in place due to the logical dependencies.
-        uint32_t n = (~ReadNzcv().GetC() & ~ReadNzcv().GetZ()) & 1;
-        uint32_t z = ReadNzcv().GetZ() & ReadNzcv().GetC();
-        uint32_t c = ReadNzcv().GetC() | ReadNzcv().GetZ();
-        uint32_t v = ~ReadNzcv().GetC() & ReadNzcv().GetZ();
-        ReadNzcv().SetN(n);
-        ReadNzcv().SetZ(z);
-        ReadNzcv().SetC(c);
-        ReadNzcv().SetV(v);
-        break;
-      }
+  PACKey pac_key = kPACKeyIA;  // Default key for PAC/AUTH handling.
+
+  switch (form_hash_) {
+    case "cfinv_m_pstate"_h:
+      ReadNzcv().SetC(!ReadC());
+      break;
+    case "axflag_m_pstate"_h:
+      ReadNzcv().SetN(0);
+      ReadNzcv().SetZ(ReadNzcv().GetZ() | ReadNzcv().GetV());
+      ReadNzcv().SetC(ReadNzcv().GetC() & ~ReadNzcv().GetV());
+      ReadNzcv().SetV(0);
+      break;
+    case "xaflag_m_pstate"_h: {
+      // Can't set the flags in place due to the logical dependencies.
+      uint32_t n = (~ReadNzcv().GetC() & ~ReadNzcv().GetZ()) & 1;
+      uint32_t z = ReadNzcv().GetZ() & ReadNzcv().GetC();
+      uint32_t c = ReadNzcv().GetC() | ReadNzcv().GetZ();
+      uint32_t v = ~ReadNzcv().GetC() & ReadNzcv().GetZ();
+      ReadNzcv().SetN(n);
+      ReadNzcv().SetZ(z);
+      ReadNzcv().SetC(c);
+      ReadNzcv().SetV(v);
+      break;
     }
-  } else if (instr->Mask(SystemPAuthFMask) == SystemPAuthFixed) {
-    // Check BType allows PACI[AB]SP instructions.
-    if (PcIsInGuardedPage()) {
-      Instr i = instr->Mask(SystemPAuthMask);
-      if ((i == PACIASP) || (i == PACIBSP)) {
+    case "xpaclri_hi_hints"_h:
+      WriteXRegister(30, StripPAC(ReadXRegister(30), kInstructionPointer));
+      break;
+    case "clrex_bn_barriers"_h:
+      PrintExclusiveAccessWarning();
+      ClearLocalMonitor();
+      break;
+    case "msr_sr_systemmove"_h:
+      switch (instr->GetImmSystemRegister()) {
+        case NZCV:
+          ReadNzcv().SetRawValue(ReadWRegister(instr->GetRt()));
+          LogSystemRegister(NZCV);
+          break;
+        case FPCR:
+          ReadFpcr().SetRawValue(ReadWRegister(instr->GetRt()));
+          LogSystemRegister(FPCR);
+          break;
+        default:
+          VIXL_UNIMPLEMENTED();
+      }
+      break;
+    case "mrs_rs_systemmove"_h:
+      switch (instr->GetImmSystemRegister()) {
+        case NZCV:
+          WriteXRegister(instr->GetRt(), ReadNzcv().GetRawValue());
+          break;
+        case FPCR:
+          WriteXRegister(instr->GetRt(), ReadFpcr().GetRawValue());
+          break;
+        case RNDR:
+        case RNDRRS: {
+          uint64_t high = jrand48(rand_state_);
+          uint64_t low = jrand48(rand_state_);
+          uint64_t rand_num = (high << 32) | (low & 0xffffffff);
+          WriteXRegister(instr->GetRt(), rand_num);
+          // Simulate successful random number generation.
+          // TODO: Return failure occasionally as a random number cannot be
+          // returned in a period of time.
+          ReadNzcv().SetRawValue(NoFlag);
+          LogSystemRegister(NZCV);
+          break;
+        }
+        default:
+          VIXL_UNIMPLEMENTED();
+      }
+      break;
+    case "nop_hi_hints"_h:
+    case "esb_hi_hints"_h:
+    case "csdb_hi_hints"_h:
+      break;
+    case "bti_hb_hints"_h:
+      switch (instr->GetImmHint()) {
+        case BTI_jc:
+          break;
+        case BTI:
+          if (PcIsInGuardedPage() && (ReadBType() != DefaultBType)) {
+            VIXL_ABORT_WITH_MSG("Executing BTI with wrong BType.");
+          }
+          break;
+        case BTI_c:
+          if (PcIsInGuardedPage() &&
+              (ReadBType() == BranchFromGuardedNotToIP)) {
+            VIXL_ABORT_WITH_MSG("Executing BTI c with wrong BType.");
+          }
+          break;
+        case BTI_j:
+          if (PcIsInGuardedPage() && (ReadBType() == BranchAndLink)) {
+            VIXL_ABORT_WITH_MSG("Executing BTI j with wrong BType.");
+          }
+          break;
+        default:
+          VIXL_UNREACHABLE();
+      }
+      return;
+    case "pacib1716_hi_hints"_h:
+      pac_key = kPACKeyIB;
+      VIXL_FALLTHROUGH();
+    case "pacia1716_hi_hints"_h:
+      PACHelper(17, 16, pac_key, &Simulator::AddPAC);
+      break;
+    case "pacibsp_hi_hints"_h:
+      pac_key = kPACKeyIB;
+      VIXL_FALLTHROUGH();
+    case "paciasp_hi_hints"_h:
+      PACHelper(30, 31, pac_key, &Simulator::AddPAC);
+
+      // Check BType allows PACI[AB]SP instructions.
+      if (PcIsInGuardedPage()) {
         switch (ReadBType()) {
           case BranchFromGuardedNotToIP:
           // TODO: This case depends on the value of SCTLR_EL1.BT0, which we
@@ -6596,117 +6675,41 @@ void Simulator::VisitSystem(const Instruction* instr) {
             break;
         }
       }
-    }
-
-    switch (instr->Mask(SystemPAuthMask)) {
-#define DEFINE_PAUTH_FUNCS(SUFFIX, DST, MOD, KEY)                              \
-  case PACI##SUFFIX:                                                           \
-    WriteXRegister(DST,                                                        \
-                   AddPAC(ReadXRegister(DST), MOD, KEY, kInstructionPointer)); \
-    break;                                                                     \
-  case AUTI##SUFFIX:                                                           \
-    WriteXRegister(DST,                                                        \
-                   AuthPAC(ReadXRegister(DST),                                 \
-                           MOD,                                                \
-                           KEY,                                                \
-                           kInstructionPointer));                              \
-    break;
-
-      PAUTH_SYSTEM_MODES(DEFINE_PAUTH_FUNCS)
-#undef DEFINE_PAUTH_FUNCS
-    }
-  } else if (instr->Mask(SystemExclusiveMonitorFMask) ==
-             SystemExclusiveMonitorFixed) {
-    VIXL_ASSERT(instr->Mask(SystemExclusiveMonitorMask) == CLREX);
-    switch (instr->Mask(SystemExclusiveMonitorMask)) {
-      case CLREX: {
-        PrintExclusiveAccessWarning();
-        ClearLocalMonitor();
-        break;
-      }
-    }
-  } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
-    switch (instr->Mask(SystemSysRegMask)) {
-      case MRS: {
-        switch (instr->GetImmSystemRegister()) {
-          case NZCV:
-            WriteXRegister(instr->GetRt(), ReadNzcv().GetRawValue());
-            break;
-          case FPCR:
-            WriteXRegister(instr->GetRt(), ReadFpcr().GetRawValue());
-            break;
-          case RNDR:
-          case RNDRRS: {
-            uint64_t high = jrand48(rand_state_);
-            uint64_t low = jrand48(rand_state_);
-            uint64_t rand_num = (high << 32) | (low & 0xffffffff);
-            WriteXRegister(instr->GetRt(), rand_num);
-            // Simulate successful random number generation.
-            // TODO: Return failure occasionally as a random number cannot be
-            // returned in a period of time.
-            ReadNzcv().SetRawValue(NoFlag);
-            LogSystemRegister(NZCV);
-            break;
-          }
-          default:
-            VIXL_UNIMPLEMENTED();
-        }
-        break;
-      }
-      case MSR: {
-        switch (instr->GetImmSystemRegister()) {
-          case NZCV:
-            ReadNzcv().SetRawValue(ReadWRegister(instr->GetRt()));
-            LogSystemRegister(NZCV);
-            break;
-          case FPCR:
-            ReadFpcr().SetRawValue(ReadWRegister(instr->GetRt()));
-            LogSystemRegister(FPCR);
-            break;
-          default:
-            VIXL_UNIMPLEMENTED();
-        }
-        break;
-      }
-    }
-  } else if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
-    VIXL_ASSERT(instr->Mask(SystemHintMask) == HINT);
-    switch (instr->GetImmHint()) {
-      case NOP:
-      case ESB:
-      case CSDB:
-      case BTI_jc:
-        break;
-      case BTI:
-        if (PcIsInGuardedPage() && (ReadBType() != DefaultBType)) {
-          VIXL_ABORT_WITH_MSG("Executing BTI with wrong BType.");
-        }
-        break;
-      case BTI_c:
-        if (PcIsInGuardedPage() && (ReadBType() == BranchFromGuardedNotToIP)) {
-          VIXL_ABORT_WITH_MSG("Executing BTI c with wrong BType.");
-        }
-        break;
-      case BTI_j:
-        if (PcIsInGuardedPage() && (ReadBType() == BranchAndLink)) {
-          VIXL_ABORT_WITH_MSG("Executing BTI j with wrong BType.");
-        }
-        break;
-      default:
-        VIXL_UNIMPLEMENTED();
-    }
-  } else if (instr->Mask(MemBarrierFMask) == MemBarrierFixed) {
-    __sync_synchronize();
-  } else if ((instr->Mask(SystemSysFMask) == SystemSysFixed)) {
-    switch (instr->Mask(SystemSysMask)) {
-      case SYS:
-        SysOp_W(instr->GetSysOp(), ReadXRegister(instr->GetRt()));
-        break;
-      default:
-        VIXL_UNIMPLEMENTED();
-    }
-  } else {
-    VIXL_UNIMPLEMENTED();
+      break;
+    case "pacibz_hi_hints"_h:
+      pac_key = kPACKeyIB;
+      VIXL_FALLTHROUGH();
+    case "paciaz_hi_hints"_h:
+      PACHelper(30, -1, pac_key, &Simulator::AddPAC);
+      break;
+    case "autib1716_hi_hints"_h:
+      pac_key = kPACKeyIB;
+      VIXL_FALLTHROUGH();
+    case "autia1716_hi_hints"_h:
+      PACHelper(17, 16, pac_key, &Simulator::AuthPAC);
+      break;
+    case "autibsp_hi_hints"_h:
+      pac_key = kPACKeyIB;
+      VIXL_FALLTHROUGH();
+    case "autiasp_hi_hints"_h:
+      PACHelper(30, 31, pac_key, &Simulator::AuthPAC);
+      break;
+    case "autibz_hi_hints"_h:
+      pac_key = kPACKeyIB;
+      VIXL_FALLTHROUGH();
+    case "autiaz_hi_hints"_h:
+      PACHelper(30, -1, pac_key, &Simulator::AuthPAC);
+      break;
+    case "dsb_bo_barriers"_h:
+    case "dmb_bo_barriers"_h:
+    case "isb_bi_barriers"_h:
+      __sync_synchronize();
+      break;
+    case "sys_cr_systeminstrs"_h:
+      SysOp_W(instr->GetSysOp(), ReadXRegister(instr->GetRt()));
+      break;
+    default:
+      VIXL_UNIMPLEMENTED();
   }
 }
 
