@@ -2743,6 +2743,10 @@ class Simulator : public DecoderVisitor {
                    PointerType type);
   uint64_t AddPAC(uint64_t ptr, uint64_t context, PACKey key, PointerType type);
   uint64_t StripPAC(uint64_t ptr, PointerType type);
+  void PACHelper(int dst,
+                 int src,
+                 PACKey key,
+                 decltype(&Simulator::AddPAC) pac_fn);
 
   // Armv8.5 MTE helpers.
   uint64_t ChooseNonExcludedTag(uint64_t tag,
