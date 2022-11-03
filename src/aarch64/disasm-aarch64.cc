@@ -11997,24 +11997,30 @@ int Disassembler::SubstituteConditionField(const Instruction *instr,
 
 int Disassembler::SubstituteRelAddressField(const Instruction *instr,
                                             const char *format) {
-  bool c64_page;  // C64 `adrp` or `adrdp`.
+  bool is_page_scaled;
+  bool is_adrdp;
+  int64_t offset;
   int len;
   if (GetISA() == ISA::C64) {
     // Check strcmp, not strncmp, to ensure that these fields appear last in the
     // format (so we can test them with COMPARE_PREFIX).
     VIXL_ASSERT((strcmp(format, "AddrPCCRelByte") == 0) ||  // Used by `adr`.
                 (strcmp(format, "AddrC64RelPage") == 0));  // Used by `adr{d}p`.
-    c64_page = format[10] == 'P';                          // 'AddrC64RelPage
+    is_page_scaled = format[10] == 'P';
+    is_adrdp = is_page_scaled && (instr->GetImmC64RelP() == 0);
+    offset = is_page_scaled ? instr->GetImmC64RelPage() : instr->GetImmPCRel();
     len = 14;
   } else {
     VIXL_ASSERT((strcmp(format, "AddrPCRelByte") == 0) ||  // Used by `adr`.
                 (strcmp(format, "AddrPCRelPage") == 0));   // Used by `adrp`.
-    c64_page = false;
+    is_page_scaled = format[9] == 'P';
+    is_adrdp = false; // C64 only.
+    offset = instr->GetImmPCRel();
     len = 13;
   }
-  int64_t offset = c64_page ? instr->GetImmC64RelPage() : instr->GetImmPCRel();
+  if (is_page_scaled) offset *= kPageSize;
 
-  if (c64_page && !instr->GetImmC64RelP()) {
+  if (is_adrdp) {
     // Although described as DDC-relative, `adrdp` can also be configured to be
     // relative to c28, so we don't mention DDC in the output. We do not know
     // the base address, so we can only print the offset.
@@ -12024,10 +12030,7 @@ int Disassembler::SubstituteRelAddressField(const Instruction *instr,
     // Compute the target address based on the effective address (after applying
     // code_address_offset). This is required for correct behaviour of adrp.
     const Instruction *base = instr + code_address_offset();
-    if (format[9] == 'P') {
-      offset *= kPageSize;
-      base = AlignDown(base, kPageSize);
-    }
+    if (is_page_scaled) base = AlignDown(base, kPageSize);
     // Strip code_address_offset before printing, so we can use the
     // semantically-correct AppendCodeRelativeAddressToOutput.
     const void *target =

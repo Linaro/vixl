@@ -82,30 +82,30 @@ TEST(morello_c64_adrdp_c_id_c) {
   SETUP();
 
   COMPARE_C64(adrdp(c0, 0), "adrdp c0, #+0x0");
-  COMPARE_C64(adrdp(c0, 1), "adrdp c0, #+0x1");
-  COMPARE_C64(adrdp(c0, 42), "adrdp c0, #+0x2a");
-  COMPARE_C64(adrdp(c0, 0xfffff), "adrdp c0, #+0xfffff");
-  COMPARE_C64(adrdp(czr, 42), "adrdp czr, #+0x2a");
-  COMPARE_C64(adrdp(c30, 42), "adrdp c30, #+0x2a");
+  COMPARE_C64(adrdp(c0, 1), "adrdp c0, #+0x1000");
+  COMPARE_C64(adrdp(c0, 42), "adrdp c0, #+0x2a000");
+  COMPARE_C64(adrdp(c0, 0xfffff), "adrdp c0, #+0xfffff000");
+  COMPARE_C64(adrdp(czr, 42), "adrdp czr, #+0x2a000");
+  COMPARE_C64(adrdp(c30, 42), "adrdp c30, #+0x2a000");
 
   // We don't implement adrdp(CRegister, Label*) because VIXL labels can only be
   // PC or PCC-relative.
 
   COMPARE_MACRO_C64(Adrdp(c0, 0), "adrdp c0, #+0x0");
-  COMPARE_MACRO_C64(Adrdp(c0, 42), "adrdp c0, #+0x2a");
+  COMPARE_MACRO_C64(Adrdp(c0, 42), "adrdp c0, #+0x2a000");
 }
 
 TEST(morello_c64_adrp_c_ip_c) {
   SETUP();
 
   COMPARE_PREFIX_C64(adrp(c0, 0), "adrp c0, #+0x0 (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c0, 1), "adrp c0, #+0x1 (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c0, -1), "adrp c0, #-0x1 (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c0, 42), "adrp c0, #+0x2a (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c0, 0x7ffff), "adrp c0, #+0x7ffff (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c0, -0x80000), "adrp c0, #-0x80000 (addr 0x");
-  COMPARE_PREFIX_C64(adrp(czr, 42), "adrp czr, #+0x2a (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c30, 42), "adrp c30, #+0x2a (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, 1), "adrp c0, #+0x1000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, -1), "adrp c0, #-0x1000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, 42), "adrp c0, #+0x2a000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, 0x7ffff), "adrp c0, #+0x7ffff000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c0, -0x80000), "adrp c0, #-0x80000000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(czr, 42), "adrp czr, #+0x2a000 (addr 0x");
+  COMPARE_PREFIX_C64(adrp(c30, 42), "adrp c30, #+0x2a000 (addr 0x");
 }
 
 TEST(morello_c64_adrp_label) {
