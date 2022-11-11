@@ -1424,6 +1424,9 @@ TEST(movprfx_positive) {
     __ movprfx(z15, z18);
     __ eor(z15.VnH(), z15.VnH(), 4);
 
+    __ movprfx(z17, z30);
+    __ ext(z17.VnB(), z17.VnB(), z18.VnB(), 2);
+
     __ movprfx(z19, z28);
     __ incd(z19.VnD(), SVE_MUL3);
 
@@ -2409,7 +2412,7 @@ TEST(movprfx_negative_instructions_sve2) {
   {
     // We have to use the Assembler directly to generate movprfx, so we need
     // to manually reserve space for the code we're about to emit.
-    static const size_t kPairCount = 133;
+    static const size_t kPairCount = 134;
     CodeBufferCheckScope guard(&assm, kPairCount * 2 * kInstructionSize);
 
     __ movprfx(z29, z30);
@@ -2579,6 +2582,9 @@ TEST(movprfx_negative_instructions_sve2) {
 
     __ movprfx(z31, z0);
     __ smullt(z31.VnD(), z26.VnS(), z5.VnS(), 0);
+
+    __ movprfx(z4, z5);
+    __ splice_con(z4.VnB(), p7.Merging(), z0.VnB(), z1.VnB());
 
     __ movprfx(z18, z19);
     __ sqdmulh(z18.VnB(), z25.VnB(), z1.VnB());
