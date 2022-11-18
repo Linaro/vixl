@@ -7519,7 +7519,7 @@ void Simulator::SVEGatherLoadScalarPlusVectorHelper(const Instruction* instr,
   // Note that these instructions don't use the Dtype encoding.
   int msize_in_bytes_log2 = instr->ExtractBits(24, 23);
   int scale = instr->ExtractBit(21) * msize_in_bytes_log2;
-  uint64_t base = ReadXRegister(instr->GetRn());
+  uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
   LogicSVEAddressVector addr(base,
                              &ReadVRegister(instr->GetRm()),
                              vform,
