@@ -2593,7 +2593,6 @@
       {"dsb_bo_barriers"_h, &VISITORCLASS::VisitSystem},                       \
       {"hint_hm_hints"_h, &VISITORCLASS::VisitSystem},                         \
       {"mrs_rs_systemmove"_h, &VISITORCLASS::VisitSystem},                     \
-      {"msr_si_pstate"_h, &VISITORCLASS::VisitSystem},                         \
       {"msr_sr_systemmove"_h, &VISITORCLASS::VisitSystem},                     \
       {"psb_hc_hints"_h, &VISITORCLASS::VisitSystem},                          \
       {"sb_only_barriers"_h, &VISITORCLASS::VisitSystem},                      \
