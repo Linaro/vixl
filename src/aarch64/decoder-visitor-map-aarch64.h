@@ -2593,7 +2593,6 @@
       {"dsb_bo_barriers"_h, &VISITORCLASS::VisitSystem},                       \
       {"hint_hm_hints"_h, &VISITORCLASS::VisitSystem},                         \
       {"mrs_rs_systemmove"_h, &VISITORCLASS::VisitSystem},                     \
-      {"msr_si_pstate"_h, &VISITORCLASS::VisitSystem},                         \
       {"msr_sr_systemmove"_h, &VISITORCLASS::VisitSystem},                     \
       {"psb_hc_hints"_h, &VISITORCLASS::VisitSystem},                          \
       {"sb_only_barriers"_h, &VISITORCLASS::VisitSystem},                      \
@@ -2644,7 +2643,7 @@
       {"bfdot_asimdelem_e"_h, &VISITORCLASS::VisitUnimplemented},              \
       {"bfdot_asimdsame2_d"_h, &VISITORCLASS::VisitUnimplemented},             \
       {"bfmlal_asimdelem_f"_h, &VISITORCLASS::VisitUnimplemented},             \
-      {"bfmlal_asimdsame2_f_"_h, &VISITORCLASS::VisitUnimplemented},           \
+      {"bfmlal_asimdsame2_f"_h, &VISITORCLASS::VisitUnimplemented},           \
       {"bfmmla_asimdsame2_e"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"dsb_bon_barriers"_h, &VISITORCLASS::VisitUnimplemented},               \
       {"eor3_vvv16_crypto4"_h, &VISITORCLASS::VisitUnimplemented},             \
@@ -2690,13 +2689,13 @@
       {"xar_vvv2_crypto3_imm6"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"bfcvt_z_p_z_s2bf"_h, &VISITORCLASS::VisitUnimplemented},               \
       {"bfcvtnt_z_p_z_s2bf"_h, &VISITORCLASS::VisitUnimplemented},             \
-      {"bfdot_z_zzz_"_h, &VISITORCLASS::VisitUnimplemented},                   \
-      {"bfdot_z_zzzi_"_h, &VISITORCLASS::VisitUnimplemented},                  \
-      {"bfmlalb_z_zzz_"_h, &VISITORCLASS::VisitUnimplemented},                 \
-      {"bfmlalb_z_zzzi_"_h, &VISITORCLASS::VisitUnimplemented},                \
-      {"bfmlalt_z_zzz_"_h, &VISITORCLASS::VisitUnimplemented},                 \
-      {"bfmlalt_z_zzzi_"_h, &VISITORCLASS::VisitUnimplemented},                \
-      {"bfmmla_z_zzz_"_h, &VISITORCLASS::VisitUnimplemented}, {                \
+      {"bfdot_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                   \
+      {"bfdot_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                  \
+      {"bfmlalb_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                 \
+      {"bfmlalb_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                \
+      {"bfmlalt_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                 \
+      {"bfmlalt_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                \
+      {"bfmmla_z_zzz"_h, &VISITORCLASS::VisitUnimplemented}, {                \
     "unallocated"_h, &VISITORCLASS::VisitUnallocated                           \
   }
 

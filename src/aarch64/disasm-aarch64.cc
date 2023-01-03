@@ -1995,7 +1995,6 @@ void Disassembler::VisitSystem(const Instruction *instr) {
     case "mrs_rs_systemmove"_h:
       form = "'Xt, 'IY";
       break;
-    case "msr_si_pstate"_h:
     case "msr_sr_systemmove"_h:
       form = "'IY, 'Xt";
       break;
