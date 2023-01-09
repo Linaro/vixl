@@ -2056,7 +2056,7 @@ TEST(adrp) {
                              kPageSize,
                              ExactAssemblyScope::kMaximumSize);
     const uintptr_t kPageOffsetMask = kPageSize - 1;
-    while ((masm.GetCursorAddress<uintptr_t>() & kPageOffsetMask) != 0) {
+    while ((masm.GetCursorAddress<ptraddr_t>() & kPageOffsetMask) != 0) {
       __ b(&start);
     }
     __ bind(&start);
@@ -2132,7 +2132,7 @@ static void AdrpPageBoundaryHelper(unsigned offset_into_page) {
     // Initialize NZCV with `eq` flags.
     __ cmp(wzr, wzr);
     // Waste space until the start of a page.
-    while ((masm.GetCursorAddress<uintptr_t>() & kPageOffsetMask) != 0) {
+    while ((masm.GetCursorAddress<ptraddr_t>() & kPageOffsetMask) != 0) {
       __ b(&start);
     }
 
@@ -11256,9 +11256,8 @@ TEST(load_store_tagged_immediate_offset) {
 
   for (int i = 0; i < tag_count; i++) {
     unsigned char src[kMaxDataLength];
-    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
     uint64_t src_tag = tags[i];
-    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+    auto src_tagged = Pointer<unsigned char *>(src).WithFlags(src_tag);
 
     for (int k = 0; k < kMaxDataLength; k++) {
       src[k] = k + 1;
@@ -11266,17 +11265,17 @@ TEST(load_store_tagged_immediate_offset) {
 
     for (int j = 0; j < tag_count; j++) {
       unsigned char dst[kMaxDataLength];
-      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
       uint64_t dst_tag = tags[j];
-      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+      auto dst_tagged = Pointer<unsigned char *>(dst).WithFlags(dst_tag);
 
       memset(dst, 0, kMaxDataLength);
 
       SETUP_WITH_FEATURES(CPUFeatures::kNEON);
       START();
 
-      __ Mov(x0, src_tagged);
-      __ Mov(x1, dst_tagged);
+      // TODO: Handle capabilities (in purecap).
+      __ Mov(x0, src_tagged.GetAddress());
+      __ Mov(x1, dst_tagged.GetAddress());
 
       int offset = 0;
 
@@ -11446,7 +11445,8 @@ TEST(load_store_tagged_immediate_offset) {
       END();
 // TODO: FreeBSD and CheriBSD do not currently enable TBI.
 // https://github.com/CTSRD-CHERI/cheribsd/issues/1628
-#ifndef __FreeBSD__
+// TODO: Adapt this test to run correctly under purecap.
+#if !defined(__FreeBSD__) && !VIXL_HOST_CHERI_PURECAP
       if (CAN_RUN()) {
         RUN();
 
@@ -11471,9 +11471,8 @@ TEST(load_store_tagged_immediate_preindex) {
 
   for (int i = 0; i < tag_count; i++) {
     unsigned char src[kMaxDataLength];
-    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
     uint64_t src_tag = tags[i];
-    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+    auto src_tagged = Pointer<unsigned char *>(src).WithFlags(src_tag);
 
     for (int k = 0; k < kMaxDataLength; k++) {
       src[k] = k + 1;
@@ -11481,9 +11480,8 @@ TEST(load_store_tagged_immediate_preindex) {
 
     for (int j = 0; j < tag_count; j++) {
       unsigned char dst[kMaxDataLength];
-      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
       uint64_t dst_tag = tags[j];
-      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+      auto dst_tagged = Pointer<unsigned char *>(dst).WithFlags(dst_tag);
 
       for (int k = 0; k < kMaxDataLength; k++) {
         dst[k] = 0;
@@ -11499,8 +11497,9 @@ TEST(load_store_tagged_immediate_preindex) {
       int preindex = 62 * kXRegSizeInBytes;
       int data_length = 0;
 
-      __ Mov(x0, src_tagged - preindex);
-      __ Mov(x1, dst_tagged - preindex);
+      // TODO: Handle capabilities (in purecap).
+      __ Mov(x0, src_tagged.GetAddress() - preindex);
+      __ Mov(x1, dst_tagged.GetAddress() - preindex);
 
       {
         ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
@@ -11619,14 +11618,15 @@ TEST(load_store_tagged_immediate_preindex) {
       END();
 // TODO: FreeBSD and CheriBSD do not currently enable TBI.
 // https://github.com/CTSRD-CHERI/cheribsd/issues/1628
-#ifndef __FreeBSD__
+// TODO: Adapt this test to run correctly under purecap.
+#if !defined(__FreeBSD__) && !VIXL_HOST_CHERI_PURECAP
       if (CAN_RUN()) {
         RUN();
 
         // Check that the preindex was correctly applied in each operation, and
         // that the tag was preserved.
-        ASSERT_EQUAL_64(src_tagged + data_length - preindex, x0);
-        ASSERT_EQUAL_64(dst_tagged + data_length - preindex, x1);
+        ASSERT_EQUAL_64(src_tagged.GetUintRepr() + data_length - preindex, x0);
+        ASSERT_EQUAL_64(dst_tagged.GetUintRepr() + data_length - preindex, x1);
 
         for (int k = 0; k < data_length; k++) {
           VIXL_CHECK(src[k] == dst[k]);
@@ -11646,9 +11646,8 @@ TEST(load_store_tagged_immediate_postindex) {
 
   for (int i = 0; i < tag_count; i++) {
     unsigned char src[kMaxDataLength];
-    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
     uint64_t src_tag = tags[i];
-    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+    auto src_tagged = Pointer<unsigned char *>(src).WithFlags(src_tag);
 
     for (int k = 0; k < kMaxDataLength; k++) {
       src[k] = k + 1;
@@ -11656,9 +11655,8 @@ TEST(load_store_tagged_immediate_postindex) {
 
     for (int j = 0; j < tag_count; j++) {
       unsigned char dst[kMaxDataLength];
-      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
       uint64_t dst_tag = tags[j];
-      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+      auto dst_tagged = Pointer<unsigned char *>(dst).WithFlags(dst_tag);
 
       for (int k = 0; k < kMaxDataLength; k++) {
         dst[k] = 0;
@@ -11670,8 +11668,9 @@ TEST(load_store_tagged_immediate_postindex) {
       int postindex = 2 * kXRegSizeInBytes;
       int data_length = 0;
 
-      __ Mov(x0, src_tagged);
-      __ Mov(x1, dst_tagged);
+      // TODO: Handle capabilities (in purecap).
+      __ Mov(x0, src_tagged.GetAddress());
+      __ Mov(x1, dst_tagged.GetAddress());
 
       {
         ExactAssemblyScope scope(&masm, 2 * kInstructionSize);
@@ -11789,14 +11788,15 @@ TEST(load_store_tagged_immediate_postindex) {
       END();
 // TODO: FreeBSD and CheriBSD do not currently enable TBI.
 // https://github.com/CTSRD-CHERI/cheribsd/issues/1628
-#ifndef __FreeBSD__
+// TODO: Adapt this test to run correctly under purecap.
+#if !defined(__FreeBSD__) && !VIXL_HOST_CHERI_PURECAP
       if (CAN_RUN()) {
         RUN();
 
         // Check that the postindex was correctly applied in each operation, and
         // that the tag was preserved.
-        ASSERT_EQUAL_64(src_tagged + data_length, x0);
-        ASSERT_EQUAL_64(dst_tagged + data_length, x1);
+        ASSERT_EQUAL_64(src_tagged.GetUintRepr() + data_length, x0);
+        ASSERT_EQUAL_64(dst_tagged.GetUintRepr() + data_length, x1);
 
         for (int k = 0; k < data_length; k++) {
           VIXL_CHECK(src[k] == dst[k]);
@@ -11816,9 +11816,8 @@ TEST(load_store_tagged_register_offset) {
 
   for (int i = 0; i < tag_count; i++) {
     unsigned char src[kMaxDataLength];
-    uint64_t src_raw = reinterpret_cast<uint64_t>(src);
     uint64_t src_tag = tags[i];
-    uint64_t src_tagged = CPU::SetPointerTag(src_raw, src_tag);
+    auto src_tagged = Pointer<unsigned char *>(src).WithFlags(src_tag);
 
     for (int k = 0; k < kMaxDataLength; k++) {
       src[k] = k + 1;
@@ -11826,13 +11825,12 @@ TEST(load_store_tagged_register_offset) {
 
     for (int j = 0; j < tag_count; j++) {
       unsigned char dst[kMaxDataLength];
-      uint64_t dst_raw = reinterpret_cast<uint64_t>(dst);
       uint64_t dst_tag = tags[j];
-      uint64_t dst_tagged = CPU::SetPointerTag(dst_raw, dst_tag);
+      auto dst_tagged = Pointer<unsigned char *>(dst).WithFlags(dst_tag);
 
       // Also tag the offset register; the operation should still succeed.
       for (int o = 0; o < tag_count; o++) {
-        uint64_t offset_base = CPU::SetPointerTag(UINT64_C(0), tags[o]);
+        uint64_t offset_base = tags[o] << kAddressTagOffset;
         int data_length = 0;
 
         for (int k = 0; k < kMaxDataLength; k++) {
@@ -11842,8 +11840,9 @@ TEST(load_store_tagged_register_offset) {
         SETUP_WITH_FEATURES(CPUFeatures::kNEON);
         START();
 
-        __ Mov(x0, src_tagged);
-        __ Mov(x1, dst_tagged);
+        // TODO: Handle capabilities (in purecap).
+        __ Mov(x0, src_tagged.GetAddress());
+        __ Mov(x1, dst_tagged.GetAddress());
 
         __ Mov(x10, offset_base + data_length);
         {
@@ -11914,14 +11913,15 @@ TEST(load_store_tagged_register_offset) {
         END();
 // TODO: FreeBSD and CheriBSD do not currently enable TBI.
 // https://github.com/CTSRD-CHERI/cheribsd/issues/1628
-#ifndef __FreeBSD__
+// TODO: Adapt this test to run correctly under purecap.
+#if !defined(__FreeBSD__) && !VIXL_HOST_CHERI_PURECAP
         if (CAN_RUN()) {
           RUN();
 
           // Check that the postindex was correctly applied in each operation,
           // and that the tag was preserved.
-          ASSERT_EQUAL_64(src_tagged, x0);
-          ASSERT_EQUAL_64(dst_tagged, x1);
+          ASSERT_EQUAL_64(src_tagged.GetUintRepr(), x0);
+          ASSERT_EQUAL_64(dst_tagged.GetUintRepr(), x1);
           ASSERT_EQUAL_64(offset_base + data_length - 1, x10);
 
           for (int k = 0; k < data_length; k++) {
@@ -11944,12 +11944,12 @@ TEST(load_store_tagged_register_postindex) {
     for (int i = 0; i < tag_count; i++) {
       SETUP_WITH_FEATURES(CPUFeatures::kNEON);
 
-      uint64_t src_base = reinterpret_cast<uint64_t>(src);
-      uint64_t src_tagged = CPU::SetPointerTag(src_base, tags[i]);
-      uint64_t offset_tagged = CPU::SetPointerTag(UINT64_C(0), tags[j]);
+      auto src_tagged = Pointer<uint64_t *>(src).WithFlags(tags[i]);
+      uint64_t offset_tagged = tags[j] << kAddressTagOffset;
 
       START();
-      __ Mov(x10, src_tagged);
+      // TODO: Handle capabilities (in purecap).
+      __ Mov(x10, src_tagged.GetAddress());
       __ Mov(x11, offset_tagged);
       __ Ld1(v0.V16B(), MemOperand(x10, x11, PostIndex));
       // TODO: add other instructions (ld2-4, st1-4) as they become available.
@@ -11957,12 +11957,13 @@ TEST(load_store_tagged_register_postindex) {
 
 // TODO: FreeBSD and CheriBSD do not currently enable TBI.
 // https://github.com/CTSRD-CHERI/cheribsd/issues/1628
-#ifndef __FreeBSD__
+// TODO: Adapt this test to run correctly under purecap.
+#if !defined(__FreeBSD__) && !VIXL_HOST_CHERI_PURECAP
       if (CAN_RUN()) {
         RUN();
 
         ASSERT_EQUAL_128(0x0f0e0d0c0b0a0908, 0x0706050403020100, q0);
-        ASSERT_EQUAL_64(src_tagged + offset_tagged, x10);
+        ASSERT_EQUAL_64(src_tagged.GetUintRepr() + offset_tagged, x10);
       }
 #endif
     }

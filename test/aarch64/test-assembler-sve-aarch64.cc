@@ -8757,7 +8757,7 @@ TEST_SVE(sve_ld234_st234_scalar_plus_imm_sp) {
 // Fill the input buffer with arbitrary data. Meanwhile, assign random offsets
 // from the base address of the buffer and corresponding addresses to the
 // arguments if provided.
-static void BufferFillingHelper(uint64_t data_ptr,
+static void BufferFillingHelper(uintptr_t data_ptr,
                                 size_t buffer_size,
                                 unsigned lane_size_in_bytes,
                                 int lane_count,
@@ -9900,10 +9900,11 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
   uint64_t offsets[kMaxLaneCount];
   uint64_t max_address = 0;
   uint64_t buffer_size = vl * 64;
-  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
+  Pointer<void*> data(malloc(buffer_size));
+
   // Fill the buffer with arbitrary data. Meanwhile, create the random addresses
   // and offsets into the buffer placed in the argument list.
-  BufferFillingHelper(data,
+  BufferFillingHelper(data.GetUintRepr(),
                       buffer_size,
                       msize_in_bytes,
                       kMaxLaneCount,
@@ -9925,7 +9926,7 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
       // Ensure the offsets are the multiple of the scale factor of the
       // operation.
       offsets[i] = (offsets[i] >> shift) << shift;
-      addresses[i] = data + offsets[i];
+      addresses[i] = data.GetAddress() + offsets[i];
     }
   }
 
@@ -9940,7 +9941,7 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
              0xf4f3f1f0fefdfcfa,
              0xf9f8f6f5f3f2f1ff);
 
-  __ Mov(x0, data);
+  __ Mov(x0, data.GetAddress());
 
   // Generate a reference result for scalar-plus-scalar form using scalar loads.
   ScalarLoadHelper(&masm,
@@ -9984,7 +9985,7 @@ static void GatherLoadScalarPlusVectorHelper(Test* config,
     ASSERT_EQUAL_64(0, ffr_check_count);
   }
 
-  free(reinterpret_cast<void*>(data));
+  free(data);
 }
 
 // Test gather loads by comparing them with the result of a set of equivalent
@@ -10009,8 +10010,8 @@ static void GatherLoadScalarPlusScalarOrImmHelper(Test* config,
   uint64_t offsets[kMaxLaneCount];
   uint64_t max_address = 0;
   uint64_t buffer_size = vl * 64;
-  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
-  BufferFillingHelper(data,
+  Pointer<void*> data(malloc(buffer_size));
+  BufferFillingHelper(data.GetUintRepr(),
                       buffer_size,
                       msize_in_bytes,
                       kMaxLaneCount,
@@ -10051,7 +10052,7 @@ static void GatherLoadScalarPlusScalarOrImmHelper(Test* config,
   }
 
   InsrHelper(&masm, zn, offsets);
-  (masm.*sve_ld1)(zt_offsets, pg, SVEMemOperand(zn, data));
+  (masm.*sve_ld1)(zt_offsets, pg, SVEMemOperand(zn, data.GetAddress()));
 
   InsrHelper(&masm, zn, maxed_offsets);
   (masm.*sve_ld1)(zt_maxed, pg, SVEMemOperand(zn, maxed_offsets_imm));
@@ -10078,7 +10079,7 @@ static void GatherLoadScalarPlusScalarOrImmHelper(Test* config,
     ASSERT_EQUAL_SVE(zt_ref, zt_maxed);
   }
 
-  free(reinterpret_cast<void*>(data));
+  free(data);
 }
 
 TEST_SVE(sve_ld1b_64bit_vector_plus_immediate) {
@@ -18566,8 +18567,8 @@ static void LoadBcastHelper(Test* config,
 
   uint64_t offsets[kMaxLaneCount];
   uint64_t buffer_size = vl * 64;
-  uint64_t data = reinterpret_cast<uintptr_t>(malloc(buffer_size));
-  BufferFillingHelper(data,
+  Pointer<void*> data(malloc(buffer_size));
+  BufferFillingHelper(data.GetUintRepr(),
                       buffer_size,
                       msize_in_bytes,
                       kMaxLaneCount,
@@ -18591,13 +18592,13 @@ static void LoadBcastHelper(Test* config,
              0xf4f3f1f0fefdfcfa,
              0xf9f8f6f5f3f2f0ff);
 
-  __ Mov(x2, data);
+  __ Mov(x2, data.GetAddress());
   uint64_t enablable_offset = offsets[0];
   // Simple check if the operation correct in a single offset.
   (masm.*sve_ld1)(zn, pg, SVEMemOperand(x2, enablable_offset));
 
   // Generate a reference result using scalar loads.
-  uint64_t address = data + enablable_offset;
+  uint64_t address = data.GetAddress() + enablable_offset;
   uint64_t duplicated_addresses[kMaxLaneCount];
   for (unsigned i = 0; i < kMaxLaneCount; i++) {
     duplicated_addresses[i] = address;
@@ -18625,7 +18626,7 @@ static void LoadBcastHelper(Test* config,
     __ Lastb(x1, pg, zn_temp);
     __ Insr(zn_agg, x1);
 
-    __ Mov(x3, data + offsets[i]);
+    __ Mov(x3, data.GetAddress() + offsets[i]);
     ScalarLoadHelper(&masm, x1, x3, msize_in_bits, is_signed);
     __ Insr(zn_agg_ref, x1);
   }
@@ -18639,7 +18640,7 @@ static void LoadBcastHelper(Test* config,
     ASSERT_EQUAL_SVE(zn_agg_ref, zn_agg);
   }
 
-  free(reinterpret_cast<void*>(data));
+  free(data);
 }
 
 TEST_SVE(sve_ld1rb) {

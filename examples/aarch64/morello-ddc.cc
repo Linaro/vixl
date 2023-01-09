@@ -43,6 +43,13 @@ int main(void) {
   CPUFeatures cpu_req(CPUFeatures::kMorello);
   MacroAssembler masm;
   masm.SetCPUFeatures(cpu_req);
+#if VIXL_HOST_IS_MORELLO
+  masm.SetISA(vixl::aarch64::ISA::Host);
+#endif
+
+  // Capability literal pools (used by `GenerateNewCapinfo`) are weakly
+  // position-dependent, because capabilities must be 16-byte aligned.
+  masm.SetFixedCodeAddressBits(kCRegSizeInBytesLog2);
 
   Label fn_label;
   masm.Bind(&fn_label);

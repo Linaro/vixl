@@ -54,7 +54,7 @@ class AssemblerBase {
   // Return the address of the cursor.
   template <typename T>
   T GetCursorAddress() const {
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
+    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(ptraddr_t));
     return GetBuffer().GetOffsetAddress<T>(GetCursorOffset());
   }
 

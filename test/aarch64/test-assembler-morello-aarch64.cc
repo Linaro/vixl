@@ -225,7 +225,7 @@ TEST(morello_ldr_literal_cap) {
   auto cap = [&data](size_t i) -> uintcap_t {
     i %= sizeof(data);
 #if VIXL_HOST_CHERI_PURECAP
-    return cheri_bounds_set(&data[i], 1);
+    return reinterpret_cast<uintcap_t>(cheri_bounds_set(&data[i], 1));
 #else
     auto addr = reinterpret_cast<ptraddr_t>(&data[i]);
     auto cap = cheri_address_set(cheri_ddc_get(), addr);

@@ -28,6 +28,7 @@
 #define VIXL_AARCH64_INSTRUCTIONS_AARCH64_H_
 
 #include "../globals-vixl.h"
+#include "../pointers-vixl.h"
 #include "../utils-vixl.h"
 
 #include "constants-aarch64.h"
@@ -113,12 +114,6 @@ const unsigned kSPRegInternalCode = 63;
 const unsigned kRegCodeMask = 0x1f;
 
 const unsigned kAtomicAccessGranule = 16;
-
-const unsigned kAddressTagOffset = 56;
-const unsigned kAddressTagWidth = 8;
-const uint64_t kAddressTagMask = ((UINT64_C(1) << kAddressTagWidth) - 1)
-                                 << kAddressTagOffset;
-VIXL_STATIC_ASSERT(kAddressTagMask == UINT64_C(0xff00000000000000));
 
 const uint64_t kTTBRMask = UINT64_C(1) << 55;
 
@@ -626,22 +621,17 @@ class Instruction {
   //
   // The literal itself is safely mutable only if the backing buffer is safely
   // mutable.
-  template <typename T>
-  T GetLiteralAddress() const {
+  uint64_t GetLiteralAddress() const {
     // Capability forms are position-dependent and require a pc. Other forms
     // only require standard instruction alignment.
     VIXL_ASSERT(Mask(MorelloLDRMask) != LDR_c_i);
-    return GetLiteralAddress<T>(reinterpret_cast<uint64_t>(this));
-  }
-  template <typename T>
-  VIXL_DEPRECATED("GetLiteralAddress", T LiteralAddress() const) {
-    return GetLiteralAddress<T>();
+
+    return GetLiteralAddress(WrapPointer(this).GetAddress());
   }
 
   // As GetLiteralAddress(), but correctly handling position-dependent forms
   // (such as loads of capability literals).
-  template <typename T>
-  T GetLiteralAddress(uint64_t pc) const {
+  uint64_t GetLiteralAddress(uint64_t pc) const {
     uint64_t base;
     int64_t offset;
     if (Mask(MorelloLDRMask) == LDR_c_i) {
@@ -651,21 +641,13 @@ class Instruction {
       base = pc;
       offset = GetImmLLiteral() * static_cast<int>(kLiteralEntrySize);
     }
-    uint64_t address_raw = base + offset;
-
-    // Cast the address using a C-style cast. A reinterpret_cast would be
-    // appropriate, but it can't cast one integral type to another.
-    T address = (T)(address_raw);
-
-    // Assert that the address can be represented by the specified type.
-    VIXL_ASSERT((uint64_t)(address) == address_raw);
-
-    return address;
+    return base + offset;
   }
 
   uint32_t GetLiteral32() const {
     uint32_t literal;
-    memcpy(&literal, GetLiteralAddress<const void*>(), sizeof(literal));
+    auto src = WrapPointer(this).WithAddress(GetLiteralAddress()).ReinterpretCast<const void*>();
+    memcpy(&literal, src, sizeof(literal));
     return literal;
   }
   VIXL_DEPRECATED("GetLiteral32", uint32_t Literal32() const) {
@@ -674,7 +656,8 @@ class Instruction {
 
   uint64_t GetLiteral64() const {
     uint64_t literal;
-    memcpy(&literal, GetLiteralAddress<const void*>(), sizeof(literal));
+    auto src = WrapPointer(this).WithAddress(GetLiteralAddress()).ReinterpretCast<const void*>();
+    memcpy(&literal, src, sizeof(literal));
     return literal;
   }
   VIXL_DEPRECATED("GetLiteral64", uint64_t Literal64() const) {

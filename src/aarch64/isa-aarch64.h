@@ -40,6 +40,14 @@ enum class ISA {
   A64,
   C64,
   Data,  // Used for literal pools, etc.
+
+#if VIXL_HOST_CHERI_PURECAP
+  // All current C++ toolchains use C64 for Morello purecap.
+  Host = C64,
+#elif __aarch64__
+  // All current C++ toolchains use A64 for Morello hybrid (or other AArch64).
+  Host = A64,
+#endif
 };
 
 inline ISA ExchangeISA(ISA isa) {

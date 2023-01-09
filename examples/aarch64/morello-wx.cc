@@ -71,8 +71,10 @@ class Compiler {
              0);
     VIXL_CHECK(rwx != nullptr);
 #if VIXL_HOST_CHERI_PURECAP
-    // `mmap` returns a capability in this case.
-    VIXL_UNIMPLEMENTED();
+    // `mmap` returns a tightly-bounded capability. We just need to split the
+    // permissions.
+    rw_ = cheri_perms_clear(rwx, CHERI_PERM_EXECUTE);
+    rx_ = cheri_perms_clear(rwx, CHERI_PERM_STORE | CHERI_PERM_STORE_CAP);
 #else
     rwx = reinterpret_cast<Instr * __capability>(cheri_bounds_set(rwx, len));
     rw_ = rwx;

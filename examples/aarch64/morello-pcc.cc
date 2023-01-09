@@ -42,14 +42,9 @@ void GeneratePCCInfo(MacroAssembler* masm) {
     // In C64, we can use `adr` to read PCC.
     __ Adr(c0, &entry);
   } else {
-    // In A64, `adr` reads an X register, not a capability, so briefly swap into
-    // C64.
-    __ Bx();
-    {
-      ISAScope a64(masm, ISA::C64);
-      __ Adr(c0, &entry);
-    }
-    __ Bx();
+    // In A64, `adr` reads an X register.
+    __ Adr(x0, &entry);
+    __ Cvtp(c0, x0);
   }
   GenerateNewCapinfo(masm, "PCC");
 }
@@ -59,6 +54,13 @@ int main(void) {
   CPUFeatures cpu_req(CPUFeatures::kMorello);
   MacroAssembler masm;
   masm.SetCPUFeatures(cpu_req);
+#if VIXL_HOST_IS_MORELLO
+  masm.SetISA(vixl::aarch64::ISA::Host);
+#endif
+
+  // Capability literal pools (used by `GenerateNewCapinfo`) are weakly
+  // position-dependent, because capabilities must be 16-byte aligned.
+  masm.SetFixedCodeAddressBits(kCRegSizeInBytesLog2);
 
   Label fn_label;
   masm.Bind(&fn_label);

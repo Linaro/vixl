@@ -3011,7 +3011,7 @@ void Simulator::VisitAtomicMemory(const Instruction* instr) {
 
 void Simulator::VisitLoadLiteral(const Instruction* instr) {
   unsigned rt = instr->GetRt();
-  uint64_t address = instr->GetLiteralAddress<uint64_t>();
+  uint64_t address = instr->GetLiteralAddress();
 
   // Verify that the calculated address is available to the host.
   VIXL_ASSERT(address == static_cast<uintptr_t>(address));

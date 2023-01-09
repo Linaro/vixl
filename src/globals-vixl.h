@@ -73,18 +73,25 @@ const int MBytes = 1024 * KBytes;
 const int kBitsPerByteLog2 = 3;
 const int kBitsPerByte = 1 << kBitsPerByteLog2;
 
-template <int SizeInBits>
-struct Unsigned;
+template <int PtrSizeInBits>
+struct PtrAddr;
 
 template <>
-struct Unsigned<32> {
+struct PtrAddr<32> {
   typedef uint32_t type;
 };
 
 template <>
-struct Unsigned<64> {
+struct PtrAddr<64> {
   typedef uint64_t type;
 };
+
+#ifdef __CHERI__
+template <>
+struct PtrAddr<128> {
+  typedef uint64_t type;
+};
+#endif
 
 }  // namespace vixl
 
@@ -103,10 +110,12 @@ struct Unsigned<64> {
 #define VIXL_HOST_IS_MORELLO (VIXL_HOST_HAS_CAPABILITIES && __aarch64__)
 
 // Detect the host's pointer size.
-#if (UINTPTR_MAX == UINT32_MAX)
-#define VIXL_HOST_POINTER_32
+#if VIXL_HOST_CHERI_PURECAP
+#define VIXL_HOST_POINTER_128
 #elif (UINTPTR_MAX == UINT64_MAX)
 #define VIXL_HOST_POINTER_64
+#elif (UINTPTR_MAX == UINT32_MAX)
+#define VIXL_HOST_POINTER_32
 #else
 #error "Unsupported host pointer size."
 #endif

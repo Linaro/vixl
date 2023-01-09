@@ -27,6 +27,11 @@
 #ifndef VIXL_UTILS_H
 #define VIXL_UTILS_H
 
+#if VIXL_HOST_CHERI_HYBRID && defined(__FreeBSD__)
+// This exposes `memcpy_c` in <string.h>/<cstring>.
+#define __BSD_VISIBLE 1
+#endif
+
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -588,20 +593,44 @@ inline bool IsScaledUint(T value, unsigned multiple) {
   return IsMultiple(value, multiple) && IsUintN(N, value / multiple);
 }
 
+#if defined(__has_builtin)
+#if __has_builtin(__builtin_is_aligned)
+#define VIXL_BUILTIN_IS_ALIGNED(pointer, alignment) __builtin_is_aligned(pointer, alignment)
+#endif
+#if __has_builtin(__builtin_align_up)
+#define VIXL_BUILTIN_ALIGN_UP(pointer, alignment) __builtin_align_up(pointer, alignment)
+#endif
+#if __has_builtin(__builtin_align_down)
+#define VIXL_BUILTIN_ALIGN_DOWN(pointer, alignment) __builtin_align_down(pointer, alignment)
+#endif
+#endif
+
 template <typename T>
 inline bool IsAligned(T pointer, int alignment) {
   VIXL_ASSERT(IsPowerOf2(alignment));
+#ifdef VIXL_BUILTIN_IS_ALIGNED
+  return VIXL_BUILTIN_IS_ALIGNED(pointer, alignment);
+#elif VIXL_HOST_HAS_CAPABILTIIES
+#error "IsAligned requires __builtin_is_aligned for correct handling of capabilities."
+#else
   return (pointer & (alignment - 1)) == 0;
+#endif
 }
 
 // Pointer alignment
 // TODO: rename/refactor to make it specific to instructions.
 template <unsigned ALIGN, typename T>
 inline bool IsAligned(T pointer) {
-  VIXL_ASSERT(sizeof(pointer) == sizeof(intptr_t));  // NOLINT(runtime/sizeof)
+  VIXL_STATIC_ASSERT(sizeof(pointer) >= sizeof(ptraddr_t));  // NOLINT(runtime/sizeof)
+#ifdef VIXL_BUILTIN_IS_ALIGNED
+  return VIXL_BUILTIN_IS_ALIGNED(pointer, ALIGN);
+#elif VIXL_HOST_HAS_CAPABILTIIES
+#error "IsAligned requires __builtin_is_aligned for correct handling of capabilities."
+#else
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
   return IsAligned((intptr_t)(pointer), ALIGN);
+#endif
 }
 
 template <typename T>
@@ -613,19 +642,25 @@ bool IsWordAligned(T pointer) {
 // be a power of two.
 template <class T>
 T AlignUp(T pointer,
-          typename Unsigned<sizeof(T) * kBitsPerByte>::type alignment) {
+          typename PtrAddr<sizeof(T) * kBitsPerByte>::type alignment) {
   VIXL_ASSERT(IsPowerOf2(alignment));
+#ifdef VIXL_BUILTIN_ALIGN_UP
+  T result = VIXL_BUILTIN_ALIGN_UP(pointer, alignment);
+#elif VIXL_HOST_HAS_CAPABILTIIES
+#error "AlignUp requires __builtin_align_up for correct handling of capabilities."
+#else
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
 
-  typename Unsigned<sizeof(T)* kBitsPerByte>::type pointer_raw =
-      (typename Unsigned<sizeof(T) * kBitsPerByte>::type) pointer;
+  typename PtrAddr<sizeof(T)* kBitsPerByte>::type pointer_raw =
+      (typename PtrAddr<sizeof(T) * kBitsPerByte>::type) pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
   size_t mask = alignment - 1;
   T result = (T)((pointer_raw + mask) & ~mask);
-  VIXL_ASSERT(result >= pointer);
+#endif
 
+  VIXL_ASSERT(result >= pointer);
   return result;
 }
 
@@ -633,17 +668,25 @@ T AlignUp(T pointer,
 // be a power of two.
 template <class T>
 T AlignDown(T pointer,
-            typename Unsigned<sizeof(T) * kBitsPerByte>::type alignment) {
+            typename PtrAddr<sizeof(T) * kBitsPerByte>::type alignment) {
   VIXL_ASSERT(IsPowerOf2(alignment));
+#ifdef VIXL_BUILTIN_ALIGN_DOWN
+  T result = VIXL_BUILTIN_ALIGN_DOWN(pointer, alignment);
+#elif VIXL_HOST_HAS_CAPABILTIIES
+#error "AlignDown requires __builtin_align_down for correct handling of capabilities."
+#else
   // Use C-style casts to get static_cast behaviour for integral types (T), and
   // reinterpret_cast behaviour for other types.
 
-  typename Unsigned<sizeof(T)* kBitsPerByte>::type pointer_raw =
-      (typename Unsigned<sizeof(T) * kBitsPerByte>::type) pointer;
+  typename PtrAddr<sizeof(T)* kBitsPerByte>::type pointer_raw =
+      (typename PtrAddr<sizeof(T) * kBitsPerByte>::type) pointer;
   VIXL_STATIC_ASSERT(sizeof(pointer) <= sizeof(pointer_raw));
 
   size_t mask = alignment - 1;
-  return (T)(pointer_raw & ~mask);
+  T result = (T)(pointer_raw & ~mask);
+#endif
+  VIXL_ASSERT(result <= pointer);
+  return result;
 }
 
 

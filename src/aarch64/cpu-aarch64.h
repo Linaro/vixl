@@ -227,27 +227,12 @@ class CPU {
   // Handle tagged pointers.
   template <typename T>
   static T SetPointerTag(T pointer, uint64_t tag) {
-    VIXL_ASSERT(IsUintN(kAddressTagWidth, tag));
-
-    // Use C-style casts to get static_cast behaviour for integral types (T),
-    // and reinterpret_cast behaviour for other types.
-
-    uint64_t raw = (uint64_t)pointer;
-    VIXL_STATIC_ASSERT(sizeof(pointer) == sizeof(raw));
-
-    raw = (raw & ~kAddressTagMask) | (tag << kAddressTagOffset);
-    return (T)raw;
+    return Pointer<T>(pointer).WithFlags(tag);
   }
 
   template <typename T>
   static uint64_t GetPointerTag(T pointer) {
-    // Use C-style casts to get static_cast behaviour for integral types (T),
-    // and reinterpret_cast behaviour for other types.
-
-    uint64_t raw = (uint64_t)pointer;
-    VIXL_STATIC_ASSERT(sizeof(pointer) == sizeof(raw));
-
-    return (raw & kAddressTagMask) >> kAddressTagOffset;
+    return Pointer<T>(pointer).GetFlags();
   }
 
  private:

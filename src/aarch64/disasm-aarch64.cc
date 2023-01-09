@@ -10983,14 +10983,26 @@ void Disassembler::AppendAddressToOutput(const Instruction *instr,
 }
 
 
-void Disassembler::AppendSignedDataAddressToOutput(const Instruction *instr,
-                                                   int64_t addr) {
+void Disassembler::AppendSignedAddressToOutput(const Instruction *instr,
+                                               int64_t addr) {
   USE(instr);
   if (addr >= 0) {
     AppendToOutput("(addr 0x%" PRIx64 ")", addr);
   } else {
     AppendToOutput("(addr -0x%" PRIx64 ")", -static_cast<uint64_t>(addr));
   }
+}
+
+
+void Disassembler::AppendSignedCodeAddressToOutput(const Instruction *instr,
+                                                   int64_t addr) {
+  AppendSignedAddressToOutput(instr, addr);
+}
+
+
+void Disassembler::AppendSignedDataAddressToOutput(const Instruction *instr,
+                                                   int64_t addr) {
+  AppendSignedAddressToOutput(instr, addr);
 }
 
 
@@ -11027,11 +11039,12 @@ void Disassembler::AppendCodeRelativeDataAddressToOutput(
 
 void Disassembler::MapCodeAddress(int64_t base_address,
                                   const Instruction *instr_address) {
-  set_code_address_offset(base_address -
-                          reinterpret_cast<intptr_t>(instr_address));
+  set_code_address_offset(
+      static_cast<ptraddr_t>(base_address) -
+          WrapPointer(instr_address).GetAddress());
 }
 int64_t Disassembler::CodeRelativeAddress(const void *addr) {
-  return reinterpret_cast<intptr_t>(addr) + code_address_offset();
+  return RawbitsToInt64(WrapPointer(addr).GetAddress() + code_address_offset());
 }
 
 
@@ -11397,7 +11410,7 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
           // The offset is applied to AlignDown(pc, 16), but we disassemble such
           // that `pcc + #imm` refers to the exact address loaded.
           uint64_t pc = CodeRelativeAddress(instr);
-          uint64_t target = instr->GetLiteralAddress<uint64_t>(pc);
+          uint64_t target = instr->GetLiteralAddress(pc);
           AppendToOutput("pcc%+" PRId64, RawbitsToInt64(target - pc));
           return 10;
         }
@@ -11883,15 +11896,14 @@ int Disassembler::SubstituteLiteralField(const Instruction *instr,
   VIXL_ASSERT((strncmp(format, "LValue", 6) == 0) ||
               (strncmp(format, "LCValue", 7) == 0));
 
+  uint64_t pc = CodeRelativeAddress(instr);
+  int64_t address = RawbitsToInt64(instr->GetLiteralAddress(pc));
   if (format[1] == 'C') {
     // Load capability literal.
     VIXL_ASSERT(instr->Mask(MorelloLDRMask) == LDR_c_i);
-    uint64_t pc = CodeRelativeAddress(instr);
-    uint64_t address = instr->GetLiteralAddress<uint64_t>(pc);
-    AppendSignedDataAddressToOutput(instr, RawbitsToInt64(address));
+    AppendSignedDataAddressToOutput(instr, address);
     return 7;
   } else {
-    const void *address = instr->GetLiteralAddress<const void *>();
     switch (instr->Mask(LoadLiteralMask)) {
       case LDR_w_lit:
       case LDR_x_lit:
@@ -11899,20 +11911,20 @@ int Disassembler::SubstituteLiteralField(const Instruction *instr,
       case LDR_s_lit:
       case LDR_d_lit:
       case LDR_q_lit:
-        AppendCodeRelativeDataAddressToOutput(instr, address);
+        AppendSignedDataAddressToOutput(instr, address);
         break;
       case PRFM_lit: {
         // Use the prefetch hint to decide how to print the address.
         switch (instr->GetPrefetchHint()) {
           case 0x0:  // PLD: prefetch for load.
           case 0x2:  // PST: prepare for store.
-            AppendCodeRelativeDataAddressToOutput(instr, address);
+            AppendSignedDataAddressToOutput(instr, address);
             break;
           case 0x1:  // PLI: preload instructions.
-            AppendCodeRelativeCodeAddressToOutput(instr, address);
+            AppendSignedCodeAddressToOutput(instr, address);
             break;
           case 0x3:  // Unallocated hint.
-            AppendCodeRelativeAddressToOutput(instr, address);
+            AppendSignedAddressToOutput(instr, address);
             break;
         }
         break;

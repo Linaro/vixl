@@ -193,6 +193,7 @@ TEST(is_capability) {
 #endif
 
   uint32_t local;
+  void (*fn)() = &example_function;
 #if VIXL_HOST_CHERI_PURECAP
   VIXL_STATIC_ASSERT(is_capability<void *>::value);
   VIXL_STATIC_ASSERT(is_capability<void * const>::value);
@@ -201,7 +202,7 @@ TEST(is_capability) {
   VIXL_STATIC_ASSERT(is_capability<uintptr_t>::value);
   VIXL_STATIC_ASSERT(is_capability<intptr_t>::value);
   VIXL_STATIC_ASSERT(is_capability<decltype(&local)>::value);
-  VIXL_STATIC_ASSERT(is_capability<decltype(example_function)>::value);
+  VIXL_STATIC_ASSERT(is_capability<decltype(fn)>::value);
 #else
   VIXL_STATIC_ASSERT(!is_capability<void *>::value);
   VIXL_STATIC_ASSERT(!is_capability<void * const>::value);
@@ -210,10 +211,88 @@ TEST(is_capability) {
   VIXL_STATIC_ASSERT(!is_capability<uintptr_t>::value);
   VIXL_STATIC_ASSERT(!is_capability<intptr_t>::value);
   VIXL_STATIC_ASSERT(!is_capability<decltype(&local)>::value);
-  VIXL_STATIC_ASSERT(!is_capability<decltype(example_function)>::value);
+  VIXL_STATIC_ASSERT(!is_capability<decltype(fn)>::value);
 #endif
 
   VIXL_STATIC_ASSERT(!is_capability<uint64_t>::value);
+}
+
+#if VIXL_HOST_HAS_CAPABILITIES
+template <typename C>
+static void CheckPointerApiCap(Pointer<C> cap) {
+  VIXL_STATIC_ASSERT(is_capability<C>::value);
+  VIXL_STATIC_ASSERT(is_capability<decltype(cap.Unwrap())>::value);
+  VIXL_CHECK(cheri_address_get(cap.Unwrap()) == cap.GetAddress());
+}
+#endif
+
+template <typename P>
+static void CheckPointerApi(Pointer<P> ptr) {
+#if VIXL_HOST_CHERI_PURECAP
+  CheckPointerApiCap(ptr);
+#else
+  VIXL_STATIC_ASSERT(!is_capability<P>::value);
+  VIXL_STATIC_ASSERT(!is_capability<decltype(ptr.Unwrap())>::value);
+  VIXL_CHECK(ptr.GetUintRepr() == ptr.GetAddress());
+#endif
+}
+
+TEST(morello_pointers_abstraction) {
+  int var = 42;
+  CheckPointerApi(Pointer<int *>(&var));
+  CheckPointerApi(Pointer<int * const>(&var));
+  CheckPointerApi(Pointer<int * volatile>(&var));
+  CheckPointerApi(Pointer<int * const volatile>(&var));
+  CheckPointerApi(Pointer<uintptr_t>(reinterpret_cast<uintptr_t>(&var)));
+  CheckPointerApi(Pointer<intptr_t>(reinterpret_cast<intptr_t>(&var)));
+}
+
+TEST(morello_pointers_abstraction_factory) {
+  // `WrapPointer` can infer its template type, so we don't have to restate it.
+  int var = 42;
+  CheckPointerApi(WrapPointer(&var));
+  CheckPointerApi(WrapPointer(reinterpret_cast<uintptr_t>(&var)));
+  CheckPointerApi(WrapPointer(reinterpret_cast<intptr_t>(&var)));
+}
+
+#if VIXL_HOST_HAS_CAPABILITIES
+TEST(morello_pointers_abstraction_cap) {
+  int var = 42;
+  CheckPointerApiCap(Pointer<int * __capability>(&var));
+  CheckPointerApiCap(Pointer<int * __capability const>(&var));
+  CheckPointerApiCap(Pointer<int * __capability volatile>(&var));
+  CheckPointerApiCap(Pointer<int * __capability const volatile>(&var));
+  CheckPointerApiCap(Pointer<uintcap_t>(reinterpret_cast<uintcap_t>(&var)));
+  CheckPointerApiCap(Pointer<intcap_t>(reinterpret_cast<intcap_t>(&var)));
+}
+
+TEST(morello_pointers_abstraction_cap_factory) {
+  // `WrapPointer` can infer its template type, so we don't have to restate it.
+  int var = 42;
+  CheckPointerApiCap(WrapPointer(reinterpret_cast<uintcap_t>(&var)));
+  CheckPointerApiCap(WrapPointer(reinterpret_cast<intcap_t>(&var)));
+}
+TEST(morello_flags_cap) {
+  int var = 42424242;
+  int * __capability ptr = &var;
+  VIXL_CHECK(CPU::GetPointerTag(ptr) == 0);
+  int * __capability tagged = CPU::SetPointerTag(ptr, 42);
+  VIXL_CHECK(CPU::GetPointerTag(tagged) == 42);
+  int * __capability untagged = CPU::SetPointerTag(ptr, 0);
+  VIXL_CHECK(untagged == ptr);
+  VIXL_CHECK(cheri_is_equal_exact(untagged, ptr));
+}
+
+#endif
+
+TEST(morello_flags) {
+  int var = 42424242;
+  int * ptr = &var;
+  VIXL_CHECK(CPU::GetPointerTag(ptr) == 0);
+  int * tagged = CPU::SetPointerTag(ptr, 42);
+  VIXL_CHECK(CPU::GetPointerTag(tagged) == 42);
+  int * untagged = CPU::SetPointerTag(ptr, 0);
+  VIXL_CHECK(untagged == ptr);
 }
 
 }  // namespace aarch64

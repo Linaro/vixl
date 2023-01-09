@@ -427,15 +427,29 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
   // Work out the line sizes for each cache, and use them to determine the
   // start addresses.
   uintptr_t start = reinterpret_cast<uintptr_t>(address);
-  uintptr_t dsize = static_cast<uintptr_t>(dcache_line_size_);
-  uintptr_t isize = static_cast<uintptr_t>(icache_line_size_);
-  uintptr_t dline = start & ~(dsize - 1);
-  uintptr_t iline = start & ~(isize - 1);
-
+  size_t dsize = static_cast<size_t>(dcache_line_size_);
+  size_t isize = static_cast<size_t>(icache_line_size_);
   // Cache line sizes are always a power of 2.
   VIXL_ASSERT(IsPowerOf2(dsize));
   VIXL_ASSERT(IsPowerOf2(isize));
+
+  uintptr_t dline = AlignDown(start, dsize);
+  uintptr_t iline = AlignDown(start, isize);
+
   uintptr_t end = start + length;
+
+#if VIXL_HOST_CHERI_PURECAP && defined(VIXL_DEBUG)
+  // Make sure that `address` has bounds that cover the whole set of affected
+  // cache lines. Otherwise, we'll get a capability fault below.
+  // TODO: This results in a rather awkward API, since the caller needs to know
+  // the cache line size. Can we do anything to improve that?
+  ptraddr_t base = cheri_base_get(address);
+  ptraddr_t limit = base + cheri_length_get(address);
+  VIXL_ASSERT(base <= cheri_address_get(dline));
+  VIXL_ASSERT(base <= cheri_address_get(iline));
+  VIXL_ASSERT(limit >= cheri_address_get(AlignUp(end, dsize)));
+  VIXL_ASSERT(limit >= cheri_address_get(AlignUp(end, isize)));
+#endif
 
   do {
     __asm__ __volatile__(
@@ -450,7 +464,11 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
         // memory location. See ARM DDI 0406B page B2-12 for more information.
         "   dc    cvau, %[dline]\n"
         :
+#if VIXL_HOST_CHERI_PURECAP
+        : [dline] "C"(dline)
+#else
         : [dline] "r"(dline)
+#endif
         // This code does not write to memory, but the "memory" dependency
         // prevents GCC from reordering the code.
         : "memory");
@@ -485,7 +503,11 @@ void CPU::EnsureIAndDCacheCoherency(void *address, size_t length) {
         //       u : to the point of Unification
         "   ic   ivau, %[iline]\n"
         :
+#if VIXL_HOST_CHERI_PURECAP
+        : [iline] "C"(iline)
+#else
         : [iline] "r"(iline)
+#endif
         : "memory");
     iline += isize;
   } while (iline < end);

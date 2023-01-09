@@ -75,6 +75,9 @@ class Disassembler : public DecoderVisitor {
 
   // Prints an address, in the general case. It can be code or data. This is
   // used for example to print the target address of an ADR instruction.
+  //
+  // `addr` must be a host pointer, but will be printed in the target address
+  // space, as configured by `MapCodeAddress()`.
   virtual void AppendCodeRelativeAddressToOutput(const Instruction* instr,
                                                  const void* addr);
 
@@ -83,14 +86,27 @@ class Disassembler : public DecoderVisitor {
   // immediate offset.
   // A sub-class can for example override this method to lookup the address and
   // print an appropriate name.
+  //
+  // `addr` must be a host pointer, but will be printed in the target address
+  // space, as configured by `MapCodeAddress()`.
   virtual void AppendCodeRelativeCodeAddressToOutput(const Instruction* instr,
                                                      const void* addr);
 
   // Prints the address of some data.
   // This is used for example to print the source address of a load literal
   // instruction.
+  //
+  // `addr` must be a host pointer, but will be printed in the target address
+  // space, as configured by `MapCodeAddress()`.
   virtual void AppendCodeRelativeDataAddressToOutput(const Instruction* instr,
                                                      const void* addr);
+
+  // Prints a raw, signed address.
+  // This is used to implement some of the functions above, and also to
+  // disassemble position-dependent instructions (such as capability literal
+  // loads).
+  virtual void AppendSignedCodeAddressToOutput(const Instruction* instr,
+                                               int64_t addr);
 
   // Prints a raw, signed address.
   // This is used to implement some of the functions above, and also to
@@ -99,8 +115,15 @@ class Disassembler : public DecoderVisitor {
   virtual void AppendSignedDataAddressToOutput(const Instruction* instr,
                                                int64_t addr);
 
+  // Prints a raw, signed address, which may be data or code.
+  virtual void AppendSignedAddressToOutput(const Instruction* instr,
+                                           int64_t addr);
+
   // Same as the above, but for addresses that are not relative to the code
   // buffer.
+  //
+  // In each case, `addr` is a valid host pointer, and will be not be adjusted
+  // before printing.
   virtual void AppendAddressToOutput(const Instruction* instr,
                                      const void* addr);
   virtual void AppendCodeAddressToOutput(const Instruction* instr,

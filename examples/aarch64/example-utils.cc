@@ -93,7 +93,11 @@ Capinfo::Capinfo(void* __capability c) : name("Capability") {
       "gcvalue %[tmp], %[c]\n\t"
       "str %[tmp], [%[self], %[gcvalue]]\n\t"
       : [tmp] "=&r"(tmp)
+#if VIXL_HOST_CHERI_PURECAP
+      : [self] "C"(this),
+#else
       : [self] "r"(this),
+#endif
         [c] "C"(c),
         [cap] "i"(offsetof(Capinfo, cap)),
         [high64] "i"(offsetof(Capinfo, high64)),
@@ -114,38 +118,49 @@ Capinfo::Capinfo(void* __capability c) : name("Capability") {
 
 // Capinfo (*)(void* __capability cap)
 void GenerateNewCapinfo(MacroAssembler* masm, const char* name) {
-  // AAPCS64:
-  //  - The input (cap) is in c0.
+  // AAPCS64(-cap):
+  //  - The input ('cap') is in c0.
   //  - The caller allocates space for the result and passes it in x8/c8.
-  __ Str(c0, MemOperand(x8, offsetof(Capinfo, cap)));
+
+#if VIXL_HOST_CHERI_PURECAP
+  CRegister result = c8;
+
+  // Capabilities can't be constructed piecewise; load it from a literal pool.
+  __ Ldr(c10, reinterpret_cast<uintptr_t>(name));
+  __ Str(c10, MemOperand(result, offsetof(Capinfo, name)));
+#else
+  Register result = x8;
 
   __ Mov(x10, reinterpret_cast<uintptr_t>(name));
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, name)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, name)));
+#endif
+
+  __ Str(c0, MemOperand(result, offsetof(Capinfo, cap)));
 
   __ Cfhi(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, high64)));
-  __ Str(x0, MemOperand(x8, offsetof(Capinfo, low64)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, high64)));
+  __ Str(x0, MemOperand(result, offsetof(Capinfo, low64)));
 
   __ Gcbase(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gcbase)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gcbase)));
   __ Gcflgs(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gcflgs)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gcflgs)));
   __ Gclen(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gclen)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gclen)));
   __ Gclim(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gclim)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gclim)));
   __ Gcoff(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gcoff)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gcoff)));
   __ Gcperm(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gcperm)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gcperm)));
   __ Gcseal(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gcseal)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gcseal)));
   __ Gctag(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gctag)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gctag)));
   __ Gctype(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gctype)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gctype)));
   __ Gcvalue(x10, c0);
-  __ Str(x10, MemOperand(x8, offsetof(Capinfo, gcvalue)));
+  __ Str(x10, MemOperand(result, offsetof(Capinfo, gcvalue)));
 
   __ Ret();
 }
@@ -174,9 +189,25 @@ void Capinfo::Print() const {
 }
 
 void Capinfo::PrintOneLine() const {
-  printf("%s: 0x%" PRIx64 " [0x%" PRIx64 "-0x%" PRIx64 "]%s\n",
+  std::string perms;
+#if VIXL_HOST_HAS_CAPABILITIES
+  if (gcperm & CHERI_PERM_LOAD) perms += 'r';
+  if (gcperm & CHERI_PERM_STORE) perms += 'w';
+  if (gcperm & CHERI_PERM_EXECUTE) perms += 'x';
+  if (gcperm & CHERI_PERM_LOAD_CAP) perms += 'R';
+  if (gcperm & CHERI_PERM_STORE_CAP) perms += 'W';
+#if VIXL_HOST_IS_MORELLO
+  if (gcperm & (1 << 1)) perms += 'E'; // EXECUTIVE
+#endif
+  if (!perms.empty()) perms += ',';
+#else
+  perms = "unknown,";
+#endif
+
+  printf("%s: 0x%" PRIx64 " [%s,0x%" PRIx64 "-0x%" PRIx64 "]%s\n",
          name,
          gcvalue,
+         perms.c_str(),
          gcbase,
          gclim,
          gcseal ? " (sealed)" : "");

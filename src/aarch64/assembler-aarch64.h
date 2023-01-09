@@ -603,7 +603,7 @@ class Assembler : public vixl::internal::AssemblerBase {
   template <typename T>
   T GetLabelAddress(const Label* label) const {
     VIXL_ASSERT(label->IsBound());
-    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(uintptr_t));
+    VIXL_STATIC_ASSERT(sizeof(T) >= sizeof(ptraddr_t));
     return GetBuffer().GetOffsetAddress<T>(label->GetLocation());
   }
 
