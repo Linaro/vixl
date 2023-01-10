@@ -36,8 +36,7 @@ using namespace vixl::aarch64;
 #define __ masm.
 
 #if defined(__CHERI__) && defined(__aarch64__)
-#include <cheri.h>
-#include <cheri/cheric.h>
+#include <cheriintrin.h>
 
 // This example demonstrates a 'Compiler' component, which generates code into a
 // writable buffer, but returns compiled functions as sealed, executable
@@ -81,7 +80,7 @@ class Compiler {
     // On CheriBSD, DDC does not have the "Execute" permission, so derive `rx_`
     // from PCC instead. We assume that the PCC's bounds are sufficient.
     // TODO: Use `cheri_codeptr` once it is fixed.
-    vaddr_t va = cheri_base_get(rwx);
+    ptraddr_t va = cheri_base_get(rwx);
     asm("cvtp %[rx_], %[va]\n\t"
         "scbndse %[rx_], %[rx_], %[len]\n\r"
         : [rx_] "=&C"(rx_)
@@ -102,13 +101,14 @@ class Compiler {
   byte* __capability GetWritable(size_t min_len) const {
     uint64_t instr_mask = ~((UINT64_C(1) << kInstructionSizeLog2) - 1);
     // These use Morello's `rrlen` and `rrmask` respectively.
-    uint64_t mask = cheri_round_representable_mask(min_len) & instr_mask;
-    uint64_t len = cheri_round_representable_length(min_len);
+    uint64_t mask = cheri_representable_alignment_mask(min_len) & instr_mask;
+    uint64_t len = cheri_representable_length(min_len);
 
     // Round the base up, not down, so we don't return executable memory.
-    vaddr_t base = (cheri_base_get(rw_) + finalised_ + ~mask) & mask;
+    ptraddr_t base = (cheri_base_get(rw_) + finalised_ + ~mask) & mask;
+
     return reinterpret_cast<byte * __capability>(
-        cheri_setboundsexact(cheri_setaddress(rw_, base), len));
+        cheri_bounds_set_exact(cheri_address_set(rw_, base), len));
   }
 
   // Return a sealed, executable capability to the start of the
@@ -120,14 +120,14 @@ class Compiler {
   void* __capability GetExecutable(byte* __capability rw,
                                    size_t min_len,
                                    ISA entry_isa) {
-    VIXL_CHECK(IsAligned<kInstructionSize>(cheri_getaddress(rw)));
+    VIXL_CHECK(cheri_is_aligned(rw, kInstructionSize));
     VIXL_CHECK(IsMultiple<kInstructionSize>(min_len));
-    size_t len = cheri_round_representable_length(min_len);
+    size_t len = cheri_representable_length(min_len);
     finalised_ += len;
     // [base(rw), base(rw) + len] should always be representable, since
     // with valid usage, min_len < length(rw).
     void* __capability fn =
-        cheri_setboundsexact(cheri_copyaddress(rx_, rw), len);
+        cheri_bounds_set_exact(cheri_address_set(rx_, cheri_address_get(rw)), len);
 
     // If we rounded up the length, pad with invalid instructions.
     if (len > min_len) {
@@ -143,11 +143,11 @@ class Compiler {
 
     switch (entry_isa) {
       case ISA::A64:
-        return cheri_sealentry(fn);
+        return cheri_sentry_create(fn);
       case ISA::C64: {
         // Set the bottom bit, so that `blr` enters (or remains in) C64.
         auto fn_c64 = reinterpret_cast<uintcap_t>(fn) + 1;
-        return cheri_sealentry(reinterpret_cast<void * __capability>(fn_c64));
+        return cheri_sentry_create(reinterpret_cast<void * __capability>(fn_c64));
       }
       case ISA::Data:
         VIXL_ABORT_WITH_MSG("Data should not be executable.");
