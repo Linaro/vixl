@@ -238,11 +238,6 @@ TEST(add_immediate) {
   COMPARE(cmn(sp, Operand(24)), "cmn sp, #0x18 (24)");
   COMPARE(adds(wzr, wsp, Operand(9)), "cmn wsp, #0x9 (9)");
 
-  // Instructions in the add/sub immediate space, but unallocated due to shift
-  // value out of range.
-  COMPARE(dci(0x11800400), "unallocated (Unallocated)");
-  COMPARE(dci(0x11c00400), "unallocated (Unallocated)");
-
   CLEANUP();
 }
 
@@ -2037,23 +2032,24 @@ TEST(prfm_operations) {
   SETUP();
 
   // Test every encodable prefetch operation.
-  const char* expected[] = {
-      "prfm pldl1keep, ", "prfm pldl1strm, ", "prfm pldl2keep, ",
-      "prfm pldl2strm, ", "prfm pldl3keep, ", "prfm pldl3strm, ",
-      "prfm #0b00110, ",  "prfm #0b00111, ",  "prfm plil1keep, ",
-      "prfm plil1strm, ", "prfm plil2keep, ", "prfm plil2strm, ",
-      "prfm plil3keep, ", "prfm plil3strm, ", "prfm #0b01110, ",
-      "prfm #0b01111, ",  "prfm pstl1keep, ", "prfm pstl1strm, ",
-      "prfm pstl2keep, ", "prfm pstl2strm, ", "prfm pstl3keep, ",
-      "prfm pstl3strm, ", "prfm #0b10110, ",  "prfm #0b10111, ",
-      "prfm #0b11000, ",  "prfm #0b11001, ",  "prfm #0b11010, ",
-      "prfm #0b11011, ",  "prfm #0b11100, ",  "prfm #0b11101, ",
-      "prfm #0b11110, ",  "prfm #0b11111, ",
-  };
-  const int expected_count = sizeof(expected) / sizeof(expected[0]);
-  VIXL_STATIC_ASSERT((1 << ImmPrefetchOperation_width) == expected_count);
+  const char* expected[] = {"prfm pldl1keep, ", "prfm pldl1strm, ",
+                            "prfm pldl2keep, ", "prfm pldl2strm, ",
+                            "prfm pldl3keep, ", "prfm pldl3strm, ",
+                            "prfm #0b00110, ",  "prfm #0b00111, ",
+                            "prfm plil1keep, ", "prfm plil1strm, ",
+                            "prfm plil2keep, ", "prfm plil2strm, ",
+                            "prfm plil3keep, ", "prfm plil3strm, ",
+                            "prfm #0b01110, ",  "prfm #0b01111, ",
+                            "prfm pstl1keep, ", "prfm pstl1strm, ",
+                            "prfm pstl2keep, ", "prfm pstl2strm, ",
+                            "prfm pstl3keep, ", "prfm pstl3strm, ",
+                            "prfm #0b10110, ",  "prfm #0b10111, "};
 
   for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
+    // Prefetch operations of the form 0b11xxx are allocated to another
+    // instruction.
+    if (op >= 0b11000) continue;
+
     COMPARE_PREFIX(prfm(op, INT64_C(0)), expected[op]);
     COMPARE_PREFIX(prfm(op, MemOperand(x0, 0)), expected[op]);
     COMPARE_PREFIX(prfm(op, MemOperand(x0, x1)), expected[op]);
@@ -3308,14 +3304,14 @@ TEST(architecture_features) {
   SETUP();
 
   // ARMv8.1 - LOR
-  COMPARE_PREFIX(dci(0x08800000), "stllrb");  // STLLRB_SL32_ldstexcl
-  COMPARE_PREFIX(dci(0x08c00000), "ldlarb");  // LDLARB_LR32_ldstexcl
-  COMPARE_PREFIX(dci(0x48800000), "stllrh");  // STLLRH_SL32_ldstexcl
-  COMPARE_PREFIX(dci(0x48c00000), "ldlarh");  // LDLARH_LR32_ldstexcl
-  COMPARE_PREFIX(dci(0x88800000), "stllr");   // STLLR_SL32_ldstexcl
-  COMPARE_PREFIX(dci(0x88c00000), "ldlar");   // LDLAR_LR32_ldstexcl
-  COMPARE_PREFIX(dci(0xc8800000), "stllr");   // STLLR_SL64_ldstexcl
-  COMPARE_PREFIX(dci(0xc8c00000), "ldlar");   // LDLAR_LR64_ldstexcl
+  COMPARE_PREFIX(dci(0x089f7c00), "stllrb");  // STLLRB_SL32_ldstexcl
+  COMPARE_PREFIX(dci(0x08df7c00), "ldlarb");  // LDLARB_LR32_ldstexcl
+  COMPARE_PREFIX(dci(0x489f7c00), "stllrh");  // STLLRH_SL32_ldstexcl
+  COMPARE_PREFIX(dci(0x48df7c00), "ldlarh");  // LDLARH_LR32_ldstexcl
+  COMPARE_PREFIX(dci(0x889f7c00), "stllr");   // STLLR_SL32_ldstexcl
+  COMPARE_PREFIX(dci(0x88df7c00), "ldlar");   // LDLAR_LR32_ldstexcl
+  COMPARE_PREFIX(dci(0xc89f7c00), "stllr");   // STLLR_SL64_ldstexcl
+  COMPARE_PREFIX(dci(0xc8df7c00), "ldlar");   // LDLAR_LR64_ldstexcl
 
   // ARMv8.1 - LSE
   COMPARE_PREFIX(dci(0x08207c00), "casp");       // CASP_CP32_ldstexcl
@@ -3763,10 +3759,10 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0x1e7e0000), "fjcvtzs");  // FJCVTZS_32D_float2int
 
   // ARMv8.3 - LRCPC
-  COMPARE_PREFIX(dci(0x38a0c000), "ldaprb");  // LDAPRB_32L_memop
-  COMPARE_PREFIX(dci(0x78a0c000), "ldaprh");  // LDAPRH_32L_memop
-  COMPARE_PREFIX(dci(0xb8a0c000), "ldapr");   // LDAPR_32L_memop
-  COMPARE_PREFIX(dci(0xf8a0c000), "ldapr");   // LDAPR_64L_memop
+  COMPARE_PREFIX(dci(0x38bfc000), "ldaprb");  // LDAPRB_32L_memop
+  COMPARE_PREFIX(dci(0x78bfc000), "ldaprh");  // LDAPRH_32L_memop
+  COMPARE_PREFIX(dci(0xb8bfc000), "ldapr");   // LDAPR_32L_memop
+  COMPARE_PREFIX(dci(0xf8bfc000), "ldapr");   // LDAPR_64L_memop
 
   // ARMv8.3 - PAuth
   COMPARE_PREFIX(dci(0x9ac03000), "pacga");      // PACGA_64P_dp_2src

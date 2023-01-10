@@ -803,6 +803,12 @@ void Disassembler::VisitAddSubShifted(const Instruction *instr) {
   const char *form_cmp = "'Rn, 'Rm'NDP";
   const char *form_neg = "'Rd, 'Rm'NDP";
 
+  if (instr->GetShiftDP() == ROR) {
+    // Add/sub/adds/subs don't allow ROR as a shift mode.
+    VisitUnallocated(instr);
+    return;
+  }
+
   switch (form_hash_) {
     case "adds_32_addsub_shift"_h:
     case "adds_64_addsub_shift"_h:
