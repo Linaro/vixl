@@ -184,9 +184,11 @@ void CodeBuffer::Grow(size_t new_capacity) {
 #elif defined(VIXL_CODE_BUFFER_MMAP) && defined(__FreeBSD__)
   // FreeBSD does not implement `mremap`.
   // Try to allocate an extension immediately after the existing one.
+  int prot_max = PROT_MAX(PROT_READ | PROT_WRITE | PROT_EXEC);
+  int prot = PROT_READ | PROT_WRITE;
   void* extra = mmap(buffer_ + capacity_,
                      new_capacity - capacity_,
-                     PROT_READ | PROT_WRITE,
+                     prot | prot_max,
                      MAP_FIXED | MAP_EXCL | MAP_PRIVATE | MAP_ANON,
                      -1,
                      0);
@@ -194,7 +196,7 @@ void CodeBuffer::Grow(size_t new_capacity) {
     // We can't extend the buffer in-place, so allocate a new one.
     void* new_buffer = mmap(nullptr,
                             new_capacity,
-                            PROT_READ | PROT_WRITE,
+                            prot | prot_max,
                             MAP_PRIVATE | MAP_ANON,
                             -1,
                             0);
