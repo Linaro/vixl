@@ -6765,6 +6765,9 @@ TEST(system_msr) {
   __ Cinc(x7, x7, hs);  // C
   __ Cinc(x7, x7, vc);  // !V
 
+  Register old_fpcr = x15;
+  __ Mrs(old_fpcr, FPCR);
+
   // All core FPCR fields must be writable.
   __ Mov(x8, fpcr_core);
   __ Msr(FPCR, x8);
@@ -6798,6 +6801,8 @@ TEST(system_msr) {
   __ Msr(FPCR, x10);
   __ Mrs(x10, FPCR);
 #endif
+
+  __ Msr(FPCR, old_fpcr);
 
   END();
 
