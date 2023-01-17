@@ -5239,18 +5239,18 @@ void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
   unsigned src = instr->GetRn();
 
   switch (instr->Mask(DataProcessing1SourceMask)) {
-#define DEFINE_PAUTH_FUNCS(SUFFIX, KEY, D)          \
-  case PAC##SUFFIX: {                               \
-    uint64_t mod = ReadXRegister(src);              \
-    uint64_t ptr = ReadXRegister(dst);              \
-    WriteXRegister(dst, AddPAC(ptr, mod, KEY, D));  \
-    break;                                          \
-  }                                                 \
-  case AUT##SUFFIX: {                               \
-    uint64_t mod = ReadXRegister(src);              \
-    uint64_t ptr = ReadXRegister(dst);              \
-    WriteXRegister(dst, AuthPAC(ptr, mod, KEY, D)); \
-    break;                                          \
+#define DEFINE_PAUTH_FUNCS(SUFFIX, KEY, D)                  \
+  case PAC##SUFFIX: {                                       \
+    uint64_t mod = ReadXRegister(src, Reg31IsStackPointer); \
+    uint64_t ptr = ReadXRegister(dst);                      \
+    WriteXRegister(dst, AddPAC(ptr, mod, KEY, D));          \
+    break;                                                  \
+  }                                                         \
+  case AUT##SUFFIX: {                                       \
+    uint64_t mod = ReadXRegister(src, Reg31IsStackPointer); \
+    uint64_t ptr = ReadXRegister(dst);                      \
+    WriteXRegister(dst, AuthPAC(ptr, mod, KEY, D));         \
+    break;                                                  \
   }
 
     PAUTH_MODES_REGISTER_CONTEXT(DEFINE_PAUTH_FUNCS)

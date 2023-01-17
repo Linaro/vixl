@@ -1916,6 +1916,34 @@ TEST(pacga_xpaci_xpacd) {
   }
 }
 
+TEST(pac_sp_modifier) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+
+  __ Mov(x0, 0x0000000012345678);
+  __ Mov(x1, x0);
+  __ Mov(x10, sp);
+
+  // Generate PACs using sp and register containing a copy of sp.
+  __ Pacia(x0, x10);
+  __ Pacia(x1, sp);
+
+  // Authenticate the pointers, exchanging (equal) modifiers.
+  __ Mov(x2, x0);
+  __ Mov(x3, x1);
+  __ Autia(x2, sp);
+  __ Autia(x3, x10);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(x0, x1);
+    ASSERT_EQUAL_64(x2, x3);
+  }
+}
 
 TEST(label) {
   SETUP();
