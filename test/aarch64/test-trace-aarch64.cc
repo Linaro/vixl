@@ -371,6 +371,16 @@ static void GenerateTestSequenceBase(MacroAssembler* masm) {
   __ uxtw(w8, w9);
   __ uxtw(x10, x11);
 
+  // Regression tests.
+  __ stp(x10, xzr, MemOperand(sp, -16, PreIndex));
+  __ ldp(x10, xzr, MemOperand(sp, 16, PostIndex));
+  __ str(xzr, MemOperand(sp, -16, PreIndex));
+  __ ldrsb(xzr, MemOperand(sp, 16, PostIndex));
+  __ str(xzr, MemOperand(sp, -16, PreIndex));
+  __ ldrsh(xzr, MemOperand(sp, 16, PostIndex));
+  __ str(xzr, MemOperand(sp, -16, PreIndex));
+  __ ldrsw(xzr, MemOperand(sp, 16, PostIndex));
+
   // Branch tests.
   {
     Label end;

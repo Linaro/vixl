@@ -2643,7 +2643,7 @@
       {"bfdot_asimdelem_e"_h, &VISITORCLASS::VisitUnimplemented},              \
       {"bfdot_asimdsame2_d"_h, &VISITORCLASS::VisitUnimplemented},             \
       {"bfmlal_asimdelem_f"_h, &VISITORCLASS::VisitUnimplemented},             \
-      {"bfmlal_asimdsame2_f"_h, &VISITORCLASS::VisitUnimplemented},           \
+      {"bfmlal_asimdsame2_f"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"bfmmla_asimdsame2_e"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"dsb_bon_barriers"_h, &VISITORCLASS::VisitUnimplemented},               \
       {"eor3_vvv16_crypto4"_h, &VISITORCLASS::VisitUnimplemented},             \
@@ -2689,13 +2689,13 @@
       {"xar_vvv2_crypto3_imm6"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"bfcvt_z_p_z_s2bf"_h, &VISITORCLASS::VisitUnimplemented},               \
       {"bfcvtnt_z_p_z_s2bf"_h, &VISITORCLASS::VisitUnimplemented},             \
-      {"bfdot_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                   \
-      {"bfdot_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                  \
-      {"bfmlalb_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                 \
-      {"bfmlalb_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                \
-      {"bfmlalt_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                 \
-      {"bfmlalt_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                \
-      {"bfmmla_z_zzz"_h, &VISITORCLASS::VisitUnimplemented}, {                \
+      {"bfdot_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                    \
+      {"bfdot_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                   \
+      {"bfmlalb_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                  \
+      {"bfmlalb_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                 \
+      {"bfmlalt_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                  \
+      {"bfmlalt_z_zzzi"_h, &VISITORCLASS::VisitUnimplemented},                 \
+      {"bfmmla_z_zzz"_h, &VISITORCLASS::VisitUnimplemented}, {                 \
     "unallocated"_h, &VISITORCLASS::VisitUnallocated                           \
   }
 

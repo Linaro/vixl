@@ -1753,7 +1753,9 @@ void Simulator::PrintAccess(int code,
   VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
   VIXL_ASSERT((strcmp(op, "->") == 0) || (strcmp(op, "<-") == 0));
   if ((format & kPrintRegPartial) == 0) {
-    registers_[code].NotifyRegisterLogged();
+    if (code != kZeroRegCode) {
+      registers_[code].NotifyRegisterLogged();
+    }
   }
   // Scalar-format accesses use a simple format:
   //   "# {reg}: 0x{value} -> {address}"
@@ -1985,7 +1987,9 @@ void Simulator::PrintRead(int rt_code,
                           PrintRegisterFormat format,
                           uintptr_t address) {
   VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-  registers_[rt_code].NotifyRegisterLogged();
+  if (rt_code != kZeroRegCode) {
+    registers_[rt_code].NotifyRegisterLogged();
+  }
   PrintAccess(rt_code, format, "<-", address);
 }
 
@@ -2004,7 +2008,9 @@ void Simulator::PrintExtendingRead(int rt_code,
   // For sign- and zero-extension, make it clear that the resulting register
   // value is different from what is loaded from memory.
   VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-  registers_[rt_code].NotifyRegisterLogged();
+  if (rt_code != kZeroRegCode) {
+    registers_[rt_code].NotifyRegisterLogged();
+  }
   PrintRegister(rt_code, format);
   PrintPartialAccess(1,
                      0,
@@ -2030,7 +2036,9 @@ void Simulator::PrintWrite(int rt_code,
   // value, only print the relevant part of the value.
   format = GetPrintRegPartial(format);
   VIXL_ASSERT(GetPrintRegLaneCount(format) == 1);
-  registers_[rt_code].NotifyRegisterLogged();
+  if (rt_code != kZeroRegCode) {
+    registers_[rt_code].NotifyRegisterLogged();
+  }
   PrintAccess(rt_code, format, "->", address);
 }
 
