@@ -3300,6 +3300,64 @@ TEST(mops) {
   CLEANUP();
 }
 
+TEST(cssc) {
+  SETUP();
+
+  COMPARE_MACRO(Abs(w0, w22), "abs w0, w22");
+  COMPARE_MACRO(Abs(x0, x23), "abs x0, x23");
+  COMPARE_MACRO(Abs(wzr, wzr), "abs wzr, wzr");
+  COMPARE_MACRO(Cnt(w21, w30), "cnt w21, w30");
+  COMPARE_MACRO(Cnt(x19, x9), "cnt x19, x9");
+  COMPARE_MACRO(Cnt(xzr, x30), "cnt xzr, x30");
+  COMPARE_MACRO(Ctz(w3, w5), "ctz w3, w5");
+  COMPARE_MACRO(Ctz(x3, x28), "ctz x3, x28");
+  COMPARE_MACRO(Ctz(w0, wzr), "ctz w0, wzr");
+
+  COMPARE_MACRO(Smax(w5, w9, w10), "smax w5, w9, w10");
+  COMPARE_MACRO(Smax(x6, x8, x9), "smax x6, x8, x9");
+  COMPARE_MACRO(Smin(w11, w8, w17), "smin w11, w8, w17");
+  COMPARE_MACRO(Smin(x12, x10, x20), "smin x12, x10, x20");
+  COMPARE_MACRO(Umax(w5, w9, w10), "umax w5, w9, w10");
+  COMPARE_MACRO(Umax(x6, x8, x9), "umax x6, x8, x9");
+  COMPARE_MACRO(Umin(w11, w8, w17), "umin w11, w8, w17");
+  COMPARE_MACRO(Umin(x12, x10, x20), "umin x12, x10, x20");
+
+  COMPARE_MACRO(Smax(w5, w9, 127), "smax w5, w9, #127");
+  COMPARE_MACRO(Smax(x6, x8, -128), "smax x6, x8, #-128");
+  COMPARE_MACRO(Smin(w19, w20, -1), "smin w19, w20, #-1");
+  COMPARE_MACRO(Smin(x30, xzr, 0), "smin x30, xzr, #0");
+  COMPARE_MACRO(Umax(w5, w9, 255), "umax w5, w9, #255");
+  COMPARE_MACRO(Umax(x6, x8, 128), "umax x6, x8, #128");
+  COMPARE_MACRO(Umin(wzr, w20, 1), "umin wzr, w20, #1");
+  COMPARE_MACRO(Umin(x30, xzr, 0), "umin x30, xzr, #0");
+
+  COMPARE_MACRO(Smax(w5, w6, 128),
+                "mov w16, #0x80\n"
+                "smax w5, w6, w16");
+  COMPARE_MACRO(Smax(x10, x11, -129),
+                "mov x16, #0xffffffffffffff7f\n"
+                "smax x10, x11, x16");
+  COMPARE_MACRO(Smin(w5, w6, 128),
+                "mov w16, #0x80\n"
+                "smin w5, w6, w16");
+  COMPARE_MACRO(Smin(x10, x11, -129),
+                "mov x16, #0xffffffffffffff7f\n"
+                "smin x10, x11, x16");
+  COMPARE_MACRO(Umax(w5, w6, 256),
+                "mov w16, #0x100\n"
+                "umax w5, w6, w16");
+  COMPARE_MACRO(Umax(x10, x11, 0x4242),
+                "mov x16, #0x4242\n"
+                "umax x10, x11, x16");
+  COMPARE_MACRO(Umin(w5, w6, 256),
+                "mov w16, #0x100\n"
+                "umin w5, w6, w16");
+  COMPARE_MACRO(Umin(x10, x11, 0x4242),
+                "mov x16, #0x4242\n"
+                "umin x10, x11, x16");
+  CLEANUP();
+}
+
 TEST(architecture_features) {
   SETUP();
 

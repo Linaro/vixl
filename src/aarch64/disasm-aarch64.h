@@ -186,6 +186,7 @@ class Disassembler : public DecoderVisitor {
 
   void DisassembleCpy(const Instruction* instr);
   void DisassembleSet(const Instruction* instr);
+  void DisassembleMinMaxImm(const Instruction* instr);
 
   void DisassembleSVEShiftLeftImm(const Instruction* instr);
   void DisassembleSVEShiftRightImm(const Instruction* instr);

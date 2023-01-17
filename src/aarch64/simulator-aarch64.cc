@@ -468,6 +468,28 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
       {"seten_set_memcms"_h, &Simulator::SimulateSetE},
       {"setge_set_memcms"_h, &Simulator::SimulateSetE},
       {"setgen_set_memcms"_h, &Simulator::SimulateSetE},
+      {"abs_32_dp_1src"_h, &Simulator::VisitDataProcessing1Source},
+      {"abs_64_dp_1src"_h, &Simulator::VisitDataProcessing1Source},
+      {"cnt_32_dp_1src"_h, &Simulator::VisitDataProcessing1Source},
+      {"cnt_64_dp_1src"_h, &Simulator::VisitDataProcessing1Source},
+      {"ctz_32_dp_1src"_h, &Simulator::VisitDataProcessing1Source},
+      {"ctz_64_dp_1src"_h, &Simulator::VisitDataProcessing1Source},
+      {"smax_32_dp_2src"_h, &Simulator::SimulateSignedMinMax},
+      {"smax_64_dp_2src"_h, &Simulator::SimulateSignedMinMax},
+      {"smin_32_dp_2src"_h, &Simulator::SimulateSignedMinMax},
+      {"smin_64_dp_2src"_h, &Simulator::SimulateSignedMinMax},
+      {"smax_32_minmax_imm"_h, &Simulator::SimulateSignedMinMax},
+      {"smax_64_minmax_imm"_h, &Simulator::SimulateSignedMinMax},
+      {"smin_32_minmax_imm"_h, &Simulator::SimulateSignedMinMax},
+      {"smin_64_minmax_imm"_h, &Simulator::SimulateSignedMinMax},
+      {"umax_32_dp_2src"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umax_64_dp_2src"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umin_32_dp_2src"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umin_64_dp_2src"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umax_32u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umax_64u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umin_32u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
+      {"umin_64u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
   };
   return &form_to_visitor;
 }
@@ -5225,111 +5247,101 @@ void Simulator::VisitConditionalSelect(const Instruction* instr) {
 }
 
 
-#define PAUTH_MODES_REGISTER_CONTEXT(V) \
-  V(IA, kPACKeyIA, kInstructionPointer) \
-  V(IB, kPACKeyIB, kInstructionPointer) \
-  V(DA, kPACKeyDA, kDataPointer)        \
-  V(DB, kPACKeyDB, kDataPointer)
-
-#define PAUTH_MODES_ZERO_CONTEXT(V)      \
-  V(IZA, kPACKeyIA, kInstructionPointer) \
-  V(IZB, kPACKeyIB, kInstructionPointer) \
-  V(DZA, kPACKeyDA, kDataPointer)        \
-  V(DZB, kPACKeyDB, kDataPointer)
+#define PAUTH_MODES_REGISTER_CONTEXT(V)   \
+  V(i, a, kPACKeyIA, kInstructionPointer) \
+  V(i, b, kPACKeyIB, kInstructionPointer) \
+  V(d, a, kPACKeyDA, kDataPointer)        \
+  V(d, b, kPACKeyDB, kDataPointer)
 
 void Simulator::VisitDataProcessing1Source(const Instruction* instr) {
   unsigned dst = instr->GetRd();
   unsigned src = instr->GetRn();
+  Reg31Mode r31_pac = Reg31IsStackPointer;
 
-  switch (instr->Mask(DataProcessing1SourceMask)) {
-#define DEFINE_PAUTH_FUNCS(SUFFIX, KEY, D)                  \
-  case PAC##SUFFIX: {                                       \
-    uint64_t mod = ReadXRegister(src, Reg31IsStackPointer); \
-    uint64_t ptr = ReadXRegister(dst);                      \
-    WriteXRegister(dst, AddPAC(ptr, mod, KEY, D));          \
-    break;                                                  \
-  }                                                         \
-  case AUT##SUFFIX: {                                       \
-    uint64_t mod = ReadXRegister(src, Reg31IsStackPointer); \
-    uint64_t ptr = ReadXRegister(dst);                      \
-    WriteXRegister(dst, AuthPAC(ptr, mod, KEY, D));         \
-    break;                                                  \
+  switch (form_hash_) {
+#define DEFINE_PAUTH_FUNCS(SUF0, SUF1, KEY, D)      \
+  case "pac" #SUF0 "z" #SUF1 "_64z_dp_1src"_h:      \
+    VIXL_ASSERT(src == kZeroRegCode);               \
+    r31_pac = Reg31IsZeroRegister;                  \
+    VIXL_FALLTHROUGH();                             \
+  case "pac" #SUF0 #SUF1 "_64p_dp_1src"_h: {        \
+    uint64_t mod = ReadXRegister(src, r31_pac);     \
+    uint64_t ptr = ReadXRegister(dst);              \
+    WriteXRegister(dst, AddPAC(ptr, mod, KEY, D));  \
+    break;                                          \
+  }                                                 \
+  case "aut" #SUF0 "z" #SUF1 "_64z_dp_1src"_h:      \
+    VIXL_ASSERT(src == kZeroRegCode);               \
+    r31_pac = Reg31IsZeroRegister;                  \
+    VIXL_FALLTHROUGH();                             \
+  case "aut" #SUF0 #SUF1 "_64p_dp_1src"_h: {        \
+    uint64_t mod = ReadXRegister(src, r31_pac);     \
+    uint64_t ptr = ReadXRegister(dst);              \
+    WriteXRegister(dst, AuthPAC(ptr, mod, KEY, D)); \
+    break;                                          \
   }
-
     PAUTH_MODES_REGISTER_CONTEXT(DEFINE_PAUTH_FUNCS)
 #undef DEFINE_PAUTH_FUNCS
 
-#define DEFINE_PAUTH_FUNCS(SUFFIX, KEY, D)          \
-  case PAC##SUFFIX: {                               \
-    if (src != kZeroRegCode) {                      \
-      VIXL_UNIMPLEMENTED();                         \
-    }                                               \
-    uint64_t ptr = ReadXRegister(dst);              \
-    WriteXRegister(dst, AddPAC(ptr, 0x0, KEY, D));  \
-    break;                                          \
-  }                                                 \
-  case AUT##SUFFIX: {                               \
-    if (src != kZeroRegCode) {                      \
-      VIXL_UNIMPLEMENTED();                         \
-    }                                               \
-    uint64_t ptr = ReadXRegister(dst);              \
-    WriteXRegister(dst, AuthPAC(ptr, 0x0, KEY, D)); \
-    break;                                          \
-  }
-
-    PAUTH_MODES_ZERO_CONTEXT(DEFINE_PAUTH_FUNCS)
-#undef DEFINE_PAUTH_FUNCS
-
-    case XPACI:
-      if (src != kZeroRegCode) {
-        VIXL_UNIMPLEMENTED();
-      }
+    case "xpaci_64z_dp_1src"_h:
       WriteXRegister(dst, StripPAC(ReadXRegister(dst), kInstructionPointer));
       break;
-    case XPACD:
-      if (src != kZeroRegCode) {
-        VIXL_UNIMPLEMENTED();
-      }
+    case "xpacd_64z_dp_1src"_h:
       WriteXRegister(dst, StripPAC(ReadXRegister(dst), kDataPointer));
       break;
-    case RBIT_w:
+    case "rbit_32_dp_1src"_h:
       WriteWRegister(dst, ReverseBits(ReadWRegister(src)));
       break;
-    case RBIT_x:
+    case "rbit_64_dp_1src"_h:
       WriteXRegister(dst, ReverseBits(ReadXRegister(src)));
       break;
-    case REV16_w:
+    case "rev16_32_dp_1src"_h:
       WriteWRegister(dst, ReverseBytes(ReadWRegister(src), 1));
       break;
-    case REV16_x:
+    case "rev16_64_dp_1src"_h:
       WriteXRegister(dst, ReverseBytes(ReadXRegister(src), 1));
       break;
-    case REV_w:
+    case "rev_32_dp_1src"_h:
       WriteWRegister(dst, ReverseBytes(ReadWRegister(src), 2));
       break;
-    case REV32_x:
+    case "rev32_64_dp_1src"_h:
       WriteXRegister(dst, ReverseBytes(ReadXRegister(src), 2));
       break;
-    case REV_x:
+    case "rev_64_dp_1src"_h:
       WriteXRegister(dst, ReverseBytes(ReadXRegister(src), 3));
       break;
-    case CLZ_w:
+    case "clz_32_dp_1src"_h:
       WriteWRegister(dst, CountLeadingZeros(ReadWRegister(src)));
       break;
-    case CLZ_x:
+    case "clz_64_dp_1src"_h:
       WriteXRegister(dst, CountLeadingZeros(ReadXRegister(src)));
       break;
-    case CLS_w:
+    case "cls_32_dp_1src"_h:
       WriteWRegister(dst, CountLeadingSignBits(ReadWRegister(src)));
       break;
-    case CLS_x:
+    case "cls_64_dp_1src"_h:
       WriteXRegister(dst, CountLeadingSignBits(ReadXRegister(src)));
       break;
-    default:
-      VIXL_UNIMPLEMENTED();
+    case "abs_32_dp_1src"_h:
+      WriteWRegister(dst, Abs(ReadWRegister(src)));
+      break;
+    case "abs_64_dp_1src"_h:
+      WriteXRegister(dst, Abs(ReadXRegister(src)));
+      break;
+    case "cnt_32_dp_1src"_h:
+      WriteWRegister(dst, CountSetBits(ReadWRegister(src)));
+      break;
+    case "cnt_64_dp_1src"_h:
+      WriteXRegister(dst, CountSetBits(ReadXRegister(src)));
+      break;
+    case "ctz_32_dp_1src"_h:
+      WriteWRegister(dst, CountTrailingZeros(ReadWRegister(src)));
+      break;
+    case "ctz_64_dp_1src"_h:
+      WriteXRegister(dst, CountTrailingZeros(ReadXRegister(src)));
+      break;
   }
 }
-
 
 uint32_t Simulator::Poly32Mod2(unsigned n, uint64_t data, uint32_t poly) {
   VIXL_ASSERT((n > 32) && (n <= 64));
@@ -5507,6 +5519,81 @@ void Simulator::VisitDataProcessing2Source(const Instruction* instr) {
   WriteRegister(reg_size, instr->GetRd(), result);
 }
 
+void Simulator::SimulateSignedMinMax(const Instruction* instr) {
+  int32_t wn = ReadWRegister(instr->GetRn());
+  int32_t wm = ReadWRegister(instr->GetRm());
+  int64_t xn = ReadXRegister(instr->GetRn());
+  int64_t xm = ReadXRegister(instr->GetRm());
+  int32_t imm = instr->ExtractSignedBits(17, 10);
+  int dst = instr->GetRd();
+
+  switch (form_hash_) {
+    case "smax_64_minmax_imm"_h:
+    case "smin_64_minmax_imm"_h:
+      xm = imm;
+      break;
+    case "smax_32_minmax_imm"_h:
+    case "smin_32_minmax_imm"_h:
+      wm = imm;
+      break;
+  }
+
+  switch (form_hash_) {
+    case "smax_32_minmax_imm"_h:
+    case "smax_32_dp_2src"_h:
+      WriteWRegister(dst, std::max(wn, wm));
+      break;
+    case "smax_64_minmax_imm"_h:
+    case "smax_64_dp_2src"_h:
+      WriteXRegister(dst, std::max(xn, xm));
+      break;
+    case "smin_32_minmax_imm"_h:
+    case "smin_32_dp_2src"_h:
+      WriteWRegister(dst, std::min(wn, wm));
+      break;
+    case "smin_64_minmax_imm"_h:
+    case "smin_64_dp_2src"_h:
+      WriteXRegister(dst, std::min(xn, xm));
+      break;
+  }
+}
+
+void Simulator::SimulateUnsignedMinMax(const Instruction* instr) {
+  uint64_t xn = ReadXRegister(instr->GetRn());
+  uint64_t xm = ReadXRegister(instr->GetRm());
+  uint32_t imm = instr->ExtractBits(17, 10);
+  int dst = instr->GetRd();
+
+  switch (form_hash_) {
+    case "umax_64u_minmax_imm"_h:
+    case "umax_32u_minmax_imm"_h:
+    case "umin_64u_minmax_imm"_h:
+    case "umin_32u_minmax_imm"_h:
+      xm = imm;
+      break;
+  }
+
+  switch (form_hash_) {
+    case "umax_32u_minmax_imm"_h:
+    case "umax_32_dp_2src"_h:
+      xn &= 0xffff'ffff;
+      xm &= 0xffff'ffff;
+      VIXL_FALLTHROUGH();
+    case "umax_64u_minmax_imm"_h:
+    case "umax_64_dp_2src"_h:
+      WriteXRegister(dst, std::max(xn, xm));
+      break;
+    case "umin_32u_minmax_imm"_h:
+    case "umin_32_dp_2src"_h:
+      xn &= 0xffff'ffff;
+      xm &= 0xffff'ffff;
+      VIXL_FALLTHROUGH();
+    case "umin_64u_minmax_imm"_h:
+    case "umin_64_dp_2src"_h:
+      WriteXRegister(dst, std::min(xn, xm));
+      break;
+  }
+}
 
 void Simulator::VisitDataProcessing3Source(const Instruction* instr) {
   unsigned reg_size = instr->GetSixtyFourBits() ? kXRegSize : kWRegSize;

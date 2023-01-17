@@ -1397,6 +1397,8 @@ class Simulator : public DecoderVisitor {
   void SimulateSetE(const Instruction* instr);
   void SimulateSetGP(const Instruction* instr);
   void SimulateSetGM(const Instruction* instr);
+  void SimulateSignedMinMax(const Instruction* instr);
+  void SimulateUnsignedMinMax(const Instruction* instr);
 
 
   // Integer register accessors.

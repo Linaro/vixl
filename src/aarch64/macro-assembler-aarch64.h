@@ -7777,6 +7777,29 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   MOPS_LIST(DEFINE_MACRO_ASM_FUNC)
 #undef DEFINE_MACRO_ASM_FUNC
 
+  void Abs(const Register& rd, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    abs(rd, rn);
+  }
+
+  void Cnt(const Register& rd, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    cnt(rd, rn);
+  }
+
+  void Ctz(const Register& rd, const Register& rn) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ctz(rd, rn);
+  }
+
+  void Smax(const Register& rd, const Register& rn, const Operand& op);
+  void Smin(const Register& rd, const Register& rn, const Operand& op);
+  void Umax(const Register& rd, const Register& rn, const Operand& op);
+  void Umin(const Register& rd, const Register& rn, const Operand& op);
+
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
     return new Literal<T>(value,
