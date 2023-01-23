@@ -145,23 +145,38 @@ TEST(morello_asm_bx) {
   START();
 
   {
-    ExactAssemblyScope guard(&masm, 2 * kInstructionSize);
+    ExactAssemblyScope guard(&masm, 8 * kInstructionSize);
     Label a64, c64;
 
     VIXL_ASSERT(masm.GetISA() == ISA::A64);
+
+    // In A64, this is: `adr x0, pc+0`
+    // In C64, this is: `adr c0, pcc+0`
+    __ dci(ADR | c0.GetCode());
+    __ gctag(x0, c0);  // Set x0 = 0 for A64, or 1 for C64.
+
     __ bx(&c64);
     __ SetISA(ISA::C64);
     __ bind(&c64);
+
+    __ dci(ADR | c1.GetCode());
+    __ gctag(x1, c1);
+
     __ bx(&a64);
     __ SetISA(ISA::A64);
     __ bind(&a64);
+
+    __ dci(ADR | c2.GetCode());
+    __ gctag(x2, c2);
   }
 
   END();
 
   if (CAN_RUN()) {
-    VIXL_UNIMPLEMENTED();
-    // TODO: Check that the ISA was actually switched.
+    RUN();
+    ASSERT_EQUAL_64(0, x0);
+    ASSERT_EQUAL_64(1, x1);
+    ASSERT_EQUAL_64(0, x2);
   } else {
     DISASSEMBLE();
   }
