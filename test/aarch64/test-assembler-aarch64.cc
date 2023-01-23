@@ -11436,6 +11436,9 @@ TEST(load_store_tagged_immediate_offset) {
       VIXL_ASSERT(kMaxDataLength >= offset);
 
       END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
       if (CAN_RUN()) {
         RUN();
 
@@ -11446,6 +11449,7 @@ TEST(load_store_tagged_immediate_offset) {
           VIXL_CHECK(src[k] == dst[k]);
         }
       }
+#endif
     }
   }
 }
@@ -11605,6 +11609,9 @@ TEST(load_store_tagged_immediate_preindex) {
       VIXL_ASSERT(kMaxDataLength >= data_length);
 
       END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
       if (CAN_RUN()) {
         RUN();
 
@@ -11617,6 +11624,7 @@ TEST(load_store_tagged_immediate_preindex) {
           VIXL_CHECK(src[k] == dst[k]);
         }
       }
+#endif
     }
   }
 }
@@ -11771,6 +11779,9 @@ TEST(load_store_tagged_immediate_postindex) {
       VIXL_ASSERT(kMaxDataLength >= data_length);
 
       END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
       if (CAN_RUN()) {
         RUN();
 
@@ -11783,6 +11794,7 @@ TEST(load_store_tagged_immediate_postindex) {
           VIXL_CHECK(src[k] == dst[k]);
         }
       }
+#endif
     }
   }
 }
@@ -11892,6 +11904,9 @@ TEST(load_store_tagged_register_offset) {
         VIXL_ASSERT(kMaxDataLength >= data_length);
 
         END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
         if (CAN_RUN()) {
           RUN();
 
@@ -11905,6 +11920,7 @@ TEST(load_store_tagged_register_offset) {
             VIXL_CHECK(src[k] == dst[k]);
           }
         }
+#endif
       }
     }
   }
@@ -11931,12 +11947,16 @@ TEST(load_store_tagged_register_postindex) {
       // TODO: add other instructions (ld2-4, st1-4) as they become available.
       END();
 
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
       if (CAN_RUN()) {
         RUN();
 
         ASSERT_EQUAL_128(0x0f0e0d0c0b0a0908, 0x0706050403020100, q0);
         ASSERT_EQUAL_64(src_tagged + offset_tagged, x10);
       }
+#endif
     }
   }
 }
@@ -11965,11 +11985,15 @@ TEST(branch_tagged) {
   __ Bind(&done);
 
   END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
   if (CAN_RUN()) {
     RUN();
 
     ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
   }
+#endif
 }
 
 
@@ -12001,11 +12025,15 @@ TEST(branch_and_link_tagged) {
   __ Bind(&done);
 
   END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
   if (CAN_RUN()) {
     RUN();
 
     ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
   }
+#endif
 }
 
 
@@ -12043,12 +12071,17 @@ TEST(branch_tagged_and_adr_adrp) {
   __ Bind(&done);
 
   END();
+// TODO: FreeBSD and CheriBSD do not currently enable TBI.
+// https://github.com/CTSRD-CHERI/cheribsd/issues/1628
+#ifndef __FreeBSD__
   if (CAN_RUN()) {
     RUN();
 
     ASSERT_EQUAL_64(1 << kAddressTagWidth, x1);
   }
+#endif
 }
+
 
 TEST(system_sys) {
   SETUP();
