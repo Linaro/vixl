@@ -300,6 +300,23 @@ class CPURegister {
   ZRegister Z() const;
   PRegister P() const;
 
+  // Return a register with the specified size, aliasing this one.
+  // This is valid only for unqualified scalar formats.
+  //
+  // For example:
+  //   x0.WithSizeInBits(kCRegSize) returns c0.
+  CPURegister WithSizeInBits(int size_in_bits) const;
+  // For example:
+  //   x0.WithSizeInBytes(sizeof(void*)) returns c0 on a purecap host.
+  CPURegister WithSizeInBytes(int size_in_bytes) const {
+    return WithSizeInBits(size_in_bytes * kBitsPerByte);
+  }
+  // For example:
+  //   x0.WithSameSizeAs(c12) returns c0.
+  CPURegister WithSameSizeAs(CPURegister other) const {
+    return WithSizeInBits(other.GetSizeInBits());
+  }
+
   // Utilities for kRegister and kCRegister types.
 
   bool IsZero() const {

@@ -55,6 +55,13 @@ TEST(morello_c_registers) {
   VIXL_CHECK(c0.Is(x0.C()));
   VIXL_CHECK(c0.Is(w0.C()));
 
+  VIXL_CHECK(x0.WithSizeInBits(kCRegSize).Is(c0));
+  VIXL_CHECK(x0.WithSizeInBytes(kCRegSizeInBytes).Is(c0));
+  VIXL_CHECK(x0.WithSameSizeAs(c12).Is(c0));
+  VIXL_CHECK(w0.WithSizeInBits(kCRegSize).Is(c0));
+  VIXL_CHECK(w0.WithSizeInBytes(kCRegSizeInBytes).Is(c0));
+  VIXL_CHECK(w0.WithSameSizeAs(c12).Is(c0));
+
   VIXL_CHECK(AreAliased(c5, c5));
   VIXL_CHECK(AreAliased(c5, w5));
   VIXL_CHECK(AreAliased(c5, x5));
