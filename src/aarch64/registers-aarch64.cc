@@ -128,6 +128,18 @@ bool CPURegister::IsValid() const {
          IsValidPRegister() || IsValidCRegister();
 }
 
+CPURegister CPURegister::WithSizeInBits(int size_in_bits) const {
+  VIXL_ASSERT(IsScalar());
+  VIXL_ASSERT(IsUnqualified());
+  CPURegister result = *this;
+  result.size_ = EncodeSizeInBits(size_in_bits);
+  result.lane_size_ = result.size_;
+  VIXL_ASSERT(result.IsValid());
+  VIXL_ASSERT(Aliases(result));
+  VIXL_ASSERT(IsSameBank(result));
+  return result;
+}
+
 // Most coersions simply invoke the necessary constructor.
 #define VIXL_CPUREG_COERCION_LIST(U) \
   U(Register, W, R)                  \
