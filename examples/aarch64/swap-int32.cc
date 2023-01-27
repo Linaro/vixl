@@ -35,9 +35,10 @@ void GenerateSwapInt32(MacroAssembler* masm) {
   {
     // In this scope the register x2 will be used by the macro-assembler
     // as the stack pointer (via peek, poke, push, etc).
-    const Register old_stack_pointer = __ StackPointer();
-    __ Mov(x2, __ StackPointer());
-    __ SetStackPointer(x2);
+    CPURegister old_stack_pointer = __ StackPointer();
+    CPURegister local_stack_pointer = x2.WithSameSizeAs(old_stack_pointer);
+    __ MovPtr(local_stack_pointer, old_stack_pointer);
+    __ SetStackPointer(local_stack_pointer);
 
     // This call to Claim is not 16-byte aligned and would have failed
     // if the current stack pointer was sp.
@@ -53,7 +54,7 @@ void GenerateSwapInt32(MacroAssembler* masm) {
     // Even if we didn't use the system stack pointer, sp might have been
     // modified because the ABI forbids access to memory below the stack
     // pointer.
-    __ Mov(old_stack_pointer, __ StackPointer());
+    __ MovPtr(old_stack_pointer, __ StackPointer());
     __ SetStackPointer(old_stack_pointer);
   }
 

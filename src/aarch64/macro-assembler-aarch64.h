@@ -889,17 +889,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // It is not valid to pop into the same register more than once in one
   // operation, not even into the zero register.
   //
-  // If the current stack pointer (as set by SetStackPointer) is sp, then it
-  // must be aligned to 16 bytes on entry and the total size of the specified
+  // If the current stack pointer (as set by SetStackPointer) is sp or csp, then
+  // it must be aligned to 16 bytes on entry and the total size of the specified
   // registers must also be a multiple of 16 bytes.
   //
-  // Even if the current stack pointer is not the system stack pointer (sp),
-  // Push (and derived methods) will still modify the system stack pointer in
-  // order to comply with ABI rules about accessing memory below the system
+  // Even if the current stack pointer is not the system stack pointer (sp or
+  // csp), Push (and derived methods) will still modify the system stack pointer
+  // in order to comply with ABI rules about accessing memory below the system
   // stack pointer.
   //
-  // Other than the registers passed into Pop, the stack pointer and (possibly)
-  // the system stack pointer, these methods do not modify any other registers.
+  // The current instruction set must support pre- and post-indexed loads and
+  // stores using the current stack pointer. Specifically, C64 requires it to be
+  // a C register, and A64 requires an X register.
+  // TODO: These can be implemented as Claim/Poke or Peek/Drop, with only one
+  // extra instruction. Consider implementing them to ease porting.
   void Push(const CPURegister& src0,
             const CPURegister& src1 = NoReg,
             const CPURegister& src2 = NoReg,
@@ -7039,19 +7042,18 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                           RawLiteral::kDeletedOnPoolDestruction);
   }
 
-  // Push the system stack pointer (sp) down to allow the same to be done to
-  // the current stack pointer (according to StackPointer()). This must be
+  // Push the system stack pointer (sp or csp) down to allow the same to be done
+  // to the current stack pointer (according to StackPointer()). This must be
   // called _before_ accessing the memory.
   //
+  // Either sp or csp is used, matching the size of the current StackPointer().
+  //
   // This is necessary when pushing or otherwise adding things to the stack, to
-  // satisfy the AAPCS64 constraint that the memory below the system stack
-  // pointer is not accessed.
+  // satisfy the AAPCS64 / AAPCS64-cap constraint that the memory below the
+  // system stack pointer is not accessed.
   //
-  // This method asserts that StackPointer() is not sp, since the call does
-  // not make sense in that context.
-  //
-  // TODO: This method can only accept values of 'space' that can be encoded in
-  // one instruction. Refer to the implementation for details.
+  // This method asserts that StackPointer() is not sp or csp, since the call
+  // does not make sense in that context.
   void BumpSystemStackPointer(const Operand& space);
 
   virtual bool AllowMacroInstructions() const VIXL_OVERRIDE {
@@ -7134,13 +7136,20 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 
   // Set the current stack pointer, but don't generate any code.
-  void SetStackPointer(const Register& stack_pointer) {
+  void SetStackPointer(CPURegister stack_pointer) {
     VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(stack_pointer));
+    VIXL_ASSERT(stack_pointer.IsX() | stack_pointer.IsC());
+    VIXL_ASSERT(CPUHas(stack_pointer));
     sp_ = stack_pointer;
   }
 
   // Return the current stack pointer, as set by SetStackPointer.
-  const Register& StackPointer() const { return sp_; }
+  CPURegister StackPointer() const {
+    // Check CPUHas(...) here, for example to ensure that we don't continue to
+    // use csp after Morello support is dynamically disabled.
+    VIXL_ASSERT(CPUHas(sp_));
+    return sp_;
+  }
 
   CPURegList* GetScratchRegisterList() { return &tmp_list_; }
   VIXL_DEPRECATED("GetScratchRegisterList", CPURegList* TmpList()) {
@@ -7250,7 +7259,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   }
 #endif  // #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 
- protected:
   // Compute `cd = cn + operand` or `xd = xn + operand`. This simplifies
   // ISA-agnostic address calcuations.
   void AddPtr(CPURegister rd, CPURegister rn, const Operand& operand) {
@@ -7264,6 +7272,32 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     }
   }
 
+  // Move `cd = cn` or `xd = xn`. This simplifies ISA-agnostic pointer handling.
+  void MovPtr(CPURegister rd, CPURegister rn) {
+    VIXL_ASSERT(AreSameFormat(rd, rn));
+    if (rd.IsX()) {
+      Mov(Register(rd), Register(rn));
+    } else if (rd.IsC()) {
+      Mov(CRegister(rd), CRegister(rn));
+    } else {
+      VIXL_UNREACHABLE();
+    }
+  }
+
+  // Compute `cd = cn - operand` or `xd = xn - operand`. This simplifies
+  // ISA-agnostic address calcuations.
+  void SubPtr(CPURegister rd, CPURegister rn, const Operand& operand) {
+    VIXL_ASSERT(AreSameFormat(rd, rn));
+    if (rd.IsX()) {
+      Sub(Register(rd), Register(rn), operand);
+    } else if (rd.IsC()) {
+      Sub(CRegister(rd), CRegister(rn), operand);
+    } else {
+      VIXL_UNREACHABLE();
+    }
+  }
+
+ protected:
   // Helper for Br/Blr (sealed indirect).
   void MorelloBranchSealedIndirect(const MemOperand& addr,
                                    void (Assembler::*)(const MemOperand&));
@@ -7606,7 +7640,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   bool generate_simulator_code_;
 
   // The register to use as a stack pointer for stack operations.
-  Register sp_;
+  CPURegister sp_;
 
   // Scratch registers available for use by the MacroAssembler.
   CPURegList tmp_list_;
