@@ -7710,9 +7710,11 @@ TEST(peek_poke_mixed) {
   __ Poke(x1, 8);
   __ Poke(x0, 0);
   {
-    VIXL_ASSERT(__ StackPointer().Is(sp));
-    __ Mov(x4, __ StackPointer());
-    __ SetStackPointer(x4);
+    CPURegister old_sp = __ StackPointer();
+    VIXL_ASSERT(old_sp.Is(sp) || old_sp.Is(csp));
+    CPURegister local_sp = x4.WithSameSizeAs(old_sp);
+    __ MovPtr(local_sp, old_sp);
+    __ SetStackPointer(local_sp);
 
     __ Poke(wzr, 0);  // Clobber the space we're about to drop.
     __ Drop(4);
@@ -7725,8 +7727,8 @@ TEST(peek_poke_mixed) {
     __ Poke(x2, 12);
     __ Push(w0);
 
-    __ Mov(sp, __ StackPointer());
-    __ SetStackPointer(sp);
+    __ MovPtr(old_sp, local_sp);
+    __ SetStackPointer(old_sp);
   }
 
   __ Pop(x0, x1, x2, x3);
@@ -7994,7 +7996,7 @@ static void PushPopSimpleHelper(int reg_count,
   START();
 
   // Arbitrarily pick a register to use as a stack pointer.
-  const Register& stack_pointer = x20;
+  CPURegister stack_pointer = x20.WithSameSizeAs(__ StackPointer());
   const RegList allowed = ~stack_pointer.GetBit();
   if (reg_count == kPushPopUseMaxRegCount) {
     reg_count = CountSetBits(allowed, kNumberOfRegisters);
@@ -8017,8 +8019,9 @@ static void PushPopSimpleHelper(int reg_count,
   uint64_t literal_base = 0x0100001000100101;
 
   {
-    VIXL_ASSERT(__ StackPointer().Is(sp));
-    __ Mov(stack_pointer, __ StackPointer());
+    CPURegister old_stack_pointer = __ StackPointer();
+    VIXL_ASSERT(old_stack_pointer.Aliases(sp));
+    __ MovPtr(stack_pointer, old_stack_pointer);
     __ SetStackPointer(stack_pointer);
 
     int i;
@@ -8093,8 +8096,8 @@ static void PushPopSimpleHelper(int reg_count,
     // Drop memory to restore stack_pointer.
     __ Drop(claim);
 
-    __ Mov(sp, __ StackPointer());
-    __ SetStackPointer(sp);
+    __ MovPtr(old_stack_pointer, __ StackPointer());
+    __ SetStackPointer(old_stack_pointer);
   }
 
   END();
@@ -8249,7 +8252,7 @@ static void PushPopFPSimpleHelper(int reg_count,
       PopulateVRegisterArray(NULL, d, v, reg_size, reg_count, allowed);
 
   // Arbitrarily pick a register to use as a stack pointer.
-  const Register& stack_pointer = x10;
+  CPURegister stack_pointer = x10.WithSameSizeAs(__ StackPointer());
 
   // Acquire all temps from the MacroAssembler. They are used arbitrarily below.
   UseScratchRegisterScope temps(&masm);
@@ -8265,8 +8268,9 @@ static void PushPopFPSimpleHelper(int reg_count,
   uint64_t literal_base = 0x0100001000100101;
 
   {
-    VIXL_ASSERT(__ StackPointer().Is(sp));
-    __ Mov(stack_pointer, __ StackPointer());
+    CPURegister old_stack_pointer = __ StackPointer();
+    VIXL_ASSERT(old_stack_pointer.Aliases(sp));
+    __ MovPtr(stack_pointer, old_stack_pointer);
     __ SetStackPointer(stack_pointer);
 
     int i;
@@ -8345,8 +8349,8 @@ static void PushPopFPSimpleHelper(int reg_count,
     // Drop memory to restore the stack pointer.
     __ Drop(claim);
 
-    __ Mov(sp, __ StackPointer());
-    __ SetStackPointer(sp);
+    __ MovPtr(old_stack_pointer, __ StackPointer());
+    __ SetStackPointer(old_stack_pointer);
   }
 
   END();
@@ -8472,7 +8476,7 @@ static void PushPopMixedMethodsHelper(int claim, int reg_size) {
   SETUP();
 
   // Arbitrarily pick a register to use as a stack pointer.
-  const Register& stack_pointer = x5;
+  CPURegister stack_pointer = x5.WithSameSizeAs(__ StackPointer());
   const RegList allowed = ~stack_pointer.GetBit();
   // Work out which registers to use, based on reg_size.
   Register r[10];
@@ -8506,8 +8510,9 @@ static void PushPopMixedMethodsHelper(int claim, int reg_size) {
 
   START();
   {
-    VIXL_ASSERT(__ StackPointer().Is(sp));
-    __ Mov(stack_pointer, __ StackPointer());
+    CPURegister old_stack_pointer = __ StackPointer();
+    VIXL_ASSERT(old_stack_pointer.Aliases(sp));
+    __ MovPtr(stack_pointer, old_stack_pointer);
     __ SetStackPointer(stack_pointer);
 
     // Claim memory first, as requested.
@@ -8534,8 +8539,8 @@ static void PushPopMixedMethodsHelper(int claim, int reg_size) {
     // Drop memory to restore stack_pointer.
     __ Drop(claim);
 
-    __ Mov(sp, __ StackPointer());
-    __ SetStackPointer(sp);
+    __ MovPtr(old_stack_pointer, __ StackPointer());
+    __ SetStackPointer(old_stack_pointer);
   }
 
   END();
@@ -8576,7 +8581,7 @@ static void PushPopWXOverlapHelper(int reg_count, int claim) {
   SETUP();
 
   // Arbitrarily pick a register to use as a stack pointer.
-  const Register& stack_pointer = x10;
+  CPURegister stack_pointer = x10.WithSameSizeAs(__ StackPointer());
   const RegList allowed = ~stack_pointer.GetBit();
   if (reg_count == kPushPopUseMaxRegCount) {
     reg_count = CountSetBits(allowed, kNumberOfRegisters);
@@ -8613,8 +8618,9 @@ static void PushPopWXOverlapHelper(int reg_count, int claim) {
 
   START();
   {
-    VIXL_ASSERT(__ StackPointer().Is(sp));
-    __ Mov(stack_pointer, __ StackPointer());
+    CPURegister old_stack_pointer = __ StackPointer();
+    VIXL_ASSERT(old_stack_pointer.Aliases(sp));
+    __ MovPtr(stack_pointer, old_stack_pointer);
     __ SetStackPointer(stack_pointer);
 
     // Initialize the registers.
@@ -8725,8 +8731,8 @@ static void PushPopWXOverlapHelper(int reg_count, int claim) {
     // Drop memory to restore stack_pointer.
     __ Drop(claim);
 
-    __ Mov(sp, __ StackPointer());
-    __ SetStackPointer(sp);
+    __ MovPtr(old_stack_pointer, __ StackPointer());
+    __ SetStackPointer(old_stack_pointer);
   }
 
   END();
@@ -8879,7 +8885,9 @@ TEST(printf) {
   // Initialize x29 to the value of the stack pointer. We will use x29 as a
   // temporary stack pointer later, and initializing it in this way allows the
   // RegisterDump check to pass.
-  __ Mov(x29, __ StackPointer());
+  CPURegister old_stack_pointer = __ StackPointer();
+  CPURegister local_stack_pointer = x29.WithSameSizeAs(old_stack_pointer);
+  __ MovPtr(local_stack_pointer, __ StackPointer());
 
   // Test simple integer arguments.
   __ Mov(x0, 1234);
@@ -8939,14 +8947,13 @@ TEST(printf) {
             __ StackPointer().W());
 
   // Test with a different stack pointer.
-  const Register old_stack_pointer = __ StackPointer();
-  __ Mov(x29, old_stack_pointer);
-  __ SetStackPointer(x29);
+  __ MovPtr(local_stack_pointer, old_stack_pointer);
+  __ SetStackPointer(local_stack_pointer);
   // Print the stack pointer (not sp).
   __ Printf("StackPointer(not sp): 0x%016" PRIx64 ", 0x%08" PRIx32 "\n",
-            __ StackPointer(),
+            __ StackPointer().X(),
             __ StackPointer().W());
-  __ Mov(old_stack_pointer, __ StackPointer());
+  __ MovPtr(old_stack_pointer, __ StackPointer());
   __ SetStackPointer(old_stack_pointer);
 
   // Test with three arguments.
@@ -9037,16 +9044,17 @@ TEST(printf_no_preserve) {
   __ Mov(x26, x0);
 
   // Test with a different stack pointer.
-  const Register old_stack_pointer = __ StackPointer();
-  __ Mov(x29, old_stack_pointer);
-  __ SetStackPointer(x29);
+  CPURegister old_stack_pointer = __ StackPointer();
+  CPURegister local_stack_pointer = x29.WithSameSizeAs(old_stack_pointer);
+  __ MovPtr(local_stack_pointer, old_stack_pointer);
+  __ SetStackPointer(local_stack_pointer);
   // Print the stack pointer (not sp).
   __ PrintfNoPreserve("StackPointer(not sp): 0x%016" PRIx64 ", 0x%08" PRIx32
                       "\n",
-                      __ StackPointer(),
+                      __ StackPointer().X(),
                       __ StackPointer().W());
   __ Mov(x27, x0);
-  __ Mov(old_stack_pointer, __ StackPointer());
+  __ MovPtr(old_stack_pointer, __ StackPointer());
   __ SetStackPointer(old_stack_pointer);
 
   // Test with three arguments.

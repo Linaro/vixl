@@ -2163,6 +2163,11 @@ void MacroAssembler::Push(const CPURegister& src0,
   VIXL_ASSERT(AreSameSizeAndType(src0, src1, src2, src3));
   VIXL_ASSERT(src0.IsValid());
 
+  // There are no Morello "alt base" pre-index stores, so we can't push if
+  // the ISA requires an alt-base access for the current stack pointer.
+  VIXL_ASSERT((StackPointer().IsX() && (GetISA() == ISA::A64)) ||
+              (StackPointer().IsC() && (GetISA() == ISA::C64)));
+
   int count = 1 + src1.IsValid() + src2.IsValid() + src3.IsValid();
   int size = src0.GetSizeInBytes();
 
@@ -2181,6 +2186,11 @@ void MacroAssembler::Pop(const CPURegister& dst0,
   VIXL_ASSERT(!AreAliased(dst0, dst1, dst2, dst3));
   VIXL_ASSERT(AreSameSizeAndType(dst0, dst1, dst2, dst3));
   VIXL_ASSERT(dst0.IsValid());
+
+  // There are no Morello "alt base" post-index loads, so we can't pop if the
+  // ISA requires an alt-base access for the current stack pointer.
+  VIXL_ASSERT((StackPointer().IsX() && (GetISA() == ISA::A64)) ||
+              (StackPointer().IsC() && (GetISA() == ISA::C64)));
 
   int count = 1 + dst1.IsValid() + dst2.IsValid() + dst3.IsValid();
   int size = dst0.GetSizeInBytes();
@@ -2370,15 +2380,16 @@ void MacroAssembler::PopHelper(int count,
 
 
 void MacroAssembler::PrepareForPush(int count, int size) {
-  if (sp.Is(StackPointer())) {
-    // If the current stack pointer is sp, then it must be aligned to 16 bytes
-    // on entry and the total size of the specified registers must also be a
-    // multiple of 16 bytes.
+  if (sp.Aliases(StackPointer())) {
+    // If the current stack pointer is sp or csp, then it must be aligned to 16
+    // bytes on entry and the total size of the specified registers must also be
+    // a multiple of 16 bytes.
     VIXL_ASSERT((count * size) % 16 == 0);
   } else {
-    // Even if the current stack pointer is not the system stack pointer (sp),
-    // the system stack pointer will still be modified in order to comply with
-    // ABI rules about accessing memory below the system stack pointer.
+    // Even if the current stack pointer is not the system stack pointer
+    // (sp/csp), the system stack pointer will still be modified in order to
+    // comply with ABI rules about accessing memory below the system stack
+    // pointer.
     BumpSystemStackPointer(count * size);
   }
 }
@@ -2386,10 +2397,10 @@ void MacroAssembler::PrepareForPush(int count, int size) {
 
 void MacroAssembler::PrepareForPop(int count, int size) {
   USE(count, size);
-  if (sp.Is(StackPointer())) {
-    // If the current stack pointer is sp, then it must be aligned to 16 bytes
-    // on entry and the total size of the specified registers must also be a
-    // multiple of 16 bytes.
+  if (sp.Aliases(StackPointer())) {
+    // If the current stack pointer is sp or csp, then it must be aligned to 16
+    // bytes on entry and the total size of the specified registers must also be
+    // a multiple of 16 bytes.
     VIXL_ASSERT((count * size) % 16 == 0);
   }
 }
@@ -2423,16 +2434,16 @@ void MacroAssembler::Claim(const Operand& size) {
 
   if (size.IsImmediate()) {
     VIXL_ASSERT(size.GetImmediate() > 0);
-    if (sp.Is(StackPointer())) {
+    if (sp.Aliases(StackPointer())) {
       VIXL_ASSERT((size.GetImmediate() % 16) == 0);
     }
   }
 
-  if (!sp.Is(StackPointer())) {
+  if (!sp.Aliases(StackPointer())) {
     BumpSystemStackPointer(size);
   }
 
-  Sub(StackPointer(), StackPointer(), size);
+  SubPtr(StackPointer(), StackPointer(), size);
 }
 
 
@@ -2445,12 +2456,12 @@ void MacroAssembler::Drop(const Operand& size) {
 
   if (size.IsImmediate()) {
     VIXL_ASSERT(size.GetImmediate() > 0);
-    if (sp.Is(StackPointer())) {
+    if (sp.Aliases(StackPointer())) {
       VIXL_ASSERT((size.GetImmediate() % 16) == 0);
     }
   }
 
-  Add(StackPointer(), StackPointer(), size);
+  AddPtr(StackPointer(), StackPointer(), size);
 }
 
 
@@ -2461,7 +2472,7 @@ void MacroAssembler::PushCalleeSavedRegisters() {
   ExactAssemblyScope scope(this, 10 * kInstructionSize);
 
   // This method must not be called unless the current stack pointer is sp.
-  VIXL_ASSERT(sp.Is(StackPointer()));
+  VIXL_ASSERT(sp.Aliases(StackPointer()));
 
   MemOperand tos(sp, -2 * static_cast<int>(kXRegSizeInBytes), PreIndex);
 
@@ -2596,12 +2607,10 @@ MemOperand MacroAssembler::BaseMemOperandForLoadStoreCPURegList(
 }
 
 void MacroAssembler::BumpSystemStackPointer(const Operand& space) {
-  VIXL_ASSERT(!sp.Is(StackPointer()));
-  // TODO: Several callers rely on this not using scratch registers, so we use
-  // the assembler directly here. However, this means that large immediate
-  // values of 'space' cannot be handled.
-  ExactAssemblyScope scope(this, kInstructionSize);
-  sub(sp, StackPointer(), space);
+  CPURegister shadow_sp = StackPointer();
+  CPURegister system_sp = sp.WithSameSizeAs(shadow_sp);
+  VIXL_ASSERT(!shadow_sp.Aliases(system_sp));
+  SubPtr(system_sp, shadow_sp, space);
 }
 
 
@@ -2614,6 +2623,9 @@ void MacroAssembler::PrintfNoPreserve(const char* format,
                                       const CPURegister& arg1,
                                       const CPURegister& arg2,
                                       const CPURegister& arg3) {
+  // TODO: Implement support for AAPCS64-cap.
+  VIXL_ASSERT(StackPointer().IsX());
+
   // We cannot handle a caller-saved stack pointer. It doesn't make much sense
   // in most cases anyway, so this restriction shouldn't be too serious.
   VIXL_ASSERT(!kCallerSaved.IncludesAliasOf(StackPointer()));
@@ -2736,7 +2748,7 @@ void MacroAssembler::PrintfNoPreserve(const char* format,
   // We don't pass any arguments on the stack, but we still need to align the C
   // stack pointer to a 16-byte boundary for PCS compliance.
   if (!sp.Is(StackPointer())) {
-    Bic(sp, StackPointer(), 0xf);
+    Bic(sp, Register(StackPointer()), 0xf);
   }
 
   // Actually call printf. This part needs special handling for the simulator,
@@ -2775,6 +2787,9 @@ void MacroAssembler::Printf(const char* format,
                             CPURegister arg1,
                             CPURegister arg2,
                             CPURegister arg3) {
+  // TODO: Implement support for AAPCS64-cap.
+  VIXL_ASSERT(StackPointer().IsX());
+
   // We can only print sp if it is the current stack pointer.
   if (!sp.Is(StackPointer())) {
     VIXL_ASSERT(!sp.Aliases(arg0));
@@ -2813,7 +2828,7 @@ void MacroAssembler::Printf(const char* format,
       // to PrintfNoPreserve as an argument.
       Register arg_sp = temps.AcquireX();
       Add(arg_sp,
-          StackPointer(),
+          Register(StackPointer()),
           kCallerSaved.GetTotalSizeInBytes() +
               kCallerSavedV.GetTotalSizeInBytes());
       if (arg0_sp) arg0 = Register(arg_sp.GetCode(), arg0.GetSizeInBits());

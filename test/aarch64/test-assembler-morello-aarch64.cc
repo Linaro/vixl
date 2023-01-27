@@ -213,5 +213,180 @@ TEST(morello_asm_bx_same_isa) {
 }
 #endif
 
+// Test that we can use csp as a stack pointer.
+TEST(morello_csp) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMorello);
+  START();
+
+  Label csp_is_valid;
+  // Purecap hosts can just use csp directly. Otherwise, we'll need to derive a
+  // csp from DDC.
+  __ Chktgd(csp);
+  __ B(cs, &csp_is_valid);
+  __ Mrs(c0, DDC);
+  __ Mov(x1, sp);
+  __ Scvalue(csp, c0, x1);
+  __ Bind(&csp_is_valid);
+
+  VIXL_ASSERT(__ StackPointer().Is(sp));
+  __ SetStackPointer(csp);
+  __ Mov(c10, csp);
+
+  // We can only push/pop with a capability stack pointer from C64, since
+  // Morello doesn't have alt-base pre- or post-index accesses.
+  VIXL_ASSERT(masm.GetISA() == ISA::A64);
+  __ Bx();
+  {
+    ISAScope isa(&masm, ISA::C64);
+
+    // Now we can use any VIXL stack helper, and it will use csp.
+    __ Mov(x1, 42);
+    __ Mov(x2, -42);
+    __ Mov(x3, 420);
+    __ Mov(x4, -420);
+    __ Push(c0);
+    __ Push(x1, x2);
+    __ Push(w1, w2, w3, w4);
+    __ Claim(64);
+
+    // Measure the stack we've used, so we can check it later.
+    __ Mov(c11, csp);
+    __ Subs(x11, c10, c11);
+
+    __ Drop(64);
+    __ Pop(w24, w23, w22, w21);
+    __ Pop(x26, x25);
+    __ Pop(c27);
+    __ Chkeq(c0, c27);
+    __ Mrs(x0, NZCV);
+  }
+  __ Bx();
+
+  __ Chkeq(csp, c10);
+  __ SetStackPointer(sp);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(0x00000000fffffe5c, x24); // -420
+    ASSERT_EQUAL_64(0x00000000000001a4, x23); //  420
+    ASSERT_EQUAL_64(0x00000000ffffffd6, x22); //  -42
+    ASSERT_EQUAL_64(0x000000000000002a, x21); //   42
+    ASSERT_EQUAL_64(0xffffffffffffffd6, x26); //  -42
+    ASSERT_EQUAL_64(0x000000000000002a, x25); //   42
+    ASSERT_EQUAL_64(ZFlag, x0); // c27 === c0 (DDC) after push/pop.
+    ASSERT_EQUAL_NZCV(ZFlag);   // csp === c10 after the sequence.
+    // Check the space used (including Claim/Drop).
+    ASSERT_EQUAL_64(112, x11);
+  } else {
+    DISASSEMBLE();
+  }
+}
+
+// Test that we can use a capability as a stack pointer, and that csp gets
+// bumped to preserve AAPCS64-cap invariants.
+TEST(morello_csp_bump) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMorello);
+  START();
+
+  Label csp_is_valid;
+  // Purecap hosts can just use csp directly. Otherwise, we'll need to derive a
+  // csp from DDC.
+  __ Chktgd(csp);
+  __ B(cs, &csp_is_valid);
+  __ Mrs(c0, DDC);
+  __ Mov(x1, sp);
+  __ Scvalue(csp, c0, x1);
+  __ Bind(&csp_is_valid);
+
+  VIXL_ASSERT(__ StackPointer().Is(sp));
+  __ SetStackPointer(c29);
+  __ Mov(c29, csp);
+  __ Mov(c10, csp); // For comparison later.
+
+  Register csp_bump_check = x28;
+  __ Mov(csp_bump_check, 0);
+
+  // We can only push/pop with a capability stack pointer from C64, since
+  // Morello doesn't have "alt-base" pre- or post-index accesses.
+  VIXL_ASSERT(masm.GetISA() == ISA::A64);
+  __ Bx();
+  {
+    ISAScope isa(&masm, ISA::C64);
+
+    // Now we can use any VIXL stack helper, and it will use c29 (and bump csp).
+    __ Mov(x1, 42);
+    __ Mov(x2, -42);
+    __ Mov(x3, 420);
+    __ Mov(x4, -420);
+    __ Push(c0);
+
+    // Check that csp was bumped.
+    __ Mov(c12, csp);
+    __ Cmp(c29, c12);
+    __ Cset(x12, lo);
+    __ Orr(csp_bump_check, csp_bump_check, Operand(x12, LSL, 0));
+
+    __ Push(x1, x2);
+
+    // Check that csp was bumped.
+    __ Mov(c12, csp);
+    __ Cmp(c29, c12);
+    __ Cset(x12, lo);
+    __ Orr(csp_bump_check, csp_bump_check, Operand(x12, LSL, 1));
+
+    __ Push(w1, w2, w3, w4);
+
+    // Check that csp was bumped.
+    __ Mov(c12, csp);
+    __ Cmp(c29, c12);
+    __ Cset(x12, lo);
+    __ Orr(csp_bump_check, csp_bump_check, Operand(x12, LSL, 2));
+
+    __ Claim(64);
+
+    // Check that csp was bumped.
+    __ Mov(c12, csp);
+    __ Cmp(c29, c12);
+    __ Cset(x12, lo);
+    __ Orr(csp_bump_check, csp_bump_check, Operand(x12, LSL, 3));
+
+    // Measure the stack we've used, so we can check it later.
+    __ Subs(x11, c10, c29);
+
+    __ Drop(64);
+    __ Pop(w24, w23, w22, w21);
+    __ Pop(x26, x25);
+    __ Pop(c27);
+    __ Chkeq(c0, c27);
+    __ Mrs(x0, NZCV);
+  }
+  __ Bx();
+
+  __ Chkeq(c29, c10);
+  __ Mov(sp, x29);
+  __ SetStackPointer(sp);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(0x00000000fffffe5c, x24); // -420
+    ASSERT_EQUAL_64(0x00000000000001a4, x23); //  420
+    ASSERT_EQUAL_64(0x00000000ffffffd6, x22); //  -42
+    ASSERT_EQUAL_64(0x000000000000002a, x21); //   42
+    ASSERT_EQUAL_64(0xffffffffffffffd6, x26); //  -42
+    ASSERT_EQUAL_64(0x000000000000002a, x25); //   42
+    ASSERT_EQUAL_64(ZFlag, x0); // c27 === c0 (DDC) after push/pop.
+    ASSERT_EQUAL_NZCV(ZFlag);   // csp === c10 after the sequence.
+    ASSERT_EQUAL_64(0, csp_bump_check);
+    // Check the space used (including Claim/Drop).
+    ASSERT_EQUAL_64(112, x11);
+  } else {
+    DISASSEMBLE();
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
