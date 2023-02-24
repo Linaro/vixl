@@ -4483,7 +4483,7 @@ static void IntBinArithHelper(Test* config,
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
 
-  ZRegister src_a = z31.WithLaneSize(lane_size_in_bits);
+  ZRegister src_a = z30.WithLaneSize(lane_size_in_bits);
   ZRegister src_b = z27.WithLaneSize(lane_size_in_bits);
   InsrHelper(&masm, src_a, zn_inputs);
   InsrHelper(&masm, src_b, zm_inputs);

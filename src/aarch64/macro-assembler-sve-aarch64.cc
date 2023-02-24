@@ -627,6 +627,7 @@ VIXL_SVE_NONCOMM_ARITH_ZZZZII_LIST(VIXL_DEFINE_MASM_FUNC)
 // non-commutative and no reversed form is provided.
 #define VIXL_SVE_NONCOMM_ARITH_ZPZZ_LIST(V) \
   V(Addp, addp)                             \
+  V(Bic, bic)                               \
   V(Faddp, faddp)                           \
   V(Fmaxnmp, fmaxnmp)                       \
   V(Fminnmp, fminnmp)                       \

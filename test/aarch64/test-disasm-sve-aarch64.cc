@@ -2381,7 +2381,9 @@ TEST(sve_int_binary_arithmetic_predicated_macro) {
   COMPARE_MACRO(Bic(z17.VnB(), p7.Merging(), z17.VnB(), z10.VnB()),
                 "bic z17.b, p7/m, z17.b, z10.b");
   COMPARE_MACRO(Bic(z17.VnS(), p7.Merging(), z10.VnS(), z17.VnS()),
-                "bic z17.s, p7/m, z17.s, z10.s");
+                "mov z31.d, z17.d\n"
+                "movprfx z17.s, p7/m, z10.s\n"
+                "bic z17.s, p7/m, z17.s, z31.s");
   COMPARE_MACRO(Bic(z17.VnD(), p7.Merging(), z7.VnD(), z27.VnD()),
                 "movprfx z17.d, p7/m, z7.d\n"
                 "bic z17.d, p7/m, z17.d, z27.d");

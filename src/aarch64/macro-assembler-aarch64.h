@@ -3093,7 +3093,6 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
 #define SVE_3VREG_COMMUTATIVE_MACRO_LIST(V) \
   V(add, Add)                               \
   V(and_, And)                              \
-  V(bic, Bic)                               \
   V(eor, Eor)                               \
   V(mul, Mul)                               \
   V(orr, Orr)                               \
@@ -3609,6 +3608,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     MovprfxHelperScope guard(this, zd, pg, zn);
     asrd(zd, pg, zd, shift);
   }
+  void Bic(const ZRegister& zd,
+           const PRegisterM& pg,
+           const ZRegister& zn,
+           const ZRegister& zm);
   void Bic(const PRegisterWithLaneSize& pd,
            const PRegisterZ& pg,
            const PRegisterWithLaneSize& pn,
