@@ -3850,6 +3850,9 @@ void Simulator::AddSubHelper(const Instruction* instr, int64_t op2) {
 
 
 void Simulator::VisitAddSubShifted(const Instruction* instr) {
+  // Add/sub/adds/subs don't allow ROR as a shift mode.
+  VIXL_ASSERT(instr->GetShiftDP() != ROR);
+
   unsigned reg_size = instr->GetSixtyFourBits() ? kXRegSize : kWRegSize;
   int64_t op2 = ShiftOperand(reg_size,
                              ReadRegister(reg_size, instr->GetRm()),

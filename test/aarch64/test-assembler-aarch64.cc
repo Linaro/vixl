@@ -4587,6 +4587,11 @@ TEST(prfm_regoffset) {
   for (int op = 0; op < (1 << ImmPrefetchOperation_width); op++) {
     // Unallocated prefetch operations are ignored, so test all of them.
     // We have to use the Assembler directly for this.
+
+    // Prefetch operations of the form 0b11xxx are allocated to another
+    // instruction.
+    if (op >= 0b11000) continue;
+
     ExactAssemblyScope guard(&masm, inputs.GetCount() * kInstructionSize);
     CPURegList loop = inputs;
     while (!loop.IsEmpty()) {
