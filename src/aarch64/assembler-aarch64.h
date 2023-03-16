@@ -7050,6 +7050,27 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Memory Set, non-temporal.
   void setpn(const Register& rd, const Register& rn, const Register& rs);
 
+  // Absolute value.
+  void abs(const Register& rd, const Register& rn);
+
+  // Count bits.
+  void cnt(const Register& rd, const Register& rn);
+
+  // Count Trailing Zeros.
+  void ctz(const Register& rd, const Register& rn);
+
+  // Signed Maximum.
+  void smax(const Register& rd, const Register& rn, const Operand& op);
+
+  // Signed Minimum.
+  void smin(const Register& rd, const Register& rn, const Operand& op);
+
+  // Unsigned Maximum.
+  void umax(const Register& rd, const Register& rn, const Operand& op);
+
+  // Unsigned Minimum.
+  void umin(const Register& rd, const Register& rn, const Operand& op);
+
   // Emit generic instructions.
 
   // Emit raw instructions into the instruction stream.

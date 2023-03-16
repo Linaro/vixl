@@ -200,7 +200,8 @@ namespace vixl {
   V(kWFXT,                "WFXT",                   "wfxt")                    \
   /* Extended BFloat16 instructions                                         */ \
   V(kEBF16,               "EBF16",                  "ebf16")                   \
-  V(kSVE_EBF16,           "EBF16 (SVE)",            "sveebf16")
+  V(kSVE_EBF16,           "EBF16 (SVE)",            "sveebf16")                \
+  V(kCSSC,                "CSSC",                   "cssc")
 // clang-format on
 
 

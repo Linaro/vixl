@@ -730,6 +730,28 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"setm_set_memcms"_h, &Disassembler::DisassembleSet},
       {"setpn_set_memcms"_h, &Disassembler::DisassembleSet},
       {"setp_set_memcms"_h, &Disassembler::DisassembleSet},
+      {"abs_32_dp_1src"_h, &Disassembler::VisitDataProcessing1Source},
+      {"abs_64_dp_1src"_h, &Disassembler::VisitDataProcessing1Source},
+      {"cnt_32_dp_1src"_h, &Disassembler::VisitDataProcessing1Source},
+      {"cnt_64_dp_1src"_h, &Disassembler::VisitDataProcessing1Source},
+      {"ctz_32_dp_1src"_h, &Disassembler::VisitDataProcessing1Source},
+      {"ctz_64_dp_1src"_h, &Disassembler::VisitDataProcessing1Source},
+      {"smax_32_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"smax_64_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"smin_32_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"smin_64_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"umax_32_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"umax_64_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"umin_32_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"umin_64_dp_2src"_h, &Disassembler::VisitDataProcessing2Source},
+      {"smax_32_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"smax_64_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"smin_32_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"smin_64_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"umax_32u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"umax_64u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"umin_32u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"umin_64u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
   };
   return &form_to_visitor;
 }  // NOLINT(readability/fn_size)
@@ -1416,6 +1438,10 @@ void Disassembler::VisitDataProcessing3Source(const Instruction *instr) {
   Format(instr, mnemonic, form);
 }
 
+void Disassembler::DisassembleMinMaxImm(const Instruction *instr) {
+  const char *suffix = (instr->ExtractBit(18) == 0) ? "'s1710" : "'u1710";
+  FormatWithDecodedMnemonic(instr, "'Rd, 'Rn, #", suffix);
+}
 
 void Disassembler::VisitCompareBranch(const Instruction *instr) {
   FormatWithDecodedMnemonic(instr, "'Rt, 'TImmCmpa");

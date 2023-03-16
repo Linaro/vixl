@@ -291,6 +291,17 @@ T UnsignedNegate(T value) {
   return ~value + 1;
 }
 
+// An absolute operation for signed integers that is defined for results outside
+// the representable range. Specifically, Abs(MIN_INT) is MIN_INT.
+template <typename T>
+T Abs(T val) {
+  // TODO: this static assertion is for signed integer inputs, as that's the
+  // only type tested. However, the code should work for all numeric inputs.
+  // Remove the assertion and this comment when more tests are available.
+  VIXL_STATIC_ASSERT(std::is_signed<T>::value && std::is_integral<T>::value);
+  return ((val >= -std::numeric_limits<T>::max()) && (val < 0)) ? -val : val;
+}
+
 // Convert unsigned to signed numbers in a well-defined way (using two's
 // complement representations).
 inline int64_t RawbitsToInt64(uint64_t bits) {
