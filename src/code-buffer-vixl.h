@@ -124,8 +124,9 @@ class CodeBuffer {
   void Emit(T value) {
     VIXL_ASSERT(HasSpaceFor(sizeof(value)));
     dirty_ = true;
-    memcpy(cursor_, &value, sizeof(value));
-    cursor_ += sizeof(value);
+    byte* c = cursor_;
+    memcpy(c, &value, sizeof(value));
+    cursor_ = c + sizeof(value);
   }
 
   void UpdateData(size_t offset, const void* data, size_t size);
