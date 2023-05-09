@@ -84,6 +84,8 @@ void GenerateAdd2Vectors(MacroAssembler* masm) {
 }
 
 
+#ifndef TEST_EXAMPLES
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 void PrintVector(const uint8_t* vec, unsigned num) {
   unsigned i;
   printf("( ");
@@ -95,9 +97,9 @@ void PrintVector(const uint8_t* vec, unsigned num) {
   }
   printf(" )\n");
 }
+#endif
 
 
-#ifndef TEST_EXAMPLES
 int main(void) {
   MacroAssembler masm;
 
