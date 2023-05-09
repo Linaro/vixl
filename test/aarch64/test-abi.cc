@@ -112,4 +112,4 @@ TEST(abi) {
 }
 }  // namespace vixl::aarch64
 
-#endif  // VIXL_ABI_SUPORT
+#endif  // VIXL_HAS_ABI_SUPPORT
