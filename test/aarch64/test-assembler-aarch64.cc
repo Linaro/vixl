@@ -13811,6 +13811,75 @@ TEST(runtime_calls) {
   }
 #endif  // #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || ...
 }
+
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+void void_func() {}
+uint32_t uint32_func() { return 2; }
+void void_param_func(uint32_t x) { USE(x); }
+uint32_t uint32_param_func(uint32_t x) { return ++x; }
+
+void void_placeholder() {}
+uint32_t uint32_placeholder() { return 4; }
+void void_param_placeholder(uint32_t x) { USE(x); }
+uint32_t uint32_param_placeholder(uint32_t x) { return ++x; }
+
+#define DO_TEST_BRANCH_INTERCEPTION(func)        \
+  __ Mov(x16, reinterpret_cast<uint64_t>(func)); \
+  __ Blr(x16);
+
+TEST(branch_interception) {
+  SETUP();
+  START();
+
+  // Test default branch interception, i.e: do a runtime call to the function.
+  DO_TEST_BRANCH_INTERCEPTION(void_func);
+  DO_TEST_BRANCH_INTERCEPTION(uint32_func);
+  __ Mov(w20, w0);
+  DO_TEST_BRANCH_INTERCEPTION(void_param_func);
+  __ Mov(w0, 2);
+  DO_TEST_BRANCH_INTERCEPTION(uint32_param_func);
+  __ Mov(w21, w0);
+
+  // Test interceptions with callbacks.
+  DO_TEST_BRANCH_INTERCEPTION(void_placeholder);
+  __ Mov(w22, w0);
+  DO_TEST_BRANCH_INTERCEPTION(uint32_placeholder);
+  __ Mov(w23, w0);
+  __ Mov(w0, 4);
+  DO_TEST_BRANCH_INTERCEPTION(uint32_placeholder);
+  __ Mov(w24, w0);
+  DO_TEST_BRANCH_INTERCEPTION(uint32_placeholder);
+  __ Mov(w25, w0);
+
+  END();
+
+  simulator.RegisterBranchInterception(void_func);
+  simulator.RegisterBranchInterception(uint32_func);
+  simulator.RegisterBranchInterception(void_param_func);
+  simulator.RegisterBranchInterception(uint32_param_func);
+
+  auto callback = [&simulator](uint64_t original_target) {
+    USE(original_target);
+    simulator.WriteWRegister(0, 1);
+  };
+
+  simulator.RegisterBranchInterception(void_placeholder, callback);
+  simulator.RegisterBranchInterception(uint32_placeholder, callback);
+  simulator.RegisterBranchInterception(void_param_placeholder, callback);
+  simulator.RegisterBranchInterception(uint32_param_placeholder, callback);
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_32(2, w20);
+    ASSERT_EQUAL_32(3, w21);
+    ASSERT_EQUAL_32(1, w22);
+    ASSERT_EQUAL_32(1, w23);
+    ASSERT_EQUAL_32(1, w24);
+    ASSERT_EQUAL_32(1, w25);
+  }
+}
+#endif  // #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 #endif  // #ifdef VIXL_HAS_MACROASSEMBLER_RUNTIME_CALL_SUPPORT
 
 
