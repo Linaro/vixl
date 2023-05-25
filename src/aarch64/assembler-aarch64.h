@@ -7516,8 +7516,14 @@ class Assembler : public vixl::internal::AssemblerBase {
   static bool IsImmAddSub(int64_t immediate);
   static bool IsImmConditionalCompare(int64_t immediate);
   static bool IsImmFP16(Float16 imm);
-  static bool IsImmFP32(float imm);
-  static bool IsImmFP64(double imm);
+
+  static bool IsImmFP32(float imm) { return IsImmFP32(FloatToRawbits(imm)); }
+
+  static bool IsImmFP32(uint32_t bits);
+
+  static bool IsImmFP64(double imm) { return IsImmFP64(DoubleToRawbits(imm)); }
+
+  static bool IsImmFP64(uint64_t bits);
   static bool IsImmLogical(uint64_t value,
                            unsigned width,
                            unsigned* n = NULL,

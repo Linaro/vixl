@@ -507,8 +507,6 @@ void CPUFeaturesAuditor::VisitFPImmediate(const Instruction* instr) {
 
 void CPUFeaturesAuditor::VisitFPIntegerConvert(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
-  // All of these instructions require FP.
-  scope.Record(CPUFeatures::kFP);
   switch (instr->Mask(FPIntegerConvertMask)) {
     case FCVTAS_wh:
     case FCVTAS_xh:
@@ -538,17 +536,23 @@ void CPUFeaturesAuditor::VisitFPIntegerConvert(const Instruction* instr) {
     case SCVTF_hx:
     case UCVTF_hw:
     case UCVTF_hx:
+      scope.Record(CPUFeatures::kFP);
       scope.Record(CPUFeatures::kFPHalf);
+      return;
+    case FMOV_dx:
+      scope.RecordOneOrBothOf(CPUFeatures::kFP, CPUFeatures::kNEON);
       return;
     case FMOV_d1_x:
     case FMOV_x_d1:
+      scope.Record(CPUFeatures::kFP);
       scope.Record(CPUFeatures::kNEON);
       return;
     case FJCVTZS:
+      scope.Record(CPUFeatures::kFP);
       scope.Record(CPUFeatures::kJSCVT);
       return;
     default:
-      // No special CPU features.
+      scope.Record(CPUFeatures::kFP);
       return;
   }
 }

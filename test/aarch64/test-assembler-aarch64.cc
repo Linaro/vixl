@@ -14918,5 +14918,26 @@ TEST(sim_stack_base_guard_write) {
 #endif
 #endif
 
+TEST(scalar_movi) {
+  SETUP_WITH_FEATURES(CPUFeatures::kFP, CPUFeatures::kNEON);
+  START();
+
+  // Make sure that V0 is initialized to a non-zero value.
+  __ Movi(v0.V16B(), 0xFF);
+  // This constant value can't be encoded in a MOVI instruction,
+  // so the program would use a fallback path that must set the
+  // upper 64 bits of the destination vector to 0.
+  __ Movi(v0.V1D(), 0xDECAFC0FFEE);
+  __ Mov(x0, v0.V2D(), 1);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(0, x0);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
