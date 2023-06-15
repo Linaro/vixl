@@ -2656,6 +2656,7 @@ class Simulator : public DecoderVisitor {
   R DoRuntimeCall(R (*function)(P...),
                   std::tuple<P...> arguments,
                   local_index_sequence<I...>) {
+    USE(arguments);
     return function(std::get<I>(arguments)...);
   }
 

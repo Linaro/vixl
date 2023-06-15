@@ -13242,6 +13242,8 @@ double runtime_call_two_arguments_on_stack(int64_t arg1 __attribute__((unused)),
 
 void runtime_call_store_at_address(int64_t* address) { *address = 0xf00d; }
 
+int32_t runtime_call_no_args() { return 1; }
+
 enum RuntimeCallTestEnum { Enum0 };
 
 RuntimeCallTestEnum runtime_call_enum(RuntimeCallTestEnum e) { return e; }
@@ -13362,6 +13364,10 @@ TEST(runtime_calls) {
   __ Mov(x0, reinterpret_cast<uint64_t>(&value));
   __ CallRuntime(runtime_call_store_at_address);
 
+  __ Mov(w0, 0);
+  __ CallRuntime(runtime_call_no_args);
+  __ Mov(w25, w0);
+
   END();
 
 #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || \
@@ -13377,6 +13383,7 @@ TEST(runtime_calls) {
     ASSERT_EQUAL_64(0, x22);
     ASSERT_EQUAL_32(124, w23);
     ASSERT_EQUAL_64(0, x24);
+    ASSERT_EQUAL_32(1, w25);
   }
 #endif  // #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) || ...
 }
