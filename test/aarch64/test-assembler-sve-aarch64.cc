@@ -16274,9 +16274,7 @@ TEST_SVE(scvtf_ucvtf_s_to_double) {
 }
 
 TEST_SVE(sve_fadda) {
-  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
-                          CPUFeatures::kFP,
-                          CPUFeatures::kFPHalf);
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kFP);
   START();
 
   __ Ptrue(p0.VnB());

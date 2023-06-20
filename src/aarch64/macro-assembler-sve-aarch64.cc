@@ -832,11 +832,12 @@ void MacroAssembler::Fdup(const ZRegister& zd, double imm) {
       Fdup(zd, static_cast<float>(imm));
       break;
     case kDRegSize:
-      if (IsImmFP64(imm)) {
+      uint64_t bits = DoubleToRawbits(imm);
+      if (IsImmFP64(bits)) {
         SingleEmissionCheckScope guard(this);
         fdup(zd, imm);
       } else {
-        Dup(zd, DoubleToRawbits(imm));
+        Dup(zd, bits);
       }
       break;
   }

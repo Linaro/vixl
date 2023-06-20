@@ -3318,7 +3318,8 @@ void Assembler::fmov(const Register& rd, const VRegister& vn) {
 
 
 void Assembler::fmov(const VRegister& vd, const Register& rn) {
-  VIXL_ASSERT(CPUHas(CPUFeatures::kFP));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kFP) ||
+              (vd.Is1D() && CPUHas(CPUFeatures::kNEON)));
   VIXL_ASSERT(vd.Is1H() || vd.Is1S() || vd.Is1D());
   VIXL_ASSERT((vd.GetSizeInBits() == rn.GetSizeInBits()) || vd.Is1H());
   FPIntegerConvertOp op;
@@ -5847,9 +5848,9 @@ Instr Assembler::ImmFP16(Float16 imm) {
 
 
 uint32_t Assembler::FP32ToImm8(float imm) {
-  VIXL_ASSERT(IsImmFP32(imm));
   // bits: aBbb.bbbc.defg.h000.0000.0000.0000.0000
   uint32_t bits = FloatToRawbits(imm);
+  VIXL_ASSERT(IsImmFP32(bits));
   // bit7: a000.0000
   uint32_t bit7 = ((bits >> 31) & 0x1) << 7;
   // bit6: 0b00.0000
@@ -5865,10 +5866,10 @@ Instr Assembler::ImmFP32(float imm) { return FP32ToImm8(imm) << ImmFP_offset; }
 
 
 uint32_t Assembler::FP64ToImm8(double imm) {
-  VIXL_ASSERT(IsImmFP64(imm));
   // bits: aBbb.bbbb.bbcd.efgh.0000.0000.0000.0000
   //       0000.0000.0000.0000.0000.0000.0000.0000
   uint64_t bits = DoubleToRawbits(imm);
+  VIXL_ASSERT(IsImmFP64(bits));
   // bit7: a000.0000
   uint64_t bit7 = ((bits >> 63) & 0x1) << 7;
   // bit6: 0b00.0000
@@ -6422,10 +6423,9 @@ bool Assembler::IsImmFP16(Float16 imm) {
 }
 
 
-bool Assembler::IsImmFP32(float imm) {
+bool Assembler::IsImmFP32(uint32_t bits) {
   // Valid values will have the form:
   // aBbb.bbbc.defg.h000.0000.0000.0000.0000
-  uint32_t bits = FloatToRawbits(imm);
   // bits[19..0] are cleared.
   if ((bits & 0x7ffff) != 0) {
     return false;
@@ -6446,11 +6446,10 @@ bool Assembler::IsImmFP32(float imm) {
 }
 
 
-bool Assembler::IsImmFP64(double imm) {
+bool Assembler::IsImmFP64(uint64_t bits) {
   // Valid values will have the form:
   // aBbb.bbbb.bbcd.efgh.0000.0000.0000.0000
   // 0000.0000.0000.0000.0000.0000.0000.0000
-  uint64_t bits = DoubleToRawbits(imm);
   // bits[47..0] are cleared.
   if ((bits & 0x0000ffffffffffff) != 0) {
     return false;

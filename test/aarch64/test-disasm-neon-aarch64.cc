@@ -3199,7 +3199,7 @@ TEST(neon_modimm) {
   COMPARE_MACRO(Movi(v2.V2D(), 0xff00ff00ff00ff, 0xff00ff00ff00ff),
                 "movi v2.2d, #0xff00ff00ff00ff");
   COMPARE_MACRO(Movi(v3.V2D(), 0xffff, 0xff00ff00ff00ff),
-                "movi v3.2d, #0xff00ff00ff00ff\n"
+                "movi d3, #0xff00ff00ff00ff\n"
                 "mov x16, #0xffff\n"
                 "mov v3.d[1], x16");
 
