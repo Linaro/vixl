@@ -2656,6 +2656,7 @@ class Simulator : public DecoderVisitor {
   R DoRuntimeCall(R (*function)(P...),
                   std::tuple<P...> arguments,
                   local_index_sequence<I...>) {
+    USE(arguments);
     return function(std::get<I>(arguments)...);
   }
 
@@ -2785,6 +2786,27 @@ class Simulator : public DecoderVisitor {
   }
 
   SimPRegister& GetPTrue() { return pregister_all_true_; }
+
+  // A callback function, called when a function has been intercepted if a
+  // BranchInterception entry exists in branch_interceptions. The address of
+  // the intercepted function is passed to the callback. For usage see
+  // BranchInterception.
+  using InterceptionCallback = std::function<void(uint64_t)>;
+
+  // Register a new BranchInterception object. If 'function' is branched to
+  // (e.g: "bl function") in the future; instead, if provided, 'callback' will
+  // be called otherwise a runtime call will be performed on 'function'.
+  //
+  // For example: this can be used to always perform runtime calls on
+  // non-AArch64 functions without using the macroassembler.
+  template <typename R, typename... P>
+  void RegisterBranchInterception(R (*function)(P...),
+                                  InterceptionCallback callback = nullptr) {
+    uintptr_t addr = reinterpret_cast<uintptr_t>(function);
+    std::unique_ptr<BranchInterceptionAbstract> intercept = std::make_unique<
+        BranchInterception<R, P...>>(function, callback);
+    branch_interceptions_.insert(std::make_pair(addr, std::move(intercept)));
+  }
 
  protected:
   const char* clr_normal;
@@ -4667,6 +4689,41 @@ class Simulator : public DecoderVisitor {
   // Simulate a runtime call.
   void DoRuntimeCall(const Instruction* instr);
 
+  // A pure virtual struct that allows the templated BranchInterception struct
+  // to be stored. For more information see BranchInterception.
+  struct BranchInterceptionAbstract {
+    virtual ~BranchInterceptionAbstract() {};
+    // Call the callback_ if one exists, otherwise do a RuntimeCall.
+    virtual void operator()(Simulator* simulator) const = 0;
+  };
+
+  // An entry denoting a function to intercept when branched to during
+  // simulator execution. When a function is intercepted the callback will be
+  // called if one exists otherwise the function will be passed to
+  // RuntimeCall.
+  template <typename R, typename... P>
+  struct BranchInterception : public BranchInterceptionAbstract {
+    BranchInterception(R (*function)(P...),
+                       InterceptionCallback callback = nullptr)
+        : function_(function), callback_(callback) {}
+
+    void operator()(Simulator* simulator) const VIXL_OVERRIDE {
+      if (callback_ == nullptr) {
+        Simulator::RuntimeCallStructHelper<R, P...>::Wrapper(simulator,
+            reinterpret_cast<uint64_t>(function_));
+      } else {
+        callback_(reinterpret_cast<uint64_t>(function_));
+      }
+    }
+
+  private:
+    // Pointer to the function that will be intercepted.
+    R (*function_)(P...);
+
+    // Function to be called instead of function_
+    InterceptionCallback callback_;
+  };
+
   // Processor state ---------------------------------------
 
   // Simulated monitors for exclusive access instructions.
@@ -4867,6 +4924,12 @@ class Simulator : public DecoderVisitor {
 
   // A configurable size of SVE vector registers.
   unsigned vector_length_;
+
+  // Store a map of addresses to be intercepted and their corresponding branch
+  // interception object, see 'BranchInterception'.
+  std::unordered_map<uintptr_t,
+                     std::unique_ptr<BranchInterceptionAbstract>>
+      branch_interceptions_;
 };
 
 #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) && __cplusplus < 201402L
