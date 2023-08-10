@@ -5360,7 +5360,7 @@ class Simulator : public DecoderVisitor {
                          std::function<void(Simulator*, const Instruction*)>>;
   static const FormToVisitorFnMap* GetFormToVisitorFnMap();
 
-  uint32_t form_hash_;
+  uint32_t form_hash_{};
 
   static const PACKey kPACKeyIA;
   static const PACKey kPACKeyIB;
