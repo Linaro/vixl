@@ -64,6 +64,9 @@
 namespace vixl {
 namespace aarch64 {
 
+class Simulator;
+struct RuntimeCallStructHelper;
+
 class SimStack {
  public:
   SimStack() {}
@@ -174,6 +177,12 @@ T AddressUntag(T address) {
   return (T)(bits & ~kAddressTagMask);
 }
 
+// A callback function, called when a function has been intercepted if a
+// BranchInterception entry exists in branch_interceptions. The address of
+// the intercepted function is passed to the callback. For usage see
+// BranchInterception.
+using InterceptionCallback = std::function<void(uint64_t)>;
+
 class MetaDataDepot {
  public:
   class MetaDataMTE {
@@ -260,9 +269,76 @@ class MetaDataDepot {
 
   size_t GetTotalCountMTE() { return metadata_mte_.size(); }
 
+  // A pure virtual struct that allows the templated BranchInterception struct
+  // to be stored. For more information see BranchInterception.
+  struct BranchInterceptionAbstract {
+    virtual ~BranchInterceptionAbstract() {}
+    // Call the callback_ if one exists, otherwise do a RuntimeCall.
+    virtual void operator()(Simulator* simulator) const = 0;
+  };
+
+  // An entry denoting a function to intercept when branched to during
+  // simulator execution. When a function is intercepted the callback will be
+  // called if one exists otherwise the function will be passed to
+  // RuntimeCall.
+  template <typename R, typename... P>
+  struct BranchInterception : public BranchInterceptionAbstract {
+    BranchInterception(R (*function)(P...),
+                       InterceptionCallback callback = nullptr)
+        : function_(function), callback_(callback) {}
+
+    void operator()(Simulator* simulator) const VIXL_OVERRIDE;
+
+   private:
+    // Pointer to the function that will be intercepted.
+    R (*function_)(P...);
+
+    // Function to be called instead of function_
+    InterceptionCallback callback_;
+  };
+
+  // Register a new BranchInterception object. If 'function' is branched to
+  // (e.g: "blr function") in the future; instead, if provided, 'callback' will
+  // be called otherwise a runtime call will be performed on 'function'.
+  //
+  // For example: this can be used to always perform runtime calls on
+  // non-AArch64 functions without using the macroassembler.
+  //
+  // Note: only unconditional branches to registers are currently supported to
+  // be intercepted, e.g: "br"/"blr".
+  //
+  // TODO: support intercepting other branch types.
+  template <typename R, typename... P>
+  void RegisterBranchInterception(R (*function)(P...),
+                                  InterceptionCallback callback = nullptr) {
+    uintptr_t addr = reinterpret_cast<uintptr_t>(function);
+    std::unique_ptr<BranchInterceptionAbstract> intercept =
+        std::make_unique<BranchInterception<R, P...>>(function, callback);
+    branch_interceptions_.insert(std::make_pair(addr, std::move(intercept)));
+  }
+
+  // Search for branch interceptions to the branch_target address; If one is
+  // found return it otherwise return nullptr.
+  BranchInterceptionAbstract* FindBranchInterception(uint64_t branch_target) {
+    // Check for interceptions to the target address, if one is found, call it.
+    auto search = branch_interceptions_.find(branch_target);
+    if (search != branch_interceptions_.end()) {
+      return search->second.get();
+    } else {
+      return nullptr;
+    }
+  }
+
+  void ResetState() { branch_interceptions_.clear(); }
+
  private:
   // Tag recording of each allocated memory in the tag-granule.
   std::unordered_map<uint64_t, class MetaDataMTE> metadata_mte_;
+
+  // Store a map of addresses to be intercepted and their corresponding branch
+  // interception object, see 'BranchInterception'.
+  std::unordered_map<uintptr_t, std::unique_ptr<BranchInterceptionAbstract>>
+      branch_interceptions_;
 };
 
 
@@ -2855,6 +2931,7 @@ class Simulator : public DecoderVisitor {
   R DoRuntimeCall(R (*function)(P...),
                   std::tuple<P...> arguments,
                   local_index_sequence<I...>) {
+    USE(arguments);
     return function(std::get<I>(arguments)...);
   }
 
@@ -3025,6 +3102,18 @@ class Simulator : public DecoderVisitor {
   // Generate a random address tag, and any tags specified in the input are
   // excluded from the selection.
   uint64_t GenerateRandomTag(uint16_t exclude = 0);
+
+  // Register a new BranchInterception object. If 'function' is branched to
+  // (e.g: "bl function") in the future; instead, if provided, 'callback' will
+  // be called otherwise a runtime call will be performed on 'function'.
+  //
+  // For example: this can be used to always perform runtime calls on
+  // non-AArch64 functions without using the macroassembler.
+  template <typename R, typename... P>
+  void RegisterBranchInterception(R (*function)(P...),
+                                  InterceptionCallback callback = nullptr) {
+    meta_data_.RegisterBranchInterception(*function, callback);
+  }
 
  protected:
   const char* clr_normal;
@@ -5140,8 +5229,8 @@ class Simulator : public DecoderVisitor {
   // A configurable size of SVE vector registers.
   unsigned vector_length_;
 
-  // Representation of memory attribute such as MTE tagging and BTI page
-  // protection.
+  // Representation of memory attributes such as MTE tagging and BTI page
+  // protection in addition to branch interceptions.
   MetaDataDepot meta_data_;
 };
 
@@ -5152,6 +5241,17 @@ template <size_t... I>
 struct Simulator::emulated_make_index_sequence_helper<0, I...>
     : Simulator::emulated_index_sequence<I...> {};
 #endif
+
+template <typename R, typename... P>
+void MetaDataDepot::BranchInterception<R, P...>::operator()(
+    Simulator* simulator) const {
+  if (callback_ == nullptr) {
+    Simulator::RuntimeCallStructHelper<R, P...>::
+        Wrapper(simulator, reinterpret_cast<uint64_t>(function_));
+  } else {
+    callback_(reinterpret_cast<uint64_t>(function_));
+  }
+}
 
 }  // namespace aarch64
 }  // namespace vixl
