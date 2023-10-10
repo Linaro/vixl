@@ -300,6 +300,11 @@ class CPUFeatures {
   static CPUFeatures InferFromOS(
       QueryIDRegistersOption option = kQueryIDRegistersIfAvailable);
 
+  // Construct a new CPUFeatures object based on feature macros defined by the
+  // C++ compiler being used to compile VIXL (as opposed to a compiler that VIXL
+  // might be integrated into).
+  static CPUFeatures InferFromVIXLCompiler();
+
   // Combine another CPUFeatures object into this one. Features that already
   // exist in this set are left unchanged.
   void Combine(const CPUFeatures& other);

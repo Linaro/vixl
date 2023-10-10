@@ -344,6 +344,8 @@ static void CPURegisterByValueHelper(CPURegister reg) {
   // generate a function using VIXL instead.
 
   MacroAssembler masm;
+  masm.SetCPUFeatures(CPUFeatures::InferFromVIXLCompiler());
+  masm.SetISA(ISA::Host);
   // CPURegister fn(int placeholder, CPURegister reg);
   // Move `reg` to its result register.
   __ Mov(x0, x1);

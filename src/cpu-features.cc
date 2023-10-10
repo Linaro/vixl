@@ -63,6 +63,15 @@ CPUFeatures CPUFeatures::InferFromOS(QueryIDRegistersOption option) {
 #endif
 }
 
+CPUFeatures CPUFeatures::InferFromVIXLCompiler() {
+  CPUFeatures features;
+#if VIXL_HOST_IS_MORELLO
+  features.Combine(CPUFeatures::kMorello);
+#endif
+  // TODO: We could add a lot more here.
+  return features;
+}
+
 void CPUFeatures::Combine(const CPUFeatures& other) {
   features_ |= other.features_;
 }
