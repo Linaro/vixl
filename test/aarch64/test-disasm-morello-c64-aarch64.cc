@@ -103,7 +103,8 @@ TEST(morello_c64_adrp_c_ip_c) {
   COMPARE_PREFIX_C64(adrp(c0, -1), "adrp c0, #-0x1000 (addr 0x");
   COMPARE_PREFIX_C64(adrp(c0, 42), "adrp c0, #+0x2a000 (addr 0x");
   COMPARE_PREFIX_C64(adrp(c0, 0x7ffff), "adrp c0, #+0x7ffff000 (addr 0x");
-  COMPARE_PREFIX_C64(adrp(c0, -0x80000), "adrp c0, #-0x80000000 (addr 0x");
+  // `PC - 0x80000000` is likely to be negative, so don't assume '0x'.
+  COMPARE_PREFIX_C64(adrp(c0, -0x80000), "adrp c0, #-0x80000000 (addr ");
   COMPARE_PREFIX_C64(adrp(czr, 42), "adrp czr, #+0x2a000 (addr 0x");
   COMPARE_PREFIX_C64(adrp(c30, 42), "adrp c30, #+0x2a000 (addr 0x");
 }

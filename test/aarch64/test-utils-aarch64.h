@@ -587,6 +587,23 @@ bool CanRun(const CPUFeatures& required, bool* queried_can_run = NULL);
 // we need to enable it in the infrastructure code for each test.
 static const CPUFeatures kInfrastructureCPUFeatures(CPUFeatures::kNEON);
 
+#if VIXL_HOST_CHERI_PURECAP
+// Generate a prologue that falls through into an AArch64 or hybrid A64 test,
+// but that can be entered from a purecap (AAPCS64-cap) context. This preserves
+// AAPCS64-cap callee-saved registers.
+//
+// This won't work for arbitrary caller-callee combinations, because the callee
+// only has DDC and PCC available. However, it works for most VIXL tests.
+//
+// - DDC is derived from the caller's stack pointer.
+// - PCC bounds are not explicitly modified, and so will typically be derived
+//   from the `buffer` argment to `ExecuteMemory(...)`.
+void AAPCS64TestPrologue(MacroAssembler* masm);
+
+// As above, but return to the purecap context.
+void AAPCS64TestEpilogue(MacroAssembler* masm, RegisterDump* dump);
+#endif
+
 }  // namespace aarch64
 }  // namespace vixl
 

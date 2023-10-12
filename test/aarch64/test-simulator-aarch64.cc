@@ -112,6 +112,17 @@ namespace aarch64 {
   __ Ret();                     \
   masm.FinalizeCode()
 
+#if VIXL_HOST_CHERI_PURECAP
+// TODO: The simulator tests all refer to external buffers, so we can't simply
+// derive a DDC from the stack pointer (like we do for `test-assembler-*`). We
+// should fix this by passing capabilities to those buffers.
+#define TRY_RUN(skipped)                                                      \
+  DISASSEMBLE();                                                              \
+  {                                                                           \
+    printf("SKIPPED: Simulator tests don't yet work on purecap hosts.\n");    \
+    *skipped = true;                                                          \
+  }
+#else
 #define TRY_RUN(skipped)                                                      \
   DISASSEMBLE();                                                              \
   /* If the test uses features that the current CPU doesn't support, don't */ \
@@ -142,6 +153,7 @@ namespace aarch64 {
       *skipped = true;                                                        \
     }                                                                         \
   }
+#endif // VIXL_HOST_CHERI_PURECAP
 
 
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64

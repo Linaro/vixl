@@ -8872,6 +8872,8 @@ TEST(push_pop_sp) {
 
 
 TEST(printf) {
+  SKIP_ON_PURECAP("MacroAssembler::Printf() is not yet implemented for purecap hosts.");
+
   // RegisterDump::Dump uses NEON.
   // Printf uses FP to cast FP arguments to doubles.
   SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kFP);
@@ -8986,6 +8988,8 @@ TEST(printf) {
 
 
 TEST(printf_no_preserve) {
+  SKIP_ON_PURECAP("MacroAssembler::PrintfNoPreserve() is not yet implemented for purecap hosts.");
+
   // PrintfNoPreserve uses FP to cast FP arguments to doubles.
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
@@ -12093,19 +12097,21 @@ TEST(branch_tagged_and_adr_adrp) {
 
 
 TEST(system_sys) {
+  SKIP_ON_PURECAP("Test accesses memory outside the stack region.");
+
   SETUP();
   const char* msg = "SYS test!";
   uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
 
   START();
   __ Mov(x4, msg_addr);
-  __ Sys(3, 0x7, 0x5, 1, x4);
+  __ Sys(3, 0x7, 0x5, 1, x4); // IC IVAU
   __ Mov(x3, x4);
-  __ Sys(3, 0x7, 0xa, 1, x3);
+  __ Sys(3, 0x7, 0xa, 1, x3); // DC CVAC
   __ Mov(x2, x3);
-  __ Sys(3, 0x7, 0xb, 1, x2);
+  __ Sys(3, 0x7, 0xb, 1, x2); // DC CVAU
   __ Mov(x1, x2);
-  __ Sys(3, 0x7, 0xe, 1, x1);
+  __ Sys(3, 0x7, 0xe, 1, x1); // DC CIVAC
   // TODO: Add tests to check ZVA equivalent.
   END();
 
@@ -12116,6 +12122,8 @@ TEST(system_sys) {
 
 
 TEST(system_ic) {
+  SKIP_ON_PURECAP("Test accesses memory outside the stack region.");
+
   SETUP();
   const char* msg = "IC test!";
   uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
@@ -12132,6 +12140,8 @@ TEST(system_ic) {
 
 
 TEST(system_dc) {
+  SKIP_ON_PURECAP("Test accesses memory outside the stack region.");
+
   SETUP();
   const char* msg = "DC test!";
   uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
@@ -12156,6 +12166,8 @@ TEST(system_dc) {
 
 
 TEST(system_dcpop) {
+  SKIP_ON_PURECAP("Test accesses memory outside the stack region.");
+
   SETUP_WITH_FEATURES(CPUFeatures::kDCPoP);
   const char* msg = "DCPoP test!";
   uintptr_t msg_addr = reinterpret_cast<uintptr_t>(msg);
@@ -13305,6 +13317,8 @@ int16_t test_int16_t(int16_t x) { return x; }
 uint16_t test_uint16_t(uint16_t x) { return x; }
 
 TEST(runtime_calls) {
+  SKIP_ON_PURECAP("Runtime calls are not yet implemented for purecap hosts.");
+
   SETUP_WITH_FEATURES(CPUFeatures::kFP);
 
 #ifndef VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT

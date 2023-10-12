@@ -222,10 +222,7 @@ namespace aarch64 {
 
 #define START()                                                          \
   masm.Reset();                                                          \
-  {                                                                      \
-    CPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);             \
-    __ PushCalleeSavedRegisters();                                       \
-  }                                                                      \
+  VIXL_MASM_TEST_PROLOGUE();                                             \
   offset_after_infrastructure_start = masm.GetCursorOffset();            \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(offset_after_infrastructure_start)
@@ -234,13 +231,29 @@ namespace aarch64 {
   offset_before_infrastructure_end = masm.GetCursorOffset();             \
   /* Avoid unused-variable warnings in case a test never calls RUN(). */ \
   USE(offset_before_infrastructure_end);                                 \
+  VIXL_MASM_TEST_EPILOGUE();                                             \
+  masm.FinalizeCode()
+
+#if VIXL_HOST_CHERI_PURECAP
+#define VIXL_MASM_TEST_PROLOGUE() AAPCS64TestPrologue(&masm);
+#define VIXL_MASM_TEST_EPILOGUE() AAPCS64TestEpilogue(&masm, &core);
+#else
+
+#define VIXL_MASM_TEST_PROLOGUE() \
+  {                                                                      \
+    CPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);             \
+    __ PushCalleeSavedRegisters();                                       \
+  }
+
+#define VIXL_MASM_TEST_EPILOGUE() \
   {                                                                      \
     CPUFeaturesScope cpu(&masm, kInfrastructureCPUFeatures);             \
     core.Dump(&masm);                                                    \
     __ PopCalleeSavedRegisters();                                        \
   }                                                                      \
-  __ Ret();                                                              \
-  masm.FinalizeCode()
+  __ Ret();
+
+#endif
 
 // Execute the generated code from the memory area.
 #define RUN()                                               \
@@ -359,6 +372,17 @@ namespace aarch64 {
     }                                                             \
     VIXL_CHECK(aborted);                                          \
   }
+
+// TODO: Fix the problems, then remove all instances of this macro.
+#if VIXL_HOST_CHERI_PURECAP
+#define SKIP_ON_PURECAP(message)        \
+  {                                     \
+    printf("SKIPPED: %s\n", (message)); \
+    return;                             \
+  }
+#else
+#define SKIP_ON_PURECAP(message) USE(message)
+#endif
 
 }  // namespace aarch64
 }  // namespace vixl

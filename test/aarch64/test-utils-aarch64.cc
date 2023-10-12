@@ -782,5 +782,66 @@ bool CanRun(const CPUFeatures& required, bool* queried_can_run) {
   return false;
 }
 
+#if VIXL_HOST_CHERI_PURECAP && defined(VIXL_INCLUDE_TARGET_AARCH64)
+#define __ masm->
+void AAPCS64TestPrologue(aarch64::MacroAssembler* masm) {
+  // C64 support is possible, but requires a mode switch when falling through to
+  // the test code, and currently we don't need it.
+  VIXL_ASSERT(masm->GetISA() == ISA::A64);
+
+  UseScratchRegisterScope temps(masm);
+  temps.ExcludeAll();
+
+  CPUFeaturesScope cpu(masm, kInfrastructureCPUFeatures, CPUFeatures::kMorello);
+  __ Mov(c14, csp);
+  __ Mrs(c15, DDC);
+  __ Msr(DDC, c14);
+  masm->SetStackPointer(sp);
+  __ Push(c15);
+
+  // Preserve AAPCS64-cap callee-saved registers.
+  __ Push(c29, clr);
+  __ Push(c27, c28);
+  __ Push(c25, c26);
+  __ Push(c23, c24);
+  __ Push(c21, c22);
+  __ Push(c19, c20);
+
+  __ Push(d14, d15);
+  __ Push(d12, d13);
+  __ Push(d10, d11);
+  __ Push(d8, d9);
+}
+
+void AAPCS64TestEpilogue(aarch64::MacroAssembler* masm, RegisterDump* core) {
+  VIXL_ASSERT(masm->GetISA() == ISA::A64);
+
+  UseScratchRegisterScope temps(masm);
+  temps.ExcludeAll();
+
+  CPUFeaturesScope cpu(masm, kInfrastructureCPUFeatures, CPUFeatures::kMorello);
+  core->Dump(masm);
+
+  __ Pop(d9, d8);
+  __ Pop(d11, d10);
+  __ Pop(d13, d12);
+  __ Pop(d15, d14);
+
+  __ Pop(c20, c19);
+  __ Pop(c22, c21);
+  __ Pop(c24, c23);
+  __ Pop(c26, c25);
+  __ Pop(c28, c27);
+  __ Pop(clr, c29);
+
+  __ Pop(c15);
+  __ Mrs(c14, DDC);
+  __ Msr(DDC, c15);
+  __ Mov(csp, c14);
+
+  __ Ret(clr);
+}
+#endif
+
 }  // namespace aarch64
 }  // namespace vixl
