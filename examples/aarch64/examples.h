@@ -150,7 +150,7 @@ bool CanRunNatively(vixl::CPUFeatures req);
 
 // A capability, with collected properties.
 struct Capinfo {
-#ifdef __CHERI__
+#if VIXL_HOST_HAS_CAPABILITIES
   void* __capability cap;
 #else
   // Fake a `cap` field for use with `offsetof`, so we can assemble if we can't
@@ -174,7 +174,7 @@ struct Capinfo {
 
   const char* name;
 
-#ifdef __CHERI__
+#if VIXL_HOST_HAS_CAPABILITIES
   explicit Capinfo(void* __capability cap);
   Capinfo(const char* name, void* __capability c) : Capinfo(c) {
     this->name = name;

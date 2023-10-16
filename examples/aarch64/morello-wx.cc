@@ -35,7 +35,7 @@ using namespace vixl::aarch64;
 
 #define __ masm.
 
-#if defined(__CHERI__) && defined(__aarch64__)
+#if VIXL_HOST_IS_MORELLO
 #include <cheriintrin.h>
 
 // This example demonstrates a 'Compiler' component, which generates code into a
@@ -70,7 +70,7 @@ class Compiler {
              -1,
              0);
     VIXL_CHECK(rwx != nullptr);
-#ifdef __CHERI_PURE_CAPABILITY__
+#if VIXL_HOST_CHERI_PURECAP
     // `mmap` returns a capability in this case.
     VIXL_UNIMPLEMENTED();
 #else
@@ -191,8 +191,8 @@ int main(void) {
 }
 #endif
 
-#else  // __CHERI__ && __aarch64__
+#else  // VIXL_HOST_IS_MORELLO
 #ifndef TEST_EXAMPLES
 int main(void) { std::cerr << "This example requires Morello.\n"; }
 #endif
-#endif  // __CHERI__ && __aarch64__
+#endif  // VIXL_HOST_IS_MORELLO

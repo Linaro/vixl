@@ -1,6 +1,5 @@
-// Copyright 2015, VIXL authors
+// Copyright 2023, VIXL authors
 // All rights reserved.
-//
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
 //
@@ -24,20 +23,54 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#ifndef TEST_UTILS_H_
-#define TEST_UTILS_H_
+// Pointer abstractions, for CHERI compatibility.
+
+#ifndef POINTERS_VIXL_H_
+#define POINTERS_VIXL_H_
+
+#include <type_traits>
 
 #include "globals-vixl.h"
-#include "pointers-vixl.h"
 
-#define ARRAY_SIZE(array) (sizeof(array) / sizeof((array)[0]))
+#if VIXL_HOST_HAS_CAPABILITIES
+#include <cheriintrin.h>
+#endif
 
 namespace vixl {
 
-// In native (non-Simulator) environments, call a function at buffer +
-// byte_offset. The function is given no arguments and returns no results.
-void ExecuteMemory(byte* buffer, size_t size, int byte_offset = 0);
+// True for values that are capabilities (but not necessarily pointers). For
+// example:
+//
+// On both hybrid and purecap:
+// - void * __capability
+// - intcap_t / uintcap_t
+//
+// On purecap only:
+// - void *
+// - intptr_t / uintptr_t
+//
+// Use like std::is_pointer and similar functions.
+//
+// If you need a capability that's also a semantic pointer then you may need to
+// test `std::is_pointer<...> && vixl::is_capability<...>`.
+template<class T>
+struct is_capability : std::false_type {};
+
+#if VIXL_HOST_HAS_CAPABILITIES
+template<class T>
+struct is_capability<T * __capability> : std::true_type {};
+template<class T>
+struct is_capability<T * const __capability> : std::true_type {};
+template<class T>
+struct is_capability<T * volatile __capability> : std::true_type {};
+template<class T>
+struct is_capability<T * const volatile __capability> : std::true_type {};
+template<>
+struct is_capability<intcap_t> : std::true_type {};
+template<>
+struct is_capability<uintcap_t> : std::true_type {};
+#endif
 
 }  // namespace vixl
 
-#endif  // TEST_UTILS_H_
+#endif

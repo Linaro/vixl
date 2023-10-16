@@ -315,7 +315,7 @@ CPUFeatures CPU::InferCPUFeaturesFromOS(
     features.Combine(InferCPUFeaturesFromIDRegisters());
   }
 
-#if __CHERI__
+#if VIXL_HOST_IS_MORELLO
   // Early Morello kernels don't set the feature flag, so infer it from the
   // compiler.
   features.Combine(CPUFeatures::kMorello);

@@ -541,8 +541,8 @@ TEST(CPUFeatures_infer_from_id_registers) {
     // information. This is intended to verify VIXL's InferFromIDRegisters
     // logic, but it also relies on the OS presenting consistent information.
     //
-    // Morello is inferred from __CHERI__ in InferFromOS, so ignore it for this
-    // test.
+    // Morello is inferred from compiler flags in InferFromOS, so ignore it for
+    // this test.
     VIXL_CHECK(id_regs.Has(os_only.Without(CPUFeatures::kMorello)));
 
     // The default InferFromOS should combine its results with

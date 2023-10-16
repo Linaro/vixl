@@ -34,6 +34,7 @@
 
 #include "compiler-intrinsics-vixl.h"
 #include "globals-vixl.h"
+#include "pointers-vixl.h"
 
 namespace vixl {
 

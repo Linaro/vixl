@@ -88,6 +88,20 @@ struct Unsigned<64> {
 
 }  // namespace vixl
 
+#if __CHERI_PURE_CAPABILITY__
+#define VIXL_HOST_CHERI_PURECAP 1
+#define VIXL_HOST_CHERI_HYBRID 0
+#elif __CHERI__
+#define VIXL_HOST_CHERI_PURECAP 0
+#define VIXL_HOST_CHERI_HYBRID 1
+#else
+#define VIXL_HOST_CHERI_PURECAP 0
+#define VIXL_HOST_CHERI_HYBRID 0
+#endif
+
+#define VIXL_HOST_HAS_CAPABILITIES (VIXL_HOST_CHERI_PURECAP || VIXL_HOST_CHERI_HYBRID)
+#define VIXL_HOST_IS_MORELLO (VIXL_HOST_HAS_CAPABILITIES && __aarch64__)
+
 // Detect the host's pointer size.
 #if (UINTPTR_MAX == UINT32_MAX)
 #define VIXL_HOST_POINTER_32

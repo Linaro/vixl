@@ -60,7 +60,7 @@ bool CanRunNatively(vixl::CPUFeatures req) {
 #endif
 }
 
-#ifdef __CHERI__
+#if VIXL_HOST_HAS_CAPABILITIES
 Capinfo::Capinfo(void* __capability c) : name("Capability") {
   uint64_t tmp;
   asm(  // Store the capability verbatim.
@@ -156,7 +156,7 @@ void Capinfo::Print() const {
          (gctag & 1),
          high64,
          low64);
-#ifdef __CHERI__
+#if VIXL_HOST_HAS_CAPABILITIES
   // CHERI printf extension.
   printf("    printf: %#lp\n", reinterpret_cast<const void* __capability>(cap));
 #endif

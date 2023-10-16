@@ -180,5 +180,41 @@ TEST(morello_memoperand_alt_base) {
   VIXL_CHECK(!MemOperand(c0, 42).IsAltBase(ISA::C64));
 }
 
+void example_function() {}
+
+TEST(is_capability) {
+#if VIXL_HOST_HAS_CAPABILITIES
+  VIXL_STATIC_ASSERT(is_capability<void * __capability>::value);
+  VIXL_STATIC_ASSERT(is_capability<void * __capability const>::value);
+  VIXL_STATIC_ASSERT(is_capability<void * __capability volatile>::value);
+  VIXL_STATIC_ASSERT(is_capability<void * __capability const volatile>::value);
+  VIXL_STATIC_ASSERT(is_capability<uintcap_t>::value);
+  VIXL_STATIC_ASSERT(is_capability<intcap_t>::value);
+#endif
+
+  uint32_t local;
+#if VIXL_HOST_CHERI_PURECAP
+  VIXL_STATIC_ASSERT(is_capability<void *>::value);
+  VIXL_STATIC_ASSERT(is_capability<void * const>::value);
+  VIXL_STATIC_ASSERT(is_capability<void * volatile>::value);
+  VIXL_STATIC_ASSERT(is_capability<void * const volatile>::value);
+  VIXL_STATIC_ASSERT(is_capability<uintptr_t>::value);
+  VIXL_STATIC_ASSERT(is_capability<intptr_t>::value);
+  VIXL_STATIC_ASSERT(is_capability<decltype(&local)>::value);
+  VIXL_STATIC_ASSERT(is_capability<decltype(example_function)>::value);
+#else
+  VIXL_STATIC_ASSERT(!is_capability<void *>::value);
+  VIXL_STATIC_ASSERT(!is_capability<void * const>::value);
+  VIXL_STATIC_ASSERT(!is_capability<void * volatile>::value);
+  VIXL_STATIC_ASSERT(!is_capability<void * const volatile>::value);
+  VIXL_STATIC_ASSERT(!is_capability<uintptr_t>::value);
+  VIXL_STATIC_ASSERT(!is_capability<intptr_t>::value);
+  VIXL_STATIC_ASSERT(!is_capability<decltype(&local)>::value);
+  VIXL_STATIC_ASSERT(!is_capability<decltype(example_function)>::value);
+#endif
+
+  VIXL_STATIC_ASSERT(!is_capability<uint64_t>::value);
+}
+
 }  // namespace aarch64
 }  // namespace vixl
