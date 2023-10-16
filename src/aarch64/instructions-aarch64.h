@@ -487,6 +487,10 @@ class Instruction {
     return Mask(LoadLiteralFMask) == LoadLiteralFixed;
   }
 
+  bool IsLoadLiteralCap() const {
+    return Mask(MorelloLDRFMask) == MorelloLDRFixed;
+  }
+
   bool IsMovn() const {
     return (Mask(MoveWideImmediateMask) == MOVN_x) ||
            (Mask(MoveWideImmediateMask) == MOVN_w);

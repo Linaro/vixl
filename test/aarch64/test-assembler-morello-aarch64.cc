@@ -213,6 +213,44 @@ TEST(morello_asm_bx_same_isa) {
 }
 #endif
 
+#if VIXL_HOST_HAS_CAPABILITIES
+TEST(morello_ldr_literal_cap) {
+  SETUP_WITH_FEATURES(CPUFeatures::kMorello);
+  START();
+
+  __ SetFixedCodeAddressBits(kCRegSizeInBytesLog2);
+
+  // Load several capabilities, to test alignment logic.
+  uint8_t data[8];
+  auto cap = [&data](size_t i) -> uintcap_t {
+    i %= sizeof(data);
+#if VIXL_HOST_CHERI_PURECAP
+    return cheri_bounds_set(&data[i], 1);
+#else
+    auto addr = reinterpret_cast<ptraddr_t>(&data[i]);
+    auto cap = cheri_address_set(cheri_ddc_get(), addr);
+    return reinterpret_cast<uintcap_t>(cheri_bounds_set(cap, 1));
+#endif
+  };
+
+  for (unsigned i = 0; i < sizeof(data); i++) {
+    __ Ldr(CRegister(i), cap(i));
+  }
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    // TODO: Check capabilities, once they're supported by RegisterDump.
+    uint64_t base = cheri_address_get(cap(0));
+    for (unsigned i = 0; i < sizeof(data); i++) {
+      ASSERT_EQUAL_64(base + i, XRegister(i));
+    }
+  }
+}
+#endif
+
 // Test that we can use csp as a stack pointer.
 TEST(morello_csp) {
   SETUP_WITH_FEATURES(CPUFeatures::kMorello);

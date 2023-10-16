@@ -527,6 +527,13 @@ void Assembler::ldr(CRegister ct, int64_t imm17) {
   Emit(LDR_c_i | ImmField<21, 5>(imm17) | Rt(ct));
 }
 
+void Assembler::ldr(CRegister ct, RawLiteral* literal) {
+  VIXL_ASSERT(CPUHas(ct));
+  VIXL_ASSERT(literal->GetSize() == static_cast<size_t>(ct.GetSizeInBytes()));
+  ldr(ct, LinkAndGetCapOffsetTo(literal));
+}
+
+
 void Assembler::ldxr(CRegister ct, const MemOperand& addr) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kMorello));
   // There is no alt-base form of this instruction.

@@ -132,7 +132,7 @@ void LiteralPool::Emit(EmitOption option) {
     CodeBufferCheckScope guard(masm_,
                                emit_size,
                                CodeBufferCheckScope::kCheck,
-                               CodeBufferCheckScope::kExactSize);
+                               CodeBufferCheckScope::kMaximumSize);
 #ifdef VIXL_DEBUG
     // Also explicitly disallow usage of the `MacroAssembler` here.
     masm_->SetAllowMacroInstructions(false);
@@ -179,6 +179,13 @@ void LiteralPool::AddEntry(RawLiteral* literal) {
   VIXL_ASSERT(masm_->GetCursorOffset() >= first_use_);
   entries_.push_back(literal);
   size_ += literal->GetSize();
+}
+
+
+void LiteralPool::AddCapEntry(RawLiteral* literal) {
+  AddEntry(literal);
+  // Account for possible padding, used to align capabilities.
+  size_ += kCRegSizeInBytes - kLiteralEntrySize;
 }
 
 

@@ -36,10 +36,12 @@ namespace aarch64 {
 RawLiteral::RawLiteral(size_t size,
                        LiteralPool* literal_pool,
                        DeletionPolicy deletion_policy)
-    : size_(size),
+    : value_{{0, 0}},
       offset_(0),
-      low64_(0),
-      high64_(0),
+      size_(size),
+#if VIXL_HOST_HAS_CAPABILITIES
+      is_cap_(false),
+#endif
       literal_pool_(literal_pool),
       deletion_policy_(deletion_policy) {
   VIXL_ASSERT((deletion_policy == kManuallyDeleted) || (literal_pool_ != NULL));
@@ -136,19 +138,34 @@ void Assembler::place(RawLiteral* literal) {
 
   // Patch instructions using this literal.
   if (literal->IsUsed()) {
+    if (literal->IsCap()) GetBuffer()->AlignToLog2(kCRegSizeInBytesLog2);
     Instruction* target = GetCursorAddress<Instruction*>();
     ptrdiff_t offset = literal->GetLastUse();
     bool done;
     do {
       Instruction* ldr = GetBuffer()->GetOffsetAddress<Instruction*>(offset);
-      VIXL_ASSERT(ldr->IsLoadLiteral());
+      if (ldr->IsLoadLiteral()) {
+        ptrdiff_t imm19 = ldr->GetImmLLiteral();
+        VIXL_ASSERT(imm19 <= 0);
+        done = (imm19 == 0);
+        offset += imm19 * kLiteralEntrySize;
 
-      ptrdiff_t imm19 = ldr->GetImmLLiteral();
-      VIXL_ASSERT(imm19 <= 0);
-      done = (imm19 == 0);
-      offset += imm19 * kLiteralEntrySize;
+        ldr->SetImmLLiteral(target);
+      } else if (ldr->IsLoadLiteralCap()) {
+        ptrdiff_t imm17 = ldr->ExtractSignedBits(21, 5);
+        VIXL_ASSERT(imm17 <= 0);
+        done = (imm17 == 0);
+        offset += imm17 * kInstructionSize;
 
-      ldr->SetImmLLiteral(target);
+        // Encode the offset such that `AlignDown(pcc, 16) + (imm17 * 16)`.
+        auto base = AlignDown(ldr, kCRegSizeInBytes);
+        imm17 = (target - base) / kCRegSizeInBytes;
+        VIXL_ASSERT(IsInt17(imm17));
+        Instr bits = ldr->GetInstructionBits() & 0xffc0001f;
+        ldr->SetInstructionBits(bits | TruncateToUint17(imm17) << 5);
+      } else {
+        VIXL_ABORT();
+      }
     } while (!done);
   }
 
@@ -158,15 +175,26 @@ void Assembler::place(RawLiteral* literal) {
   // Copy the data into the pool.
   switch (literal->GetSize()) {
     case kSRegSizeInBytes:
+      VIXL_ASSERT(!literal->IsCap());
       dc32(literal->GetRawValue32());
       break;
     case kDRegSizeInBytes:
+      VIXL_ASSERT(!literal->IsCap());
       dc64(literal->GetRawValue64());
       break;
     default:
+#if VIXL_HOST_HAS_CAPABILITIES
+      if (literal->IsCap()) {
+        VIXL_ASSERT(literal->GetSize() == kCRegSizeInBytes);
+        GetBuffer()->EmitCap(literal->GetRawValueCap());
+        break;
+      }
+#endif
+      VIXL_ASSERT(!literal->IsCap());
       VIXL_ASSERT(literal->GetSize() == kQRegSizeInBytes);
       dc64(literal->GetRawValue128Low64());
       dc64(literal->GetRawValue128High64());
+      break;
   }
 
   literal->literal_pool_ = NULL;
@@ -195,6 +223,41 @@ ptrdiff_t Assembler::LinkAndGetWordOffsetTo(RawLiteral* literal) {
 
   if (register_first_use) {
     literal->GetLiteralPool()->AddEntry(literal);
+  }
+
+  return offset;
+}
+
+
+ptrdiff_t Assembler::LinkAndGetCapOffsetTo(RawLiteral* literal) {
+  VIXL_ASSERT(IsWordAligned(GetCursorOffset()));
+  ptrdiff_t base = AlignDown(GetCursorOffset(), kCRegSizeInBytes);
+
+  bool register_first_use =
+      (literal->GetLiteralPool() != NULL) && !literal->IsUsed();
+
+  if (literal->IsPlaced()) {
+    // The literal is "behind", the offset will be negative.
+    VIXL_ASSERT((literal->GetOffset() - base) <= 0);
+    return (literal->GetOffset() - base) / kCRegSizeInBytes;
+  }
+
+  ptrdiff_t offset = 0;
+  // Link all uses together.
+  if (literal->IsUsed()) {
+    offset = (literal->GetLastUse() - base) / kInstructionSize;
+    // We need to store an instruction offset (with 4-byte granules) but the
+    // instruction is designed to store capability offsets (with 16-byte
+    // granules), and so has a smaller offset field than the other LDR-literals.
+    // Because we form a linked list from these instruction, this effectively
+    // limits the distance between loads that refer to the same capability
+    // literal. This shouldn't be a problem in practice for Morello experiments.
+    VIXL_CHECK(IsInt17(offset));
+  }
+  literal->SetLastUse(GetCursorOffset());
+
+  if (register_first_use) {
+    literal->GetLiteralPool()->AddCapEntry(literal);
   }
 
   return offset;

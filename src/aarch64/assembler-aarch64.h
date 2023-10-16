@@ -225,10 +225,10 @@ class Label {
 class Assembler;
 class LiteralPool;
 
-// A literal is a 32-bit or 64-bit piece of data stored in the instruction
-// stream and loaded through a pc relative load. The same literal can be
-// referred to by multiple instructions but a literal can only reside at one
-// place in memory. A literal can be used by a load before or after being
+// A literal is a 32-bit, 64-bit or 128-bit piece of data stored in the
+// instruction stream and loaded through a pc relative load. The same literal
+// can be referred to by multiple instructions but a literal can only reside at
+// one place in memory. A literal can be used by a load before or after being
 // placed in memory.
 //
 // Internally an offset of 0 is associated with a literal which has been
@@ -265,36 +265,62 @@ class RawLiteral {
   }
   VIXL_DEPRECATED("GetSize", size_t size()) { return GetSize(); }
 
+#if VIXL_HOST_HAS_CAPABILITIES
+  uintcap_t GetRawValueCap() const {
+    VIXL_ASSERT(size_ == kCRegSizeInBytes);
+    VIXL_ASSERT(is_cap_);
+    return value_.cap;
+  }
+#endif
+
+  bool IsCap() const {
+#if VIXL_HOST_HAS_CAPABILITIES
+    return is_cap_;
+#else
+    return false;
+#endif
+  }
+
+#if VIXL_HOST_HAS_CAPABILITIES
+#define VIXL_ASSERT_NOT_CAP() VIXL_ASSERT(!is_cap_);
+#else
+#define VIXL_ASSERT_NOT_CAP()
+#endif
+
   uint64_t GetRawValue128Low64() const {
+    VIXL_ASSERT_NOT_CAP();
     VIXL_ASSERT(size_ == kQRegSizeInBytes);
-    return low64_;
+    return value_.parts[0];
   }
   VIXL_DEPRECATED("GetRawValue128Low64", uint64_t raw_value128_low64()) {
     return GetRawValue128Low64();
   }
 
   uint64_t GetRawValue128High64() const {
+    VIXL_ASSERT_NOT_CAP();
     VIXL_ASSERT(size_ == kQRegSizeInBytes);
-    return high64_;
+    return value_.parts[1];
   }
   VIXL_DEPRECATED("GetRawValue128High64", uint64_t raw_value128_high64()) {
     return GetRawValue128High64();
   }
 
   uint64_t GetRawValue64() const {
+    VIXL_ASSERT_NOT_CAP();
     VIXL_ASSERT(size_ == kXRegSizeInBytes);
-    VIXL_ASSERT(high64_ == 0);
-    return low64_;
+    VIXL_ASSERT(value_.parts[1] == 0);
+    return value_.parts[0];
   }
   VIXL_DEPRECATED("GetRawValue64", uint64_t raw_value64()) {
     return GetRawValue64();
   }
 
   uint32_t GetRawValue32() const {
+    VIXL_ASSERT_NOT_CAP();
     VIXL_ASSERT(size_ == kWRegSizeInBytes);
-    VIXL_ASSERT(high64_ == 0);
-    VIXL_ASSERT(IsUint32(low64_) || IsInt32(low64_));
-    return static_cast<uint32_t>(low64_);
+    VIXL_ASSERT(value_.parts[1] == 0);
+    VIXL_ASSERT(IsUint32(value_.parts[0]) || IsInt32(value_.parts[0]));
+    return static_cast<uint32_t>(value_.parts[0]);
   }
   VIXL_DEPRECATED("GetRawValue32", uint32_t raw_value32()) {
     return GetRawValue32();
@@ -338,10 +364,17 @@ class RawLiteral {
     SetLastUse(offset);
   }
 
-  size_t size_;
+  union {
+    uint64_t parts[2];
+#if VIXL_HOST_HAS_CAPABILITIES
+    uintcap_t cap;
+#endif
+  } value_;
   ptrdiff_t offset_;
-  uint64_t low64_;
-  uint64_t high64_;
+  size_t size_;
+#if VIXL_HOST_HAS_CAPABILITIES
+  bool is_cap_;
+#endif
 
  private:
   LiteralPool* literal_pool_;
@@ -359,7 +392,12 @@ class Literal : public RawLiteral {
                    LiteralPool* literal_pool = NULL,
                    RawLiteral::DeletionPolicy ownership = kManuallyDeleted)
       : RawLiteral(sizeof(value), literal_pool, ownership) {
+#if VIXL_HOST_HAS_CAPABILITIES
+    VIXL_STATIC_ASSERT(sizeof(value) <= kCRegSizeInBytes);
+    is_cap_ = is_capability<T>::value;
+#else
     VIXL_STATIC_ASSERT(sizeof(value) <= kXRegSizeInBytes);
+#endif
     UpdateValue(value);
   }
 
@@ -382,7 +420,18 @@ class Literal : public RawLiteral {
   // been moved in memory.
   void UpdateValue(T new_value, uint8_t* code_buffer = NULL) {
     VIXL_ASSERT(sizeof(new_value) == size_);
-    memcpy(&low64_, &new_value, sizeof(new_value));
+
+#if VIXL_HOST_HAS_CAPABILITIES
+    VIXL_ASSERT(is_cap_ == is_capability<T>::value);
+    if (is_capability<T>::value) {
+      value_.cap = (uintcap_t)new_value;
+    } else {
+      memcpy(&value_.parts[0], &new_value, sizeof(new_value));
+    }
+#else
+    memcpy(&value_.parts[0], &new_value, sizeof(new_value));
+#endif
+
     if (IsPlaced()) {
       VIXL_ASSERT(code_buffer != NULL);
       RewriteValueInCode(code_buffer);
@@ -391,8 +440,10 @@ class Literal : public RawLiteral {
 
   void UpdateValue(T high64, T low64, uint8_t* code_buffer = NULL) {
     VIXL_ASSERT(sizeof(low64) == size_ / 2);
-    memcpy(&low64_, &low64, sizeof(low64));
-    memcpy(&high64_, &high64, sizeof(high64));
+    VIXL_STATIC_ASSERT(!is_capability<T>::value);
+    VIXL_ASSERT_NOT_CAP();
+    memcpy(&value_.parts[0], &low64, sizeof(low64));
+    memcpy(&value_.parts[1], &high64, sizeof(high64));
     if (IsPlaced()) {
       VIXL_ASSERT(code_buffer != NULL);
       RewriteValueInCode(code_buffer);
@@ -405,7 +456,11 @@ class Literal : public RawLiteral {
  private:
   void RewriteValueInCode(uint8_t* code_buffer) {
     VIXL_ASSERT(IsPlaced());
+#if VIXL_HOST_HAS_CAPABILITIES
+    VIXL_STATIC_ASSERT(sizeof(T) <= kCRegSizeInBytes);
+#else
     VIXL_STATIC_ASSERT(sizeof(T) <= kXRegSizeInBytes);
+#endif
     switch (GetSize()) {
       case kSRegSizeInBytes:
         *reinterpret_cast<uint32_t*>(code_buffer + GetOffset()) =
@@ -416,11 +471,19 @@ class Literal : public RawLiteral {
             GetRawValue64();
         break;
       default:
+#if VIXL_HOST_HAS_CAPABILITIES
+        if (is_capability<T>::value) {
+          *reinterpret_cast<uintcap_t*>(code_buffer + GetOffset()) =
+              GetRawValueCap();
+          break;
+        }
+#endif
         VIXL_ASSERT(GetSize() == kQRegSizeInBytes);
         uint64_t* base_address =
             reinterpret_cast<uint64_t*>(code_buffer + GetOffset());
         *base_address = GetRawValue128Low64();
         *(base_address + 1) = GetRawValue128High64();
+        break;
     }
   }
 };
@@ -6169,6 +6232,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   // generates a capability load from `AlignDown(pcc, 16) + (imm17 * 16)`.
   void ldr(CRegister ct, int64_t imm17);
 
+  // Load capability from literal pool.
+  void ldr(CRegister ct, RawLiteral* literal);
+
   // LDXP <Ct>, <Ct2>, [...]
   void ldxp(CRegister ct, CRegister ct2, const MemOperand& addr);
 
@@ -7706,6 +7772,10 @@ class Assembler : public vixl::internal::AssemblerBase {
 
   // Literal load offset are in words (32-bit).
   ptrdiff_t LinkAndGetWordOffsetTo(RawLiteral* literal);
+
+  // Capability offsets are such that a load at `pcc` refers to the literal at
+  // `AlignDown(pcc, 16) + (offset * 16)`.
+  ptrdiff_t LinkAndGetCapOffsetTo(RawLiteral* literal);
 
   // Emit the instruction in buffer_.
   void Emit(Instr instruction) {

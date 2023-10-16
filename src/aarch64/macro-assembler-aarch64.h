@@ -95,6 +95,7 @@ class LiteralPool : public Pool {
   void Reset();
 
   void AddEntry(RawLiteral* literal);
+  void AddCapEntry(RawLiteral* literal);
   bool IsEmpty() const { return entries_.empty(); }
   size_t GetSize() const;
   VIXL_DEPRECATED("GetSize", size_t Size() const) { return GetSize(); }
@@ -6876,6 +6877,16 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     SingleEmissionCheckScope guard(this);
     ldpbr(ct, addr);
   }
+
+#if VIXL_HOST_HAS_CAPABILITIES
+  void Ldr(CRegister ct, uintcap_t literal) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    ldr(ct, new Literal<uintcap_t>(literal,
+                                   &literal_pool_,
+                                   RawLiteral::kDeletedOnPlacementByPool));
+  }
+#endif
 
   void Mov(CRegister cd, CRegister cn) {
     VIXL_ASSERT(allow_macro_instructions_);

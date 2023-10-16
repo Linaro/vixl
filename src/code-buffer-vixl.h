@@ -128,10 +128,24 @@ class CodeBuffer {
     cursor_ += sizeof(value);
   }
 
+#if VIXL_HOST_HAS_CAPABILITIES
+  void EmitCap(uintcap_t value) {
+    VIXL_ASSERT(HasSpaceFor(sizeof(value)));
+    dirty_ = true;
+    VIXL_ASSERT(IsAligned<sizeof(value)>(cursor_));
+    *reinterpret_cast<uintcap_t*>(cursor_) = value;
+    cursor_ += sizeof(value);
+  }
+#endif
+
   void UpdateData(size_t offset, const void* data, size_t size);
 
   // Align to 32bit.
-  void Align();
+  inline void Align() {
+    AlignToLog2(2);
+  }
+
+  void AlignToLog2(size_t bytes_log2);
 
   // Ensure there is enough space for and emit 'n' zero bytes.
   void EmitZeroedBytes(int n);

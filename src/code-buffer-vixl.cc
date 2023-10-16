@@ -144,10 +144,16 @@ void CodeBuffer::UpdateData(size_t offset, const void* data, size_t size) {
 }
 
 
-void CodeBuffer::Align() {
-  byte* end = AlignUp(cursor_, 4);
-  const size_t padding_size = end - cursor_;
-  VIXL_ASSERT(padding_size <= 4);
+void CodeBuffer::AlignToLog2(size_t bytes_log2) {
+  // The strictest alignment we use is for Morello capabilities (16 bytes). This
+  // probably works somewhat beyond that, but is untested.
+  VIXL_ASSERT(bytes_log2 <= 4);
+  size_t align_to = 1 << bytes_log2;
+  ptraddr_t start = reinterpret_cast<ptraddr_t>(cursor_);
+  ptraddr_t end = AlignUp(start, align_to);
+  VIXL_ASSERT(end >= start);
+  size_t padding_size = end - start;
+  VIXL_ASSERT(padding_size < align_to);
   EmitZeroedBytes(static_cast<int>(padding_size));
 }
 

@@ -939,7 +939,7 @@ TEST(morello_ldpbr_c_c_c) {
 TEST(morello_ldr_c_i_c) {
   SETUP();
 
-  COMPARE_PREFIX(ldr(c0, 0), "ldr c0, pcc+0 (addr 0x");
+  COMPARE_PREFIX(ldr(c0, INT64_C(0)), "ldr c0, pcc+0 (addr 0x");
   COMPARE_PREFIX(ldr(c0, 1), "ldr c0, pcc+16 (addr 0x");
   COMPARE_PREFIX(ldr(c0, -1), "ldr c0, pcc-16 (addr 0x");
   COMPARE_PREFIX(ldr(c0, 0x0ffff), "ldr c0, pcc+1048560 (addr 0x");
