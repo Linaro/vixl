@@ -3545,6 +3545,10 @@ TEST_T32(near_branch_fuzz) {
   int loop_count = 0;
   __ Mov(r1, 0);
 
+  // This is 'set but not used' unless we can run the generated code, and
+  // ASSERT_EQUAL_32(...).
+  USE(loop_count);
+
   // Initialise the status flags to Z set.
   __ Cmp(r1, r1);
 
@@ -3645,6 +3649,10 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
 
   int loop_count = 0;
   __ Mov(r1, 0);
+
+  // This is 'set but not used' unless we can run the generated code, and
+  // ASSERT_EQUAL_32(...).
+  USE(loop_count);
 
   // If the value of r4 changes then the test fails.
   __ Mov(r4, 42);

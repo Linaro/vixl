@@ -375,7 +375,7 @@ TEST(FuzzObjectDeletedWhenPlaced) {
   }
 
   int32_t pc = 0;
-  for (int i = 0; !objects.empty(); ++i) {
+  while (!objects.empty()) {
     IF_VERBOSE(printf("PC = 0x%x (%d)\n", pc, pc));
     int32_t pc_increment = RandomPCIncrement();
     IF_VERBOSE(printf("Attempting to increment PC by %d\n", pc_increment));
@@ -450,7 +450,7 @@ TEST(FuzzObjectUpdatedWhenPlaced) {
   }
 
   int32_t pc = 0;
-  for (int i = 0; !objects.empty(); ++i) {
+  while (!objects.empty()) {
     IF_VERBOSE(printf("PC = 0x%x (%d)\n", pc, pc));
 
     int32_t pc_increment = RandomPCIncrement();

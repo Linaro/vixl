@@ -7138,7 +7138,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   // Set the current stack pointer, but don't generate any code.
   void SetStackPointer(CPURegister stack_pointer) {
     VIXL_ASSERT(!GetScratchRegisterList()->IncludesAliasOf(stack_pointer));
-    VIXL_ASSERT(stack_pointer.IsX() | stack_pointer.IsC());
+    VIXL_ASSERT(stack_pointer.IsX() || stack_pointer.IsC());
     VIXL_ASSERT(CPUHas(stack_pointer));
     sp_ = stack_pointer;
   }

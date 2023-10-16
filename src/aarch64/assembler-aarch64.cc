@@ -3004,7 +3004,7 @@ void Assembler::fmov(const VRegister& vd, float imm) {
     Emit(FMOV_s_imm | Rd(vd) | ImmFP32(imm));
   } else {
     VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
-    VIXL_ASSERT(vd.Is2S() | vd.Is4S());
+    VIXL_ASSERT(vd.Is2S() || vd.Is4S());
     Instr op = NEONModifiedImmediate_MOVI;
     Instr q = vd.Is4S() ? NEON_Q : 0;
     uint32_t encoded_imm = FP32ToImm8(imm);
@@ -3021,7 +3021,7 @@ void Assembler::fmov(const VRegister& vd, Float16 imm) {
     Emit(FMOV_h_imm | Rd(vd) | ImmFP16(imm));
   } else {
     VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kNEONHalf));
-    VIXL_ASSERT(vd.Is4H() | vd.Is8H());
+    VIXL_ASSERT(vd.Is4H() || vd.Is8H());
     Instr q = vd.Is8H() ? NEON_Q : 0;
     uint32_t encoded_imm = FP16ToImm8(imm);
     Emit(q | NEONModifiedImmediate_FMOV | ImmNEONabcdefgh(encoded_imm) |

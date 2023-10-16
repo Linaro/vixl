@@ -2843,7 +2843,7 @@ static void TestOpImmOpImmNEON(const char* name,
         }
       }
     }
-    VIXL_ASSERT(counted_length == expected_length);
+    VIXL_CHECK(counted_length == expected_length);
     if (error_count > kErrorReportLimit) {
       printf("%u other errors follow.\n", error_count - kErrorReportLimit);
     }
