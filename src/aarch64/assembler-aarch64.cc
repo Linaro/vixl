@@ -2913,6 +2913,25 @@ void Assembler::st1(const VRegister& vt, int lane, const MemOperand& dst) {
   LoadStoreStructSingle(vt, lane, dst, NEONLoadStoreSingleStructStore1);
 }
 
+void Assembler::pmull(const VRegister& vd,
+                      const VRegister& vn,
+                      const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(AreSameFormat(vn, vm));
+  VIXL_ASSERT((vn.Is8B() && vd.Is8H()) || (vn.Is1D() && vd.Is1Q()));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kPmull1Q) || vd.Is8H());
+  Emit(VFormat(vn) | NEON_PMULL | Rm(vm) | Rn(vn) | Rd(vd));
+}
+
+void Assembler::pmull2(const VRegister& vd,
+                       const VRegister& vn,
+                       const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(AreSameFormat(vn, vm));
+  VIXL_ASSERT((vn.Is16B() && vd.Is8H()) || (vn.Is2D() && vd.Is1Q()));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kPmull1Q) || vd.Is8H());
+  Emit(VFormat(vn) | NEON_PMULL2 | Rm(vm) | Rn(vn) | Rd(vd));
+}
 
 void Assembler::NEON3DifferentL(const VRegister& vd,
                                 const VRegister& vn,
@@ -2960,8 +2979,6 @@ void Assembler::NEON3DifferentHN(const VRegister& vd,
 
 // clang-format off
 #define NEON_3DIFF_LONG_LIST(V) \
-  V(pmull,  NEON_PMULL,  vn.IsVector() && vn.Is8B())                           \
-  V(pmull2, NEON_PMULL2, vn.IsVector() && vn.Is16B())                          \
   V(saddl,  NEON_SADDL,  vn.IsVector() && vn.IsD())                            \
   V(saddl2, NEON_SADDL2, vn.IsVector() && vn.IsQ())                            \
   V(sabal,  NEON_SABAL,  vn.IsVector() && vn.IsD())                            \

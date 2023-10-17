@@ -330,6 +330,7 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"frsqrte_asisdmisc_r"_h, &Disassembler::DisassembleNEONFPScalar2RegMisc},
       {"scvtf_asisdmisc_r"_h, &Disassembler::DisassembleNEONFPScalar2RegMisc},
       {"ucvtf_asisdmisc_r"_h, &Disassembler::DisassembleNEONFPScalar2RegMisc},
+      {"pmull_asimddiff_l"_h, &Disassembler::DisassembleNEONPolynomialMul},
       {"adclb_z_zzz"_h, &Disassembler::DisassembleSVEAddSubCarry},
       {"adclt_z_zzz"_h, &Disassembler::DisassembleSVEAddSubCarry},
       {"addhnb_z_zz"_h, &Disassembler::DisassembleSVEAddSubHigh},
@@ -2425,11 +2426,6 @@ void Disassembler::VisitNEON3Different(const Instruction *instr) {
       nfd.SetFormatMaps(nfd.LongIntegerFormatMap());
       nfd.SetFormatMap(0, nfd.IntegerFormatMap());
       break;
-    case "pmull_asimddiff_l"_h:
-      if (nfd.GetVectorFormat(0) != kFormat8H) {
-        mnemonic = NULL;
-      }
-      break;
     case "sqdmlal_asimddiff_l"_h:
     case "sqdmlsl_asimddiff_l"_h:
     case "sqdmull_asimddiff_l"_h:
@@ -2439,6 +2435,22 @@ void Disassembler::VisitNEON3Different(const Instruction *instr) {
       break;
   }
   Format(instr, nfd.Mnemonic(mnemonic), nfd.Substitute(form));
+}
+
+void Disassembler::DisassembleNEONPolynomialMul(const Instruction *instr) {
+  const char *mnemonic = instr->ExtractBit(30) ? "pmull2" : "pmull";
+  const char *form = NULL;
+  int size = instr->ExtractBits(23, 22);
+  if (size == 0) {
+    // Bits 30:27 of the instruction are x001, where x is the Q bit. Map
+    // this to "8" and "16" by adding 7.
+    form = "'Vd.8h, 'Vn.'u3127+7b, 'Vm.'u3127+7b";
+  } else if (size == 3) {
+    form = "'Vd.1q, 'Vn.'?30:21d, 'Vm.'?30:21d";
+  } else {
+    mnemonic = NULL;
+  }
+  Format(instr, mnemonic, form);
 }
 
 void Disassembler::DisassembleNEONFPAcrossLanes(const Instruction *instr) {

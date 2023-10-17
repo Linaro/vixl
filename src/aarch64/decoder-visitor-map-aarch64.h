@@ -2074,7 +2074,6 @@
       {"scvtf_asimdmiscfp16_r"_h, &VISITORCLASS::VisitNEON2RegMiscFP16},       \
       {"ucvtf_asimdmiscfp16_r"_h, &VISITORCLASS::VisitNEON2RegMiscFP16},       \
       {"addhn_asimddiff_n"_h, &VISITORCLASS::VisitNEON3Different},             \
-      {"pmull_asimddiff_l"_h, &VISITORCLASS::VisitNEON3Different},             \
       {"raddhn_asimddiff_n"_h, &VISITORCLASS::VisitNEON3Different},            \
       {"rsubhn_asimddiff_n"_h, &VISITORCLASS::VisitNEON3Different},            \
       {"sabal_asimddiff_l"_h, &VISITORCLASS::VisitNEON3Different},             \
@@ -2827,6 +2826,7 @@
       {"fmlal_asimdsame_f"_h, &VISITORCLASS::VisitNEON3Same},                  \
       {"fmlsl2_asimdsame_f"_h, &VISITORCLASS::VisitNEON3Same},                 \
       {"fmlsl_asimdsame_f"_h, &VISITORCLASS::VisitNEON3Same},                  \
+      {"pmull_asimddiff_l"_h, &VISITORCLASS::VisitNEON3Different},             \
       {"ushll_asimdshf_l"_h, &VISITORCLASS::VisitNEONShiftImmediate},          \
       {"sshll_asimdshf_l"_h, &VISITORCLASS::VisitNEONShiftImmediate},          \
       {"shrn_asimdshf_n"_h, &VISITORCLASS::VisitNEONShiftImmediate},           \

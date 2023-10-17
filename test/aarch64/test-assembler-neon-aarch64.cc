@@ -10975,6 +10975,24 @@ TEST(neon_usdot_element) {
   }
 }
 
+TEST(neon_pmull_regression_test) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+
+  START();
+  __ Movi(v0.V2D(), 0xdecafc0ffee);
+  __ Pmull(v0.V8H(), v0.V8B(), v0.V8B());
+
+  __ Movi(v1.V2D(), 0xaaaaaaaa55555555);
+  __ Pmull2(v1.V8H(), v1.V16B(), v1.V16B());
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_128(0x0000000000515450, 0x4455500055555454, q0);
+    ASSERT_EQUAL_128(0x4444444444444444, 0x1111111111111111, q1);
+  }
+}
+
 TEST(zero_high_b) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON, CPUFeatures::kRDM);
   START();

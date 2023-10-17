@@ -913,22 +913,11 @@ LogicVRegister Simulator::sqrdmlsh(VectorFormat vform,
   return sqrdmlsh(vform, dst, src1, dup_element(indexform, temp, src2, index));
 }
 
-
 uint64_t Simulator::PolynomialMult(uint64_t op1,
                                    uint64_t op2,
                                    int lane_size_in_bits) const {
-  VIXL_ASSERT(static_cast<unsigned>(lane_size_in_bits) <= kSRegSize);
-  VIXL_ASSERT(IsUintN(lane_size_in_bits, op1));
-  VIXL_ASSERT(IsUintN(lane_size_in_bits, op2));
-  uint64_t result = 0;
-  for (int i = 0; i < lane_size_in_bits; ++i) {
-    if ((op1 >> i) & 1) {
-      result = result ^ (op2 << i);
-    }
-  }
-  return result;
+  return PolynomialMult128(op1, op2, lane_size_in_bits).second;
 }
-
 
 LogicVRegister Simulator::pmul(VectorFormat vform,
                                LogicVRegister dst,
@@ -951,14 +940,16 @@ LogicVRegister Simulator::pmull(VectorFormat vform,
                                 const LogicVRegister& src1,
                                 const LogicVRegister& src2) {
   dst.ClearForWrite(vform);
-
   VectorFormat vform_src = VectorFormatHalfWidth(vform);
-  for (int i = 0; i < LaneCountFromFormat(vform); i++) {
+
+  // Process the elements in reverse to avoid problems when the destination
+  // register is the same as a source.
+  for (int i = LaneCountFromFormat(vform) - 1; i >= 0; i--) {
     dst.SetUint(vform,
                 i,
-                PolynomialMult(src1.Uint(vform_src, i),
-                               src2.Uint(vform_src, i),
-                               LaneSizeInBitsFromFormat(vform_src)));
+                PolynomialMult128(src1.Uint(vform_src, i),
+                                  src2.Uint(vform_src, i),
+                                  LaneSizeInBitsFromFormat(vform_src)));
   }
 
   return dst;
@@ -969,16 +960,18 @@ LogicVRegister Simulator::pmull2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src1,
                                  const LogicVRegister& src2) {
-  VectorFormat vform_src = VectorFormatHalfWidthDoubleLanes(vform);
   dst.ClearForWrite(vform);
+  VectorFormat vform_src = VectorFormatHalfWidthDoubleLanes(vform);
+
   int lane_count = LaneCountFromFormat(vform);
   for (int i = 0; i < lane_count; i++) {
     dst.SetUint(vform,
                 i,
-                PolynomialMult(src1.Uint(vform_src, lane_count + i),
-                               src2.Uint(vform_src, lane_count + i),
-                               LaneSizeInBitsFromFormat(vform_src)));
+                PolynomialMult128(src1.Uint(vform_src, lane_count + i),
+                                  src2.Uint(vform_src, lane_count + i),
+                                  LaneSizeInBitsFromFormat(vform_src)));
   }
+
   return dst;
 }
 
