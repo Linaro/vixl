@@ -4516,6 +4516,20 @@ TEST(neon_matmul) {
   CLEANUP();
 }
 
+TEST(neon_sha3) {
+  SETUP();
+
+  COMPARE_MACRO(Bcax(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()),
+                "bcax v0.16b, v1.16b, v2.16b, v3.16b");
+  COMPARE_MACRO(Eor3(v10.V16B(), v11.V16B(), v12.V16B(), v13.V16B()),
+                "eor3 v10.16b, v11.16b, v12.16b, v13.16b");
+  COMPARE_MACRO(Xar(v20.V2D(), v21.V2D(), v22.V2D(), 42),
+                "xar v20.2d, v21.2d, v22.2d, #42");
+  COMPARE_MACRO(Rax1(v0.V2D(), v1.V2D(), v2.V2D()), "rax1 v0.2d, v1.2d, v2.2d");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 

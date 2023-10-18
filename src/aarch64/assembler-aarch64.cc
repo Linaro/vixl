@@ -5876,6 +5876,39 @@ void Assembler::ummla(const VRegister& vd, const VRegister& vn, const VRegister&
   Emit(0x6e80a400 | Rd(vd) | Rn(vn) | Rm(vm));
 }
 
+void Assembler::bcax(const VRegister& vd, const VRegister& vn, const VRegister& vm, const VRegister& va) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA3));
+  VIXL_ASSERT(vd.Is16B() && vn.Is16B() && vm.Is16B());
+
+  Emit(0xce200000 | Rd(vd) | Rn(vn) | Rm(vm) | Ra(va));
+}
+
+void Assembler::eor3(const VRegister& vd, const VRegister& vn, const VRegister& vm, const VRegister& va) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA3));
+  VIXL_ASSERT(vd.Is16B() && vn.Is16B() && vm.Is16B() && va.Is16B());
+
+  Emit(0xce000000 | Rd(vd) | Rn(vn) | Rm(vm) | Ra(va));
+}
+
+void Assembler::xar(const VRegister& vd, const VRegister& vn, const VRegister& vm, int rotate) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA3));
+  VIXL_ASSERT(vd.Is2D() && vn.Is2D() && vm.Is2D());
+  VIXL_ASSERT(IsUint6(rotate));
+
+  Emit(0xce800000 | Rd(vd) | Rn(vn) | Rm(vm) | rotate << 10);
+}
+
+void Assembler::rax1(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA3));
+  VIXL_ASSERT(vd.Is2D() && vn.Is2D() && vm.Is2D());
+
+  Emit(0xce608c00 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

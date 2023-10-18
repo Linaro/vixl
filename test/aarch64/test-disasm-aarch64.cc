@@ -3789,10 +3789,10 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0xd503221f), "esb");  // ESB_HI_hints
 
   // ARMv8.2 - SHA3
-  // COMPARE_PREFIX(dci(0xce000000), "eor3");   // EOR3_VVV16_crypto4
-  // COMPARE_PREFIX(dci(0xce200000), "bcax");   // BCAX_VVV16_crypto4
-  // COMPARE_PREFIX(dci(0xce608c00), "rax1");   // RAX1_VVV2_cryptosha512_3
-  // COMPARE_PREFIX(dci(0xce800000), "xar");   // XAR_VVV2_crypto3_imm6
+  COMPARE_PREFIX(dci(0xce000000), "eor3");  // EOR3_VVV16_crypto4
+  COMPARE_PREFIX(dci(0xce200000), "bcax");  // BCAX_VVV16_crypto4
+  COMPARE_PREFIX(dci(0xce608c00), "rax1");  // RAX1_VVV2_cryptosha512_3
+  COMPARE_PREFIX(dci(0xce800000), "xar");   // XAR_VVV2_crypto3_imm6
 
   // ARMv8.2 - SHA512
   // COMPARE_PREFIX(dci(0xce608000), "sha512h");   // SHA512H_QQV_cryptosha512_3

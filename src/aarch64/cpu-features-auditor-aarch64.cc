@@ -1835,6 +1835,14 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
         {"umax_64u_minmax_imm"_h, CPUFeatures::kCSSC},
         {"umin_32u_minmax_imm"_h, CPUFeatures::kCSSC},
         {"umin_64u_minmax_imm"_h, CPUFeatures::kCSSC},
+        {"bcax_vvv16_crypto4"_h,
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA3)},
+        {"eor3_vvv16_crypto4"_h,
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA3)},
+        {"rax1_vvv2_cryptosha512_3"_h,
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA3)},
+        {"xar_vvv2_crypto3_imm6"_h,
+         CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA3)},
     };
 
     if (features.count(form_hash_) > 0) {

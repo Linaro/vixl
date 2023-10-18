@@ -3785,5 +3785,14 @@ TEST_FP_FCMA_NEON_NEONHALF(fcmla_3, fcmla(v0.V8H(), v1.V8H(), v2.V8H(), 0))
 TEST_FEAT(pmull1q_0, pmull(v5.V1Q(), v6.V1D(), v7.V1D()))
 #undef TEST_FEAT
 
+#define TEST_NEON_SHA3(NAME, ASM)                                    \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA3), \
+                NEON_SHA3_##NAME,                                    \
+                ASM)
+TEST_NEON_SHA3(bcax_0, bcax(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()))
+TEST_NEON_SHA3(eor3_0, eor3(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()))
+TEST_NEON_SHA3(xar_0, xar(v0.V2D(), v1.V2D(), v2.V2D(), 42))
+TEST_NEON_SHA3(rax1_0, rax1(v0.V2D(), v1.V2D(), v2.V2D()))
+
 }  // namespace aarch64
 }  // namespace vixl
