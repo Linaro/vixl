@@ -1882,6 +1882,10 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
          CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA512)},
         {"sha512su1_vvv2_cryptosha512_3"_h,
          CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA512)},
+        {"pmullb_z_zz_q"_h,
+         CPUFeatures(CPUFeatures::kSVE2, CPUFeatures::kSVEPmull128)},
+        {"pmullt_z_zz_q"_h,
+         CPUFeatures(CPUFeatures::kSVE2, CPUFeatures::kSVEPmull128)},
     };
 
     if (features.count(form_hash_) > 0) {

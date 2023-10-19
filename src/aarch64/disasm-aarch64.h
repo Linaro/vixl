@@ -196,6 +196,8 @@ class Disassembler : public DecoderVisitor {
   void DisassembleSVEBitwiseTernary(const Instruction* instr);
   void DisassembleSVEFlogb(const Instruction* instr);
   void DisassembleSVEFPPair(const Instruction* instr);
+  void DisassembleSVEPmull(const Instruction* instr);
+  void DisassembleSVEPmull128(const Instruction* instr);
 
   void DisassembleNoArgs(const Instruction* instr);
 

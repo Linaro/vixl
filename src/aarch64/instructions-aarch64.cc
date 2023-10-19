@@ -1047,6 +1047,8 @@ VectorFormat VectorFormatHalfWidth(VectorFormat vform) {
       return kFormatVnH;
     case kFormatVnD:
       return kFormatVnS;
+    case kFormatVnQ:
+      return kFormatVnD;
     default:
       VIXL_UNREACHABLE();
       return kFormatUndefined;

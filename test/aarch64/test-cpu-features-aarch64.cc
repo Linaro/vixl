@@ -3856,5 +3856,13 @@ TEST_FEAT(sm4e, sm4e(v12.V4S(), v13.V4S()))
 TEST_FEAT(sm4ekey, sm4ekey(v12.V4S(), v13.V4S(), v14.V4S()))
 #undef TEST_FEAT
 
+#define TEST_FEAT(NAME, ASM)                                                \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kSVE2, CPUFeatures::kSVEPmull128), \
+                SVE_PMULL128_##NAME,                                        \
+                ASM)
+TEST_FEAT(pmullb, pmullb(z12.VnQ(), z21.VnD(), z12.VnD()))
+TEST_FEAT(pmullt, pmullt(z12.VnQ(), z21.VnD(), z12.VnD()))
+#undef TEST_FEAT
+
 }  // namespace aarch64
 }  // namespace vixl
