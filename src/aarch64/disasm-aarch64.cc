@@ -2172,12 +2172,20 @@ void Disassembler::VisitException(const Instruction *instr) {
 
 
 void Disassembler::VisitCrypto2RegSHA(const Instruction *instr) {
-  VisitUnimplemented(instr);
+  const char *form = "'Vd.4s, 'Vn.4s";
+  if (form_hash_ == "sha1h_ss_cryptosha2"_h) {
+    form = "'Sd, 'Sn";
+  }
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 
 void Disassembler::VisitCrypto3RegSHA(const Instruction *instr) {
-  VisitUnimplemented(instr);
+  const char *form = "'Qd, 'Sn, 'Vm.4s";
+  if (form_hash_ == "sha1su0_vvv_cryptosha3"_h) {
+    form = "'Vd.4s, 'Vn.4s, 'Vm.4s";
+  }
+  FormatWithDecodedMnemonic(instr, form);
 }
 
 

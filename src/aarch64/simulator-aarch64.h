@@ -1280,9 +1280,10 @@ class SimExclusiveGlobalMonitor {
   uint32_t seed_;
 };
 
-
 class Debugger;
 
+template <uint32_t mode>
+uint64_t SHA1Operation(uint64_t x, uint64_t y, uint64_t z);
 
 class Simulator : public DecoderVisitor {
  public:
@@ -3768,6 +3769,10 @@ class Simulator : public DecoderVisitor {
                      LogicVRegister dst,
                      const LogicVRegister& src,
                      int rotation);
+  LogicVRegister rol(VectorFormat vform,
+                     LogicVRegister dst,
+                     const LogicVRegister& src,
+                     int rotation);
   LogicVRegister ext(VectorFormat vform,
                      LogicVRegister dst,
                      const LogicVRegister& src1,
@@ -4492,6 +4497,36 @@ class Simulator : public DecoderVisitor {
                          LogicVRegister srcdst,
                          const LogicVRegister& src1,
                          const LogicVRegister& src2);
+
+  template <uint32_t mode>
+  LogicVRegister sha1(LogicVRegister srcdst,
+                      const LogicVRegister& src1,
+                      const LogicVRegister& src2) {
+    uint64_t y = src1.Uint(kFormat4S, 0);
+    uint64_t sd[4] = {};
+    srcdst.UintArray(kFormat4S, sd);
+
+    for (unsigned i = 0; i < ArrayLength(sd); i++) {
+      uint64_t t = SHA1Operation<mode>(sd[1], sd[2], sd[3]);
+
+      y += RotateLeft(sd[0], 5, kSRegSize) + t;
+      y += src2.Uint(kFormat4S, i);
+
+      sd[1] = RotateLeft(sd[1], 30, kSRegSize);
+
+      // y:sd = ROL(y:sd, 32)
+      uint64_t temp = sd[3];
+      sd[3] = sd[2];
+      sd[2] = sd[1];
+      sd[1] = sd[0];
+      sd[0] = y;
+      y = temp;
+    }
+
+    srcdst.SetUintArray(kFormat4S, sd);
+    return srcdst;
+  }
+
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \
   V(addhn2)                      \

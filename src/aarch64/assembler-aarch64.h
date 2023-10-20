@@ -3642,6 +3642,24 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Rotate and Exclusive-OR
   void rax1(const VRegister& vd, const VRegister& vn, const VRegister& vm);
 
+  // SHA1 hash update (choose).
+  void sha1c(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SHA1 fixed rotate.
+  void sha1h(const VRegister& sd, const VRegister& sn);
+
+  // SHA1 hash update (majority).
+  void sha1m(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SHA1 hash update (parity).
+  void sha1p(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SHA1 schedule update 0.
+  void sha1su0(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SHA1 schedule update 1.
+  void sha1su1(const VRegister& vd, const VRegister& vn);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

@@ -4530,6 +4530,20 @@ TEST(neon_sha3) {
   CLEANUP();
 }
 
+TEST(neon_sha1) {
+  SETUP();
+
+  COMPARE_MACRO(Sha1c(q0, s12, v20.V4S()), "sha1c q0, s12, v20.4s");
+  COMPARE_MACRO(Sha1m(q22, s2, v13.V4S()), "sha1m q22, s2, v13.4s");
+  COMPARE_MACRO(Sha1p(q31, s5, v15.V4S()), "sha1p q31, s5, v15.4s");
+  COMPARE_MACRO(Sha1su0(v19.V4S(), v9.V4S(), v27.V4S()),
+                "sha1su0 v19.4s, v9.4s, v27.4s");
+  COMPARE_MACRO(Sha1h(s12, s0), "sha1h s12, s0");
+  COMPARE_MACRO(Sha1su1(v2.V4S(), v4.V4S()), "sha1su1 v2.4s, v4.4s");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 

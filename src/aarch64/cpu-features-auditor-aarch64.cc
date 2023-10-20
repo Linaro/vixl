@@ -247,11 +247,13 @@ void CPUFeaturesAuditor::VisitConditionalSelect(const Instruction* instr) {
 
 void CPUFeaturesAuditor::VisitCrypto2RegSHA(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA1);
   USE(instr);
 }
 
 void CPUFeaturesAuditor::VisitCrypto3RegSHA(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA1);
   USE(instr);
 }
 

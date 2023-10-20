@@ -3794,5 +3794,16 @@ TEST_NEON_SHA3(eor3_0, eor3(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B()))
 TEST_NEON_SHA3(xar_0, xar(v0.V2D(), v1.V2D(), v2.V2D(), 42))
 TEST_NEON_SHA3(rax1_0, rax1(v0.V2D(), v1.V2D(), v2.V2D()))
 
+#define TEST_NEON_SHA1(NAME, ASM)                                    \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA1), \
+                NEON_SHA1_##NAME,                                    \
+                ASM)
+TEST_NEON_SHA1(sha1c_0, sha1c(q0, s12, v20.V4S()))
+TEST_NEON_SHA1(sha1m_0, sha1m(q22, s2, v13.V4S()))
+TEST_NEON_SHA1(sha1p_0, sha1p(q31, s5, v15.V4S()))
+TEST_NEON_SHA1(sha1su0_0, sha1su0(v19.V4S(), v9.V4S(), v27.V4S()))
+TEST_NEON_SHA1(sha1h_0, sha1h(s12, s0))
+TEST_NEON_SHA1(sha1su1_0, sha1su1(v2.V4S(), v4.V4S()))
+
 }  // namespace aarch64
 }  // namespace vixl
