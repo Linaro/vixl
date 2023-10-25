@@ -3660,6 +3660,18 @@ class Assembler : public vixl::internal::AssemblerBase {
   // SHA1 schedule update 1.
   void sha1su1(const VRegister& vd, const VRegister& vn);
 
+  // SHA256 hash update (part 1).
+  void sha256h(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SHA256 hash update (part 2).
+  void sha256h2(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SHA256 schedule update 0.
+  void sha256su0(const VRegister& vd, const VRegister& vn);
+
+  // SHA256 schedule update 1.
+  void sha256su1(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

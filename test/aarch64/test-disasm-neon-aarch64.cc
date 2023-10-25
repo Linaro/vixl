@@ -4544,6 +4544,18 @@ TEST(neon_sha1) {
   CLEANUP();
 }
 
+TEST(neon_sha2) {
+  SETUP();
+
+  COMPARE_MACRO(Sha256h(q0, q12, v20.V4S()), "sha256h q0, q12, v20.4s");
+  COMPARE_MACRO(Sha256h2(q22, q2, v13.V4S()), "sha256h2 q22, q2, v13.4s");
+  COMPARE_MACRO(Sha256su0(v2.V4S(), v4.V4S()), "sha256su0 v2.4s, v4.4s");
+  COMPARE_MACRO(Sha256su1(v19.V4S(), v9.V4S(), v27.V4S()),
+                "sha256su1 v19.4s, v9.4s, v27.4s");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 
