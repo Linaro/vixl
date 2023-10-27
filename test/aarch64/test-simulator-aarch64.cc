@@ -5103,6 +5103,70 @@ TEST(RunFrom) {
                                                         3.0);
   VIXL_CHECK(res_double == 6.0);
 }
+
+#if defined(VIXL_ENABLE_IMPLICIT_CHECKS) && defined(__x86_64__)
+#include <signal.h>
+#include <ucontext.h>
+
+// Generate a function that creates a segfault by loading from an invalid
+// address.
+Instruction* GenerateSegFault(MacroAssembler* masm) {
+  masm->Reset();
+
+  // Reset the counter.
+  __ Mov(x1, 0);
+
+  // Perform a series of invalid memory reads.
+  __ Ldrb(w0, MemOperand());
+  __ Ldrh(w0, MemOperand());
+  __ Ldr(w0, MemOperand());
+  __ Ldr(x0, MemOperand());
+  __ Ldr(q0, MemOperand());
+
+  // Return the counter.
+  __ Mov(x0, x1);
+  __ Ret();
+
+  masm->FinalizeCode();
+  return masm->GetBuffer()->GetStartAddress<Instruction*>();
+}
+
+Simulator* gImplicitCheckSim;
+
+void HandleSegFault(int sig, siginfo_t* info, void* context) {
+  USE(sig);
+  USE(info);
+  Simulator* sim = gImplicitCheckSim;
+
+  // Did the signal come from the simulator?
+  ucontext_t* uc = reinterpret_cast<ucontext_t*>(context);
+  uintptr_t fault_pc = uc->uc_mcontext.gregs[REG_RIP];
+  VIXL_CHECK(sim->IsSimulatedMemoryAccess(fault_pc));
+
+  // Increment the counter (x1) each time we handle a signal.
+  int64_t counter = reinterpret_cast<int64_t>(sim->ReadXRegister(1));
+  sim->WriteXRegister(1, ++counter);
+
+  // Return to the VIXL memory access continuation point, which is also the
+  // next instruction, after this handler.
+  uc->uc_mcontext.gregs[REG_RIP] = sim->GetSignalReturnAddress();
+  // Return that the memory read failed.
+  uc->uc_mcontext.gregs[REG_RAX] = static_cast<greg_t>(MemoryReadResult::Failure);
+}
+
+TEST(ImplicitCheck) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+
+  gImplicitCheckSim = &simulator;
+  struct sigaction sa;
+  sa.sa_sigaction = HandleSegFault;
+  sigaction(SIGSEGV, &sa, NULL);
+
+  // Check that 5 segfaults were raised and dealt with.
+  int64_t result = simulator.RunFrom<int64_t>(GenerateSegFault(&masm));
+  VIXL_CHECK(result == 5);
+}
+#endif  // __x86_64__
 #endif
 
 
