@@ -232,6 +232,7 @@ class Disassembler : public DecoderVisitor {
   void DisassembleNEON4Same(const Instruction* instr);
   void DisassembleNEONXar(const Instruction* instr);
   void DisassembleNEONRax1(const Instruction* instr);
+  void DisassembleSHA512(const Instruction* instr);
 
   void DisassembleMTELoadTag(const Instruction* instr);
   void DisassembleMTEStoreTag(const Instruction* instr);

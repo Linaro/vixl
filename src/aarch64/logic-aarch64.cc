@@ -7909,10 +7909,11 @@ uint64_t SHA1Operation<"parity"_h>(uint64_t x, uint64_t y, uint64_t z) {
   return x ^ y ^ z;
 }
 
-template <unsigned A, unsigned B, unsigned C>
-static uint64_t SHA2Sigma(uint64_t x) {
-  return RotateRight(x, A, kSRegSize) ^ RotateRight(x, B, kSRegSize) ^
-         RotateRight(x, C, kSRegSize);
+template <typename T, unsigned A, unsigned B, unsigned C>
+static uint64_t SHASigma(uint64_t x) {
+  return static_cast<T>(RotateRight(x, A, sizeof(T) * kBitsPerByte) ^
+                        RotateRight(x, B, sizeof(T) * kBitsPerByte) ^
+                        RotateRight(x, C, sizeof(T) * kBitsPerByte));
 }
 
 LogicVRegister Simulator::sha2h(LogicVRegister srcdst,
@@ -7935,10 +7936,10 @@ LogicVRegister Simulator::sha2h(LogicVRegister srcdst,
     uint64_t maj = SHA1Operation<"majority"_h>(x[0], x[1], x[2]);
 
     uint64_t w = src2.Uint(kFormat4S, i);
-    uint64_t t = y[3] + SHA2Sigma<6, 11, 25>(y[0]) + chs + w;
+    uint64_t t = y[3] + SHASigma<uint32_t, 6, 11, 25>(y[0]) + chs + w;
 
     x[3] += t;
-    y[3] = t + SHA2Sigma<2, 13, 22>(x[0]) + maj;
+    y[3] = t + SHASigma<uint32_t, 2, 13, 22>(x[0]) + maj;
 
     // y:x = ROL(y:x, 32)
     SHARotateEltsLeftOne(x);
@@ -7950,10 +7951,11 @@ LogicVRegister Simulator::sha2h(LogicVRegister srcdst,
   return srcdst;
 }
 
-template <unsigned A, unsigned B, unsigned C>
-static uint64_t SHA2SURotate(uint64_t x) {
-  return RotateRight(x, A, kSRegSize) ^ RotateRight(x, B, kSRegSize) ^
-         ((x & 0xffffffff) >> C);
+template <typename T, unsigned A, unsigned B, unsigned C>
+static uint64_t SHASURotate(uint64_t x) {
+  return RotateRight(x, A, sizeof(T) * kBitsPerByte) ^
+         RotateRight(x, B, sizeof(T) * kBitsPerByte) ^
+         ((x & ~static_cast<T>(0)) >> C);
 }
 
 LogicVRegister Simulator::sha2su0(LogicVRegister srcdst,
@@ -7963,10 +7965,10 @@ LogicVRegister Simulator::sha2su0(LogicVRegister srcdst,
   srcdst.UintArray(kFormat4S, w);
   uint64_t x = src1.Uint(kFormat4S, 0);
 
-  result[0] = SHA2SURotate<7, 18, 3>(w[1]) + w[0];
-  result[1] = SHA2SURotate<7, 18, 3>(w[2]) + w[1];
-  result[2] = SHA2SURotate<7, 18, 3>(w[3]) + w[2];
-  result[3] = SHA2SURotate<7, 18, 3>(x) + w[3];
+  result[0] = SHASURotate<uint32_t, 7, 18, 3>(w[1]) + w[0];
+  result[1] = SHASURotate<uint32_t, 7, 18, 3>(w[2]) + w[1];
+  result[2] = SHASURotate<uint32_t, 7, 18, 3>(w[3]) + w[2];
+  result[3] = SHASURotate<uint32_t, 7, 18, 3>(x) + w[3];
 
   srcdst.SetUintArray(kFormat4S, result);
   return srcdst;
@@ -7983,12 +7985,89 @@ LogicVRegister Simulator::sha2su1(LogicVRegister srcdst,
   src1.UintArray(kFormat4S, x);
   src2.UintArray(kFormat4S, y);
 
-  result[0] = SHA2SURotate<17, 19, 10>(y[2]) + w[0] + x[1];
-  result[1] = SHA2SURotate<17, 19, 10>(y[3]) + w[1] + x[2];
-  result[2] = SHA2SURotate<17, 19, 10>(result[0]) + w[2] + x[3];
-  result[3] = SHA2SURotate<17, 19, 10>(result[1]) + w[3] + y[0];
+  result[0] = SHASURotate<uint32_t, 17, 19, 10>(y[2]) + w[0] + x[1];
+  result[1] = SHASURotate<uint32_t, 17, 19, 10>(y[3]) + w[1] + x[2];
+  result[2] = SHASURotate<uint32_t, 17, 19, 10>(result[0]) + w[2] + x[3];
+  result[3] = SHASURotate<uint32_t, 17, 19, 10>(result[1]) + w[3] + y[0];
 
   srcdst.SetUintArray(kFormat4S, result);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sha512h(LogicVRegister srcdst,
+                                  const LogicVRegister& src1,
+                                  const LogicVRegister& src2) {
+  uint64_t w[2] = {};
+  uint64_t x[2] = {};
+  uint64_t y[2] = {};
+  uint64_t result[2] = {};
+  srcdst.UintArray(kFormat2D, w);
+  src1.UintArray(kFormat2D, x);
+  src2.UintArray(kFormat2D, y);
+
+  result[1] = (y[1] & x[0]) ^ (~y[1] & x[1]);
+  result[1] += SHASigma<uint64_t, 14, 18, 41>(y[1]) + w[1];
+
+  uint64_t tmp = result[1] + y[0];
+
+  result[0] = (tmp & y[1]) ^ (~tmp & x[0]);
+  result[0] += SHASigma<uint64_t, 14, 18, 41>(tmp) + w[0];
+
+  srcdst.SetUintArray(kFormat2D, result);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sha512h2(LogicVRegister srcdst,
+                                   const LogicVRegister& src1,
+                                   const LogicVRegister& src2) {
+  uint64_t w[2] = {};
+  uint64_t x[2] = {};
+  uint64_t y[2] = {};
+  uint64_t result[2] = {};
+  srcdst.UintArray(kFormat2D, w);
+  src1.UintArray(kFormat2D, x);
+  src2.UintArray(kFormat2D, y);
+
+  result[1] = (x[0] & y[1]) ^ (x[0] & y[0]) ^ (y[1] & y[0]);
+  result[1] += SHASigma<uint64_t, 28, 34, 39>(y[0]) + w[1];
+
+  result[0] = (result[1] & y[0]) ^ (result[1] & y[1]) ^ (y[1] & y[0]);
+  result[0] += SHASigma<uint64_t, 28, 34, 39>(result[1]) + w[0];
+
+  srcdst.SetUintArray(kFormat2D, result);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sha512su0(LogicVRegister srcdst,
+                                    const LogicVRegister& src1) {
+  uint64_t w[2] = {};
+  uint64_t x[2] = {};
+  uint64_t result[2] = {};
+  srcdst.UintArray(kFormat2D, w);
+  src1.UintArray(kFormat2D, x);
+
+  result[0] = SHASURotate<uint64_t, 1, 8, 7>(w[1]) + w[0];
+  result[1] = SHASURotate<uint64_t, 1, 8, 7>(x[0]) + w[1];
+
+  srcdst.SetUintArray(kFormat2D, result);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sha512su1(LogicVRegister srcdst,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2) {
+  uint64_t w[2] = {};
+  uint64_t x[2] = {};
+  uint64_t y[2] = {};
+  uint64_t result[2] = {};
+  srcdst.UintArray(kFormat2D, w);
+  src1.UintArray(kFormat2D, x);
+  src2.UintArray(kFormat2D, y);
+
+  result[1] = w[1] + SHASURotate<uint64_t, 19, 61, 6>(x[1]) + y[1];
+  result[0] = w[0] + SHASURotate<uint64_t, 19, 61, 6>(x[0]) + y[0];
+
+  srcdst.SetUintArray(kFormat2D, result);
   return srcdst;
 }
 

@@ -2807,6 +2807,9 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sha256h, Sha256h)            \
   V(sha256h2, Sha256h2)          \
   V(sha256su1, Sha256su1)        \
+  V(sha512h, Sha512h)            \
+  V(sha512h2, Sha512h2)          \
+  V(sha512su1, Sha512su1)        \
   V(shadd, Shadd)                \
   V(shsub, Shsub)                \
   V(smax, Smax)                  \
@@ -2954,6 +2957,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sha1h, Sha1h)                \
   V(sha1su1, Sha1su1)            \
   V(sha256su0, Sha256su0)        \
+  V(sha512su0, Sha512su0)        \
   V(smaxv, Smaxv)                \
   V(sminv, Sminv)                \
   V(sqabs, Sqabs)                \

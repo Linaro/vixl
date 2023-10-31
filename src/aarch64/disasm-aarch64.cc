@@ -757,6 +757,10 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"eor3_vvv16_crypto4"_h, &Disassembler::DisassembleNEON4Same},
       {"xar_vvv2_crypto3_imm6"_h, &Disassembler::DisassembleNEONXar},
       {"rax1_vvv2_cryptosha512_3"_h, &Disassembler::DisassembleNEONRax1},
+      {"sha512h2_qqv_cryptosha512_3"_h, &Disassembler::DisassembleSHA512},
+      {"sha512h_qqv_cryptosha512_3"_h, &Disassembler::DisassembleSHA512},
+      {"sha512su0_vv2_cryptosha512_2"_h, &Disassembler::DisassembleSHA512},
+      {"sha512su1_vvv2_cryptosha512_3"_h, &Disassembler::DisassembleSHA512},
   };
   return &form_to_visitor;
 }  // NOLINT(readability/fn_size)
@@ -2198,6 +2202,19 @@ void Disassembler::VisitCrypto3RegSHA(const Instruction *instr) {
 
 void Disassembler::VisitCryptoAES(const Instruction *instr) {
   VisitUnimplemented(instr);
+}
+
+void Disassembler::DisassembleSHA512(const Instruction *instr) {
+  const char *form = "'Qd, 'Qn, 'Vm.2d";
+  const char *suffix = NULL;
+  switch (form_hash_) {
+    case "sha512su1_vvv2_cryptosha512_3"_h:
+      suffix = ", 'Vm.2d";
+      VIXL_FALLTHROUGH();
+    case "sha512su0_vv2_cryptosha512_2"_h:
+      form = "'Vd.2d, 'Vn.2d";
+  }
+  FormatWithDecodedMnemonic(instr, form, suffix);
 }
 
 void Disassembler::DisassembleNEON2RegAddlp(const Instruction *instr) {

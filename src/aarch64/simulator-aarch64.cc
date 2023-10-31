@@ -511,6 +511,10 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
       {"eor3_vvv16_crypto4"_h, &Simulator::SimulateNEONSHA3},
       {"rax1_vvv2_cryptosha512_3"_h, &Simulator::SimulateNEONSHA3},
       {"xar_vvv2_crypto3_imm6"_h, &Simulator::SimulateNEONSHA3},
+      {"sha512h_qqv_cryptosha512_3"_h, &Simulator::SimulateSHA512},
+      {"sha512h2_qqv_cryptosha512_3"_h, &Simulator::SimulateSHA512},
+      {"sha512su0_vv2_cryptosha512_2"_h, &Simulator::SimulateSHA512},
+      {"sha512su1_vvv2_cryptosha512_3"_h, &Simulator::SimulateSHA512},
   };
   return &form_to_visitor;
 }
@@ -7238,6 +7242,26 @@ void Simulator::VisitCryptoAES(const Instruction* instr) {
   VisitUnimplemented(instr);
 }
 
+void Simulator::SimulateSHA512(const Instruction* instr) {
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+
+  switch (form_hash_) {
+    case "sha512h_qqv_cryptosha512_3"_h:
+      sha512h(rd, rn, rm);
+      break;
+    case "sha512h2_qqv_cryptosha512_3"_h:
+      sha512h2(rd, rn, rm);
+      break;
+    case "sha512su0_vv2_cryptosha512_2"_h:
+      sha512su0(rd, rn);
+      break;
+    case "sha512su1_vvv2_cryptosha512_3"_h:
+      sha512su1(rd, rn, rm);
+      break;
+  }
+}
 
 void Simulator::VisitNEON2RegMisc(const Instruction* instr) {
   NEONFormatDecoder nfd(instr);

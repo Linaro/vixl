@@ -3795,13 +3795,11 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0xce800000), "xar");   // XAR_VVV2_crypto3_imm6
 
   // ARMv8.2 - SHA512
-  // COMPARE_PREFIX(dci(0xce608000), "sha512h");   // SHA512H_QQV_cryptosha512_3
-  // COMPARE_PREFIX(dci(0xce608400), "sha512h2");   //
-  // SHA512H2_QQV_cryptosha512_3
-  // COMPARE_PREFIX(dci(0xce608800), "sha512su1");   //
-  // SHA512SU1_VVV2_cryptosha512_3
-  // COMPARE_PREFIX(dci(0xcec08000), "sha512su0");   //
-  // SHA512SU0_VV2_cryptosha512_2
+  COMPARE_PREFIX(dci(0xce608000), "sha512h");   // SHA512H_QQV_cryptosha512_3
+  COMPARE_PREFIX(dci(0xce608400), "sha512h2");  // SHA512H2_QQV_cryptosha512_3
+  COMPARE_PREFIX(dci(0xce608800),
+                 "sha512su1");  // SHA512SU1_VVV2_cryptosha512_3
+  COMPARE_PREFIX(dci(0xcec08000), "sha512su0");  // SHA512SU0_VV2_cryptosha512_2
 
   // ARMv8.2 - SM3
   // COMPARE_PREFIX(dci(0xce400000), "sm3ss1");   // SM3SS1_VVV4_crypto4

@@ -2656,10 +2656,6 @@
       {"ldtrsw_64_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"ldtr_32_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"ldtr_64_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},            \
-      {"sha512h2_qqv_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},    \
-      {"sha512h_qqv_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},     \
-      {"sha512su0_vv2_cryptosha512_2"_h, &VISITORCLASS::VisitUnimplemented},   \
-      {"sha512su1_vvv2_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},  \
       {"sm3partw1_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},  \
       {"sm3partw2_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},  \
       {"sm3ss1_vvv4_crypto4"_h, &VISITORCLASS::VisitUnimplemented},            \
