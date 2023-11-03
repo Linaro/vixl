@@ -6021,6 +6021,38 @@ void Assembler::sha512su1(const VRegister& vd, const VRegister& vn, const VRegis
   Emit(0xce608800 | Rd(vd) | Rn(vn) | Rm(vm));
 }
 
+void Assembler::aesd(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kAES));
+  VIXL_ASSERT(vd.Is16B() && vn.Is16B());
+
+  Emit(0x4e285800 | Rd(vd) | Rn(vn));
+}
+
+void Assembler::aese(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kAES));
+  VIXL_ASSERT(vd.Is16B() && vn.Is16B());
+
+  Emit(0x4e284800 | Rd(vd) | Rn(vn));
+}
+
+void Assembler::aesimc(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kAES));
+  VIXL_ASSERT(vd.Is16B() && vn.Is16B());
+
+  Emit(0x4e287800 | Rd(vd) | Rn(vn));
+}
+
+void Assembler::aesmc(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kAES));
+  VIXL_ASSERT(vd.Is16B() && vn.Is16B());
+
+  Emit(0x4e286800 | Rd(vd) | Rn(vn));
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

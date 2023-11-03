@@ -7239,7 +7239,26 @@ void Simulator::VisitCrypto3RegSHA(const Instruction* instr) {
 
 
 void Simulator::VisitCryptoAES(const Instruction* instr) {
-  VisitUnimplemented(instr);
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister temp;
+
+  switch (form_hash_) {
+    case "aesd_b_cryptoaes"_h:
+      eor(kFormat16B, temp, rd, rn);
+      aes(rd, temp, /* decrypt = */ true);
+      break;
+    case "aese_b_cryptoaes"_h:
+      eor(kFormat16B, temp, rd, rn);
+      aes(rd, temp, /* decrypt = */ false);
+      break;
+    case "aesimc_b_cryptoaes"_h:
+      aesmix(rd, rn, /* inverse = */ true);
+      break;
+    case "aesmc_b_cryptoaes"_h:
+      aesmix(rd, rn, /* inverse = */ false);
+      break;
+  }
 }
 
 void Simulator::SimulateSHA512(const Instruction* instr) {
