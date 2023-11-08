@@ -1283,7 +1283,7 @@ class SimExclusiveGlobalMonitor {
 class Debugger;
 
 template <uint32_t mode>
-uint64_t SHA1Operation(uint64_t x, uint64_t y, uint64_t z);
+uint64_t CryptoOp(uint64_t x, uint64_t y, uint64_t z);
 
 class Simulator : public DecoderVisitor {
  public:
@@ -1532,6 +1532,7 @@ class Simulator : public DecoderVisitor {
   void SimulateUnsignedMinMax(const Instruction* instr);
   void SimulateSHA512(const Instruction* instr);
 
+  void VisitCryptoSM3(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -4518,7 +4519,7 @@ class Simulator : public DecoderVisitor {
     srcdst.UintArray(kFormat4S, sd);
 
     for (unsigned i = 0; i < ArrayLength(sd); i++) {
-      uint64_t t = SHA1Operation<mode>(sd[1], sd[2], sd[3]);
+      uint64_t t = CryptoOp<mode>(sd[1], sd[2], sd[3]);
 
       y += RotateLeft(sd[0], 5, kSRegSize) + t;
       y += src2.Uint(kFormat4S, i);
@@ -4560,6 +4561,27 @@ class Simulator : public DecoderVisitor {
   LogicVRegister aesmix(LogicVRegister srcdst,
                         const LogicVRegister& src1,
                         bool inverse);
+
+  LogicVRegister sm3partw1(LogicVRegister dst,
+                           const LogicVRegister& src1,
+                           const LogicVRegister& src2);
+  LogicVRegister sm3partw2(LogicVRegister dst,
+                           const LogicVRegister& src1,
+                           const LogicVRegister& src2);
+  LogicVRegister sm3ss1(LogicVRegister dst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2,
+                        const LogicVRegister& src3);
+  LogicVRegister sm3tt1(LogicVRegister srcdst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2,
+                        int index,
+                        bool is_a);
+  LogicVRegister sm3tt2(LogicVRegister srcdst,
+                        const LogicVRegister& src1,
+                        const LogicVRegister& src2,
+                        int index,
+                        bool is_a);
 
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \

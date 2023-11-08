@@ -113,6 +113,7 @@ class CPUFeaturesAuditor : public DecoderVisitor {
 #define DECLARE(A) virtual void Visit##A(const Instruction* instr);
   VISITOR_LIST(DECLARE)
 #undef DECLARE
+  void VisitCryptoSM3(const Instruction* instr);
 
   void LoadStoreHelper(const Instruction* instr);
   void LoadStorePairHelper(const Instruction* instr);

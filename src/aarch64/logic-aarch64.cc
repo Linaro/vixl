@@ -7895,17 +7895,17 @@ LogicVRegister Simulator::fmatmul(VectorFormat vform,
 }
 
 template <>
-uint64_t SHA1Operation<"choose"_h>(uint64_t x, uint64_t y, uint64_t z) {
+uint64_t CryptoOp<"choose"_h>(uint64_t x, uint64_t y, uint64_t z) {
   return ((y ^ z) & x) ^ z;
 }
 
 template <>
-uint64_t SHA1Operation<"majority"_h>(uint64_t x, uint64_t y, uint64_t z) {
+uint64_t CryptoOp<"majority"_h>(uint64_t x, uint64_t y, uint64_t z) {
   return (x & y) | ((x | y) & z);
 }
 
 template <>
-uint64_t SHA1Operation<"parity"_h>(uint64_t x, uint64_t y, uint64_t z) {
+uint64_t CryptoOp<"parity"_h>(uint64_t x, uint64_t y, uint64_t z) {
   return x ^ y ^ z;
 }
 
@@ -7932,8 +7932,8 @@ LogicVRegister Simulator::sha2h(LogicVRegister srcdst,
   }
 
   for (unsigned i = 0; i < ArrayLength(x); i++) {
-    uint64_t chs = SHA1Operation<"choose"_h>(y[0], y[1], y[2]);
-    uint64_t maj = SHA1Operation<"majority"_h>(x[0], x[1], x[2]);
+    uint64_t chs = CryptoOp<"choose"_h>(y[0], y[1], y[2]);
+    uint64_t maj = CryptoOp<"majority"_h>(x[0], x[1], x[2]);
 
     uint64_t w = src2.Uint(kFormat4S, i);
     uint64_t t = y[3] + SHASigma<uint32_t, 6, 11, 25>(y[0]) + chs + w;
@@ -8349,6 +8349,125 @@ LogicVRegister Simulator::aes(LogicVRegister dst,
     dst.SetUint(kFormat16B, i, table[dst.Uint(kFormat16B, i)]);
   }
   return dst;
+}
+
+LogicVRegister Simulator::sm3partw1(LogicVRegister srcdst,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2) {
+  using namespace std::placeholders;
+  auto ROL = std::bind(RotateLeft, _1, _2, kSRegSize);
+
+  SimVRegister temp;
+
+  ext(kFormat16B, temp, src2, temp, 4);
+  rol(kFormat4S, temp, temp, 15);
+  eor(kFormat4S, temp, temp, src1);
+  LogicVRegister r = eor(kFormat4S, temp, temp, srcdst);
+
+  uint64_t result[4] = {};
+  r.UintArray(kFormat4S, result);
+  for (int i = 0; i < 4; i++) {
+    if (i == 3) {
+      // result[3] already contains srcdst[3] ^ src1[3] from the operations
+      // above.
+      result[i] ^= ROL(result[0], 15);
+    }
+    result[i] ^= ROL(result[i], 15) ^ ROL(result[i], 23);
+  }
+  srcdst.SetUintArray(kFormat4S, result);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sm3partw2(LogicVRegister srcdst,
+                                    const LogicVRegister& src1,
+                                    const LogicVRegister& src2) {
+  using namespace std::placeholders;
+  auto ROL = std::bind(RotateLeft, _1, _2, kSRegSize);
+
+  SimVRegister temp;
+  VectorFormat vf = kFormat4S;
+
+  rol(vf, temp, src2, 7);
+  LogicVRegister r = eor(vf, temp, temp, src1);
+  eor(vf, srcdst, temp, srcdst);
+
+  uint64_t tmp2 = ROL(r.Uint(vf, 0), 15);
+  tmp2 ^= ROL(tmp2, 15) ^ ROL(tmp2, 23);
+  srcdst.SetUint(vf, 3, srcdst.Uint(vf, 3) ^ tmp2);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sm3ss1(LogicVRegister dst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2,
+                                 const LogicVRegister& src3) {
+  using namespace std::placeholders;
+  auto ROL = std::bind(RotateLeft, _1, _2, kSRegSize);
+
+  VectorFormat vf = kFormat4S;
+  uint64_t result = ROL(src1.Uint(vf, 3), 12);
+  result += src2.Uint(vf, 3) + src3.Uint(vf, 3);
+  dst.Clear();
+  dst.SetUint(vf, 3, ROL(result, 7));
+  return dst;
+}
+
+LogicVRegister Simulator::sm3tt1(LogicVRegister srcdst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2,
+                                 int index,
+                                 bool is_a) {
+  VectorFormat vf = kFormat4S;
+  using namespace std::placeholders;
+  auto ROL = std::bind(RotateLeft, _1, _2, kSRegSize);
+  auto sd = std::bind(&LogicVRegister::Uint, srcdst, vf, _1);
+
+  VIXL_ASSERT(IsUint2(index));
+
+  uint64_t wjprime = src2.Uint(vf, index);
+  uint64_t ss2 = src1.Uint(vf, 3) ^ ROL(sd(3), 12);
+
+  uint64_t tt1;
+  if (is_a) {
+    tt1 = CryptoOp<"parity"_h>(sd(1), sd(2), sd(3));
+  } else {
+    tt1 = CryptoOp<"majority"_h>(sd(1), sd(2), sd(3));
+  }
+  tt1 += sd(0) + ss2 + wjprime;
+
+  ext(kFormat16B, srcdst, srcdst, srcdst, 4);
+  srcdst.SetUint(vf, 1, ROL(sd(1), 9));
+  srcdst.SetUint(vf, 3, tt1);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sm3tt2(LogicVRegister srcdst,
+                                 const LogicVRegister& src1,
+                                 const LogicVRegister& src2,
+                                 int index,
+                                 bool is_a) {
+  VectorFormat vf = kFormat4S;
+  using namespace std::placeholders;
+  auto ROL = std::bind(RotateLeft, _1, _2, kSRegSize);
+  auto sd = std::bind(&LogicVRegister::Uint, srcdst, vf, _1);
+
+  VIXL_ASSERT(IsUint2(index));
+
+  uint64_t wj = src2.Uint(vf, index);
+
+  uint64_t tt2;
+  if (is_a) {
+    tt2 = CryptoOp<"parity"_h>(sd(1), sd(2), sd(3));
+  } else {
+    tt2 = CryptoOp<"choose"_h>(sd(3), sd(2), sd(1));
+  }
+  tt2 += sd(0) + src1.Uint(vf, 3) + wj;
+
+  ext(kFormat16B, srcdst, srcdst, srcdst, 4);
+  srcdst.SetUint(vf, 1, ROL(sd(1), 19));
+  tt2 ^= ROL(tt2, 9) ^ ROL(tt2, 17);
+  srcdst.SetUint(vf, 3, tt2);
+  return srcdst;
 }
 
 }  // namespace aarch64

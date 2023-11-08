@@ -2204,6 +2204,25 @@ void Disassembler::VisitCryptoAES(const Instruction *instr) {
   FormatWithDecodedMnemonic(instr, "'Vd.16b, 'Vn.16b");
 }
 
+void Disassembler::VisitCryptoSM3(const Instruction *instr) {
+  const char *form = "'Vd.4s, 'Vn.4s, 'Vm.";
+  const char *suffix = "4s";
+
+  switch (form_hash_) {
+    case "sm3ss1_vvv4_crypto4"_h:
+      suffix = "4s, 'Va.4s";
+      break;
+    case "sm3tt1a_vvv4_crypto3_imm2"_h:
+    case "sm3tt1b_vvv4_crypto3_imm2"_h:
+    case "sm3tt2a_vvv4_crypto3_imm2"_h:
+    case "sm3tt2b_vvv_crypto3_imm2"_h:
+      suffix = "s['u1312]";
+      break;
+  }
+
+  FormatWithDecodedMnemonic(instr, form, suffix);
+}
+
 void Disassembler::DisassembleSHA512(const Instruction *instr) {
   const char *form = "'Qd, 'Qn, 'Vm.2d";
   const char *suffix = NULL;
