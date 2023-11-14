@@ -6117,6 +6117,22 @@ void Assembler::sm3tt2b(const VRegister& vd, const VRegister& vn, const VRegiste
   Emit(0xce408c00 | Rd(vd) | Rn(vn) | Rm(vm) | i);
 }
 
+void Assembler::sm4e(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM4));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S());
+
+  Emit(0xcec08400 | Rd(vd) | Rn(vn));
+}
+
+void Assembler::sm4ekey(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM4));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+
+  Emit(0xce60c800 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

@@ -3813,9 +3813,8 @@ TEST(architecture_features) {
                  "sm3partw2");  // SM3PARTW2_VVV4_cryptosha512_3
 
   // ARMv8.2 - SM4
-  // COMPARE_PREFIX(dci(0xce60c800), "sm4ekey");   //
-  // SM4EKEY_VVV4_cryptosha512_3
-  // COMPARE_PREFIX(dci(0xcec08400), "sm4e");   // SM4E_VV4_cryptosha512_2
+  COMPARE_PREFIX(dci(0xce60c800), "sm4ekey");  // SM4EKEY_VVV4_cryptosha512_3
+  COMPARE_PREFIX(dci(0xcec08400), "sm4e");     // SM4E_VV4_cryptosha512_2
 
   // ARMv8.2 - SPE
   // COMPARE_PREFIX(dci(0xd503223f), "psb");   // PSB_HC_hints

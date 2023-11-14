@@ -114,6 +114,7 @@ class CPUFeaturesAuditor : public DecoderVisitor {
   VISITOR_LIST(DECLARE)
 #undef DECLARE
   void VisitCryptoSM3(const Instruction* instr);
+  void VisitCryptoSM4(const Instruction* instr);
 
   void LoadStoreHelper(const Instruction* instr);
   void LoadStorePairHelper(const Instruction* instr);

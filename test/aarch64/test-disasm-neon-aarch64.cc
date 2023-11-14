@@ -4600,6 +4600,16 @@ TEST(neon_sm3) {
   CLEANUP();
 }
 
+TEST(neon_sm4) {
+  SETUP();
+
+  COMPARE_MACRO(Sm4e(v12.V4S(), v13.V4S()), "sm4e v12.4s, v13.4s");
+  COMPARE_MACRO(Sm4ekey(v12.V4S(), v13.V4S(), v14.V4S()),
+                "sm4ekey v12.4s, v13.4s, v14.4s");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 

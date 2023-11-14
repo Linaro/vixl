@@ -1534,6 +1534,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSHA512(const Instruction* instr);
 
   void VisitCryptoSM3(const Instruction* instr);
+  void VisitCryptoSM4(const Instruction* instr);
 
   // Integer register accessors.
 
@@ -4586,6 +4587,11 @@ class Simulator : public DecoderVisitor {
                         const LogicVRegister& src2,
                         int index,
                         bool is_a);
+
+  LogicVRegister sm4(LogicVRegister dst,
+                     const LogicVRegister& src1,
+                     const LogicVRegister& src2,
+                     bool is_key);
 
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \

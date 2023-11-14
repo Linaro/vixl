@@ -7353,6 +7353,22 @@ void Simulator::VisitCryptoSM3(const Instruction* instr) {
   }
 }
 
+void Simulator::VisitCryptoSM4(const Instruction* instr) {
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+
+  bool is_key = false;
+  switch (form_hash_) {
+    case "sm4ekey_vvv4_cryptosha512_3"_h:
+      is_key = true;
+      VIXL_FALLTHROUGH();
+    case "sm4e_vv4_cryptosha512_2"_h:
+      sm4(rd, rn, rm, is_key);
+      break;
+  }
+}
+
 void Simulator::SimulateSHA512(const Instruction* instr) {
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());

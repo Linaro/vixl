@@ -2663,8 +2663,8 @@
       {"sm3tt1b_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},          \
       {"sm3tt2a_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},          \
       {"sm3tt2b_vvv_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},           \
-      {"sm4ekey_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},    \
-      {"sm4e_vv4_cryptosha512_2"_h, &VISITORCLASS::VisitUnimplemented},        \
+      {"sm4ekey_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitCryptoSM4},        \
+      {"sm4e_vv4_cryptosha512_2"_h, &VISITORCLASS::VisitCryptoSM4},            \
       {"st64b_64l_memop"_h, &VISITORCLASS::VisitUnimplemented},                \
       {"st64bv_64_memop"_h, &VISITORCLASS::VisitUnimplemented},                \
       {"st64bv0_64_memop"_h, &VISITORCLASS::VisitUnimplemented},               \
