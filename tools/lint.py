@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 # Copyright 2015, VIXL authors
 # All rights reserved.
@@ -38,7 +38,6 @@ import subprocess
 import sys
 
 import config
-import git
 import printer
 import util
 
@@ -143,12 +142,12 @@ def LintFiles(files,
     return -1
 
   # Filter out directories.
-  files = filter(os.path.isfile, files)
+  files = list(filter(os.path.isfile, files))
 
   # Filter out files for which we have a cached correct result.
   if cached_results is not None and len(cached_results) != 0:
     n_input_files = len(files)
-    files = filter(lambda f: ShouldLint(f, cached_results), files)
+    files = [f for f in files if ShouldLint(f, cached_results)]
     n_skipped_files = n_input_files - len(files)
     if n_skipped_files != 0:
       printer.Print(
@@ -171,7 +170,7 @@ def LintFiles(files,
     pool.terminate()
     sys.exit(1)
 
-  n_errors = sum(map(lambda (filename, errors): errors, results))
+  n_errors = sum([filename_errors[1] for filename_errors in results])
 
   if cached_results is not None:
     for filename, errors in results:
@@ -223,7 +222,7 @@ def FilterOutTestTraceHeaders(files):
     return \
       fnmatch.fnmatch(f, os.path.join(relative_aarch32_traces_path, '*.h')) or \
       fnmatch.fnmatch(f, os.path.join(relative_aarch64_traces_path, '*.h'))
-  return filter(lambda f: not IsTraceHeader(f), files)
+  return [f for f in files if not IsTraceHeader(f)]
 
 
 def RunLinter(files, jobs=1, progress_prefix='', cached=True):

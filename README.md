@@ -48,7 +48,7 @@ Requirements
 
 To build VIXL the following software is required:
 
- 1. Python 2.7
+ 1. Python 3.5+
  2. SCons 2.0
  3. GCC 4.8+ or Clang 4.0+
 

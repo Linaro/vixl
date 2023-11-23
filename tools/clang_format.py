@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 # Copyright 2016, VIXL authors
 # All rights reserved.
@@ -78,7 +78,7 @@ def ClangFormatIsAvailable(clang_format):
   if rc != 0:
       util.abort("Failed to execute %s: %s" % (cmd, version))
   m = re.search("^clang-format version (\d)\.(\d)\.\d.*$",
-                version.decode(), re.M)
+                version, re.M)
   if not m:
       util.abort("Failed to get clang-format's version: %s" % version)
   major, minor = m.groups()
