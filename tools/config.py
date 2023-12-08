@@ -44,7 +44,7 @@ dir_aarch32_traces     = os.path.join(dir_tests, 'aarch32', 'traces')
 # The full list of available build modes.
 build_options_modes = ['debug', 'release']
 # The list of C++ standard to test for. The first value is used as the default.
-tested_cpp_standards = ['c++14']
+tested_cpp_standards = ['c++17']
 # The list of compilers tested.
 tested_compilers = ['clang++', 'g++']
 # The list of target arch/isa options to test with. Do not list 'all' as an

@@ -27,8 +27,8 @@
 #ifndef VIXL_GLOBALS_H
 #define VIXL_GLOBALS_H
 
-#if __cplusplus < 201402L
-#error VIXL requires C++14
+#if __cplusplus < 201703L
+#error VIXL requires C++17
 #endif
 
 // Get standard C99 macros for integer types.

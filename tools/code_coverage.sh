@@ -38,7 +38,7 @@ fi
 export CXX=clang++
 export LLVM_PROFILE_FILE=$(mktemp)
 PROFDATA=$(mktemp)
-BUILDDIR="obj/target_a64/mode_debug/symbols_on/compiler_clang++/std_c++14/simulator_aarch64/negative_testing_off/code_buffer_allocator_mmap"
+BUILDDIR="obj/target_a64/mode_debug/symbols_on/compiler_clang++/std_c++17/simulator_aarch64/negative_testing_off/code_buffer_allocator_mmap"
 RUNNER="$BUILDDIR/test/test-runner"
 
 # Build with code coverage instrumentation enabled.
