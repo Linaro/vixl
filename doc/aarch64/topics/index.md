@@ -6,3 +6,4 @@ You can also have a look at the ['getting started' page](../getting-started-aarc
 
 * [Extending and customizing the disassembler](extending-the-disassembler.md)
 * [Using VIM YouCompleteMe with VIXL](ycm.md)
+* [Debugging with the VIXL Simulator](simulator-debugger.md)

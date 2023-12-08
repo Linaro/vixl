@@ -37,6 +37,7 @@
 #include "cpu-features.h"
 #include "abi-aarch64.h"
 #include "cpu-features-auditor-aarch64.h"
+#include "debugger-aarch64.h"
 #include "disasm-aarch64.h"
 #include "instructions-aarch64.h"
 #include "simulator-constants-aarch64.h"
@@ -1233,6 +1234,10 @@ class SimExclusiveGlobalMonitor {
   uint32_t seed_;
 };
 
+
+class Debugger;
+
+
 class Simulator : public DecoderVisitor {
  public:
   explicit Simulator(Decoder* decoder,
@@ -1307,6 +1312,8 @@ class Simulator : public DecoderVisitor {
   static const Instruction* kEndOfSimAddress;
 
   // Simulation helpers.
+  bool IsSimulationFinished() const { return pc_ == kEndOfSimAddress; }
+
   const Instruction* ReadPc() const { return pc_; }
   VIXL_DEPRECATED("ReadPc", const Instruction* pc() const) { return ReadPc(); }
 
@@ -3114,6 +3121,15 @@ class Simulator : public DecoderVisitor {
                                   InterceptionCallback callback = nullptr) {
     meta_data_.RegisterBranchInterception(*function, callback);
   }
+
+  // Return the current output stream in use by the simulator.
+  FILE* GetOutputStream() const { return stream_; }
+
+  bool IsDebuggerEnabled() const { return debugger_enabled_; }
+
+  void SetDebuggerEnabled(bool enabled) { debugger_enabled_ = enabled; }
+
+  Debugger* GetDebugger() const { return debugger_.get(); }
 
  protected:
   const char* clr_normal;
@@ -5232,6 +5248,12 @@ class Simulator : public DecoderVisitor {
   // Representation of memory attributes such as MTE tagging and BTI page
   // protection in addition to branch interceptions.
   MetaDataDepot meta_data_;
+
+  // True if the debugger is enabled and might get entered.
+  bool debugger_enabled_;
+
+  // Debugger for the simulator.
+  std::unique_ptr<Debugger> debugger_;
 };
 
 #if defined(VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT) && __cplusplus < 201402L

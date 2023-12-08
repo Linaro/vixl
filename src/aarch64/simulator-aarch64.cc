@@ -548,6 +548,10 @@ Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
   // Initialize all bits of pseudo predicate register to true.
   LogicPRegister ones(pregister_all_true_);
   ones.SetAllBits();
+
+  // Initialize the debugger but disable it by default.
+  SetDebuggerEnabled(false);
+  debugger_ = std::make_unique<Debugger>(this);
 }
 
 void Simulator::ResetSystemRegisters() {
@@ -658,8 +662,21 @@ void Simulator::Run() {
   // manually-set registers are logged _before_ the first instruction.
   LogAllWrittenRegisters();
 
-  while (pc_ != kEndOfSimAddress) {
-    ExecuteInstruction();
+  if (debugger_enabled_) {
+    // Slow path to check for breakpoints only if the debugger is enabled.
+    Debugger* debugger = GetDebugger();
+    while (!IsSimulationFinished()) {
+      if (debugger->IsAtBreakpoint()) {
+        fprintf(stream_, "Debugger hit breakpoint, breaking...\n");
+        debugger->Debug();
+      } else {
+        ExecuteInstruction();
+      }
+    }
+  } else {
+    while (!IsSimulationFinished()) {
+      ExecuteInstruction();
+    }
   }
 }
 
@@ -6874,7 +6891,15 @@ void Simulator::VisitException(const Instruction* instr) {
           return;
       }
     case BRK:
-      HostBreakpoint();
+      if (debugger_enabled_) {
+        uint64_t next_instr =
+            reinterpret_cast<uint64_t>(pc_->GetNextInstruction());
+        if (!debugger_->IsBreakpoint(next_instr)) {
+          debugger_->RegisterBreakpoint(next_instr);
+        }
+      } else {
+        HostBreakpoint();
+      }
       return;
     default:
       VIXL_UNIMPLEMENTED();
