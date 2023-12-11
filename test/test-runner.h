@@ -28,6 +28,7 @@
 #define TEST_TEST_H_
 
 #include "utils-vixl.h"
+
 #include "aarch64/instructions-aarch64.h"
 
 namespace vixl {

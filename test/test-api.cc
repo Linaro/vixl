@@ -29,9 +29,8 @@
 #include <sstream>
 #include <vector>
 
-#include "test-runner.h"
-
 #include "cpu-features.h"
+#include "test-runner.h"
 #include "utils-vixl.h"
 
 #if __cplusplus >= 201103L

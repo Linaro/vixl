@@ -30,9 +30,9 @@
 
 #include "test-runner.h"
 #include "test-utils.h"
-#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/macro-assembler-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 
 #define __ masm->
 #define TEST(name) TEST_(AARCH64_CPUFeatures_##name)

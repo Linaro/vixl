@@ -24,11 +24,11 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "test-runner.h"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-
-#include "test-runner.h"
 
 // Initialize the list as empty.
 vixl::Test* vixl::Test::first_ = NULL;

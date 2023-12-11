@@ -297,7 +297,7 @@ void PoolManager<int32_t>::DumpCurrentState(int32_t pc) const {
                object.max_location_));
   }
 }
-}
+}  // namespace vixl
 
 // Basic test - checks that emitting a very simple pool works.
 TEST(Basic) {
@@ -343,14 +343,15 @@ static ForwardReference<int32_t> *CreateReference(int id,
                                                   int32_t min_offset,
                                                   int32_t max_offset,
                                                   int alignment) {
-  IF_VERBOSE(printf(
-      "About to add a new reference to object %d with min location = %d, max "
-      "location = %d, alignment = %d, size = %d\n",
-      id,
-      min_offset + pc,
-      max_offset + pc,
-      alignment,
-      size));
+  IF_VERBOSE(
+      printf("About to add a new reference to object %d with min location = "
+             "%d, max "
+             "location = %d, alignment = %d, size = %d\n",
+             id,
+             min_offset + pc,
+             max_offset + pc,
+             alignment,
+             size));
   return new ForwardReference<int32_t>(pc,
                                        size,
                                        min_offset + pc,

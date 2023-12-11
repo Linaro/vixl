@@ -147,19 +147,19 @@ const unsigned kMTETagWidth = 4;
 
 // Make these moved float constants backwards compatible
 // with explicit vixl::aarch64:: namespace references.
-using vixl::kDoubleMantissaBits;
 using vixl::kDoubleExponentBits;
-using vixl::kFloatMantissaBits;
-using vixl::kFloatExponentBits;
-using vixl::kFloat16MantissaBits;
+using vixl::kDoubleMantissaBits;
 using vixl::kFloat16ExponentBits;
+using vixl::kFloat16MantissaBits;
+using vixl::kFloatExponentBits;
+using vixl::kFloatMantissaBits;
 
-using vixl::kFP16PositiveInfinity;
 using vixl::kFP16NegativeInfinity;
-using vixl::kFP32PositiveInfinity;
+using vixl::kFP16PositiveInfinity;
 using vixl::kFP32NegativeInfinity;
-using vixl::kFP64PositiveInfinity;
+using vixl::kFP32PositiveInfinity;
 using vixl::kFP64NegativeInfinity;
+using vixl::kFP64PositiveInfinity;
 
 using vixl::kFP16DefaultNaN;
 using vixl::kFP32DefaultNaN;

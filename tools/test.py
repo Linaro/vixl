@@ -262,13 +262,13 @@ def RunLinter(jobs):
 
 
 def RunClangFormat(clang_path, jobs):
-  return clang_format.ClangFormatFiles(util.get_source_files(),
+  return clang_format.ClangFormatFiles(util.get_source_files(exclude_dirs=['.*', '*/traces/*', '*/aarch32/*']),
                                        clang_path,
                                        jobs = jobs,
                                        progress_prefix = 'clang-format: ')
 
 def RunClangTidy(clang_path, jobs):
-  return clang_tidy.ClangTidyFiles(util.get_source_files(),
+  return clang_tidy.ClangTidyFiles(util.get_source_files(exclude_dirs=['.*', '*/traces/*', '*/aarch32/*']),
                                    clang_path,
                                    jobs = jobs,
                                    progress_prefix = 'clang-tidy: ')
