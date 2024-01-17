@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 # Copyright 2015, VIXL authors
 # All rights reserved.
@@ -28,7 +28,6 @@
 
 import argparse
 import fcntl
-import git
 import itertools
 import multiprocessing
 import os
@@ -220,7 +219,7 @@ def RunCommand(command, environment_options = None):
   t_current = t_start
   t_last_indication = t_start
   t_current = t_start
-  process_output = ''
+  process_output = b''
 
   # Keep looping as long as the process is running.
   while p.poll() is None:
@@ -238,9 +237,9 @@ def RunCommand(command, environment_options = None):
       try:
         line = os.read(p.stdout.fileno(), 1024)
       except OSError:
-        line = ''
+        line = b''
         break
-      if line == '': break
+      if line == b'': break
       process_output += line
 
   # The process has exited. Don't forget to retrieve the rest of its output.
@@ -253,13 +252,12 @@ def RunCommand(command, environment_options = None):
     printer.Print(printer.COLOUR_GREEN + printable_command + printer.NO_COLOUR)
   else:
     printer.Print(printer.COLOUR_RED + printable_command + printer.NO_COLOUR)
-    printer.Print(process_output)
+    printer.Print(process_output.decode())
   return rc
 
 
 def RunLinter(jobs):
-  return lint.RunLinter(map(lambda x: join(dir_root, x),
-                        util.get_source_files()),
+  return lint.RunLinter([join(dir_root, x) for x in util.get_source_files()],
                         jobs = args.jobs, progress_prefix = 'cpp lint: ')
 
 

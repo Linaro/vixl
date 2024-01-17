@@ -76,7 +76,7 @@ def FilterKnownValgrindTestFailures(tests):
     'AARCH64_SIM_frsqrts_D'
   }
 
-  filtered_list = filter(lambda x: x not in known_valgrind_test_failures, tests)
+  filtered_list = [x for x in tests if x not in known_valgrind_test_failures]
   return (filtered_list, len(tests) - len(filtered_list), reason)
 
 def FilterKnownTestFailures(tests, **env):

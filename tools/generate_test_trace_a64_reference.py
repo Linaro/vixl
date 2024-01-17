@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 # Copyright 2016, VIXL authors
 # All rights reserved.
@@ -55,7 +55,7 @@ if __name__ == '__main__':
   # Find the trace tests.
   status, output = util.getstatusoutput(args.runner + ' --list')
   if status != 0: util.abort('Failed to list all tests')
-  tests = filter(lambda t: 'TRACE_' in t, output.split())
+  tests = [t for t in output.split() if 'TRACE_' in t]
   tests.sort()
 
   if not os.path.exists(args.outdir):
@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
   for test in tests:
     # Run each test.
-    print 'Generating trace for ' + test;
+    print('Generating trace for ' + test);
     cmd = ' '.join([args.runner, '--generate_test_trace', test])
     status, output = util.getstatusoutput(cmd)
     if status != 0: util.abort('Failed to run ' + cmd + '.')

@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
 
 # Copyright 2019, VIXL authors
 # All rights reserved.
@@ -67,7 +67,7 @@ def ClangTidyIsAvailable(clang_tidy):
   rc, version = util.getstatusoutput(cmd)
   if rc != 0:
     util.abort("Failed to execute %s: %s" % (cmd, version))
-  m = re.search("LLVM version (\d)\.(\d)\.\d.*$", version.decode(), re.M)
+  m = re.search("LLVM version (\d)\.(\d)\.\d.*$", version, re.M)
   if not m:
     util.abort("Failed to get clang-tidy's version: %s" % version)
   major, minor = m.groups()
@@ -93,7 +93,7 @@ def FilterClangTidyLines(lines):
   return "\n".join(out)
 
 def FilterFiles(list_files):
-  return list(filter(lambda x: x.endswith('.cc'), list_files))
+  return [x for x in list_files if x.endswith('.cc')]
 
 def RunTest(test):
   cmd = " ".join(test.args['command'])

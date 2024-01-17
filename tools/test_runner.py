@@ -41,7 +41,7 @@ def GetTests(runner, filters = []):
 
   tests = output.split()
   for f in filters:
-    tests = filter(re.compile(f).search, tests)
+    tests = list(filter(re.compile(f).search, tests))
 
   return tests
 
@@ -51,6 +51,7 @@ def RunTest(test):
                        stdout=subprocess.PIPE,
                        stderr=subprocess.STDOUT)
   p_out, p_err = p.communicate()
+  p_out = p_out.decode()
   rc = p.poll()
 
   if rc == 0:
