@@ -895,7 +895,7 @@ bool AreSameLaneSize(const CPURegister& reg1,
                      const CPURegister& reg2,
                      const CPURegister& reg3 = NoCPUReg,
                      const CPURegister& reg4 = NoCPUReg);
-}
-}  // namespace vixl::aarch64
+}  // namespace aarch64
+}  // namespace vixl
 
 #endif  // VIXL_AARCH64_REGISTERS_AARCH64_H_

@@ -27,14 +27,14 @@
 #ifndef VIXL_AARCH64_BENCH_UTILS_H_
 #define VIXL_AARCH64_BENCH_UTILS_H_
 
+#include <list>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
-
-#include <list>
 #include <vector>
 
 #include "globals-vixl.h"
+
 #include "aarch64/macro-assembler-aarch64.h"
 
 class BenchTimer {
@@ -90,7 +90,8 @@ class BenchCLI {
     }
 
     char* end;
-    unsigned long run_time = strtoul(argv[1], &end, 0);  // NOLINT(runtime/int)
+    unsigned long run_time =  // NOLINT(google-runtime-int)
+        strtoul(argv[1], &end, 0);
     if ((end == argv[1]) || (run_time > UINT32_MAX)) {
       PrintUsage(argv[0]);
       status_ = kExitFailure;
@@ -242,7 +243,7 @@ class BenchCodeGenerator {
   vixl::aarch64::MacroAssembler* masm_;
 
   // State for *rand48(), used to randomise code generation.
-  unsigned short rand_state_[3];  // NOLINT(runtime/int)
+  unsigned short rand_state_[3];  // NOLINT(google-runtime-int)
 
   uint32_t rnd_;
   int rnd_bits_;

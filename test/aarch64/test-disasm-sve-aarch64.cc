@@ -30,10 +30,10 @@
 #include <string>
 
 #include "test-runner.h"
-#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 #include "test-disasm-aarch64.h"
 #include "test-utils-aarch64.h"
 

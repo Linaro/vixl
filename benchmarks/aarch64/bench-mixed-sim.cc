@@ -24,13 +24,12 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "bench-utils.h"
 #include "globals-vixl.h"
 
 #include "aarch64/instructions-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
-
-#include "bench-utils.h"
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 

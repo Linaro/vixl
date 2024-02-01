@@ -27,6 +27,7 @@
 #ifndef VIXL_AARCH64_DEBUGGER_AARCH64_H_
 #define VIXL_AARCH64_DEBUGGER_AARCH64_H_
 
+#include <optional>
 #include <unordered_set>
 #include <vector>
 

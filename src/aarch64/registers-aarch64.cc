@@ -24,10 +24,10 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "registers-aarch64.h"
+
 #include <sstream>
 #include <string>
-
-#include "registers-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -317,5 +317,5 @@ bool AreSameLaneSize(const CPURegister& reg1,
       !reg4.IsValid() || (reg4.GetLaneSizeInBits() == reg1.GetLaneSizeInBits());
   return match;
 }
-}
-}  // namespace vixl::aarch64
+}  // namespace aarch64
+}  // namespace vixl

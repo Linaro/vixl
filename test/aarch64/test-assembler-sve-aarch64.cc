@@ -24,24 +24,23 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <sys/mman.h>
-#include <unistd.h>
-
 #include <cfloat>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include "test-runner.h"
 #include "test-utils.h"
-#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/cpu-aarch64.h"
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 #include "test-assembler-aarch64.h"
 
 #define TEST_SVE(name) TEST_SVE_INNER("ASM", name)
@@ -8705,7 +8704,7 @@ static void BufferFillingHelper(uint64_t data_ptr,
                                 uint64_t* addresses = nullptr,
                                 uint64_t* max_address = nullptr) {
   // Use a fixed seed for nrand48() so that test runs are reproducible.
-  unsigned short seed[3] = {1, 2, 3};  // NOLINT(runtime/int)
+  unsigned short seed[3] = {1, 2, 3};  // NOLINT(google-runtime-int)
 
   // Fill a buffer with arbitrary data.
   for (size_t i = 0; i < buffer_size; i++) {

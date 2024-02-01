@@ -27,6 +27,7 @@
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
 #include "test-runner.h"
+
 #include "aarch64/simulator-aarch64.h"
 
 #define TEST(name) TEST_(AARCH64_POINTER_AUTH_##name)
@@ -92,7 +93,7 @@ TEST(add_and_strip_pac) {
 
   VIXL_CHECK(sim.StripPAC(ptr_a, Simulator::kInstructionPointer) == ptr);
 }
-}
-}  // namespace vixl::aarch64
+}  // namespace aarch64
+}  // namespace vixl
 
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64

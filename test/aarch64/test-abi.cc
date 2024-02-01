@@ -25,9 +25,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "test-runner.h"
-#include "test-utils-aarch64.h"
 
 #include "aarch64/abi-aarch64.h"
+#include "test-utils-aarch64.h"
 
 #if (__cplusplus >= 201103L) && !defined(VIXL_HAS_ABI_SUPPORT)
 #error "C++11 should be sufficient to provide ABI support."
@@ -51,9 +51,9 @@ TEST(abi) {
   VIXL_CHECK(abi.GetReturnGenericOperand<char>().Equals(GenericOperand(w0)));
   VIXL_CHECK(abi.GetReturnGenericOperand<int8_t>().Equals(GenericOperand(w0)));
   VIXL_CHECK(abi.GetReturnGenericOperand<uint8_t>().Equals(GenericOperand(w0)));
-  VIXL_CHECK(
-      abi.GetReturnGenericOperand<short>().Equals(  // NOLINT(runtime/int)
-          GenericOperand(w0)));
+  VIXL_CHECK(abi.GetReturnGenericOperand<short>()
+                 .Equals(  // NOLINT(google-runtime-int)
+                     GenericOperand(w0)));
   VIXL_CHECK(abi.GetReturnGenericOperand<int16_t>().Equals(GenericOperand(w0)));
   VIXL_CHECK(
       abi.GetReturnGenericOperand<uint16_t>().Equals(GenericOperand(w0)));
@@ -92,7 +92,7 @@ TEST(abi) {
   CHECK_NEXT_PARAMETER_REG(uint64_t, x4);
   CHECK_NEXT_PARAMETER_REG(void*, x5);
   CHECK_NEXT_PARAMETER_REG(uint32_t, w6);
-  typedef short my_type;  // NOLINT(runtime/int)
+  typedef short my_type;  // NOLINT(google-runtime-int)
   CHECK_NEXT_PARAMETER_REG(my_type, w7);
   CHECK_NEXT_PARAMETER_MEM(int, MemOperand(sp, 0), kWRegSizeInBytes);
   CHECK_NEXT_PARAMETER_MEM(int, MemOperand(sp, 8), kWRegSizeInBytes);
@@ -102,14 +102,14 @@ TEST(abi) {
   CHECK_NEXT_PARAMETER_REG(double, d7);
   CHECK_NEXT_PARAMETER_MEM(double, MemOperand(sp, 16), kDRegSizeInBytes);
   CHECK_NEXT_PARAMETER_MEM(bool, MemOperand(sp, 24), kWRegSizeInBytes);
-  CHECK_NEXT_PARAMETER_MEM(short,  // NOLINT(runtime/int)
+  CHECK_NEXT_PARAMETER_MEM(short,  // NOLINT(google-runtime-int)
                            MemOperand(sp, 32),
                            kWRegSizeInBytes);
   CHECK_NEXT_PARAMETER_MEM(float, MemOperand(sp, 40), kSRegSizeInBytes);
   CHECK_NEXT_PARAMETER_MEM(float, MemOperand(sp, 48), kSRegSizeInBytes);
   VIXL_CHECK(abi.GetStackSpaceRequired() == 56);
 }
-}
-}  // namespace vixl::aarch64
+}  // namespace aarch64
+}  // namespace vixl
 
 #endif  // VIXL_HAS_ABI_SUPPORT

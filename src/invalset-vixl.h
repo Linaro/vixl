@@ -27,9 +27,8 @@
 #ifndef VIXL_INVALSET_H_
 #define VIXL_INVALSET_H_
 
-#include <cstring>
-
 #include <algorithm>
+#include <cstring>
 #include <vector>
 
 #include "globals-vixl.h"
@@ -244,8 +243,10 @@ class InvalSet {
 
 
 template <class S>
-class InvalSetIterator : public std::iterator<std::forward_iterator_tag,
-                                              typename S::_ElementType> {
+class InvalSetIterator
+    : public std::iterator<  // NOLINT(clang-diagnostic-deprecated-declarations)
+          std::forward_iterator_tag,
+          typename S::_ElementType> {
  private:
   // Redefine types to mirror the associated set types.
   typedef typename S::_ElementType ElementType;

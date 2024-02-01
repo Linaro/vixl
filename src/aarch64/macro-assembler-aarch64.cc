@@ -24,9 +24,9 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include <cctype>
-
 #include "macro-assembler-aarch64.h"
+
+#include <cctype>
 
 namespace vixl {
 namespace aarch64 {
@@ -194,9 +194,8 @@ void VeneerPool::Reset() {
 
 void VeneerPool::Release() {
   if (--monitor_ == 0) {
-    VIXL_ASSERT(IsEmpty() ||
-                masm_->GetCursorOffset() <
-                    unresolved_branches_.GetFirstLimit());
+    VIXL_ASSERT(IsEmpty() || masm_->GetCursorOffset() <
+                                 unresolved_branches_.GetFirstLimit());
   }
 }
 

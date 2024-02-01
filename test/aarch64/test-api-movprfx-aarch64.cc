@@ -30,10 +30,10 @@
 
 #include "test-runner.h"
 #include "test-utils.h"
-#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/assembler-aarch64.h"
 #include "aarch64/instructions-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 
 #define __ assm.
 #define TEST(name) TEST_(AARCH64_API_##name)
@@ -50,7 +50,7 @@ class InstructionReporter : public DecoderVisitor {
     instr_form_ = (*metadata)["form"];
   }
 
-  std::string MoveForm() { return std::move(instr_form_); }
+  std::string MoveForm() { return instr_form_; }
 
  private:
   std::string instr_form_;

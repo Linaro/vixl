@@ -84,6 +84,8 @@ int64_t LiteralExample(int64_t a, int64_t b) {
          b,
          simulator.ReadXRegister(0));
 
+  free(code);
+
   return simulator.ReadXRegister(0);
 }
 #endif

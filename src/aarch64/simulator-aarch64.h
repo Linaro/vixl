@@ -33,8 +33,8 @@
 
 #include "../globals-vixl.h"
 #include "../utils-vixl.h"
-
 #include "cpu-features.h"
+
 #include "abi-aarch64.h"
 #include "cpu-features-auditor-aarch64.h"
 #include "debugger-aarch64.h"
@@ -3083,8 +3083,9 @@ class Simulator : public DecoderVisitor {
     // either MTE protected or not.
     if (count != expected) {
       std::stringstream sstream;
-      sstream << std::hex << "MTE WARNING : the memory region being unmapped "
-                             "starting at address 0x"
+      sstream << std::hex
+              << "MTE WARNING : the memory region being unmapped "
+                 "starting at address 0x"
               << reinterpret_cast<uint64_t>(address)
               << "is not fully MTE protected.\n";
       VIXL_WARNING(sstream.str().c_str());

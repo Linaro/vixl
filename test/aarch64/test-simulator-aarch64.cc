@@ -26,19 +26,17 @@
 
 #include <cfloat>
 #include <cstdio>
-
 #include <sstream>
 
 #include "test-runner.h"
 #include "test-utils.h"
 
-#include "aarch64/test-simulator-inputs-aarch64.h"
-#include "aarch64/test-simulator-traces-aarch64.h"
-#include "aarch64/test-utils-aarch64.h"
-
 #include "aarch64/cpu-features-auditor-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
+#include "aarch64/test-simulator-inputs-aarch64.h"
+#include "aarch64/test-simulator-traces-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -3009,23 +3007,31 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                     kFormat##vdform,                                         \
                     kFormat##vnform)
 
-#define CALL_TEST_NEON_HELPER_2Op(                               \
-    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m) \
-  Test2OpNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform),         \
-              &MacroAssembler::mnemonic,                         \
-              input_d,                                           \
-              input_n,                                           \
-              (sizeof(input_n) / sizeof(input_n[0])),            \
-              input_m,                                           \
-              (sizeof(input_m) / sizeof(input_m[0])),            \
-              kExpected_NEON_##mnemonic##_##vdform,              \
-              kExpectedCount_NEON_##mnemonic##_##vdform,         \
-              kFormat##vdform,                                   \
-              kFormat##vnform,                                   \
+#define CALL_TEST_NEON_HELPER_2Op(mnemonic,              \
+                                  vdform,                \
+                                  vnform,                \
+                                  vmform,                \
+                                  input_d,               \
+                                  input_n,               \
+                                  input_m)               \
+  Test2OpNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform), \
+              &MacroAssembler::mnemonic,                 \
+              input_d,                                   \
+              input_n,                                   \
+              (sizeof(input_n) / sizeof(input_n[0])),    \
+              input_m,                                   \
+              (sizeof(input_m) / sizeof(input_m[0])),    \
+              kExpected_NEON_##mnemonic##_##vdform,      \
+              kExpectedCount_NEON_##mnemonic##_##vdform, \
+              kFormat##vdform,                           \
+              kFormat##vnform,                           \
               kFormat##vmform)
 
-#define CALL_TEST_NEON_HELPER_2OpImm(                                 \
-    mnemonic, vdform, vnform, input_n, input_m)                       \
+#define CALL_TEST_NEON_HELPER_2OpImm(mnemonic,                        \
+                                     vdform,                          \
+                                     vnform,                          \
+                                     input_n,                         \
+                                     input_m)                         \
   Test2OpImmNEON(STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_2OPIMM", \
                  &MacroAssembler::mnemonic,                           \
                  input_n,                                             \
@@ -3037,23 +3043,29 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                  kFormat##vdform,                                     \
                  kFormat##vnform)
 
-#define CALL_TEST_NEON_HELPER_ByElement(                                  \
-    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m, indices) \
-  TestByElementNEON(                                                      \
-      STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_" STRINGIFY(            \
-          vnform) "_" STRINGIFY(vmform),                                  \
-      &MacroAssembler::mnemonic,                                          \
-      input_d,                                                            \
-      input_n,                                                            \
-      (sizeof(input_n) / sizeof(input_n[0])),                             \
-      input_m,                                                            \
-      (sizeof(input_m) / sizeof(input_m[0])),                             \
-      indices,                                                            \
-      (sizeof(indices) / sizeof(indices[0])),                             \
-      kExpected_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,         \
-      kExpectedCount_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,    \
-      kFormat##vdform,                                                    \
-      kFormat##vnform,                                                    \
+#define CALL_TEST_NEON_HELPER_ByElement(mnemonic,                      \
+                                        vdform,                        \
+                                        vnform,                        \
+                                        vmform,                        \
+                                        input_d,                       \
+                                        input_n,                       \
+                                        input_m,                       \
+                                        indices)                       \
+  TestByElementNEON(                                                   \
+      STRINGIFY(mnemonic) "_" STRINGIFY(vdform) "_" STRINGIFY(         \
+          vnform) "_" STRINGIFY(vmform),                               \
+      &MacroAssembler::mnemonic,                                       \
+      input_d,                                                         \
+      input_n,                                                         \
+      (sizeof(input_n) / sizeof(input_n[0])),                          \
+      input_m,                                                         \
+      (sizeof(input_m) / sizeof(input_m[0])),                          \
+      indices,                                                         \
+      (sizeof(indices) / sizeof(indices[0])),                          \
+      kExpected_NEON_##mnemonic##_##vdform##_##vnform##_##vmform,      \
+      kExpectedCount_NEON_##mnemonic##_##vdform##_##vnform##_##vmform, \
+      kFormat##vdform,                                                 \
+      kFormat##vnform,                                                 \
       kFormat##vmform)
 
 #define CALL_TEST_NEON_HELPER_ByElement_Dot_Product(mnemonic,           \
@@ -3543,16 +3555,21 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                 kInputFloat16##input_m);          \
   }
 
-#define CALL_TEST_NEON_HELPER_3DIFF(                             \
-    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m) \
-  {                                                              \
-    CALL_TEST_NEON_HELPER_2Op(mnemonic,                          \
-                              vdform,                            \
-                              vnform,                            \
-                              vmform,                            \
-                              input_d,                           \
-                              input_n,                           \
-                              input_m);                          \
+#define CALL_TEST_NEON_HELPER_3DIFF(mnemonic, \
+                                    vdform,   \
+                                    vnform,   \
+                                    vmform,   \
+                                    input_d,  \
+                                    input_n,  \
+                                    input_m)  \
+  {                                           \
+    CALL_TEST_NEON_HELPER_2Op(mnemonic,       \
+                              vdform,         \
+                              vnform,         \
+                              vmform,         \
+                              input_d,        \
+                              input_n,        \
+                              input_m);       \
   }
 
 #define DEFINE_TEST_NEON_3DIFF_LONG_8H(mnemonic, input)     \
@@ -3783,14 +3800,17 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
   }
 
 
-#define CALL_TEST_NEON_HELPER_2OPIMM(             \
-    mnemonic, vdform, vnform, input_n, input_imm) \
-  {                                               \
-    CALL_TEST_NEON_HELPER_2OpImm(mnemonic,        \
-                                 vdform,          \
-                                 vnform,          \
-                                 input_n,         \
-                                 input_imm);      \
+#define CALL_TEST_NEON_HELPER_2OPIMM(mnemonic,  \
+                                     vdform,    \
+                                     vnform,    \
+                                     input_n,   \
+                                     input_imm) \
+  {                                             \
+    CALL_TEST_NEON_HELPER_2OpImm(mnemonic,      \
+                                 vdform,        \
+                                 vnform,        \
+                                 input_n,       \
+                                 input_imm);    \
   }
 
 #define DEFINE_TEST_NEON_2OPIMM(mnemonic, input, input_imm)   \
@@ -4223,8 +4243,10 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                                 vm_subvector_count);    \
   }
 
-#define DEFINE_TEST_NEON_BYELEMENT_DOT_PRODUCT(                        \
-    mnemonic, input_d, input_n, input_m)                               \
+#define DEFINE_TEST_NEON_BYELEMENT_DOT_PRODUCT(mnemonic,               \
+                                               input_d,                \
+                                               input_n,                \
+                                               input_m)                \
   TEST(mnemonic##_2S_8B_B) {                                           \
     CALL_TEST_NEON_HELPER_BYELEMENT_DOT_PRODUCT(mnemonic,              \
                                                 2S,                    \
@@ -4248,17 +4270,23 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                                 4);                    \
   }
 
-#define CALL_TEST_NEON_HELPER_BYELEMENT(                                  \
-    mnemonic, vdform, vnform, vmform, input_d, input_n, input_m, indices) \
-  {                                                                       \
-    CALL_TEST_NEON_HELPER_ByElement(mnemonic,                             \
-                                    vdform,                               \
-                                    vnform,                               \
-                                    vmform,                               \
-                                    input_d,                              \
-                                    input_n,                              \
-                                    input_m,                              \
-                                    indices);                             \
+#define CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic, \
+                                        vdform,   \
+                                        vnform,   \
+                                        vmform,   \
+                                        input_d,  \
+                                        input_n,  \
+                                        input_m,  \
+                                        indices)  \
+  {                                               \
+    CALL_TEST_NEON_HELPER_ByElement(mnemonic,     \
+                                    vdform,       \
+                                    vnform,       \
+                                    vmform,       \
+                                    input_d,      \
+                                    input_n,      \
+                                    input_m,      \
+                                    indices);     \
   }
 
 #define DEFINE_TEST_NEON_BYELEMENT(mnemonic, input_d, input_n, input_m) \
@@ -4474,8 +4502,10 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
                                     kInputSIndices);                         \
   }
 
-#define DEFINE_TEST_NEON_BYELEMENT_DIFF_SCALAR(            \
-    mnemonic, input_d, input_n, input_m)                   \
+#define DEFINE_TEST_NEON_BYELEMENT_DIFF_SCALAR(mnemonic,   \
+                                               input_d,    \
+                                               input_n,    \
+                                               input_m)    \
   TEST(mnemonic##_S_H_H) {                                 \
     CALL_TEST_NEON_HELPER_BYELEMENT(mnemonic,              \
                                     S,                     \
@@ -4498,21 +4528,28 @@ DEFINE_TEST_FP_TO_JS_INT(fjcvtzs, FPToS, Conversions)
   }
 
 
-#define CALL_TEST_NEON_HELPER_2OP2IMM(                           \
-    mnemonic, variant, input_d, input_imm1, input_n, input_imm2) \
-  {                                                              \
-    CALL_TEST_NEON_HELPER_OpImmOpImm(&MacroAssembler::mnemonic,  \
-                                     mnemonic,                   \
-                                     variant,                    \
-                                     variant,                    \
-                                     input_d,                    \
-                                     input_imm1,                 \
-                                     input_n,                    \
-                                     input_imm2);                \
+#define CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                 \
+                                      variant,                  \
+                                      input_d,                  \
+                                      input_imm1,               \
+                                      input_n,                  \
+                                      input_imm2)               \
+  {                                                             \
+    CALL_TEST_NEON_HELPER_OpImmOpImm(&MacroAssembler::mnemonic, \
+                                     mnemonic,                  \
+                                     variant,                   \
+                                     variant,                   \
+                                     input_d,                   \
+                                     input_imm1,                \
+                                     input_n,                   \
+                                     input_imm2);               \
   }
 
-#define DEFINE_TEST_NEON_2OP2IMM(                               \
-    mnemonic, input_d, input_imm1, input_n, input_imm2)         \
+#define DEFINE_TEST_NEON_2OP2IMM(mnemonic,                      \
+                                 input_d,                       \
+                                 input_imm1,                    \
+                                 input_n,                       \
+                                 input_imm2)                    \
   TEST(mnemonic##_B) {                                          \
     CALL_TEST_NEON_HELPER_2OP2IMM(mnemonic,                     \
                                   16B,                          \
