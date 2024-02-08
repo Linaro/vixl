@@ -29,6 +29,9 @@
 namespace vixl {
 namespace aarch64 {
 
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+// The debugger is only available to be tested in simulator builds.
+
 TEST(breakpoints_invalid) {
   SETUP();
 
@@ -359,6 +362,7 @@ TEST(trace_partial) {
   CHECK_OUTPUT();
 }
 
+#endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
 }  // namespace aarch64
 }  // namespace vixl

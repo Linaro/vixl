@@ -128,10 +128,11 @@ def RunTest(test):
             stdin = p_diff.stdout,
             stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
     out, unused = p_colordiff.communicate()
+    rc += p_colordiff.returncode
   else:
     out, unused = p_diff.communicate()
+    rc += p_diff.returncode
 
-  rc += p_diff.returncode
 
   if in_place:
       cmd_format = [clang_format, '-i', filename]
