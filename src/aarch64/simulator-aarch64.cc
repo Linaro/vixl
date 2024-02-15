@@ -42,6 +42,25 @@ using vixl::internal::SimFloat16;
 
 const Instruction* Simulator::kEndOfSimAddress = NULL;
 
+MemoryReadResult TryMemoryRead(uintptr_t address, uintptr_t access_size) {
+#ifdef VIXL_ENABLE_IMPLICIT_CHECKS
+  for (uintptr_t i = 0; i < access_size; i++) {
+    if (_vixl_internal_ReadMemory(address, i) == MemoryReadResult::Failure) {
+      // The memory read failed.
+      return MemoryReadResult::Failure;
+    }
+  }
+
+  // Either the memory read did not raise a signal or the signal handler did
+  // not correctly return MemoryReadResult::Failure.
+  return MemoryReadResult::Success;
+#else
+  USE(address);
+  USE(access_size);
+  return MemoryReadResult::Success;
+#endif  // VIXL_ENABLE_IMPLICIT_CHECKS
+}
+
 bool MetaDataDepot::MetaDataMTE::is_active = false;
 
 void SimSystemRegister::SetBits(int msb, int lsb, uint32_t bits) {
@@ -491,6 +510,32 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
   };
   return &form_to_visitor;
 }
+
+// Try to access the piece of memory given by the address passed in RDI and the
+// offset passed in %rsi, using testb. If a signal is raised then the signal
+// handler should set RIP to _vixl_internal_ReadMemory_continue and RAX to
+// MemoryReadResult::Failure. If no signal is raised then zero RAX before
+// returning.
+#ifdef VIXL_ENABLE_IMPLICIT_CHECKS
+#ifdef __x86_64__
+asm(R"(
+  .globl _vixl_internal_ReadMemory
+  _vixl_internal_ReadMemory:
+    testb (%rdi, %rsi), %al
+    xorq %rax, %rax
+    ret
+  .globl _vixl_internal_ReadMemory_continue
+  _vixl_internal_ReadMemory_continue:
+    ret
+)");
+#else
+asm(R"(
+  .globl _vixl_internal_ReadMemory
+  _vixl_internal_ReadMemory:
+    ret
+)");
+#endif  // __x86_64__
+#endif  // VIXL_ENABLE_IMPLICIT_CHECKS
 
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
     : memory_(std::move(stack)),
@@ -1772,8 +1817,9 @@ uint16_t Simulator::PrintPartialAccess(uint16_t access_mask,
   const char* sep = "";
   for (int i = struct_element_count - 1; i >= 0; i--) {
     int offset = lane_size_in_bytes * i;
-    uint64_t nibble = MemReadUint(lane_size_in_bytes, address + offset);
-    fprintf(stream_, "%s%0*" PRIx64, sep, lane_size_in_nibbles, nibble);
+    auto nibble = MemReadUint(lane_size_in_bytes, address + offset);
+    VIXL_ASSERT(nibble);
+    fprintf(stream_, "%s%0*" PRIx64, sep, lane_size_in_nibbles, *nibble);
     sep = "'";
   }
   fprintf(stream_,
@@ -4121,7 +4167,9 @@ void Simulator::LoadAcquireRCpcUnscaledOffsetHelper(const Instruction* instr) {
     VIXL_ALIGNMENT_EXCEPTION();
   }
 
-  WriteRegister<T1>(rt, static_cast<T1>(MemRead<T2>(address)));
+  VIXL_DEFINE_OR_RETURN(value, MemRead<T2>(address));
+
+  WriteRegister<T1>(rt, static_cast<T1>(value));
 
   // Approximate load-acquire by issuing a full barrier after the load.
   __sync_synchronize();
@@ -4238,7 +4286,9 @@ void Simulator::VisitLoadStorePAC(const Instruction* instr) {
   // Verify that the calculated address is available to the host.
   VIXL_ASSERT(address == addr_ptr);
 
-  WriteXRegister(dst, MemRead<uint64_t>(addr_ptr), NoRegLog);
+  VIXL_DEFINE_OR_RETURN(value, MemRead<uint64_t>(addr_ptr));
+
+  WriteXRegister(dst, value, NoRegLog);
   unsigned access_size = 1 << 3;
   LogRead(dst, GetPrintRegisterFormatForSize(access_size), addr_ptr);
 }
@@ -4265,62 +4315,90 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
   int extend_to_size = 0;
   LoadStoreOp op = static_cast<LoadStoreOp>(instr->Mask(LoadStoreMask));
   switch (op) {
-    case LDRB_w:
-      WriteWRegister(srcdst, MemRead<uint8_t>(address), NoRegLog);
+    case LDRB_w: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint8_t>(address));
+      WriteWRegister(srcdst, value, NoRegLog);
       extend_to_size = kWRegSizeInBytes;
       break;
-    case LDRH_w:
-      WriteWRegister(srcdst, MemRead<uint16_t>(address), NoRegLog);
+    }
+    case LDRH_w: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint16_t>(address));
+      WriteWRegister(srcdst, value, NoRegLog);
       extend_to_size = kWRegSizeInBytes;
       break;
-    case LDR_w:
-      WriteWRegister(srcdst, MemRead<uint32_t>(address), NoRegLog);
+    }
+    case LDR_w: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint32_t>(address));
+      WriteWRegister(srcdst, value, NoRegLog);
       extend_to_size = kWRegSizeInBytes;
       break;
-    case LDR_x:
-      WriteXRegister(srcdst, MemRead<uint64_t>(address), NoRegLog);
+    }
+    case LDR_x: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint64_t>(address));
+      WriteXRegister(srcdst, value, NoRegLog);
       extend_to_size = kXRegSizeInBytes;
       break;
-    case LDRSB_w:
-      WriteWRegister(srcdst, MemRead<int8_t>(address), NoRegLog);
+    }
+    case LDRSB_w: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int8_t>(address));
+      WriteWRegister(srcdst, value, NoRegLog);
       extend_to_size = kWRegSizeInBytes;
       break;
-    case LDRSH_w:
-      WriteWRegister(srcdst, MemRead<int16_t>(address), NoRegLog);
+    }
+    case LDRSH_w: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int16_t>(address));
+      WriteWRegister(srcdst, value, NoRegLog);
       extend_to_size = kWRegSizeInBytes;
       break;
-    case LDRSB_x:
-      WriteXRegister(srcdst, MemRead<int8_t>(address), NoRegLog);
+    }
+    case LDRSB_x: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int8_t>(address));
+      WriteXRegister(srcdst, value, NoRegLog);
       extend_to_size = kXRegSizeInBytes;
       break;
-    case LDRSH_x:
-      WriteXRegister(srcdst, MemRead<int16_t>(address), NoRegLog);
+    }
+    case LDRSH_x: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int16_t>(address));
+      WriteXRegister(srcdst, value, NoRegLog);
       extend_to_size = kXRegSizeInBytes;
       break;
-    case LDRSW_x:
-      WriteXRegister(srcdst, MemRead<int32_t>(address), NoRegLog);
+    }
+    case LDRSW_x: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int32_t>(address));
+      WriteXRegister(srcdst, value, NoRegLog);
       extend_to_size = kXRegSizeInBytes;
       break;
-    case LDR_b:
-      WriteBRegister(srcdst, MemRead<uint8_t>(address), NoRegLog);
+    }
+    case LDR_b: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint8_t>(address));
+      WriteBRegister(srcdst, value, NoRegLog);
       rt_is_vreg = true;
       break;
-    case LDR_h:
-      WriteHRegister(srcdst, MemRead<uint16_t>(address), NoRegLog);
+    }
+    case LDR_h: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint16_t>(address));
+      WriteHRegister(srcdst, value, NoRegLog);
       rt_is_vreg = true;
       break;
-    case LDR_s:
-      WriteSRegister(srcdst, MemRead<float>(address), NoRegLog);
+    }
+    case LDR_s: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<float>(address));
+      WriteSRegister(srcdst, value, NoRegLog);
       rt_is_vreg = true;
       break;
-    case LDR_d:
-      WriteDRegister(srcdst, MemRead<double>(address), NoRegLog);
+    }
+    case LDR_d: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<double>(address));
+      WriteDRegister(srcdst, value, NoRegLog);
       rt_is_vreg = true;
       break;
-    case LDR_q:
-      WriteQRegister(srcdst, MemRead<qreg_t>(address), NoRegLog);
+    }
+    case LDR_q: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<qreg_t>(address));
+      WriteQRegister(srcdst, value, NoRegLog);
       rt_is_vreg = true;
       break;
+    }
 
     case STRB_w:
       MemWrite<uint8_t>(address, ReadWRegister(srcdst));
@@ -4432,36 +4510,48 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
     // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_FP_REGS). We
     // will print a more detailed log.
     case LDP_w: {
-      WriteWRegister(rt, MemRead<uint32_t>(address), NoRegLog);
-      WriteWRegister(rt2, MemRead<uint32_t>(address2), NoRegLog);
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint32_t>(address));
+      VIXL_DEFINE_OR_RETURN(value2, MemRead<uint32_t>(address2));
+      WriteWRegister(rt, value, NoRegLog);
+      WriteWRegister(rt2, value2, NoRegLog);
       break;
     }
     case LDP_s: {
-      WriteSRegister(rt, MemRead<float>(address), NoRegLog);
-      WriteSRegister(rt2, MemRead<float>(address2), NoRegLog);
+      VIXL_DEFINE_OR_RETURN(value, MemRead<float>(address));
+      VIXL_DEFINE_OR_RETURN(value2, MemRead<float>(address2));
+      WriteSRegister(rt, value, NoRegLog);
+      WriteSRegister(rt2, value2, NoRegLog);
       rt_is_vreg = true;
       break;
     }
     case LDP_x: {
-      WriteXRegister(rt, MemRead<uint64_t>(address), NoRegLog);
-      WriteXRegister(rt2, MemRead<uint64_t>(address2), NoRegLog);
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint64_t>(address));
+      VIXL_DEFINE_OR_RETURN(value2, MemRead<uint64_t>(address2));
+      WriteXRegister(rt, value, NoRegLog);
+      WriteXRegister(rt2, value2, NoRegLog);
       break;
     }
     case LDP_d: {
-      WriteDRegister(rt, MemRead<double>(address), NoRegLog);
-      WriteDRegister(rt2, MemRead<double>(address2), NoRegLog);
+      VIXL_DEFINE_OR_RETURN(value, MemRead<double>(address));
+      VIXL_DEFINE_OR_RETURN(value2, MemRead<double>(address2));
+      WriteDRegister(rt, value, NoRegLog);
+      WriteDRegister(rt2, value2, NoRegLog);
       rt_is_vreg = true;
       break;
     }
     case LDP_q: {
-      WriteQRegister(rt, MemRead<qreg_t>(address), NoRegLog);
-      WriteQRegister(rt2, MemRead<qreg_t>(address2), NoRegLog);
+      VIXL_DEFINE_OR_RETURN(value, MemRead<qreg_t>(address));
+      VIXL_DEFINE_OR_RETURN(value2, MemRead<qreg_t>(address2));
+      WriteQRegister(rt, value, NoRegLog);
+      WriteQRegister(rt2, value2, NoRegLog);
       rt_is_vreg = true;
       break;
     }
     case LDPSW_x: {
-      WriteXRegister(rt, MemRead<int32_t>(address), NoRegLog);
-      WriteXRegister(rt2, MemRead<int32_t>(address2), NoRegLog);
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int32_t>(address));
+      VIXL_DEFINE_OR_RETURN(value2, MemRead<int32_t>(address2));
+      WriteXRegister(rt, value, NoRegLog);
+      WriteXRegister(rt2, value2, NoRegLog);
       sign_extend = true;
       break;
     }
@@ -4549,7 +4639,8 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
   // associated with that location, even if the compare subsequently fails.
   local_monitor_.Clear();
 
-  T data = MemRead<T>(address);
+  VIXL_DEFINE_OR_RETURN(data, MemRead<T>(address));
+
   if (is_acquire) {
     // Approximate load-acquire by issuing a full barrier after the load.
     __sync_synchronize();
@@ -4596,8 +4687,8 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
   // associated with that location, even if the compare subsequently fails.
   local_monitor_.Clear();
 
-  T data_low = MemRead<T>(address);
-  T data_high = MemRead<T>(address2);
+  VIXL_DEFINE_OR_RETURN(data_low, MemRead<T>(address));
+  VIXL_DEFINE_OR_RETURN(data_high, MemRead<T>(address2));
 
   if (is_acquire) {
     // Approximate load-acquire by issuing a full barrier after the load.
@@ -4780,47 +4871,59 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
           case LDXRB_w:
           case LDAXRB_w:
           case LDARB_w:
-          case LDLARB:
-            WriteWRegister(rt, MemRead<uint8_t>(address), NoRegLog);
+          case LDLARB: {
+            VIXL_DEFINE_OR_RETURN(value, MemRead<uint8_t>(address));
+            WriteWRegister(rt, value, NoRegLog);
             reg_size = kWRegSizeInBytes;
             break;
+          }
           case LDXRH_w:
           case LDAXRH_w:
           case LDARH_w:
-          case LDLARH:
-            WriteWRegister(rt, MemRead<uint16_t>(address), NoRegLog);
+          case LDLARH: {
+            VIXL_DEFINE_OR_RETURN(value, MemRead<uint16_t>(address));
+            WriteWRegister(rt, value, NoRegLog);
             reg_size = kWRegSizeInBytes;
             break;
+          }
           case LDXR_w:
           case LDAXR_w:
           case LDAR_w:
-          case LDLAR_w:
-            WriteWRegister(rt, MemRead<uint32_t>(address), NoRegLog);
+          case LDLAR_w: {
+            VIXL_DEFINE_OR_RETURN(value, MemRead<uint32_t>(address));
+            WriteWRegister(rt, value, NoRegLog);
             reg_size = kWRegSizeInBytes;
             break;
+          }
           case LDXR_x:
           case LDAXR_x:
           case LDAR_x:
-          case LDLAR_x:
-            WriteXRegister(rt, MemRead<uint64_t>(address), NoRegLog);
+          case LDLAR_x: {
+            VIXL_DEFINE_OR_RETURN(value, MemRead<uint64_t>(address));
+            WriteXRegister(rt, value, NoRegLog);
             reg_size = kXRegSizeInBytes;
             break;
+          }
           case LDXP_w:
-          case LDAXP_w:
-            WriteWRegister(rt, MemRead<uint32_t>(address), NoRegLog);
-            WriteWRegister(rt2,
-                           MemRead<uint32_t>(address + element_size),
-                           NoRegLog);
+          case LDAXP_w: {
+            VIXL_DEFINE_OR_RETURN(value, MemRead<uint32_t>(address));
+            VIXL_DEFINE_OR_RETURN(value2,
+                                  MemRead<uint32_t>(address + element_size));
+            WriteWRegister(rt, value, NoRegLog);
+            WriteWRegister(rt2, value2, NoRegLog);
             reg_size = kWRegSizeInBytes;
             break;
+          }
           case LDXP_x:
-          case LDAXP_x:
-            WriteXRegister(rt, MemRead<uint64_t>(address), NoRegLog);
-            WriteXRegister(rt2,
-                           MemRead<uint64_t>(address + element_size),
-                           NoRegLog);
+          case LDAXP_x: {
+            VIXL_DEFINE_OR_RETURN(value, MemRead<uint64_t>(address));
+            VIXL_DEFINE_OR_RETURN(value2,
+                                  MemRead<uint64_t>(address + element_size));
+            WriteXRegister(rt, value, NoRegLog);
+            WriteXRegister(rt2, value2, NoRegLog);
             reg_size = kXRegSizeInBytes;
             break;
+          }
           default:
             VIXL_UNREACHABLE();
         }
@@ -4922,7 +5025,7 @@ void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
 
   T value = ReadRegister<T>(rs);
 
-  T data = MemRead<T>(address);
+  VIXL_DEFINE_OR_RETURN(data, MemRead<T>(address));
 
   if (is_acquire) {
     // Approximate load-acquire by issuing a full barrier after the load.
@@ -4991,7 +5094,8 @@ void Simulator::AtomicMemorySwapHelper(const Instruction* instr) {
 
   CheckIsValidUnalignedAtomicAccess(rn, address, element_size);
 
-  T data = MemRead<T>(address);
+  VIXL_DEFINE_OR_RETURN(data, MemRead<T>(address));
+
   if (is_acquire) {
     // Approximate load-acquire by issuing a full barrier after the load.
     __sync_synchronize();
@@ -5020,7 +5124,9 @@ void Simulator::LoadAcquireRCpcHelper(const Instruction* instr) {
 
   CheckIsValidUnalignedAtomicAccess(rn, address, element_size);
 
-  WriteRegister<T>(rt, MemRead<T>(address));
+  VIXL_DEFINE_OR_RETURN(value, MemRead<T>(address));
+
+  WriteRegister<T>(rt, value);
 
   // Approximate load-acquire by issuing a full barrier after the load.
   __sync_synchronize();
@@ -5140,30 +5246,42 @@ void Simulator::VisitLoadLiteral(const Instruction* instr) {
   switch (instr->Mask(LoadLiteralMask)) {
     // Use NoRegLog to suppress the register trace (LOG_REGS, LOG_VREGS), then
     // print a more detailed log.
-    case LDR_w_lit:
-      WriteWRegister(rt, MemRead<uint32_t>(address), NoRegLog);
+    case LDR_w_lit: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint32_t>(address));
+      WriteWRegister(rt, value, NoRegLog);
       LogRead(rt, kPrintWReg, address);
       break;
-    case LDR_x_lit:
-      WriteXRegister(rt, MemRead<uint64_t>(address), NoRegLog);
+    }
+    case LDR_x_lit: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<uint64_t>(address));
+      WriteXRegister(rt, value, NoRegLog);
       LogRead(rt, kPrintXReg, address);
       break;
-    case LDR_s_lit:
-      WriteSRegister(rt, MemRead<float>(address), NoRegLog);
+    }
+    case LDR_s_lit: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<float>(address));
+      WriteSRegister(rt, value, NoRegLog);
       LogVRead(rt, kPrintSRegFP, address);
       break;
-    case LDR_d_lit:
-      WriteDRegister(rt, MemRead<double>(address), NoRegLog);
+    }
+    case LDR_d_lit: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<double>(address));
+      WriteDRegister(rt, value, NoRegLog);
       LogVRead(rt, kPrintDRegFP, address);
       break;
-    case LDR_q_lit:
-      WriteQRegister(rt, MemRead<qreg_t>(address), NoRegLog);
+    }
+    case LDR_q_lit: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<qreg_t>(address));
+      WriteQRegister(rt, value, NoRegLog);
       LogVRead(rt, kPrintReg1Q, address);
       break;
-    case LDRSW_x_lit:
-      WriteXRegister(rt, MemRead<int32_t>(address), NoRegLog);
+    }
+    case LDRSW_x_lit: {
+      VIXL_DEFINE_OR_RETURN(value, MemRead<int32_t>(address));
+      WriteXRegister(rt, value, NoRegLog);
       LogExtendingRead(rt, kPrintXReg, kWRegSizeInBytes, address);
       break;
+    }
 
     // Ignore prfm hint instructions.
     case PRFM_lit:
@@ -6661,7 +6779,7 @@ void Simulator::SysOp_W(int op, int64_t val) {
       // so temporarily disable MTE.
       bool mte_enabled = MetaDataDepot::MetaDataMTE::IsActive();
       MetaDataDepot::MetaDataMTE::SetActive(false);
-      volatile uint8_t y = MemRead<uint8_t>(val);
+      volatile uint8_t y = *MemRead<uint8_t>(val);
       MetaDataDepot::MetaDataMTE::SetActive(mte_enabled);
       USE(y);
       // TODO: Implement ZVA, GVA, GZVA.
@@ -8227,22 +8345,30 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
   switch (instr->Mask(NEONLoadStoreMultiStructPostIndexMask)) {
     case NEON_LD1_4v:
     case NEON_LD1_4v_post:
-      ld1(vf, ReadVRegister(reg[3]), addr[3]);
+      if (!ld1(vf, ReadVRegister(reg[3]), addr[3])) {
+        return;
+      }
       reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_3v:
     case NEON_LD1_3v_post:
-      ld1(vf, ReadVRegister(reg[2]), addr[2]);
+      if (!ld1(vf, ReadVRegister(reg[2]), addr[2])) {
+        return;
+      }
       reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_2v:
     case NEON_LD1_2v_post:
-      ld1(vf, ReadVRegister(reg[1]), addr[1]);
+      if (!ld1(vf, ReadVRegister(reg[1]), addr[1])) {
+        return;
+      }
       reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_LD1_1v:
     case NEON_LD1_1v_post:
-      ld1(vf, ReadVRegister(reg[0]), addr[0]);
+      if (!ld1(vf, ReadVRegister(reg[0]), addr[0])) {
+        return;
+      }
       break;
     case NEON_ST1_4v:
     case NEON_ST1_4v_post:
@@ -8312,12 +8438,14 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       break;
     case NEON_LD4_post:
     case NEON_LD4:
-      ld4(vf,
-          ReadVRegister(reg[0]),
-          ReadVRegister(reg[1]),
-          ReadVRegister(reg[2]),
-          ReadVRegister(reg[3]),
-          addr[0]);
+      if (!ld4(vf,
+               ReadVRegister(reg[0]),
+               ReadVRegister(reg[1]),
+               ReadVRegister(reg[2]),
+               ReadVRegister(reg[3]),
+               addr[0])) {
+        return;
+      }
       struct_parts = 4;
       reg_count = 4;
       break;
@@ -8492,9 +8620,13 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
       reg_count = 1;
       if (replicating) {
         VIXL_ASSERT(do_load);
-        ld1r(vf, ReadVRegister(rt), addr);
+        if (!ld1r(vf, ReadVRegister(rt), addr)) {
+          return;
+        }
       } else if (do_load) {
-        ld1(vf, ReadVRegister(rt), lane, addr);
+        if (!ld1(vf, ReadVRegister(rt), lane, addr)) {
+          return;
+        }
       } else {
         st1(vf, ReadVRegister(rt), lane, addr);
       }
@@ -8503,9 +8635,13 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
       reg_count = 2;
       if (replicating) {
         VIXL_ASSERT(do_load);
-        ld2r(vf, ReadVRegister(rt), ReadVRegister(rt2), addr);
+        if (!ld2r(vf, ReadVRegister(rt), ReadVRegister(rt2), addr)) {
+          return;
+        }
       } else if (do_load) {
-        ld2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
+        if (!ld2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr)) {
+          return;
+        }
       } else {
         st2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
       }
@@ -8514,18 +8650,22 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
       reg_count = 3;
       if (replicating) {
         VIXL_ASSERT(do_load);
-        ld3r(vf,
-             ReadVRegister(rt),
-             ReadVRegister(rt2),
-             ReadVRegister(rt3),
-             addr);
+        if (!ld3r(vf,
+                  ReadVRegister(rt),
+                  ReadVRegister(rt2),
+                  ReadVRegister(rt3),
+                  addr)) {
+          return;
+        }
       } else if (do_load) {
-        ld3(vf,
-            ReadVRegister(rt),
-            ReadVRegister(rt2),
-            ReadVRegister(rt3),
-            lane,
-            addr);
+        if (!ld3(vf,
+                 ReadVRegister(rt),
+                 ReadVRegister(rt2),
+                 ReadVRegister(rt3),
+                 lane,
+                 addr)) {
+          return;
+        }
       } else {
         st3(vf,
             ReadVRegister(rt),
@@ -8539,20 +8679,24 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
       reg_count = 4;
       if (replicating) {
         VIXL_ASSERT(do_load);
-        ld4r(vf,
-             ReadVRegister(rt),
-             ReadVRegister(rt2),
-             ReadVRegister(rt3),
-             ReadVRegister(rt4),
-             addr);
+        if (!ld4r(vf,
+                  ReadVRegister(rt),
+                  ReadVRegister(rt2),
+                  ReadVRegister(rt3),
+                  ReadVRegister(rt4),
+                  addr)) {
+          return;
+        }
       } else if (do_load) {
-        ld4(vf,
-            ReadVRegister(rt),
-            ReadVRegister(rt2),
-            ReadVRegister(rt3),
-            ReadVRegister(rt4),
-            lane,
-            addr);
+        if (!ld4(vf,
+                 ReadVRegister(rt),
+                 ReadVRegister(rt2),
+                 ReadVRegister(rt3),
+                 ReadVRegister(rt4),
+                 lane,
+                 addr)) {
+          return;
+        }
       } else {
         st4(vf,
             ReadVRegister(rt),
@@ -12057,7 +12201,8 @@ void Simulator::VisitSVELoadPredicateRegister(const Instruction* instr) {
       uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       uint64_t address = base + multiplier * pl;
       for (int i = 0; i < pl; i++) {
-        pt.Insert(i, MemRead<uint8_t>(address + i));
+        VIXL_DEFINE_OR_RETURN(value, MemRead<uint8_t>(address + i));
+        pt.Insert(i, value);
       }
       LogPRead(instr->GetPt(), address);
       break;
@@ -12078,7 +12223,8 @@ void Simulator::VisitSVELoadVectorRegister(const Instruction* instr) {
       uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       uint64_t address = base + multiplier * vl;
       for (int i = 0; i < vl; i++) {
-        zt.Insert(i, MemRead<uint8_t>(address + i));
+        VIXL_DEFINE_OR_RETURN(value, MemRead<uint8_t>(address + i));
+        zt.Insert(i, value);
       }
       LogZRead(instr->GetRt(), address);
       break;
@@ -14326,7 +14472,7 @@ void Simulator::SimulateCpyM(const Instruction* instr) {
   }
 
   while (xn--) {
-    uint8_t temp = MemRead<uint8_t>(xs);
+    VIXL_DEFINE_OR_RETURN(temp, MemRead<uint8_t>(xs));
     MemWrite<uint8_t>(xd, temp);
     LogMemTransfer(xd, xs, temp);
     xs += step;
@@ -14578,16 +14724,16 @@ void Simulator::DoRuntimeCall(const Instruction* instr) {
   VIXL_STATIC_ASSERT(kRuntimeCallAddressSize == sizeof(uintptr_t));
   // The appropriate `Simulator::SimulateRuntimeCall()` wrapper and the function
   // to call are passed inlined in the assembly.
-  uintptr_t call_wrapper_address =
-      MemRead<uintptr_t>(instr + kRuntimeCallWrapperOffset);
-  uintptr_t function_address =
-      MemRead<uintptr_t>(instr + kRuntimeCallFunctionOffset);
-  RuntimeCallType call_type = static_cast<RuntimeCallType>(
-      MemRead<uint32_t>(instr + kRuntimeCallTypeOffset));
+  VIXL_DEFINE_OR_RETURN(call_wrapper_address,
+                        MemRead<uintptr_t>(instr + kRuntimeCallWrapperOffset));
+  VIXL_DEFINE_OR_RETURN(function_address,
+                        MemRead<uintptr_t>(instr + kRuntimeCallFunctionOffset));
+  VIXL_DEFINE_OR_RETURN(call_type,
+                        MemRead<uint32_t>(instr + kRuntimeCallTypeOffset));
   auto runtime_call_wrapper =
       reinterpret_cast<void (*)(Simulator*, uintptr_t)>(call_wrapper_address);
 
-  if (call_type == kCallRuntime) {
+  if (static_cast<RuntimeCallType>(call_type) == kCallRuntime) {
     WriteRegister(kLinkRegCode,
                   instr->GetInstructionAtOffset(kRuntimeCallLength));
   }
@@ -14618,7 +14764,7 @@ void Simulator::DoConfigureCPUFeatures(const Instruction* instr) {
   // Read the kNone-terminated list of features.
   CPUFeatures parameters;
   while (true) {
-    ElementType feature = MemRead<ElementType>(instr + offset);
+    VIXL_DEFINE_OR_RETURN(feature, MemRead<ElementType>(instr + offset));
     offset += element_size;
     if (feature == static_cast<ElementType>(CPUFeatures::kNone)) break;
     parameters.Combine(static_cast<CPUFeatures::Feature>(feature));

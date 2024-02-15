@@ -68,6 +68,28 @@ namespace aarch64 {
 class Simulator;
 struct RuntimeCallStructHelper;
 
+enum class MemoryReadResult { Success = 0, Failure = 1 };
+
+// Try to read a piece of memory at the given address. Reading that memory
+// might raise a signal which, if handled by a custom signal handler, should
+// setup the native and simulated context in order to continue. Return whether
+// the memory access failed (i.e: raised a signal) or succeeded.
+MemoryReadResult TryMemoryRead(uintptr_t address, uintptr_t access_size);
+
+#ifdef VIXL_ENABLE_IMPLICIT_CHECKS
+// Access a byte of memory from the address at the given offset. If the memory
+// could be accessed then return MemoryReadResult::Success. If the memory could
+// not be accessed, and therefore raised a signal, setup the simulated context
+// and return MemoryReadResult::Failure.
+//
+// If a signal is raised then it is expected that the signal handler will place
+// MemoryReadResult::Failure in the native return register and the address of
+// _vixl_internal_ReadMemory_continue into the native instruction pointer.
+extern "C" MemoryReadResult _vixl_internal_ReadMemory(uintptr_t address,
+                                                      uintptr_t offset);
+extern "C" uintptr_t _vixl_internal_ReadMemory_continue();
+#endif  // VIXL_ENABLE_IMPLICIT_CHECKS
+
 class SimStack {
  public:
   SimStack() {}
@@ -366,7 +388,7 @@ class Memory {
   }
 
   template <typename T, typename A>
-  T Read(A address, Instruction const* pc = nullptr) const {
+  std::optional<T> Read(A address, Instruction const* pc = nullptr) const {
     T value;
     VIXL_STATIC_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                        (sizeof(value) == 4) || (sizeof(value) == 8) ||
@@ -377,6 +399,10 @@ class Memory {
     }
     if (!IsMTETagsMatched(address, pc)) {
       VIXL_ABORT_WITH_MSG("Tag mismatch.");
+    }
+    if (TryMemoryRead(reinterpret_cast<uintptr_t>(base), sizeof(value)) ==
+        MemoryReadResult::Failure) {
+      return std::nullopt;
     }
     memcpy(&value, base, sizeof(value));
     return value;
@@ -398,7 +424,7 @@ class Memory {
   }
 
   template <typename A>
-  uint64_t ReadUint(int size_in_bytes, A address) const {
+  std::optional<uint64_t> ReadUint(int size_in_bytes, A address) const {
     switch (size_in_bytes) {
       case 1:
         return Read<uint8_t>(address);
@@ -414,7 +440,7 @@ class Memory {
   }
 
   template <typename A>
-  int64_t ReadInt(int size_in_bytes, A address) const {
+  std::optional<int64_t> ReadInt(int size_in_bytes, A address) const {
     switch (size_in_bytes) {
       case 1:
         return Read<int8_t>(address);
@@ -2013,7 +2039,7 @@ class Simulator : public DecoderVisitor {
   }
 
   template <typename T, typename A>
-  T MemRead(A address) const {
+  std::optional<T> MemRead(A address) const {
     Instruction const* pc = ReadPc();
     return memory_.Read<T>(address, pc);
   }
@@ -2025,12 +2051,12 @@ class Simulator : public DecoderVisitor {
   }
 
   template <typename A>
-  uint64_t MemReadUint(int size_in_bytes, A address) const {
+  std::optional<uint64_t> MemReadUint(int size_in_bytes, A address) const {
     return memory_.ReadUint(size_in_bytes, address);
   }
 
   template <typename A>
-  int64_t MemReadInt(int size_in_bytes, A address) const {
+  std::optional<int64_t> MemReadInt(int size_in_bytes, A address) const {
     return memory_.ReadInt(size_in_bytes, address);
   }
 
@@ -2039,28 +2065,32 @@ class Simulator : public DecoderVisitor {
     return memory_.Write(size_in_bytes, address, value);
   }
 
-  void LoadLane(LogicVRegister dst,
+  bool LoadLane(LogicVRegister dst,
                 VectorFormat vform,
                 int index,
                 uint64_t addr) const {
     unsigned msize_in_bytes = LaneSizeInBytesFromFormat(vform);
-    LoadUintToLane(dst, vform, msize_in_bytes, index, addr);
+    return LoadUintToLane(dst, vform, msize_in_bytes, index, addr);
   }
 
-  void LoadUintToLane(LogicVRegister dst,
+  bool LoadUintToLane(LogicVRegister dst,
                       VectorFormat vform,
                       unsigned msize_in_bytes,
                       int index,
                       uint64_t addr) const {
-    dst.SetUint(vform, index, MemReadUint(msize_in_bytes, addr));
+    VIXL_DEFINE_OR_RETURN_FALSE(value, MemReadUint(msize_in_bytes, addr));
+    dst.SetUint(vform, index, value);
+    return true;
   }
 
-  void LoadIntToLane(LogicVRegister dst,
+  bool LoadIntToLane(LogicVRegister dst,
                      VectorFormat vform,
                      unsigned msize_in_bytes,
                      int index,
                      uint64_t addr) const {
-    dst.SetInt(vform, index, MemReadInt(msize_in_bytes, addr));
+    VIXL_DEFINE_OR_RETURN_FALSE(value, MemReadInt(msize_in_bytes, addr));
+    dst.SetInt(vform, index, value);
+    return true;
   }
 
   void StoreLane(const LogicVRegister& src,
@@ -2079,7 +2109,9 @@ class Simulator : public DecoderVisitor {
       return ReadCPURegister<T>(operand.GetCPURegister());
     } else {
       VIXL_ASSERT(operand.IsMemOperand());
-      return MemRead<T>(ComputeMemOperandAddress(operand.GetMemOperand()));
+      auto res = MemRead<T>(ComputeMemOperandAddress(operand.GetMemOperand()));
+      VIXL_ASSERT(res);
+      return *res;
     }
   }
 
@@ -3132,6 +3164,41 @@ class Simulator : public DecoderVisitor {
 
   Debugger* GetDebugger() const { return debugger_.get(); }
 
+#ifdef VIXL_ENABLE_IMPLICIT_CHECKS
+  // Returns true if the faulting instruction address (usually the program
+  // counter or instruction pointer) comes from an internal VIXL memory access.
+  // This can be used by signal handlers to check if a signal was raised from
+  // the simulator (via TryMemoryRead) before the actual read/write occurs.
+  bool IsSimulatedMemoryAccess(uintptr_t fault_pc) const {
+    return fault_pc == reinterpret_cast<uintptr_t>(&_vixl_internal_ReadMemory);
+  }
+
+  // Get the instruction address of the internal VIXL memory access continuation
+  // label. Signal handlers can resume execution at this address to return to
+  // TryMemoryRead which will continue simulation.
+  uintptr_t GetSignalReturnAddress() const {
+    return reinterpret_cast<uintptr_t>(&_vixl_internal_ReadMemory_continue);
+  }
+
+  // Replace the fault address reported by the kernel with the actual faulting
+  // address.
+  //
+  // This is required because TryMemoryRead reads a section of memory 1 byte at
+  // a time meaning the fault address reported may not be the base address of
+  // memory being accessed.
+  void ReplaceFaultAddress(siginfo_t* siginfo, void* context) {
+#ifdef __x86_64__
+    // The base address being accessed is passed in as the first argument to
+    // _vixl_internal_ReadMemory.
+    ucontext_t* uc = reinterpret_cast<ucontext_t*>(context);
+    siginfo->si_addr = reinterpret_cast<void*>(uc->uc_mcontext.gregs[REG_RDI]);
+#else
+    USE(siginfo);
+    USE(context);
+#endif  // __x86_64__
+  }
+#endif  // VIXL_ENABLE_IMPLICIT_CHECKS
+
  protected:
   const char* clr_normal;
   const char* clr_flag_name;
@@ -3296,57 +3363,57 @@ class Simulator : public DecoderVisitor {
                           uint64_t op2,
                           int lane_size_in_bits) const;
 
-  void ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
-  void ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);
-  void ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr);
-  void ld1r(VectorFormat vform,
+  bool ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
+  bool ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);
+  bool ld1r(VectorFormat vform, LogicVRegister dst, uint64_t addr);
+  bool ld1r(VectorFormat vform,
             VectorFormat unpack_vform,
             LogicVRegister dst,
             uint64_t addr,
             bool is_signed = false);
-  void ld2(VectorFormat vform,
+  bool ld2(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
            uint64_t addr);
-  void ld2(VectorFormat vform,
+  bool ld2(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
            int index,
            uint64_t addr);
-  void ld2r(VectorFormat vform,
+  bool ld2r(VectorFormat vform,
             LogicVRegister dst1,
             LogicVRegister dst2,
             uint64_t addr);
-  void ld3(VectorFormat vform,
+  bool ld3(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
            LogicVRegister dst3,
            uint64_t addr);
-  void ld3(VectorFormat vform,
+  bool ld3(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
            LogicVRegister dst3,
            int index,
            uint64_t addr);
-  void ld3r(VectorFormat vform,
+  bool ld3r(VectorFormat vform,
             LogicVRegister dst1,
             LogicVRegister dst2,
             LogicVRegister dst3,
             uint64_t addr);
-  void ld4(VectorFormat vform,
+  bool ld4(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
            LogicVRegister dst3,
            LogicVRegister dst4,
            uint64_t addr);
-  void ld4(VectorFormat vform,
+  bool ld4(VectorFormat vform,
            LogicVRegister dst1,
            LogicVRegister dst2,
            LogicVRegister dst3,
            LogicVRegister dst4,
            int index,
            uint64_t addr);
-  void ld4r(VectorFormat vform,
+  bool ld4r(VectorFormat vform,
             LogicVRegister dst1,
             LogicVRegister dst2,
             LogicVRegister dst3,
@@ -4957,7 +5024,8 @@ class Simulator : public DecoderVisitor {
                                 unsigned zt_code,
                                 const LogicSVEAddressVector& addr);
   // Load each active zt<i>[lane] from `addr.GetElementAddress(lane, ...)`.
-  void SVEStructuredLoadHelper(VectorFormat vform,
+  // Returns false if a load failed.
+  bool SVEStructuredLoadHelper(VectorFormat vform,
                                const LogicPRegister& pg,
                                unsigned zt_code,
                                const LogicSVEAddressVector& addr,

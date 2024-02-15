@@ -215,6 +215,18 @@ inline void USE(const T1&, const T2&, const T3&, const T4&) {}
   } while (0)
 #endif
 
+// Evaluate 'init' to an std::optional and return if it's empty. If 'init' is
+// not empty then define a variable 'name' with the value inside the
+// std::optional.
+#define VIXL_DEFINE_OR_RETURN(name, init) \
+  auto opt##name = init;                  \
+  if (!opt##name) return;                 \
+  auto name = *opt##name;
+#define VIXL_DEFINE_OR_RETURN_FALSE(name, init) \
+  auto opt##name = init;                        \
+  if (!opt##name) return false;                 \
+  auto name = *opt##name;
+
 #if __cplusplus >= 201103L
 #define VIXL_NO_RETURN [[noreturn]]
 #else
