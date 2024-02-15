@@ -25,6 +25,8 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include "test-disasm-aarch64.h"
+
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -33,7 +35,6 @@
 
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
-#include "test-disasm-aarch64.h"
 
 namespace vixl {
 namespace aarch64 {
@@ -1851,8 +1852,8 @@ TEST(load_store_exclusive) {
 TEST(atomic_memory) {
   SETUP();
 
-// These macros generate tests for all the variations of the atomic memory
-// operations, e.g. ldadd, ldadda, ldaddb, staddl, etc.
+  // These macros generate tests for all the variations of the atomic memory
+  // operations, e.g. ldadd, ldadda, ldaddb, staddl, etc.
 
 #define AM_LOAD_X_TESTS(N, MN)                                     \
   COMPARE(ld##N(x0, x1, MemOperand(x2)), "ld" MN " x0, x1, [x2]"); \

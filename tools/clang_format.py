@@ -33,17 +33,17 @@ import re
 import subprocess
 import sys
 import tempfile
+import shutil
 
 from threaded_tests import Test, TestQueue
 import printer
 import util
 
-CLANG_FORMAT_VERSION_MAJOR = 4
-CLANG_FORMAT_VERSION_MINOR = 0
+CLANG_TOOL_SUPPORTED_VERSIONS = range(11, 16)
 
-DEFAULT_CLANG_FORMAT = \
-    'clang-format-{}.{}'.format(CLANG_FORMAT_VERSION_MAJOR,
-                                CLANG_FORMAT_VERSION_MINOR)
+DEFAULT_CLANG_FORMAT = 'clang-format'
+
+CLANG_TOOL_VERSION_MATCH = r"(clang-format|LLVM) version ([\d]+)\.[\d]+\.[\d]+.*$"
 
 is_output_redirected = not sys.stdout.isatty()
 
@@ -69,21 +69,37 @@ def BuildOptions():
                       as it thinks useful.''')
   return parser.parse_args()
 
-
-def ClangFormatIsAvailable(clang_format):
-  if not util.IsCommandAvailable(clang_format):
+def is_supported(tool):
+  if not shutil.which(tool):
     return False
-  cmd = '%s -version' % clang_format
-  rc, version = util.getstatusoutput(cmd)
+
+  cmd = '%s -version' % tool
+
+  try:
+    rc, version = util.getstatusoutput(cmd)
+  except OSError:
+    return False
+
   if rc != 0:
       util.abort("Failed to execute %s: %s" % (cmd, version))
-  m = re.search("^clang-format version (\d)\.(\d)\.\d.*$",
-                version, re.M)
+  m = re.search(CLANG_TOOL_VERSION_MATCH, version, re.MULTILINE)
   if not m:
-      util.abort("Failed to get clang-format's version: %s" % version)
-  major, minor = m.groups()
-  return int(major) == CLANG_FORMAT_VERSION_MAJOR and \
-      int(minor) == CLANG_FORMAT_VERSION_MINOR
+      util.abort("Failed to get clang tool version: %s" % version)
+  _, major = m.groups()
+
+  if int(major) in CLANG_TOOL_SUPPORTED_VERSIONS:
+    return True
+
+  return False
+
+def detect_clang_tool(tool):
+  supported_tools = [tool] + [tool + '-' + str(ver) for ver in CLANG_TOOL_SUPPORTED_VERSIONS]
+  for tool in supported_tools:
+    if is_supported(tool):
+        return tool
+
+  return None
+
 
 def RunTest(test):
   filename = test.args['filename']
@@ -102,6 +118,7 @@ def RunTest(test):
 
   cmd_diff = ['diff', '--unified', filename, temp_file_name]
   cmd_diff_string = '$ ' + ' '.join(cmd_diff)
+
   p_diff = subprocess.Popen(cmd_diff,
                             stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 
@@ -111,15 +128,15 @@ def RunTest(test):
             stdin = p_diff.stdout,
             stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
     out, unused = p_colordiff.communicate()
+    rc += p_colordiff.returncode
   else:
     out, unused = p_diff.communicate()
+    rc += p_diff.returncode
 
-  rc += p_diff.wait()
 
   if in_place:
       cmd_format = [clang_format, '-i', filename]
-      p_format = subprocess.Popen(cmd_format,
-                                  stdout=temp_file, stderr=subprocess.STDOUT)
+      subprocess.run(cmd_format, stdout=temp_file, stderr=subprocess.STDOUT)
 
   if rc != 0:
     with Test.n_tests_failed.get_lock(): Test.n_tests_failed.value += 1
@@ -143,7 +160,8 @@ def RunTest(test):
     printer.Print('Incorrectly formatted file: ' + filename + '\n' + \
                   cmd_format_string + '\n' + \
                   cmd_diff_string + '\n' + \
-                  out, has_lock = True)
+                  out.decode(), has_lock = True)
+
   printer.__print_lock__.release()
 
   os.remove(temp_file_name)
@@ -151,12 +169,12 @@ def RunTest(test):
 # Returns the total number of files incorrectly formatted.
 def ClangFormatFiles(files, clang_format, in_place = False, jobs = 1,
                      progress_prefix = ''):
-  if not ClangFormatIsAvailable(clang_format):
-    error_message = "`{}` version {}.{} not found. Please ensure it " \
-                    "is installed, in your PATH and the correct version." \
-                    .format(clang_format,
-                            CLANG_FORMAT_VERSION_MAJOR,
-                            CLANG_FORMAT_VERSION_MINOR)
+
+  clang_format = detect_clang_tool("clang-format")
+
+  if not clang_format:
+    error_message = "clang-format not found. Please ensure it " \
+                    "is installed, in your PATH and the correct version."
     print(printer.COLOUR_RED + error_message + printer.NO_COLOUR)
     return -1
 
@@ -176,7 +194,7 @@ def ClangFormatFiles(files, clang_format, in_place = False, jobs = 1,
 if __name__ == '__main__':
   # Parse the arguments.
   args = BuildOptions()
-  files = args.files or util.get_source_files()
+  files = args.files or util.get_source_files(exclude_dirs=['.*', '*/traces/*', '*/aarch32/*'])
 
   rc = ClangFormatFiles(files, clang_format = args.clang_format,
                         in_place = args.in_place, jobs = args.jobs)

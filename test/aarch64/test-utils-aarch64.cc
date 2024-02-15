@@ -24,11 +24,12 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+#include "test-utils-aarch64.h"
+
 #include <cmath>
 #include <queue>
 
 #include "test-runner.h"
-#include "test-utils-aarch64.h"
 
 #include "../test/aarch64/test-simulator-inputs-aarch64.h"
 #include "aarch64/cpu-aarch64.h"

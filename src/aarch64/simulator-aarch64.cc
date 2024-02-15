@@ -26,16 +26,14 @@
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 
-#include <sys/mman.h>
-
-#include <errno.h>
-#include <unistd.h>
+#include "simulator-aarch64.h"
 
 #include <cmath>
 #include <cstring>
+#include <errno.h>
 #include <limits>
-
-#include "simulator-aarch64.h"
+#include <sys/mman.h>
+#include <unistd.h>
 
 namespace vixl {
 namespace aarch64 {
@@ -5196,7 +5194,7 @@ void Simulator::VisitAtomicMemory(const Instruction* instr) {
     ATOMIC_MEMORY_SIMPLE_INT_LIST(SIM_FUNC_x)
       AtomicMemorySimpleHelper<int64_t>(instr);
       break;
-    // clang-format on
+      // clang-format on
 
     case SWPB:
     case SWPAB:

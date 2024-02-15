@@ -25,6 +25,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "instructions-aarch64.h"
+
 #include "assembler-aarch64.h"
 
 namespace vixl {

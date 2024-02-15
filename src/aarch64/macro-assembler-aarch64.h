@@ -1754,7 +1754,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(casah,  Casah)                            \
   V(caslh,  Caslh)                            \
   V(casalh, Casalh)
-// clang-format on
+  // clang-format on
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)                                     \
   void MASM(const Register& rs, const Register& rt, const MemOperand& src) { \
@@ -1772,7 +1772,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(caspa,  Caspa)                          \
   V(caspl,  Caspl)                          \
   V(caspal, Caspal)
-// clang-format on
+  // clang-format on
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)    \
   void MASM(const Register& rs,             \
@@ -1817,7 +1817,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(MASM##alb, ASM##alb)                             \
   V(MASM##ah,  ASM##ah)                              \
   V(MASM##alh, ASM##alh)
-// clang-format on
+  // clang-format on
 
 #define DEFINE_MACRO_LOAD_ASM_FUNC(MASM, ASM)                                \
   void MASM(const Register& rs, const Register& rt, const MemOperand& src) { \

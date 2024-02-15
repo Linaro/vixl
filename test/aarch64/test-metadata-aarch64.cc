@@ -29,13 +29,12 @@
 
 #include "test-runner.h"
 #include "test-utils.h"
-#include "aarch64/cpu-aarch64.h"
-#include "aarch64/test-utils-aarch64.h"
 
 #include "aarch64/cpu-aarch64.h"
 #include "aarch64/disasm-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
+#include "aarch64/test-utils-aarch64.h"
 #include "test-assembler-aarch64.h"
 
 namespace vixl {
@@ -127,5 +126,5 @@ TEST(test_metadata_mte_neg) {
 }
 #endif  // VIXL_NEGATIVE_TESTING
 #endif  // VIXL_INCLUDE_SIMULATOR_AARCH64
-}
-}  // namespace vixl::aarch64
+}  // namespace aarch64
+}  // namespace vixl

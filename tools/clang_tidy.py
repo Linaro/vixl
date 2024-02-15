@@ -30,19 +30,15 @@ import multiprocessing
 import os
 import re
 import sys
+import subprocess
 
-from clang_format import CLANG_FORMAT_VERSION_MAJOR, CLANG_FORMAT_VERSION_MINOR
+from clang_format import detect_clang_tool
 from threaded_tests import Test, TestQueue
 import config
 import printer
 import util
 
-CLANG_TIDY_VERSION_MAJOR = CLANG_FORMAT_VERSION_MAJOR
-CLANG_TIDY_VERSION_MINOR = CLANG_FORMAT_VERSION_MINOR
-
-DEFAULT_CLANG_TIDY = \
-    'clang-tidy-{}.{}'.format(CLANG_TIDY_VERSION_MAJOR,
-                              CLANG_TIDY_VERSION_MINOR)
+DEFAULT_CLANG_TIDY = 'clang-tidy'
 
 def BuildOptions():
   parser = argparse.ArgumentParser(
@@ -59,20 +55,6 @@ def BuildOptions():
   parser.add_argument('--clang-tidy', default=DEFAULT_CLANG_TIDY,
                       help='Path to clang-tidy.')
   return parser.parse_args()
-
-def ClangTidyIsAvailable(clang_tidy):
-  if not util.IsCommandAvailable(clang_tidy):
-    return False
-  cmd = '%s -version' % clang_tidy
-  rc, version = util.getstatusoutput(cmd)
-  if rc != 0:
-    util.abort("Failed to execute %s: %s" % (cmd, version))
-  m = re.search("LLVM version (\d)\.(\d)\.\d.*$", version, re.M)
-  if not m:
-    util.abort("Failed to get clang-tidy's version: %s" % version)
-  major, minor = m.groups()
-  return int(major) == CLANG_TIDY_VERSION_MAJOR and \
-    int(minor) == CLANG_TIDY_VERSION_MINOR
 
 def FilterClangTidyLines(lines):
   out = []
@@ -133,12 +115,12 @@ def RunTest(test):
   printer.__print_lock__.release()
 
 def ClangTidyFiles(files, clang_tidy, jobs = 1, progress_prefix = ''):
-  if not ClangTidyIsAvailable(clang_tidy):
-    error_message = "`{}` version {}.{} not found. Please ensure it " \
-                    "is installed, in your PATH and the correct version." \
-                    .format(clang_tidy,
-                            CLANG_TIDY_VERSION_MAJOR,
-                            CLANG_TIDY_VERSION_MINOR)
+
+  clang_tidy = detect_clang_tool("clang-tidy")
+
+  if not clang_tidy:
+    error_message = "clang-tidy not found. Please ensure it " \
+                    "is installed, in your PATH and the correct version."
     print(printer.COLOUR_RED + error_message + printer.NO_COLOUR)
     return -1
 

@@ -29,8 +29,8 @@
 #include "non-const-visitor.h"
 #include "test-runner.h"
 #include "test-utils.h"
-#include "../test-utils-aarch64.h"
 
+#include "../test-utils-aarch64.h"
 #include "aarch64/macro-assembler-aarch64.h"
 #include "aarch64/simulator-aarch64.h"
 #define TEST(name) TEST_(EXAMPLE_##name)

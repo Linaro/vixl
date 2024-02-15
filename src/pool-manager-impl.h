@@ -27,10 +27,10 @@
 #ifndef VIXL_POOL_MANAGER_IMPL_H_
 #define VIXL_POOL_MANAGER_IMPL_H_
 
-#include "pool-manager.h"
-
 #include <algorithm>
+
 #include "assembler-base-vixl.h"
+#include "pool-manager.h"
 
 namespace vixl {
 
@@ -517,6 +517,6 @@ int PoolManager<T>::GetPoolSizeForTest() const {
   }
   return size;
 }
-}
+}  // namespace vixl
 
 #endif  // VIXL_POOL_MANAGER_IMPL_H_

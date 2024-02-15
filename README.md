@@ -61,8 +61,8 @@ software is also required:
 
  1. Git
  2. [Google's `cpplint.py`][cpplint]
- 3. clang-format-4.0
- 4. clang-tidy-4.0
+ 3. clang-format 11+
+ 4. clang-tidy 11+
 
 Refer to the 'Usage' section for details.
 

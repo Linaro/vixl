@@ -25,9 +25,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+#include "assembler-aarch64.h"
+
 #include <cmath>
 
-#include "assembler-aarch64.h"
 #include "macro-assembler-aarch64.h"
 
 namespace vixl {
