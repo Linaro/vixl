@@ -2904,6 +2904,10 @@ TEST(neon_3different) {
                 "pmull v0.8h, v1.8b, v2.8b");
   COMPARE_MACRO(Pmull2(v2.V8H(), v3.V16B(), v4.V16B()),
                 "pmull2 v2.8h, v3.16b, v4.16b");
+  COMPARE_MACRO(Pmull(v5.V1Q(), v6.V1D(), v7.V1D()),
+                "pmull v5.1q, v6.1d, v7.1d");
+  COMPARE_MACRO(Pmull2(v8.V1Q(), v9.V2D(), v10.V2D()),
+                "pmull2 v8.1q, v9.2d, v10.2d");
 
   CLEANUP();
 }
@@ -4562,8 +4566,6 @@ TEST(neon_unallocated_regression_test) {
   COMPARE_PREFIX(dci(0x2efb9dbd), "unallocated");  // pmul v.und, v.und, v.und
   COMPARE_PREFIX(dci(0x4eace101), "unallocated");  // pmull v.d, v.s, v.s
   COMPARE_PREFIX(dci(0x0e6de3ad), "unallocated");  // pmull v.s, v.h, v.h
-  COMPARE_PREFIX(dci(0x4ee3e2c0), "unallocated");  // pmull v.und, v.d, v.d
-  COMPARE_PREFIX(dci(0x0eede060), "unallocated");  // pmull v.und, v.und, v.und
   COMPARE_PREFIX(dci(0x6ee00afd), "unallocated");  // rev v.d, v.d
   COMPARE_PREFIX(dci(0x4e601975), "unallocated");  // rev v.h, v.h
   COMPARE_PREFIX(dci(0x4ea019f3), "unallocated");  // rev v.s, v.s

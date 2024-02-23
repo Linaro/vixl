@@ -997,6 +997,19 @@ vixl_uint128_t Simulator::Add128(vixl_uint128_t x, vixl_uint128_t y) {
   return std::make_pair(sum_hi.first, sum_lo.first);
 }
 
+vixl_uint128_t Simulator::Lsl128(vixl_uint128_t x, unsigned shift) const {
+  VIXL_ASSERT(shift <= 64);
+  if (shift == 0) return x;
+  if (shift == 64) return std::make_pair(x.second, 0);
+  uint64_t lo = x.second << shift;
+  uint64_t hi = (x.first << shift) | (x.second >> (64 - shift));
+  return std::make_pair(hi, lo);
+}
+
+vixl_uint128_t Simulator::Eor128(vixl_uint128_t x, vixl_uint128_t y) const {
+  return std::make_pair(x.first ^ y.first, x.second ^ y.second);
+}
+
 vixl_uint128_t Simulator::Neg128(vixl_uint128_t x) {
   // Negate the integer value. Throw an assertion when the input is INT128_MIN.
   VIXL_ASSERT((x.first != GetSignMask(64)) || (x.second != 0));
@@ -1033,6 +1046,20 @@ vixl_uint128_t Simulator::Mul64(uint64_t x, uint64_t y) {
   result = Add128(result, d);
   return neg_result ? std::make_pair(-result.first - 1, -result.second)
                     : result;
+}
+
+vixl_uint128_t Simulator::PolynomialMult128(uint64_t op1,
+                                            uint64_t op2,
+                                            int lane_size_in_bits) const {
+  VIXL_ASSERT(static_cast<unsigned>(lane_size_in_bits) <= kDRegSize);
+  vixl_uint128_t result = std::make_pair(0, 0);
+  vixl_uint128_t op2q = std::make_pair(0, op2);
+  for (int i = 0; i < lane_size_in_bits; i++) {
+    if ((op1 >> i) & 1) {
+      result = Eor128(result, Lsl128(op2q, i));
+    }
+  }
+  return result;
 }
 
 int64_t Simulator::ShiftOperand(unsigned reg_size,
@@ -7800,13 +7827,24 @@ void Simulator::VisitNEON3Different(const Instruction* instr) {
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());
   SimVRegister& rm = ReadVRegister(instr->GetRm());
+  int size = instr->GetNEONSize();
 
   switch (instr->Mask(NEON3DifferentMask)) {
     case NEON_PMULL:
-      pmull(vf_l, rd, rn, rm);
+      if ((size == 1) || (size == 2)) {  // S/D reserved.
+        VisitUnallocated(instr);
+      } else {
+        if (size == 3) vf_l = kFormat1Q;
+        pmull(vf_l, rd, rn, rm);
+      }
       break;
     case NEON_PMULL2:
-      pmull2(vf_l, rd, rn, rm);
+      if ((size == 1) || (size == 2)) {  // S/D reserved.
+        VisitUnallocated(instr);
+      } else {
+        if (size == 3) vf_l = kFormat1Q;
+        pmull2(vf_l, rd, rn, rm);
+      }
       break;
     case NEON_UADDL:
       uaddl(vf_l, rd, rn, rm);

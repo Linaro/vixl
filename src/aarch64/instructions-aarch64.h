@@ -217,9 +217,10 @@ enum VectorFormat {
   kFormatVnQ = kFormatSVEQ | kFormatSVE,
   kFormatVnO = kFormatSVEO | kFormatSVE,
 
-  // An artificial value, used by simulator trace tests and a few oddball
+  // Artificial values, used by simulator trace tests and a few oddball
   // instructions (such as FMLAL).
-  kFormat2H = 0xfffffffe
+  kFormat2H = 0xfffffffe,
+  kFormat1Q = 0xfffffffd
 };
 
 // Instructions. ---------------------------------------------------------------

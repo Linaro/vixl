@@ -729,6 +729,8 @@ class LogicPRegister {
   SimPRegister& register_;
 };
 
+using vixl_uint128_t = std::pair<uint64_t, uint64_t>;
+
 // Representation of a vector register, with typed getters and setters for lanes
 // and additional information to represent lane state.
 class LogicVRegister {
@@ -855,6 +857,17 @@ class LogicVRegister {
         VIXL_UNREACHABLE();
         return;
     }
+  }
+
+  void SetUint(VectorFormat vform, int index, vixl_uint128_t value) const {
+    if (LaneSizeInBitsFromFormat(vform) <= 64) {
+      SetUint(vform, index, value.second);
+      return;
+    }
+    // TODO: Extend this to SVE.
+    VIXL_ASSERT((vform == kFormat1Q) && (index == 0));
+    SetUint(kFormat2D, 0, value.second);
+    SetUint(kFormat2D, 1, value.first);
   }
 
   void SetUintArray(VectorFormat vform, const uint64_t* src) const {
@@ -3279,8 +3292,9 @@ class Simulator : public DecoderVisitor {
                                             uint64_t left,
                                             uint64_t right,
                                             int carry_in);
-  using vixl_uint128_t = std::pair<uint64_t, uint64_t>;
   vixl_uint128_t Add128(vixl_uint128_t x, vixl_uint128_t y);
+  vixl_uint128_t Lsl128(vixl_uint128_t x, unsigned shift) const;
+  vixl_uint128_t Eor128(vixl_uint128_t x, vixl_uint128_t y) const;
   vixl_uint128_t Mul64(uint64_t x, uint64_t y);
   vixl_uint128_t Neg128(vixl_uint128_t x);
   void LogicalHelper(const Instruction* instr, int64_t op2);
@@ -3362,6 +3376,9 @@ class Simulator : public DecoderVisitor {
   uint64_t PolynomialMult(uint64_t op1,
                           uint64_t op2,
                           int lane_size_in_bits) const;
+  vixl_uint128_t PolynomialMult128(uint64_t op1,
+                                   uint64_t op2,
+                                   int lane_size_in_bits) const;
 
   bool ld1(VectorFormat vform, LogicVRegister dst, uint64_t addr);
   bool ld1(VectorFormat vform, LogicVRegister dst, int index, uint64_t addr);

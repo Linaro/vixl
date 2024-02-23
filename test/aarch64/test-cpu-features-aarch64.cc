@@ -3778,5 +3778,12 @@ TEST_FP_FCMA_NEON_NEONHALF(fcmla_1, fcmla(v0.V8H(), v1.V8H(), v2.H(), 2, 180))
 TEST_FP_FCMA_NEON_NEONHALF(fcmla_2, fcmla(v0.V4H(), v1.V4H(), v2.V4H(), 180))
 TEST_FP_FCMA_NEON_NEONHALF(fcmla_3, fcmla(v0.V8H(), v1.V8H(), v2.V8H(), 0))
 
+#define TEST_FEAT(NAME, ASM)                                            \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kPmull1Q), \
+                NEON_Pmull1Q_##NAME,                                    \
+                ASM)
+TEST_FEAT(pmull1q_0, pmull(v5.V1Q(), v6.V1D(), v7.V1D()))
+#undef TEST_FEAT
+
 }  // namespace aarch64
 }  // namespace vixl

@@ -153,7 +153,8 @@ VIXL_CPUREG_COERCION_LIST(VIXL_DEFINE_CPUREG_COERCION)
   V(2, S)                                 \
   V(4, S)                                 \
   V(1, D)                                 \
-  V(2, D)
+  V(2, D)                                 \
+  V(1, Q)
 #define VIXL_DEFINE_CPUREG_NEON_COERCION(LANES, LANE_TYPE)             \
   VRegister VRegister::V##LANES##LANE_TYPE() const {                   \
     VIXL_ASSERT(IsVRegister());                                        \

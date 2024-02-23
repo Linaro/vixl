@@ -7540,6 +7540,8 @@ class Assembler : public vixl::internal::AssemblerBase {
   static Instr VFormat(VRegister vd) {
     if (vd.Is64Bits()) {
       switch (vd.GetLanes()) {
+        case 1:
+          return NEON_1D;
         case 2:
           return NEON_2S;
         case 4:

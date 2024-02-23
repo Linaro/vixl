@@ -736,6 +736,12 @@ void CPUFeaturesAuditor::VisitNEON3Different(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   // All of these instructions require NEON.
   scope.Record(CPUFeatures::kNEON);
+  if (form_hash_ == "pmull_asimddiff_l"_h) {
+    if (instr->GetNEONSize() == 3) {
+      // Source is 1D or 2D, destination is 1Q.
+      scope.Record(CPUFeatures::kPmull1Q);
+    }
+  }
   USE(instr);
 }
 
@@ -1408,9 +1414,9 @@ void CPUFeaturesAuditor::VisitUnimplemented(const Instruction* instr) {
 void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
   VIXL_ASSERT(metadata->count("form") > 0);
   const std::string& form = (*metadata)["form"];
-  uint32_t form_hash = Hash(form.c_str());
+  form_hash_ = Hash(form.c_str());
   const FormToVisitorFnMap* fv = CPUFeaturesAuditor::GetFormToVisitorFnMap();
-  FormToVisitorFnMap::const_iterator it = fv->find(form_hash);
+  FormToVisitorFnMap::const_iterator it = fv->find(form_hash_);
   if (it == fv->end()) {
     RecordInstructionFeaturesScope scope(this);
     std::map<uint32_t, const CPUFeatures> features = {
@@ -1829,8 +1835,8 @@ void CPUFeaturesAuditor::Visit(Metadata* metadata, const Instruction* instr) {
         {"umin_64u_minmax_imm"_h, CPUFeatures::kCSSC},
     };
 
-    if (features.count(form_hash) > 0) {
-      scope.Record(features[form_hash]);
+    if (features.count(form_hash_) > 0) {
+      scope.Record(features[form_hash_]);
     }
   } else {
     (it->second)(this, instr);

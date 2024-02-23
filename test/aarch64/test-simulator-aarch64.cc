@@ -5188,7 +5188,8 @@ void HandleSegFault(int sig, siginfo_t* info, void* context) {
   // next instruction, after this handler.
   uc->uc_mcontext.gregs[REG_RIP] = sim->GetSignalReturnAddress();
   // Return that the memory read failed.
-  uc->uc_mcontext.gregs[REG_RAX] = static_cast<greg_t>(MemoryReadResult::Failure);
+  uc->uc_mcontext.gregs[REG_RAX] =
+      static_cast<greg_t>(MemoryReadResult::Failure);
 }
 
 TEST(ImplicitCheck) {

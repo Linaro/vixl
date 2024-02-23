@@ -267,5 +267,132 @@ TEST_SVE(sve_fmatmul_s) {
   }
 }
 
+// Below here, there are tests for Neon instructions. As these forms of test
+// check the entire register state, they also need SVE features.
+
+TEST_SVE(neon_pmull) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                          CPUFeatures::kNEON,
+                          CPUFeatures::kCRC32,
+                          CPUFeatures::kPmull1Q);
+  START();
+
+  SetInitialMachineState(&masm);
+  // state = 0xe2bd2480
+
+  {
+    ExactAssemblyScope scope(&masm, 40 * kInstructionSize);
+    __ dci(0x4e20e000);  // pmull2 v0.8h, v0.16b, v0.16b
+    // vl128 state = 0x5eba4d4f
+    __ dci(0x4e20e228);  // pmull2 v8.8h, v17.16b, v0.16b
+    // vl128 state = 0x86bceb87
+    __ dci(0x4ee0e22a);  // pmull2 v10.1q, v17.2d, v0.2d
+    // vl128 state = 0x1332fe02
+    __ dci(0x0ee8e222);  // pmull v2.1q, v17.1d, v8.1d
+    // vl128 state = 0xd357dc7b
+    __ dci(0x4eece226);  // pmull2 v6.1q, v17.2d, v12.2d
+    // vl128 state = 0xdff409ad
+    __ dci(0x0eece276);  // pmull v22.1q, v19.1d, v12.1d
+    // vl128 state = 0xd8af1dc6
+    __ dci(0x0eede232);  // pmull v18.1q, v17.1d, v13.1d
+    // vl128 state = 0x41e6ed0e
+    __ dci(0x0efde216);  // pmull v22.1q, v16.1d, v29.1d
+    // vl128 state = 0x1f10365f
+    __ dci(0x0effe23e);  // pmull v30.1q, v17.1d, v31.1d
+    // vl128 state = 0x9779ece5
+    __ dci(0x0ee7e23f);  // pmull v31.1q, v17.1d, v7.1d
+    // vl128 state = 0x11fc8ce9
+    __ dci(0x0ee2e23e);  // pmull v30.1q, v17.1d, v2.1d
+    // vl128 state = 0x101d5a6f
+    __ dci(0x0ee2e23c);  // pmull v28.1q, v17.1d, v2.1d
+    // vl128 state = 0xcc4fe26e
+    __ dci(0x0eeae27d);  // pmull v29.1q, v19.1d, v10.1d
+    // vl128 state = 0xc84be9f4
+    __ dci(0x4eeae24d);  // pmull2 v13.1q, v18.2d, v10.2d
+    // vl128 state = 0x2fc540b4
+    __ dci(0x4eeae25d);  // pmull2 v29.1q, v18.2d, v10.2d
+    // vl128 state = 0x1b2d99cd
+    __ dci(0x4eeae2ed);  // pmull2 v13.1q, v23.2d, v10.2d
+    // vl128 state = 0x8a278b95
+    __ dci(0x4eeae2e9);  // pmull2 v9.1q, v23.2d, v10.2d
+    // vl128 state = 0x3359b4c8
+    __ dci(0x4efee2e8);  // pmull2 v8.1q, v23.2d, v30.2d
+    // vl128 state = 0x5c25ed31
+    __ dci(0x4effe3e0);  // pmull2 v0.1q, v31.2d, v31.2d
+    // vl128 state = 0x28ff67d1
+    __ dci(0x4eefe3d0);  // pmull2 v16.1q, v30.2d, v15.2d
+    // vl128 state = 0x1543436d
+    __ dci(0x4ee7e2d1);  // pmull2 v17.1q, v22.2d, v7.2d
+    // vl128 state = 0x71b8bc90
+    __ dci(0x4eefe3d5);  // pmull2 v21.1q, v30.2d, v15.2d
+    // vl128 state = 0x3d35ca02
+    __ dci(0x4eefe314);  // pmull2 v20.1q, v24.2d, v15.2d
+    // vl128 state = 0x40e8fade
+    __ dci(0x4eefe310);  // pmull2 v16.1q, v24.2d, v15.2d
+    // vl128 state = 0xb8affb87
+    __ dci(0x4eefe300);  // pmull2 v0.1q, v24.2d, v15.2d
+    // vl128 state = 0x4824ee5c
+    __ dci(0x4eede350);  // pmull2 v16.1q, v26.2d, v13.2d
+    // vl128 state = 0x39202868
+    __ dci(0x4ee7e354);  // pmull2 v20.1q, v26.2d, v7.2d
+    // vl128 state = 0xc8fde340
+    __ dci(0x4e27e356);  // pmull2 v22.8h, v26.16b, v7.16b
+    // vl128 state = 0x0f02316b
+    __ dci(0x4e37e15e);  // pmull2 v30.8h, v10.16b, v23.16b
+    // vl128 state = 0xced4f8bd
+    __ dci(0x4e33e05f);  // pmull2 v31.8h, v2.16b, v19.16b
+    // vl128 state = 0x0c76bdb3
+    __ dci(0x0e23e05e);  // pmull v30.8h, v2.8b, v3.8b
+    // vl128 state = 0x0e36962b
+    __ dci(0x4e23e25f);  // pmull2 v31.8h, v18.16b, v3.16b
+    // vl128 state = 0x11a8dcc3
+    __ dci(0x4e23e25b);  // pmull2 v27.8h, v18.16b, v3.16b
+    // vl128 state = 0xf01bfe16
+    __ dci(0x4e23e259);  // pmull2 v25.8h, v18.16b, v3.16b
+    // vl128 state = 0xea351afe
+    __ dci(0x4e22e2c9);  // pmull2 v9.8h, v22.16b, v2.16b
+    // vl128 state = 0x16e933ef
+    __ dci(0x4e3ae2c8);  // pmull2 v8.8h, v22.16b, v26.16b
+    // vl128 state = 0x02528a2a
+    __ dci(0x4e32e249);  // pmull2 v9.8h, v18.16b, v18.16b
+    // vl128 state = 0xe7e20633
+    __ dci(0x4e36e20d);  // pmull2 v13.8h, v16.16b, v22.16b
+    // vl128 state = 0x6f231732
+    __ dci(0x4e36e205);  // pmull2 v5.8h, v16.16b, v22.16b
+    // vl128 state = 0x423eb7ea
+    __ dci(0x4e22e20d);  // pmull2 v13.8h, v16.16b, v2.16b
+    // vl128 state = 0xfc0d1c14
+  }
+
+  uint32_t state;
+  ComputeMachineStateHash(&masm, &state);
+  __ Mov(x0, reinterpret_cast<uint64_t>(&state));
+  __ Ldr(w0, MemOperand(x0));
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+    uint32_t expected_hashes[] = {
+        0xfc0d1c14,
+        0x4cb040a3,
+        0x4b913ebe,
+        0xfa35b836,
+        0x78745d20,
+        0x6666b09a,
+        0xee2868f4,
+        0x1936a795,
+        0x1025244a,
+        0xe8551950,
+        0xae73af02,
+        0x0fdd5fc7,
+        0x22e9827b,
+        0x384ce1ac,
+        0xc833cbeb,
+        0x255baab5,
+    };
+    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+  }
+}
+
 }  // namespace aarch64
 }  // namespace vixl
