@@ -410,49 +410,52 @@ bool Simulator::ld4r(VectorFormat vform,
 }
 
 
-void Simulator::st1(VectorFormat vform, LogicVRegister src, uint64_t addr) {
+bool Simulator::st1(VectorFormat vform, LogicVRegister src, uint64_t addr) {
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    StoreLane(src, vform, i, addr);
+    if (!StoreLane(src, vform, i, addr)) return false;
     addr += LaneSizeInBytesFromFormat(vform);
   }
+  return true;
 }
 
 
-void Simulator::st1(VectorFormat vform,
+bool Simulator::st1(VectorFormat vform,
                     LogicVRegister src,
                     int index,
                     uint64_t addr) {
-  StoreLane(src, vform, index, addr);
+  return StoreLane(src, vform, index, addr);
 }
 
 
-void Simulator::st2(VectorFormat vform,
+bool Simulator::st2(VectorFormat vform,
                     LogicVRegister src,
                     LogicVRegister src2,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
   uint64_t addr2 = addr + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    StoreLane(src, vform, i, addr);
-    StoreLane(src2, vform, i, addr2);
+    if (!StoreLane(src, vform, i, addr) || !StoreLane(src2, vform, i, addr2)) {
+      return false;
+    }
     addr += 2 * esize;
     addr2 += 2 * esize;
   }
+  return true;
 }
 
 
-void Simulator::st2(VectorFormat vform,
+bool Simulator::st2(VectorFormat vform,
                     LogicVRegister src,
                     LogicVRegister src2,
                     int index,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
-  StoreLane(src, vform, index, addr);
-  StoreLane(src2, vform, index, addr + 1 * esize);
+  return (StoreLane(src, vform, index, addr) &&
+          StoreLane(src2, vform, index, addr + 1 * esize));
 }
 
 
-void Simulator::st3(VectorFormat vform,
+bool Simulator::st3(VectorFormat vform,
                     LogicVRegister src,
                     LogicVRegister src2,
                     LogicVRegister src3,
@@ -461,30 +464,32 @@ void Simulator::st3(VectorFormat vform,
   uint64_t addr2 = addr + esize;
   uint64_t addr3 = addr2 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    StoreLane(src, vform, i, addr);
-    StoreLane(src2, vform, i, addr2);
-    StoreLane(src3, vform, i, addr3);
+    if (!StoreLane(src, vform, i, addr) || !StoreLane(src2, vform, i, addr2) ||
+        !StoreLane(src3, vform, i, addr3)) {
+      return false;
+    }
     addr += 3 * esize;
     addr2 += 3 * esize;
     addr3 += 3 * esize;
   }
+  return true;
 }
 
 
-void Simulator::st3(VectorFormat vform,
+bool Simulator::st3(VectorFormat vform,
                     LogicVRegister src,
                     LogicVRegister src2,
                     LogicVRegister src3,
                     int index,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
-  StoreLane(src, vform, index, addr);
-  StoreLane(src2, vform, index, addr + 1 * esize);
-  StoreLane(src3, vform, index, addr + 2 * esize);
+  return (StoreLane(src, vform, index, addr) &&
+          StoreLane(src2, vform, index, addr + 1 * esize) &&
+          StoreLane(src3, vform, index, addr + 2 * esize));
 }
 
 
-void Simulator::st4(VectorFormat vform,
+bool Simulator::st4(VectorFormat vform,
                     LogicVRegister src,
                     LogicVRegister src2,
                     LogicVRegister src3,
@@ -495,19 +500,21 @@ void Simulator::st4(VectorFormat vform,
   uint64_t addr3 = addr2 + esize;
   uint64_t addr4 = addr3 + esize;
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    StoreLane(src, vform, i, addr);
-    StoreLane(src2, vform, i, addr2);
-    StoreLane(src3, vform, i, addr3);
-    StoreLane(src4, vform, i, addr4);
+    if (!StoreLane(src, vform, i, addr) || !StoreLane(src2, vform, i, addr2) ||
+        !StoreLane(src3, vform, i, addr3) ||
+        !StoreLane(src4, vform, i, addr4)) {
+      return false;
+    }
     addr += 4 * esize;
     addr2 += 4 * esize;
     addr3 += 4 * esize;
     addr4 += 4 * esize;
   }
+  return true;
 }
 
 
-void Simulator::st4(VectorFormat vform,
+bool Simulator::st4(VectorFormat vform,
                     LogicVRegister src,
                     LogicVRegister src2,
                     LogicVRegister src3,
@@ -515,10 +522,10 @@ void Simulator::st4(VectorFormat vform,
                     int index,
                     uint64_t addr) {
   int esize = LaneSizeInBytesFromFormat(vform);
-  StoreLane(src, vform, index, addr);
-  StoreLane(src2, vform, index, addr + 1 * esize);
-  StoreLane(src3, vform, index, addr + 2 * esize);
-  StoreLane(src4, vform, index, addr + 3 * esize);
+  return (StoreLane(src, vform, index, addr) &&
+          StoreLane(src2, vform, index, addr + 1 * esize) &&
+          StoreLane(src3, vform, index, addr + 2 * esize) &&
+          StoreLane(src4, vform, index, addr + 3 * esize));
 }
 
 
@@ -7282,7 +7289,9 @@ void Simulator::SVEStructuredStoreHelper(VectorFormat vform,
 
     for (int r = 0; r < reg_count; r++) {
       uint64_t element_address = addr.GetElementAddress(i, r);
-      StoreLane(zt[r], unpack_vform, i << unpack_shift, element_address);
+      if (!StoreLane(zt[r], unpack_vform, i << unpack_shift, element_address)) {
+        return;
+      }
     }
   }
 

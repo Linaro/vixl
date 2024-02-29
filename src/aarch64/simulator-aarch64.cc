@@ -42,22 +42,22 @@ using vixl::internal::SimFloat16;
 
 const Instruction* Simulator::kEndOfSimAddress = NULL;
 
-MemoryReadResult TryMemoryRead(uintptr_t address, uintptr_t access_size) {
+MemoryAccessResult TryMemoryAccess(uintptr_t address, uintptr_t access_size) {
 #ifdef VIXL_ENABLE_IMPLICIT_CHECKS
   for (uintptr_t i = 0; i < access_size; i++) {
-    if (_vixl_internal_ReadMemory(address, i) == MemoryReadResult::Failure) {
-      // The memory read failed.
-      return MemoryReadResult::Failure;
+    if (_vixl_internal_ReadMemory(address, i) == MemoryAccessResult::Failure) {
+      // The memory access failed.
+      return MemoryAccessResult::Failure;
     }
   }
 
-  // Either the memory read did not raise a signal or the signal handler did
-  // not correctly return MemoryReadResult::Failure.
-  return MemoryReadResult::Success;
+  // Either the memory access did not raise a signal or the signal handler did
+  // not correctly return MemoryAccessResult::Failure.
+  return MemoryAccessResult::Success;
 #else
   USE(address);
   USE(access_size);
-  return MemoryReadResult::Success;
+  return MemoryAccessResult::Success;
 #endif  // VIXL_ENABLE_IMPLICIT_CHECKS
 }
 
@@ -512,9 +512,9 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
 }
 
 // Try to access the piece of memory given by the address passed in RDI and the
-// offset passed in %rsi, using testb. If a signal is raised then the signal
-// handler should set RIP to _vixl_internal_ReadMemory_continue and RAX to
-// MemoryReadResult::Failure. If no signal is raised then zero RAX before
+// offset passed in RSI, using testb. If a signal is raised then the signal
+// handler should set RIP to _vixl_internal_AccessMemory_continue and RAX to
+// MemoryAccessResult::Failure. If no signal is raised then zero RAX before
 // returning.
 #ifdef VIXL_ENABLE_IMPLICIT_CHECKS
 #ifdef __x86_64__
@@ -524,8 +524,8 @@ asm(R"(
     testb (%rdi, %rsi), %al
     xorq %rax, %rax
     ret
-  .globl _vixl_internal_ReadMemory_continue
-  _vixl_internal_ReadMemory_continue:
+  .globl _vixl_internal_AccessMemory_continue
+  _vixl_internal_AccessMemory_continue:
     ret
 )");
 #else
@@ -4226,7 +4226,7 @@ void Simulator::StoreReleaseUnscaledOffsetHelper(const Instruction* instr) {
   // Approximate store-release by issuing a full barrier after the load.
   __sync_synchronize();
 
-  MemWrite<T>(address, ReadRegister<T>(rt));
+  if (!MemWrite<T>(address, ReadRegister<T>(rt))) return;
 
   LogWrite(rt, GetPrintRegisterFormat(element_size), address);
 }
@@ -4428,35 +4428,35 @@ void Simulator::LoadStoreHelper(const Instruction* instr,
     }
 
     case STRB_w:
-      MemWrite<uint8_t>(address, ReadWRegister(srcdst));
+      if (!MemWrite<uint8_t>(address, ReadWRegister(srcdst))) return;
       break;
     case STRH_w:
-      MemWrite<uint16_t>(address, ReadWRegister(srcdst));
+      if (!MemWrite<uint16_t>(address, ReadWRegister(srcdst))) return;
       break;
     case STR_w:
-      MemWrite<uint32_t>(address, ReadWRegister(srcdst));
+      if (!MemWrite<uint32_t>(address, ReadWRegister(srcdst))) return;
       break;
     case STR_x:
-      MemWrite<uint64_t>(address, ReadXRegister(srcdst));
+      if (!MemWrite<uint64_t>(address, ReadXRegister(srcdst))) return;
       break;
     case STR_b:
-      MemWrite<uint8_t>(address, ReadBRegister(srcdst));
+      if (!MemWrite<uint8_t>(address, ReadBRegister(srcdst))) return;
       rt_is_vreg = true;
       break;
     case STR_h:
-      MemWrite<uint16_t>(address, ReadHRegisterBits(srcdst));
+      if (!MemWrite<uint16_t>(address, ReadHRegisterBits(srcdst))) return;
       rt_is_vreg = true;
       break;
     case STR_s:
-      MemWrite<float>(address, ReadSRegister(srcdst));
+      if (!MemWrite<float>(address, ReadSRegister(srcdst))) return;
       rt_is_vreg = true;
       break;
     case STR_d:
-      MemWrite<double>(address, ReadDRegister(srcdst));
+      if (!MemWrite<double>(address, ReadDRegister(srcdst))) return;
       rt_is_vreg = true;
       break;
     case STR_q:
-      MemWrite<qreg_t>(address, ReadQRegister(srcdst));
+      if (!MemWrite<qreg_t>(address, ReadQRegister(srcdst))) return;
       rt_is_vreg = true;
       break;
 
@@ -4583,30 +4583,30 @@ void Simulator::LoadStorePairHelper(const Instruction* instr,
       break;
     }
     case STP_w: {
-      MemWrite<uint32_t>(address, ReadWRegister(rt));
-      MemWrite<uint32_t>(address2, ReadWRegister(rt2));
+      if (!MemWrite<uint32_t>(address, ReadWRegister(rt))) return;
+      if (!MemWrite<uint32_t>(address2, ReadWRegister(rt2))) return;
       break;
     }
     case STP_s: {
-      MemWrite<float>(address, ReadSRegister(rt));
-      MemWrite<float>(address2, ReadSRegister(rt2));
+      if (!MemWrite<float>(address, ReadSRegister(rt))) return;
+      if (!MemWrite<float>(address2, ReadSRegister(rt2))) return;
       rt_is_vreg = true;
       break;
     }
     case STP_x: {
-      MemWrite<uint64_t>(address, ReadXRegister(rt));
-      MemWrite<uint64_t>(address2, ReadXRegister(rt2));
+      if (!MemWrite<uint64_t>(address, ReadXRegister(rt))) return;
+      if (!MemWrite<uint64_t>(address2, ReadXRegister(rt2))) return;
       break;
     }
     case STP_d: {
-      MemWrite<double>(address, ReadDRegister(rt));
-      MemWrite<double>(address2, ReadDRegister(rt2));
+      if (!MemWrite<double>(address, ReadDRegister(rt))) return;
+      if (!MemWrite<double>(address2, ReadDRegister(rt2))) return;
       rt_is_vreg = true;
       break;
     }
     case STP_q: {
-      MemWrite<qreg_t>(address, ReadQRegister(rt));
-      MemWrite<qreg_t>(address2, ReadQRegister(rt2));
+      if (!MemWrite<qreg_t>(address, ReadQRegister(rt))) return;
+      if (!MemWrite<qreg_t>(address2, ReadQRegister(rt2))) return;
       rt_is_vreg = true;
       break;
     }
@@ -4678,7 +4678,7 @@ void Simulator::CompareAndSwapHelper(const Instruction* instr) {
       // Approximate store-release by issuing a full barrier before the store.
       __sync_synchronize();
     }
-    MemWrite<T>(address, newvalue);
+    if (!MemWrite<T>(address, newvalue)) return;
     LogWrite(rt, GetPrintRegisterFormatForSize(element_size), address);
   }
   WriteRegister<T>(rs, data, NoRegLog);
@@ -4730,8 +4730,8 @@ void Simulator::CompareAndSwapPairHelper(const Instruction* instr) {
       __sync_synchronize();
     }
 
-    MemWrite<T>(address, newvalue_low);
-    MemWrite<T>(address2, newvalue_high);
+    if (!MemWrite<T>(address, newvalue_low)) return;
+    if (!MemWrite<T>(address2, newvalue_high)) return;
   }
 
   WriteRegister<T>(rs + 1, data_high, NoRegLog);
@@ -4991,35 +4991,41 @@ void Simulator::VisitLoadStoreExclusive(const Instruction* instr) {
             case STLXRB_w:
             case STLRB_w:
             case STLLRB:
-              MemWrite<uint8_t>(address, ReadWRegister(rt));
+              if (!MemWrite<uint8_t>(address, ReadWRegister(rt))) return;
               break;
             case STXRH_w:
             case STLXRH_w:
             case STLRH_w:
             case STLLRH:
-              MemWrite<uint16_t>(address, ReadWRegister(rt));
+              if (!MemWrite<uint16_t>(address, ReadWRegister(rt))) return;
               break;
             case STXR_w:
             case STLXR_w:
             case STLR_w:
             case STLLR_w:
-              MemWrite<uint32_t>(address, ReadWRegister(rt));
+              if (!MemWrite<uint32_t>(address, ReadWRegister(rt))) return;
               break;
             case STXR_x:
             case STLXR_x:
             case STLR_x:
             case STLLR_x:
-              MemWrite<uint64_t>(address, ReadXRegister(rt));
+              if (!MemWrite<uint64_t>(address, ReadXRegister(rt))) return;
               break;
             case STXP_w:
             case STLXP_w:
-              MemWrite<uint32_t>(address, ReadWRegister(rt));
-              MemWrite<uint32_t>(address + element_size, ReadWRegister(rt2));
+              if (!MemWrite<uint32_t>(address, ReadWRegister(rt))) return;
+              if (!MemWrite<uint32_t>(address + element_size,
+                                      ReadWRegister(rt2))) {
+                return;
+              }
               break;
             case STXP_x:
             case STLXP_x:
-              MemWrite<uint64_t>(address, ReadXRegister(rt));
-              MemWrite<uint64_t>(address + element_size, ReadXRegister(rt2));
+              if (!MemWrite<uint64_t>(address, ReadXRegister(rt))) return;
+              if (!MemWrite<uint64_t>(address + element_size,
+                                      ReadXRegister(rt2))) {
+                return;
+              }
               break;
             default:
               VIXL_UNREACHABLE();
@@ -5102,7 +5108,7 @@ void Simulator::AtomicMemorySimpleHelper(const Instruction* instr) {
   PrintRegisterFormat format = GetPrintRegisterFormatForSize(register_size);
   LogExtendingRead(rt, format, element_size, address);
 
-  MemWrite<T>(address, result);
+  if (!MemWrite<T>(address, result)) return;
   format = GetPrintRegisterFormatForSize(element_size);
   LogWrite(rs, format, address);
 }
@@ -5132,7 +5138,7 @@ void Simulator::AtomicMemorySwapHelper(const Instruction* instr) {
     // Approximate store-release by issuing a full barrier before the store.
     __sync_synchronize();
   }
-  MemWrite<T>(address, ReadRegister<T>(rs));
+  if (!MemWrite<T>(address, ReadRegister<T>(rs))) return;
 
   WriteRegister<T>(rt, data);
 
@@ -8410,22 +8416,22 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       break;
     case NEON_ST1_4v:
     case NEON_ST1_4v_post:
-      st1(vf, ReadVRegister(reg[3]), addr[3]);
+      if (!st1(vf, ReadVRegister(reg[3]), addr[3])) return;
       reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_3v:
     case NEON_ST1_3v_post:
-      st1(vf, ReadVRegister(reg[2]), addr[2]);
+      if (!st1(vf, ReadVRegister(reg[2]), addr[2])) return;
       reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_2v:
     case NEON_ST1_2v_post:
-      st1(vf, ReadVRegister(reg[1]), addr[1]);
+      if (!st1(vf, ReadVRegister(reg[1]), addr[1])) return;
       reg_count++;
       VIXL_FALLTHROUGH();
     case NEON_ST1_1v:
     case NEON_ST1_1v_post:
-      st1(vf, ReadVRegister(reg[0]), addr[0]);
+      if (!st1(vf, ReadVRegister(reg[0]), addr[0])) return;
       log_read = false;
       break;
     case NEON_LD2_post:
@@ -8438,7 +8444,9 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       break;
     case NEON_ST2:
     case NEON_ST2_post:
-      st2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
+      if (!st2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0])) {
+        return;
+      }
       struct_parts = 2;
       reg_count = 2;
       log_read = false;
@@ -8457,23 +8465,27 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       break;
     case NEON_ST3:
     case NEON_ST3_post:
-      st3(vf,
-          ReadVRegister(reg[0]),
-          ReadVRegister(reg[1]),
-          ReadVRegister(reg[2]),
-          addr[0]);
+      if (!st3(vf,
+               ReadVRegister(reg[0]),
+               ReadVRegister(reg[1]),
+               ReadVRegister(reg[2]),
+               addr[0])) {
+        return;
+      }
       struct_parts = 3;
       reg_count = 3;
       log_read = false;
       break;
     case NEON_ST4:
     case NEON_ST4_post:
-      st4(vf,
-          ReadVRegister(reg[0]),
-          ReadVRegister(reg[1]),
-          ReadVRegister(reg[2]),
-          ReadVRegister(reg[3]),
-          addr[0]);
+      if (!st4(vf,
+               ReadVRegister(reg[0]),
+               ReadVRegister(reg[1]),
+               ReadVRegister(reg[2]),
+               ReadVRegister(reg[3]),
+               addr[0])) {
+        return;
+      }
       struct_parts = 4;
       reg_count = 4;
       log_read = false;
@@ -8670,7 +8682,7 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
           return;
         }
       } else {
-        st1(vf, ReadVRegister(rt), lane, addr);
+        if (!st1(vf, ReadVRegister(rt), lane, addr)) return;
       }
       break;
     case NEONLoadStoreSingle2:
@@ -8685,7 +8697,7 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
           return;
         }
       } else {
-        st2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr);
+        if (!st2(vf, ReadVRegister(rt), ReadVRegister(rt2), lane, addr)) return;
       }
       break;
     case NEONLoadStoreSingle3:
@@ -8709,12 +8721,14 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
           return;
         }
       } else {
-        st3(vf,
-            ReadVRegister(rt),
-            ReadVRegister(rt2),
-            ReadVRegister(rt3),
-            lane,
-            addr);
+        if (!st3(vf,
+                 ReadVRegister(rt),
+                 ReadVRegister(rt2),
+                 ReadVRegister(rt3),
+                 lane,
+                 addr)) {
+          return;
+        }
       }
       break;
     case NEONLoadStoreSingle4:
@@ -8740,13 +8754,15 @@ void Simulator::NEONLoadStoreSingleStructHelper(const Instruction* instr,
           return;
         }
       } else {
-        st4(vf,
-            ReadVRegister(rt),
-            ReadVRegister(rt2),
-            ReadVRegister(rt3),
-            ReadVRegister(rt4),
-            lane,
-            addr);
+        if (!st4(vf,
+                 ReadVRegister(rt),
+                 ReadVRegister(rt2),
+                 ReadVRegister(rt3),
+                 ReadVRegister(rt4),
+                 lane,
+                 addr)) {
+          return;
+        }
       }
       break;
     default:
@@ -13200,7 +13216,7 @@ void Simulator::VisitSVEStorePredicateRegister(const Instruction* instr) {
       uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       uint64_t address = base + multiplier * pl;
       for (int i = 0; i < pl; i++) {
-        MemWrite(address + i, pt.GetLane<uint8_t>(i));
+        if (!MemWrite(address + i, pt.GetLane<uint8_t>(i))) return;
       }
       LogPWrite(instr->GetPt(), address);
       break;
@@ -13221,7 +13237,7 @@ void Simulator::VisitSVEStoreVectorRegister(const Instruction* instr) {
       uint64_t base = ReadXRegister(instr->GetRn(), Reg31IsStackPointer);
       uint64_t address = base + multiplier * vl;
       for (int i = 0; i < vl; i++) {
-        MemWrite(address + i, zt.GetLane<uint8_t>(i));
+        if (!MemWrite(address + i, zt.GetLane<uint8_t>(i))) return;
       }
       LogZWrite(instr->GetRt(), address);
       break;
@@ -14353,8 +14369,8 @@ void Simulator::SimulateMTEStoreTagPair(const Instruction* instr) {
   int tag = GetAllocationTagFromAddress(rn);
   meta_data_.SetMTETag(address, tag);
 
-  MemWrite<uint64_t>(address, rt);
-  MemWrite<uint64_t>(address + kXRegSizeInBytes, rt2);
+  if (!MemWrite<uint64_t>(address, rt)) return;
+  if (!MemWrite<uint64_t>(address + kXRegSizeInBytes, rt2)) return;
 }
 
 void Simulator::SimulateMTEStoreTag(const Instruction* instr) {
@@ -14430,7 +14446,7 @@ void Simulator::SimulateMTEStoreTag(const Instruction* instr) {
 
     size_t fill_offset = 0;
     while (fill_offset < fill_size) {
-      MemWrite<uint64_t>(address + fill_offset, 0);
+      if (!MemWrite<uint64_t>(address + fill_offset, 0)) return;
       fill_offset += sizeof(uint64_t);
     }
   }
@@ -14515,7 +14531,7 @@ void Simulator::SimulateCpyM(const Instruction* instr) {
 
   while (xn--) {
     VIXL_DEFINE_OR_RETURN(temp, MemRead<uint8_t>(xs));
-    MemWrite<uint8_t>(xd, temp);
+    if (!MemWrite<uint8_t>(xd, temp)) return;
     LogMemTransfer(xd, xs, temp);
     xs += step;
     xd += step;
@@ -14554,7 +14570,7 @@ void Simulator::SimulateSetM(const Instruction* instr) {
 
   while (xn--) {
     LogWrite(instr->GetRs(), GetPrintRegPartial(kPrintRegLaneSizeB), xd);
-    MemWrite<uint8_t>(xd++, xs);
+    if (!MemWrite<uint8_t>(xd++, xs)) return;
   }
   WriteXRegister(instr->GetRd(), xd);
   WriteXRegister(instr->GetRn(), 0);
