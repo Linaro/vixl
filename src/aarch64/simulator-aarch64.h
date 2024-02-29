@@ -68,26 +68,26 @@ namespace aarch64 {
 class Simulator;
 struct RuntimeCallStructHelper;
 
-enum class MemoryReadResult { Success = 0, Failure = 1 };
+enum class MemoryAccessResult { Success = 0, Failure = 1 };
 
-// Try to read a piece of memory at the given address. Reading that memory
+// Try to access a piece of memory at the given address. Accessing that memory
 // might raise a signal which, if handled by a custom signal handler, should
 // setup the native and simulated context in order to continue. Return whether
 // the memory access failed (i.e: raised a signal) or succeeded.
-MemoryReadResult TryMemoryRead(uintptr_t address, uintptr_t access_size);
+MemoryAccessResult TryMemoryAccess(uintptr_t address, uintptr_t access_size);
 
 #ifdef VIXL_ENABLE_IMPLICIT_CHECKS
 // Access a byte of memory from the address at the given offset. If the memory
-// could be accessed then return MemoryReadResult::Success. If the memory could
-// not be accessed, and therefore raised a signal, setup the simulated context
-// and return MemoryReadResult::Failure.
+// could be accessed then return MemoryAccessResult::Success. If the memory
+// could not be accessed, and therefore raised a signal, setup the simulated
+// context and return MemoryAccessResult::Failure.
 //
 // If a signal is raised then it is expected that the signal handler will place
-// MemoryReadResult::Failure in the native return register and the address of
-// _vixl_internal_ReadMemory_continue into the native instruction pointer.
-extern "C" MemoryReadResult _vixl_internal_ReadMemory(uintptr_t address,
-                                                      uintptr_t offset);
-extern "C" uintptr_t _vixl_internal_ReadMemory_continue();
+// MemoryAccessResult::Failure in the native return register and the address of
+// _vixl_internal_AccessMemory_continue into the native instruction pointer.
+extern "C" MemoryAccessResult _vixl_internal_ReadMemory(uintptr_t address,
+                                                        uintptr_t offset);
+extern "C" uintptr_t _vixl_internal_AccessMemory_continue();
 #endif  // VIXL_ENABLE_IMPLICIT_CHECKS
 
 class SimStack {
@@ -400,8 +400,8 @@ class Memory {
     if (!IsMTETagsMatched(address, pc)) {
       VIXL_ABORT_WITH_MSG("Tag mismatch.");
     }
-    if (TryMemoryRead(reinterpret_cast<uintptr_t>(base), sizeof(value)) ==
-        MemoryReadResult::Failure) {
+    if (TryMemoryAccess(reinterpret_cast<uintptr_t>(base), sizeof(value)) ==
+        MemoryAccessResult::Failure) {
       return std::nullopt;
     }
     memcpy(&value, base, sizeof(value));
@@ -409,7 +409,7 @@ class Memory {
   }
 
   template <typename T, typename A>
-  void Write(A address, T value, Instruction const* pc = nullptr) const {
+  bool Write(A address, T value, Instruction const* pc = nullptr) const {
     VIXL_STATIC_ASSERT((sizeof(value) == 1) || (sizeof(value) == 2) ||
                        (sizeof(value) == 4) || (sizeof(value) == 8) ||
                        (sizeof(value) == 16));
@@ -420,7 +420,12 @@ class Memory {
     if (!IsMTETagsMatched(address, pc)) {
       VIXL_ABORT_WITH_MSG("Tag mismatch.");
     }
+    if (TryMemoryAccess(reinterpret_cast<uintptr_t>(base), sizeof(value)) ==
+        MemoryAccessResult::Failure) {
+      return false;
+    }
     memcpy(base, &value, sizeof(value));
+    return true;
   }
 
   template <typename A>
@@ -456,7 +461,7 @@ class Memory {
   }
 
   template <typename A>
-  void Write(int size_in_bytes, A address, uint64_t value) const {
+  bool Write(int size_in_bytes, A address, uint64_t value) const {
     switch (size_in_bytes) {
       case 1:
         return Write(address, static_cast<uint8_t>(value));
@@ -468,6 +473,7 @@ class Memory {
         return Write(address, value);
     }
     VIXL_UNREACHABLE();
+    return false;
   }
 
   void AppendMetaData(MetaDataDepot* metadata_depot) {
@@ -2058,7 +2064,7 @@ class Simulator : public DecoderVisitor {
   }
 
   template <typename T, typename A>
-  void MemWrite(A address, T value) const {
+  bool MemWrite(A address, T value) const {
     Instruction const* pc = ReadPc();
     return memory_.Write(address, value, pc);
   }
@@ -2074,7 +2080,7 @@ class Simulator : public DecoderVisitor {
   }
 
   template <typename A>
-  void MemWrite(int size_in_bytes, A address, uint64_t value) const {
+  bool MemWrite(int size_in_bytes, A address, uint64_t value) const {
     return memory_.Write(size_in_bytes, address, value);
   }
 
@@ -2106,12 +2112,12 @@ class Simulator : public DecoderVisitor {
     return true;
   }
 
-  void StoreLane(const LogicVRegister& src,
+  bool StoreLane(const LogicVRegister& src,
                  VectorFormat vform,
                  int index,
                  uint64_t addr) const {
     unsigned msize_in_bytes = LaneSizeInBytesFromFormat(vform);
-    MemWrite(msize_in_bytes, addr, src.Uint(vform, index));
+    return MemWrite(msize_in_bytes, addr, src.Uint(vform, index));
   }
 
   uint64_t ComputeMemOperandAddress(const MemOperand& mem_op) const;
@@ -2129,7 +2135,7 @@ class Simulator : public DecoderVisitor {
   }
 
   template <typename T>
-  void WriteGenericOperand(GenericOperand operand,
+  bool WriteGenericOperand(GenericOperand operand,
                            T value,
                            RegLogMode log_mode = LogRegWrites) {
     if (operand.IsCPURegister()) {
@@ -2145,8 +2151,9 @@ class Simulator : public DecoderVisitor {
       WriteCPURegister(operand.GetCPURegister(), raw, log_mode);
     } else {
       VIXL_ASSERT(operand.IsMemOperand());
-      MemWrite(ComputeMemOperandAddress(operand.GetMemOperand()), value);
+      return MemWrite(ComputeMemOperandAddress(operand.GetMemOperand()), value);
     }
+    return true;
   }
 
   bool ReadN() const { return nzcv_.GetN() != 0; }
@@ -2995,7 +3002,10 @@ class Simulator : public DecoderVisitor {
     R return_value = DoRuntimeCall(function,
                                    argument_operands,
                                    __local_index_sequence_for<P...>{});
-    WriteGenericOperand(abi.GetReturnGenericOperand<R>(), return_value);
+    bool succeeded =
+        WriteGenericOperand(abi.GetReturnGenericOperand<R>(), return_value);
+    USE(succeeded);
+    VIXL_ASSERT(succeeded);
   }
 
   template <typename R, typename... P>
@@ -3181,24 +3191,26 @@ class Simulator : public DecoderVisitor {
   // Returns true if the faulting instruction address (usually the program
   // counter or instruction pointer) comes from an internal VIXL memory access.
   // This can be used by signal handlers to check if a signal was raised from
-  // the simulator (via TryMemoryRead) before the actual read/write occurs.
+  // the simulator (via TryMemoryAccess) before the actual
+  // access occurs.
   bool IsSimulatedMemoryAccess(uintptr_t fault_pc) const {
-    return fault_pc == reinterpret_cast<uintptr_t>(&_vixl_internal_ReadMemory);
+    return (fault_pc ==
+            reinterpret_cast<uintptr_t>(&_vixl_internal_ReadMemory));
   }
 
   // Get the instruction address of the internal VIXL memory access continuation
   // label. Signal handlers can resume execution at this address to return to
-  // TryMemoryRead which will continue simulation.
+  // TryMemoryAccess which will continue simulation.
   uintptr_t GetSignalReturnAddress() const {
-    return reinterpret_cast<uintptr_t>(&_vixl_internal_ReadMemory_continue);
+    return reinterpret_cast<uintptr_t>(&_vixl_internal_AccessMemory_continue);
   }
 
   // Replace the fault address reported by the kernel with the actual faulting
   // address.
   //
-  // This is required because TryMemoryRead reads a section of memory 1 byte at
-  // a time meaning the fault address reported may not be the base address of
-  // memory being accessed.
+  // This is required because TryMemoryAccess reads a section of
+  // memory 1 byte at a time meaning the fault address reported may not be the
+  // base address of memory being accessed.
   void ReplaceFaultAddress(siginfo_t* siginfo, void* context) {
 #ifdef __x86_64__
     // The base address being accessed is passed in as the first argument to
@@ -3436,35 +3448,35 @@ class Simulator : public DecoderVisitor {
             LogicVRegister dst3,
             LogicVRegister dst4,
             uint64_t addr);
-  void st1(VectorFormat vform, LogicVRegister src, uint64_t addr);
-  void st1(VectorFormat vform, LogicVRegister src, int index, uint64_t addr);
-  void st2(VectorFormat vform,
+  bool st1(VectorFormat vform, LogicVRegister src, uint64_t addr);
+  bool st1(VectorFormat vform, LogicVRegister src, int index, uint64_t addr);
+  bool st2(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
            uint64_t addr);
-  void st2(VectorFormat vform,
+  bool st2(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
            int index,
            uint64_t addr);
-  void st3(VectorFormat vform,
+  bool st3(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
            LogicVRegister src3,
            uint64_t addr);
-  void st3(VectorFormat vform,
+  bool st3(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
            LogicVRegister src3,
            int index,
            uint64_t addr);
-  void st4(VectorFormat vform,
+  bool st4(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
            LogicVRegister src3,
            LogicVRegister src4,
            uint64_t addr);
-  void st4(VectorFormat vform,
+  bool st4(VectorFormat vform,
            LogicVRegister src,
            LogicVRegister src2,
            LogicVRegister src3,

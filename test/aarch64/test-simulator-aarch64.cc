@@ -102,6 +102,95 @@ namespace aarch64 {
   /* The simulator can run every test. */                               \
   *skipped = false
 
+#ifdef VIXL_ENABLE_IMPLICIT_CHECKS
+// The signal handler needs access to the simulator.
+Simulator* gImplicitCheckSim;
+
+#ifdef __x86_64__
+#include <signal.h>
+#include <ucontext.h>
+void HandleSegFault(int sig, siginfo_t* info, void* context) {
+  USE(sig);
+  USE(info);
+  Simulator* sim = gImplicitCheckSim;
+
+  // Did the signal come from the simulator?
+  ucontext_t* uc = reinterpret_cast<ucontext_t*>(context);
+  uintptr_t fault_pc = uc->uc_mcontext.gregs[REG_RIP];
+  VIXL_CHECK(sim->IsSimulatedMemoryAccess(fault_pc));
+
+  // Increment the counter (x1) each time we handle a signal.
+  int64_t counter = reinterpret_cast<int64_t>(sim->ReadXRegister(1));
+  sim->WriteXRegister(1, ++counter);
+
+  // Return to the VIXL memory access continuation point, which is also the
+  // next instruction, after this handler.
+  uc->uc_mcontext.gregs[REG_RIP] = sim->GetSignalReturnAddress();
+  // Return that the memory access failed.
+  uc->uc_mcontext.gregs[REG_RAX] =
+      static_cast<greg_t>(MemoryAccessResult::Failure);
+}
+#endif  // __x86_64__
+
+// Start an implicit check test with a counter and start label so the number of
+// faults can be counted. Note: each instruction after the start will be
+// expected to fault.
+#define START_IMPLICIT_CHECK()                                                \
+  gImplicitCheckSim = &simulator;                                             \
+  /* Set up a signal handler to count the number of faulting instructions. */ \
+  struct sigaction sa;                                                        \
+  sa.sa_sigaction = HandleSegFault;                                           \
+  sigaction(SIGSEGV, &sa, NULL);                                              \
+  START();                                                                    \
+  /* Reset the counter. */                                                    \
+  __ Mov(x1, 0);                                                              \
+  /* Use a consistent bad address. */                                         \
+  __ Mov(x15, xzr);                                                           \
+  __ Mov(ip0, xzr);                                                           \
+  /* Load an amount of data to load. */                                       \
+  __ Mov(ip1, 4096);                                                          \
+  [[maybe_unused]] MemOperand bad_memory = MemOperand(ip0);                   \
+  if (masm.GetCPUFeatures()->Has(CPUFeatures::kSVE)) {                        \
+    /* Turn on all lanes to ensure all loads/stores are tested. */            \
+    __ Ptrue(p0.VnB());                                                       \
+    __ Ptrue(p1.VnB());                                                       \
+    __ Ptrue(p2.VnB());                                                       \
+    __ Ptrue(p3.VnB());                                                       \
+    __ Ptrue(p4.VnB());                                                       \
+    __ Ptrue(p5.VnB());                                                       \
+    __ Ptrue(p6.VnB());                                                       \
+    __ Ptrue(p7.VnB());                                                       \
+    __ Ptrue(p8.VnB());                                                       \
+    __ Ptrue(p9.VnB());                                                       \
+    __ Ptrue(p10.VnB());                                                      \
+    __ Ptrue(p11.VnB());                                                      \
+    __ Ptrue(p12.VnB());                                                      \
+    __ Ptrue(p13.VnB());                                                      \
+    __ Ptrue(p14.VnB());                                                      \
+    __ Ptrue(p15.VnB());                                                      \
+  }                                                                           \
+  Label l_start, l_end;                                                       \
+  __ Bind(&l_start);
+
+#define END_IMPLICIT_CHECK() \
+  __ Bind(&l_end);           \
+  /* Return the counter. */  \
+  __ Mov(x0, x1);            \
+  END();
+
+#define TRY_RUN_IMPLICIT_CHECK()                                              \
+  bool skipped;                                                               \
+  TRY_RUN(&skipped);                                                          \
+  /* Implicit checks should only be used with the simulator. */               \
+  VIXL_ASSERT(!skipped);                                                      \
+  /* Check that each load/store instruction generated a segfault that was */  \
+  /* raised and dealt with. */                                                \
+  size_t result = simulator.ReadXRegister(0);                                 \
+  size_t num_of_faulting_instr = masm.GetSizeOfCodeGeneratedSince(&l_start) - \
+                                 masm.GetSizeOfCodeGeneratedSince(&l_end);    \
+  VIXL_CHECK((result * kInstructionSize) == num_of_faulting_instr);
+
+#endif  // VIXL_ENABLE_IMPLICIT_CHECKS
 
 #else  // VIXL_INCLUDE_SIMULATOR_AARCH64
 
@@ -5012,6 +5101,802 @@ DEFINE_TEST_NEON_FHM_BYELEMENT(fmlsl, Basic, Basic, Basic)
 DEFINE_TEST_NEON_FHM_BYELEMENT(fmlsl2, Basic, Basic, Basic)
 
 
+#ifdef VIXL_ENABLE_IMPLICIT_CHECKS
+TEST(ImplicitCheck) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+  START_IMPLICIT_CHECK();
+
+  EmissionCheckScope guard(&masm, masm.GetBuffer()->GetRemainingBytes());
+  // Invalid memory reads.
+  __ ldar(w3, bad_memory);
+  __ ldar(x4, bad_memory);
+  __ ldarb(w5, bad_memory);
+  __ ldarb(x6, bad_memory);
+  __ ldarh(w7, bad_memory);
+  __ ldarh(x8, bad_memory);
+  __ ldaxp(w9, w10, bad_memory);
+  __ ldaxp(x11, x12, bad_memory);
+  __ ldaxr(w13, bad_memory);
+  __ ldaxr(x14, bad_memory);
+  __ ldaxrb(w15, bad_memory);
+  __ ldaxrb(x16, bad_memory);
+  __ ldaxrh(w17, bad_memory);
+  __ ldaxrh(x18, bad_memory);
+  __ ldnp(w19, w20, bad_memory);
+  __ ldnp(x21, x22, bad_memory);
+  __ ldp(w23, w24, bad_memory);
+  __ ldp(x25, x26, bad_memory);
+  __ ldpsw(x27, x28, bad_memory);
+  __ ldr(w29, bad_memory);
+  __ ldr(x2, bad_memory);
+  __ ldrb(w3, bad_memory);
+  __ ldrb(x4, bad_memory);
+  __ ldrh(w5, bad_memory);
+  __ ldrh(x6, bad_memory);
+  __ ldrsb(w7, bad_memory);
+  __ ldrsb(x8, bad_memory);
+  __ ldrsh(w9, bad_memory);
+  __ ldrsh(x10, bad_memory);
+  __ ldrsw(x11, bad_memory);
+  __ ldur(w12, bad_memory);
+  __ ldur(x13, bad_memory);
+  __ ldurb(w14, bad_memory);
+  __ ldurb(x15, bad_memory);
+  __ ldurh(w16, bad_memory);
+  __ ldurh(x17, bad_memory);
+  __ ldursb(w18, bad_memory);
+  __ ldursb(x19, bad_memory);
+  __ ldursh(w20, bad_memory);
+  __ ldursh(x21, bad_memory);
+  __ ldursw(x22, bad_memory);
+  __ ldxp(w23, w24, bad_memory);
+  __ ldxp(x25, x26, bad_memory);
+  __ ldxr(w27, bad_memory);
+  __ ldxr(x28, bad_memory);
+  __ ldxrb(w29, bad_memory);
+  __ ldxrb(x2, bad_memory);
+  __ ldxrh(w3, bad_memory);
+  __ ldxrh(x4, bad_memory);
+
+  // Invalid memory writes. Note: exclusive store instructions are not tested
+  // because they can fail due to the global monitor before trying to perform a
+  // memory store.
+  __ stlr(w18, bad_memory);
+  __ stlr(x19, bad_memory);
+  __ stlrb(w20, bad_memory);
+  __ stlrb(x21, bad_memory);
+  __ stlrh(w22, bad_memory);
+  __ stlrh(x23, bad_memory);
+  __ stnp(w14, w15, bad_memory);
+  __ stnp(x16, x17, bad_memory);
+  __ stp(w18, w19, bad_memory);
+  __ stp(x20, x21, bad_memory);
+  __ str(w22, bad_memory);
+  __ str(x23, bad_memory);
+  __ strb(w24, bad_memory);
+  __ strb(x25, bad_memory);
+  __ strh(w26, bad_memory);
+  __ strh(x27, bad_memory);
+  __ stur(w28, bad_memory);
+  __ stur(x29, bad_memory);
+  __ sturb(w2, bad_memory);
+  __ sturb(x3, bad_memory);
+  __ sturh(w4, bad_memory);
+  __ sturh(x5, bad_memory);
+
+  END_IMPLICIT_CHECK();
+  TRY_RUN_IMPLICIT_CHECK();
+}
+
+TEST(ImplicitCheckNeon) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+  START_IMPLICIT_CHECK();
+
+  EmissionCheckScope guard(&masm, masm.GetBuffer()->GetRemainingBytes());
+  __ ld1(v18.V16B(), v19.V16B(), v20.V16B(), v21.V16B(), bad_memory);
+  __ ld1(v23.V16B(), v24.V16B(), v25.V16B(), v26.V16B(), bad_memory);
+  __ ld1(v5.V16B(), v6.V16B(), v7.V16B(), v8.V16B(), bad_memory);
+  __ ld1(v18.V16B(), v19.V16B(), v20.V16B(), bad_memory);
+  __ ld1(v13.V16B(), v14.V16B(), v15.V16B(), bad_memory);
+  __ ld1(v19.V16B(), v20.V16B(), v21.V16B(), bad_memory);
+  __ ld1(v17.V16B(), v18.V16B(), bad_memory);
+  __ ld1(v20.V16B(), v21.V16B(), bad_memory);
+  __ ld1(v28.V16B(), v29.V16B(), bad_memory);
+  __ ld1(v29.V16B(), bad_memory);
+  __ ld1(v21.V16B(), bad_memory);
+  __ ld1(v4.V16B(), bad_memory);
+  __ ld1(v4.V1D(), v5.V1D(), v6.V1D(), v7.V1D(), bad_memory);
+  __ ld1(v17.V1D(), v18.V1D(), v19.V1D(), v20.V1D(), bad_memory);
+  __ ld1(v28.V1D(), v29.V1D(), v30.V1D(), v31.V1D(), bad_memory);
+  __ ld1(v20.V1D(), v21.V1D(), v22.V1D(), bad_memory);
+  __ ld1(v19.V1D(), v20.V1D(), v21.V1D(), bad_memory);
+  __ ld1(v12.V1D(), v13.V1D(), v14.V1D(), bad_memory);
+  __ ld1(v29.V1D(), v30.V1D(), bad_memory);
+  __ ld1(v31.V1D(), v0.V1D(), bad_memory);
+  __ ld1(v3.V1D(), v4.V1D(), bad_memory);
+  __ ld1(v28.V1D(), bad_memory);
+  __ ld1(v11.V1D(), bad_memory);
+  __ ld1(v29.V1D(), bad_memory);
+  __ ld1(v28.V2D(), v29.V2D(), v30.V2D(), v31.V2D(), bad_memory);
+  __ ld1(v8.V2D(), v9.V2D(), v10.V2D(), v11.V2D(), bad_memory);
+  __ ld1(v14.V2D(), v15.V2D(), v16.V2D(), v17.V2D(), bad_memory);
+  __ ld1(v26.V2D(), v27.V2D(), v28.V2D(), bad_memory);
+  __ ld1(v5.V2D(), v6.V2D(), v7.V2D(), bad_memory);
+  __ ld1(v26.V2D(), v27.V2D(), v28.V2D(), bad_memory);
+  __ ld1(v18.V2D(), v19.V2D(), bad_memory);
+  __ ld1(v21.V2D(), v22.V2D(), bad_memory);
+  __ ld1(v17.V2D(), v18.V2D(), bad_memory);
+  __ ld1(v5.V2D(), bad_memory);
+  __ ld1(v6.V2D(), bad_memory);
+  __ ld1(v15.V2D(), bad_memory);
+  __ ld1(v30.V2S(), v31.V2S(), v0.V2S(), v1.V2S(), bad_memory);
+  __ ld1(v24.V2S(), v25.V2S(), v26.V2S(), v27.V2S(), bad_memory);
+  __ ld1(v27.V2S(), v28.V2S(), v29.V2S(), v30.V2S(), bad_memory);
+  __ ld1(v11.V2S(), v12.V2S(), v13.V2S(), bad_memory);
+  __ ld1(v8.V2S(), v9.V2S(), v10.V2S(), bad_memory);
+  __ ld1(v31.V2S(), v0.V2S(), v1.V2S(), bad_memory);
+  __ ld1(v0.V2S(), v1.V2S(), bad_memory);
+  __ ld1(v13.V2S(), v14.V2S(), bad_memory);
+  __ ld1(v3.V2S(), v4.V2S(), bad_memory);
+  __ ld1(v26.V2S(), bad_memory);
+  __ ld1(v0.V2S(), bad_memory);
+  __ ld1(v11.V2S(), bad_memory);
+  __ ld1(v16.V4H(), v17.V4H(), v18.V4H(), v19.V4H(), bad_memory);
+  __ ld1(v24.V4H(), v25.V4H(), v26.V4H(), v27.V4H(), bad_memory);
+  __ ld1(v1.V4H(), v2.V4H(), v3.V4H(), v4.V4H(), bad_memory);
+  __ ld1(v30.V4H(), v31.V4H(), v0.V4H(), bad_memory);
+  __ ld1(v25.V4H(), v26.V4H(), v27.V4H(), bad_memory);
+  __ ld1(v3.V4H(), v4.V4H(), v5.V4H(), bad_memory);
+  __ ld1(v3.V4H(), v4.V4H(), bad_memory);
+  __ ld1(v3.V4H(), v4.V4H(), bad_memory);
+  __ ld1(v23.V4H(), v24.V4H(), bad_memory);
+  __ ld1(v26.V4H(), bad_memory);
+  __ ld1(v1.V4H(), bad_memory);
+  __ ld1(v14.V4H(), bad_memory);
+  __ ld1(v26.V4S(), v27.V4S(), v28.V4S(), v29.V4S(), bad_memory);
+  __ ld1(v28.V4S(), v29.V4S(), v30.V4S(), v31.V4S(), bad_memory);
+  __ ld1(v4.V4S(), v5.V4S(), v6.V4S(), v7.V4S(), bad_memory);
+  __ ld1(v2.V4S(), v3.V4S(), v4.V4S(), bad_memory);
+  __ ld1(v22.V4S(), v23.V4S(), v24.V4S(), bad_memory);
+  __ ld1(v15.V4S(), v16.V4S(), v17.V4S(), bad_memory);
+  __ ld1(v20.V4S(), v21.V4S(), bad_memory);
+  __ ld1(v30.V4S(), v31.V4S(), bad_memory);
+  __ ld1(v11.V4S(), v12.V4S(), bad_memory);
+  __ ld1(v15.V4S(), bad_memory);
+  __ ld1(v12.V4S(), bad_memory);
+  __ ld1(v0.V4S(), bad_memory);
+  __ ld1(v17.V8B(), v18.V8B(), v19.V8B(), v20.V8B(), bad_memory);
+  __ ld1(v5.V8B(), v6.V8B(), v7.V8B(), v8.V8B(), bad_memory);
+  __ ld1(v9.V8B(), v10.V8B(), v11.V8B(), v12.V8B(), bad_memory);
+  __ ld1(v4.V8B(), v5.V8B(), v6.V8B(), bad_memory);
+  __ ld1(v2.V8B(), v3.V8B(), v4.V8B(), bad_memory);
+  __ ld1(v12.V8B(), v13.V8B(), v14.V8B(), bad_memory);
+  __ ld1(v10.V8B(), v11.V8B(), bad_memory);
+  __ ld1(v11.V8B(), v12.V8B(), bad_memory);
+  __ ld1(v27.V8B(), v28.V8B(), bad_memory);
+  __ ld1(v31.V8B(), bad_memory);
+  __ ld1(v10.V8B(), bad_memory);
+  __ ld1(v28.V8B(), bad_memory);
+  __ ld1(v5.V8H(), v6.V8H(), v7.V8H(), v8.V8H(), bad_memory);
+  __ ld1(v2.V8H(), v3.V8H(), v4.V8H(), v5.V8H(), bad_memory);
+  __ ld1(v10.V8H(), v11.V8H(), v12.V8H(), v13.V8H(), bad_memory);
+  __ ld1(v26.V8H(), v27.V8H(), v28.V8H(), bad_memory);
+  __ ld1(v3.V8H(), v4.V8H(), v5.V8H(), bad_memory);
+  __ ld1(v17.V8H(), v18.V8H(), v19.V8H(), bad_memory);
+  __ ld1(v4.V8H(), v5.V8H(), bad_memory);
+  __ ld1(v21.V8H(), v22.V8H(), bad_memory);
+  __ ld1(v4.V8H(), v5.V8H(), bad_memory);
+  __ ld1(v9.V8H(), bad_memory);
+  __ ld1(v27.V8H(), bad_memory);
+  __ ld1(v26.V8H(), bad_memory);
+  __ ld1(v19.B(), 1, bad_memory);
+  __ ld1(v12.B(), 3, bad_memory);
+  __ ld1(v27.B(), 12, bad_memory);
+  __ ld1(v10.D(), 1, bad_memory);
+  __ ld1(v26.D(), 1, bad_memory);
+  __ ld1(v7.D(), 1, bad_memory);
+  __ ld1(v19.H(), 5, bad_memory);
+  __ ld1(v10.H(), 1, bad_memory);
+  __ ld1(v5.H(), 4, bad_memory);
+  __ ld1(v21.S(), 2, bad_memory);
+  __ ld1(v13.S(), 2, bad_memory);
+  __ ld1(v1.S(), 2, bad_memory);
+  __ ld1r(v2.V16B(), bad_memory);
+  __ ld1r(v2.V16B(), bad_memory);
+  __ ld1r(v22.V16B(), bad_memory);
+  __ ld1r(v25.V1D(), bad_memory);
+  __ ld1r(v9.V1D(), bad_memory);
+  __ ld1r(v23.V1D(), bad_memory);
+  __ ld1r(v19.V2D(), bad_memory);
+  __ ld1r(v21.V2D(), bad_memory);
+  __ ld1r(v30.V2D(), bad_memory);
+  __ ld1r(v24.V2S(), bad_memory);
+  __ ld1r(v26.V2S(), bad_memory);
+  __ ld1r(v28.V2S(), bad_memory);
+  __ ld1r(v19.V4H(), bad_memory);
+  __ ld1r(v1.V4H(), bad_memory);
+  __ ld1r(v21.V4H(), bad_memory);
+  __ ld1r(v15.V4S(), bad_memory);
+  __ ld1r(v21.V4S(), bad_memory);
+  __ ld1r(v23.V4S(), bad_memory);
+  __ ld1r(v26.V8B(), bad_memory);
+  __ ld1r(v14.V8B(), bad_memory);
+  __ ld1r(v19.V8B(), bad_memory);
+  __ ld1r(v13.V8H(), bad_memory);
+  __ ld1r(v30.V8H(), bad_memory);
+  __ ld1r(v27.V8H(), bad_memory);
+  __ ld2(v21.V16B(), v22.V16B(), bad_memory);
+  __ ld2(v21.V16B(), v22.V16B(), bad_memory);
+  __ ld2(v12.V16B(), v13.V16B(), bad_memory);
+  __ ld2(v14.V2D(), v15.V2D(), bad_memory);
+  __ ld2(v0.V2D(), v1.V2D(), bad_memory);
+  __ ld2(v12.V2D(), v13.V2D(), bad_memory);
+  __ ld2(v27.V2S(), v28.V2S(), bad_memory);
+  __ ld2(v2.V2S(), v3.V2S(), bad_memory);
+  __ ld2(v12.V2S(), v13.V2S(), bad_memory);
+  __ ld2(v9.V4H(), v10.V4H(), bad_memory);
+  __ ld2(v23.V4H(), v24.V4H(), bad_memory);
+  __ ld2(v1.V4H(), v2.V4H(), bad_memory);
+  __ ld2(v20.V4S(), v21.V4S(), bad_memory);
+  __ ld2(v10.V4S(), v11.V4S(), bad_memory);
+  __ ld2(v24.V4S(), v25.V4S(), bad_memory);
+  __ ld2(v17.V8B(), v18.V8B(), bad_memory);
+  __ ld2(v13.V8B(), v14.V8B(), bad_memory);
+  __ ld2(v7.V8B(), v8.V8B(), bad_memory);
+  __ ld2(v30.V8H(), v31.V8H(), bad_memory);
+  __ ld2(v4.V8H(), v5.V8H(), bad_memory);
+  __ ld2(v13.V8H(), v14.V8H(), bad_memory);
+  __ ld2(v5.B(), v6.B(), 12, bad_memory);
+  __ ld2(v16.B(), v17.B(), 7, bad_memory);
+  __ ld2(v29.B(), v30.B(), 2, bad_memory);
+  __ ld2(v11.D(), v12.D(), 1, bad_memory);
+  __ ld2(v26.D(), v27.D(), 0, bad_memory);
+  __ ld2(v25.D(), v26.D(), 0, bad_memory);
+  __ ld2(v18.H(), v19.H(), 7, bad_memory);
+  __ ld2(v17.H(), v18.H(), 5, bad_memory);
+  __ ld2(v30.H(), v31.H(), 2, bad_memory);
+  __ ld2(v29.S(), v30.S(), 3, bad_memory);
+  __ ld2(v28.S(), v29.S(), 0, bad_memory);
+  __ ld2(v6.S(), v7.S(), 1, bad_memory);
+  __ ld2r(v26.V16B(), v27.V16B(), bad_memory);
+  __ ld2r(v21.V16B(), v22.V16B(), bad_memory);
+  __ ld2r(v5.V16B(), v6.V16B(), bad_memory);
+  __ ld2r(v26.V1D(), v27.V1D(), bad_memory);
+  __ ld2r(v14.V1D(), v15.V1D(), bad_memory);
+  __ ld2r(v23.V1D(), v24.V1D(), bad_memory);
+  __ ld2r(v11.V2D(), v12.V2D(), bad_memory);
+  __ ld2r(v29.V2D(), v30.V2D(), bad_memory);
+  __ ld2r(v15.V2D(), v16.V2D(), bad_memory);
+  __ ld2r(v26.V2S(), v27.V2S(), bad_memory);
+  __ ld2r(v22.V2S(), v23.V2S(), bad_memory);
+  __ ld2r(v2.V2S(), v3.V2S(), bad_memory);
+  __ ld2r(v2.V4H(), v3.V4H(), bad_memory);
+  __ ld2r(v9.V4H(), v10.V4H(), bad_memory);
+  __ ld2r(v6.V4H(), v7.V4H(), bad_memory);
+  __ ld2r(v7.V4S(), v8.V4S(), bad_memory);
+  __ ld2r(v19.V4S(), v20.V4S(), bad_memory);
+  __ ld2r(v21.V4S(), v22.V4S(), bad_memory);
+  __ ld2r(v26.V8B(), v27.V8B(), bad_memory);
+  __ ld2r(v20.V8B(), v21.V8B(), bad_memory);
+  __ ld2r(v11.V8B(), v12.V8B(), bad_memory);
+  __ ld2r(v12.V8H(), v13.V8H(), bad_memory);
+  __ ld2r(v6.V8H(), v7.V8H(), bad_memory);
+  __ ld2r(v25.V8H(), v26.V8H(), bad_memory);
+  __ ld3(v20.V16B(), v21.V16B(), v22.V16B(), bad_memory);
+  __ ld3(v28.V16B(), v29.V16B(), v30.V16B(), bad_memory);
+  __ ld3(v20.V16B(), v21.V16B(), v22.V16B(), bad_memory);
+  __ ld3(v21.V2D(), v22.V2D(), v23.V2D(), bad_memory);
+  __ ld3(v18.V2D(), v19.V2D(), v20.V2D(), bad_memory);
+  __ ld3(v27.V2D(), v28.V2D(), v29.V2D(), bad_memory);
+  __ ld3(v7.V2S(), v8.V2S(), v9.V2S(), bad_memory);
+  __ ld3(v20.V2S(), v21.V2S(), v22.V2S(), bad_memory);
+  __ ld3(v26.V2S(), v27.V2S(), v28.V2S(), bad_memory);
+  __ ld3(v27.V4H(), v28.V4H(), v29.V4H(), bad_memory);
+  __ ld3(v28.V4H(), v29.V4H(), v30.V4H(), bad_memory);
+  __ ld3(v7.V4H(), v8.V4H(), v9.V4H(), bad_memory);
+  __ ld3(v2.V4S(), v3.V4S(), v4.V4S(), bad_memory);
+  __ ld3(v24.V4S(), v25.V4S(), v26.V4S(), bad_memory);
+  __ ld3(v11.V4S(), v12.V4S(), v13.V4S(), bad_memory);
+  __ ld3(v29.V8B(), v30.V8B(), v31.V8B(), bad_memory);
+  __ ld3(v1.V8B(), v2.V8B(), v3.V8B(), bad_memory);
+  __ ld3(v12.V8B(), v13.V8B(), v14.V8B(), bad_memory);
+  __ ld3(v22.V8H(), v23.V8H(), v24.V8H(), bad_memory);
+  __ ld3(v13.V8H(), v14.V8H(), v15.V8H(), bad_memory);
+  __ ld3(v28.V8H(), v29.V8H(), v30.V8H(), bad_memory);
+  __ ld3(v21.B(), v22.B(), v23.B(), 11, bad_memory);
+  __ ld3(v5.B(), v6.B(), v7.B(), 9, bad_memory);
+  __ ld3(v23.B(), v24.B(), v25.B(), 0, bad_memory);
+  __ ld3(v16.D(), v17.D(), v18.D(), 0, bad_memory);
+  __ ld3(v30.D(), v31.D(), v0.D(), 0, bad_memory);
+  __ ld3(v28.D(), v29.D(), v30.D(), 1, bad_memory);
+  __ ld3(v13.H(), v14.H(), v15.H(), 2, bad_memory);
+  __ ld3(v22.H(), v23.H(), v24.H(), 7, bad_memory);
+  __ ld3(v14.H(), v15.H(), v16.H(), 3, bad_memory);
+  __ ld3(v22.S(), v23.S(), v24.S(), 3, bad_memory);
+  __ ld3(v30.S(), v31.S(), v0.S(), 2, bad_memory);
+  __ ld3(v12.S(), v13.S(), v14.S(), 1, bad_memory);
+  __ ld3r(v24.V16B(), v25.V16B(), v26.V16B(), bad_memory);
+  __ ld3r(v24.V16B(), v25.V16B(), v26.V16B(), bad_memory);
+  __ ld3r(v3.V16B(), v4.V16B(), v5.V16B(), bad_memory);
+  __ ld3r(v4.V1D(), v5.V1D(), v6.V1D(), bad_memory);
+  __ ld3r(v7.V1D(), v8.V1D(), v9.V1D(), bad_memory);
+  __ ld3r(v17.V1D(), v18.V1D(), v19.V1D(), bad_memory);
+  __ ld3r(v16.V2D(), v17.V2D(), v18.V2D(), bad_memory);
+  __ ld3r(v20.V2D(), v21.V2D(), v22.V2D(), bad_memory);
+  __ ld3r(v14.V2D(), v15.V2D(), v16.V2D(), bad_memory);
+  __ ld3r(v10.V2S(), v11.V2S(), v12.V2S(), bad_memory);
+  __ ld3r(v0.V2S(), v1.V2S(), v2.V2S(), bad_memory);
+  __ ld3r(v23.V2S(), v24.V2S(), v25.V2S(), bad_memory);
+  __ ld3r(v22.V4H(), v23.V4H(), v24.V4H(), bad_memory);
+  __ ld3r(v6.V4H(), v7.V4H(), v8.V4H(), bad_memory);
+  __ ld3r(v7.V4H(), v8.V4H(), v9.V4H(), bad_memory);
+  __ ld3r(v26.V4S(), v27.V4S(), v28.V4S(), bad_memory);
+  __ ld3r(v0.V4S(), v1.V4S(), v2.V4S(), bad_memory);
+  __ ld3r(v30.V4S(), v31.V4S(), v0.V4S(), bad_memory);
+  __ ld3r(v2.V8B(), v3.V8B(), v4.V8B(), bad_memory);
+  __ ld3r(v10.V8B(), v11.V8B(), v12.V8B(), bad_memory);
+  __ ld3r(v28.V8B(), v29.V8B(), v30.V8B(), bad_memory);
+  __ ld3r(v6.V8H(), v7.V8H(), v8.V8H(), bad_memory);
+  __ ld3r(v29.V8H(), v30.V8H(), v31.V8H(), bad_memory);
+  __ ld3r(v7.V8H(), v8.V8H(), v9.V8H(), bad_memory);
+  __ ld4(v3.V16B(), v4.V16B(), v5.V16B(), v6.V16B(), bad_memory);
+  __ ld4(v2.V16B(), v3.V16B(), v4.V16B(), v5.V16B(), bad_memory);
+  __ ld4(v5.V16B(), v6.V16B(), v7.V16B(), v8.V16B(), bad_memory);
+  __ ld4(v18.V2D(), v19.V2D(), v20.V2D(), v21.V2D(), bad_memory);
+  __ ld4(v4.V2D(), v5.V2D(), v6.V2D(), v7.V2D(), bad_memory);
+  __ ld4(v29.V2D(), v30.V2D(), v31.V2D(), v0.V2D(), bad_memory);
+  __ ld4(v27.V2S(), v28.V2S(), v29.V2S(), v30.V2S(), bad_memory);
+  __ ld4(v24.V2S(), v25.V2S(), v26.V2S(), v27.V2S(), bad_memory);
+  __ ld4(v4.V2S(), v5.V2S(), v6.V2S(), v7.V2S(), bad_memory);
+  __ ld4(v16.V4H(), v17.V4H(), v18.V4H(), v19.V4H(), bad_memory);
+  __ ld4(v23.V4H(), v24.V4H(), v25.V4H(), v26.V4H(), bad_memory);
+  __ ld4(v2.V4H(), v3.V4H(), v4.V4H(), v5.V4H(), bad_memory);
+  __ ld4(v7.V4S(), v8.V4S(), v9.V4S(), v10.V4S(), bad_memory);
+  __ ld4(v28.V4S(), v29.V4S(), v30.V4S(), v31.V4S(), bad_memory);
+  __ ld4(v29.V4S(), v30.V4S(), v31.V4S(), v0.V4S(), bad_memory);
+  __ ld4(v15.V8B(), v16.V8B(), v17.V8B(), v18.V8B(), bad_memory);
+  __ ld4(v27.V8B(), v28.V8B(), v29.V8B(), v30.V8B(), bad_memory);
+  __ ld4(v5.V8B(), v6.V8B(), v7.V8B(), v8.V8B(), bad_memory);
+  __ ld4(v25.V8H(), v26.V8H(), v27.V8H(), v28.V8H(), bad_memory);
+  __ ld4(v2.V8H(), v3.V8H(), v4.V8H(), v5.V8H(), bad_memory);
+  __ ld4(v20.V8H(), v21.V8H(), v22.V8H(), v23.V8H(), bad_memory);
+  __ ld4(v20.B(), v21.B(), v22.B(), v23.B(), 3, bad_memory);
+  __ ld4(v12.B(), v13.B(), v14.B(), v15.B(), 3, bad_memory);
+  __ ld4(v27.B(), v28.B(), v29.B(), v30.B(), 6, bad_memory);
+  __ ld4(v28.D(), v29.D(), v30.D(), v31.D(), 1, bad_memory);
+  __ ld4(v15.D(), v16.D(), v17.D(), v18.D(), 1, bad_memory);
+  __ ld4(v16.D(), v17.D(), v18.D(), v19.D(), 1, bad_memory);
+  __ ld4(v2.H(), v3.H(), v4.H(), v5.H(), 6, bad_memory);
+  __ ld4(v5.H(), v6.H(), v7.H(), v8.H(), 3, bad_memory);
+  __ ld4(v7.H(), v8.H(), v9.H(), v10.H(), 6, bad_memory);
+  __ ld4(v6.S(), v7.S(), v8.S(), v9.S(), 1, bad_memory);
+  __ ld4(v25.S(), v26.S(), v27.S(), v28.S(), 2, bad_memory);
+  __ ld4(v8.S(), v9.S(), v10.S(), v11.S(), 3, bad_memory);
+  __ ld4r(v14.V16B(), v15.V16B(), v16.V16B(), v17.V16B(), bad_memory);
+  __ ld4r(v13.V16B(), v14.V16B(), v15.V16B(), v16.V16B(), bad_memory);
+  __ ld4r(v9.V16B(), v10.V16B(), v11.V16B(), v12.V16B(), bad_memory);
+  __ ld4r(v8.V1D(), v9.V1D(), v10.V1D(), v11.V1D(), bad_memory);
+  __ ld4r(v4.V1D(), v5.V1D(), v6.V1D(), v7.V1D(), bad_memory);
+  __ ld4r(v26.V1D(), v27.V1D(), v28.V1D(), v29.V1D(), bad_memory);
+  __ ld4r(v19.V2D(), v20.V2D(), v21.V2D(), v22.V2D(), bad_memory);
+  __ ld4r(v28.V2D(), v29.V2D(), v30.V2D(), v31.V2D(), bad_memory);
+  __ ld4r(v15.V2D(), v16.V2D(), v17.V2D(), v18.V2D(), bad_memory);
+  __ ld4r(v31.V2S(), v0.V2S(), v1.V2S(), v2.V2S(), bad_memory);
+  __ ld4r(v28.V2S(), v29.V2S(), v30.V2S(), v31.V2S(), bad_memory);
+  __ ld4r(v11.V2S(), v12.V2S(), v13.V2S(), v14.V2S(), bad_memory);
+  __ ld4r(v19.V4H(), v20.V4H(), v21.V4H(), v22.V4H(), bad_memory);
+  __ ld4r(v22.V4H(), v23.V4H(), v24.V4H(), v25.V4H(), bad_memory);
+  __ ld4r(v20.V4H(), v21.V4H(), v22.V4H(), v23.V4H(), bad_memory);
+  __ ld4r(v16.V4S(), v17.V4S(), v18.V4S(), v19.V4S(), bad_memory);
+  __ ld4r(v25.V4S(), v26.V4S(), v27.V4S(), v28.V4S(), bad_memory);
+  __ ld4r(v23.V4S(), v24.V4S(), v25.V4S(), v26.V4S(), bad_memory);
+  __ ld4r(v22.V8B(), v23.V8B(), v24.V8B(), v25.V8B(), bad_memory);
+  __ ld4r(v27.V8B(), v28.V8B(), v29.V8B(), v30.V8B(), bad_memory);
+  __ ld4r(v29.V8B(), v30.V8B(), v31.V8B(), v0.V8B(), bad_memory);
+  __ ld4r(v28.V8H(), v29.V8H(), v30.V8H(), v31.V8H(), bad_memory);
+  __ ld4r(v25.V8H(), v26.V8H(), v27.V8H(), v28.V8H(), bad_memory);
+  __ ld4r(v22.V8H(), v23.V8H(), v24.V8H(), v25.V8H(), bad_memory);
+
+  __ st1(v18.V16B(), v19.V16B(), v20.V16B(), v21.V16B(), bad_memory);
+  __ st1(v10.V16B(), v11.V16B(), v12.V16B(), v13.V16B(), bad_memory);
+  __ st1(v27.V16B(), v28.V16B(), v29.V16B(), v30.V16B(), bad_memory);
+  __ st1(v16.V16B(), v17.V16B(), v18.V16B(), bad_memory);
+  __ st1(v21.V16B(), v22.V16B(), v23.V16B(), bad_memory);
+  __ st1(v9.V16B(), v10.V16B(), v11.V16B(), bad_memory);
+  __ st1(v7.V16B(), v8.V16B(), bad_memory);
+  __ st1(v26.V16B(), v27.V16B(), bad_memory);
+  __ st1(v22.V16B(), v23.V16B(), bad_memory);
+  __ st1(v23.V16B(), bad_memory);
+  __ st1(v28.V16B(), bad_memory);
+  __ st1(v2.V16B(), bad_memory);
+  __ st1(v29.V1D(), v30.V1D(), v31.V1D(), v0.V1D(), bad_memory);
+  __ st1(v12.V1D(), v13.V1D(), v14.V1D(), v15.V1D(), bad_memory);
+  __ st1(v30.V1D(), v31.V1D(), v0.V1D(), v1.V1D(), bad_memory);
+  __ st1(v16.V1D(), v17.V1D(), v18.V1D(), bad_memory);
+  __ st1(v3.V1D(), v4.V1D(), v5.V1D(), bad_memory);
+  __ st1(v14.V1D(), v15.V1D(), v16.V1D(), bad_memory);
+  __ st1(v18.V1D(), v19.V1D(), bad_memory);
+  __ st1(v5.V1D(), v6.V1D(), bad_memory);
+  __ st1(v2.V1D(), v3.V1D(), bad_memory);
+  __ st1(v4.V1D(), bad_memory);
+  __ st1(v27.V1D(), bad_memory);
+  __ st1(v23.V1D(), bad_memory);
+  __ st1(v2.V2D(), v3.V2D(), v4.V2D(), v5.V2D(), bad_memory);
+  __ st1(v22.V2D(), v23.V2D(), v24.V2D(), v25.V2D(), bad_memory);
+  __ st1(v28.V2D(), v29.V2D(), v30.V2D(), v31.V2D(), bad_memory);
+  __ st1(v17.V2D(), v18.V2D(), v19.V2D(), bad_memory);
+  __ st1(v16.V2D(), v17.V2D(), v18.V2D(), bad_memory);
+  __ st1(v22.V2D(), v23.V2D(), v24.V2D(), bad_memory);
+  __ st1(v21.V2D(), v22.V2D(), bad_memory);
+  __ st1(v6.V2D(), v7.V2D(), bad_memory);
+  __ st1(v27.V2D(), v28.V2D(), bad_memory);
+  __ st1(v21.V2D(), bad_memory);
+  __ st1(v29.V2D(), bad_memory);
+  __ st1(v20.V2D(), bad_memory);
+  __ st1(v22.V2S(), v23.V2S(), v24.V2S(), v25.V2S(), bad_memory);
+  __ st1(v8.V2S(), v9.V2S(), v10.V2S(), v11.V2S(), bad_memory);
+  __ st1(v15.V2S(), v16.V2S(), v17.V2S(), v18.V2S(), bad_memory);
+  __ st1(v2.V2S(), v3.V2S(), v4.V2S(), bad_memory);
+  __ st1(v23.V2S(), v24.V2S(), v25.V2S(), bad_memory);
+  __ st1(v7.V2S(), v8.V2S(), v9.V2S(), bad_memory);
+  __ st1(v28.V2S(), v29.V2S(), bad_memory);
+  __ st1(v29.V2S(), v30.V2S(), bad_memory);
+  __ st1(v23.V2S(), v24.V2S(), bad_memory);
+  __ st1(v6.V2S(), bad_memory);
+  __ st1(v11.V2S(), bad_memory);
+  __ st1(v17.V2S(), bad_memory);
+  __ st1(v6.V4H(), v7.V4H(), v8.V4H(), v9.V4H(), bad_memory);
+  __ st1(v9.V4H(), v10.V4H(), v11.V4H(), v12.V4H(), bad_memory);
+  __ st1(v25.V4H(), v26.V4H(), v27.V4H(), v28.V4H(), bad_memory);
+  __ st1(v11.V4H(), v12.V4H(), v13.V4H(), bad_memory);
+  __ st1(v10.V4H(), v11.V4H(), v12.V4H(), bad_memory);
+  __ st1(v12.V4H(), v13.V4H(), v14.V4H(), bad_memory);
+  __ st1(v13.V4H(), v14.V4H(), bad_memory);
+  __ st1(v15.V4H(), v16.V4H(), bad_memory);
+  __ st1(v21.V4H(), v22.V4H(), bad_memory);
+  __ st1(v16.V4H(), bad_memory);
+  __ st1(v8.V4H(), bad_memory);
+  __ st1(v30.V4H(), bad_memory);
+  __ st1(v3.V4S(), v4.V4S(), v5.V4S(), v6.V4S(), bad_memory);
+  __ st1(v25.V4S(), v26.V4S(), v27.V4S(), v28.V4S(), bad_memory);
+  __ st1(v5.V4S(), v6.V4S(), v7.V4S(), v8.V4S(), bad_memory);
+  __ st1(v31.V4S(), v0.V4S(), v1.V4S(), bad_memory);
+  __ st1(v30.V4S(), v31.V4S(), v0.V4S(), bad_memory);
+  __ st1(v6.V4S(), v7.V4S(), v8.V4S(), bad_memory);
+  __ st1(v17.V4S(), v18.V4S(), bad_memory);
+  __ st1(v31.V4S(), v0.V4S(), bad_memory);
+  __ st1(v1.V4S(), v2.V4S(), bad_memory);
+  __ st1(v26.V4S(), bad_memory);
+  __ st1(v15.V4S(), bad_memory);
+  __ st1(v13.V4S(), bad_memory);
+  __ st1(v26.V8B(), v27.V8B(), v28.V8B(), v29.V8B(), bad_memory);
+  __ st1(v10.V8B(), v11.V8B(), v12.V8B(), v13.V8B(), bad_memory);
+  __ st1(v15.V8B(), v16.V8B(), v17.V8B(), v18.V8B(), bad_memory);
+  __ st1(v19.V8B(), v20.V8B(), v21.V8B(), bad_memory);
+  __ st1(v31.V8B(), v0.V8B(), v1.V8B(), bad_memory);
+  __ st1(v9.V8B(), v10.V8B(), v11.V8B(), bad_memory);
+  __ st1(v12.V8B(), v13.V8B(), bad_memory);
+  __ st1(v2.V8B(), v3.V8B(), bad_memory);
+  __ st1(v0.V8B(), v1.V8B(), bad_memory);
+  __ st1(v16.V8B(), bad_memory);
+  __ st1(v25.V8B(), bad_memory);
+  __ st1(v31.V8B(), bad_memory);
+  __ st1(v4.V8H(), v5.V8H(), v6.V8H(), v7.V8H(), bad_memory);
+  __ st1(v3.V8H(), v4.V8H(), v5.V8H(), v6.V8H(), bad_memory);
+  __ st1(v26.V8H(), v27.V8H(), v28.V8H(), v29.V8H(), bad_memory);
+  __ st1(v10.V8H(), v11.V8H(), v12.V8H(), bad_memory);
+  __ st1(v21.V8H(), v22.V8H(), v23.V8H(), bad_memory);
+  __ st1(v18.V8H(), v19.V8H(), v20.V8H(), bad_memory);
+  __ st1(v26.V8H(), v27.V8H(), bad_memory);
+  __ st1(v24.V8H(), v25.V8H(), bad_memory);
+  __ st1(v17.V8H(), v18.V8H(), bad_memory);
+  __ st1(v29.V8H(), bad_memory);
+  __ st1(v19.V8H(), bad_memory);
+  __ st1(v23.V8H(), bad_memory);
+  __ st1(v19.B(), 15, bad_memory);
+  __ st1(v25.B(), 9, bad_memory);
+  __ st1(v4.B(), 8, bad_memory);
+  __ st1(v13.D(), 0, bad_memory);
+  __ st1(v30.D(), 0, bad_memory);
+  __ st1(v3.D(), 0, bad_memory);
+  __ st1(v22.H(), 0, bad_memory);
+  __ st1(v31.H(), 7, bad_memory);
+  __ st1(v23.H(), 3, bad_memory);
+  __ st1(v0.S(), 0, bad_memory);
+  __ st1(v11.S(), 3, bad_memory);
+  __ st1(v24.S(), 3, bad_memory);
+  __ st2(v7.V16B(), v8.V16B(), bad_memory);
+  __ st2(v5.V16B(), v6.V16B(), bad_memory);
+  __ st2(v18.V16B(), v19.V16B(), bad_memory);
+  __ st2(v14.V2D(), v15.V2D(), bad_memory);
+  __ st2(v7.V2D(), v8.V2D(), bad_memory);
+  __ st2(v24.V2D(), v25.V2D(), bad_memory);
+  __ st2(v22.V2S(), v23.V2S(), bad_memory);
+  __ st2(v4.V2S(), v5.V2S(), bad_memory);
+  __ st2(v2.V2S(), v3.V2S(), bad_memory);
+  __ st2(v23.V4H(), v24.V4H(), bad_memory);
+  __ st2(v8.V4H(), v9.V4H(), bad_memory);
+  __ st2(v7.V4H(), v8.V4H(), bad_memory);
+  __ st2(v17.V4S(), v18.V4S(), bad_memory);
+  __ st2(v6.V4S(), v7.V4S(), bad_memory);
+  __ st2(v26.V4S(), v27.V4S(), bad_memory);
+  __ st2(v31.V8B(), v0.V8B(), bad_memory);
+  __ st2(v0.V8B(), v1.V8B(), bad_memory);
+  __ st2(v21.V8B(), v22.V8B(), bad_memory);
+  __ st2(v7.V8H(), v8.V8H(), bad_memory);
+  __ st2(v22.V8H(), v23.V8H(), bad_memory);
+  __ st2(v4.V8H(), v5.V8H(), bad_memory);
+  __ st2(v8.B(), v9.B(), 15, bad_memory);
+  __ st2(v8.B(), v9.B(), 15, bad_memory);
+  __ st2(v7.B(), v8.B(), 4, bad_memory);
+  __ st2(v25.D(), v26.D(), 0, bad_memory);
+  __ st2(v17.D(), v18.D(), 1, bad_memory);
+  __ st2(v3.D(), v4.D(), 1, bad_memory);
+  __ st2(v4.H(), v5.H(), 3, bad_memory);
+  __ st2(v0.H(), v1.H(), 5, bad_memory);
+  __ st2(v22.H(), v23.H(), 2, bad_memory);
+  __ st2(v14.S(), v15.S(), 3, bad_memory);
+  __ st2(v23.S(), v24.S(), 3, bad_memory);
+  __ st2(v0.S(), v1.S(), 2, bad_memory);
+  __ st3(v26.V16B(), v27.V16B(), v28.V16B(), bad_memory);
+  __ st3(v21.V16B(), v22.V16B(), v23.V16B(), bad_memory);
+  __ st3(v24.V16B(), v25.V16B(), v26.V16B(), bad_memory);
+  __ st3(v17.V2D(), v18.V2D(), v19.V2D(), bad_memory);
+  __ st3(v23.V2D(), v24.V2D(), v25.V2D(), bad_memory);
+  __ st3(v10.V2D(), v11.V2D(), v12.V2D(), bad_memory);
+  __ st3(v9.V2S(), v10.V2S(), v11.V2S(), bad_memory);
+  __ st3(v13.V2S(), v14.V2S(), v15.V2S(), bad_memory);
+  __ st3(v22.V2S(), v23.V2S(), v24.V2S(), bad_memory);
+  __ st3(v31.V4H(), v0.V4H(), v1.V4H(), bad_memory);
+  __ st3(v8.V4H(), v9.V4H(), v10.V4H(), bad_memory);
+  __ st3(v19.V4H(), v20.V4H(), v21.V4H(), bad_memory);
+  __ st3(v18.V4S(), v19.V4S(), v20.V4S(), bad_memory);
+  __ st3(v25.V4S(), v26.V4S(), v27.V4S(), bad_memory);
+  __ st3(v16.V4S(), v17.V4S(), v18.V4S(), bad_memory);
+  __ st3(v27.V8B(), v28.V8B(), v29.V8B(), bad_memory);
+  __ st3(v29.V8B(), v30.V8B(), v31.V8B(), bad_memory);
+  __ st3(v30.V8B(), v31.V8B(), v0.V8B(), bad_memory);
+  __ st3(v8.V8H(), v9.V8H(), v10.V8H(), bad_memory);
+  __ st3(v18.V8H(), v19.V8H(), v20.V8H(), bad_memory);
+  __ st3(v18.V8H(), v19.V8H(), v20.V8H(), bad_memory);
+  __ st3(v31.B(), v0.B(), v1.B(), 10, bad_memory);
+  __ st3(v4.B(), v5.B(), v6.B(), 5, bad_memory);
+  __ st3(v5.B(), v6.B(), v7.B(), 1, bad_memory);
+  __ st3(v5.D(), v6.D(), v7.D(), 0, bad_memory);
+  __ st3(v6.D(), v7.D(), v8.D(), 0, bad_memory);
+  __ st3(v0.D(), v1.D(), v2.D(), 0, bad_memory);
+  __ st3(v31.H(), v0.H(), v1.H(), 2, bad_memory);
+  __ st3(v14.H(), v15.H(), v16.H(), 5, bad_memory);
+  __ st3(v21.H(), v22.H(), v23.H(), 6, bad_memory);
+  __ st3(v21.S(), v22.S(), v23.S(), 0, bad_memory);
+  __ st3(v11.S(), v12.S(), v13.S(), 1, bad_memory);
+  __ st3(v15.S(), v16.S(), v17.S(), 0, bad_memory);
+  __ st4(v22.V16B(), v23.V16B(), v24.V16B(), v25.V16B(), bad_memory);
+  __ st4(v24.V16B(), v25.V16B(), v26.V16B(), v27.V16B(), bad_memory);
+  __ st4(v15.V16B(), v16.V16B(), v17.V16B(), v18.V16B(), bad_memory);
+  __ st4(v16.V2D(), v17.V2D(), v18.V2D(), v19.V2D(), bad_memory);
+  __ st4(v17.V2D(), v18.V2D(), v19.V2D(), v20.V2D(), bad_memory);
+  __ st4(v9.V2D(), v10.V2D(), v11.V2D(), v12.V2D(), bad_memory);
+  __ st4(v23.V2S(), v24.V2S(), v25.V2S(), v26.V2S(), bad_memory);
+  __ st4(v15.V2S(), v16.V2S(), v17.V2S(), v18.V2S(), bad_memory);
+  __ st4(v24.V2S(), v25.V2S(), v26.V2S(), v27.V2S(), bad_memory);
+  __ st4(v14.V4H(), v15.V4H(), v16.V4H(), v17.V4H(), bad_memory);
+  __ st4(v18.V4H(), v19.V4H(), v20.V4H(), v21.V4H(), bad_memory);
+  __ st4(v1.V4H(), v2.V4H(), v3.V4H(), v4.V4H(), bad_memory);
+  __ st4(v13.V4S(), v14.V4S(), v15.V4S(), v16.V4S(), bad_memory);
+  __ st4(v6.V4S(), v7.V4S(), v8.V4S(), v9.V4S(), bad_memory);
+  __ st4(v15.V4S(), v16.V4S(), v17.V4S(), v18.V4S(), bad_memory);
+  __ st4(v26.V8B(), v27.V8B(), v28.V8B(), v29.V8B(), bad_memory);
+  __ st4(v25.V8B(), v26.V8B(), v27.V8B(), v28.V8B(), bad_memory);
+  __ st4(v19.V8B(), v20.V8B(), v21.V8B(), v22.V8B(), bad_memory);
+  __ st4(v19.V8H(), v20.V8H(), v21.V8H(), v22.V8H(), bad_memory);
+  __ st4(v15.V8H(), v16.V8H(), v17.V8H(), v18.V8H(), bad_memory);
+  __ st4(v31.V8H(), v0.V8H(), v1.V8H(), v2.V8H(), bad_memory);
+  __ st4(v0.B(), v1.B(), v2.B(), v3.B(), 13, bad_memory);
+  __ st4(v4.B(), v5.B(), v6.B(), v7.B(), 10, bad_memory);
+  __ st4(v9.B(), v10.B(), v11.B(), v12.B(), 9, bad_memory);
+  __ st4(v2.D(), v3.D(), v4.D(), v5.D(), 1, bad_memory);
+  __ st4(v7.D(), v8.D(), v9.D(), v10.D(), 0, bad_memory);
+  __ st4(v31.D(), v0.D(), v1.D(), v2.D(), 1, bad_memory);
+  __ st4(v2.H(), v3.H(), v4.H(), v5.H(), 1, bad_memory);
+  __ st4(v27.H(), v28.H(), v29.H(), v30.H(), 3, bad_memory);
+  __ st4(v24.H(), v25.H(), v26.H(), v27.H(), 4, bad_memory);
+  __ st4(v18.S(), v19.S(), v20.S(), v21.S(), 2, bad_memory);
+  __ st4(v6.S(), v7.S(), v8.S(), v9.S(), 2, bad_memory);
+  __ st4(v25.S(), v26.S(), v27.S(), v28.S(), 1, bad_memory);
+
+  END_IMPLICIT_CHECK();
+  TRY_RUN_IMPLICIT_CHECK();
+}
+
+TEST(ImplicitCheckSve) {
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE,
+                      CPUFeatures::kSVE2,
+                      CPUFeatures::kNEON);
+  START_IMPLICIT_CHECK();
+
+  SVEMemOperand bad_sve_memory = SVEMemOperand(ip0);
+
+  EmissionCheckScope guard(&masm, masm.GetBuffer()->GetRemainingBytes());
+  // Simple, unpredicated loads and stores.
+  __ Str(p12.VnD(), bad_sve_memory);
+  __ Str(p13.VnS(), bad_sve_memory);
+  __ Str(p14.VnH(), bad_sve_memory);
+  __ Str(p15.VnB(), bad_sve_memory);
+  __ Ldr(p8.VnD(), bad_sve_memory);
+  __ Ldr(p9.VnS(), bad_sve_memory);
+  __ Ldr(p10.VnH(), bad_sve_memory);
+  __ Ldr(p11.VnB(), bad_sve_memory);
+
+  __ Str(z0.VnD(), bad_sve_memory);
+  __ Str(z1.VnS(), bad_sve_memory);
+  __ Str(z2.VnH(), bad_sve_memory);
+  __ Str(z3.VnB(), bad_sve_memory);
+  __ Ldr(z20.VnD(), bad_sve_memory);
+  __ Ldr(z21.VnS(), bad_sve_memory);
+  __ Ldr(z22.VnH(), bad_sve_memory);
+  __ Ldr(z23.VnB(), bad_sve_memory);
+
+  // Structured accesses.
+  __ St1b(z0.VnB(), p2, bad_sve_memory);
+  __ St1h(z1.VnH(), p1, bad_sve_memory);
+  __ St1w(z2.VnS(), p1, bad_sve_memory);
+  __ St1d(z3.VnD(), p2, bad_sve_memory);
+  __ Ld1b(z20.VnB(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1h(z21.VnH(), p2.Zeroing(), bad_sve_memory);
+  __ Ld1w(z22.VnS(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1d(z23.VnD(), p1.Zeroing(), bad_sve_memory);
+
+  // Structured, packed accesses.
+  __ St1b(z2.VnH(), p1, bad_sve_memory);
+  __ St1b(z3.VnS(), p2, bad_sve_memory);
+  __ St1b(z4.VnD(), p2, bad_sve_memory);
+  __ St1h(z0.VnS(), p1, bad_sve_memory);
+  __ St1h(z1.VnD(), p1, bad_sve_memory);
+  __ St1w(z2.VnD(), p1, bad_sve_memory);
+  __ Ld1b(z20.VnH(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1b(z21.VnS(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1b(z22.VnD(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1h(z23.VnS(), p2.Zeroing(), bad_sve_memory);
+  __ Ld1h(z24.VnD(), p2.Zeroing(), bad_sve_memory);
+  __ Ld1w(z20.VnD(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1sb(z21.VnH(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1sb(z22.VnS(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1sb(z23.VnD(), p2.Zeroing(), bad_sve_memory);
+  __ Ld1sh(z24.VnS(), p2.Zeroing(), bad_sve_memory);
+  __ Ld1sh(z20.VnD(), p1.Zeroing(), bad_sve_memory);
+  __ Ld1sw(z21.VnD(), p1.Zeroing(), bad_sve_memory);
+
+  // Structured, interleaved accesses.
+  __ St2b(z0.VnB(), z1.VnB(), p4, bad_sve_memory);
+  __ St2h(z1.VnH(), z2.VnH(), p4, bad_sve_memory);
+  __ St2w(z2.VnS(), z3.VnS(), p3, bad_sve_memory);
+  __ St2d(z3.VnD(), z4.VnD(), p4, bad_sve_memory);
+  __ Ld2b(z20.VnB(), z21.VnB(), p5.Zeroing(), bad_sve_memory);
+  __ Ld2h(z21.VnH(), z22.VnH(), p6.Zeroing(), bad_sve_memory);
+  __ Ld2w(z22.VnS(), z23.VnS(), p6.Zeroing(), bad_sve_memory);
+  __ Ld2d(z23.VnD(), z24.VnD(), p5.Zeroing(), bad_sve_memory);
+
+  __ St3b(z4.VnB(), z5.VnB(), z6.VnB(), p4, bad_sve_memory);
+  __ St3h(z5.VnH(), z6.VnH(), z7.VnH(), p4, bad_sve_memory);
+  __ St3w(z6.VnS(), z7.VnS(), z8.VnS(), p3, bad_sve_memory);
+  __ St3d(z7.VnD(), z8.VnD(), z9.VnD(), p4, bad_sve_memory);
+  __ Ld3b(z24.VnB(), z25.VnB(), z26.VnB(), p5.Zeroing(), bad_sve_memory);
+  __ Ld3h(z25.VnH(), z26.VnH(), z27.VnH(), p6.Zeroing(), bad_sve_memory);
+  __ Ld3w(z26.VnS(), z27.VnS(), z28.VnS(), p6.Zeroing(), bad_sve_memory);
+  __ Ld3d(z27.VnD(), z28.VnD(), z29.VnD(), p5.Zeroing(), bad_sve_memory);
+
+  __ St4b(z31.VnB(), z0.VnB(), z1.VnB(), z2.VnB(), p4, bad_sve_memory);
+  __ St4h(z0.VnH(), z1.VnH(), z2.VnH(), z3.VnH(), p4, bad_sve_memory);
+  __ St4w(z1.VnS(), z2.VnS(), z3.VnS(), z4.VnS(), p3, bad_sve_memory);
+  __ St4d(z2.VnD(), z3.VnD(), z4.VnD(), z5.VnD(), p4, bad_sve_memory);
+  __ Ld4b(z25.VnB(),
+          z26.VnB(),
+          z27.VnB(),
+          z28.VnB(),
+          p5.Zeroing(),
+          bad_sve_memory);
+  __ Ld4h(z26.VnH(),
+          z27.VnH(),
+          z28.VnH(),
+          z29.VnH(),
+          p6.Zeroing(),
+          bad_sve_memory);
+  __ Ld4w(z27.VnS(),
+          z28.VnS(),
+          z29.VnS(),
+          z30.VnS(),
+          p6.Zeroing(),
+          bad_sve_memory);
+  __ Ld4d(z28.VnD(),
+          z29.VnD(),
+          z30.VnD(),
+          z31.VnD(),
+          p5.Zeroing(),
+          bad_sve_memory);
+
+  END_IMPLICIT_CHECK();
+  TRY_RUN_IMPLICIT_CHECK();
+}
+
+TEST(ImplicitCheckAtomics) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kAtomics);
+  START_IMPLICIT_CHECK();
+
+  EmissionCheckScope guard(&masm, masm.GetBuffer()->GetRemainingBytes());
+#define INST_LIST(OP)                 \
+  __ Ld##OP##b(w0, w0, bad_memory);   \
+  __ Ld##OP##ab(w0, w1, bad_memory);  \
+  __ Ld##OP##lb(w0, w2, bad_memory);  \
+  __ Ld##OP##alb(w0, w3, bad_memory); \
+  __ Ld##OP##h(w0, w0, bad_memory);   \
+  __ Ld##OP##ah(w0, w1, bad_memory);  \
+  __ Ld##OP##lh(w0, w2, bad_memory);  \
+  __ Ld##OP##alh(w0, w3, bad_memory); \
+  __ Ld##OP(w0, w0, bad_memory);      \
+  __ Ld##OP##a(w0, w1, bad_memory);   \
+  __ Ld##OP##l(w0, w2, bad_memory);   \
+  __ Ld##OP##al(w0, w3, bad_memory);  \
+  __ Ld##OP(x0, x0, bad_memory);      \
+  __ Ld##OP##a(x0, x1, bad_memory);   \
+  __ Ld##OP##l(x0, x2, bad_memory);   \
+  __ Ld##OP##al(x0, x3, bad_memory);  \
+  __ St##OP##b(w0, bad_memory);       \
+  __ St##OP##lb(w0, bad_memory);      \
+  __ St##OP##h(w0, bad_memory);       \
+  __ St##OP##lh(w0, bad_memory);      \
+  __ St##OP(w0, bad_memory);          \
+  __ St##OP##l(w0, bad_memory);       \
+  __ St##OP(x0, bad_memory);          \
+  __ St##OP##l(x0, bad_memory);
+
+  INST_LIST(add);
+  INST_LIST(set);
+  INST_LIST(eor);
+  INST_LIST(smin);
+  INST_LIST(smax);
+  INST_LIST(umin);
+  INST_LIST(umax);
+  INST_LIST(clr);
+
+#undef INST_LIST
+
+  END_IMPLICIT_CHECK();
+  TRY_RUN_IMPLICIT_CHECK();
+}
+
+TEST(ImplicitCheckMops) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kMOPS);
+  START_IMPLICIT_CHECK();
+
+  EmissionCheckScope guard(&masm, masm.GetBuffer()->GetRemainingBytes());
+  __ Set(x15, ip1, ip0);
+  __ Setn(x15, ip1, ip0);
+  __ Setg(x15, ip1, ip0);
+  __ Setgn(x15, ip1, ip0);
+
+  __ Cpy(x15, ip0, ip1);
+  __ Cpyn(x15, ip0, ip1);
+  __ Cpyrn(x15, ip0, ip1);
+  __ Cpywn(x15, ip0, ip1);
+  __ Cpyf(x15, ip0, ip1);
+  __ Cpyfn(x15, ip0, ip1);
+  __ Cpyfrn(x15, ip0, ip1);
+  __ Cpyfwn(x15, ip0, ip1);
+
+  // The macro-assembler expands each instruction into prologue, main and
+  // epilogue instructions where only the main instruction will fail. Increase
+  // the counter to account for those additional instructions and the following
+  // instructions.
+  __ Mov(x0, 3);
+  __ Mul(x1, x1, x0);
+  __ Add(x1, x1, x0);
+
+  END_IMPLICIT_CHECK();
+  TRY_RUN_IMPLICIT_CHECK();
+}
+#endif  // VIXL_ENABLE_IMPLICIT_CHECKS
+
 #undef __
 #define __ masm->
 
@@ -5141,85 +6026,6 @@ TEST(RunFrom) {
   VIXL_CHECK(res_double == 6.0);
 }
 
-#if defined(VIXL_ENABLE_IMPLICIT_CHECKS) && defined(__x86_64__)
-#include <signal.h>
-#include <ucontext.h>
-
-// Generate a function that creates a segfault by loading from an invalid
-// address.
-Instruction* GenerateSegFault(MacroAssembler* masm, Label* start, Label* end) {
-  masm->Reset();
-
-  // Reset the counter.
-  __ Mov(x1, 0);
-
-  // Perform a series of invalid memory reads.
-  __ Bind(start);
-  __ Ldrb(w0, MemOperand());
-  __ Ldrh(w0, MemOperand());
-  __ Ldr(w0, MemOperand());
-  __ Ldr(x0, MemOperand());
-  __ Ldr(q0, MemOperand());
-  __ Ld1(v0.D(), MemOperand());
-  __ Ld2(v0.D(), v1.D(), MemOperand());
-  __ Ld3(v0.D(), v1.D(), v2.D(), MemOperand());
-  __ Ld4(v0.D(), v1.D(), v2.D(), v3.D(), MemOperand());
-  __ Ld1r(v0.D(), MemOperand());
-  __ Ld2r(v0.D(), v1.D(), MemOperand());
-  __ Ld3r(v0.D(), v1.D(), v2.D(), MemOperand());
-  __ Ld4r(v0.D(), v1.D(), v2.D(), v3.D(), MemOperand());
-  __ Bind(end);
-
-  // Return the counter.
-  __ Mov(x0, x1);
-  __ Ret();
-
-  masm->FinalizeCode();
-  return masm->GetBuffer()->GetStartAddress<Instruction*>();
-}
-
-Simulator* gImplicitCheckSim;
-
-void HandleSegFault(int sig, siginfo_t* info, void* context) {
-  USE(sig);
-  USE(info);
-  Simulator* sim = gImplicitCheckSim;
-
-  // Did the signal come from the simulator?
-  ucontext_t* uc = reinterpret_cast<ucontext_t*>(context);
-  uintptr_t fault_pc = uc->uc_mcontext.gregs[REG_RIP];
-  VIXL_CHECK(sim->IsSimulatedMemoryAccess(fault_pc));
-
-  // Increment the counter (x1) each time we handle a signal.
-  int64_t counter = reinterpret_cast<int64_t>(sim->ReadXRegister(1));
-  sim->WriteXRegister(1, ++counter);
-
-  // Return to the VIXL memory access continuation point, which is also the
-  // next instruction, after this handler.
-  uc->uc_mcontext.gregs[REG_RIP] = sim->GetSignalReturnAddress();
-  // Return that the memory read failed.
-  uc->uc_mcontext.gregs[REG_RAX] =
-      static_cast<greg_t>(MemoryReadResult::Failure);
-}
-
-TEST(ImplicitCheck) {
-  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
-
-  gImplicitCheckSim = &simulator;
-  struct sigaction sa;
-  sa.sa_sigaction = HandleSegFault;
-  sigaction(SIGSEGV, &sa, NULL);
-
-  // Check that each load/store instruction generated a segfault that was
-  // raised and dealt with.
-  Label start, end;
-  size_t result =
-      simulator.RunFrom<int64_t>(GenerateSegFault(&masm, &start, &end));
-  size_t num_of_faulting_instr = masm.GetSizeOfCodeGeneratedSince(&start) -
-                                 masm.GetSizeOfCodeGeneratedSince(&end);
-  VIXL_CHECK((result * kInstructionSize) == num_of_faulting_instr);
-}
-#endif  // __x86_64__
 #endif
 
 
