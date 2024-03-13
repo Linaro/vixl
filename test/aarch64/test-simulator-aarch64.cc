@@ -5147,18 +5147,28 @@ TEST(RunFrom) {
 
 // Generate a function that creates a segfault by loading from an invalid
 // address.
-Instruction* GenerateSegFault(MacroAssembler* masm) {
+Instruction* GenerateSegFault(MacroAssembler* masm, Label* start, Label* end) {
   masm->Reset();
 
   // Reset the counter.
   __ Mov(x1, 0);
 
   // Perform a series of invalid memory reads.
+  __ Bind(start);
   __ Ldrb(w0, MemOperand());
   __ Ldrh(w0, MemOperand());
   __ Ldr(w0, MemOperand());
   __ Ldr(x0, MemOperand());
   __ Ldr(q0, MemOperand());
+  __ Ld1(v0.D(), MemOperand());
+  __ Ld2(v0.D(), v1.D(), MemOperand());
+  __ Ld3(v0.D(), v1.D(), v2.D(), MemOperand());
+  __ Ld4(v0.D(), v1.D(), v2.D(), v3.D(), MemOperand());
+  __ Ld1r(v0.D(), MemOperand());
+  __ Ld2r(v0.D(), v1.D(), MemOperand());
+  __ Ld3r(v0.D(), v1.D(), v2.D(), MemOperand());
+  __ Ld4r(v0.D(), v1.D(), v2.D(), v3.D(), MemOperand());
+  __ Bind(end);
 
   // Return the counter.
   __ Mov(x0, x1);
@@ -5200,9 +5210,14 @@ TEST(ImplicitCheck) {
   sa.sa_sigaction = HandleSegFault;
   sigaction(SIGSEGV, &sa, NULL);
 
-  // Check that 5 segfaults were raised and dealt with.
-  int64_t result = simulator.RunFrom<int64_t>(GenerateSegFault(&masm));
-  VIXL_CHECK(result == 5);
+  // Check that each load/store instruction generated a segfault that was
+  // raised and dealt with.
+  Label start, end;
+  size_t result =
+      simulator.RunFrom<int64_t>(GenerateSegFault(&masm, &start, &end));
+  size_t num_of_faulting_instr = masm.GetSizeOfCodeGeneratedSince(&start) -
+                                 masm.GetSizeOfCodeGeneratedSince(&end);
+  VIXL_CHECK((result * kInstructionSize) == num_of_faulting_instr);
 }
 #endif  // __x86_64__
 #endif
