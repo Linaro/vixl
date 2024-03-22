@@ -569,11 +569,11 @@ TEST_SVE(sve_last_r) {
         ASSERT_EQUAL_64(0x1111111111111111, x20);
         ASSERT_EQUAL_64(0x1111111111111110, x21);
         break;
-      case 384:
-        ASSERT_EQUAL_64(0x000000000000003f, x2);
+      case 512:
+        ASSERT_EQUAL_64(0x000000000000004f, x2);
         ASSERT_EQUAL_64(0x0000000000001118, x10);
-        ASSERT_EQUAL_64(0x000000001111111b, x13);
-        ASSERT_EQUAL_64(0x000000001111111b, x18);
+        ASSERT_EQUAL_64(0x000000001111111f, x13);
+        ASSERT_EQUAL_64(0x000000001111111f, x18);
         ASSERT_EQUAL_64(0x1111111111111112, x20);
         ASSERT_EQUAL_64(0x1111111111111113, x21);
         break;
@@ -653,11 +653,11 @@ TEST_SVE(sve_last_v) {
         ASSERT_EQUAL_128(0, 0x1111111111111111, q20);
         ASSERT_EQUAL_128(0, 0x1111111111111110, q21);
         break;
-      case 384:
-        ASSERT_EQUAL_128(0, 0x000000000000003f, q2);
+      case 512:
+        ASSERT_EQUAL_128(0, 0x000000000000004f, q2);
         ASSERT_EQUAL_128(0, 0x0000000000001118, q10);
-        ASSERT_EQUAL_128(0, 0x000000001111111b, q13);
-        ASSERT_EQUAL_128(0, 0x000000001111111b, q18);
+        ASSERT_EQUAL_128(0, 0x000000001111111f, q13);
+        ASSERT_EQUAL_128(0, 0x000000001111111f, q18);
         ASSERT_EQUAL_128(0, 0x1111111111111112, q20);
         ASSERT_EQUAL_128(0, 0x1111111111111113, q21);
         break;
@@ -741,7 +741,7 @@ TEST_SVE(sve_clast_r) {
       case 128:
         ASSERT_EQUAL_64(0x0000000000001116, x10);
         break;
-      case 384:
+      case 512:
         ASSERT_EQUAL_64(0x0000000000001118, x10);
         break;
       case 2048:
@@ -819,7 +819,7 @@ TEST_SVE(sve_clast_v) {
       case 128:
         ASSERT_EQUAL_128(0, 0x0000000000001116, q10);
         break;
-      case 384:
+      case 512:
         ASSERT_EQUAL_128(0, 0x0000000000001118, q10);
         break;
       case 2048:
@@ -916,7 +916,7 @@ TEST_SVE(sve_clast_z) {
       case 128:
         ASSERT_EQUAL_SVE(z10_expected_vl128, z10.VnD());
         break;
-      case 384:
+      case 512:
       case 2048:
         ASSERT_EQUAL_SVE(z10_expected_vl_long, z10.VnD());
         break;
@@ -20709,74 +20709,56 @@ void Test_sve_fmatmul(Test* config) {
   if (CAN_RUN()) {
     RUN();
 
-    int vl = core.GetSVELaneCount(kBRegSize) * 8;
-    if (vl >= 256) {
+    int vl = core.GetSVELaneCount(kDRegSize);
+    if (vl >= 4) {  // VL256 or longer.
       ASSERT_EQUAL_SVE(z1, z2);
       ASSERT_EQUAL_SVE(z4, z5);
 
-      switch (vl) {
-        case 256:
-        case 384: {
-          // All results are 4.0 (1 * 1 + 2). Results for elements beyond a VL
-          // that's a multiple of 256 bits should be zero.
-          uint64_t z1_expected[] = {0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x4010000000000000,
-                                    0x4010000000000000,
-                                    0x4010000000000000,
-                                    0x4010000000000000};
-          ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
+      // All results are 4.0:
+      //    z0   z0      z1
+      //  (1 1)(1 1) + (2 2) = (4 4)
+      //  (1 1)(1 1)   (2 2)   (4 4)
+      uint64_t z1_expected[] =
+          {0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
+           0x4010000000000000, 0x4010000000000000};
+      ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
 
-          uint64_t z4_expected[] = {0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x4018000000000000,   // 6.0
-                                    0x4022000000000000,   // 9.0
-                                    0x4018000000000000,   // 6.0
-                                    0x4054400000000000};  // 81.0
-          ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
-          break;
-        }
-        case 2048: {
-          uint64_t z1_expected[] =
-              {0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000, 0x4010000000000000,
-               0x4010000000000000, 0x4010000000000000};
-          ASSERT_EQUAL_SVE(z1_expected, z1.VnD());
-
-          uint64_t z4_expected[] = {
-              0x40cb690000000000, 0x40c9728000000000, 0x40c9710000000000,
-              0x40c79e8000000000, 0x40c41f0000000000, 0x40c2708000000000,
-              0x40c26f0000000000, 0x40c0e48000000000, 0x40bbea0000000000,
-              0x40b91d0000000000, 0x40b91a0000000000, 0x40b6950000000000,
-              0x40b1d60000000000, 0x40af320000000000, 0x40af2c0000000000,
-              0x40ab420000000000, 0x40a4040000000000, 0x40a0aa0000000000,
-              0x40a0a40000000000, 0x409bb40000000000, 0x4091b80000000000,
-              0x408a880000000000, 0x408a700000000000, 0x4083c80000000000,
-              0x4071a00000000000, 0x4061a00000000000, 0x4061400000000000,
-              0x4051400000000000, 0x4018000000000000, 0x4022000000000000,
-              0x4018000000000000, 0x4054400000000000,
-          };
-          ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
-          break;
-        }
-        default:
-          printf("WARNING: Some tests skipped due to unexpected VL.\n");
-          break;
-      }
+      // First (highest z4_expected index) multiplications are:
+      //    z4     z4        z4
+      // (-8 -5)(-8 -2) + (-8 -5) = (81 6)
+      // (-2  1)(-5  1)   (-2  1)   ( 9 6)
+      //
+      // ( 4  7)( 4 10) + ( 4  7) = ( 69 138)
+      // (10 13)( 7 13)   (10 13)   (141 282)
+      uint64_t z4_expected[] = {
+          0x40cb690000000000, 0x40c9728000000000, 0x40c9710000000000,
+          0x40c79e8000000000, 0x40c41f0000000000, 0x40c2708000000000,
+          0x40c26f0000000000, 0x40c0e48000000000, 0x40bbea0000000000,
+          0x40b91d0000000000, 0x40b91a0000000000, 0x40b6950000000000,
+          0x40b1d60000000000, 0x40af320000000000, 0x40af2c0000000000,
+          0x40ab420000000000, 0x40a4040000000000, 0x40a0aa0000000000,
+          0x40a0a40000000000, 0x409bb40000000000, 0x4091b80000000000,
+          0x408a880000000000, 0x408a700000000000, 0x4083c80000000000,
+          0x4071a00000000000, 0x4061a00000000000, 0x4061400000000000,
+          0x4051400000000000, 0x4018000000000000, 0x4022000000000000,
+          0x4018000000000000, 0x4054400000000000,
+      };
+      ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
     }
   }
 }
 Test* test_sve_fmatmul_list[] =
     {Test::MakeSVETest(256, "AARCH64_ASM_sve_fmatmul_vl256", &Test_sve_fmatmul),
-     Test::MakeSVETest(384, "AARCH64_ASM_sve_fmatmul_vl384", &Test_sve_fmatmul),
+     Test::MakeSVETest(512, "AARCH64_ASM_sve_fmatmul_vl512", &Test_sve_fmatmul),
      Test::MakeSVETest(2048,
                        "AARCH64_ASM_sve_fmatmul_vl2048",
                        &Test_sve_fmatmul)};
@@ -20856,57 +20838,15 @@ void Test_sve_ld1ro(Test* config) {
       ASSERT_EQUAL_SVE(z4, z5);
       ASSERT_EQUAL_SVE(z6, z7);
 
-      switch (vl) {
-        case 256:
-        case 2048: {
-          // Check the result of the rotate/eor sequence.
-          uint64_t expected_z9[] = {0, 0};
-          ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
-          break;
-        }
-        case 384: {
-          // For non-multiple-of-256 VL, the top 128-bits must be zero, which
-          // breaks the rotate/eor sequence. Check the results explicitly.
-          uint64_t z0_expected[] = {0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x000d000b00090007};
-          uint64_t z2_expected[] = {0x0000000000000000,
-                                    0x0000000000000000,
-                                    0x868584838281807f,
-                                    0x7e7d7c7b7a797877,
-                                    0x767574737271706f,
-                                    0x6e6d6c6b6a696867};
-          uint64_t z4_expected[] = {0x0000000000000000,
-                                    0x0000000000000000,
-                                    0xe6e5e4e3e2e1e0df,
-                                    0xdedddcdbdad9d8d7,
-                                    0xd6d5d4d3d2d1d0cf,
-                                    0xcecdcccbcac9c8c7};
-          uint64_t z6_expected[] = {0x0000000000000000,
-                                    0x0000000000000000,
-                                    0xc6c5c4c3c2c1c0bf,
-                                    0xbebdbcbbbab9b8b7,
-                                    0xb6b5b4b3b2b1b0af,
-                                    0xaeadacabaaa9a8a7};
-          ASSERT_EQUAL_SVE(z0_expected, z0.VnD());
-          ASSERT_EQUAL_SVE(z2_expected, z2.VnD());
-          ASSERT_EQUAL_SVE(z4_expected, z4.VnD());
-          ASSERT_EQUAL_SVE(z6_expected, z6.VnD());
-          break;
-        }
-        default:
-          printf("WARNING: Some tests skipped due to unexpected VL.\n");
-          break;
-      }
+      // Check the result of the rotate/eor sequence.
+      uint64_t expected_z9[] = {0, 0};
+      ASSERT_EQUAL_SVE(expected_z9, z9.VnD());
     }
   }
 }
 Test* test_sve_ld1ro_list[] =
     {Test::MakeSVETest(256, "AARCH64_ASM_sve_ld1ro_vl256", &Test_sve_ld1ro),
-     Test::MakeSVETest(384, "AARCH64_ASM_sve_ld1ro_vl384", &Test_sve_ld1ro),
+     Test::MakeSVETest(512, "AARCH64_ASM_sve_ld1ro_vl512", &Test_sve_ld1ro),
      Test::MakeSVETest(2048, "AARCH64_ASM_sve_ld1ro_vl2048", &Test_sve_ld1ro)};
 #endif
 

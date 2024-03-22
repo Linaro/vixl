@@ -3027,7 +3027,7 @@ static void TraceTestHelper(bool coloured_trace,
   simulator.SetTraceParameters(trace_parameters);
   simulator.SilenceExclusiveAccessWarning();
 
-  const int vl_in_bytes = 5 * kZRegMinSizeInBytes;
+  const int vl_in_bytes = 4 * kZRegMinSizeInBytes;
   const int vl_in_bits = vl_in_bytes * kBitsPerByte;
   const int pl_in_bits = vl_in_bits / kZRegBitsPerPRegBit;
   simulator.SetVectorLengthInBits(vl_in_bits);

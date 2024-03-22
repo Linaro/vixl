@@ -7853,16 +7853,26 @@ LogicVRegister Simulator::matmul(VectorFormat vform_dst,
 //
 // Are stored in the input vector registers as:
 //
-//           3   2   1   0
-//  src1 = [ d | c | b | a ]
-//  src2 = [ D | B | C | A ]
+//             3   2   1   0
+//    src1 = [ d | c | b | a ]
+//    src2 = [ D | B | C | A ]  nb. transposition
 //
+// Giving:
+//             3   2   1   0
+//  result = [ w | z | y | x ]
+//
+// Where:
+//
+//       x = (a * A) + (b * C) + a
+//       y = (a * B) + (b * D) + b
+//       z = (c * A) + (d * C) + c
+//       w = (c * B) + (d * D) + d
 template <typename T>
 LogicVRegister Simulator::fmatmul(VectorFormat vform,
                                   LogicVRegister srcdst,
                                   const LogicVRegister& src1,
                                   const LogicVRegister& src2) {
-  T result[kZRegMaxSizeInBytes / sizeof(T)];
+  T result[kZRegMaxSizeInBytes / sizeof(T)] = {};
   int T_per_segment = 4;
   int segment_count = GetVectorLengthInBytes() / (T_per_segment * sizeof(T));
   for (int seg = 0; seg < segment_count; seg++) {
@@ -7879,12 +7889,9 @@ LogicVRegister Simulator::fmatmul(VectorFormat vform,
     }
   }
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
-    // Elements outside a multiple of 4T are set to zero. This happens only
-    // for double precision operations, when the VL is a multiple of 128 bits,
-    // but not a multiple of 256 bits.
-    T value = (i < (T_per_segment * segment_count)) ? result[i] : 0;
-    srcdst.SetFloat<T>(vform, i, value);
+    srcdst.SetFloat<T>(vform, i, result[i]);
   }
+
   return srcdst;
 }
 

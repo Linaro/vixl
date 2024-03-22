@@ -704,7 +704,7 @@ void Simulator::ResetState() {
 void Simulator::SetVectorLengthInBits(unsigned vector_length) {
   VIXL_ASSERT((vector_length >= kZRegMinSize) &&
               (vector_length <= kZRegMaxSize));
-  VIXL_ASSERT((vector_length % kZRegMinSize) == 0);
+  VIXL_ASSERT(IsPowerOf2(vector_length));
   vector_length_ = vector_length;
 
   for (unsigned i = 0; i < kNumberOfZRegisters; i++) {
@@ -13682,8 +13682,10 @@ void Simulator::SimulateSVEFPMatrixMul(const Instruction* instr) {
   SimVRegister& zm = ReadVRegister(instr->GetRm());
 
   switch (form_hash_) {
-    case "fmmla_z_zzz_s"_h:
     case "fmmla_z_zzz_d"_h:
+      if (GetVectorLengthInBits() < 256) VisitUnimplemented(instr);
+      VIXL_FALLTHROUGH();
+    case "fmmla_z_zzz_s"_h:
       fmatmul(vform, zdn, zn, zm);
       break;
     default:

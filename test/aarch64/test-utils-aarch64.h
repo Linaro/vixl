@@ -618,9 +618,9 @@ void ComputeMachineStateHash(MacroAssembler* masm, uint32_t* dst);
                                                   "AARCH64_" type "_" #name \
                                                   "_vl128",                 \
                                                   &Test##name),             \
-                                Test::MakeSVETest(384,                      \
+                                Test::MakeSVETest(512,                      \
                                                   "AARCH64_" type "_" #name \
-                                                  "_vl384",                 \
+                                                  "_vl512",                 \
                                                   &Test##name),             \
                                 Test::MakeSVETest(2048,                     \
                                                   "AARCH64_" type "_" #name \
