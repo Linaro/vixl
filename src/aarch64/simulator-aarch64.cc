@@ -8430,7 +8430,9 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       break;
     case NEON_LD2_post:
     case NEON_LD2:
-      ld2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0]);
+      if (!ld2(vf, ReadVRegister(reg[0]), ReadVRegister(reg[1]), addr[0])) {
+        return;
+      }
       struct_parts = 2;
       reg_count = 2;
       break;
@@ -8443,11 +8445,13 @@ void Simulator::NEONLoadStoreMultiStructHelper(const Instruction* instr,
       break;
     case NEON_LD3_post:
     case NEON_LD3:
-      ld3(vf,
-          ReadVRegister(reg[0]),
-          ReadVRegister(reg[1]),
-          ReadVRegister(reg[2]),
-          addr[0]);
+      if (!ld3(vf,
+               ReadVRegister(reg[0]),
+               ReadVRegister(reg[1]),
+               ReadVRegister(reg[2]),
+               addr[0])) {
+        return;
+      }
       struct_parts = 3;
       reg_count = 3;
       break;
@@ -12222,7 +12226,7 @@ void Simulator::VisitSVELoadAndBroadcastElement(const Instruction* instr) {
   VectorFormat unpack_vform =
       SVEFormatFromLaneSizeInBytesLog2(msize_in_bytes_log2);
   SimVRegister temp;
-  ld1r(vform, unpack_vform, temp, base, is_signed);
+  if (!ld1r(vform, unpack_vform, temp, base, is_signed)) return;
   mov_zeroing(vform,
               ReadVRegister(instr->GetRt()),
               ReadPRegister(instr->GetPgLow8()),
@@ -12648,7 +12652,7 @@ void Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusImm(
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
 
   for (unsigned i = 0; i < dwords; i++) {
-    ld1(kFormatVnD, zt, i, addr + offset + (i * kDRegSizeInBytes));
+    if (!ld1(kFormatVnD, zt, i, addr + offset + (i * kDRegSizeInBytes))) return;
   }
   mov_zeroing(vform, zt, pg, zt);
   dup_element(vform_dst, zt, zt, 0);
@@ -12675,7 +12679,7 @@ void Simulator::VisitSVELoadAndBroadcastQOWord_ScalarPlusScalar(
   VectorFormat vform = SVEFormatFromLaneSizeInBytesLog2(msz);
   offset <<= msz;
   for (unsigned i = 0; i < bytes; i++) {
-    ld1(kFormatVnB, zt, i, addr + offset + i);
+    if (!ld1(kFormatVnB, zt, i, addr + offset + i)) return;
   }
   mov_zeroing(vform, zt, pg, zt);
   dup_element(vform_dst, zt, zt, 0);
