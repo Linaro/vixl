@@ -198,6 +198,7 @@ bool Simulator::ld1(VectorFormat vform,
                     LogicVRegister dst,
                     int index,
                     uint64_t addr) {
+  dst.ClearForWrite(vform);
   return LoadLane(dst, vform, index, addr);
 }
 
@@ -2275,7 +2276,10 @@ LogicVRegister Simulator::extractnarrow(VectorFormat dstform,
     }
   }
 
-  if (!upperhalf) {
+  if (upperhalf) {
+    // Clear any bits beyond a Q register.
+    dst.ClearForWrite(kFormat16B);
+  } else {
     dst.ClearForWrite(dstform);
   }
   return dst;
@@ -2725,7 +2729,7 @@ LogicVRegister Simulator::fcmla(VectorFormat vform,
                                 int index,
                                 int rot) {
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
-    VIXL_UNIMPLEMENTED();
+    fcmla<SimFloat16>(vform, dst, src1, src2, dst, index, rot);
   } else if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     fcmla<float>(vform, dst, src1, src2, dst, index, rot);
   } else {
@@ -5981,6 +5985,7 @@ LogicVRegister Simulator::fcvtu(VectorFormat vform,
 LogicVRegister Simulator::fcvtl(VectorFormat vform,
                                 LogicVRegister dst,
                                 const LogicVRegister& src) {
+  dst.ClearForWrite(vform);
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = LaneCountFromFormat(vform) - 1; i >= 0; i--) {
       // TODO: Full support for SimFloat16 in SimRegister(s).
@@ -6001,6 +6006,7 @@ LogicVRegister Simulator::fcvtl(VectorFormat vform,
 LogicVRegister Simulator::fcvtl2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
+  dst.ClearForWrite(vform);
   int lane_count = LaneCountFromFormat(vform);
   if (LaneSizeInBitsFromFormat(vform) == kSRegSize) {
     for (int i = 0; i < lane_count; i++) {
@@ -6046,6 +6052,7 @@ LogicVRegister Simulator::fcvtn(VectorFormat vform,
 LogicVRegister Simulator::fcvtn2(VectorFormat vform,
                                  LogicVRegister dst,
                                  const LogicVRegister& src) {
+  dst.ClearForWrite(vform);
   int lane_count = LaneCountFromFormat(vform) / 2;
   if (LaneSizeInBitsFromFormat(vform) == kHRegSize) {
     for (int i = lane_count - 1; i >= 0; i--) {
@@ -6089,6 +6096,7 @@ LogicVRegister Simulator::fcvtxn2(VectorFormat vform,
                                   LogicVRegister dst,
                                   const LogicVRegister& src) {
   VIXL_ASSERT(LaneSizeInBitsFromFormat(vform) == kSRegSize);
+  dst.ClearForWrite(vform);
   int lane_count = LaneCountFromFormat(vform) / 2;
   for (int i = lane_count - 1; i >= 0; i--) {
     dst.SetFloat(i + lane_count,
