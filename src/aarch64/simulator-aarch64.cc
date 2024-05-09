@@ -8320,8 +8320,10 @@ void Simulator::VisitNEONCopy(const Instruction* instr) {
   if (instr->Mask(NEONCopyInsElementMask) == NEON_INS_ELEMENT) {
     int imm4 = instr->GetImmNEON4();
     int rn_index = ExtractSignedBitfield32(31, tz, imm4);
+    mov(kFormat16B, rd, rd);  // Zero bits beyond the MSB of a Q register.
     ins_element(vf, rd, reg_index, rn, rn_index);
   } else if (instr->Mask(NEONCopyInsGeneralMask) == NEON_INS_GENERAL) {
+    mov(kFormat16B, rd, rd);  // Zero bits beyond the MSB of a Q register.
     ins_immediate(vf, rd, reg_index, ReadXRegister(instr->GetRn()));
   } else if (instr->Mask(NEONCopyUmovMask) == NEON_UMOV) {
     uint64_t value = LogicVRegister(rn).Uint(vf, reg_index);
