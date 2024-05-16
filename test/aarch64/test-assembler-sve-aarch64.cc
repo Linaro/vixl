@@ -19729,6 +19729,26 @@ TEST_SVE(sudot_usdot) {
   }
 }
 
+TEST_SVE(neon_ins_zero_high_regression_test) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kSVE);
+
+  START();
+  __ Movi(v0.V2D(), 0x0f0e0d0c0b0a0908, 0x0706050403020100);
+
+  // Check that both forms of ins zero bits <VL-1:128>
+  __ Index(z1.VnB(), 0, 1);
+  __ Ins(v1.V16B(), 0, wzr);
+  __ Index(z2.VnB(), 0, 1);
+  __ Ins(v2.V16B(), 3, v2.V16B(), 3);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z0, z1);
+    ASSERT_EQUAL_SVE(z0, z2);
+  }
+}
+
 TEST_SVE(sve_load_store_sp_base_regression_test) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();
