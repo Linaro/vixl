@@ -1792,6 +1792,34 @@ TEST(neon_3same) {
   COMPARE_MACRO(Pmul(v6.V16B(), v7.V16B(), v8.V16B()),
                 "pmul v6.16b, v7.16b, v8.16b");
 
+  // Check unallocated vector types for SDOT.
+  COMPARE(dci(0x0e009400), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x4e009400), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x0e409400), "unallocated (Unallocated)");  // 4H
+  COMPARE(dci(0x4e409400), "unallocated (Unallocated)");  // 8H
+  COMPARE(dci(0x0ec09400), "unallocated (Unallocated)");  // 1D
+  COMPARE(dci(0x4ec09400), "unallocated (Unallocated)");  // 2D
+
+  // Check unallocated vector types for UDOT.
+  COMPARE(dci(0x2e009400), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x6e009400), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x2e409400), "unallocated (Unallocated)");  // 4H
+  COMPARE(dci(0x6e409400), "unallocated (Unallocated)");  // 8H
+  COMPARE(dci(0x2ec09400), "unallocated (Unallocated)");  // 1D
+  COMPARE(dci(0x6ec09400), "unallocated (Unallocated)");  // 2D
+
+  // Check unallocated vector types for SQRDMLAH.
+  COMPARE(dci(0x2e008400), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x6e008400), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x2ec08400), "unallocated (Unallocated)");  // 1D
+  COMPARE(dci(0x6ec08400), "unallocated (Unallocated)");  // 2D
+
+  // Check unallocated vector types for SQRDMLSH.
+  COMPARE(dci(0x2e008c00), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x6e008c00), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x2ec08c00), "unallocated (Unallocated)");  // 1D
+  COMPARE(dci(0x6ec08c00), "unallocated (Unallocated)");  // 2D
+
   CLEANUP();
 }
 
@@ -1923,6 +1951,16 @@ TEST(neon_3same_extra_fcadd) {
   // FC* instructions.
   COMPARE(dci(0x2e00ec00), "unallocated (Unallocated)");  // opcode = 0x1101
   COMPARE(dci(0x2e00fc00), "unallocated (Unallocated)");  // opcode = 0x1111
+
+  // Check unallocated vector types for FCADD.
+  COMPARE(dci(0x2e00e400), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x6e00e400), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x2ec0e400), "unallocated (Unallocated)");  // 1D
+
+  // Check unallocated vector types for FCMLA.
+  COMPARE(dci(0x2e00c400), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x6e00c400), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x2ec0c400), "unallocated (Unallocated)");  // 1D
 
   CLEANUP();
 }
@@ -2593,6 +2631,13 @@ TEST(neon_fp_byelement) {
                 "fcmla v0.8h, v1.8h, v2.h[3], #0");
   COMPARE_MACRO(Fcmla(v0.V8H(), v1.V8H(), v31.H(), 3, 0),
                 "fcmla v0.8h, v1.8h, v31.h[3], #0");
+
+  // Check unallocated vector types for FCMLA.
+  COMPARE(dci(0x2f001000), "unallocated (Unallocated)");  // 8B
+  COMPARE(dci(0x6f001000), "unallocated (Unallocated)");  // 16B
+  COMPARE(dci(0x2f801000), "unallocated (Unallocated)");  // 2S
+  COMPARE(dci(0x2fc01000), "unallocated (Unallocated)");  // 1D
+  COMPARE(dci(0x6fc01000), "unallocated (Unallocated)");  // 2D
 
   CLEANUP();
 }
