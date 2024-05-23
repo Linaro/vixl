@@ -89,7 +89,7 @@ def GetCompilerDirectives(env):
     match.group(1): match.group(2)
     for match in [
       # Capture macro name.
-      re.search('^#define (\S+?) (.+)$', macro)
+      re.search(r'^#define (\S+?) (.+)$', macro)
       for macro in out.split('\n')
     ]
     # Filter out non-matches.
@@ -183,7 +183,7 @@ class CompilerInformation(object):
   # "{compiler}-{major}.{minor}". The comparison is done using the provided
   # `operator` argument.
   def CompareVersion(self, operator, description):
-    match = re.search('^(\S+)-(.*?)$', description)
+    match = re.search(r'^(\S+)-(.*?)$', description)
     if not match:
       raise Exception("A version number is required when comparing compilers")
     compiler, version = match.group(1), match.group(2)
