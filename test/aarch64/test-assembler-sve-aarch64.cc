@@ -19749,6 +19749,689 @@ TEST_SVE(neon_ins_zero_high_regression_test) {
   }
 }
 
+TEST_SVE(neon_fcvt_zero_high_regression_test) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kFP,
+                          CPUFeatures::kNEON,
+                          CPUFeatures::kSVE);
+
+  START();
+  __ Mov(z1.VnD(), 0);
+  __ Mov(z2.VnD(), 0);
+  __ Mov(z3.VnD(), 0);
+  __ Mov(z4.VnD(), 0);
+  __ Mov(z5.VnD(), 0);
+  __ Mov(z6.VnD(), 0);
+  __ Mov(z10.VnD(), 0);
+
+  Label done;
+  // Skip calculations for VL128.
+  __ Rdvl(x0, 1);
+  __ Cmp(x0, 16);
+  __ B(eq, &done);
+
+  __ Movi(v0.V2D(), 0x3ff000003f800000);
+  __ Index(z1.VnB(), 0, 1);
+  __ Index(z2.VnB(), 0, 1);
+  __ Index(z3.VnB(), 0, 1);
+  __ Index(z4.VnB(), 0, 1);
+  __ Index(z5.VnB(), 0, 1);
+  __ Index(z6.VnB(), 0, 1);
+
+  // Test zeroing bits <VL-1:128> for fcvtl, fcvtn and fcvtxn.
+  __ Fcvtl(v1.V2D(), v0.V2S());
+  __ Fcvtl2(v2.V2D(), v0.V4S());
+
+  __ Fcvtn(v3.V2S(), v0.V2D());
+  __ Fcvtn2(v4.V4S(), v0.V2D());
+
+  __ Fcvtxn(v5.V2S(), v0.V2D());
+  __ Fcvtxn2(v6.V4S(), v0.V2D());
+
+  // Set the expected non-zero bits to zero.
+  __ Ext(z1.VnB(), z1.VnB(), z10.VnB(), kDRegSizeInBytes * 2);
+  __ Ext(z2.VnB(), z2.VnB(), z10.VnB(), kDRegSizeInBytes * 2);
+  __ Ext(z3.VnB(), z3.VnB(), z10.VnB(), kSRegSizeInBytes * 2);
+  __ Ext(z4.VnB(), z4.VnB(), z10.VnB(), kSRegSizeInBytes * 4);
+  __ Ext(z5.VnB(), z5.VnB(), z10.VnB(), kSRegSizeInBytes * 2);
+  __ Ext(z6.VnB(), z6.VnB(), z10.VnB(), kSRegSizeInBytes * 4);
+
+  __ Bind(&done);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z10, z1);
+    ASSERT_EQUAL_SVE(z10, z2);
+    ASSERT_EQUAL_SVE(z10, z3);
+    ASSERT_EQUAL_SVE(z10, z4);
+    ASSERT_EQUAL_SVE(z10, z5);
+    ASSERT_EQUAL_SVE(z10, z6);
+  }
+}
+
+#define TEST_ZEROING(INST)  \
+  __ Index(z0.VnB(), 0, 1); \
+  __ INST;                  \
+  __ Orr(z10.VnB(), z10.VnB(), z0.VnB());
+
+TEST_SVE(neon_zero_high) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kFP,
+                          CPUFeatures::kNEON,
+                          CPUFeatures::kNEONHalf,
+                          CPUFeatures::kSVE,
+                          CPUFeatures::kFcma,
+                          CPUFeatures::kFHM,
+                          CPUFeatures::kFrintToFixedSizedInt,
+                          CPUFeatures::kDotProduct,
+                          CPUFeatures::kRDM,
+                          CPUFeatures::kI8MM);
+
+  START();
+  __ Mov(z10.VnD(), 0);  // Initialise cumulative result register.
+
+  TEST_ZEROING(Abs(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Abs(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Add(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Add(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Addhn2(v0.V16B(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Addhn(v0.V4H(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Addp(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Addp(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(And(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Bic(v0.V8H(), 0, 0));
+  TEST_ZEROING(Bic(v0.V2S(), 255, 0));
+  TEST_ZEROING(Bic(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Bif(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Bit(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Bsl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cls(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cls(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Clz(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Clz(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cmeq(v0.V16B(), v0.V16B(), 0));
+  TEST_ZEROING(Cmeq(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Cmeq(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cmeq(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cmge(v0.V16B(), v0.V16B(), 0));
+  TEST_ZEROING(Cmge(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Cmge(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cmge(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cmgt(v0.V16B(), v0.V16B(), 0));
+  TEST_ZEROING(Cmgt(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Cmgt(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cmgt(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cmhi(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cmhi(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cmhs(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cmhs(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cmle(v0.V16B(), v0.V16B(), 0));
+  TEST_ZEROING(Cmle(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Cmlt(v0.V16B(), v0.V16B(), 0));
+  TEST_ZEROING(Cmlt(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Cmtst(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Cmtst(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Cnt(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Dup(v0.V2S(), w0));
+  TEST_ZEROING(Dup(v0.V8B(), w0));
+  TEST_ZEROING(Dup(v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Dup(v0.V8B(), v0.B(), 0));
+  TEST_ZEROING(Eor(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Ext(v0.V16B(), v0.V16B(), v0.V16B(), 0));
+  TEST_ZEROING(Ext(v0.V8B(), v0.V8B(), v0.V8B(), 4));
+  TEST_ZEROING(Fabd(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fabd(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fabs(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fabs(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Facge(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Facge(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Facgt(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Facgt(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fadd(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fadd(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Faddp(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Faddp(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcadd(v0.V2S(), v0.V2S(), v0.V2S(), 90));
+  TEST_ZEROING(Fcadd(v0.V8H(), v0.V8H(), v0.V8H(), 90));
+  TEST_ZEROING(Fcmeq(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Fcmeq(v0.V8H(), v0.V8H(), 0));
+  TEST_ZEROING(Fcmeq(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcmeq(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcmge(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Fcmge(v0.V8H(), v0.V8H(), 0));
+  TEST_ZEROING(Fcmge(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcmge(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcmgt(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Fcmgt(v0.V8H(), v0.V8H(), 0));
+  TEST_ZEROING(Fcmgt(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcmgt(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcmla(v0.V4H(), v0.V4H(), v0.H(), 0, 0));
+  TEST_ZEROING(Fcmla(v0.V4S(), v0.V4S(), v0.S(), 0, 0));
+  TEST_ZEROING(Fcmla(v0.V4S(), v0.V4S(), v0.V4S(), 0));
+  TEST_ZEROING(Fcmla(v0.V4H(), v0.V4H(), v0.V4H(), 0));
+  TEST_ZEROING(Fcmle(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Fcmle(v0.V8H(), v0.V8H(), 0));
+  TEST_ZEROING(Fcmlt(v0.V2S(), v0.V2S(), 0));
+  TEST_ZEROING(Fcmlt(v0.V8H(), v0.V8H(), 0));
+  TEST_ZEROING(Fcvtas(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtas(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtau(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtau(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtl2(v0.V4S(), v0.V8H()));
+  TEST_ZEROING(Fcvtl(v0.V2D(), v0.V2S()));
+  TEST_ZEROING(Fcvtms(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtms(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtmu(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtmu(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtn2(v0.V8H(), v0.V4S()));
+  TEST_ZEROING(Fcvtn(v0.V2S(), v0.V2D()));
+  TEST_ZEROING(Fcvtns(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtns(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtnu(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtnu(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtps(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtps(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtpu(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtpu(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtxn(v0.V2S(), v0.V2D()));
+  TEST_ZEROING(Fcvtxn2(v0.V4S(), v0.V2D()));
+  TEST_ZEROING(Fcvtzs(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtzs(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fcvtzs(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Fcvtzu(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fcvtzu(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fcvtzu(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Fdiv(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fdiv(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fmax(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fmax(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fmaxnm(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fmaxnm(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fmaxnmp(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fmaxnmp(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fmaxp(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fmaxp(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fmin(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fmin(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fminnm(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fminnm(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fminnmp(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fminnmp(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fminp(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Fminp(v0.V8H(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Fmla(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Fmla(v0.V4H(), v0.V4H(), v0.H(), 2));
+  TEST_ZEROING(Fmla(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fmla(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmlal2(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Fmlal2(v0.V2S(), v0.V2H(), v0.H(), 2));
+  TEST_ZEROING(Fmlal2(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmlal(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Fmlal(v0.V2S(), v0.V2H(), v0.H(), 2));
+  TEST_ZEROING(Fmlal(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmls(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Fmls(v0.V4H(), v0.V4H(), v0.H(), 2));
+  TEST_ZEROING(Fmls(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fmls(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmlsl2(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Fmlsl2(v0.V2S(), v0.V2H(), v0.H(), 2));
+  TEST_ZEROING(Fmlsl2(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmlsl(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Fmlsl(v0.V2S(), v0.V2H(), v0.H(), 2));
+  TEST_ZEROING(Fmlsl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmov(v0.V2D(), 2.0000));
+  TEST_ZEROING(Fmov(v0.V4H(), 2.0000));
+  TEST_ZEROING(Fmov(v0.D(), 1, x1));
+  TEST_ZEROING(Fmul(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Fmul(v0.V4H(), v0.V4H(), v0.H(), 2));
+  TEST_ZEROING(Fmul(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fmul(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fmulx(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Fmulx(v0.V4H(), v0.V4H(), v0.H(), 2));
+  TEST_ZEROING(Fmulx(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fmulx(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fneg(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fneg(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frecpe(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frecpe(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frecps(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frecps(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frint32x(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frint32z(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frint64x(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frint64z(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frinta(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frinta(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frinti(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frinti(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frintm(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frintm(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frintn(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frintn(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frintp(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frintp(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frintx(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frintx(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frintz(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frintz(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frsqrte(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frsqrte(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Frsqrts(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Frsqrts(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fsqrt(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fsqrt(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Fsub(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Fsub(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Mov(v0.D(), 0, x0));
+  TEST_ZEROING(Mov(v0.S(), 0, w0));
+  TEST_ZEROING(Mov(v0.H(), 0, w0));
+  TEST_ZEROING(Mov(v0.B(), 0, w0));
+  TEST_ZEROING(Mov(v0.D(), 0, v0.D(), 0));
+  TEST_ZEROING(Mov(v0.S(), 0, v0.S(), 0));
+  TEST_ZEROING(Mov(v0.H(), 0, v0.H(), 0));
+  TEST_ZEROING(Mov(v0.B(), 0, v0.B(), 0));
+  TEST_ZEROING(Mla(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Mla(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Mla(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Mla(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Mls(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Mls(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Mls(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Mls(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Movi(v0.V2D(), 0xff));
+  TEST_ZEROING(Movi(v0.V2S(), 0xff));
+  TEST_ZEROING(Movi(v0.V4S(), 0x10, LSL, 8));
+  TEST_ZEROING(Movi(v0.V2S(), 0x10, LSL, 8));
+  TEST_ZEROING(Mul(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Mul(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Mul(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Mul(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Mvni(v0.V4H(), 0x10, LSL, 8));
+  TEST_ZEROING(Mvni(v0.V4H(), 0x10, LSL, 8));
+  TEST_ZEROING(Neg(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Neg(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Mvn(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Mvn(v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Orn(v0.V8B(), v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Orn(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Orr(v0.V8H(), 0x10, 8));
+  TEST_ZEROING(Orr(v0.V4H(), 0x10, 8));
+  TEST_ZEROING(Mov(v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Mov(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Pmul(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Pmull(v0.V8H(), v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Pmull2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Raddhn2(v0.V16B(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Raddhn(v0.V4H(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Rbit(v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Rbit(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Rsubhn2(v0.V16B(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Rsubhn(v0.V4H(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Saba(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Saba(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Saba(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sabal2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sabal(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sabd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sabd(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Sabd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sabdl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sabdl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sadalp(v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Saddl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Saddl(v0.V2D(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Saddl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Saddw2(v0.V8H(), v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Saddw(v0.V4S(), v0.V4S(), v0.V4H()));
+  TEST_ZEROING(Scvtf(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Scvtf(v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Scvtf(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Sdot(v0.V4S(), v0.V16B(), v0.S4B(), 0));
+  TEST_ZEROING(Sdot(v0.V2S(), v0.V8B(), v0.S4B(), 0));
+  TEST_ZEROING(Sdot(v0.V4S(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sdot(v0.V2S(), v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Shadd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Shadd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Shl(v0.V2D(), v0.V2D(), 56));
+  TEST_ZEROING(Shll2(v0.V8H(), v0.V16B(), 8));
+  TEST_ZEROING(Shll(v0.V2D(), v0.V2S(), 32));
+  TEST_ZEROING(Shsub(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Shsub(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sli(v0.V2D(), v0.V2D(), 56));
+  TEST_ZEROING(Sli(v0.V2S(), v0.V2S(), 16));
+  TEST_ZEROING(Smax(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Smax(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Smaxp(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Smaxp(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Smin(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Smin(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sminp(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sminp(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Smlal2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Smlal(v0.V2D(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Smlal(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Smlsl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Smlsl(v0.V2D(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Smlsl(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Smull2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Smull(v0.V2D(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Smull(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Sqabs(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sqabs(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqadd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sqadd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqdmlal2(v0.V4S(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Sqdmlal(v0.V2D(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Sqdmlal(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Sqdmlsl2(v0.V4S(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Sqdmlsl(v0.V2D(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Sqdmlsl(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Sqdmulh(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Sqdmulh(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Sqdmulh(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Sqdmulh(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqdmull2(v0.V2D(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Sqdmull(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqdmull2(v0.V2D(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Sqdmull(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Sqneg(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sqneg(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Sqrdmlah(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Sqrdmlah(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Sqrdmlah(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Sqrdmlah(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqrdmlsh(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Sqrdmlsh(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Sqrdmlsh(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Sqrdmlsh(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqrdmulh(v0.V4S(), v0.V4S(), v0.S(), 0));
+  TEST_ZEROING(Sqrdmulh(v0.V4H(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Sqrdmulh(v0.V4S(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Sqrdmulh(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqrshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sqrshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sqshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqshl(v0.V2D(), v0.V2D(), 56));
+  TEST_ZEROING(Sqshl(v0.V2S(), v0.V2S(), 16));
+  TEST_ZEROING(Sqshlu(v0.V2D(), v0.V2D(), 56));
+  TEST_ZEROING(Sqshlu(v0.V2S(), v0.V2S(), 16));
+  TEST_ZEROING(Sqsub(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sqsub(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sqxtn2(v0.V16B(), v0.V8H()));
+  TEST_ZEROING(Sqxtn(v0.V2S(), v0.V2D()));
+  TEST_ZEROING(Sqxtun2(v0.V16B(), v0.V8H()));
+  TEST_ZEROING(Sqxtun(v0.V2S(), v0.V2D()));
+  TEST_ZEROING(Srhadd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Srhadd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sri(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Sri(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Srshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Srshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Srshr(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Srshr(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Srsra(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Srsra(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Sshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Sshr(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Sshr(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Ssra(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Ssra(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Ssubl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Ssubl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Ssubw2(v0.V8H(), v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Ssubw(v0.V4S(), v0.V4S(), v0.V4H()));
+  TEST_ZEROING(Sub(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Sub(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Subhn2(v0.V16B(), v0.V8H(), v0.V8H()));
+  TEST_ZEROING(Subhn(v0.V4H(), v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Sudot(v0.V4S(), v0.V16B(), v0.S4B(), 0));
+  TEST_ZEROING(Sudot(v0.V2S(), v0.V8B(), v0.S4B(), 2));
+  TEST_ZEROING(Suqadd(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Suqadd(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Tbl(v0.V8B(), {v0.V16B()}, v0.V8B()));
+  TEST_ZEROING(Tbl(v0.V16B(), {v0.V16B()}, v0.V16B()));
+  TEST_ZEROING(Tbx(v0.V8B(), {v0.V16B()}, v0.V8B()));
+  TEST_ZEROING(Tbx(v0.V16B(), {v0.V16B()}, v0.V16B()));
+  TEST_ZEROING(Trn1(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Trn1(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Trn2(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Trn2(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uaba(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uaba(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uabal2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uabal(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uabd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uabd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uabdl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uabdl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uadalp(v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Uadalp(v0.V2S(), v0.V4H()));
+  TEST_ZEROING(Uaddl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uaddl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uaddlp(v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Uaddlp(v0.V2S(), v0.V4H()));
+  TEST_ZEROING(Uaddw2(v0.V8H(), v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Uaddw(v0.V4S(), v0.V4S(), v0.V4H()));
+  TEST_ZEROING(Ucvtf(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Ucvtf(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Ucvtf(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Ucvtf(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Udot(v0.V4S(), v0.V16B(), v0.S4B(), 0));
+  TEST_ZEROING(Udot(v0.V2S(), v0.V8B(), v0.S4B(), 0));
+  TEST_ZEROING(Udot(v0.V2S(), v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Udot(v0.V4S(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uhadd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uhadd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uhsub(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uhsub(v0.V2S(), v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Umax(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Umax(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Umaxp(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Umaxp(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Umin(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Umin(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uminp(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uminp(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Umlal2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Umlal(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Umlal(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Umlal(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Umlsl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Umlsl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Umlsl(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Umlsl(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Umull2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Umull(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Umull(v0.V2D(), v0.V2S(), v0.S(), 0));
+  TEST_ZEROING(Umull(v0.V4S(), v0.V4H(), v0.H(), 0));
+  TEST_ZEROING(Uqadd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uqadd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uqrshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uqrshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uqshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uqshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uqsub(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uqsub(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uqxtn2(v0.V16B(), v0.V8H()));
+  TEST_ZEROING(Uqxtn(v0.V2S(), v0.V2D()));
+  TEST_ZEROING(Urecpe(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Urecpe(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Urhadd(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Urhadd(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Urshl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Urshl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Urshr(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Urshr(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Ursqrte(v0.V4S(), v0.V4S()));
+  TEST_ZEROING(Ursqrte(v0.V2S(), v0.V2S()));
+  TEST_ZEROING(Ursra(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Ursra(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Usdot(v0.V4S(), v0.V16B(), v0.S4B(), 0));
+  TEST_ZEROING(Usdot(v0.V2S(), v0.V8B(), v0.S4B(), 1));
+  TEST_ZEROING(Usdot(v0.V4S(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Usdot(v0.V2S(), v0.V8B(), v0.V8B()));
+  TEST_ZEROING(Ushl(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Ushl(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Ushr(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Ushr(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Usqadd(v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Usqadd(v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Usra(v0.V2D(), v0.V2D(), 8));
+  TEST_ZEROING(Usra(v0.V2S(), v0.V2S(), 8));
+  TEST_ZEROING(Usubl2(v0.V8H(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Usubl(v0.V4S(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Usubw2(v0.V8H(), v0.V8H(), v0.V16B()));
+  TEST_ZEROING(Usubw(v0.V4S(), v0.V4S(), v0.V4H()));
+  TEST_ZEROING(Uzp1(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uzp1(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Uzp2(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Uzp2(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Xtn2(v0.V16B(), v0.V8H()));
+  TEST_ZEROING(Xtn(v0.V4H(), v0.V4S()));
+  TEST_ZEROING(Zip1(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Zip1(v0.V4H(), v0.V4H(), v0.V4H()));
+  TEST_ZEROING(Zip2(v0.V16B(), v0.V16B(), v0.V16B()));
+  TEST_ZEROING(Zip2(v0.V4H(), v0.V4H(), v0.V4H()));
+
+  __ Mov(z11.VnD(), 0);
+
+  Label done, zero_127_to_0;
+  __ Rdvl(x0, 1);
+  __ Cmp(x0, 16);
+  __ B(gt, &zero_127_to_0);
+
+  // For 128-bit VL, there's nothing to be tested, so zero the whole register.
+  __ Mov(z10.VnD(), 0);
+  __ B(&done);
+
+  // Set the expected non-zero bits to zero.
+  __ Bind(&zero_127_to_0);
+  __ Ext(z10.VnB(), z10.VnB(), z11.VnB(), kDRegSizeInBytes * 2);
+
+  __ Bind(&done);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z11, z10);
+  }
+}
+
+#undef TEST_ZEROING
+
+#define TEST_ZEROING_1(INST) \
+  __ Index(z0.VnB(), 0, 1);  \
+  __ INST;                   \
+  __ Orr(z10.VnB(), z10.VnB(), z0.VnB());
+#define TEST_ZEROING_2(INST)              \
+  __ Index(z0.VnB(), 0, 1);               \
+  __ Index(z1.VnB(), 0, 1);               \
+  __ INST;                                \
+  __ Orr(z10.VnB(), z10.VnB(), z0.VnB()); \
+  __ Orr(z10.VnB(), z10.VnB(), z1.VnB());
+#define TEST_ZEROING_3(INST)              \
+  __ Index(z0.VnB(), 0, 1);               \
+  __ Index(z1.VnB(), 0, 1);               \
+  __ Index(z2.VnB(), 0, 1);               \
+  __ INST;                                \
+  __ Orr(z10.VnB(), z10.VnB(), z0.VnB()); \
+  __ Orr(z10.VnB(), z10.VnB(), z1.VnB()); \
+  __ Orr(z10.VnB(), z10.VnB(), z2.VnB());
+#define TEST_ZEROING_4(INST)              \
+  __ Index(z0.VnB(), 0, 1);               \
+  __ Index(z1.VnB(), 0, 1);               \
+  __ Index(z2.VnB(), 0, 1);               \
+  __ Index(z3.VnB(), 0, 1);               \
+  __ INST;                                \
+  __ Orr(z10.VnB(), z10.VnB(), z0.VnB()); \
+  __ Orr(z10.VnB(), z10.VnB(), z1.VnB()); \
+  __ Orr(z10.VnB(), z10.VnB(), z2.VnB()); \
+  __ Orr(z10.VnB(), z10.VnB(), z3.VnB());
+
+TEST_SVE(neon_load_zero_high) {
+  SVE_SETUP_WITH_FEATURES(CPUFeatures::kNEON, CPUFeatures::kSVE);
+
+  START();
+  __ Mov(z10.VnD(), 0);  // Initialise cumulative result register.
+
+  // Initialise x0 to point to a buffer from which data is loaded. The contents
+  // does not need to be defined.
+  int data_size = 4 * kQRegSizeInBytes;
+  uint8_t* data = new uint8_t[data_size];
+  __ Mov(x0, reinterpret_cast<uintptr_t>(&data[data_size]));
+
+  MemOperand mop = MemOperand(x0);
+  TEST_ZEROING_1(Ld1(v0.V16B(), mop));
+  TEST_ZEROING_1(Ld1(v0.V4H(), mop));
+  TEST_ZEROING_1(Ld1(v0.V16B(), v1.V16B(), mop));
+  TEST_ZEROING_1(Ld1(v0.V4H(), v1.V4H(), mop));
+  TEST_ZEROING_1(Ld1(v0.V16B(), v1.V16B(), v2.V16B(), mop));
+  TEST_ZEROING_1(Ld1(v0.V4H(), v1.V4H(), v2.V4H(), mop));
+  TEST_ZEROING_1(Ld1(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), mop));
+  TEST_ZEROING_1(Ld1(v0.V4H(), v1.V4H(), v2.V4H(), v3.V4H(), mop));
+  TEST_ZEROING_1(Ld1(v0.B(), 1, mop));
+  TEST_ZEROING_1(Ld1(v0.D(), 1, mop));
+  TEST_ZEROING_1(Ld1(v0.H(), 1, mop));
+  TEST_ZEROING_1(Ld1(v0.S(), 1, mop));
+  TEST_ZEROING_1(Ld1r(v0.V16B(), mop));
+  TEST_ZEROING_1(Ld1r(v0.V4H(), mop));
+  TEST_ZEROING_2(Ld2(v0.V16B(), v1.V16B(), mop));
+  TEST_ZEROING_2(Ld2(v0.V4H(), v1.V4H(), mop));
+  TEST_ZEROING_2(Ld2(v0.B(), v1.B(), 1, mop));
+  TEST_ZEROING_2(Ld2(v0.D(), v1.D(), 1, mop));
+  TEST_ZEROING_2(Ld2(v0.H(), v1.H(), 1, mop));
+  TEST_ZEROING_2(Ld2(v0.S(), v1.S(), 1, mop));
+  TEST_ZEROING_2(Ld2r(v0.V16B(), v1.V16B(), mop));
+  TEST_ZEROING_2(Ld2r(v0.V4H(), v1.V4H(), mop));
+  TEST_ZEROING_3(Ld3(v0.V16B(), v1.V16B(), v2.V16B(), mop));
+  TEST_ZEROING_3(Ld3(v0.V4H(), v1.V4H(), v2.V4H(), mop));
+  TEST_ZEROING_3(Ld3(v0.B(), v1.B(), v2.B(), 1, mop));
+  TEST_ZEROING_3(Ld3(v0.D(), v1.D(), v2.D(), 1, mop));
+  TEST_ZEROING_3(Ld3(v0.H(), v1.H(), v2.H(), 1, mop));
+  TEST_ZEROING_3(Ld3(v0.S(), v1.S(), v2.S(), 1, mop));
+  TEST_ZEROING_3(Ld3r(v0.V16B(), v1.V16B(), v2.V16B(), mop));
+  TEST_ZEROING_3(Ld3r(v0.V4H(), v1.V4H(), v2.V4H(), mop));
+  TEST_ZEROING_4(Ld4(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), mop));
+  TEST_ZEROING_4(Ld4(v0.V4H(), v1.V4H(), v2.V4H(), v3.V4H(), mop));
+  TEST_ZEROING_4(Ld4(v0.B(), v1.B(), v2.B(), v3.B(), 1, mop));
+  TEST_ZEROING_4(Ld4(v0.D(), v1.D(), v2.D(), v3.D(), 1, mop));
+  TEST_ZEROING_4(Ld4(v0.H(), v1.H(), v2.H(), v3.H(), 1, mop));
+  TEST_ZEROING_4(Ld4(v0.S(), v1.S(), v2.S(), v3.S(), 1, mop));
+  TEST_ZEROING_4(Ld4r(v0.V16B(), v1.V16B(), v2.V16B(), v3.V16B(), mop));
+  TEST_ZEROING_4(Ld4r(v0.V4H(), v1.V4H(), v2.V4H(), v3.V4H(), mop));
+
+  __ Mov(z11.VnD(), 0);
+
+  Label done, zero_127_to_0;
+  __ Rdvl(x0, 1);
+  __ Cmp(x0, 16);
+  __ B(gt, &zero_127_to_0);
+
+  // For 128-bit VL, there's nothing to be tested, so zero the whole register.
+  __ Mov(z10.VnD(), 0);
+  __ B(&done);
+
+  // Set the expected non-zero bits to zero.
+  __ Bind(&zero_127_to_0);
+  __ Ext(z10.VnB(), z10.VnB(), z11.VnB(), kDRegSizeInBytes * 2);
+
+  __ Bind(&done);
+
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_SVE(z11, z10);
+  }
+}
+
+#undef TEST_ZEROING_1
+#undef TEST_ZEROING_2
+#undef TEST_ZEROING_3
+#undef TEST_ZEROING_4
+
 TEST_SVE(sve_load_store_sp_base_regression_test) {
   SVE_SETUP_WITH_FEATURES(CPUFeatures::kSVE);
   START();

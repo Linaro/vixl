@@ -6143,6 +6143,8 @@ void Simulator::VisitFPIntegerConvert(const Instruction* instr) {
       WriteDRegisterBits(dst, ReadXRegister(src));
       break;
     case FMOV_d1_x:
+      // Zero bits beyond the MSB of a Q register.
+      mov(kFormat16B, ReadVRegister(dst), ReadVRegister(dst));
       LogicVRegister(ReadVRegister(dst))
           .SetUint(kFormatD, 1, ReadXRegister(src));
       break;
