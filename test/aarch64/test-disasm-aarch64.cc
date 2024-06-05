@@ -3543,8 +3543,8 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0xf8e08000), "swpal");      // SWPAL_64_memop
 
   // ARMv8.1 - RDM
-  COMPARE_PREFIX(dci(0x2e008400), "sqrdmlah");  // SQRDMLAH_asimdsame2_only
-  COMPARE_PREFIX(dci(0x2e008c00), "sqrdmlsh");  // SQRDMLSH_asimdsame2_only
+  COMPARE_PREFIX(dci(0x2e808400), "sqrdmlah");  // SQRDMLAH_asimdsame2_only
+  COMPARE_PREFIX(dci(0x2e808c00), "sqrdmlsh");  // SQRDMLSH_asimdsame2_only
   COMPARE_PREFIX(dci(0x2f40d000), "sqrdmlah");  // SQRDMLAH_asimdelem_R
   COMPARE_PREFIX(dci(0x2f40f000), "sqrdmlsh");  // SQRDMLSH_asimdelem_R
   COMPARE_PREFIX(dci(0x7e008400), "sqrdmlah");  // SQRDMLAH_asisdsame2_only
@@ -3553,9 +3553,9 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0x7f40f000), "sqrdmlsh");  // SQRDMLSH_asisdelem_R
 
   // ARMv8.2 - DotProd
-  COMPARE_PREFIX(dci(0x0e009400), "sdot");  // SDOT_asimdsame2_D
+  COMPARE_PREFIX(dci(0x0e809400), "sdot");  // SDOT_asimdsame2_D
   COMPARE_PREFIX(dci(0x0f00e000), "sdot");  // SDOT_asimdelem_D
-  COMPARE_PREFIX(dci(0x2e009400), "udot");  // UDOT_asimdsame2_D
+  COMPARE_PREFIX(dci(0x2e809400), "udot");  // UDOT_asimdsame2_D
   COMPARE_PREFIX(dci(0x2f00e000), "udot");  // UDOT_asimdelem_D
 
   // ARMv8.2 - FHM
@@ -3810,7 +3810,7 @@ TEST(architecture_features) {
 
   // ARMv8.3 - FCMA
   COMPARE_PREFIX(dci(0x2e40c400), "fcmla");  // FCMLA_asimdsame2_C
-  COMPARE_PREFIX(dci(0x2e00e400), "fcadd");  // FCADD_asimdsame2_C
+  COMPARE_PREFIX(dci(0x2e40e400), "fcadd");  // FCADD_asimdsame2_C
   COMPARE_PREFIX(dci(0x2f401000), "fcmla");  // FCMLA_asimdelem_C_H
   COMPARE_PREFIX(dci(0x6f801000), "fcmla");  // FCMLA_asimdelem_C_S
 

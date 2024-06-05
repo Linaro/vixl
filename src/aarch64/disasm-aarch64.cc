@@ -2374,13 +2374,19 @@ void Disassembler::VisitNEON3SameFP16(const Instruction *instr) {
 }
 
 void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
-  static const NEONFormatMap map_usdot = {{30}, {NF_8B, NF_16B}};
+  static const NEONFormatMap map_dot =
+      {{23, 22, 30}, {NF_UNDEF, NF_UNDEF, NF_UNDEF, NF_UNDEF, NF_2S, NF_4S}};
+  static const NEONFormatMap map_fc =
+      {{23, 22, 30},
+       {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_2D}};
+  static const NEONFormatMap map_rdm =
+      {{23, 22, 30}, {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_2S, NF_4S}};
 
   const char *mnemonic = mnemonic_.c_str();
   const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
   const char *suffix = NULL;
 
-  NEONFormatDecoder nfd(instr);
+  NEONFormatDecoder nfd(instr, &map_fc);
 
   switch (form_hash_) {
     case "fcmla_asimdsame2_c"_h:
@@ -2393,11 +2399,11 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
     case "sdot_asimdsame2_d"_h:
     case "udot_asimdsame2_d"_h:
     case "usdot_asimdsame2_d"_h:
-      nfd.SetFormatMap(1, &map_usdot);
-      nfd.SetFormatMap(2, &map_usdot);
+      nfd.SetFormatMaps(nfd.LogicalFormatMap());
+      nfd.SetFormatMap(0, &map_dot);
       break;
     default:
-      // sqrdml[as]h - nothing to do.
+      nfd.SetFormatMaps(&map_rdm);
       break;
   }
 
