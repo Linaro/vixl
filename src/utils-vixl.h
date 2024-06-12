@@ -291,6 +291,12 @@ T UnsignedNegate(T value) {
   return ~value + 1;
 }
 
+template <typename T>
+bool CanBeNegated(T value) {
+  VIXL_STATIC_ASSERT(std::is_signed<T>::value);
+  return (value == std::numeric_limits<T>::min()) ? false : true;
+}
+
 // An absolute operation for signed integers that is defined for results outside
 // the representable range. Specifically, Abs(MIN_INT) is MIN_INT.
 template <typename T>

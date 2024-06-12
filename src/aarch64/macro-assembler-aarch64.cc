@@ -1149,11 +1149,14 @@ void MacroAssembler::Ccmp(const Register& rn,
                           StatusFlags nzcv,
                           Condition cond) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.GetImmediate() < 0)) {
-    ConditionalCompareMacro(rn, -operand.GetImmediate(), nzcv, cond, CCMN);
-  } else {
-    ConditionalCompareMacro(rn, operand, nzcv, cond, CCMP);
+  if (operand.IsImmediate()) {
+    int64_t imm = operand.GetImmediate();
+    if ((imm < 0) && CanBeNegated(imm)) {
+      ConditionalCompareMacro(rn, -imm, nzcv, cond, CCMN);
+      return;
+    }
   }
+  ConditionalCompareMacro(rn, operand, nzcv, cond, CCMP);
 }
 
 
@@ -1162,11 +1165,14 @@ void MacroAssembler::Ccmn(const Register& rn,
                           StatusFlags nzcv,
                           Condition cond) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate() && (operand.GetImmediate() < 0)) {
-    ConditionalCompareMacro(rn, -operand.GetImmediate(), nzcv, cond, CCMP);
-  } else {
-    ConditionalCompareMacro(rn, operand, nzcv, cond, CCMN);
+  if (operand.IsImmediate()) {
+    int64_t imm = operand.GetImmediate();
+    if ((imm < 0) && CanBeNegated(imm)) {
+      ConditionalCompareMacro(rn, -imm, nzcv, cond, CCMP);
+      return;
+    }
   }
+  ConditionalCompareMacro(rn, operand, nzcv, cond, CCMN);
 }
 
 
@@ -1400,8 +1406,7 @@ void MacroAssembler::Add(const Register& rd,
   VIXL_ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate()) {
     int64_t imm = operand.GetImmediate();
-    if ((imm < 0) && (imm != std::numeric_limits<int64_t>::min()) &&
-        IsImmAddSub(-imm)) {
+    if ((imm < 0) && CanBeNegated(imm) && IsImmAddSub(-imm)) {
       AddSubMacro(rd, rn, -imm, S, SUB);
       return;
     }
@@ -1488,8 +1493,7 @@ void MacroAssembler::Sub(const Register& rd,
   VIXL_ASSERT(allow_macro_instructions_);
   if (operand.IsImmediate()) {
     int64_t imm = operand.GetImmediate();
-    if ((imm < 0) && (imm != std::numeric_limits<int64_t>::min()) &&
-        IsImmAddSub(-imm)) {
+    if ((imm < 0) && CanBeNegated(imm) && IsImmAddSub(-imm)) {
       AddSubMacro(rd, rn, -imm, S, ADD);
       return;
     }
@@ -1650,7 +1654,7 @@ void MacroAssembler::Fmov(VRegister vd, Float16 imm) {
 
 void MacroAssembler::Neg(const Register& rd, const Operand& operand) {
   VIXL_ASSERT(allow_macro_instructions_);
-  if (operand.IsImmediate()) {
+  if (operand.IsImmediate() && CanBeNegated(operand.GetImmediate())) {
     Mov(rd, -operand.GetImmediate());
   } else {
     Sub(rd, AppropriateZeroRegFor(rd), operand);
