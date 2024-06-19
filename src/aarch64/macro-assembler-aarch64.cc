@@ -1970,6 +1970,22 @@ void MacroAssembler::Setf16(const Register& wn) {
   setf16(wn);
 }
 
+void MacroAssembler::Chkfeat(const Register& xdn) {
+  VIXL_ASSERT(allow_macro_instructions_);
+  MacroEmissionCheckScope guard(this);
+  if (xdn.Is(x16)) {
+    chkfeat(xdn);
+  } else {
+    UseScratchRegisterScope temps(this);
+    if (temps.TryAcquire(x16)) {
+      Mov(x16, xdn);
+      chkfeat(x16);
+      Mov(xdn, x16);
+    } else {
+      VIXL_ABORT();
+    }
+  }
+}
 
 #define DEFINE_FUNCTION(FN, REGTYPE, REG, OP)                          \
   void MacroAssembler::FN(const REGTYPE REG, const MemOperand& addr) { \

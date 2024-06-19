@@ -1276,91 +1276,93 @@ VIXL_SIMPLE_SVE_VISITOR_LIST(VIXL_DEFINE_SIMPLE_SVE_VISITOR)
 
 void CPUFeaturesAuditor::VisitSystem(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
-  if (instr->Mask(SystemHintFMask) == SystemHintFixed) {
-    CPUFeatures required;
-    switch (instr->GetInstructionBits()) {
-      case PACIA1716:
-      case PACIB1716:
-      case AUTIA1716:
-      case AUTIB1716:
-      case PACIAZ:
-      case PACIASP:
-      case PACIBZ:
-      case PACIBSP:
-      case AUTIAZ:
-      case AUTIASP:
-      case AUTIBZ:
-      case AUTIBSP:
-      case XPACLRI:
-        required.Combine(CPUFeatures::kPAuth);
-        break;
-      default:
-        switch (instr->GetImmHint()) {
-          case ESB:
-            required.Combine(CPUFeatures::kRAS);
-            break;
-          case BTI:
-          case BTI_j:
-          case BTI_c:
-          case BTI_jc:
-            required.Combine(CPUFeatures::kBTI);
-            break;
-          default:
-            break;
-        }
-        break;
-    }
 
-    // These are all HINT instructions, and behave as NOPs if the corresponding
-    // features are not implemented, so we record the corresponding features
-    // only if they are available.
-    if (available_.Has(required)) scope.Record(required);
-  } else if (instr->Mask(SystemSysMask) == SYS) {
-    switch (instr->GetSysOp()) {
-      // DC instruction variants.
-      case CGVAC:
-      case CGDVAC:
-      case CGVAP:
-      case CGDVAP:
-      case CIGVAC:
-      case CIGDVAC:
-      case GVA:
-      case GZVA:
-        scope.Record(CPUFeatures::kMTE);
-        break;
-      case CVAP:
-        scope.Record(CPUFeatures::kDCPoP);
-        break;
-      case CVADP:
-        scope.Record(CPUFeatures::kDCCVADP);
-        break;
-      case IVAU:
-      case CVAC:
-      case CVAU:
-      case CIVAC:
-      case ZVA:
-        // No special CPU features.
-        break;
-    }
-  } else if (instr->Mask(SystemPStateFMask) == SystemPStateFixed) {
-    switch (instr->Mask(SystemPStateMask)) {
-      case CFINV:
-        scope.Record(CPUFeatures::kFlagM);
-        break;
-      case AXFLAG:
-      case XAFLAG:
-        scope.Record(CPUFeatures::kAXFlag);
-        break;
-    }
-  } else if (instr->Mask(SystemSysRegFMask) == SystemSysRegFixed) {
-    if (instr->Mask(SystemSysRegMask) == MRS) {
+  CPUFeatures required;
+  switch (form_hash_) {
+    case "pacib1716_hi_hints"_h:
+    case "pacia1716_hi_hints"_h:
+    case "pacibsp_hi_hints"_h:
+    case "paciasp_hi_hints"_h:
+    case "pacibz_hi_hints"_h:
+    case "paciaz_hi_hints"_h:
+    case "autib1716_hi_hints"_h:
+    case "autia1716_hi_hints"_h:
+    case "autibsp_hi_hints"_h:
+    case "autiasp_hi_hints"_h:
+    case "autibz_hi_hints"_h:
+    case "autiaz_hi_hints"_h:
+    case "xpaclri_hi_hints"_h:
+      required.Combine(CPUFeatures::kPAuth);
+      break;
+    case "esb_hi_hints"_h:
+      required.Combine(CPUFeatures::kRAS);
+      break;
+    case "bti_hb_hints"_h:
+      required.Combine(CPUFeatures::kBTI);
+      break;
+  }
+
+  // The instructions above are all HINTs and behave as NOPs if the
+  // corresponding features are not implemented, so we record the corresponding
+  // features only if they are available.
+  if (available_.Has(required)) scope.Record(required);
+
+  switch (form_hash_) {
+    case "cfinv_m_pstate"_h:
+      scope.Record(CPUFeatures::kFlagM);
+      break;
+    case "axflag_m_pstate"_h:
+    case "xaflag_m_pstate"_h:
+      scope.Record(CPUFeatures::kAXFlag);
+      break;
+    case "mrs_rs_systemmove"_h:
       switch (instr->GetImmSystemRegister()) {
         case RNDR:
         case RNDRRS:
           scope.Record(CPUFeatures::kRNG);
           break;
       }
-    }
+      break;
+    case "sys_cr_systeminstrs"_h:
+      switch (instr->GetSysOp()) {
+        // DC instruction variants.
+        case CGVAC:
+        case CGDVAC:
+        case CGVAP:
+        case CGDVAP:
+        case CIGVAC:
+        case CIGDVAC:
+        case GVA:
+        case GZVA:
+          scope.Record(CPUFeatures::kMTE);
+          break;
+        case CVAP:
+          scope.Record(CPUFeatures::kDCPoP);
+          break;
+        case CVADP:
+          scope.Record(CPUFeatures::kDCCVADP);
+          break;
+        case IVAU:
+        case CVAC:
+        case CVAU:
+        case CIVAC:
+        case ZVA:
+          // No special CPU features.
+          break;
+        case GCSPUSHM:
+        case GCSSS1:
+          scope.Record(CPUFeatures::kGCS);
+          break;
+      }
+      break;
+    case "sysl_rc_systeminstrs"_h:
+      switch (instr->GetSysOp()) {
+        case GCSPOPM:
+        case GCSSS2:
+          scope.Record(CPUFeatures::kGCS);
+          break;
+      }
+      break;
   }
 }
 

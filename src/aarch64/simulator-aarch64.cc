@@ -540,7 +540,9 @@ asm(R"(
 Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
     : memory_(std::move(stack)),
       last_instr_(NULL),
-      cpu_features_auditor_(decoder, CPUFeatures::All()) {
+      cpu_features_auditor_(decoder, CPUFeatures::All()),
+      gcs_(kGCSNoStack),
+      gcs_enabled_(false) {
   // Ensure that shift operations act as the simulator expects.
   VIXL_ASSERT((static_cast<int32_t>(-1) >> 1) == -1);
   VIXL_ASSERT((static_cast<uint32_t>(-1) >> 1) == 0x7fffffff);
@@ -660,6 +662,8 @@ void Simulator::ResetState() {
   ResetPRegisters();
 
   WriteSp(memory_.GetStack().GetBase());
+  ResetGCSState();
+  EnableGCSCheck();
 
   pc_ = NULL;
   pc_modified_ = false;
@@ -697,6 +701,9 @@ Simulator::~Simulator() {
   delete print_disasm_;
   close(placeholder_pipe_fd_[0]);
   close(placeholder_pipe_fd_[1]);
+  if (IsAllocatedGCS(gcs_)) {
+    GetGCSManager().FreeStack(gcs_);
+  }
 }
 
 
@@ -1795,6 +1802,18 @@ void Simulator::PrintSystemRegister(SystemRegister id) {
     default:
       VIXL_UNREACHABLE();
   }
+}
+
+void Simulator::PrintGCS(bool is_push, uint64_t addr, size_t entry) {
+  const char* arrow = is_push ? "<-" : "->";
+  fprintf(stream_,
+          "# %sgcs0x%04" PRIx64 "[%" PRIu64 "]: %s %s 0x%016" PRIxPTR "\n",
+          clr_flag_name,
+          gcs_,
+          entry,
+          clr_normal,
+          arrow,
+          addr);
 }
 
 uint16_t Simulator::PrintPartialAccess(uint16_t access_mask,
@@ -3774,6 +3793,7 @@ void Simulator::VisitUnconditionalBranch(const Instruction* instr) {
   switch (instr->Mask(UnconditionalBranchMask)) {
     case BL:
       WriteLr(instr->GetNextInstruction());
+      GCSPush(reinterpret_cast<uint64_t>(instr->GetNextInstruction()));
       VIXL_FALLTHROUGH();
     case B:
       WritePc(instr->GetImmPCOffsetTarget());
@@ -3817,6 +3837,7 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
   bool authenticate = false;
   bool link = false;
   bool ret = false;
+  bool compare_gcs = false;
   uint64_t addr = ReadXRegister(instr->GetRn());
   uint64_t context = 0;
 
@@ -3853,14 +3874,11 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
       context = ReadXRegister(31, Reg31IsStackPointer);
       VIXL_FALLTHROUGH();
     case RET:
+      compare_gcs = true;
       ret = true;
       break;
     default:
       VIXL_UNREACHABLE();
-  }
-
-  if (link) {
-    WriteLr(instr->GetNextInstruction());
   }
 
   if (authenticate) {
@@ -3871,6 +3889,33 @@ void Simulator::VisitUnconditionalBranchToRegister(const Instruction* instr) {
     if (((addr >> error_lsb) & 0x3) != 0x0) {
       VIXL_ABORT_WITH_MSG("Failed to authenticate pointer.");
     }
+  }
+
+  if (compare_gcs) {
+    uint64_t expected_lr = GCSPeek();
+    char msg[128];
+    if (expected_lr != 0) {
+      if ((expected_lr & 0x3) != 0) {
+        snprintf(msg,
+                 sizeof(msg),
+                 "GCS contains misaligned return address: 0x%016lx\n",
+                 expected_lr);
+        ReportGCSFailure(msg);
+      } else if ((addr != 0) && (addr != expected_lr)) {
+        snprintf(msg,
+                 sizeof(msg),
+                 "GCS mismatch: lr = 0x%016lx, gcs = 0x%016lx\n",
+                 addr,
+                 expected_lr);
+        ReportGCSFailure(msg);
+      }
+      GCSPop();
+    }
+  }
+
+  if (link) {
+    WriteLr(instr->GetNextInstruction());
+    GCSPush(reinterpret_cast<uint64_t>(instr->GetNextInstruction()));
   }
 
   if (!ret) {
@@ -6909,6 +6954,14 @@ void Simulator::VisitSystem(const Instruction* instr) {
           VIXL_UNIMPLEMENTED();
       }
       break;
+    case "chkfeat_hf_hints"_h: {
+      uint64_t feat_select = ReadXRegister(16);
+      uint64_t gcs_enabled = IsGCSCheckEnabled() ? 1 : 0;
+      feat_select &= ~gcs_enabled;
+      WriteXRegister(16, feat_select);
+      break;
+    }
+    case "hint_hm_hints"_h:
     case "nop_hi_hints"_h:
     case "esb_hi_hints"_h:
     case "csdb_hi_hints"_h:
@@ -6992,9 +7045,64 @@ void Simulator::VisitSystem(const Instruction* instr) {
     case "isb_bi_barriers"_h:
       __sync_synchronize();
       break;
-    case "sys_cr_systeminstrs"_h:
-      SysOp_W(instr->GetSysOp(), ReadXRegister(instr->GetRt()));
+    case "sys_cr_systeminstrs"_h: {
+      uint64_t rt = ReadXRegister(instr->GetRt());
+      uint32_t sysop = instr->GetSysOp();
+      if (sysop == GCSSS1) {
+        uint64_t incoming_size = rt >> 32;
+        // Drop upper 32 bits to get GCS index.
+        uint64_t incoming_gcs = rt & 0xffffffff;
+        uint64_t outgoing_gcs = ActivateGCS(incoming_gcs);
+        uint64_t incoming_seal = GCSPop();
+        if (((incoming_seal ^ rt) != 1) ||
+            (GetActiveGCSPtr()->size() != incoming_size)) {
+          char msg[128];
+          snprintf(msg,
+                   sizeof(msg),
+                   "GCS: invalid incoming stack: 0x%016" PRIx64 "\n",
+                   incoming_seal);
+          ReportGCSFailure(msg);
+        }
+        GCSPush(outgoing_gcs + 5);
+      } else if (sysop == GCSPUSHM) {
+        GCSPush(ReadXRegister(instr->GetRt()));
+      } else {
+        SysOp_W(sysop, rt);
+      }
       break;
+    }
+    case "sysl_rc_systeminstrs"_h: {
+      uint32_t sysop = instr->GetSysOp();
+      if (sysop == GCSPOPM) {
+        uint64_t addr = GCSPop();
+        WriteXRegister(instr->GetRt(), addr);
+      } else if (sysop == GCSSS2) {
+        uint64_t outgoing_gcs = GCSPop();
+        // Check for token inserted by gcsss1.
+        if ((outgoing_gcs & 7) != 5) {
+          char msg[128];
+          snprintf(msg,
+                   sizeof(msg),
+                   "GCS: outgoing stack has no token: 0x%016" PRIx64 "\n",
+                   outgoing_gcs);
+          ReportGCSFailure(msg);
+        }
+        uint64_t incoming_gcs = ActivateGCS(outgoing_gcs);
+        outgoing_gcs &= ~UINT64_C(0x3ff);
+
+        // Encode the size into the outgoing stack seal, to check later.
+        uint64_t size = GetActiveGCSPtr()->size();
+        VIXL_ASSERT(IsUint32(size));
+        VIXL_ASSERT(IsUint32(outgoing_gcs + 1));
+        uint64_t outgoing_seal = (size << 32) | (outgoing_gcs + 1);
+        GCSPush(outgoing_seal);
+        ActivateGCS(incoming_gcs);
+        WriteXRegister(instr->GetRt(), outgoing_seal - 1);
+      } else {
+        VIXL_UNIMPLEMENTED();
+      }
+      break;
+    }
     default:
       VIXL_UNIMPLEMENTED();
   }
@@ -14796,12 +14904,35 @@ void Simulator::DoRuntimeCall(const Instruction* instr) {
       reinterpret_cast<void (*)(Simulator*, uintptr_t)>(call_wrapper_address);
 
   if (static_cast<RuntimeCallType>(call_type) == kCallRuntime) {
-    WriteRegister(kLinkRegCode,
-                  instr->GetInstructionAtOffset(kRuntimeCallLength));
+    const Instruction* addr = instr->GetInstructionAtOffset(kRuntimeCallLength);
+    WriteLr(addr);
+    GCSPush(reinterpret_cast<uint64_t>(addr));
   }
   runtime_call_wrapper(this, function_address);
   // Read the return address from `lr` and write it into `pc`.
-  WritePc(ReadRegister<Instruction*>(kLinkRegCode));
+  uint64_t addr = ReadRegister<uint64_t>(kLinkRegCode);
+  if (IsGCSCheckEnabled()) {
+    uint64_t expected_lr = GCSPeek();
+    char msg[128];
+    if (expected_lr != 0) {
+      if ((expected_lr & 0x3) != 0) {
+        snprintf(msg,
+                 sizeof(msg),
+                 "GCS contains misaligned return address: 0x%016lx\n",
+                 expected_lr);
+        ReportGCSFailure(msg);
+      } else if ((addr != 0) && (addr != expected_lr)) {
+        snprintf(msg,
+                 sizeof(msg),
+                 "GCS mismatch: lr = 0x%016lx, gcs = 0x%016lx\n",
+                 addr,
+                 expected_lr);
+        ReportGCSFailure(msg);
+      }
+      GCSPop();
+    }
+  }
+  WritePc(reinterpret_cast<Instruction*>(addr));
 }
 #else
 void Simulator::DoRuntimeCall(const Instruction* instr) {

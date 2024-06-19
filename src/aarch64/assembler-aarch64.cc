@@ -1918,6 +1918,12 @@ void Assembler::sys(int op, const Register& xt) {
 }
 
 
+void Assembler::sysl(int op, const Register& xt) {
+  VIXL_ASSERT(xt.Is64Bits());
+  Emit(SYSL | SysOp(op) | Rt(xt));
+}
+
+
 void Assembler::dc(DataCacheOp op, const Register& rt) {
   if (op == CVAP) VIXL_ASSERT(CPUHas(CPUFeatures::kDCPoP));
   if (op == CVADP) VIXL_ASSERT(CPUHas(CPUFeatures::kDCCVADP));
@@ -1928,6 +1934,35 @@ void Assembler::dc(DataCacheOp op, const Register& rt) {
 void Assembler::ic(InstructionCacheOp op, const Register& rt) {
   VIXL_ASSERT(op == IVAU);
   sys(op, rt);
+}
+
+void Assembler::gcspushm(const Register& rt) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kGCS));
+  sys(GCSPUSHM, rt);
+}
+
+void Assembler::gcspopm(const Register& rt) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kGCS));
+  sysl(GCSPOPM, rt);
+}
+
+
+void Assembler::gcsss1(const Register& rt) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kGCS));
+  sys(GCSSS1, rt);
+}
+
+
+void Assembler::gcsss2(const Register& rt) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kGCS));
+  sysl(GCSSS2, rt);
+}
+
+
+void Assembler::chkfeat(const Register& rd) {
+  VIXL_ASSERT(rd.Is(x16));
+  USE(rd);
+  hint(CHKFEAT);
 }
 
 

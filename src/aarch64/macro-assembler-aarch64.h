@@ -2717,6 +2717,27 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     subps(xd, xn, xm);
   }
   void Cmpp(const Register& xn, const Register& xm) { Subps(xzr, xn, xm); }
+  void Chkfeat(const Register& xdn);
+  void Gcspushm(const Register& rt) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcspushm(rt);
+  }
+  void Gcspopm(const Register& rt = xzr) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcspopm(rt);
+  }
+  void Gcsss1(const Register& rt) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcsss1(rt);
+  }
+  void Gcsss2(const Register& rt) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    gcsss2(rt);
+  }
 
 // NEON 3 vector register instructions.
 #define NEON_3VREG_MACRO_LIST(V) \
@@ -8582,6 +8603,16 @@ class UseScratchRegisterScope {
   PRegister AcquireGoverningP() {
     CPURegList* available = masm_->GetScratchPRegisterList();
     return AcquireFrom(available, kGoverningPRegisterMask).P();
+  }
+
+  // TODO: extend to other scratch register lists.
+  bool TryAcquire(const Register& required_reg) {
+    CPURegList* list = masm_->GetScratchRegisterList();
+    if (list->IncludesAliasOf(required_reg)) {
+      list->Remove(required_reg);
+      return true;
+    }
+    return false;
   }
 
   Register AcquireRegisterOfSize(int size_in_bits);

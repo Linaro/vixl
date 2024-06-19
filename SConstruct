@@ -98,7 +98,9 @@ options = {
       'CCFLAGS' : ['-O3'],
       },
     'simulator:aarch64' : {
-      'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64'],
+      'CCFLAGS' : ['-DVIXL_INCLUDE_SIMULATOR_AARCH64',
+                   '-pthread'],
+      'LINKFLAGS' : ['-pthread']
       },
     'symbols:on' : {
       'CCFLAGS' : ['-g'],

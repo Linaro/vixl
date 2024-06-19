@@ -7501,11 +7501,12 @@ static void BtiHelper(Register ipreg) {
   __ Blr(x0);
   __ Adr(ipreg, &jump_call_target);
   __ Blr(ipreg);
-  __ Adr(lr, &done);  // Make Ret return to done label.
+  __ Mov(lr, 0);  // Zero lr so we branch to done.
   __ Br(ipreg);
   __ Bind(&call_target, EmitBTI_c);
   __ Ret();
   __ Bind(&jump_call_target, EmitBTI_jc);
+  __ Cbz(lr, &done);
   __ Ret();
   __ Bind(&done);
   END();
@@ -7529,28 +7530,36 @@ TEST(unguarded_bti_is_nop) {
   SETUP_WITH_FEATURES(CPUFeatures::kBTI);
 
   Label start, none, c, j, jc;
+  Label jump_to_c, call_to_j;
   START();
   __ B(&start);
   __ Bind(&none, EmitBTI);
   __ Bind(&c, EmitBTI_c);
   __ Bind(&j, EmitBTI_j);
   __ Bind(&jc, EmitBTI_jc);
-  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&none) == 4 * kInstructionSize);
+  __ Hint(BTI);
+  __ Hint(BTI_c);
+  __ Hint(BTI_j);
+  __ Hint(BTI_jc);
+  VIXL_CHECK(__ GetSizeOfCodeGeneratedSince(&none) == 8 * kInstructionSize);
+  __ Cmp(x1, 1);
+  __ B(lt, &jump_to_c);
+  __ B(eq, &call_to_j);
   __ Ret();
 
-  Label jump_to_c, call_to_j;
   __ Bind(&start);
   __ Adr(x0, &none);
-  __ Adr(lr, &jump_to_c);
+  __ Mov(x1, 0);
   __ Br(x0);
 
   __ Bind(&jump_to_c);
   __ Adr(x0, &c);
-  __ Adr(lr, &call_to_j);
+  __ Mov(x1, 1);
   __ Br(x0);
 
   __ Bind(&call_to_j);
   __ Adr(x0, &j);
+  __ Mov(x1, 2);
   __ Blr(x0);
   END();
 
@@ -14722,6 +14731,228 @@ TEST(cssc_smax) {
   MinMaxHelper(op, true, s64max, s32min, 0xffff'ffff, s64max);
   MinMaxHelper(op, true, s64min, s64max, 0, s64max);
 }
+
+TEST(gcs_chkfeat) {
+  SETUP();
+
+  START();
+  __ Mov(x16, 0x0123'4567'89ab'cdef);
+  __ Chkfeat(x16);
+  __ Mov(x0, x16);
+
+  __ Mov(x1, 0x0123'4567'89ab'cdef);
+  __ Chkfeat(x1);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(0x0123'4567'89ab'cdee, x0);
+    ASSERT_EQUAL_64(x0, x1);
+  }
+}
+
+TEST(gcs_feature_off) {
+  SETUP();
+
+  START();
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.DisableGCSCheck();
+#else
+// TODO: Disable GCS via operating system for this test, here and in the
+// gcs_off_pac_on test below.
+#endif
+  __ Mov(x16, 0x0123'4567'89ab'cdef);
+  __ Chkfeat(x16);
+
+  // This sequence would fail with GCS enabled.
+  Label lab, end;
+  __ Bl(&lab);
+  __ B(&end);
+
+  __ Bind(&lab);
+  __ Adr(lr, &end);
+  __ Ret();
+
+  __ Bind(&end);
+  END();
+
+  if (CAN_RUN()) {
+    // TODO: This will currently fail on GCS-supporting hardware.
+    RUN();
+    ASSERT_EQUAL_64(0x0123'4567'89ab'cdef, x16);
+  }
+}
+
+TEST(gcs_gcspushm) {
+  SETUP_WITH_FEATURES(CPUFeatures::kGCS);
+
+  Label ret;
+  START();
+  __ Adr(x0, &ret);
+  __ Gcspushm(x0);
+  __ Ret(x0);
+  __ Nop();
+  __ Bind(&ret);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+  }
+}
+
+TEST(gcs_gcspopm) {
+  SETUP_WITH_FEATURES(CPUFeatures::kGCS);
+
+  Label lab, ret;
+  START();
+  __ Adr(x0, &ret);
+  __ Bl(&lab);
+  __ Bind(&ret);
+  __ Nop();
+  __ Bind(&lab);
+  __ Gcspopm(x1);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(x0, x1);
+  }
+}
+
+TEST(gcs_gcsss1) {
+  SETUP_WITH_FEATURES(CPUFeatures::kGCS);
+
+  START();
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  uint64_t new_gcs = simulator.GetGCSManager().AllocateStack();
+  __ Mov(x0, new_gcs);
+#else
+// TODO: Request new GCS from the operating system.
+#endif
+
+  // Partial stack swap to check GCS has changed, and a token is at the top
+  // of the new stack.
+  __ Gcsss1(x0);
+  __ Gcspopm(x1);
+
+  __ Bic(x0, x0, 7);  // Clear LSB of new GCS.
+  __ Bic(x2, x1, 7);  // Clear LSB of old GCS.
+  __ Cmp(x0, x2);
+  __ Cset(x0, eq);
+  __ And(x1, x1, 7);  // In progress token.
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(0, x0);  // GCS must not be equal.
+    ASSERT_EQUAL_64(5, x1);  // In progress token must be present.
+  }
+}
+
+// TODO: Add extra tests for combinations of PAC and GCS enabled.
+TEST(gcs_stack_swap) {
+  SETUP_WITH_FEATURES(CPUFeatures::kGCS);
+
+  START();
+  Label stack_swap, sub_fn, end;
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  uint64_t new_gcs = simulator.GetGCSManager().AllocateStack();
+  __ Mov(x0, new_gcs);
+#else
+// TODO: Request new GCS from the operating system.
+#endif
+  __ Bl(&stack_swap);
+  __ B(&end);
+
+  __ Bind(&stack_swap);
+  __ Gcsss1(x0);  // x0 = new GCS.
+  __ Gcsss2(x1);  // x1 = old GCS.
+  __ Mov(x29, lr);
+  __ Bl(&sub_fn);
+  __ Mov(lr, x29);
+  __ Gcsss1(x1);  // Restore old GCS.
+  __ Gcsss2(x0);
+  __ Ret();
+
+  __ Bind(&sub_fn);
+  __ Mov(x2, 42);
+  __ Ret();
+
+  __ Bind(&end);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    ASSERT_EQUAL_64(42, x2);
+  }
+}
+
+TEST(gcs_off_pac_on) {
+  SETUP_WITH_FEATURES(CPUFeatures::kPAuth);
+
+  START();
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
+  simulator.DisableGCSCheck();
+#else
+// TODO: Disable GCS via operating system for this test, and enable for native.
+#endif
+  __ Mov(x16, 1);
+  __ Chkfeat(x16);
+  __ Mov(x1, x16);
+
+  Label fn1, after_fn1;
+
+  __ Mov(x28, sp);
+  __ Mov(x29, lr);
+  __ Mov(sp, 0x477d469dec0b8760);
+
+  __ Mov(x0, 0);
+  __ B(&after_fn1);
+
+  __ Bind(&fn1);
+  __ Mov(x0, 42);
+  __ Paciasp();
+  __ Retaa();
+
+  __ Bind(&after_fn1);
+  __ Bl(&fn1);
+
+  __ Mov(sp, x28);
+  __ Mov(lr, x29);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+
+    ASSERT_EQUAL_64(42, x0);
+    ASSERT_EQUAL_64(1, x1);
+  }
+}
+
+#ifdef VIXL_NEGATIVE_TESTING
+TEST(gcs_negative_test) {
+  SETUP_WITH_FEATURES(CPUFeatures::kGCS);
+
+  Label fn, bad_return_addr, done;
+  START();
+  __ Bl(&fn);
+  __ Nop();  // GCS enforces that fn() returns here...
+
+  __ Bind(&bad_return_addr);
+  __ B(&done);  // ... but this test attempts to return here.
+
+  __ Bind(&fn);
+  __ Adr(lr, &bad_return_addr);
+  __ Ret();
+
+  __ Bind(&done);
+  END();
+
+  if (CAN_RUN()) {
+    MUST_FAIL_WITH_MESSAGE(RUN(), "GCS failed");
+  }
+}
+#endif  // VIXL_NEGATIVE_TESTING
 
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Test the pseudo-instructions that control CPUFeatures dynamically in the

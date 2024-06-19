@@ -3359,6 +3359,20 @@ TEST(cssc) {
   CLEANUP();
 }
 
+TEST(gcs) {
+  SETUP();
+
+  COMPARE_MACRO(Chkfeat(x16), "chkfeat x16");
+  COMPARE_MACRO(Gcspopm(x0), "gcspopm x0");
+  COMPARE_MACRO(Gcspopm(), "gcspopm");
+  COMPARE_MACRO(Gcspopm(xzr), "gcspopm");
+  COMPARE_MACRO(Gcsss1(x4), "gcsss1 x4");
+  COMPARE_MACRO(Gcsss2(x2), "gcsss2 x2");
+  COMPARE_MACRO(Gcspushm(x1), "gcspushm x1");
+
+  CLEANUP();
+}
+
 TEST(architecture_features) {
   SETUP();
 
