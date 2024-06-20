@@ -753,6 +753,10 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"umax_64u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
       {"umin_32u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
       {"umin_64u_minmax_imm"_h, &Disassembler::DisassembleMinMaxImm},
+      {"bcax_vvv16_crypto4"_h, &Disassembler::DisassembleNEON4Same},
+      {"eor3_vvv16_crypto4"_h, &Disassembler::DisassembleNEON4Same},
+      {"xar_vvv2_crypto3_imm6"_h, &Disassembler::DisassembleNEONXar},
+      {"rax1_vvv2_cryptosha512_3"_h, &Disassembler::DisassembleNEONRax1},
   };
   return &form_to_visitor;
 }  // NOLINT(readability/fn_size)
@@ -2430,6 +2434,17 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
   Format(instr, mnemonic, nfd.Substitute(form), suffix);
 }
 
+void Disassembler::DisassembleNEON4Same(const Instruction *instr) {
+  FormatWithDecodedMnemonic(instr, "'Vd.16b, 'Vn.16b, 'Vm.16b, 'Va.16b");
+}
+
+void Disassembler::DisassembleNEONXar(const Instruction *instr) {
+  FormatWithDecodedMnemonic(instr, "'Vd.2d, 'Vn.2d, 'Vm.2d, #'u1510");
+}
+
+void Disassembler::DisassembleNEONRax1(const Instruction *instr) {
+  FormatWithDecodedMnemonic(instr, "'Vd.2d, 'Vn.2d, 'Vm.2d");
+}
 
 void Disassembler::VisitNEON3Different(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();

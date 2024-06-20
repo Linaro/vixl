@@ -3621,6 +3621,27 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Unsigned 8-bit integer matrix multiply-accumulate (vector).
   void ummla(const VRegister& vd, const VRegister& vn, const VRegister& vm);
 
+  // Bit Clear and exclusive-OR.
+  void bcax(const VRegister& vd,
+            const VRegister& vn,
+            const VRegister& vm,
+            const VRegister& va);
+
+  // Three-way Exclusive-OR.
+  void eor3(const VRegister& vd,
+            const VRegister& vn,
+            const VRegister& vm,
+            const VRegister& va);
+
+  // Exclusive-OR and Rotate.
+  void xar(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vm,
+           int rotate);
+
+  // Rotate and Exclusive-OR
+  void rax1(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

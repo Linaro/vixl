@@ -2638,7 +2638,6 @@
        &VISITORCLASS::VisitUnconditionalBranchToRegister},                     \
       {"ret_64r_branch_reg"_h,                                                 \
        &VISITORCLASS::VisitUnconditionalBranchToRegister},                     \
-      {"bcax_vvv16_crypto4"_h, &VISITORCLASS::VisitUnimplemented},             \
       {"bfcvtn_asimdmisc_4s"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"bfdot_asimdelem_e"_h, &VISITORCLASS::VisitUnimplemented},              \
       {"bfdot_asimdsame2_d"_h, &VISITORCLASS::VisitUnimplemented},             \
@@ -2646,7 +2645,6 @@
       {"bfmlal_asimdsame2_f"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"bfmmla_asimdsame2_e"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"dsb_bon_barriers"_h, &VISITORCLASS::VisitUnimplemented},               \
-      {"eor3_vvv16_crypto4"_h, &VISITORCLASS::VisitUnimplemented},             \
       {"ld64b_64l_memop"_h, &VISITORCLASS::VisitUnimplemented},                \
       {"ldgm_64bulk_ldsttags"_h, &VISITORCLASS::VisitUnimplemented},           \
       {"ldtrb_32_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},           \
@@ -2658,7 +2656,6 @@
       {"ldtrsw_64_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"ldtr_32_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"ldtr_64_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},            \
-      {"rax1_vvv2_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},       \
       {"sha512h2_qqv_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},    \
       {"sha512h_qqv_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},     \
       {"sha512su0_vv2_cryptosha512_2"_h, &VISITORCLASS::VisitUnimplemented},   \
@@ -2686,7 +2683,6 @@
       {"ttest_br_systemresult"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"wfet_only_systeminstrswithreg"_h, &VISITORCLASS::VisitUnimplemented},  \
       {"wfit_only_systeminstrswithreg"_h, &VISITORCLASS::VisitUnimplemented},  \
-      {"xar_vvv2_crypto3_imm6"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"bfcvt_z_p_z_s2bf"_h, &VISITORCLASS::VisitUnimplemented},               \
       {"bfcvtnt_z_p_z_s2bf"_h, &VISITORCLASS::VisitUnimplemented},             \
       {"bfdot_z_zzz"_h, &VISITORCLASS::VisitUnimplemented},                    \

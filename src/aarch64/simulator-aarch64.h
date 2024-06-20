@@ -1509,6 +1509,7 @@ class Simulator : public DecoderVisitor {
   void SimulateNEONFPMulByElementLong(const Instruction* instr);
   void SimulateNEONComplexMulByElement(const Instruction* instr);
   void SimulateNEONDotProdByElement(const Instruction* instr);
+  void SimulateNEONSHA3(const Instruction* instr);
   void SimulateMTEAddSubTag(const Instruction* instr);
   void SimulateMTETagMaskInsert(const Instruction* instr);
   void SimulateMTESubPointer(const Instruction* instr);

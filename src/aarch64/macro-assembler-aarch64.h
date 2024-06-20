@@ -2787,6 +2787,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(pmull2, Pmull2)              \
   V(raddhn, Raddhn)              \
   V(raddhn2, Raddhn2)            \
+  V(rax1, Rax1)                  \
   V(rsubhn, Rsubhn)              \
   V(rsubhn2, Rsubhn2)            \
   V(saba, Saba)                  \
@@ -3152,6 +3153,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   SVE_3VREG_COMMUTATIVE_MACRO_LIST(DEFINE_MACRO_ASM_FUNC)
 #undef DEFINE_MACRO_ASM_FUNC
 
+  void Bcax(const VRegister& vd,
+            const VRegister& vn,
+            const VRegister& vm,
+            const VRegister& va) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    bcax(vd, vn, vm, va);
+  }
   void Bic(const VRegister& vd, const int imm8, const int left_shift = 0) {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
@@ -3191,6 +3200,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     dup(vd, rn);
+  }
+  void Eor3(const VRegister& vd,
+            const VRegister& vn,
+            const VRegister& vm,
+            const VRegister& va) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    eor3(vd, vn, vm, va);
   }
   void Ext(const VRegister& vd,
            const VRegister& vn,
@@ -3497,6 +3514,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     umov(rd, vn, vn_index);
+  }
+  void Xar(const VRegister& vd,
+           const VRegister& vn,
+           const VRegister& vm,
+           int rotate) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    xar(vd, vn, vm, rotate);
   }
   void Crc32b(const Register& rd, const Register& rn, const Register& rm) {
     VIXL_ASSERT(allow_macro_instructions_);

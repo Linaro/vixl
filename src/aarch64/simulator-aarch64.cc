@@ -507,6 +507,10 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
       {"umax_64u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
       {"umin_32u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
       {"umin_64u_minmax_imm"_h, &Simulator::SimulateUnsignedMinMax},
+      {"bcax_vvv16_crypto4"_h, &Simulator::SimulateNEONSHA3},
+      {"eor3_vvv16_crypto4"_h, &Simulator::SimulateNEONSHA3},
+      {"rax1_vvv2_cryptosha512_3"_h, &Simulator::SimulateNEONSHA3},
+      {"xar_vvv2_crypto3_imm6"_h, &Simulator::SimulateNEONSHA3},
   };
   return &form_to_visitor;
 }
@@ -9923,6 +9927,34 @@ void Simulator::VisitNEONPerm(const Instruction* instr) {
       break;
     default:
       VIXL_UNIMPLEMENTED();
+  }
+}
+
+void Simulator::SimulateNEONSHA3(const Instruction* instr) {
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+  SimVRegister& ra = ReadVRegister(instr->GetRa());
+  SimVRegister temp;
+
+  switch (form_hash_) {
+    case "bcax_vvv16_crypto4"_h:
+      bic(kFormat16B, temp, rm, ra);
+      eor(kFormat16B, rd, rn, temp);
+      break;
+    case "eor3_vvv16_crypto4"_h:
+      eor(kFormat16B, temp, rm, ra);
+      eor(kFormat16B, rd, rn, temp);
+      break;
+    case "rax1_vvv2_cryptosha512_3"_h:
+      ror(kFormat2D, temp, rm, 63);  // rol(1) => ror(63)
+      eor(kFormat2D, rd, rn, temp);
+      break;
+    case "xar_vvv2_crypto3_imm6"_h:
+      int rot = instr->ExtractBits(15, 10);
+      eor(kFormat2D, temp, rn, rm);
+      ror(kFormat2D, rd, temp, rot);
+      break;
   }
 }
 
