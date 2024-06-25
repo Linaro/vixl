@@ -7909,6 +7909,89 @@ uint64_t SHA1Operation<"parity"_h>(uint64_t x, uint64_t y, uint64_t z) {
   return x ^ y ^ z;
 }
 
+template <unsigned A, unsigned B, unsigned C>
+static uint64_t SHA2Sigma(uint64_t x) {
+  return RotateRight(x, A, kSRegSize) ^ RotateRight(x, B, kSRegSize) ^
+         RotateRight(x, C, kSRegSize);
+}
+
+LogicVRegister Simulator::sha2h(LogicVRegister srcdst,
+                                const LogicVRegister& src1,
+                                const LogicVRegister& src2,
+                                bool part1) {
+  uint64_t x[4] = {};
+  uint64_t y[4] = {};
+  if (part1) {
+    // Switch input order based on which part is being handled.
+    srcdst.UintArray(kFormat4S, x);
+    src1.UintArray(kFormat4S, y);
+  } else {
+    src1.UintArray(kFormat4S, x);
+    srcdst.UintArray(kFormat4S, y);
+  }
+
+  for (unsigned i = 0; i < ArrayLength(x); i++) {
+    uint64_t chs = SHA1Operation<"choose"_h>(y[0], y[1], y[2]);
+    uint64_t maj = SHA1Operation<"majority"_h>(x[0], x[1], x[2]);
+
+    uint64_t w = src2.Uint(kFormat4S, i);
+    uint64_t t = y[3] + SHA2Sigma<6, 11, 25>(y[0]) + chs + w;
+
+    x[3] += t;
+    y[3] = t + SHA2Sigma<2, 13, 22>(x[0]) + maj;
+
+    // y:x = ROL(y:x, 32)
+    SHARotateEltsLeftOne(x);
+    SHARotateEltsLeftOne(y);
+    std::swap(x[0], y[0]);
+  }
+
+  srcdst.SetUintArray(kFormat4S, part1 ? x : y);
+  return srcdst;
+}
+
+template <unsigned A, unsigned B, unsigned C>
+static uint64_t SHA2SURotate(uint64_t x) {
+  return RotateRight(x, A, kSRegSize) ^ RotateRight(x, B, kSRegSize) ^
+         ((x & 0xffffffff) >> C);
+}
+
+LogicVRegister Simulator::sha2su0(LogicVRegister srcdst,
+                                  const LogicVRegister& src1) {
+  uint64_t w[4] = {};
+  uint64_t result[4];
+  srcdst.UintArray(kFormat4S, w);
+  uint64_t x = src1.Uint(kFormat4S, 0);
+
+  result[0] = SHA2SURotate<7, 18, 3>(w[1]) + w[0];
+  result[1] = SHA2SURotate<7, 18, 3>(w[2]) + w[1];
+  result[2] = SHA2SURotate<7, 18, 3>(w[3]) + w[2];
+  result[3] = SHA2SURotate<7, 18, 3>(x) + w[3];
+
+  srcdst.SetUintArray(kFormat4S, result);
+  return srcdst;
+}
+
+LogicVRegister Simulator::sha2su1(LogicVRegister srcdst,
+                                  const LogicVRegister& src1,
+                                  const LogicVRegister& src2) {
+  uint64_t w[4] = {};
+  uint64_t x[4] = {};
+  uint64_t y[4] = {};
+  uint64_t result[4];
+  srcdst.UintArray(kFormat4S, w);
+  src1.UintArray(kFormat4S, x);
+  src2.UintArray(kFormat4S, y);
+
+  result[0] = SHA2SURotate<17, 19, 10>(y[2]) + w[0] + x[1];
+  result[1] = SHA2SURotate<17, 19, 10>(y[3]) + w[1] + x[2];
+  result[2] = SHA2SURotate<17, 19, 10>(result[0]) + w[2] + x[3];
+  result[3] = SHA2SURotate<17, 19, 10>(result[1]) + w[3] + y[0];
+
+  srcdst.SetUintArray(kFormat4S, result);
+  return srcdst;
+}
+
 }  // namespace aarch64
 }  // namespace vixl
 

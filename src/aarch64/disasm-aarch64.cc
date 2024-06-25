@@ -2182,8 +2182,15 @@ void Disassembler::VisitCrypto2RegSHA(const Instruction *instr) {
 
 void Disassembler::VisitCrypto3RegSHA(const Instruction *instr) {
   const char *form = "'Qd, 'Sn, 'Vm.4s";
-  if (form_hash_ == "sha1su0_vvv_cryptosha3"_h) {
-    form = "'Vd.4s, 'Vn.4s, 'Vm.4s";
+  switch (form_hash_) {
+    case "sha1su0_vvv_cryptosha3"_h:
+    case "sha256su1_vvv_cryptosha3"_h:
+      form = "'Vd.4s, 'Vn.4s, 'Vm.4s";
+      break;
+    case "sha256h_qqv_cryptosha3"_h:
+    case "sha256h2_qqv_cryptosha3"_h:
+      form = "'Qd, 'Qn, 'Vm.4s";
+      break;
   }
   FormatWithDecodedMnemonic(instr, form);
 }

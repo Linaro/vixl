@@ -3805,5 +3805,15 @@ TEST_NEON_SHA1(sha1su0_0, sha1su0(v19.V4S(), v9.V4S(), v27.V4S()))
 TEST_NEON_SHA1(sha1h_0, sha1h(s12, s0))
 TEST_NEON_SHA1(sha1su1_0, sha1su1(v2.V4S(), v4.V4S()))
 
+#define TEST_FEAT(NAME, ASM)                                         \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSHA2), \
+                NEON_SHA2_##NAME,                                    \
+                ASM)
+TEST_FEAT(sha256h_0, sha256h(q0, q12, v20.V4S()))
+TEST_FEAT(sha256h2_0, sha256h2(q22, q2, v13.V4S()))
+TEST_FEAT(sha256su0_0, sha256su0(v2.V4S(), v4.V4S()))
+TEST_FEAT(sha256su1_0, sha256su1(v19.V4S(), v9.V4S(), v27.V4S()))
+#undef TEST_FEAT
+
 }  // namespace aarch64
 }  // namespace vixl

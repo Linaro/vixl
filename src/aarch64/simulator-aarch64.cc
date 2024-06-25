@@ -7193,7 +7193,7 @@ void Simulator::VisitCrypto2RegSHA(const Instruction* instr) {
       break;
     }
     case "sha256su0_vv_cryptosha2"_h:
-      VIXL_UNIMPLEMENTED();
+      sha2su0(rd, rn);
       break;
   }
 }
@@ -7221,6 +7221,15 @@ void Simulator::VisitCrypto3RegSHA(const Instruction* instr) {
       eor(kFormat16B, rd, temp, rm);
       break;
     }
+    case "sha256h_qqv_cryptosha3"_h:
+      sha2h(rd, rn, rm, /* part1 = */ true);
+      break;
+    case "sha256h2_qqv_cryptosha3"_h:
+      sha2h(rd, rn, rm, /* part1 = */ false);
+      break;
+    case "sha256su1_vvv_cryptosha3"_h:
+      sha2su1(rd, rn, rm);
+      break;
   }
 }
 

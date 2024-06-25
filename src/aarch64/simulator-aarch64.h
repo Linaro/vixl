@@ -4498,6 +4498,16 @@ class Simulator : public DecoderVisitor {
                          const LogicVRegister& src1,
                          const LogicVRegister& src2);
 
+  template <unsigned N>
+  static void SHARotateEltsLeftOne(uint64_t (&x)[N]) {
+    VIXL_STATIC_ASSERT(N == 4);
+    uint64_t temp = x[3];
+    x[3] = x[2];
+    x[2] = x[1];
+    x[1] = x[0];
+    x[0] = temp;
+  }
+
   template <uint32_t mode>
   LogicVRegister sha1(LogicVRegister srcdst,
                       const LogicVRegister& src1,
@@ -4515,17 +4525,22 @@ class Simulator : public DecoderVisitor {
       sd[1] = RotateLeft(sd[1], 30, kSRegSize);
 
       // y:sd = ROL(y:sd, 32)
-      uint64_t temp = sd[3];
-      sd[3] = sd[2];
-      sd[2] = sd[1];
-      sd[1] = sd[0];
-      sd[0] = y;
-      y = temp;
+      SHARotateEltsLeftOne(sd);
+      std::swap(sd[0], y);
     }
 
     srcdst.SetUintArray(kFormat4S, sd);
     return srcdst;
   }
+
+  LogicVRegister sha2h(LogicVRegister srcdst,
+                       const LogicVRegister& src1,
+                       const LogicVRegister& src2,
+                       bool part1);
+  LogicVRegister sha2su0(LogicVRegister srcdst, const LogicVRegister& src1);
+  LogicVRegister sha2su1(LogicVRegister srcdst,
+                         const LogicVRegister& src1,
+                         const LogicVRegister& src2);
 
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \

@@ -5957,6 +5957,38 @@ void Assembler::sha1su1(const VRegister& vd, const VRegister& vn) {
   Emit(0x5e281800 | Rd(vd) | Rn(vn));
 }
 
+void Assembler::sha256h(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA2));
+  VIXL_ASSERT(vd.IsQ() && vn.IsQ() && vm.Is4S());
+
+  Emit(0x5e004000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha256h2(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA2));
+  VIXL_ASSERT(vd.IsQ() && vn.IsQ() && vm.Is4S());
+
+  Emit(0x5e005000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha256su0(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA2));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S());
+
+  Emit(0x5e282800 | Rd(vd) | Rn(vn));
+}
+
+void Assembler::sha256su1(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA2));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+
+  Emit(0x5e006000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

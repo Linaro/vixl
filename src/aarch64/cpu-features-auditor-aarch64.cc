@@ -247,13 +247,29 @@ void CPUFeaturesAuditor::VisitConditionalSelect(const Instruction* instr) {
 
 void CPUFeaturesAuditor::VisitCrypto2RegSHA(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA1);
+  if (form_hash_ == "sha256su0_vv_cryptosha2"_h) {
+    scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA2);
+  } else {
+    scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA1);
+  }
   USE(instr);
 }
 
 void CPUFeaturesAuditor::VisitCrypto3RegSHA(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
-  scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA1);
+  switch (form_hash_) {
+    case "sha1c_qsv_cryptosha3"_h:
+    case "sha1m_qsv_cryptosha3"_h:
+    case "sha1p_qsv_cryptosha3"_h:
+    case "sha1su0_vvv_cryptosha3"_h:
+      scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA1);
+      break;
+    case "sha256h_qqv_cryptosha3"_h:
+    case "sha256h2_qqv_cryptosha3"_h:
+    case "sha256su1_vvv_cryptosha3"_h:
+      scope.Record(CPUFeatures::kNEON, CPUFeatures::kSHA2);
+      break;
+  }
   USE(instr);
 }
 
