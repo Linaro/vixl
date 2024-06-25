@@ -5989,6 +5989,38 @@ void Assembler::sha256su1(const VRegister& vd, const VRegister& vn, const VRegis
   Emit(0x5e006000 | Rd(vd) | Rn(vn) | Rm(vm));
 }
 
+void Assembler::sha512h(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA512));
+  VIXL_ASSERT(vd.IsQ() && vn.IsQ() && vm.Is2D());
+
+  Emit(0xce608000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha512h2(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA512));
+  VIXL_ASSERT(vd.IsQ() && vn.IsQ() && vm.Is2D());
+
+  Emit(0xce608400 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha512su0(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA512));
+  VIXL_ASSERT(vd.Is2D() && vn.Is2D());
+
+  Emit(0xcec08000 | Rd(vd) | Rn(vn));
+}
+
+void Assembler::sha512su1(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA512));
+  VIXL_ASSERT(vd.Is2D() && vn.Is2D() && vm.Is2D());
+
+  Emit(0xce608800 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

@@ -1530,6 +1530,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSetGM(const Instruction* instr);
   void SimulateSignedMinMax(const Instruction* instr);
   void SimulateUnsignedMinMax(const Instruction* instr);
+  void SimulateSHA512(const Instruction* instr);
 
 
   // Integer register accessors.
@@ -4541,6 +4542,16 @@ class Simulator : public DecoderVisitor {
   LogicVRegister sha2su1(LogicVRegister srcdst,
                          const LogicVRegister& src1,
                          const LogicVRegister& src2);
+  LogicVRegister sha512h(LogicVRegister srcdst,
+                         const LogicVRegister& src1,
+                         const LogicVRegister& src2);
+  LogicVRegister sha512h2(LogicVRegister srcdst,
+                          const LogicVRegister& src1,
+                          const LogicVRegister& src2);
+  LogicVRegister sha512su0(LogicVRegister srcdst, const LogicVRegister& src1);
+  LogicVRegister sha512su1(LogicVRegister srcdst,
+                           const LogicVRegister& src1,
+                           const LogicVRegister& src2);
 
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \

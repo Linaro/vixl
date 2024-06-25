@@ -4556,6 +4556,18 @@ TEST(neon_sha2) {
   CLEANUP();
 }
 
+TEST(neon_sha512) {
+  SETUP();
+
+  COMPARE_MACRO(Sha512h(q0, q12, v20.V2D()), "sha512h q0, q12, v20.2d");
+  COMPARE_MACRO(Sha512h2(q22, q2, v13.V2D()), "sha512h2 q22, q2, v13.2d");
+  COMPARE_MACRO(Sha512su0(v2.V2D(), v4.V2D()), "sha512su0 v2.2d, v4.2d");
+  COMPARE_MACRO(Sha512su1(v19.V2D(), v9.V2D(), v27.V2D()),
+                "sha512su1 v19.2d, v9.2d, v27.2d");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 
