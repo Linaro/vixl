@@ -7171,12 +7171,57 @@ void Simulator::VisitException(const Instruction* instr) {
 
 
 void Simulator::VisitCrypto2RegSHA(const Instruction* instr) {
-  VisitUnimplemented(instr);
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+
+  switch (form_hash_) {
+    case "sha1h_ss_cryptosha2"_h:
+      ror(kFormatS, rd, rn, 2);
+      break;
+    case "sha1su1_vv_cryptosha2"_h: {
+      SimVRegister temp;
+
+      // temp = srcdst ^ (src >> 32);
+      ext(kFormat16B, temp, rn, temp, 4);
+      eor(kFormat16B, temp, rd, temp);
+
+      // srcdst = ROL(temp, 1) ^ (ROL(temp, 2) << 96)
+      rol(kFormat4S, rd, temp, 1);
+      rol(kFormatS, temp, temp, 2);  // kFormatS will zero bits <127:32>
+      ext(kFormat16B, temp, temp, temp, 4);
+      eor(kFormat16B, rd, rd, temp);
+      break;
+    }
+    case "sha256su0_vv_cryptosha2"_h:
+      VIXL_UNIMPLEMENTED();
+      break;
+  }
 }
 
 
 void Simulator::VisitCrypto3RegSHA(const Instruction* instr) {
-  VisitUnimplemented(instr);
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+
+  switch (form_hash_) {
+    case "sha1c_qsv_cryptosha3"_h:
+      sha1<"choose"_h>(rd, rn, rm);
+      break;
+    case "sha1m_qsv_cryptosha3"_h:
+      sha1<"majority"_h>(rd, rn, rm);
+      break;
+    case "sha1p_qsv_cryptosha3"_h:
+      sha1<"parity"_h>(rd, rn, rm);
+      break;
+    case "sha1su0_vvv_cryptosha3"_h: {
+      SimVRegister temp;
+      ext(kFormat16B, temp, rd, rn, 8);
+      eor(kFormat16B, temp, temp, rd);
+      eor(kFormat16B, rd, temp, rm);
+      break;
+    }
+  }
 }
 
 

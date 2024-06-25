@@ -2513,12 +2513,21 @@ LogicVRegister Simulator::ror(VectorFormat vform,
                               LogicVRegister dst,
                               const LogicVRegister& src,
                               int rotation) {
+  dst.ClearForWrite(vform);
   int width = LaneSizeInBitsFromFormat(vform);
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {
     uint64_t value = src.Uint(vform, i);
     dst.SetUint(vform, i, RotateRight(value, rotation, width));
   }
   return dst;
+}
+
+LogicVRegister Simulator::rol(VectorFormat vform,
+                              LogicVRegister dst,
+                              const LogicVRegister& src,
+                              int rotation) {
+  int ror_equivalent = LaneSizeInBitsFromFormat(vform) - rotation;
+  return ror(vform, dst, src, ror_equivalent);
 }
 
 LogicVRegister Simulator::ext(VectorFormat vform,
@@ -7883,6 +7892,21 @@ LogicVRegister Simulator::fmatmul(VectorFormat vform,
     fmatmul<double>(vform, dst, src1, src2);
   }
   return dst;
+}
+
+template <>
+uint64_t SHA1Operation<"choose"_h>(uint64_t x, uint64_t y, uint64_t z) {
+  return ((y ^ z) & x) ^ z;
+}
+
+template <>
+uint64_t SHA1Operation<"majority"_h>(uint64_t x, uint64_t y, uint64_t z) {
+  return (x & y) | ((x | y) & z);
+}
+
+template <>
+uint64_t SHA1Operation<"parity"_h>(uint64_t x, uint64_t y, uint64_t z) {
+  return x ^ y ^ z;
 }
 
 }  // namespace aarch64

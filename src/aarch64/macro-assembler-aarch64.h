@@ -2800,6 +2800,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(saddl2, Saddl2)              \
   V(saddw, Saddw)                \
   V(saddw2, Saddw2)              \
+  V(sha1c, Sha1c)                \
+  V(sha1m, Sha1m)                \
+  V(sha1p, Sha1p)                \
+  V(sha1su0, Sha1su0)            \
   V(shadd, Shadd)                \
   V(shsub, Shsub)                \
   V(smax, Smax)                  \
@@ -2944,6 +2948,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sadalp, Sadalp)              \
   V(saddlp, Saddlp)              \
   V(saddlv, Saddlv)              \
+  V(sha1h, Sha1h)                \
+  V(sha1su1, Sha1su1)            \
   V(smaxv, Smaxv)                \
   V(sminv, Sminv)                \
   V(sqabs, Sqabs)                \

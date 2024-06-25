@@ -5909,6 +5909,54 @@ void Assembler::rax1(const VRegister& vd, const VRegister& vn, const VRegister& 
   Emit(0xce608c00 | Rd(vd) | Rn(vn) | Rm(vm));
 }
 
+void Assembler::sha1c(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA1));
+  VIXL_ASSERT(vd.IsQ() && vn.IsS() && vm.Is4S());
+
+  Emit(0x5e000000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha1h(const VRegister& sd, const VRegister& sn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA1));
+  VIXL_ASSERT(sd.IsS() && sn.IsS());
+
+  Emit(0x5e280800 | Rd(sd) | Rn(sn));
+}
+
+void Assembler::sha1m(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA1));
+  VIXL_ASSERT(vd.IsQ() && vn.IsS() && vm.Is4S());
+
+  Emit(0x5e002000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha1p(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA1));
+  VIXL_ASSERT(vd.IsQ() && vn.IsS() && vm.Is4S());
+
+  Emit(0x5e001000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha1su0(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA1));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+
+  Emit(0x5e003000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sha1su1(const VRegister& vd, const VRegister& vn) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSHA1));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S());
+
+  Emit(0x5e281800 | Rd(vd) | Rn(vn));
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

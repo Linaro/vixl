@@ -239,6 +239,11 @@ inline uint64_t RotateRight(uint64_t value,
   return value & width_mask;
 }
 
+inline uint64_t RotateLeft(uint64_t value,
+                           unsigned int rotate,
+                           unsigned int width) {
+  return RotateRight(value, width - rotate, width);
+}
 
 // Wrapper class for passing FP16 values through the assembler.
 // This is purely to aid with type checking/casting.
