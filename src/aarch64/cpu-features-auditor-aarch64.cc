@@ -275,6 +275,7 @@ void CPUFeaturesAuditor::VisitCrypto3RegSHA(const Instruction* instr) {
 
 void CPUFeaturesAuditor::VisitCryptoAES(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kNEON, CPUFeatures::kAES);
   USE(instr);
 }
 

@@ -3684,6 +3684,18 @@ class Assembler : public vixl::internal::AssemblerBase {
   // SHA512 schedule Update 1.
   void sha512su1(const VRegister& vd, const VRegister& vn, const VRegister& vm);
 
+  // AES single round decryption.
+  void aesd(const VRegister& vd, const VRegister& vn);
+
+  // AES single round encryption.
+  void aese(const VRegister& vd, const VRegister& vn);
+
+  // AES inverse mix columns.
+  void aesimc(const VRegister& vd, const VRegister& vn);
+
+  // AES mix columns.
+  void aesmc(const VRegister& vd, const VRegister& vn);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

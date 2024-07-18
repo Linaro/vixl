@@ -2201,7 +2201,7 @@ void Disassembler::VisitCrypto3RegSHA(const Instruction *instr) {
 
 
 void Disassembler::VisitCryptoAES(const Instruction *instr) {
-  VisitUnimplemented(instr);
+  FormatWithDecodedMnemonic(instr, "'Vd.16b, 'Vn.16b");
 }
 
 void Disassembler::DisassembleSHA512(const Instruction *instr) {

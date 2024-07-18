@@ -2906,6 +2906,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(abs, Abs)                    \
   V(addp, Addp)                  \
   V(addv, Addv)                  \
+  V(aesd, Aesd)                  \
+  V(aese, Aese)                  \
+  V(aesimc, Aesimc)              \
+  V(aesmc, Aesmc)                \
   V(cls, Cls)                    \
   V(clz, Clz)                    \
   V(cnt, Cnt)                    \

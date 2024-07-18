@@ -4553,6 +4553,14 @@ class Simulator : public DecoderVisitor {
                            const LogicVRegister& src1,
                            const LogicVRegister& src2);
 
+
+  LogicVRegister aes(LogicVRegister srcdst,
+                     const LogicVRegister& src1,
+                     bool decrypt);
+  LogicVRegister aesmix(LogicVRegister srcdst,
+                        const LogicVRegister& src1,
+                        bool inverse);
+
 #define NEON_3VREG_LOGIC_LIST(V) \
   V(addhn)                       \
   V(addhn2)                      \

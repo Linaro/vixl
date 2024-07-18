@@ -4568,6 +4568,17 @@ TEST(neon_sha512) {
   CLEANUP();
 }
 
+TEST(neon_aes) {
+  SETUP();
+
+  COMPARE_MACRO(Aesd(v0.V16B(), v29.V16B()), "aesd v0.16b, v29.16b");
+  COMPARE_MACRO(Aese(v0.V16B(), v29.V16B()), "aese v0.16b, v29.16b");
+  COMPARE_MACRO(Aesimc(v0.V16B(), v29.V16B()), "aesimc v0.16b, v29.16b");
+  COMPARE_MACRO(Aesmc(v0.V16B(), v29.V16B()), "aesmc v0.16b, v29.16b");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 

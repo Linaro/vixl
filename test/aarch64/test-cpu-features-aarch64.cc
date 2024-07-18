@@ -3825,5 +3825,15 @@ TEST_FEAT(sha512su0_0, sha512su0(v2.V2D(), v4.V2D()))
 TEST_FEAT(sha512su1_0, sha512su1(v19.V2D(), v9.V2D(), v27.V2D()))
 #undef TEST_FEAT
 
+#define TEST_FEAT(NAME, ASM)                                        \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kAES), \
+                NEON_AES_##NAME,                                    \
+                ASM)
+TEST_FEAT(aesd_0, aesd(v0.V16B(), v29.V16B()))
+TEST_FEAT(aese_0, aese(v0.V16B(), v29.V16B()))
+TEST_FEAT(aesimc_0, aesimc(v0.V16B(), v29.V16B()))
+TEST_FEAT(aesmc_0, aesmc(v0.V16B(), v29.V16B()))
+#undef TEST_FEAT
+
 }  // namespace aarch64
 }  // namespace vixl
