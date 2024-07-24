@@ -3696,6 +3696,42 @@ class Assembler : public vixl::internal::AssemblerBase {
   // AES mix columns.
   void aesmc(const VRegister& vd, const VRegister& vn);
 
+  // SM3PARTW1.
+  void sm3partw1(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SM3PARTW2.
+  void sm3partw2(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
+  // SM3SS1.
+  void sm3ss1(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm,
+              const VRegister& va);
+
+  // SM3TT1A.
+  void sm3tt1a(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int index);
+
+  // SM3TT1B.
+  void sm3tt1b(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int index);
+
+  // SM3TT2A.
+  void sm3tt2a(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int index);
+
+  // SM3TT2B.
+  void sm3tt2b(const VRegister& vd,
+               const VRegister& vn,
+               const VRegister& vm,
+               int index);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

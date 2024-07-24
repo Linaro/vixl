@@ -7261,6 +7261,39 @@ void Simulator::VisitCryptoAES(const Instruction* instr) {
   }
 }
 
+void Simulator::VisitCryptoSM3(const Instruction* instr) {
+  SimVRegister& rd = ReadVRegister(instr->GetRd());
+  SimVRegister& rn = ReadVRegister(instr->GetRn());
+  SimVRegister& rm = ReadVRegister(instr->GetRm());
+  SimVRegister& ra = ReadVRegister(instr->GetRa());
+  int index = instr->ExtractBits(13, 12);
+
+  bool is_a = false;
+  switch (form_hash_) {
+    case "sm3partw1_vvv4_cryptosha512_3"_h:
+      sm3partw1(rd, rn, rm);
+      break;
+    case "sm3partw2_vvv4_cryptosha512_3"_h:
+      sm3partw2(rd, rn, rm);
+      break;
+    case "sm3ss1_vvv4_crypto4"_h:
+      sm3ss1(rd, rn, rm, ra);
+      break;
+    case "sm3tt1a_vvv4_crypto3_imm2"_h:
+      is_a = true;
+      VIXL_FALLTHROUGH();
+    case "sm3tt1b_vvv4_crypto3_imm2"_h:
+      sm3tt1(rd, rn, rm, index, is_a);
+      break;
+    case "sm3tt2a_vvv4_crypto3_imm2"_h:
+      is_a = true;
+      VIXL_FALLTHROUGH();
+    case "sm3tt2b_vvv_crypto3_imm2"_h:
+      sm3tt2(rd, rn, rm, index, is_a);
+      break;
+  }
+}
+
 void Simulator::SimulateSHA512(const Instruction* instr) {
   SimVRegister& rd = ReadVRegister(instr->GetRd());
   SimVRegister& rn = ReadVRegister(instr->GetRn());

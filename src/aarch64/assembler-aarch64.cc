@@ -6053,6 +6053,70 @@ void Assembler::aesmc(const VRegister& vd, const VRegister& vn) {
   Emit(0x4e286800 | Rd(vd) | Rn(vn));
 }
 
+void Assembler::sm3partw1(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+
+  Emit(0xce60c000 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sm3partw2(const VRegister& vd, const VRegister& vn, const VRegister& vm) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+
+  Emit(0xce60c400 | Rd(vd) | Rn(vn) | Rm(vm));
+}
+
+void Assembler::sm3ss1(const VRegister& vd, const VRegister& vn, const VRegister& vm, const VRegister& va) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S() && va.Is4S());
+
+  Emit(0xce400000 | Rd(vd) | Rn(vn) | Rm(vm) | Ra(va));
+}
+
+void Assembler::sm3tt1a(const VRegister& vd, const VRegister& vn, const VRegister& vm, int index) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+  VIXL_ASSERT(IsUint2(index));
+
+  Instr i = static_cast<uint32_t>(index) << 12;
+  Emit(0xce408000 | Rd(vd) | Rn(vn) | Rm(vm) | i);
+}
+
+void Assembler::sm3tt1b(const VRegister& vd, const VRegister& vn, const VRegister& vm, int index) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+  VIXL_ASSERT(IsUint2(index));
+
+  Instr i = static_cast<uint32_t>(index) << 12;
+  Emit(0xce408400 | Rd(vd) | Rn(vn) | Rm(vm) | i);
+}
+
+void Assembler::sm3tt2a(const VRegister& vd, const VRegister& vn, const VRegister& vm, int index) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+  VIXL_ASSERT(IsUint2(index));
+
+  Instr i = static_cast<uint32_t>(index) << 12;
+  Emit(0xce408800 | Rd(vd) | Rn(vn) | Rm(vm) | i);
+}
+
+void Assembler::sm3tt2b(const VRegister& vd, const VRegister& vn, const VRegister& vm, int index) {
+  VIXL_ASSERT(CPUHas(CPUFeatures::kNEON));
+  VIXL_ASSERT(CPUHas(CPUFeatures::kSM3));
+  VIXL_ASSERT(vd.Is4S() && vn.Is4S() && vm.Is4S());
+  VIXL_ASSERT(IsUint2(index));
+
+  Instr i = static_cast<uint32_t>(index) << 12;
+  Emit(0xce408c00 | Rd(vd) | Rn(vn) | Rm(vm) | i);
+}
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

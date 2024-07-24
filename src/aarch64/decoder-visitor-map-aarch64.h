@@ -2656,13 +2656,13 @@
       {"ldtrsw_64_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},          \
       {"ldtr_32_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},            \
       {"ldtr_64_ldst_unpriv"_h, &VISITORCLASS::VisitUnimplemented},            \
-      {"sm3partw1_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},  \
-      {"sm3partw2_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},  \
-      {"sm3ss1_vvv4_crypto4"_h, &VISITORCLASS::VisitUnimplemented},            \
-      {"sm3tt1a_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitUnimplemented},      \
-      {"sm3tt1b_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitUnimplemented},      \
-      {"sm3tt2a_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitUnimplemented},      \
-      {"sm3tt2b_vvv_crypto3_imm2"_h, &VISITORCLASS::VisitUnimplemented},       \
+      {"sm3partw1_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitCryptoSM3},      \
+      {"sm3partw2_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitCryptoSM3},      \
+      {"sm3ss1_vvv4_crypto4"_h, &VISITORCLASS::VisitCryptoSM3},                \
+      {"sm3tt1a_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},          \
+      {"sm3tt1b_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},          \
+      {"sm3tt2a_vvv4_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},          \
+      {"sm3tt2b_vvv_crypto3_imm2"_h, &VISITORCLASS::VisitCryptoSM3},           \
       {"sm4ekey_vvv4_cryptosha512_3"_h, &VISITORCLASS::VisitUnimplemented},    \
       {"sm4e_vv4_cryptosha512_2"_h, &VISITORCLASS::VisitUnimplemented},        \
       {"st64b_64l_memop"_h, &VISITORCLASS::VisitUnimplemented},                \

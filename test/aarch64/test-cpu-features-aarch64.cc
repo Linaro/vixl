@@ -3835,5 +3835,18 @@ TEST_FEAT(aesimc_0, aesimc(v0.V16B(), v29.V16B()))
 TEST_FEAT(aesmc_0, aesmc(v0.V16B(), v29.V16B()))
 #undef TEST_FEAT
 
+#define TEST_FEAT(NAME, ASM)                                        \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSM3), \
+                NEON_SM3_##NAME,                                    \
+                ASM)
+TEST_FEAT(sm3partw1_0, sm3partw1(v12.V4S(), v13.V4S(), v14.V4S()))
+TEST_FEAT(sm3partw2_0, sm3partw2(v12.V4S(), v13.V4S(), v14.V4S()))
+TEST_FEAT(sm3ss1_0, sm3ss1(v13.V4S(), v15.V4S(), v17.V4S(), v21.V4S()))
+TEST_FEAT(sm3tt1a_0, sm3tt1a(v30.V4S(), v29.V4S(), v9.V4S(), 1))
+TEST_FEAT(sm3tt1b_0, sm3tt1b(v30.V4S(), v29.V4S(), v9.V4S(), 3))
+TEST_FEAT(sm3tt2a_0, sm3tt2a(v30.V4S(), v29.V4S(), v9.V4S(), 2))
+TEST_FEAT(sm3tt2b_0, sm3tt2b(v30.V4S(), v29.V4S(), v9.V4S(), 0))
+#undef TEST_FEAT
+
 }  // namespace aarch64
 }  // namespace vixl

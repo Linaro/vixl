@@ -2812,6 +2812,8 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sha512su1, Sha512su1)        \
   V(shadd, Shadd)                \
   V(shsub, Shsub)                \
+  V(sm3partw1, Sm3partw1)        \
+  V(sm3partw2, Sm3partw2)        \
   V(smax, Smax)                  \
   V(smaxp, Smaxp)                \
   V(smin, Smin)                  \
@@ -3052,7 +3054,11 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(umlsl, Umlsl)                    \
   V(umlsl2, Umlsl2)                  \
   V(sudot, Sudot)                    \
-  V(usdot, Usdot)
+  V(usdot, Usdot)                    \
+  V(sm3tt1a, Sm3tt1a)                \
+  V(sm3tt1b, Sm3tt1b)                \
+  V(sm3tt2a, Sm3tt2a)                \
+  V(sm3tt2b, Sm3tt2b)
 
 
 #define DEFINE_MACRO_ASM_FUNC(ASM, MASM)    \
@@ -3522,6 +3528,14 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
     VIXL_ASSERT(allow_macro_instructions_);
     SingleEmissionCheckScope guard(this);
     st4(vt, vt2, vt3, vt4, lane, dst);
+  }
+  void Sm3ss1(const VRegister& vd,
+              const VRegister& vn,
+              const VRegister& vm,
+              const VRegister& va) {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    sm3ss1(vd, vn, vm, va);
   }
   void Smov(const Register& rd, const VRegister& vn, int vn_index) {
     VIXL_ASSERT(allow_macro_instructions_);

@@ -279,6 +279,12 @@ void CPUFeaturesAuditor::VisitCryptoAES(const Instruction* instr) {
   USE(instr);
 }
 
+void CPUFeaturesAuditor::VisitCryptoSM3(const Instruction* instr) {
+  RecordInstructionFeaturesScope scope(this);
+  scope.Record(CPUFeatures::kNEON, CPUFeatures::kSM3);
+  USE(instr);
+}
+
 void CPUFeaturesAuditor::VisitDataProcessing1Source(const Instruction* instr) {
   RecordInstructionFeaturesScope scope(this);
   switch (instr->Mask(DataProcessing1SourceMask)) {

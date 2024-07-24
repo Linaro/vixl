@@ -4579,6 +4579,27 @@ TEST(neon_aes) {
   CLEANUP();
 }
 
+TEST(neon_sm3) {
+  SETUP();
+
+  COMPARE_MACRO(Sm3partw1(v12.V4S(), v13.V4S(), v14.V4S()),
+                "sm3partw1 v12.4s, v13.4s, v14.4s");
+  COMPARE_MACRO(Sm3partw2(v12.V4S(), v13.V4S(), v14.V4S()),
+                "sm3partw2 v12.4s, v13.4s, v14.4s");
+  COMPARE_MACRO(Sm3ss1(v13.V4S(), v15.V4S(), v17.V4S(), v21.V4S()),
+                "sm3ss1 v13.4s, v15.4s, v17.4s, v21.4s");
+  COMPARE_MACRO(Sm3tt1a(v30.V4S(), v29.V4S(), v9.V4S(), 1),
+                "sm3tt1a v30.4s, v29.4s, v9.s[1]");
+  COMPARE_MACRO(Sm3tt1b(v30.V4S(), v29.V4S(), v9.V4S(), 3),
+                "sm3tt1b v30.4s, v29.4s, v9.s[3]");
+  COMPARE_MACRO(Sm3tt2a(v30.V4S(), v29.V4S(), v9.V4S(), 2),
+                "sm3tt2a v30.4s, v29.4s, v9.s[2]");
+  COMPARE_MACRO(Sm3tt2b(v30.V4S(), v29.V4S(), v9.V4S(), 0),
+                "sm3tt2b v30.4s, v29.4s, v9.s[0]");
+
+  CLEANUP();
+}
+
 TEST(neon_unallocated_regression_test) {
   SETUP();
 
