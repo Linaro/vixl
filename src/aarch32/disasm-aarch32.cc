@@ -1228,6 +1228,42 @@ void Disassembler::and_(Condition cond,
   os() << rn << ", " << operand;
 }
 
+void Disassembler::aesd(Condition cond,
+                        DataType dt,
+                        QRegister rd,
+                        QRegister rm) {
+  os().SetCurrentInstruction(kAesd, kNoAttribute);
+  os() << ToCString(kAesd) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped8) << ' ' << rd << ", " << rm;
+}
+
+void Disassembler::aese(Condition cond,
+                        DataType dt,
+                        QRegister rd,
+                        QRegister rm) {
+  os().SetCurrentInstruction(kAese, kNoAttribute);
+  os() << ToCString(kAese) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped8) << ' ' << rd << ", " << rm;
+}
+
+void Disassembler::aesimc(Condition cond,
+                          DataType dt,
+                          QRegister rd,
+                          QRegister rm) {
+  os().SetCurrentInstruction(kAesimc, kNoAttribute);
+  os() << ToCString(kAesimc) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped8) << ' ' << rd << ", " << rm;
+}
+
+void Disassembler::aesmc(Condition cond,
+                         DataType dt,
+                         QRegister rd,
+                         QRegister rm) {
+  os().SetCurrentInstruction(kAesmc, kNoAttribute);
+  os() << ToCString(kAesmc) << ConditionPrinter(it_block_, cond)
+       << DtPrinter(dt, Untyped8) << ' ' << rd << ", " << rm;
+}
+
 void Disassembler::ands(Condition cond,
                         EncodingSize size,
                         Register rd,
@@ -26583,14 +26619,38 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           switch (instr & 0x00000080) {
                                             case 0x00000000: {
                                               // 0xffb00300
-                                              UnimplementedT32_32("AESE",
-                                                                  instr);
+                                              unsigned rd =
+                                                  ExtractQRegister(instr,
+                                                                   22,
+                                                                   12);
+                                              unsigned rm =
+                                                  ExtractQRegister(instr, 5, 0);
+                                              if (((instr >> 18) & 0x3) != 0) {
+                                                UnallocatedT32(instr);
+                                                return;
+                                              }
+                                              aese(CurrentCond(),
+                                                   Untyped8,
+                                                   QRegister(rd),
+                                                   QRegister(rm));
                                               break;
                                             }
                                             case 0x00000080: {
                                               // 0xffb00380
-                                              UnimplementedT32_32("AESMC",
-                                                                  instr);
+                                              unsigned rd =
+                                                  ExtractQRegister(instr,
+                                                                   22,
+                                                                   12);
+                                              unsigned rm =
+                                                  ExtractQRegister(instr, 5, 0);
+                                              if (((instr >> 18) & 0x3) != 0) {
+                                                UnallocatedT32(instr);
+                                                return;
+                                              }
+                                              aesmc(CurrentCond(),
+                                                    Untyped8,
+                                                    QRegister(rd),
+                                                    QRegister(rm));
                                               break;
                                             }
                                           }
@@ -26601,14 +26661,38 @@ void Disassembler::DecodeT32(uint32_t instr) {
                                           switch (instr & 0x00000080) {
                                             case 0x00000000: {
                                               // 0xffb00340
-                                              UnimplementedT32_32("AESD",
-                                                                  instr);
+                                              unsigned rd =
+                                                  ExtractQRegister(instr,
+                                                                   22,
+                                                                   12);
+                                              unsigned rm =
+                                                  ExtractQRegister(instr, 5, 0);
+                                              if (((instr >> 18) & 0x3) != 0) {
+                                                UnallocatedT32(instr);
+                                                return;
+                                              }
+                                              aesd(CurrentCond(),
+                                                   Untyped8,
+                                                   QRegister(rd),
+                                                   QRegister(rm));
                                               break;
                                             }
                                             case 0x00000080: {
                                               // 0xffb003c0
-                                              UnimplementedT32_32("AESIMC",
-                                                                  instr);
+                                              unsigned rd =
+                                                  ExtractQRegister(instr,
+                                                                   22,
+                                                                   12);
+                                              unsigned rm =
+                                                  ExtractQRegister(instr, 5, 0);
+                                              if (((instr >> 18) & 0x3) != 0) {
+                                                UnallocatedT32(instr);
+                                                return;
+                                              }
+                                              aesimc(CurrentCond(),
+                                                     Untyped8,
+                                                     QRegister(rd),
+                                                     QRegister(rm));
                                               break;
                                             }
                                           }
@@ -41045,12 +41129,32 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 switch (instr & 0x00000080) {
                                   case 0x00000000: {
                                     // 0xf3b00300
-                                    UnimplementedA32("AESE", instr);
+                                    unsigned rd =
+                                        ExtractQRegister(instr, 22, 12);
+                                    unsigned rm = ExtractQRegister(instr, 5, 0);
+                                    if (((instr >> 18) & 0x3) != 0) {
+                                      UnallocatedA32(instr);
+                                      return;
+                                    }
+                                    aese(CurrentCond(),
+                                         Untyped8,
+                                         QRegister(rd),
+                                         QRegister(rm));
                                     break;
                                   }
                                   case 0x00000080: {
                                     // 0xf3b00380
-                                    UnimplementedA32("AESMC", instr);
+                                    unsigned rd =
+                                        ExtractQRegister(instr, 22, 12);
+                                    unsigned rm = ExtractQRegister(instr, 5, 0);
+                                    if (((instr >> 18) & 0x3) != 0) {
+                                      UnallocatedA32(instr);
+                                      return;
+                                    }
+                                    aesmc(CurrentCond(),
+                                          Untyped8,
+                                          QRegister(rd),
+                                          QRegister(rm));
                                     break;
                                   }
                                 }
@@ -41061,12 +41165,32 @@ void Disassembler::DecodeA32(uint32_t instr) {
                                 switch (instr & 0x00000080) {
                                   case 0x00000000: {
                                     // 0xf3b00340
-                                    UnimplementedA32("AESD", instr);
+                                    unsigned rd =
+                                        ExtractQRegister(instr, 22, 12);
+                                    unsigned rm = ExtractQRegister(instr, 5, 0);
+                                    if (((instr >> 18) & 0x3) != 0) {
+                                      UnallocatedA32(instr);
+                                      return;
+                                    }
+                                    aesd(CurrentCond(),
+                                         Untyped8,
+                                         QRegister(rd),
+                                         QRegister(rm));
                                     break;
                                   }
                                   case 0x00000080: {
                                     // 0xf3b003c0
-                                    UnimplementedA32("AESIMC", instr);
+                                    unsigned rd =
+                                        ExtractQRegister(instr, 22, 12);
+                                    unsigned rm = ExtractQRegister(instr, 5, 0);
+                                    if (((instr >> 18) & 0x3) != 0) {
+                                      UnallocatedA32(instr);
+                                      return;
+                                    }
+                                    aesimc(CurrentCond(),
+                                           Untyped8,
+                                           QRegister(rd),
+                                           QRegister(rm));
                                     break;
                                   }
                                 }
