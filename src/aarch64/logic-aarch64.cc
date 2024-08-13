@@ -168,11 +168,12 @@ SimFloat16 Simulator::UFixedToFloat16(uint64_t src,
 
 
 uint64_t Simulator::GenerateRandomTag(uint16_t exclude) {
-  uint64_t rtag = nrand48(rand_state_) >> 28;
+  // Generate a 4 bit integer from a 48bit random number
+  uint64_t rtag = rand_gen_() >> 44;
   VIXL_ASSERT(IsUint4(rtag));
 
   if (exclude == 0) {
-    exclude = nrand48(rand_state_) >> 27;
+    exclude = rand_gen_() >> 44;
   }
 
   // TODO: implement this to better match the specification, which calls for a
@@ -7487,7 +7488,7 @@ void Simulator::SVEFaultTolerantLoadHelper(VectorFormat vform,
 
   // Non-faulting loads are allowed to fail arbitrarily. To stress user
   // code, fail a random element in roughly one in eight full-vector loads.
-  uint32_t rnd = static_cast<uint32_t>(jrand48(rand_state_));
+  uint32_t rnd = static_cast<uint32_t>(rand_gen_());
   int fake_fault_at_lane = rnd % (LaneCountFromFormat(vform) * 8);
 
   for (int i = 0; i < LaneCountFromFormat(vform); i++) {

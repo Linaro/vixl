@@ -29,6 +29,7 @@
 
 #include <memory>
 #include <mutex>
+#include <random>
 #include <unordered_map>
 #include <vector>
 
@@ -5431,11 +5432,15 @@ class Simulator : public DecoderVisitor {
   CPUFeaturesAuditor cpu_features_auditor_;
   std::vector<CPUFeatures> saved_cpu_features_;
 
-  // State for *rand48 functions, used to simulate randomness with repeatable
+  // linear_congruential_engine, used to simulate randomness with repeatable
   // behaviour (so that tests are deterministic). This is used to simulate RNDR
   // and RNDRRS, as well as to simulate a source of entropy for architecturally
   // undefined behaviour.
-  uint16_t rand_state_[3];
+  std::linear_congruential_engine<uint64_t,
+                                  0x5DEECE66D,
+                                  0xB,
+                                  static_cast<uint64_t>(1) << 48>
+      rand_gen_;
 
   // A configurable size of SVE vector registers.
   unsigned vector_length_;

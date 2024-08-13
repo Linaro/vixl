@@ -594,9 +594,8 @@ Simulator::Simulator(Decoder* decoder, FILE* stream, SimStack::Allocated stack)
   guard_pages_ = false;
 
   // Initialize the common state of RNDR and RNDRRS.
-  uint16_t seed[3] = {11, 22, 33};
-  VIXL_STATIC_ASSERT(sizeof(seed) == sizeof(rand_state_));
-  memcpy(rand_state_, seed, sizeof(rand_state_));
+  uint64_t seed = (11 + (22 << 16) + (static_cast<uint64_t>(33) << 32));
+  rand_gen_.seed(seed);
 
   // Initialize all bits of pseudo predicate register to true.
   LogicPRegister ones(pregister_all_true_);
@@ -6947,8 +6946,8 @@ void Simulator::VisitSystem(const Instruction* instr) {
           break;
         case RNDR:
         case RNDRRS: {
-          uint64_t high = jrand48(rand_state_);
-          uint64_t low = jrand48(rand_state_);
+          uint64_t high = rand_gen_();
+          uint64_t low = rand_gen_();
           uint64_t rand_num = (high << 32) | (low & 0xffffffff);
           WriteXRegister(instr->GetRt(), rand_num);
           // Simulate successful random number generation.
