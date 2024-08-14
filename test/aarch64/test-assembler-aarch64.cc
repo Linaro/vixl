@@ -14094,20 +14094,24 @@ TEST(mte_irg) {
 
   __ Bind(&done);
 
-  // Insert random tags, excluding oddly-numbered tags, then orr them together.
-  // After 128 rounds, it's statistically likely that all but the least
-  // significant bit will be set.
+  // Insert random tags, excluding oddly-numbered tags, and set a bit in a
+  // result register for each tag used.
+  // After 128 rounds, it's statistically likely that all even bits in the
+  // least-significant half word will be set.
   __ Mov(x3, 0);
+  __ Mov(x4, 1);
   __ Mov(x10, 128);
   __ Mov(x11, 0xaaaa);
 
   Label loop2;
   __ Bind(&loop2);
   __ Irg(x2, x1, x11);
+  __ Lsr(x2, x2, 56);
+  __ Lsl(x2, x4, x2);
   __ Orr(x3, x3, x2);
   __ Subs(x10, x10, 1);
   __ B(ne, &loop2);
-  __ Lsr(x2, x3, 56);
+  __ Mov(x2, x3);
 
   // Check that excluding all tags results in zero tag insertion.
   __ Mov(x3, 0xffffffffffffffff);
@@ -14118,7 +14122,7 @@ TEST(mte_irg) {
     RUN();
 
     ASSERT_EQUAL_64(0, x1);
-    ASSERT_EQUAL_64(0xe, x2);
+    ASSERT_EQUAL_64(0x5555, x2);
     ASSERT_EQUAL_64(0xf0ffffffffffffff, x3);
   }
 }
