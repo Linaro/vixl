@@ -3670,720 +3670,280 @@ TEST(fcvt_half) {
   }
 }
 
+typedef void (MacroAssembler::*FcvtFn2)(const Register& rd,
+                                        const VRegister& vn);
+typedef void (MacroAssembler::*FcvtFn3)(const Register& rd,
+                                        const VRegister& vn,
+                                        int fbits);
+
+static void GenFcvt(MacroAssembler* m,
+                    FcvtFn2 fn,
+                    const Register& rd,
+                    const VRegister& vn) {
+  (m->*fn)(rd, vn);
+}
+static void GenFcvt(MacroAssembler* m,
+                    FcvtFn3 fn,
+                    const Register& rd,
+                    const VRegister& vn) {
+  (m->*fn)(rd, vn, 0);
+}
+
+template <typename F = FcvtFn2, typename T, size_t N>
+static void FcvtHelper(F fn,
+                       const T (&inputs)[N],
+                       const uint64_t (&expected)[N],
+                       int dstsize) {
+  VIXL_STATIC_ASSERT(N < 16);  // Use no more than 16 registers.
+
+  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  START();
+
+  for (unsigned i = 0; i < N; i++) {
+    Register wi = WRegister(i);
+    Register xi = XRegister(i);
+    VRegister si = SRegister(i);
+    VRegister di = DRegister(i);
+
+    if (std::is_same<float, T>::value) {
+      __ Fmov(si, inputs[i]);
+      if (dstsize == kWRegSize) {
+        GenFcvt(&masm, fn, wi, si);
+      } else {
+        VIXL_ASSERT(dstsize == kXRegSize);
+        GenFcvt(&masm, fn, xi, si);
+      }
+    } else {
+      __ Fmov(di, inputs[i]);
+      if (dstsize == kWRegSize) {
+        GenFcvt(&masm, fn, wi, di);
+      } else {
+        VIXL_ASSERT(dstsize == kXRegSize);
+        GenFcvt(&masm, fn, xi, di);
+      }
+    }
+  }
+
+  END();
+  if (CAN_RUN()) {
+    RUN();
+
+    for (unsigned i = 0; i < N; i++) {
+      ASSERT_EQUAL_64(expected[i], XRegister(i));
+    }
+  }
+}
+
+// Largest float/double < INT32_MAX.
+static const float kLargestF32ltI32Max = RawbitsToFloat(0x4effffff);
+static const double kLargestF64ltI32Max = kWMaxInt - 1;
+
+// Smallest float/double > INT32_MIN.
+static const float kSmallestF32gtI32Min = RawbitsToFloat(0xceffffff);
+static const double kSmallestF64gtI32Min = kWMinInt + 1;
+
+// Largest float/double < INT64_MAX.
+static const float kLargestF32ltI64Max = RawbitsToFloat(0x5effffff);
+static const double kLargestF64ltI64Max = RawbitsToDouble(0x43dfffffffffffff);
+
+// Smallest float/double > INT64_MIN.
+static const float kSmallestF32gtI64Min = RawbitsToFloat(0xdeffffff);
+static const double kSmallestF64gtI64Min = RawbitsToDouble(0xc3dfffffffffffff);
+
+// Largest float/double < UINT32_MAX.
+static const float kLargestF32ltU32Max = 0xffffff00;
+static const double kLargestF64ltU32Max = 0xfffffffe;
+
+// Largest float/double < UINT64_MAX.
+static const float kLargestF32ltU64Max = 0xffffff0000000000;
+static const double kLargestF64ltU64Max = 0xfffffffffffff800;
+
+TEST(fcvt_infinity) {
+  float inputs_s[] = {kFP32PositiveInfinity, kFP32NegativeInfinity};
+  double inputs_d[] = {kFP64PositiveInfinity, kFP64NegativeInfinity};
+  uint64_t expected_w[] = {0x7fffffff, 0x80000000};
+  uint64_t expected_x[] = {0x7fffffffffffffff, 0x8000000000000000};
+
+  // Test all combinations of fcvt, input size and output size.
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_s, expected_w, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_s, expected_w, kWRegSize);
+
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_d, expected_w, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_d, expected_w, kWRegSize);
+
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_s, expected_x, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_s, expected_x, kXRegSize);
+
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_d, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_d, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_d, expected_x, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_d, expected_x, kXRegSize);
+}
+
+TEST(fcvt_ws_minmax) {
+  float inputs[] = {kLargestF32ltI32Max, kSmallestF32gtI32Min};
+  uint64_t expected[] = {0x7fffff80, 0x80000080};
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs, expected, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs, expected, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs, expected, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs, expected, kWRegSize);
+
+  float inputs_u[] = {kLargestF32ltU32Max};
+  uint64_t expected_u[] = {0xffffff00};
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_u, expected_u, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_u, expected_u, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_u, expected_u, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_u, expected_u, kWRegSize);
+}
+
+TEST(fcvt_wd_minmax) {
+  double inputs[] = {kLargestF64ltI32Max, kSmallestF64gtI32Min};
+  uint64_t expected[] = {0x7ffffffe, 0x80000001};
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs, expected, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs, expected, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs, expected, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs, expected, kWRegSize);
+
+  double inputs_u[] = {kLargestF64ltU32Max};
+  uint64_t expected_u[] = {0xfffffffe};
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_u, expected_u, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_u, expected_u, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_u, expected_u, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_u, expected_u, kWRegSize);
+}
+
+TEST(fcvt_xs_minmax) {
+  float inputs[] = {kLargestF32ltI64Max, kSmallestF32gtI64Min};
+  uint64_t expected[] = {0x7fffff8000000000, 0x8000008000000000};
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs, expected, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs, expected, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs, expected, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs, expected, kXRegSize);
+
+  float inputs_u[] = {kLargestF32ltU64Max};
+  uint64_t expected_u[] = {0xffffff0000000000};
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_u, expected_u, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_u, expected_u, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_u, expected_u, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_u, expected_u, kXRegSize);
+}
+
+TEST(fcvt_xd_minmax) {
+  double inputs[] = {kLargestF64ltI64Max, kSmallestF64gtI64Min};
+  uint64_t expected[] = {0x7ffffffffffffc00, 0x8000000000000400};
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs, expected, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs, expected, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs, expected, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs, expected, kXRegSize);
+
+  double inputs_u[] = {kLargestF64ltU64Max};
+  uint64_t expected_u[] = {0xfffffffffffff800};
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_u, expected_u, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_u, expected_u, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_u, expected_u, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_u, expected_u, kXRegSize);
+}
 
 TEST(fcvtas) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 2.5, -2.5};
+  double inputs_d[] = {1.0, 1.1, 2.5, -2.5};
+  uint64_t expected_w[] = {1, 1, 3, 0xfffffffd};
+  uint64_t expected_x[] = {1, 1, 3, 0xfffffffffffffffd};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 2.5);
-  __ Fmov(s3, -2.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
-  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 2.5);
-  __ Fmov(d11, -2.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, kWMaxInt - 1);
-  __ Fmov(d15, kWMinInt + 1);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 2.5);
-  __ Fmov(s19, -2.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0x7fffff8000000000);  // Largest float < INT64_MAX.
-  __ Fneg(s23, s22);                 // Smallest float > INT64_MIN.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 2.5);
-  __ Fmov(d26, -2.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0x7ffffffffffffc00);  // Largest double < INT64_MAX.
-  __ Fneg(d30, d29);                 // Smallest double > INT64_MIN.
-
-  __ Fcvtas(w0, s0);
-  __ Fcvtas(w1, s1);
-  __ Fcvtas(w2, s2);
-  __ Fcvtas(w3, s3);
-  __ Fcvtas(w4, s4);
-  __ Fcvtas(w5, s5);
-  __ Fcvtas(w6, s6);
-  __ Fcvtas(w7, s7);
-  __ Fcvtas(w8, d8);
-  __ Fcvtas(w9, d9);
-  __ Fcvtas(w10, d10);
-  __ Fcvtas(w11, d11);
-  __ Fcvtas(w12, d12);
-  __ Fcvtas(w13, d13);
-  __ Fcvtas(w14, d14);
-  __ Fcvtas(w15, d15);
-  __ Fcvtas(x17, s17);
-  __ Fcvtas(x18, s18);
-  __ Fcvtas(x19, s19);
-  __ Fcvtas(x20, s20);
-  __ Fcvtas(x21, s21);
-  __ Fcvtas(x22, s22);
-  __ Fcvtas(x23, s23);
-  __ Fcvtas(x24, d24);
-  __ Fcvtas(x25, d25);
-  __ Fcvtas(x26, d26);
-  __ Fcvtas(x27, d27);
-  __ Fcvtas(x28, d28);
-  __ Fcvtas(x29, d29);
-  __ Fcvtas(x30, d30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(3, x2);
-    ASSERT_EQUAL_64(0xfffffffd, x3);
-    ASSERT_EQUAL_64(0x7fffffff, x4);
-    ASSERT_EQUAL_64(0x80000000, x5);
-    ASSERT_EQUAL_64(0x7fffff80, x6);
-    ASSERT_EQUAL_64(0x80000080, x7);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(3, x10);
-    ASSERT_EQUAL_64(0xfffffffd, x11);
-    ASSERT_EQUAL_64(0x7fffffff, x12);
-    ASSERT_EQUAL_64(0x80000000, x13);
-    ASSERT_EQUAL_64(0x7ffffffe, x14);
-    ASSERT_EQUAL_64(0x80000001, x15);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(3, x18);
-    ASSERT_EQUAL_64(0xfffffffffffffffd, x19);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x20);
-    ASSERT_EQUAL_64(0x8000000000000000, x21);
-    ASSERT_EQUAL_64(0x7fffff8000000000, x22);
-    ASSERT_EQUAL_64(0x8000008000000000, x23);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(3, x25);
-    ASSERT_EQUAL_64(0xfffffffffffffffd, x26);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x27);
-    ASSERT_EQUAL_64(0x8000000000000000, x28);
-    ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
-    ASSERT_EQUAL_64(0x8000000000000400, x30);
-  }
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtas, inputs_d, expected_x, kXRegSize);
 }
-
 
 TEST(fcvtau) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 2.5, -2.5, 0x100000000};
+  double inputs_d[] = {1.0, 1.1, 2.5, -2.5, 0x100000000};
+  uint64_t expected_w[] = {1, 1, 3, 0, 0xffffffff};
+  uint64_t expected_x[] = {1, 1, 3, 0, 0x100000000};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 2.5);
-  __ Fmov(s3, -2.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0xffffff00);  // Largest float < UINT32_MAX.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 2.5);
-  __ Fmov(d11, -2.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, 0xfffffffe);
-  __ Fmov(s16, 1.0);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 2.5);
-  __ Fmov(s19, -2.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0xffffff0000000000);  // Largest float < UINT64_MAX.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 2.5);
-  __ Fmov(d26, -2.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0xfffffffffffff800);  // Largest double < UINT64_MAX.
-  __ Fmov(s30, 0x100000000);
-
-  __ Fcvtau(w0, s0);
-  __ Fcvtau(w1, s1);
-  __ Fcvtau(w2, s2);
-  __ Fcvtau(w3, s3);
-  __ Fcvtau(w4, s4);
-  __ Fcvtau(w5, s5);
-  __ Fcvtau(w6, s6);
-  __ Fcvtau(w8, d8);
-  __ Fcvtau(w9, d9);
-  __ Fcvtau(w10, d10);
-  __ Fcvtau(w11, d11);
-  __ Fcvtau(w12, d12);
-  __ Fcvtau(w13, d13);
-  __ Fcvtau(w14, d14);
-  __ Fcvtau(w15, d15);
-  __ Fcvtau(x16, s16);
-  __ Fcvtau(x17, s17);
-  __ Fcvtau(x18, s18);
-  __ Fcvtau(x19, s19);
-  __ Fcvtau(x20, s20);
-  __ Fcvtau(x21, s21);
-  __ Fcvtau(x22, s22);
-  __ Fcvtau(x24, d24);
-  __ Fcvtau(x25, d25);
-  __ Fcvtau(x26, d26);
-  __ Fcvtau(x27, d27);
-  __ Fcvtau(x28, d28);
-  __ Fcvtau(x29, d29);
-  __ Fcvtau(w30, s30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(3, x2);
-    ASSERT_EQUAL_64(0, x3);
-    ASSERT_EQUAL_64(0xffffffff, x4);
-    ASSERT_EQUAL_64(0, x5);
-    ASSERT_EQUAL_64(0xffffff00, x6);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(3, x10);
-    ASSERT_EQUAL_64(0, x11);
-    ASSERT_EQUAL_64(0xffffffff, x12);
-    ASSERT_EQUAL_64(0, x13);
-    ASSERT_EQUAL_64(0xfffffffe, x14);
-    ASSERT_EQUAL_64(1, x16);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(3, x18);
-    ASSERT_EQUAL_64(0, x19);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x20);
-    ASSERT_EQUAL_64(0, x21);
-    ASSERT_EQUAL_64(0xffffff0000000000, x22);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(3, x25);
-    ASSERT_EQUAL_64(0, x26);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x27);
-    ASSERT_EQUAL_64(0, x28);
-    ASSERT_EQUAL_64(0xfffffffffffff800, x29);
-    ASSERT_EQUAL_64(0xffffffff, x30);
-  }
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtau, inputs_d, expected_x, kXRegSize);
 }
-
 
 TEST(fcvtms) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 1.5, -1.5};
+  double inputs_d[] = {1.0, 1.1, 1.5, -1.5};
+  uint64_t expected_w[] = {1, 1, 1, 0xfffffffe};
+  uint64_t expected_x[] = {1, 1, 1, 0xfffffffffffffffe};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 1.5);
-  __ Fmov(s3, -1.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
-  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 1.5);
-  __ Fmov(d11, -1.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, kWMaxInt - 1);
-  __ Fmov(d15, kWMinInt + 1);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 1.5);
-  __ Fmov(s19, -1.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0x7fffff8000000000);  // Largest float < INT64_MAX.
-  __ Fneg(s23, s22);                 // Smallest float > INT64_MIN.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 1.5);
-  __ Fmov(d26, -1.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0x7ffffffffffffc00);  // Largest double < INT64_MAX.
-  __ Fneg(d30, d29);                 // Smallest double > INT64_MIN.
-
-  __ Fcvtms(w0, s0);
-  __ Fcvtms(w1, s1);
-  __ Fcvtms(w2, s2);
-  __ Fcvtms(w3, s3);
-  __ Fcvtms(w4, s4);
-  __ Fcvtms(w5, s5);
-  __ Fcvtms(w6, s6);
-  __ Fcvtms(w7, s7);
-  __ Fcvtms(w8, d8);
-  __ Fcvtms(w9, d9);
-  __ Fcvtms(w10, d10);
-  __ Fcvtms(w11, d11);
-  __ Fcvtms(w12, d12);
-  __ Fcvtms(w13, d13);
-  __ Fcvtms(w14, d14);
-  __ Fcvtms(w15, d15);
-  __ Fcvtms(x17, s17);
-  __ Fcvtms(x18, s18);
-  __ Fcvtms(x19, s19);
-  __ Fcvtms(x20, s20);
-  __ Fcvtms(x21, s21);
-  __ Fcvtms(x22, s22);
-  __ Fcvtms(x23, s23);
-  __ Fcvtms(x24, d24);
-  __ Fcvtms(x25, d25);
-  __ Fcvtms(x26, d26);
-  __ Fcvtms(x27, d27);
-  __ Fcvtms(x28, d28);
-  __ Fcvtms(x29, d29);
-  __ Fcvtms(x30, d30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(1, x2);
-    ASSERT_EQUAL_64(0xfffffffe, x3);
-    ASSERT_EQUAL_64(0x7fffffff, x4);
-    ASSERT_EQUAL_64(0x80000000, x5);
-    ASSERT_EQUAL_64(0x7fffff80, x6);
-    ASSERT_EQUAL_64(0x80000080, x7);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(1, x10);
-    ASSERT_EQUAL_64(0xfffffffe, x11);
-    ASSERT_EQUAL_64(0x7fffffff, x12);
-    ASSERT_EQUAL_64(0x80000000, x13);
-    ASSERT_EQUAL_64(0x7ffffffe, x14);
-    ASSERT_EQUAL_64(0x80000001, x15);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(1, x18);
-    ASSERT_EQUAL_64(0xfffffffffffffffe, x19);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x20);
-    ASSERT_EQUAL_64(0x8000000000000000, x21);
-    ASSERT_EQUAL_64(0x7fffff8000000000, x22);
-    ASSERT_EQUAL_64(0x8000008000000000, x23);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(1, x25);
-    ASSERT_EQUAL_64(0xfffffffffffffffe, x26);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x27);
-    ASSERT_EQUAL_64(0x8000000000000000, x28);
-    ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
-    ASSERT_EQUAL_64(0x8000000000000400, x30);
-  }
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtms, inputs_d, expected_x, kXRegSize);
 }
-
 
 TEST(fcvtmu) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 1.5, -1.5};
+  double inputs_d[] = {1.0, 1.1, 1.5, -1.5};
+  uint64_t expected_w[] = {1, 1, 1, 0};
+  uint64_t expected_x[] = {1, 1, 1, 0};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 1.5);
-  __ Fmov(s3, -1.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
-  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 1.5);
-  __ Fmov(d11, -1.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, kWMaxInt - 1);
-  __ Fmov(d15, kWMinInt + 1);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 1.5);
-  __ Fmov(s19, -1.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0x7fffff8000000000);  // Largest float < INT64_MAX.
-  __ Fneg(s23, s22);                 // Smallest float > INT64_MIN.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 1.5);
-  __ Fmov(d26, -1.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0x7ffffffffffffc00);  // Largest double < INT64_MAX.
-  __ Fneg(d30, d29);                 // Smallest double > INT64_MIN.
-
-  __ Fcvtmu(w0, s0);
-  __ Fcvtmu(w1, s1);
-  __ Fcvtmu(w2, s2);
-  __ Fcvtmu(w3, s3);
-  __ Fcvtmu(w4, s4);
-  __ Fcvtmu(w5, s5);
-  __ Fcvtmu(w6, s6);
-  __ Fcvtmu(w7, s7);
-  __ Fcvtmu(w8, d8);
-  __ Fcvtmu(w9, d9);
-  __ Fcvtmu(w10, d10);
-  __ Fcvtmu(w11, d11);
-  __ Fcvtmu(w12, d12);
-  __ Fcvtmu(w13, d13);
-  __ Fcvtmu(w14, d14);
-  __ Fcvtmu(x17, s17);
-  __ Fcvtmu(x18, s18);
-  __ Fcvtmu(x19, s19);
-  __ Fcvtmu(x20, s20);
-  __ Fcvtmu(x21, s21);
-  __ Fcvtmu(x22, s22);
-  __ Fcvtmu(x23, s23);
-  __ Fcvtmu(x24, d24);
-  __ Fcvtmu(x25, d25);
-  __ Fcvtmu(x26, d26);
-  __ Fcvtmu(x27, d27);
-  __ Fcvtmu(x28, d28);
-  __ Fcvtmu(x29, d29);
-  __ Fcvtmu(x30, d30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(1, x2);
-    ASSERT_EQUAL_64(0, x3);
-    ASSERT_EQUAL_64(0xffffffff, x4);
-    ASSERT_EQUAL_64(0, x5);
-    ASSERT_EQUAL_64(0x7fffff80, x6);
-    ASSERT_EQUAL_64(0, x7);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(1, x10);
-    ASSERT_EQUAL_64(0, x11);
-    ASSERT_EQUAL_64(0xffffffff, x12);
-    ASSERT_EQUAL_64(0, x13);
-    ASSERT_EQUAL_64(0x7ffffffe, x14);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(1, x18);
-    ASSERT_EQUAL_64(0, x19);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x20);
-    ASSERT_EQUAL_64(0, x21);
-    ASSERT_EQUAL_64(0x7fffff8000000000, x22);
-    ASSERT_EQUAL_64(0, x23);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(1, x25);
-    ASSERT_EQUAL_64(0, x26);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x27);
-    ASSERT_EQUAL_64(0, x28);
-    ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
-    ASSERT_EQUAL_64(0, x30);
-  }
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtmu, inputs_d, expected_x, kXRegSize);
 }
-
 
 TEST(fcvtns) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 1.5, -1.5};
+  double inputs_d[] = {1.0, 1.1, 1.5, -1.5};
+  uint64_t expected_w[] = {1, 1, 2, 0xfffffffe};
+  uint64_t expected_x[] = {1, 1, 2, 0xfffffffffffffffe};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 1.5);
-  __ Fmov(s3, -1.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
-  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 1.5);
-  __ Fmov(d11, -1.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, kWMaxInt - 1);
-  __ Fmov(d15, kWMinInt + 1);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 1.5);
-  __ Fmov(s19, -1.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0x7fffff8000000000);  // Largest float < INT64_MAX.
-  __ Fneg(s23, s22);                 // Smallest float > INT64_MIN.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 1.5);
-  __ Fmov(d26, -1.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0x7ffffffffffffc00);  // Largest double < INT64_MAX.
-  __ Fneg(d30, d29);                 // Smallest double > INT64_MIN.
-
-  __ Fcvtns(w0, s0);
-  __ Fcvtns(w1, s1);
-  __ Fcvtns(w2, s2);
-  __ Fcvtns(w3, s3);
-  __ Fcvtns(w4, s4);
-  __ Fcvtns(w5, s5);
-  __ Fcvtns(w6, s6);
-  __ Fcvtns(w7, s7);
-  __ Fcvtns(w8, d8);
-  __ Fcvtns(w9, d9);
-  __ Fcvtns(w10, d10);
-  __ Fcvtns(w11, d11);
-  __ Fcvtns(w12, d12);
-  __ Fcvtns(w13, d13);
-  __ Fcvtns(w14, d14);
-  __ Fcvtns(w15, d15);
-  __ Fcvtns(x17, s17);
-  __ Fcvtns(x18, s18);
-  __ Fcvtns(x19, s19);
-  __ Fcvtns(x20, s20);
-  __ Fcvtns(x21, s21);
-  __ Fcvtns(x22, s22);
-  __ Fcvtns(x23, s23);
-  __ Fcvtns(x24, d24);
-  __ Fcvtns(x25, d25);
-  __ Fcvtns(x26, d26);
-  __ Fcvtns(x27, d27);
-  __ Fcvtns(x28, d28);
-  __ Fcvtns(x29, d29);
-  __ Fcvtns(x30, d30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(2, x2);
-    ASSERT_EQUAL_64(0xfffffffe, x3);
-    ASSERT_EQUAL_64(0x7fffffff, x4);
-    ASSERT_EQUAL_64(0x80000000, x5);
-    ASSERT_EQUAL_64(0x7fffff80, x6);
-    ASSERT_EQUAL_64(0x80000080, x7);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(2, x10);
-    ASSERT_EQUAL_64(0xfffffffe, x11);
-    ASSERT_EQUAL_64(0x7fffffff, x12);
-    ASSERT_EQUAL_64(0x80000000, x13);
-    ASSERT_EQUAL_64(0x7ffffffe, x14);
-    ASSERT_EQUAL_64(0x80000001, x15);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(2, x18);
-    ASSERT_EQUAL_64(0xfffffffffffffffe, x19);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x20);
-    ASSERT_EQUAL_64(0x8000000000000000, x21);
-    ASSERT_EQUAL_64(0x7fffff8000000000, x22);
-    ASSERT_EQUAL_64(0x8000008000000000, x23);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(2, x25);
-    ASSERT_EQUAL_64(0xfffffffffffffffe, x26);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x27);
-    ASSERT_EQUAL_64(0x8000000000000000, x28);
-    ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
-    ASSERT_EQUAL_64(0x8000000000000400, x30);
-  }
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtns, inputs_d, expected_x, kXRegSize);
 }
-
 
 TEST(fcvtnu) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 1.5, -1.5, 0x100000000};
+  double inputs_d[] = {1.0, 1.1, 1.5, -1.5, 0x100000000};
+  uint64_t expected_w[] = {1, 1, 2, 0, 0xffffffff};
+  uint64_t expected_x[] = {1, 1, 2, 0, 0x100000000};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 1.5);
-  __ Fmov(s3, -1.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0xffffff00);  // Largest float < UINT32_MAX.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 1.5);
-  __ Fmov(d11, -1.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, 0xfffffffe);
-  __ Fmov(s16, 1.0);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 1.5);
-  __ Fmov(s19, -1.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0xffffff0000000000);  // Largest float < UINT64_MAX.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 1.5);
-  __ Fmov(d26, -1.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0xfffffffffffff800);  // Largest double < UINT64_MAX.
-  __ Fmov(s30, 0x100000000);
-
-  __ Fcvtnu(w0, s0);
-  __ Fcvtnu(w1, s1);
-  __ Fcvtnu(w2, s2);
-  __ Fcvtnu(w3, s3);
-  __ Fcvtnu(w4, s4);
-  __ Fcvtnu(w5, s5);
-  __ Fcvtnu(w6, s6);
-  __ Fcvtnu(w8, d8);
-  __ Fcvtnu(w9, d9);
-  __ Fcvtnu(w10, d10);
-  __ Fcvtnu(w11, d11);
-  __ Fcvtnu(w12, d12);
-  __ Fcvtnu(w13, d13);
-  __ Fcvtnu(w14, d14);
-  __ Fcvtnu(w15, d15);
-  __ Fcvtnu(x16, s16);
-  __ Fcvtnu(x17, s17);
-  __ Fcvtnu(x18, s18);
-  __ Fcvtnu(x19, s19);
-  __ Fcvtnu(x20, s20);
-  __ Fcvtnu(x21, s21);
-  __ Fcvtnu(x22, s22);
-  __ Fcvtnu(x24, d24);
-  __ Fcvtnu(x25, d25);
-  __ Fcvtnu(x26, d26);
-  __ Fcvtnu(x27, d27);
-  __ Fcvtnu(x28, d28);
-  __ Fcvtnu(x29, d29);
-  __ Fcvtnu(w30, s30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(2, x2);
-    ASSERT_EQUAL_64(0, x3);
-    ASSERT_EQUAL_64(0xffffffff, x4);
-    ASSERT_EQUAL_64(0, x5);
-    ASSERT_EQUAL_64(0xffffff00, x6);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(2, x10);
-    ASSERT_EQUAL_64(0, x11);
-    ASSERT_EQUAL_64(0xffffffff, x12);
-    ASSERT_EQUAL_64(0, x13);
-    ASSERT_EQUAL_64(0xfffffffe, x14);
-    ASSERT_EQUAL_64(1, x16);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(2, x18);
-    ASSERT_EQUAL_64(0, x19);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x20);
-    ASSERT_EQUAL_64(0, x21);
-    ASSERT_EQUAL_64(0xffffff0000000000, x22);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(2, x25);
-    ASSERT_EQUAL_64(0, x26);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x27);
-    ASSERT_EQUAL_64(0, x28);
-    ASSERT_EQUAL_64(0xfffffffffffff800, x29);
-    ASSERT_EQUAL_64(0xffffffff, x30);
-  }
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_s, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_d, expected_w, kWRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_s, expected_x, kXRegSize);
+  FcvtHelper(&MacroAssembler::Fcvtnu, inputs_d, expected_x, kXRegSize);
 }
 
-
 TEST(fcvtzs) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
+  float inputs_s[] = {1.0, 1.1, 1.5, -1.5};
+  double inputs_d[] = {1.0, 1.1, 1.5, -1.5};
+  uint64_t expected_w[] = {1, 1, 1, 0xffffffff};
+  uint64_t expected_x[] = {1, 1, 1, 0xffffffffffffffff};
 
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 1.5);
-  __ Fmov(s3, -1.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
-  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 1.5);
-  __ Fmov(d11, -1.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, kWMaxInt - 1);
-  __ Fmov(d15, kWMinInt + 1);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 1.5);
-  __ Fmov(s19, -1.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0x7fffff8000000000);  // Largest float < INT64_MAX.
-  __ Fneg(s23, s22);                 // Smallest float > INT64_MIN.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 1.5);
-  __ Fmov(d26, -1.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0x7ffffffffffffc00);  // Largest double < INT64_MAX.
-  __ Fneg(d30, d29);                 // Smallest double > INT64_MIN.
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_s, expected_w, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_d, expected_w, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_s, expected_x, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzs, inputs_d, expected_x, kXRegSize);
+}
 
-  __ Fcvtzs(w0, s0);
-  __ Fcvtzs(w1, s1);
-  __ Fcvtzs(w2, s2);
-  __ Fcvtzs(w3, s3);
-  __ Fcvtzs(w4, s4);
-  __ Fcvtzs(w5, s5);
-  __ Fcvtzs(w6, s6);
-  __ Fcvtzs(w7, s7);
-  __ Fcvtzs(w8, d8);
-  __ Fcvtzs(w9, d9);
-  __ Fcvtzs(w10, d10);
-  __ Fcvtzs(w11, d11);
-  __ Fcvtzs(w12, d12);
-  __ Fcvtzs(w13, d13);
-  __ Fcvtzs(w14, d14);
-  __ Fcvtzs(w15, d15);
-  __ Fcvtzs(x17, s17);
-  __ Fcvtzs(x18, s18);
-  __ Fcvtzs(x19, s19);
-  __ Fcvtzs(x20, s20);
-  __ Fcvtzs(x21, s21);
-  __ Fcvtzs(x22, s22);
-  __ Fcvtzs(x23, s23);
-  __ Fcvtzs(x24, d24);
-  __ Fcvtzs(x25, d25);
-  __ Fcvtzs(x26, d26);
-  __ Fcvtzs(x27, d27);
-  __ Fcvtzs(x28, d28);
-  __ Fcvtzs(x29, d29);
-  __ Fcvtzs(x30, d30);
-  END();
+TEST(fcvtzu) {
+  float inputs_s[] = {1.0, 1.1, 1.5, -1.5};
+  double inputs_d[] = {1.0, 1.1, 1.5, -1.5};
+  uint64_t expected_w[] = {1, 1, 1, 0};
+  uint64_t expected_x[] = {1, 1, 1, 0};
 
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(1, x2);
-    ASSERT_EQUAL_64(0xffffffff, x3);
-    ASSERT_EQUAL_64(0x7fffffff, x4);
-    ASSERT_EQUAL_64(0x80000000, x5);
-    ASSERT_EQUAL_64(0x7fffff80, x6);
-    ASSERT_EQUAL_64(0x80000080, x7);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(1, x10);
-    ASSERT_EQUAL_64(0xffffffff, x11);
-    ASSERT_EQUAL_64(0x7fffffff, x12);
-    ASSERT_EQUAL_64(0x80000000, x13);
-    ASSERT_EQUAL_64(0x7ffffffe, x14);
-    ASSERT_EQUAL_64(0x80000001, x15);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(1, x18);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x19);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x20);
-    ASSERT_EQUAL_64(0x8000000000000000, x21);
-    ASSERT_EQUAL_64(0x7fffff8000000000, x22);
-    ASSERT_EQUAL_64(0x8000008000000000, x23);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(1, x25);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x26);
-    ASSERT_EQUAL_64(0x7fffffffffffffff, x27);
-    ASSERT_EQUAL_64(0x8000000000000000, x28);
-    ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
-    ASSERT_EQUAL_64(0x8000000000000400, x30);
-  }
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_s, expected_w, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_d, expected_w, kWRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_s, expected_x, kXRegSize);
+  FcvtHelper<FcvtFn3>(&MacroAssembler::Fcvtzu, inputs_d, expected_x, kXRegSize);
 }
 
 void FjcvtzsHelper(uint64_t value, uint64_t expected, uint32_t expected_z) {
@@ -4486,107 +4046,6 @@ TEST(fjcvtzs) {
     uint64_t value = (static_cast<uint64_t>(exponent) << 52) | mantissa;
     FjcvtzsHelper(value, expected, NoFlag);
     FjcvtzsHelper(value | kDSignMask, (-expected) & 0xffffffff, NoFlag);
-  }
-}
-
-TEST(fcvtzu) {
-  SETUP_WITH_FEATURES(CPUFeatures::kFP);
-
-  START();
-  __ Fmov(s0, 1.0);
-  __ Fmov(s1, 1.1);
-  __ Fmov(s2, 1.5);
-  __ Fmov(s3, -1.5);
-  __ Fmov(s4, kFP32PositiveInfinity);
-  __ Fmov(s5, kFP32NegativeInfinity);
-  __ Fmov(s6, 0x7fffff80);  // Largest float < INT32_MAX.
-  __ Fneg(s7, s6);          // Smallest float > INT32_MIN.
-  __ Fmov(d8, 1.0);
-  __ Fmov(d9, 1.1);
-  __ Fmov(d10, 1.5);
-  __ Fmov(d11, -1.5);
-  __ Fmov(d12, kFP64PositiveInfinity);
-  __ Fmov(d13, kFP64NegativeInfinity);
-  __ Fmov(d14, kWMaxInt - 1);
-  __ Fmov(d15, kWMinInt + 1);
-  __ Fmov(s17, 1.1);
-  __ Fmov(s18, 1.5);
-  __ Fmov(s19, -1.5);
-  __ Fmov(s20, kFP32PositiveInfinity);
-  __ Fmov(s21, kFP32NegativeInfinity);
-  __ Fmov(s22, 0x7fffff8000000000);  // Largest float < INT64_MAX.
-  __ Fneg(s23, s22);                 // Smallest float > INT64_MIN.
-  __ Fmov(d24, 1.1);
-  __ Fmov(d25, 1.5);
-  __ Fmov(d26, -1.5);
-  __ Fmov(d27, kFP64PositiveInfinity);
-  __ Fmov(d28, kFP64NegativeInfinity);
-  __ Fmov(d29, 0x7ffffffffffffc00);  // Largest double < INT64_MAX.
-  __ Fneg(d30, d29);                 // Smallest double > INT64_MIN.
-
-  __ Fcvtzu(w0, s0);
-  __ Fcvtzu(w1, s1);
-  __ Fcvtzu(w2, s2);
-  __ Fcvtzu(w3, s3);
-  __ Fcvtzu(w4, s4);
-  __ Fcvtzu(w5, s5);
-  __ Fcvtzu(w6, s6);
-  __ Fcvtzu(w7, s7);
-  __ Fcvtzu(w8, d8);
-  __ Fcvtzu(w9, d9);
-  __ Fcvtzu(w10, d10);
-  __ Fcvtzu(w11, d11);
-  __ Fcvtzu(w12, d12);
-  __ Fcvtzu(w13, d13);
-  __ Fcvtzu(w14, d14);
-  __ Fcvtzu(x17, s17);
-  __ Fcvtzu(x18, s18);
-  __ Fcvtzu(x19, s19);
-  __ Fcvtzu(x20, s20);
-  __ Fcvtzu(x21, s21);
-  __ Fcvtzu(x22, s22);
-  __ Fcvtzu(x23, s23);
-  __ Fcvtzu(x24, d24);
-  __ Fcvtzu(x25, d25);
-  __ Fcvtzu(x26, d26);
-  __ Fcvtzu(x27, d27);
-  __ Fcvtzu(x28, d28);
-  __ Fcvtzu(x29, d29);
-  __ Fcvtzu(x30, d30);
-  END();
-
-  if (CAN_RUN()) {
-    RUN();
-
-    ASSERT_EQUAL_64(1, x0);
-    ASSERT_EQUAL_64(1, x1);
-    ASSERT_EQUAL_64(1, x2);
-    ASSERT_EQUAL_64(0, x3);
-    ASSERT_EQUAL_64(0xffffffff, x4);
-    ASSERT_EQUAL_64(0, x5);
-    ASSERT_EQUAL_64(0x7fffff80, x6);
-    ASSERT_EQUAL_64(0, x7);
-    ASSERT_EQUAL_64(1, x8);
-    ASSERT_EQUAL_64(1, x9);
-    ASSERT_EQUAL_64(1, x10);
-    ASSERT_EQUAL_64(0, x11);
-    ASSERT_EQUAL_64(0xffffffff, x12);
-    ASSERT_EQUAL_64(0, x13);
-    ASSERT_EQUAL_64(0x7ffffffe, x14);
-    ASSERT_EQUAL_64(1, x17);
-    ASSERT_EQUAL_64(1, x18);
-    ASSERT_EQUAL_64(0, x19);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x20);
-    ASSERT_EQUAL_64(0, x21);
-    ASSERT_EQUAL_64(0x7fffff8000000000, x22);
-    ASSERT_EQUAL_64(0, x23);
-    ASSERT_EQUAL_64(1, x24);
-    ASSERT_EQUAL_64(1, x25);
-    ASSERT_EQUAL_64(0, x26);
-    ASSERT_EQUAL_64(0xffffffffffffffff, x27);
-    ASSERT_EQUAL_64(0, x28);
-    ASSERT_EQUAL_64(0x7ffffffffffffc00, x29);
-    ASSERT_EQUAL_64(0, x30);
   }
 }
 
