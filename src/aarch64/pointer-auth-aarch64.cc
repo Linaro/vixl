@@ -151,7 +151,7 @@ uint64_t Simulator::AuthPAC(uint64_t ptr,
 
   uint64_t pac = ComputePAC(original_ptr, context, key);
 
-  uint64_t error_code = 1 << key.number;
+  uint64_t error_code = uint64_t{1} << key.number;
   if ((pac & pac_mask) == (ptr & pac_mask)) {
     return original_ptr;
   } else {
