@@ -1245,6 +1245,53 @@ void MacroAssembler::Delegate(InstructionType type,
 }
 
 
+void MacroAssembler::Delegate(InstructionType type,
+                              InstructionCondSizeL instruction,
+                              Condition cond,
+                              EncodingSize size,
+                              Location* location) {
+  VIXL_ASSERT(type == kB);
+
+  CONTEXT_SCOPE;
+
+  // Apply veneer to increase range of backwards conditional branches.
+  // This replaces:
+  //   label:
+  //    <instructions>
+  //    bcond label   ; T3
+  // With:
+  //   label:
+  //    <instructions>
+  //    binvcond skip ; T1
+  //    b label       ; T4
+  //   skip:
+  Location::Offset offset = location->GetLocation() -
+    (GetCursorOffset() + GetArchitectureStatePCOffset());
+  if (IsUsingT32() && location->IsBound() && ((offset & 0x1) == 0) &&
+      !cond.Is(al) && cond.IsNotNever()) {
+    // Bound locations must be earlier in the code.
+    VIXL_ASSERT(offset < 0);
+
+    // The offset must be within range of a T4 branch, accounting for the
+    // conditional branch (T1) we emit first, in order to jump over it.
+    offset -= k16BitT32InstructionSizeInBytes;
+    if (offset >= -16777216) {
+      CodeBufferCheckScope scope(this, k16BitT32InstructionSizeInBytes +
+                                       k32BitT32InstructionSizeInBytes);
+      Label skip;
+      b(cond.Negate(), Narrow, &skip);
+      b(location);
+      Bind(&skip);
+      return;
+    } else {
+      VIXL_ABORT_WITH_MSG("Conditional branch too far for veneer.\n");
+    }
+  }
+
+  Assembler::Delegate(type, instruction, cond, size, location);
+}
+
+
 template <typename T>
 static inline bool IsI64BitPattern(T imm) {
   for (T mask = 0xff << ((sizeof(T) - 1) * 8); mask != 0; mask >>= 8) {
