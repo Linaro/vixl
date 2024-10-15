@@ -33,9 +33,9 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../cpu-features.h"
 #include "../globals-vixl.h"
 #include "../utils-vixl.h"
-#include "cpu-features.h"
 
 #include "abi-aarch64.h"
 #include "cpu-features-auditor-aarch64.h"
@@ -160,7 +160,7 @@ class SimStack {
 
   // Allocate the stack, locking the parameters.
   Allocated Allocate() {
-    size_t align_to = 1 << align_log2_;
+    size_t align_to = uint64_t{1} << align_log2_;
     size_t l = AlignUp(limit_guard_size_, align_to);
     size_t u = AlignUp(usable_size_, align_to);
     size_t b = AlignUp(base_guard_size_, align_to);
@@ -684,7 +684,7 @@ class LogicPRegister {
 
   void SetAllBits() {
     int chunk_size = sizeof(ChunkType) * kBitsPerByte;
-    ChunkType bits = GetUintMask(chunk_size);
+    ChunkType bits = static_cast<ChunkType>(GetUintMask(chunk_size));
     for (int lane = 0;
          lane < (static_cast<int>(register_.GetSizeInBits() / chunk_size));
          lane++) {
@@ -1301,7 +1301,7 @@ class Simulator : public DecoderVisitor {
 
 
 #if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
-    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
+    (defined(_MSC_VER) || defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
   // Templated `RunFrom` version taking care of passing arguments and returning
   // the result value.
   // This allows code like:
@@ -2906,7 +2906,7 @@ class Simulator : public DecoderVisitor {
     }
 
     if (offset == 0) {
-      while ((exclude & (1 << tag)) != 0) {
+      while ((exclude & (uint64_t{1} << tag)) != 0) {
         tag = (tag + 1) % 16;
       }
     }
@@ -2914,7 +2914,7 @@ class Simulator : public DecoderVisitor {
     while (offset > 0) {
       offset--;
       tag = (tag + 1) % 16;
-      while ((exclude & (1 << tag)) != 0) {
+      while ((exclude & (uint64_t{1} << tag)) != 0) {
         tag = (tag + 1) % 16;
       }
     }
@@ -2926,12 +2926,15 @@ class Simulator : public DecoderVisitor {
     return (addr & ~(UINT64_C(0xf) << 56)) | (tag << 56);
   }
 
+#if __linux__
+#define VIXL_HAS_SIMULATED_MMAP
   // Create or remove a mapping with memory protection. Memory attributes such
   // as MTE and BTI are represented by metadata in Simulator.
   void* Mmap(
       void* address, size_t length, int prot, int flags, int fd, off_t offset);
 
   int Munmap(void* address, size_t length, int prot);
+#endif
 
   // The common CPUFeatures interface with the set of available features.
 
@@ -2954,7 +2957,7 @@ class Simulator : public DecoderVisitor {
 // Also, the initialisation of the tuples in RuntimeCall(Non)Void is incorrect
 // in GCC before 4.9.1: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=51253
 #if defined(VIXL_HAS_ABI_SUPPORT) && __cplusplus >= 201103L && \
-    (defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
+    (defined(_MSC_VER) || defined(__clang__) || GCC_VERSION_OR_NEWER(4, 9, 1))
 
 #define VIXL_HAS_SIMULATED_RUNTIME_CALL_SUPPORT
 
@@ -5350,10 +5353,12 @@ class Simulator : public DecoderVisitor {
 
   bool CanReadMemory(uintptr_t address, size_t size);
 
+#ifndef _WIN32
   // CanReadMemory needs placeholder file descriptors, so we use a pipe. We can
   // save some system call overhead by opening them on construction, rather than
   // on every call to CanReadMemory.
   int placeholder_pipe_fd_[2];
+#endif
 
   template <typename T>
   static T FPDefaultNaN();

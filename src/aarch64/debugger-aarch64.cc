@@ -33,7 +33,6 @@
 #include <cstring>
 #include <errno.h>
 #include <limits>
-#include <unistd.h>
 
 namespace vixl {
 namespace aarch64 {
@@ -187,7 +186,7 @@ std::optional<Debugger::RegisterParsedFormat> Debugger::ParseRegString(
     return std::nullopt;
   }
 
-  return {{reg_prefix, *reg_code}};
+  return {{reg_prefix, static_cast<unsigned int>(*reg_code)}};
 }
 
 
