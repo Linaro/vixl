@@ -1700,6 +1700,41 @@ TEST(macro_assembler_Cbz) {
 }
 
 
+TEST(macro_assembler_b_cond_t32) {
+  SETUP();
+
+#ifdef VIXL_INCLUDE_TARGET_T32
+  // Ensure backward conditional branches are veneered correctly.
+  __ UseT32();
+  int pc_off = __ GetArchitectureStatePCOffset();
+
+  // Largest encodable backwards offset.
+  int curs = __ GetCursorOffset() + pc_off;
+  Label label_neg1m(curs - 1048576);
+  COMPARE_T32(B(ne, &label_neg1m), "bne 0xfff00004\n");
+
+  // Next largest cannot be encoded.
+  curs = __ GetCursorOffset() + pc_off;
+  Label label_neg1m_plus_inst(curs - (1048576 + 2));
+  COMPARE_T32(B(ne, &label_neg1m_plus_inst), "beq 0x00000006\n"
+                                             "b 0xfff00002\n");
+
+  // Offset that requires largest unconditional branch in veneer.
+  curs = __ GetCursorOffset() + pc_off;
+  Label label_neg16m(curs - (16777216 - 2));
+  COMPARE_T32(B(ne, &label_neg16m), "beq 0x00000006\n"
+                                    "b 0xff000006\n");
+
+  // Next largest cannot be veneered.
+  curs = __ GetCursorOffset() + pc_off;
+  Label label_neg16m_plus_inst(curs - 16777216);
+  MUST_FAIL_TEST_T32(B(ne, &label_neg16m_plus_inst),
+                     "Conditional branch too far for veneer.\n");
+#endif
+
+  CLEANUP();
+}
+
 #ifdef VIXL_NEGATIVE_TESTING
 TEST(assembler_crc_negative) {
   SETUP();

@@ -908,6 +908,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
                         InstructionRL instruction,
                         Register rn,
                         Location* location) VIXL_OVERRIDE;
+  // B
+  virtual void Delegate(InstructionType type,
+                        InstructionCondSizeL instruction,
+                        Condition cond,
+                        EncodingSize size,
+                        Location* location) VIXL_OVERRIDE;
   // VMOV
   virtual void Delegate(InstructionType type,
                         InstructionCondDtSSop instruction,
