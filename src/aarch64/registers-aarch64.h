@@ -264,6 +264,24 @@ class CPURegister {
     }
   }
 
+  // The equivalence operator is newer than Is() above, and does not provide the
+  // legacy behaviour relating to W and X registers. Consequently, it doesn't
+  // wrap Is().
+  bool operator==(const CPURegister& other) const {
+    return GetEncodedCPURegister() == other.GetEncodedCPURegister();
+  }
+
+  // Combine the data fields of the object and return as a single value. The
+  // encoding is intended to be opaque, and may change between versions.
+  uint64_t GetEncodedCPURegister() const {
+    uint64_t result = lane_size_;
+    result = (result << 8) | qualifiers_;
+    result = (result << 8) | size_;
+    result = (result << 8) | bank_;
+    result = (result << 8) | code_;
+    return result;
+  }
+
   // Conversions to specific register types. The result is a register that
   // aliases the original CPURegister. That is, the original register bank
   // (`GetBank()`) is checked and the code (`GetCode()`) preserved, but all
@@ -898,5 +916,15 @@ bool AreSameLaneSize(const CPURegister& reg1,
                      const CPURegister& reg4 = NoCPUReg);
 }  // namespace aarch64
 }  // namespace vixl
+
+// Specialised hash for CPURegisters, allowing container construction.
+namespace std {
+template <>
+struct hash<vixl::aarch64::CPURegister> {
+  size_t operator()(const vixl::aarch64::CPURegister& reg) const {
+    return reg.GetEncodedCPURegister();
+  }
+};
+}  // namespace std
 
 #endif  // VIXL_AARCH64_REGISTERS_AARCH64_H_
