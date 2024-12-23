@@ -3634,8 +3634,6 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
   const int label_count = 15;
   const int literal_count = 31;
   Label* labels;
-  uint64_t* literal_values;
-  Literal<uint64_t>* literals[literal_count];
 
   // Use multiple iterations, as each produces a different predictably random
   // sequence.
@@ -3679,12 +3677,13 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
         labels = new Label[label_count];
 
         // Create new literal values.
-        literal_values = new uint64_t[literal_count];
+        std::vector<uint64_t> literal_values;
+        std::vector<Literal<uint64_t>> literals;
         for (int lit = 0; lit < literal_count; lit++) {
           // TODO: Generate pseudo-random data for literals. At the moment, the
           // disassembler breaks if we do this.
-          literal_values[lit] = lit;
-          literals[lit] = new Literal<uint64_t>(literal_values[lit]);
+          literal_values.push_back(lit);
+          literals.emplace_back(Literal<uint64_t>(literal_values[lit]));
         }
 
         for (;;) {
@@ -3736,13 +3735,13 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
               __ Nop();
               break;
             case 4:
-              __ Ldr(r2, literals[literal_index]);
+              __ Ldr(r2, &literals[literal_index]);
               __ Cmp(r2, static_cast<uint32_t>(literal_values[literal_index]));
               __ B(ne, &fail);
               __ Mov(r2, 0);
               break;
             case 5:
-              __ Ldrb(r2, literals[literal_index]);
+              __ Ldrb(r2, &literals[literal_index]);
               __ Cmp(r2,
                      static_cast<uint32_t>(literal_values[literal_index]) &
                          0xff);
@@ -3750,7 +3749,7 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
               __ Mov(r2, 0);
               break;
             case 6:
-              __ Ldrd(r2, r3, literals[literal_index]);
+              __ Ldrd(r2, r3, &literals[literal_index]);
               __ Cmp(r2, static_cast<uint32_t>(literal_values[literal_index]));
               __ B(ne, &fail);
               __ Mov(r2, 0);
@@ -3761,7 +3760,7 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
               __ Mov(r3, 0);
               break;
             case 7:
-              __ Vldr(s0, literals[literal_index]);
+              __ Vldr(s0, &literals[literal_index]);
               __ Vmov(s1, static_cast<uint32_t>(literal_values[literal_index]));
               __ Vcmp(s0, s1);
               __ B(ne, &fail);
@@ -3875,9 +3874,6 @@ static void NearBranchAndLiteralFuzzHelper(InstructionSet isa,
         // independent.
         masm.FinalizeCode(MacroAssembler::kFallThrough);
         delete[] labels;
-        for (int lit = 0; lit < literal_count; lit++) {
-          delete literals[lit];
-        }
       }
     }
   }

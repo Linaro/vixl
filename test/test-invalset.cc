@@ -397,5 +397,27 @@ TEST(stl_forward_iterator) {
 #endif
 }
 
+TEST(move) {
+  TestSet set1;
+
+  set1.insert(Obj(-123, 456));
+  set1.insert(Obj(2718, 2871828));
+
+  TestSet set2(std::move(set1));
+  VIXL_CHECK(set1.empty());
+  VIXL_CHECK(set2.size() == 2);
+  VIXL_CHECK(set2.GetMinElement() == Obj(-123, 456));
+
+  // Test with more elements.
+  for (unsigned i = 0; i < 4 * kNPreallocatedElements; i++) {
+    set2.insert(Obj(i, -1));
+  }
+
+  TestSet set3(std::move(set2));
+  VIXL_CHECK(set2.empty());
+  VIXL_CHECK(set3.size() == 2 + 4 * kNPreallocatedElements);
+  VIXL_CHECK(set3.GetMinElement() == Obj(-123, 456));
+}
+
 
 }  // namespace vixl

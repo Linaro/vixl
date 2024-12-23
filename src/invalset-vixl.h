@@ -1,4 +1,3 @@
-// Copyright 2015, VIXL authors
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -91,6 +90,7 @@ class InvalSet {
  public:
   InvalSet();
   ~InvalSet() VIXL_NEGATIVE_TESTING_ALLOW_EXCEPTION;
+  InvalSet(InvalSet&&);  // movable
 
   static const size_t kNPreallocatedElements = N_PREALLOCATED_ELEMENTS;
   static const KeyType kInvalidKey = INVALID_KEY;
@@ -325,6 +325,27 @@ InvalSet<TEMPLATE_INVALSET_P_DEF>::InvalSet()
 #endif
 }
 
+template <TEMPLATE_INVALSET_P_DECL>
+InvalSet<TEMPLATE_INVALSET_P_DEF>::InvalSet(InvalSet&& other)
+    : valid_cached_min_(false), sorted_(true), size_(0), vector_(NULL) {
+  VIXL_ASSERT(other.monitor() == 0);
+  if (this != &other) {
+    sorted_ = other.sorted_;
+    size_ = other.size_;
+#ifdef VIXL_DEBUG
+    monitor_ = 0;
+#endif
+    if (other.IsUsingVector()) {
+      vector_ = other.vector_;
+      other.vector_ = NULL;
+    } else {
+      std::move(other.preallocated_,
+                other.preallocated_ + other.size_,
+                preallocated_);
+    }
+    other.clear();
+  }
+}
 
 template <TEMPLATE_INVALSET_P_DECL>
 InvalSet<TEMPLATE_INVALSET_P_DEF>::~InvalSet()
