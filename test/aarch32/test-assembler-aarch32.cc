@@ -177,17 +177,23 @@ namespace aarch32 {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH32
 // No simulator yet. We can't test the results.
 
-#define ASSERT_EQUAL_32(expected, result)
+#define ASSERT_EQUAL_32(expected, result) \
+  USE(expected, result)
 
-#define ASSERT_EQUAL_64(expected, result)
+#define ASSERT_EQUAL_64(expected, result) \
+  USE(expected, result)
 
-#define ASSERT_EQUAL_128(expected_h, expected_l, result)
+#define ASSERT_EQUAL_128(expected_h, expected_l, result) \
+  USE(expected_h, expected_l, result)
 
-#define ASSERT_EQUAL_FP32(expected, result)
+#define ASSERT_EQUAL_FP32(expected, result) \
+  USE(expected, result)
 
-#define ASSERT_EQUAL_FP64(expected, result)
+#define ASSERT_EQUAL_FP64(expected, result) \
+  USE(expected, result)
 
-#define ASSERT_EQUAL_NZCV(expected)
+#define ASSERT_EQUAL_NZCV(expected) \
+  USE(expected)
 
 #else
 
