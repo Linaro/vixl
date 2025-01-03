@@ -4020,8 +4020,7 @@ static bool SVEMoveMaskPreferred(uint64_t value, int lane_bytes_log2) {
     }
 
     // Check 0x0000pq00_0000pq00 or 0xffffpq00_ffffpq00.
-    uint64_t rotvalue = RotateRight(value, 32, 64);
-    if (value == rotvalue) {
+    if (AllWordsMatch(value)) {
       generic_value &= 0xffffffff;
       if ((generic_value == 0xffff) || (generic_value == UINT32_MAX)) {
         return false;
@@ -4029,8 +4028,7 @@ static bool SVEMoveMaskPreferred(uint64_t value, int lane_bytes_log2) {
     }
 
     // Check 0xpq00pq00_pq00pq00.
-    rotvalue = RotateRight(value, 16, 64);
-    if (value == rotvalue) {
+    if (AllHalfwordsMatch(value)) {
       return false;
     }
   } else {
@@ -4044,8 +4042,7 @@ static bool SVEMoveMaskPreferred(uint64_t value, int lane_bytes_log2) {
     }
 
     // Check 0x000000pq_000000pq or 0xffffffpq_ffffffpq.
-    uint64_t rotvalue = RotateRight(value, 32, 64);
-    if (value == rotvalue) {
+    if (AllWordsMatch(value)) {
       generic_value &= 0xffffffff;
       if ((generic_value == 0xff) || (generic_value == UINT32_MAX)) {
         return false;
@@ -4053,8 +4050,7 @@ static bool SVEMoveMaskPreferred(uint64_t value, int lane_bytes_log2) {
     }
 
     // Check 0x00pq00pq_00pq00pq or 0xffpqffpq_ffpqffpq.
-    rotvalue = RotateRight(value, 16, 64);
-    if (value == rotvalue) {
+    if (AllHalfwordsMatch(value)) {
       generic_value &= 0xffff;
       if ((generic_value == 0xff) || (generic_value == UINT16_MAX)) {
         return false;
@@ -4062,8 +4058,7 @@ static bool SVEMoveMaskPreferred(uint64_t value, int lane_bytes_log2) {
     }
 
     // Check 0xpqpqpqpq_pqpqpqpq.
-    rotvalue = RotateRight(value, 8, 64);
-    if (value == rotvalue) {
+    if (AllBytesMatch(value)) {
       return false;
     }
   }

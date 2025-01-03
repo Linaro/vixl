@@ -636,20 +636,15 @@ ImmediateT32::ImmediateT32(uint32_t imm) {
 }
 
 
-static inline uint32_t ror(uint32_t x, int i) {
-  VIXL_ASSERT((0 < i) && (i < 32));
-  return (x >> i) | (x << (32 - i));
-}
-
-
 bool ImmediateT32::IsImmediateT32(uint32_t imm) {
   /* abcdefgh abcdefgh abcdefgh abcdefgh */
-  if ((imm ^ ror(imm, 8)) == 0) return true;
+  if (AllBytesMatch(imm)) return true;
   /* 00000000 abcdefgh 00000000 abcdefgh */
   /* abcdefgh 00000000 abcdefgh 00000000 */
-  if ((imm ^ ror(imm, 16)) == 0 &&
-      (((imm & 0xff00) == 0) || ((imm & 0xff) == 0)))
+  if (AllHalfwordsMatch(imm) &&
+      (((imm & 0xff00) == 0) || ((imm & 0xff) == 0))) {
     return true;
+  }
   /* isolate least-significant set bit */
   uint32_t lsb = imm & UnsignedNegate(imm);
   /* if imm is less than lsb*256 then it fits, but instead we test imm/256 to
@@ -697,7 +692,7 @@ bool ImmediateA32::IsImmediateA32(uint32_t imm) {
   if (imm < 256) return true;
   /* avoid getting confused by wrapped-around bytes (this transform has no
    * effect on pass/fail results) */
-  if (imm & 0xff000000) imm = ror(imm, 16);
+  if (imm & 0xff000000) imm = static_cast<uint32_t>(RotateRight(imm, 16, 32));
   /* copy odd-numbered set bits into even-numbered bits immediately below, so
    * that the least-significant set bit is always an even bit */
   imm = imm | ((imm >> 1) & 0x55555555);
