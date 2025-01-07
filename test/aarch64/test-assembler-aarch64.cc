@@ -5908,6 +5908,10 @@ TEST(rmif) {
   START();
   __ Mov(x0, 0x0123456789abcdef);
 
+  // Clear bits of `rmif` masks leave NZCV unmodified, so we need to initialise
+  // it to a known state to make the test reproducible.
+  __ Msr(NZCV, x0);
+
   // Set NZCV to 0b1011 (0xb)
   __ Rmif(x0, 0, NCVFlag);
   __ Mrs(x1, NZCV);
@@ -5953,6 +5957,9 @@ TEST(setf8_setf16) {
   __ Mov(x6, 0x10000);
   __ Mov(x7, 0x10001);
   __ Mov(x8, 0xfffffffff);
+
+  // These instruction don't modify 'C', so give it a consistent value.
+  __ Ands(xzr, xzr, 0);
 
   __ Setf8(w0);
   __ Mrs(x9, NZCV);
