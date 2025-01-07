@@ -456,7 +456,7 @@ def VIXLLibraryTarget(env):
   # Use `-r` to avoid failure when `latest` exists and is a directory.
   subprocess.check_call(["rm", "-rf", config.dir_build_latest])
   util.ensure_dir(build_dir)
-  subprocess.check_call(["ln", "-s", build_dir, config.dir_build_latest])
+  subprocess.check_call(["ln", "-r", "-s", build_dir, config.dir_build_latest])
   # Source files are in `src` and in `src/aarch64/`.
   variant_dir_vixl = PrepareVariantDir(join('src'), build_dir)
   sources = [Glob(join(variant_dir_vixl, '*.cc'))]
