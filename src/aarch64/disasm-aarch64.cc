@@ -3402,6 +3402,8 @@ void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
       break;
     case "sqdmulh_asisdsame_only"_h:
     case "sqrdmulh_asisdsame_only"_h:
+    case "sqrdmlah_asisdsame2_only"_h:
+    case "sqrdmlsh_asisdsame2_only"_h:
       if ((vform == kFormatB) || (vform == kFormatD)) {
         mnemonic = NULL;
       }

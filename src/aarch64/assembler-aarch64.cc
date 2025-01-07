@@ -4388,7 +4388,7 @@ void Assembler::sqrdmlah(const VRegister& vd,
                          const VRegister& vm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kRDM));
   VIXL_ASSERT(AreSameFormat(vd, vn, vm));
-  VIXL_ASSERT(vd.IsVector() || !vd.IsQ());
+  VIXL_ASSERT(vd.IsLaneSizeH() || vd.IsLaneSizeS());
 
   Instr format, op = NEON_SQRDMLAH;
   if (vd.IsScalar()) {
@@ -4407,7 +4407,7 @@ void Assembler::sqrdmlsh(const VRegister& vd,
                          const VRegister& vm) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kRDM));
   VIXL_ASSERT(AreSameFormat(vd, vn, vm));
-  VIXL_ASSERT(vd.IsVector() || !vd.IsQ());
+  VIXL_ASSERT(vd.IsLaneSizeH() || vd.IsLaneSizeS());
 
   Instr format, op = NEON_SQRDMLSH;
   if (vd.IsScalar()) {
