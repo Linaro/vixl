@@ -4764,10 +4764,14 @@ TEST(neon_unallocated_regression_test) {
   COMPARE_PREFIX(dci(0x6fd6d80f), "unallocated");  // sqrdmlah v.d, v.d, v.d[]
   COMPARE_PREFIX(dci(0x2fecdae5),
                  "unallocated");  // sqrdmlah v.und, v.und, v.d[]
+  COMPARE_PREFIX(dci(0x7e008429), "unallocated");  // sqrdmlah b9, b1, b0
+  COMPARE_PREFIX(dci(0x7ec08429), "unallocated");  // sqrdmlah d9, d1, d0
   COMPARE_PREFIX(dci(0x7fe0f992), "unallocated");  // sqrdmlsh d, d, v.d[]
   COMPARE_PREFIX(dci(0x6ff1f9df), "unallocated");  // sqrdmlsh v.d, v.d, v.d[]
   COMPARE_PREFIX(dci(0x2fcdfad1),
                  "unallocated");  // sqrdmlsh v.und, v.und, v.d[]
+  COMPARE_PREFIX(dci(0x7e008c29), "unallocated");  // sqrdmlsh b9, b1, b0
+  COMPARE_PREFIX(dci(0x7ec08c29), "unallocated");  // sqrdmlsh d9, d1, d0
   COMPARE_PREFIX(dci(0x7e23b7fa), "unallocated");  // sqrdmulh b, b, b
   COMPARE_PREFIX(dci(0x5f1ad272), "unallocated");  // sqrdmulh b, b, v.b[]
   COMPARE_PREFIX(dci(0x7ef8b6e0), "unallocated");  // sqrdmulh d, d, d

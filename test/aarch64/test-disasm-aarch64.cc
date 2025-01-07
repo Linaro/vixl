@@ -3561,8 +3561,8 @@ TEST(architecture_features) {
   COMPARE_PREFIX(dci(0x2e808c00), "sqrdmlsh");  // SQRDMLSH_asimdsame2_only
   COMPARE_PREFIX(dci(0x2f40d000), "sqrdmlah");  // SQRDMLAH_asimdelem_R
   COMPARE_PREFIX(dci(0x2f40f000), "sqrdmlsh");  // SQRDMLSH_asimdelem_R
-  COMPARE_PREFIX(dci(0x7e008400), "sqrdmlah");  // SQRDMLAH_asisdsame2_only
-  COMPARE_PREFIX(dci(0x7e008c00), "sqrdmlsh");  // SQRDMLSH_asisdsame2_only
+  COMPARE_PREFIX(dci(0x7e408400), "sqrdmlah");  // SQRDMLAH_asisdsame2_only
+  COMPARE_PREFIX(dci(0x7e408c00), "sqrdmlsh");  // SQRDMLSH_asisdsame2_only
   COMPARE_PREFIX(dci(0x7f40d000), "sqrdmlah");  // SQRDMLAH_asisdelem_R
   COMPARE_PREFIX(dci(0x7f40f000), "sqrdmlsh");  // SQRDMLSH_asisdelem_R
 

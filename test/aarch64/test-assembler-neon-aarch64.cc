@@ -10994,7 +10994,7 @@ TEST(neon_pmull_regression_test) {
 }
 
 TEST(zero_high_b) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON, CPUFeatures::kRDM);
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON);
   START();
 
   __ Mov(x0, 0x55aa42ffaa42ff55);
@@ -11014,7 +11014,7 @@ TEST(zero_high_b) {
   __ Ror(x0, x0, 8);
 
   {
-    ExactAssemblyScope scope(&masm, 81 * kInstructionSize);
+    ExactAssemblyScope scope(&masm, 75 * kInstructionSize);
     __ movi(q9.V16B(), 0x55);
     __ dci(0x5e010409);  // mov b9, v0.b[0]
     __ orr(q30.V16B(), q30.V16B(), q9.V16B());
@@ -11029,14 +11029,6 @@ TEST(zero_high_b) {
 
     __ movi(q9.V16B(), 0x55);
     __ dci(0x7e207809);  // sqneg b9, b0
-    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
-
-    __ movi(q9.V16B(), 0x55);
-    __ dci(0x7e008429);  // sqrdmlah b9, b1, b0
-    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
-
-    __ movi(q9.V16B(), 0x55);
-    __ dci(0x7e008c29);  // sqrdmlsh b9, b1, b0
     __ orr(q30.V16B(), q30.V16B(), q9.V16B());
 
     __ movi(q9.V16B(), 0x55);
@@ -11841,8 +11833,7 @@ TEST(zero_high_s) {
 TEST(zero_high_d) {
   SETUP_WITH_FEATURES(CPUFeatures::kSVE,
                       CPUFeatures::kNEON,
-                      CPUFeatures::kFP,
-                      CPUFeatures::kRDM);
+                      CPUFeatures::kFP);
   START();
 
   __ Mov(x0, 0x55aa42ffaa42ff55);
@@ -11862,7 +11853,7 @@ TEST(zero_high_d) {
   __ Ror(x0, x0, 8);
 
   {
-    ExactAssemblyScope scope(&masm, 291 * kInstructionSize);
+    ExactAssemblyScope scope(&masm, 285 * kInstructionSize);
     __ movi(q9.V16B(), 0x55);
     __ dci(0x5ee0b809);  // abs d9, d0
     __ orr(q30.V16B(), q30.V16B(), q9.V16B());
@@ -12129,14 +12120,6 @@ TEST(zero_high_d) {
 
     __ movi(q9.V16B(), 0x55);
     __ dci(0x7ee07809);  // sqneg d9, d0
-    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
-
-    __ movi(q9.V16B(), 0x55);
-    __ dci(0x7ec08429);  // sqrdmlah d9, d1, d0
-    __ orr(q30.V16B(), q30.V16B(), q9.V16B());
-
-    __ movi(q9.V16B(), 0x55);
-    __ dci(0x7ec08c29);  // sqrdmlsh d9, d1, d0
     __ orr(q30.V16B(), q30.V16B(), q9.V16B());
 
     __ movi(q9.V16B(), 0x55);
