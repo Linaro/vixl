@@ -20648,6 +20648,8 @@ TEST_SVE(sve_load_store_sp_base_regression_test) {
     __ dci(0xe58043e0);  // str z0, [sp]
   }
 
+  __ Drop(128 * 2 * kXRegSizeInBytes);
+
   END();
 
   if (CAN_RUN()) {
