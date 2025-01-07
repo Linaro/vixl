@@ -1634,10 +1634,18 @@ TEST(pacia_pacib_autia_autib) {
   START();
 
   Register pointer = x24;
-  Register modifier = x25;
+  Register retry_limit = x25;
+  Register modifier = x26;
+  Label retry;
 
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide, so retry a few times with different
+  // pointers.
   __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
   __ Mov(modifier, 0x477d469dec0b8760);
+
+  __ Bind(&retry);
 
   // Generate PACs using keys A and B.
   __ Mov(x0, pointer);
@@ -1660,21 +1668,24 @@ TEST(pacia_pacib_autia_autib) {
   __ Mov(x5, x0);
   __ Autib(x5, modifier);
 
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0x007f000000000000);
-  __ And(x1, x1, 0x007f000000000000);
+  // Retry on collisions.
+  __ Cmp(x0, x1);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x4, ZFlag, ne);
+  __ Ccmp(pointer, x5, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    // Check PAC codes have been generated and aren't equal.
-    // NOTE: with a different ComputePAC implementation, there may be a
-    // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-    ASSERT_NOT_EQUAL_64(0, x1);
+    // Check PAC codes have been generated.
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
     ASSERT_NOT_EQUAL_64(x0, x1);
 
     // Pointers correctly authenticated.
@@ -1682,8 +1693,13 @@ TEST(pacia_pacib_autia_autib) {
     ASSERT_EQUAL_64(pointer, x3);
 
     // Pointers corrupted after failing to authenticate.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
+#else
+    ASSERT_NOT_EQUAL_64(pointer, x4);
+    ASSERT_NOT_EQUAL_64(pointer, x5);
+#endif
   }
 }
 
@@ -1694,8 +1710,16 @@ TEST(paciza_pacizb_autiza_autizb) {
   START();
 
   Register pointer = x24;
+  Register retry_limit = x25;
+  Label retry;
 
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide, so retry a few times with different
+  // pointers.
   __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
+
+  __ Bind(&retry);
 
   // Generate PACs using keys A and B.
   __ Mov(x0, pointer);
@@ -1718,21 +1742,24 @@ TEST(paciza_pacizb_autiza_autizb) {
   __ Mov(x5, x0);
   __ Autizb(x5);
 
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0x007f000000000000);
-  __ And(x1, x1, 0x007f000000000000);
+  // Retry on collisions.
+  __ Cmp(x0, x1);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x4, ZFlag, ne);
+  __ Ccmp(pointer, x5, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    // Check PAC codes have been generated and aren't equal.
-    // NOTE: with a different ComputePAC implementation, there may be a
-    // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-    ASSERT_NOT_EQUAL_64(0, x1);
+    // Check PAC codes have been generated.
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
     ASSERT_NOT_EQUAL_64(x0, x1);
 
     // Pointers correctly authenticated.
@@ -1740,8 +1767,13 @@ TEST(paciza_pacizb_autiza_autizb) {
     ASSERT_EQUAL_64(pointer, x3);
 
     // Pointers corrupted after failing to authenticate.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
+#else
+    ASSERT_NOT_EQUAL_64(pointer, x4);
+    ASSERT_NOT_EQUAL_64(pointer, x5);
+#endif
   }
 }
 
@@ -1752,10 +1784,18 @@ TEST(pacda_pacdb_autda_autdb) {
   START();
 
   Register pointer = x24;
-  Register modifier = x25;
+  Register retry_limit = x25;
+  Register modifier = x26;
+  Label retry;
 
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide, so retry a few times with different
+  // pointers.
   __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
   __ Mov(modifier, 0x477d469dec0b8760);
+
+  __ Bind(&retry);
 
   // Generate PACs using keys A and B.
   __ Mov(x0, pointer);
@@ -1778,21 +1818,24 @@ TEST(pacda_pacdb_autda_autdb) {
   __ Mov(x5, x0);
   __ Autdb(x5, modifier);
 
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0x007f000000000000);
-  __ And(x1, x1, 0x007f000000000000);
+  // Retry on collisions.
+  __ Cmp(x0, x1);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x4, ZFlag, ne);
+  __ Ccmp(pointer, x5, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    // Check PAC codes have been generated and aren't equal.
-    // NOTE: with a different ComputePAC implementation, there may be a
-    // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-    ASSERT_NOT_EQUAL_64(0, x1);
+    // Check PAC codes have been generated.
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
     ASSERT_NOT_EQUAL_64(x0, x1);
 
     // Pointers correctly authenticated.
@@ -1800,8 +1843,13 @@ TEST(pacda_pacdb_autda_autdb) {
     ASSERT_EQUAL_64(pointer, x3);
 
     // Pointers corrupted after failing to authenticate.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
+#else
+    ASSERT_NOT_EQUAL_64(pointer, x4);
+    ASSERT_NOT_EQUAL_64(pointer, x5);
+#endif
   }
 }
 
@@ -1812,8 +1860,16 @@ TEST(pacdza_pacdzb_autdza_autdzb) {
   START();
 
   Register pointer = x24;
+  Register retry_limit = x25;
+  Label retry;
 
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide, so retry a few times with different
+  // pointers.
   __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
+
+  __ Bind(&retry);
 
   // Generate PACs using keys A and B.
   __ Mov(x0, pointer);
@@ -1836,21 +1892,24 @@ TEST(pacdza_pacdzb_autdza_autdzb) {
   __ Mov(x5, x0);
   __ Autdzb(x5);
 
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0x007f000000000000);
-  __ And(x1, x1, 0x007f000000000000);
+  // Retry on collisions.
+  __ Cmp(x0, x1);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x4, ZFlag, ne);
+  __ Ccmp(pointer, x5, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    // Check PAC codes have been generated and aren't equal.
-    // NOTE: with a different ComputePAC implementation, there may be a
-    // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-    ASSERT_NOT_EQUAL_64(0, x1);
+    // Check PAC codes have been generated.
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
     ASSERT_NOT_EQUAL_64(x0, x1);
 
     // Pointers correctly authenticated.
@@ -1858,8 +1917,13 @@ TEST(pacdza_pacdzb_autdza_autdzb) {
     ASSERT_EQUAL_64(pointer, x3);
 
     // Pointers corrupted after failing to authenticate.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(0x0020000012345678, x4);
     ASSERT_EQUAL_64(0x0040000012345678, x5);
+#else
+    ASSERT_NOT_EQUAL_64(pointer, x4);
+    ASSERT_NOT_EQUAL_64(pointer, x5);
+#endif
   }
 }
 
@@ -1870,10 +1934,18 @@ TEST(pacga_xpaci_xpacd) {
   START();
 
   Register pointer = x24;
-  Register modifier = x25;
+  Register retry_limit = x25;
+  Register modifier = x26;
+  Label retry;
 
+  // There is a small but not negligible chance (1 in 127 runs) that the PAC
+  // codes for keys A and B will collide, so retry a few times with different
+  // pointers.
   __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
   __ Mov(modifier, 0x477d469dec0b8760);
+
+  __ Bind(&retry);
 
   // Generate generic PAC.
   __ Pacga(x0, pointer, modifier);
@@ -1890,25 +1962,24 @@ TEST(pacga_xpaci_xpacd) {
   __ Xpaci(x3);
   __ Xpacd(x4);
 
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0xffffffff00000000);
-  __ And(x1, x1, 0x007f000000000000);
-  __ And(x2, x2, 0x007f000000000000);
+  // Retry on collisions.
+  __ Cmp(x1, x2);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x2, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-
-    // Check PAC codes have been generated and aren't equal.
-    // NOTE: with a different ComputePAC implementation, there may be a
-    // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-
-    ASSERT_NOT_EQUAL_64(0, x1);
-    ASSERT_NOT_EQUAL_64(0, x2);
+    // Check PAC codes have been generated.
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
+    ASSERT_NOT_EQUAL_64(pointer, x2);
     ASSERT_NOT_EQUAL_64(x1, x2);
 
     ASSERT_EQUAL_64(pointer, x3);
@@ -7231,23 +7302,32 @@ TEST(system_pauth_a) {
   temps.Exclude(x16, x17);
   temps.Include(x10, x11);
 
-  // Backup stack pointer.
+  Register pointer = x21;
+  Register retry_limit = x22;
+  Label retry;
+
+  __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
+
+  // Back up stack pointer.
   __ Mov(x20, sp);
 
   // Modifiers
   __ Mov(x16, 0x477d469dec0b8760);
   __ Mov(sp, 0x477d469dec0b8760);
 
+  __ Bind(&retry);
+
   // Generate PACs using the 3 system instructions.
-  __ Mov(x17, 0x0000000012345678);
+  __ Mov(x17, pointer);
   __ Pacia1716();
   __ Mov(x0, x17);
 
-  __ Mov(lr, 0x0000000012345678);
+  __ Mov(lr, pointer);
   __ Paciaz();
   __ Mov(x1, lr);
 
-  __ Mov(lr, 0x0000000012345678);
+  __ Mov(lr, pointer);
   __ Paciasp();
   __ Mov(x2, lr);
 
@@ -7282,41 +7362,51 @@ TEST(system_pauth_a) {
   __ Xpaclri();
   __ Mov(x9, lr);
 
+  // Retry on collisions.
+  __ Cmp(x0, x1);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x2, ZFlag, ne);
+  __ Ccmp(pointer, x6, ZFlag, ne);
+  __ Ccmp(pointer, x7, ZFlag, ne);
+  __ Ccmp(pointer, x8, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
+
   // Restore stack pointer.
   __ Mov(sp, x20);
-
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0x007f000000000000);
-  __ And(x1, x1, 0x007f000000000000);
-  __ And(x2, x2, 0x007f000000000000);
 
   END();
 
   if (CAN_RUN()) {
     RUN();
 
-    // Check PAC codes have been generated and aren't equal.
-    // NOTE: with a different ComputePAC implementation, there may be a
-    // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-    ASSERT_NOT_EQUAL_64(0, x1);
-    ASSERT_NOT_EQUAL_64(0, x2);
+    // Check PAC codes have been generated.
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
+    ASSERT_NOT_EQUAL_64(pointer, x2);
     ASSERT_NOT_EQUAL_64(x0, x1);
     ASSERT_EQUAL_64(x0, x2);
 
     // Pointers correctly authenticated.
-    ASSERT_EQUAL_64(0x0000000012345678, x3);
-    ASSERT_EQUAL_64(0x0000000012345678, x4);
-    ASSERT_EQUAL_64(0x0000000012345678, x5);
+    ASSERT_EQUAL_64(pointer, x3);
+    ASSERT_EQUAL_64(pointer, x4);
+    ASSERT_EQUAL_64(pointer, x5);
 
     // Pointers corrupted after failing to authenticate.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(0x0020000012345678, x6);
     ASSERT_EQUAL_64(0x0020000012345678, x7);
     ASSERT_EQUAL_64(0x0020000012345678, x8);
+#else
+    ASSERT_NOT_EQUAL_64(pointer, x6);
+    ASSERT_NOT_EQUAL_64(pointer, x7);
+    ASSERT_NOT_EQUAL_64(pointer, x8);
+#endif
 
     // Pointer with code stripped.
-    ASSERT_EQUAL_64(0x0000000012345678, x9);
+    ASSERT_EQUAL_64(pointer, x9);
   }
 }
 
@@ -7331,12 +7421,21 @@ TEST(system_pauth_b) {
   temps.Exclude(x16, x17);
   temps.Include(x10, x11);
 
-  // Backup stack pointer.
+  Register pointer = x21;
+  Register retry_limit = x22;
+  Label retry;
+
+  __ Mov(pointer, 0x0000000012345678);
+  __ Mov(retry_limit, 0x0000000012345678 + 32);
+
+  // Back up stack pointer.
   __ Mov(x20, sp);
 
   // Modifiers
   __ Mov(x16, 0x477d469dec0b8760);
   __ Mov(sp, 0x477d469dec0b8760);
+
+  __ Bind(&retry);
 
   // Generate PACs using the 3 system instructions.
   __ Mov(x17, 0x0000000012345678);
@@ -7382,14 +7481,20 @@ TEST(system_pauth_b) {
   __ Xpaclri();
   __ Mov(x9, lr);
 
+  // Retry on collisions.
+  __ Cmp(x0, x1);
+  __ Ccmp(pointer, x0, ZFlag, ne);
+  __ Ccmp(pointer, x1, ZFlag, ne);
+  __ Ccmp(pointer, x2, ZFlag, ne);
+  __ Ccmp(pointer, x6, ZFlag, ne);
+  __ Ccmp(pointer, x7, ZFlag, ne);
+  __ Ccmp(pointer, x8, ZFlag, ne);
+  __ Ccmp(pointer, retry_limit, ZFlag, eq);
+  __ Cinc(pointer, pointer, ne);
+  __ B(ne, &retry);
+
   // Restore stack pointer.
   __ Mov(sp, x20);
-
-  // Mask out just the PAC code bits.
-  // TODO: use Simulator::CalculatePACMask in a nice way.
-  __ And(x0, x0, 0x007f000000000000);
-  __ And(x1, x1, 0x007f000000000000);
-  __ And(x2, x2, 0x007f000000000000);
 
   END();
 
@@ -7399,24 +7504,30 @@ TEST(system_pauth_b) {
     // Check PAC codes have been generated and aren't equal.
     // NOTE: with a different ComputePAC implementation, there may be a
     // collision.
-    ASSERT_NOT_EQUAL_64(0, x0);
-    ASSERT_NOT_EQUAL_64(0, x1);
-    ASSERT_NOT_EQUAL_64(0, x2);
+    ASSERT_NOT_EQUAL_64(pointer, x0);
+    ASSERT_NOT_EQUAL_64(pointer, x1);
+    ASSERT_NOT_EQUAL_64(pointer, x2);
     ASSERT_NOT_EQUAL_64(x0, x1);
     ASSERT_EQUAL_64(x0, x2);
 
     // Pointers correctly authenticated.
-    ASSERT_EQUAL_64(0x0000000012345678, x3);
-    ASSERT_EQUAL_64(0x0000000012345678, x4);
-    ASSERT_EQUAL_64(0x0000000012345678, x5);
+    ASSERT_EQUAL_64(pointer, x3);
+    ASSERT_EQUAL_64(pointer, x4);
+    ASSERT_EQUAL_64(pointer, x5);
 
     // Pointers corrupted after failing to authenticate.
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     ASSERT_EQUAL_64(0x0040000012345678, x6);
     ASSERT_EQUAL_64(0x0040000012345678, x7);
     ASSERT_EQUAL_64(0x0040000012345678, x8);
+#else
+    ASSERT_NOT_EQUAL_64(pointer, x6);
+    ASSERT_NOT_EQUAL_64(pointer, x7);
+    ASSERT_NOT_EQUAL_64(pointer, x8);
+#endif
 
     // Pointer with code stripped.
-    ASSERT_EQUAL_64(0x0000000012345678, x9);
+    ASSERT_EQUAL_64(pointer, x9);
   }
 }
 
