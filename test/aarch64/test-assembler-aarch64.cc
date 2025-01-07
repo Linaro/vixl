@@ -14847,23 +14847,40 @@ TEST(cssc_smax) {
   MinMaxHelper(op, true, s64min, s64max, 0, s64max);
 }
 
-TEST(gcs_chkfeat) {
-  SETUP();
+static void ChkfeatHelper(uint64_t initial,
+                          uint64_t chkfeat,
+                          CPUFeatures require) {
+  SETUP_WITH_FEATURES(require);
 
   START();
-  __ Mov(x16, 0x0123'4567'89ab'cdef);
+  __ Mov(x16, initial);
   __ Chkfeat(x16);
   __ Mov(x0, x16);
 
-  __ Mov(x1, 0x0123'4567'89ab'cdef);
+  __ Mov(x1, initial);
   __ Chkfeat(x1);
   END();
 
   if (CAN_RUN()) {
-    RUN();
-    ASSERT_EQUAL_64(0x0123'4567'89ab'cdee, x0);
+    RUN_WITHOUT_SEEN_FEATURE_CHECK();
+    ASSERT_EQUAL_64(chkfeat, x0);
     ASSERT_EQUAL_64(x0, x1);
   }
+}
+
+TEST(chkfeat) {
+  ChkfeatHelper(0x0, 0x0, CPUFeatures::None());
+}
+
+TEST(chkfeat_gcs) {
+  ChkfeatHelper(0x1, 0x0, CPUFeatures::kGCS);
+}
+
+TEST(chkfeat_unused) {
+  // Bits 1-63 are reserved. This test ensures that they are unmodified by
+  // `chkfeat`, but it will need to be updated if these bits are assigned in the
+  // future.
+  ChkfeatHelper(0xffff'ffff'ffff'fffe, 0xffff'ffff'ffff'fffe, CPUFeatures::None());
 }
 
 TEST(gcs_feature_off) {
