@@ -2647,13 +2647,18 @@ TEST(return_to_reg_auth_guarded) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
 #endif
+    // On hardware, we'll run the test anyway, but mark it as SKIPPED until
+    // we've implemented a mechanism for marking Guarded pages.
+
     RUN();
 
     ASSERT_EQUAL_64(42, x0);
     ASSERT_EQUAL_64(84, x1);
+
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
@@ -2686,7 +2691,11 @@ TEST(branch_to_reg_auth_fail) {
   END();
 
   if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#else
+    printf("SKIPPED: negative PAuth tests are unimplemented on hardware.");
+#endif
   }
 }
 #endif  // VIXL_NEGATIVE_TESTING
@@ -2722,7 +2731,11 @@ TEST(return_to_reg_auth_fail) {
   END();
 
   if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#else
+    printf("SKIPPED: negative PAuth tests are unimplemented on hardware.");
+#endif
   }
 }
 #endif  // VIXL_NEGATIVE_TESTING
@@ -3725,7 +3738,11 @@ TEST(load_pauth_negative_test) {
   END();
 
   if (CAN_RUN()) {
+#ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     MUST_FAIL_WITH_MESSAGE(RUN(), "Failed to authenticate pointer.");
+#else
+    printf("SKIPPED: negative PAuth tests are unimplemented on hardware.");
+#endif
   }
 }
 #endif  // VIXL_NEGATIVE_TESTING
@@ -7632,10 +7649,15 @@ static void BtiHelper(Register ipreg) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
 #endif
+    // On hardware, we'll run the test anyway, but mark it as SKIPPED until
+    // we've implemented a mechanism for marking Guarded pages.
+
     RUN();
+
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
@@ -7684,8 +7706,6 @@ TEST(unguarded_bti_is_nop) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(false);
-#else
-    VIXL_UNIMPLEMENTED();
 #endif
     RUN();
   }
@@ -7709,12 +7729,12 @@ TEST(bti_jump_to_ip_unidentified) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
-#endif
     MUST_FAIL_WITH_MESSAGE(RUN(),
                            "Executing non-BTI instruction with wrong "
                            "BType.");
+#else
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
@@ -7733,12 +7753,12 @@ TEST(bti_jump_to_unidentified) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
-#endif
     MUST_FAIL_WITH_MESSAGE(RUN(),
                            "Executing non-BTI instruction with wrong "
                            "BType.");
+#else
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
@@ -7757,12 +7777,12 @@ TEST(bti_call_to_unidentified) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
-#endif
     MUST_FAIL_WITH_MESSAGE(RUN(),
                            "Executing non-BTI instruction with wrong "
                            "BType.");
+#else
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
@@ -7782,10 +7802,10 @@ TEST(bti_jump_to_c) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
-#endif
     MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI c with wrong BType.");
+#else
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
@@ -7805,10 +7825,10 @@ TEST(bti_call_to_j) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
-#endif
     MUST_FAIL_WITH_MESSAGE(RUN(), "Executing BTI j with wrong BType.");
+#else
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 #endif  // VIXL_NEGATIVE_TESTING
@@ -7833,12 +7853,17 @@ TEST(fall_through_bti) {
   if (CAN_RUN()) {
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
     simulator.SetGuardedPages(true);
-#else
-    VIXL_UNIMPLEMENTED();
 #endif
+    // On hardware, we'll run the test anyway, but mark it as SKIPPED until
+    // we've implemented a mechanism for marking Guarded pages.
+
     RUN();
 
     ASSERT_EQUAL_64(4, x0);
+
+#ifndef VIXL_INCLUDE_SIMULATOR_AARCH64
+    printf("SKIPPED: marking guarded pages is unimplemented on hardware");
+#endif
   }
 }
 
