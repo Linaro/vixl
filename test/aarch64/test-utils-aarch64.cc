@@ -89,6 +89,34 @@ bool Equal64(uint64_t reference,
 }
 
 
+bool Equal64(std::vector<uint64_t> reference_list,
+             const RegisterDump*,
+             uint64_t result,
+             ExpectedResult option) {
+  switch (option) {
+    case kExpectEqual:
+      for (uint64_t reference : reference_list) {
+        if (result == reference) return true;
+      }
+      printf("Expected a result in (\n");
+      break;
+    case kExpectNotEqual:
+      for (uint64_t reference : reference_list) {
+        if (result == reference) {
+          printf("Expected a result not in (\n");
+          break;
+        }
+      }
+      return true;
+  }
+  for (uint64_t reference : reference_list) {
+    printf("  0x%016" PRIx64 ",\n", reference);
+  }
+  printf(")\t Found 0x%016" PRIx64 "\n", result);
+  return false;
+}
+
+
 bool Equal128(QRegisterValue expected,
               const RegisterDump*,
               QRegisterValue result) {
@@ -197,6 +225,16 @@ bool Equal64(uint64_t reference,
   VIXL_ASSERT(reg.Is64Bits());
   uint64_t result = core->xreg(reg.GetCode());
   return Equal64(reference, core, result, option);
+}
+
+
+bool Equal64(std::vector<uint64_t> reference_list,
+             const RegisterDump* core,
+             const Register& reg,
+             ExpectedResult option) {
+  VIXL_ASSERT(reg.Is64Bits());
+  uint64_t result = core->xreg(reg.GetCode());
+  return Equal64(reference_list, core, result, option);
 }
 
 
