@@ -14900,19 +14900,17 @@ static void ChkfeatHelper(uint64_t initial,
   }
 }
 
-TEST(chkfeat) {
-  ChkfeatHelper(0x0, 0x0, CPUFeatures::None());
-}
+TEST(chkfeat) { ChkfeatHelper(0x0, 0x0, CPUFeatures::None()); }
 
-TEST(chkfeat_gcs) {
-  ChkfeatHelper(0x1, 0x0, CPUFeatures::kGCS);
-}
+TEST(chkfeat_gcs) { ChkfeatHelper(0x1, 0x0, CPUFeatures::kGCS); }
 
 TEST(chkfeat_unused) {
   // Bits 1-63 are reserved. This test ensures that they are unmodified by
   // `chkfeat`, but it will need to be updated if these bits are assigned in the
   // future.
-  ChkfeatHelper(0xffff'ffff'ffff'fffe, 0xffff'ffff'ffff'fffe, CPUFeatures::None());
+  ChkfeatHelper(0xffff'ffff'ffff'fffe,
+                0xffff'ffff'ffff'fffe,
+                CPUFeatures::None());
 }
 
 TEST(gcs_feature_off) {

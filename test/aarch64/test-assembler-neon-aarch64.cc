@@ -11831,9 +11831,7 @@ TEST(zero_high_s) {
 }
 
 TEST(zero_high_d) {
-  SETUP_WITH_FEATURES(CPUFeatures::kSVE,
-                      CPUFeatures::kNEON,
-                      CPUFeatures::kFP);
+  SETUP_WITH_FEATURES(CPUFeatures::kSVE, CPUFeatures::kNEON, CPUFeatures::kFP);
   START();
 
   __ Mov(x0, 0x55aa42ffaa42ff55);
