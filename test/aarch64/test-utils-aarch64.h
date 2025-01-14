@@ -345,6 +345,10 @@ bool Equal64(uint64_t reference,
              const RegisterDump*,
              uint64_t result,
              ExpectedResult option = kExpectEqual);
+bool Equal64(std::vector<uint64_t> reference_list,
+             const RegisterDump*,
+             uint64_t result,
+             ExpectedResult option = kExpectEqual);
 bool Equal128(QRegisterValue expected,
               const RegisterDump*,
               QRegisterValue result);
@@ -355,6 +359,10 @@ bool EqualFP64(double expected, const RegisterDump*, double result);
 
 bool Equal32(uint32_t expected, const RegisterDump* core, const Register& reg);
 bool Equal64(uint64_t reference,
+             const RegisterDump* core,
+             const Register& reg,
+             ExpectedResult option = kExpectEqual);
+bool Equal64(std::vector<uint64_t> reference_list,
              const RegisterDump* core,
              const Register& reg,
              ExpectedResult option = kExpectEqual);
