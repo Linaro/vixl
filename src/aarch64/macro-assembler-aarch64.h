@@ -8249,9 +8249,10 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
       UseScratchRegisterScope* scratch_scope);
 
   bool LabelIsOutOfRange(Label* label, ImmBranchType branch_type) {
+    int64_t offset = label->GetLocation() - GetCursorOffset();
+    VIXL_ASSERT(IsMultiple(offset, kInstructionSize));
     return !Instruction::IsValidImmPCOffset(branch_type,
-                                            label->GetLocation() -
-                                                GetCursorOffset());
+                                            offset / kInstructionSize);
   }
 
   void ConfigureSimulatorCPUFeaturesHelper(const CPUFeatures& features,

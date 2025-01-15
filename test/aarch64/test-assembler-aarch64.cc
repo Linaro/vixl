@@ -13516,6 +13516,76 @@ TEST(collision_literal_veneer_pools) {
   END();
 }
 
+static void VeneerBackwardBranchHelper(ImmBranchType type, int limit) {
+  SETUP();
+  START();
+
+  // This is a code generation test. The code generated is not executed.
+
+  __ Mov(x0, 1);
+
+  // Non-veneer case: generate 'limit' instructions, plus the branch itself.
+  Label start0;
+  __ Bind(&start0);
+  for (int i = 0; i < limit; i++) {
+    __ Nop();
+  }
+  switch (type) {
+    case CompareBranchType:
+      __ Cbz(x0, &start0);
+      break;
+    case TestBranchType:
+      __ Tbz(x0, 0, &start0);
+      break;
+    default:
+      VIXL_ASSERT(type == CondBranchType);
+      __ B(eq, &start0);
+  }
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start0) ==
+             ((limit + 1) * kInstructionSize));
+
+  // Veneer case: As above, plus one extra nop and a branch for the veneer; we
+  // expect a total of limit + 3 instructions.
+  //
+  //  start1:
+  //    nop x (limit + 1)
+  //    tbnz skip_veneer
+  //    b start1
+  //  skip_veneer:
+  //
+  Label start1;
+  __ Bind(&start1);
+  for (int i = 0; i < limit; i++) {
+    __ Nop();
+  }
+  __ Nop();  // One extra instruction to exceed branch range.
+  switch (type) {
+    case CompareBranchType:
+      __ Cbz(x0, &start0);
+      break;
+    case TestBranchType:
+      __ Tbz(x0, 0, &start0);
+      break;
+    default:
+      VIXL_ASSERT(type == CondBranchType);
+      __ B(eq, &start0);
+  }
+  VIXL_CHECK(masm.GetSizeOfCodeGeneratedSince(&start1) ==
+             ((limit + 3) * kInstructionSize));
+
+  END();
+  DISASSEMBLE();
+}
+
+TEST(veneer_backward_tbz) { VeneerBackwardBranchHelper(TestBranchType, 8192); }
+
+TEST(veneer_backward_cbz) {
+  VeneerBackwardBranchHelper(CompareBranchType, 262144);
+}
+
+TEST(veneer_backward_bcond) {
+  VeneerBackwardBranchHelper(CondBranchType, 262144);
+}
 
 TEST(ldr_literal_explicit) {
   SETUP();
