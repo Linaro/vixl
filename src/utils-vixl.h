@@ -629,8 +629,8 @@ bool IsRepeatingPattern(T value) {
   VIXL_ASSERT(IsMultiple(sizeof(value) * kBitsPerByte, BITS));
   VIXL_ASSERT(IsMultiple(BITS, 2));
   VIXL_STATIC_ASSERT(BITS >= 2);
-#if (defined(__x86_64__) || defined(__i386)) && \
-    __clang_major__ >= 17 && __clang_major__ <= 19
+#if (defined(__x86_64__) || defined(__i386)) && __clang_major__ >= 17 && \
+    __clang_major__ <= 19
   // Workaround for https://github.com/llvm/llvm-project/issues/108722
   unsigned hbits = BITS / 2;
   T midmask = (~static_cast<T>(0) >> BITS) << hbits;
