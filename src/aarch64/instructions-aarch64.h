@@ -887,12 +887,38 @@ class NEONFormatDecoder {
       return NULL;
     }
 
-    snprintf(form_buffer_,
-             sizeof(form_buffer_),
-             string,
-             subst0,
-             subst1,
-             subst2);
+    char chr = *string++;
+    uint32_t buffer_pos_ = 0;
+    while (chr != '\0') {
+      if (chr == '$') {
+        chr = *string++;
+        const char* subst;
+        switch (chr) {
+          case '1':
+            subst = subst0;
+            break;
+          case '2':
+            subst = subst1;
+            break;
+          case '3':
+            subst = subst2;
+            break;
+          default:
+            VIXL_ASSERT(false);
+            continue;
+        }
+        buffer_pos_ += snprintf(&form_buffer_[buffer_pos_],
+                                sizeof(form_buffer_) - buffer_pos_,
+                                "%s",
+                                subst);
+      } else {
+        VIXL_ASSERT(buffer_pos_ < sizeof(form_buffer_));
+        form_buffer_[buffer_pos_++] = chr;
+      }
+      chr = *string++;
+    }
+    VIXL_ASSERT(buffer_pos_ < sizeof(form_buffer_));
+    form_buffer_[buffer_pos_] = 0;
     return form_buffer_;
   }
 

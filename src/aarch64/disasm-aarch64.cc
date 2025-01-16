@@ -2238,7 +2238,7 @@ void Disassembler::DisassembleSHA512(const Instruction *instr) {
 
 void Disassembler::DisassembleNEON2RegAddlp(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
 
   static const NEONFormatMap map_lp_ta =
       {{23, 22, 30}, {NF_4H, NF_8H, NF_2S, NF_4S, NF_1D, NF_2D}};
@@ -2249,21 +2249,21 @@ void Disassembler::DisassembleNEON2RegAddlp(const Instruction *instr) {
 
 void Disassembler::DisassembleNEON2RegCompare(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, #0";
+  const char *form = "'Vd.$1, 'Vn.$2, #0";
   NEONFormatDecoder nfd(instr);
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
 void Disassembler::DisassembleNEON2RegFPCompare(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, #0.0";
+  const char *form = "'Vd.$1, 'Vn.$2, #0.0";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPFormatMap());
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
 void Disassembler::DisassembleNEON2RegFPConvert(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
   static const NEONFormatMap map_cvt_ta = {{22}, {NF_4S, NF_2D}};
 
   static const NEONFormatMap map_cvt_tb = {{22, 30},
@@ -2286,14 +2286,14 @@ void Disassembler::DisassembleNEON2RegFPConvert(const Instruction *instr) {
 
 void Disassembler::DisassembleNEON2RegFP(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPFormatMap());
   Format(instr, mnemonic, nfd.Substitute(form));
 }
 
 void Disassembler::DisassembleNEON2RegLogical(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
   if (form_hash_ == "not_asimdmisc_r"_h) {
     mnemonic = "mvn";
@@ -2303,7 +2303,7 @@ void Disassembler::DisassembleNEON2RegLogical(const Instruction *instr) {
 
 void Disassembler::DisassembleNEON2RegExtract(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
   const char *suffix = NULL;
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::IntegerFormatMap(),
@@ -2328,7 +2328,7 @@ void Disassembler::DisassembleNEON2RegExtract(const Instruction *instr) {
 
 void Disassembler::VisitNEON2RegMisc(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
   NEONFormatDecoder nfd(instr);
 
   VectorFormat vform_dst = nfd.GetVectorFormat(0);
@@ -2384,14 +2384,14 @@ void Disassembler::VisitNEON2RegMiscFP16(const Instruction *instr) {
 
 void Disassembler::DisassembleNEON3SameLogical(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
 
   switch (form_hash_) {
     case "orr_asimdsame_only"_h:
       if (instr->GetRm() == instr->GetRn()) {
         mnemonic = "mov";
-        form = "'Vd.%s, 'Vn.%s";
+        form = "'Vd.$1, 'Vn.$2";
       }
       break;
     case "pmul_asimdsame_only"_h:
@@ -2408,7 +2408,7 @@ void Disassembler::DisassembleNEON3SameFHM(const Instruction *instr) {
 
 void Disassembler::DisassembleNEON3SameNoD(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3";
   static const NEONFormatMap map =
       {{23, 22, 30},
        {NF_8B, NF_16B, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_UNDEF}};
@@ -2418,7 +2418,7 @@ void Disassembler::DisassembleNEON3SameNoD(const Instruction *instr) {
 
 void Disassembler::VisitNEON3Same(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3";
   NEONFormatDecoder nfd(instr);
 
   if (instr->Mask(NEON3SameFPFMask) == NEON3SameFPFixed) {
@@ -2442,7 +2442,7 @@ void Disassembler::VisitNEON3Same(const Instruction *instr) {
 
 void Disassembler::VisitNEON3SameFP16(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3";
   NEONFormatDecoder nfd(instr);
   nfd.SetFormatMaps(nfd.FP16FormatMap());
   Format(instr, mnemonic, nfd.Substitute(form));
@@ -2458,7 +2458,7 @@ void Disassembler::VisitNEON3SameExtra(const Instruction *instr) {
       {{23, 22, 30}, {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_2S, NF_4S}};
 
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3";
   const char *suffix = NULL;
 
   NEONFormatDecoder nfd(instr, &map_fc);
@@ -2499,7 +2499,7 @@ void Disassembler::DisassembleNEONRax1(const Instruction *instr) {
 
 void Disassembler::VisitNEON3Different(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3";
 
   NEONFormatDecoder nfd(instr);
   nfd.SetFormatMap(0, nfd.LongIntegerFormatMap());
@@ -2560,7 +2560,7 @@ void Disassembler::DisassembleNEONFP16AcrossLanes(const Instruction *instr) {
 
 void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, 'Vn.%s";
+  const char *form = "$1d, 'Vn.$2";
 
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::ScalarFormatMap(),
@@ -2585,7 +2585,7 @@ void Disassembler::VisitNEONAcrossLanes(const Instruction *instr) {
 }
 
 void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vf.%s['IVByElemIndex]";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vf.$3['IVByElemIndex]";
   static const NEONFormatMap map_v =
       {{23, 22, 30},
        {NF_UNDEF, NF_UNDEF, NF_4H, NF_8H, NF_2S, NF_4S, NF_UNDEF, NF_UNDEF}};
@@ -2596,7 +2596,7 @@ void Disassembler::VisitNEONByIndexedElement(const Instruction *instr) {
 }
 
 void Disassembler::DisassembleNEONMulByElementLong(const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vf.%s['IVByElemIndex]";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vf.$3['IVByElemIndex]";
   // TODO: Disallow undefined element types for this instruction.
   static const NEONFormatMap map_ta = {{23, 22}, {NF_UNDEF, NF_4S, NF_2D}};
   NEONFormatDecoder nfd(instr,
@@ -2613,7 +2613,7 @@ void Disassembler::DisassembleNEONDotProdByElement(const Instruction *instr) {
 }
 
 void Disassembler::DisassembleNEONFPMulByElement(const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vf.%s['IVByElemIndex]";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vf.$3['IVByElemIndex]";
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::FPFormatMap(),
                         NEONFormatDecoder::FPFormatMap(),
@@ -2635,7 +2635,7 @@ void Disassembler::DisassembleNEONFPMulByElementLong(const Instruction *instr) {
 
 void Disassembler::DisassembleNEONComplexMulByElement(
     const Instruction *instr) {
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s['IVByElemIndexRot], #'u1413*90";
+  const char *form = "'Vd.$1, 'Vn.$2, 'Vm.$3['IVByElemIndexRot], #'u1413*90";
   // TODO: Disallow undefined element types for this instruction.
   static const NEONFormatMap map_cn =
       {{23, 22, 30},
@@ -2659,15 +2659,15 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
     case "ins_asimdins_iv_v"_h:
       mnemonic = "mov";
       nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
-      form = "'Vd.%s['IVInsIndex1], 'Vn.%s['IVInsIndex2]";
+      form = "'Vd.$1['IVInsIndex1], 'Vn.$2['IVInsIndex2]";
       break;
     case "ins_asimdins_ir_r"_h:
       mnemonic = "mov";
       nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
       if (nfd.GetVectorFormat() == kFormatD) {
-        form = "'Vd.%s['IVInsIndex1], 'Xn";
+        form = "'Vd.$1['IVInsIndex1], 'Xn";
       } else {
-        form = "'Vd.%s['IVInsIndex1], 'Wn";
+        form = "'Vd.$1['IVInsIndex1], 'Wn";
       }
       break;
     case "umov_asimdins_w_w"_h:
@@ -2677,9 +2677,9 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
       }
       nfd.SetFormatMap(0, nfd.TriangularScalarFormatMap());
       if (nfd.GetVectorFormat() == kFormatD) {
-        form = "'Xd, 'Vn.%s['IVInsIndex1]";
+        form = "'Xd, 'Vn.$1['IVInsIndex1]";
       } else {
-        form = "'Wd, 'Vn.%s['IVInsIndex1]";
+        form = "'Wd, 'Vn.$1['IVInsIndex1]";
       }
       break;
     case "smov_asimdins_w_w"_h:
@@ -2690,17 +2690,17 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
           ((vform == kFormatS) && (instr->ExtractBit(30) == 0))) {
         mnemonic = NULL;
       }
-      form = "'R30d, 'Vn.%s['IVInsIndex1]";
+      form = "'R30d, 'Vn.$1['IVInsIndex1]";
       break;
     }
     case "dup_asimdins_dv_v"_h:
-      form = "'Vd.%s, 'Vn.%s['IVInsIndex1]";
+      form = "'Vd.$1, 'Vn.$2['IVInsIndex1]";
       break;
     case "dup_asimdins_dr_r"_h:
       if (nfd.GetVectorFormat() == kFormat2D) {
-        form = "'Vd.%s, 'Xn";
+        form = "'Vd.$1, 'Xn";
       } else {
-        form = "'Vd.%s, 'Wn";
+        form = "'Vd.$1, 'Wn";
       }
   }
   Format(instr, mnemonic, nfd.Substitute(form));
@@ -2709,7 +2709,7 @@ void Disassembler::VisitNEONCopy(const Instruction *instr) {
 
 void Disassembler::VisitNEONExtract(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'Vm.%s, 'IVExtract";
+  const char *form = "'Vd.$1, 'Vn.$1, 'Vm.$1, 'IVExtract";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
   if ((instr->GetImmNEONExt() > 7) && (instr->GetNEONQ() == 0)) {
     mnemonic = NULL;
@@ -2721,10 +2721,10 @@ void Disassembler::VisitNEONExtract(const Instruction *instr) {
 void Disassembler::VisitNEONLoadStoreMultiStruct(const Instruction *instr) {
   const char *mnemonic = NULL;
   const char *form = NULL;
-  const char *form_1v = "{'Vt.%1$s}, ['Xns]";
-  const char *form_2v = "{'Vt.%1$s, 'Vt2.%1$s}, ['Xns]";
-  const char *form_3v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s}, ['Xns]";
-  const char *form_4v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns]";
+  const char *form_1v = "{'Vt.$1}, ['Xns]";
+  const char *form_2v = "{'Vt.$1, 'Vt2.$1}, ['Xns]";
+  const char *form_3v = "{'Vt.$1, 'Vt2.$1, 'Vt3.$1}, ['Xns]";
+  const char *form_4v = "{'Vt.$1, 'Vt2.$1, 'Vt3.$1, 'Vt4.$1}, ['Xns]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
 
   switch (instr->Mask(NEONLoadStoreMultiStructMask)) {
@@ -2819,11 +2819,10 @@ void Disassembler::VisitNEONLoadStoreMultiStructPostIndex(
     const Instruction *instr) {
   const char *mnemonic = NULL;
   const char *form = NULL;
-  const char *form_1v = "{'Vt.%1$s}, ['Xns], 'Xmr1";
-  const char *form_2v = "{'Vt.%1$s, 'Vt2.%1$s}, ['Xns], 'Xmr2";
-  const char *form_3v = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s}, ['Xns], 'Xmr3";
-  const char *form_4v =
-      "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns], 'Xmr4";
+  const char *form_1v = "{'Vt.$1}, ['Xns], 'Xmr1";
+  const char *form_2v = "{'Vt.$1, 'Vt2.$1}, ['Xns], 'Xmr2";
+  const char *form_3v = "{'Vt.$1, 'Vt2.$1, 'Vt3.$1}, ['Xns], 'Xmr3";
+  const char *form_4v = "{'Vt.$1, 'Vt2.$1, 'Vt3.$1, 'Vt4.$1}, ['Xns], 'Xmr4";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LoadStoreFormatMap());
 
   switch (instr->Mask(NEONLoadStoreMultiStructPostIndexMask)) {
@@ -2953,7 +2952,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD1R:
       mnemonic = "ld1r";
-      form = "{'Vt.%s}, ['Xns]";
+      form = "{'Vt.$1}, ['Xns]";
       break;
     case NEON_LD2_b:
     case NEON_ST2_b:
@@ -2978,7 +2977,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD2R:
       mnemonic = "ld2r";
-      form = "{'Vt.%s, 'Vt2.%s}, ['Xns]";
+      form = "{'Vt.$1, 'Vt2.$2}, ['Xns]";
       break;
     case NEON_LD3_b:
     case NEON_ST3_b:
@@ -3001,7 +3000,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD3R:
       mnemonic = "ld3r";
-      form = "{'Vt.%s, 'Vt2.%s, 'Vt3.%s}, ['Xns]";
+      form = "{'Vt.$1, 'Vt2.$2, 'Vt3.$3}, ['Xns]";
       break;
     case NEON_LD4_b:
     case NEON_ST4_b:
@@ -3026,7 +3025,7 @@ void Disassembler::VisitNEONLoadStoreSingleStruct(const Instruction *instr) {
       break;
     case NEON_LD4R:
       mnemonic = "ld4r";
-      form = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns]";
+      form = "{'Vt.$1, 'Vt2.$1, 'Vt3.$1, 'Vt4.$1}, ['Xns]";
       break;
     default:
       break;
@@ -3120,7 +3119,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD1R_post:
       mnemonic = "ld1r";
-      form = "{'Vt.%s}, ['Xns], 'Xmz1";
+      form = "{'Vt.$1}, ['Xns], 'Xmz1";
       break;
     case NEON_LD2_b_post:
     case NEON_ST2_b_post:
@@ -3142,7 +3141,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD2R_post:
       mnemonic = "ld2r";
-      form = "{'Vt.%s, 'Vt2.%s}, ['Xns], 'Xmz2";
+      form = "{'Vt.$1, 'Vt2.$2}, ['Xns], 'Xmz2";
       break;
     case NEON_LD3_b_post:
     case NEON_ST3_b_post:
@@ -3164,7 +3163,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD3R_post:
       mnemonic = "ld3r";
-      form = "{'Vt.%s, 'Vt2.%s, 'Vt3.%s}, ['Xns], 'Xmz3";
+      form = "{'Vt.$1, 'Vt2.$2, 'Vt3.$3}, ['Xns], 'Xmz3";
       break;
     case NEON_LD4_b_post:
     case NEON_ST4_b_post:
@@ -3186,7 +3185,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
       break;
     case NEON_LD4R_post:
       mnemonic = "ld4r";
-      form = "{'Vt.%1$s, 'Vt2.%1$s, 'Vt3.%1$s, 'Vt4.%1$s}, ['Xns], 'Xmz4";
+      form = "{'Vt.$1, 'Vt2.$1, 'Vt3.$1, 'Vt4.$1}, ['Xns], 'Xmz4";
       break;
     default:
       break;
@@ -3242,7 +3241,7 @@ void Disassembler::VisitNEONLoadStoreSingleStructPostIndex(
 
 void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vt.%s, 'IVMIImm8, lsl 'IVMIShiftAmt1";
+  const char *form = "'Vt.$1, 'IVMIImm8, lsl 'IVMIShiftAmt1";
 
   static const NEONFormatMap map_h = {{30}, {NF_4H, NF_8H}};
   static const NEONFormatMap map_s = {{30}, {NF_2S, NF_4S}};
@@ -3250,7 +3249,7 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
 
   switch (form_hash_) {
     case "movi_asimdimm_n_b"_h:
-      form = "'Vt.%s, 'IVMIImm8";
+      form = "'Vt.$1, 'IVMIImm8";
       break;
     case "bic_asimdimm_l_hl"_h:
     case "movi_asimdimm_l_hl"_h:
@@ -3260,7 +3259,7 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
       break;
     case "movi_asimdimm_m_sm"_h:
     case "mvni_asimdimm_m_sm"_h:
-      form = "'Vt.%s, 'IVMIImm8, msl 'IVMIShiftAmt2";
+      form = "'Vt.$1, 'IVMIImm8, msl 'IVMIShiftAmt2";
       VIXL_FALLTHROUGH();
     case "bic_asimdimm_l_sl"_h:
     case "movi_asimdimm_l_sl"_h:
@@ -3275,11 +3274,11 @@ void Disassembler::VisitNEONModifiedImmediate(const Instruction *instr) {
       form = "'Vt.2d, 'IVMIImm";
       break;
     case "fmov_asimdimm_h_h"_h:
-      form = "'Vt.%s, 'IFPNeon";
+      form = "'Vt.$1, 'IFPNeon";
       nfd.SetFormatMap(0, &map_h);
       break;
     case "fmov_asimdimm_s_s"_h:
-      form = "'Vt.%s, 'IFPNeon";
+      form = "'Vt.$1, 'IFPNeon";
       nfd.SetFormatMap(0, &map_s);
       break;
     case "fmov_asimdimm_d2_d"_h:
@@ -3308,7 +3307,7 @@ void Disassembler::DisassembleNEONScalar2RegMiscOnlyD(
 
 void Disassembler::DisassembleNEONFPScalar2RegMisc(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn";
+  const char *form = "$1d, $2n";
   const char *suffix = NULL;
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap());
   switch (form_hash_) {
@@ -3330,7 +3329,7 @@ void Disassembler::DisassembleNEONFPScalar2RegMisc(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalar2RegMisc(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn";
+  const char *form = "$1d, $2n";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   switch (form_hash_) {
     case "sqxtn_asisdmisc_n"_h:
@@ -3360,7 +3359,7 @@ void Disassembler::VisitNEONScalar2RegMiscFP16(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalar3Diff(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, %sm";
+  const char *form = "$1d, $2n, $3m";
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::LongScalarFormatMap(),
                         NEONFormatDecoder::ScalarFormatMap());
@@ -3372,7 +3371,7 @@ void Disassembler::VisitNEONScalar3Diff(const Instruction *instr) {
 
 void Disassembler::DisassembleNEONFPScalar3Same(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, %sm";
+  const char *form = "$1d, $2n, $3m";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::FPScalarFormatMap());
   Format(instr, mnemonic, nfd.SubstitutePlaceholders(form));
 }
@@ -3388,7 +3387,7 @@ void Disassembler::DisassembleNEONScalar3SameOnlyD(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalar3Same(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, %sm";
+  const char *form = "$1d, $2n, $3m";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   VectorFormat vform = nfd.GetVectorFormat(0);
   switch (form_hash_) {
@@ -3424,7 +3423,7 @@ void Disassembler::VisitNEONScalar3SameExtra(const Instruction *instr) {
 void Disassembler::DisassembleNEONScalarSatMulLongIndex(
     const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'Vf.%s['IVByElemIndex]";
+  const char *form = "$1d, $2n, 'Vf.$3['IVByElemIndex]";
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::LongScalarFormatMap(),
                         NEONFormatDecoder::ScalarFormatMap());
@@ -3438,7 +3437,7 @@ void Disassembler::DisassembleNEONScalarSatMulLongIndex(
 
 void Disassembler::DisassembleNEONFPScalarMulIndex(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'Vf.%s['IVByElemIndex]";
+  const char *form = "$1d, $2n, 'Vf.$3['IVByElemIndex]";
   static const NEONFormatMap map = {{23, 22}, {NF_H, NF_UNDEF, NF_S, NF_D}};
   NEONFormatDecoder nfd(instr, &map);
   Format(instr,
@@ -3448,7 +3447,7 @@ void Disassembler::DisassembleNEONFPScalarMulIndex(const Instruction *instr) {
 
 void Disassembler::VisitNEONScalarByIndexedElement(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'Vf.%s['IVByElemIndex]";
+  const char *form = "$1d, $2n, 'Vf.$3['IVByElemIndex]";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ScalarFormatMap());
   VectorFormat vform_dst = nfd.GetVectorFormat(0);
   if ((vform_dst == kFormatB) || (vform_dst == kFormatD)) {
@@ -3468,7 +3467,7 @@ void Disassembler::VisitNEONScalarCopy(const Instruction *instr) {
 
   if (instr->Mask(NEONScalarCopyMask) == NEON_DUP_ELEMENT_scalar) {
     mnemonic = "mov";
-    form = "%sd, 'Vn.%s['IVInsIndex1]";
+    form = "$1d, 'Vn.$2['IVInsIndex1]";
   }
 
   Format(instr, mnemonic, nfd.Substitute(form, nfd.kPlaceholder, nfd.kFormat));
@@ -3485,7 +3484,7 @@ void Disassembler::VisitNEONScalarPairwise(const Instruction *instr) {
     }
     Format(instr, mnemonic, "'Dd, 'Vn.2d");
   } else {
-    const char *form = "%sd, 'Vn.2%s";
+    const char *form = "$1d, 'Vn.2$2";
     NEONFormatDecoder nfd(instr,
                           NEONFormatDecoder::FPScalarPairwiseFormatMap());
 
@@ -3520,7 +3519,7 @@ void Disassembler::DisassembleNEONScalarShiftImmOnlyD(
 void Disassembler::DisassembleNEONScalarShiftRightNarrowImm(
     const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, 'IsR";
+  const char *form = "$1d, $2n, 'IsR";
   static const NEONFormatMap map_dst =
       {{22, 21, 20, 19}, {NF_UNDEF, NF_B, NF_H, NF_H, NF_S, NF_S, NF_S, NF_S}};
   static const NEONFormatMap map_src =
@@ -3531,7 +3530,7 @@ void Disassembler::DisassembleNEONScalarShiftRightNarrowImm(
 
 void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "%sd, %sn, ";
+  const char *form = "$1d, $2n, ";
   const char *suffix = "'IsR";
 
   // clang-format off
@@ -3558,7 +3557,7 @@ void Disassembler::VisitNEONScalarShiftImmediate(const Instruction *instr) {
 
 void Disassembler::DisassembleNEONShiftLeftLongImm(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s";
+  const char *form = "'Vd.$1, 'Vn.$2";
   const char *suffix = ", 'IsL";
 
   NEONFormatDecoder nfd(instr,
@@ -3577,7 +3576,7 @@ void Disassembler::DisassembleNEONShiftLeftLongImm(const Instruction *instr) {
 
 void Disassembler::DisassembleNEONShiftRightImm(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'IsR";
+  const char *form = "'Vd.$1, 'Vn.$2, 'IsR";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ShiftImmFormatMap());
 
   VectorFormat vform_dst = nfd.GetVectorFormat(0);
@@ -3600,7 +3599,7 @@ void Disassembler::DisassembleNEONShiftRightImm(const Instruction *instr) {
 void Disassembler::DisassembleNEONShiftRightNarrowImm(
     const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'IsR";
+  const char *form = "'Vd.$1, 'Vn.$2, 'IsR";
 
   NEONFormatDecoder nfd(instr,
                         NEONFormatDecoder::ShiftImmFormatMap(),
@@ -3610,7 +3609,7 @@ void Disassembler::DisassembleNEONShiftRightNarrowImm(
 
 void Disassembler::VisitNEONShiftImmediate(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char *form = "'Vd.%s, 'Vn.%s, 'IsL";
+  const char *form = "'Vd.$1, 'Vn.$1, 'IsL";
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::ShiftImmFormatMap());
   Format(instr, mnemonic, nfd.Substitute(form));
 }
@@ -3618,11 +3617,10 @@ void Disassembler::VisitNEONShiftImmediate(const Instruction *instr) {
 
 void Disassembler::VisitNEONTable(const Instruction *instr) {
   const char *mnemonic = mnemonic_.c_str();
-  const char form_1v[] = "'Vd.%%s, {'Vn.16b}, 'Vm.%%s";
-  const char form_2v[] = "'Vd.%%s, {'Vn.16b, v%d.16b}, 'Vm.%%s";
-  const char form_3v[] = "'Vd.%%s, {'Vn.16b, v%d.16b, v%d.16b}, 'Vm.%%s";
-  const char form_4v[] =
-      "'Vd.%%s, {'Vn.16b, v%d.16b, v%d.16b, v%d.16b}, 'Vm.%%s";
+  const char form_1v[] = "'Vd.$1, {'Vn.16b}, 'Vm.$2";
+  const char form_2v[] = "'Vd.$1, {'Vn.16b, v%d.16b}, 'Vm.$2";
+  const char form_3v[] = "'Vd.$1, {'Vn.16b, v%d.16b, v%d.16b}, 'Vm.$2";
+  const char form_4v[] = "'Vd.$1, {'Vn.16b, v%d.16b, v%d.16b, v%d.16b}, 'Vm.$2";
   const char *form = form_1v;
 
   NEONFormatDecoder nfd(instr, NEONFormatDecoder::LogicalFormatMap());
@@ -3658,7 +3656,7 @@ void Disassembler::VisitNEONTable(const Instruction *instr) {
 
 void Disassembler::VisitNEONPerm(const Instruction *instr) {
   NEONFormatDecoder nfd(instr);
-  FormatWithDecodedMnemonic(instr, nfd.Substitute("'Vd.%s, 'Vn.%s, 'Vm.%s"));
+  FormatWithDecodedMnemonic(instr, nfd.Substitute("'Vd.$1, 'Vn.$2, 'Vm.$3"));
 }
 
 void Disassembler::Disassemble_Vd4S_Vn16B_Vm16B(const Instruction *instr) {
