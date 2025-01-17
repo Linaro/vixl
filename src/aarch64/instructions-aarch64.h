@@ -373,6 +373,7 @@ class Instruction {
 
   std::pair<int, int> GetSVEPermuteIndexAndLaneSizeLog2() const;
 
+  std::pair<int, int> GetNEONMulRmAndIndex() const;
   std::pair<int, int> GetSVEMulZmAndIndex() const;
   std::pair<int, int> GetSVEMulLongZmAndIndex() const;
 
