@@ -3732,6 +3732,12 @@ class Assembler : public vixl::internal::AssemblerBase {
                const VRegister& vm,
                int index);
 
+  // SM4 Encode.
+  void sm4e(const VRegister& vd, const VRegister& vn);
+
+  // SM4 Key.
+  void sm4ekey(const VRegister& vd, const VRegister& vn, const VRegister& vm);
+
   // Scalable Vector Extensions.
 
   // Absolute value (predicated).

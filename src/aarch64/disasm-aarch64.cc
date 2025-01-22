@@ -2223,6 +2223,16 @@ void Disassembler::VisitCryptoSM3(const Instruction *instr) {
   FormatWithDecodedMnemonic(instr, form, suffix);
 }
 
+void Disassembler::VisitCryptoSM4(const Instruction *instr) {
+  VIXL_ASSERT((form_hash_ == "sm4ekey_vvv4_cryptosha512_3"_h) ||
+              (form_hash_ == "sm4e_vv4_cryptosha512_2"_h));
+  const char *form = "'Vd.4s, 'Vn.4s";
+  const char *suffix =
+      (form_hash_ == "sm4e_vv4_cryptosha512_2"_h) ? NULL : ", 'Vm.4s";
+
+  FormatWithDecodedMnemonic(instr, form, suffix);
+}
+
 void Disassembler::DisassembleSHA512(const Instruction *instr) {
   const char *form = "'Qd, 'Qn, 'Vm.2d";
   const char *suffix = NULL;

@@ -3848,5 +3848,13 @@ TEST_FEAT(sm3tt2a_0, sm3tt2a(v30.V4S(), v29.V4S(), v9.V4S(), 2))
 TEST_FEAT(sm3tt2b_0, sm3tt2b(v30.V4S(), v29.V4S(), v9.V4S(), 0))
 #undef TEST_FEAT
 
+#define TEST_FEAT(NAME, ASM)                                        \
+  TEST_TEMPLATE(CPUFeatures(CPUFeatures::kNEON, CPUFeatures::kSM4), \
+                NEON_SM4_##NAME,                                    \
+                ASM)
+TEST_FEAT(sm4e, sm4e(v12.V4S(), v13.V4S()))
+TEST_FEAT(sm4ekey, sm4ekey(v12.V4S(), v13.V4S(), v14.V4S()))
+#undef TEST_FEAT
+
 }  // namespace aarch64
 }  // namespace vixl

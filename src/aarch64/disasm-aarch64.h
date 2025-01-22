@@ -244,6 +244,7 @@ class Disassembler : public DecoderVisitor {
   void Disassemble_Xd_XnSP_XmSP(const Instruction* instr);
 
   void VisitCryptoSM3(const Instruction* instr);
+  void VisitCryptoSM4(const Instruction* instr);
 
   void Format(const Instruction* instr,
               const char* mnemonic,

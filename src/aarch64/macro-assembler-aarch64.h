@@ -2814,6 +2814,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(shsub, Shsub)                \
   V(sm3partw1, Sm3partw1)        \
   V(sm3partw2, Sm3partw2)        \
+  V(sm4ekey, Sm4ekey)            \
   V(smax, Smax)                  \
   V(smaxp, Smaxp)                \
   V(smin, Smin)                  \
@@ -2964,6 +2965,7 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   V(sha1su1, Sha1su1)            \
   V(sha256su0, Sha256su0)        \
   V(sha512su0, Sha512su0)        \
+  V(sm4e, Sm4e)                  \
   V(smaxv, Smaxv)                \
   V(sminv, Sminv)                \
   V(sqabs, Sqabs)                \
