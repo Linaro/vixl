@@ -530,6 +530,8 @@ const Simulator::FormToVisitorFnMap* Simulator::GetFormToVisitorFnMap() {
       {"sha512h2_qqv_cryptosha512_3"_h, &Simulator::SimulateSHA512},
       {"sha512su0_vv2_cryptosha512_2"_h, &Simulator::SimulateSHA512},
       {"sha512su1_vvv2_cryptosha512_3"_h, &Simulator::SimulateSHA512},
+      {"pmullb_z_zz_q"_h, &Simulator::SimulateSVEPmull128},
+      {"pmullt_z_zz_q"_h, &Simulator::SimulateSVEPmull128},
   };
   return &form_to_visitor;
 }
@@ -2909,6 +2911,23 @@ void Simulator::SimulateSVEInterleavedArithLong(const Instruction* instr) {
   }
 }
 
+void Simulator::SimulateSVEPmull128(const Instruction* instr) {
+  SimVRegister& zd = ReadVRegister(instr->GetRd());
+  SimVRegister& zm = ReadVRegister(instr->GetRm());
+  SimVRegister& zn = ReadVRegister(instr->GetRn());
+  SimVRegister zn_temp, zm_temp;
+
+  if (form_hash_ == "pmullb_z_zz_q"_h) {
+    pack_even_elements(kFormatVnD, zn_temp, zn);
+    pack_even_elements(kFormatVnD, zm_temp, zm);
+  } else {
+    VIXL_ASSERT(form_hash_ == "pmullt_z_zz_q"_h);
+    pack_odd_elements(kFormatVnD, zn_temp, zn);
+    pack_odd_elements(kFormatVnD, zm_temp, zm);
+  }
+  pmull(kFormatVnQ, zd, zn_temp, zm_temp);
+}
+
 void Simulator::SimulateSVEIntMulLongVec(const Instruction* instr) {
   VectorFormat vform = instr->GetSVEVectorFormat();
   SimVRegister& zd = ReadVRegister(instr->GetRd());
@@ -2923,15 +2942,15 @@ void Simulator::SimulateSVEIntMulLongVec(const Instruction* instr) {
 
   switch (form_hash_) {
     case "pmullb_z_zz"_h:
-      // '00' is reserved for Q-sized lane.
-      if (vform == kFormatVnB) {
+      // Size '10' is undefined.
+      if (vform == kFormatVnS) {
         VIXL_UNIMPLEMENTED();
       }
       pmull(vform, zd, zn_b, zm_b);
       break;
     case "pmullt_z_zz"_h:
-      // '00' is reserved for Q-sized lane.
-      if (vform == kFormatVnB) {
+      // Size '10' is undefined.
+      if (vform == kFormatVnS) {
         VIXL_UNIMPLEMENTED();
       }
       pmull(vform, zd, zn_t, zm_t);

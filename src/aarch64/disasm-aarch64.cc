@@ -418,8 +418,8 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"nbsl_z_zzz"_h, &Disassembler::DisassembleSVEBitwiseTernary},
       {"nmatch_p_p_zz"_h, &Disassembler::Disassemble_PdT_PgZ_ZnT_ZmT},
       {"pmul_z_zz"_h, &Disassembler::Disassemble_ZdB_ZnB_ZmB},
-      {"pmullb_z_zz"_h, &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
-      {"pmullt_z_zz"_h, &Disassembler::Disassemble_ZdT_ZnTb_ZmTb},
+      {"pmullb_z_zz"_h, &Disassembler::DisassembleSVEPmull},
+      {"pmullt_z_zz"_h, &Disassembler::DisassembleSVEPmull},
       {"raddhnb_z_zz"_h, &Disassembler::DisassembleSVEAddSubHigh},
       {"raddhnt_z_zz"_h, &Disassembler::DisassembleSVEAddSubHigh},
       {"rax1_z_zz"_h, &Disassembler::Disassemble_ZdD_ZnD_ZmD},
@@ -761,6 +761,8 @@ const Disassembler::FormToVisitorFnMap *Disassembler::GetFormToVisitorFnMap() {
       {"sha512h_qqv_cryptosha512_3"_h, &Disassembler::DisassembleSHA512},
       {"sha512su0_vv2_cryptosha512_2"_h, &Disassembler::DisassembleSHA512},
       {"sha512su1_vvv2_cryptosha512_3"_h, &Disassembler::DisassembleSHA512},
+      {"pmullb_z_zz_q"_h, &Disassembler::DisassembleSVEPmull128},
+      {"pmullt_z_zz_q"_h, &Disassembler::DisassembleSVEPmull128},
   };
   return &form_to_visitor;
 }  // NOLINT(readability/fn_size)
@@ -5852,15 +5854,26 @@ void Disassembler::Disassemble_ZdT_ZnTb(const Instruction *instr) {
   }
 }
 
+void Disassembler::DisassembleSVEPmull(const Instruction *instr) {
+  if (instr->GetSVEVectorFormat() == kFormatVnS) {
+    VisitUnallocated(instr);
+  } else {
+    Disassemble_ZdT_ZnTb_ZmTb(instr);
+  }
+}
+
+void Disassembler::DisassembleSVEPmull128(const Instruction *instr) {
+  FormatWithDecodedMnemonic(instr, "'Zd.q, 'Zn.d, 'Zm.d");
+}
+
 void Disassembler::Disassemble_ZdT_ZnTb_ZmTb(const Instruction *instr) {
-  const char *form = "'Zd.'t, 'Zn.'th, 'Zm.'th";
   if (instr->GetSVEVectorFormat() == kFormatVnB) {
     // TODO: This is correct for saddlbt, ssublbt, subltb, which don't have
-    // b-lane sized form, and for pmull[b|t] as feature `SVEPmull128` isn't
-    // supported, but may need changes for other instructions reaching here.
+    // b-lane sized form, but may need changes for other instructions reaching
+    // here.
     Format(instr, "unimplemented", "(ZdT_ZnTb_ZmTb)");
   } else {
-    Format(instr, mnemonic_.c_str(), form);
+    FormatWithDecodedMnemonic(instr, "'Zd.'t, 'Zn.'th, 'Zm.'th");
   }
 }
 

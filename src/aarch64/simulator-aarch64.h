@@ -872,10 +872,9 @@ class LogicVRegister {
       SetUint(vform, index, value.second);
       return;
     }
-    // TODO: Extend this to SVE.
-    VIXL_ASSERT((vform == kFormat1Q) && (index == 0));
-    SetUint(kFormat2D, 0, value.second);
-    SetUint(kFormat2D, 1, value.first);
+    VIXL_ASSERT((vform == kFormat1Q) || (vform == kFormatVnQ));
+    SetUint(kFormatVnD, 2 * index, value.second);
+    SetUint(kFormatVnD, 2 * index + 1, value.first);
   }
 
   void SetUintArray(VectorFormat vform, const uint64_t* src) const {
@@ -1504,6 +1503,7 @@ class Simulator : public DecoderVisitor {
   void SimulateSVESaturatingMulAddHigh(const Instruction* instr);
   void SimulateSVESaturatingMulHighIndex(const Instruction* instr);
   void SimulateSVEFPConvertLong(const Instruction* instr);
+  void SimulateSVEPmull128(const Instruction* instr);
   void SimulateMatrixMul(const Instruction* instr);
   void SimulateSVEFPMatrixMul(const Instruction* instr);
   void SimulateNEONMulByElementLong(const Instruction* instr);
