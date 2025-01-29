@@ -7016,6 +7016,9 @@ int Disassembler::SubstituteImmediateField(const Instruction *instr,
         case RNDRRS:
           AppendToOutput("rndrrs");
           break;
+        case DCZID_EL0:
+          AppendToOutput("dczid_el0");
+          break;
         default:
           AppendToOutput("S%d_%d_c%d_c%d_%d",
                          instr->GetSysOp0(),

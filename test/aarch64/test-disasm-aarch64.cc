@@ -2611,6 +2611,7 @@ TEST(system_mrs) {
   COMPARE(mrs(x15, FPCR), "mrs x15, fpcr");
   COMPARE(mrs(x20, RNDR), "mrs x20, rndr");
   COMPARE(mrs(x5, RNDRRS), "mrs x5, rndrrs");
+  COMPARE(mrs(x9, DCZID_EL0), "mrs x9, dczid_el0");
 
   // Test mrs that use system registers we haven't named.
   COMPARE(dci(MRS | (0x5555 << 5)), "mrs x0, S3_2_c10_c10_5");

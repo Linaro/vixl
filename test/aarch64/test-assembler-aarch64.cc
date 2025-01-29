@@ -15321,6 +15321,61 @@ TEST(gcs_negative_test) {
 }
 #endif  // VIXL_NEGATIVE_TESTING
 
+TEST(dc_zva) {
+  SETUP_WITH_FEATURES(CPUFeatures::kNEON);
+
+  const int zva_blocksize = 64;  // Assumed blocksize.
+  uint8_t buf[2 * zva_blocksize];
+  uintptr_t buf_addr = reinterpret_cast<uintptr_t>(buf);
+  uintptr_t aligned_addr = AlignUp(buf_addr, zva_blocksize);
+
+  START();
+  // Skip this test if the ZVA blocksize is not 64 bytes.
+  // Set up initial register values to allow the test to pass when skipped.
+  Label skip;
+  __ Movi(q0.V16B(), 0);
+  __ Movi(q1.V16B(), 0);
+  __ Movi(q2.V16B(), 0);
+  __ Movi(q3.V16B(), 0);
+
+  __ Mrs(x1, DCZID_EL0);
+  __ Cmp(x1, 4);  // 4 => DC ZVA enabled with 64-byte blocks.
+  __ B(ne, &skip);
+
+  // Fill aligned region with a pattern.
+  __ Mov(x0, aligned_addr);
+  __ Movi(q0.V16B(), 0x55);
+  __ Movi(q1.V16B(), 0xaa);
+  __ Movi(q2.V16B(), 0x55);
+  __ Movi(q3.V16B(), 0xaa);
+  __ St4(q0.V16B(), q1.V16B(), q2.V16B(), q3.V16B(), MemOperand(x0));
+
+  // Misalign the address to check DC ZVA re-aligns.
+  __ Add(x0, x0, 42);
+
+  // Clear the aligned region.
+  __ Dc(ZVA, x0);
+
+  // Reload the aligned region to check contents.
+  __ Mov(x0, aligned_addr);
+  __ Ld1(q0.V16B(), q1.V16B(), q2.V16B(), q3.V16B(), MemOperand(x0));
+
+  __ Bind(&skip);
+  END();
+
+  if (CAN_RUN()) {
+    RUN();
+    if (core.xreg(1) == 4) {
+      ASSERT_EQUAL_128(0, 0, q0);
+      ASSERT_EQUAL_128(0, 0, q1);
+      ASSERT_EQUAL_128(0, 0, q2);
+      ASSERT_EQUAL_128(0, 0, q3);
+    } else {
+      printf("SKIPPED: DC ZVA chunksize not 64-bytes");
+    }
+  }
+}
+
 #ifdef VIXL_INCLUDE_SIMULATOR_AARCH64
 // Test the pseudo-instructions that control CPUFeatures dynamically in the
 // Simulator. These are used by the test infrastructure itself, but in a fairly
