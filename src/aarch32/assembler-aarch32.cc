@@ -2694,6 +2694,97 @@ bool Assembler::adr_info(Condition cond,
   return false;
 }
 
+void Assembler::aesd(Condition cond, DataType dt, QRegister rd, QRegister rm) {
+  VIXL_ASSERT(AllowAssembler());
+  VIXL_ASSERT(dt.Is(Untyped8));
+  CheckIT(cond);
+
+  if (IsUsingT32()) {
+    // AESD{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (cond.Is(al) || AllowStronglyDiscouraged()) {
+      EmitT32_32(0xffb00340 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // AESD{<c>}{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (cond.Is(al)) {
+      EmitA32(0xf3b00340 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      return;
+    }
+  }
+  Delegate(kAesd, &Assembler::aesd, cond, dt, rd, rm);
+}
+
+void Assembler::aese(Condition cond, DataType dt, QRegister rd, QRegister rm) {
+  VIXL_ASSERT(AllowAssembler());
+  VIXL_ASSERT(dt.Is(Untyped8));
+  CheckIT(cond);
+
+  if (IsUsingT32()) {
+    // AESE{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (cond.Is(al) || AllowStronglyDiscouraged()) {
+      EmitT32_32(0xffb00300 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // AESE{<c>}{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (cond.Is(al)) {
+      EmitA32(0xf3b00300 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      return;
+    }
+  }
+  Delegate(kAese, &Assembler::aese, cond, dt, rd, rm);
+}
+
+void Assembler::aesimc(Condition cond,
+                       DataType dt,
+                       QRegister rd,
+                       QRegister rm) {
+  VIXL_ASSERT(AllowAssembler());
+  VIXL_ASSERT(dt.Is(Untyped8));
+  CheckIT(cond);
+
+  if (IsUsingT32()) {
+    // AESIMC{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (cond.Is(al) || AllowStronglyDiscouraged()) {
+      EmitT32_32(0xffb003c0 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // AESIMC{<c>}{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (cond.Is(al)) {
+      EmitA32(0xf3b003c0 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      return;
+    }
+  }
+  Delegate(kAesimc, &Assembler::aesimc, cond, dt, rd, rm);
+}
+
+void Assembler::aesmc(Condition cond, DataType dt, QRegister rd, QRegister rm) {
+  VIXL_ASSERT(AllowAssembler());
+  VIXL_ASSERT(dt.Is(Untyped8));
+  CheckIT(cond);
+
+  if (IsUsingT32()) {
+    // AESMC{<c>}{<q>}.<dt> <Qd>, <Qm> ; T1
+    if (cond.Is(al) || AllowStronglyDiscouraged()) {
+      EmitT32_32(0xffb00380 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      AdvanceIT();
+      return;
+    }
+  } else {
+    // AESMC{<c>}{<q>}.<dt> <Qd>, <Qm> ; A1
+    if (cond.Is(al)) {
+      EmitA32(0xf3b00380 | rd.Encode(22, 12) | rm.Encode(5, 0));
+      return;
+    }
+  }
+  Delegate(kAesmc, &Assembler::aesmc, cond, dt, rd, rm);
+}
+
 void Assembler::and_(Condition cond,
                      EncodingSize size,
                      Register rd,
