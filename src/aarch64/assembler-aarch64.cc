@@ -7177,6 +7177,7 @@ bool Assembler::CPUHas(SystemRegister sysreg) const {
       return CPUHas(CPUFeatures::kRNG);
     case FPCR:
     case NZCV:
+    case DCZID_EL0:
       break;
   }
   return true;

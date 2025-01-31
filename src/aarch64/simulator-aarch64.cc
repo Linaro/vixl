@@ -6926,7 +6926,7 @@ bool Simulator::FPProcessNaNs(const Instruction* instr) {
 }
 
 
-void Simulator::SysOp_W(int op, int64_t val) {
+bool Simulator::SysOp_W(int op, int64_t val) {
   switch (op) {
     case IVAU:
     case CVAC:
@@ -6948,12 +6948,27 @@ void Simulator::SysOp_W(int op, int64_t val) {
       volatile uint8_t y = *MemRead<uint8_t>(val);
       MetaDataDepot::MetaDataMTE::SetActive(mte_enabled);
       USE(y);
-      // TODO: Implement ZVA, GVA, GZVA.
       break;
     }
+    case ZVA: {
+      if ((dczid_ & 0x10) != 0) {  // Check dc zva is enabled.
+        return false;
+      }
+      int blocksize = (1 << (dczid_ & 0xf)) * kWRegSizeInBytes;
+      VIXL_ASSERT(IsMultiple(blocksize, sizeof(uint64_t)));
+      uintptr_t addr = AlignDown(val, blocksize);
+      for (int i = 0; i < blocksize; i += sizeof(uint64_t)) {
+        MemWrite<uint64_t>(addr + i, 0);
+        LogWriteU64(0, addr + i);
+      }
+      break;
+    }
+    // TODO: Implement GVA, GZVA.
     default:
       VIXL_UNIMPLEMENTED();
+      return false;
   }
+  return true;
 }
 
 void Simulator::PACHelper(int dst,
@@ -7036,6 +7051,9 @@ void Simulator::VisitSystem(const Instruction* instr) {
           LogSystemRegister(NZCV);
           break;
         }
+        case DCZID_EL0:
+          WriteXRegister(instr->GetRt(), dczid_);
+          break;
         default:
           VIXL_UNIMPLEMENTED();
       }
@@ -7153,7 +7171,9 @@ void Simulator::VisitSystem(const Instruction* instr) {
       } else if (sysop == GCSPUSHM) {
         GCSPush(ReadXRegister(instr->GetRt()));
       } else {
-        SysOp_W(sysop, rt);
+        if (!SysOp_W(sysop, rt)) {
+          VisitUnallocated(instr);
+        }
       }
       break;
     }

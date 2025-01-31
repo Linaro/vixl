@@ -2575,6 +2575,14 @@ class Simulator : public DecoderVisitor {
   void PrintPWrite(int rt_code, uintptr_t address) {
     PrintPAccess(rt_code, "->", address);
   }
+  void PrintWriteU64(uint64_t x, uintptr_t address) {
+    fprintf(stream_,
+            "#      0x%016lx -> %s0x%016" PRIxPTR "%s\n",
+            x,
+            clr_memory_address,
+            address,
+            clr_normal);
+  }
 
   // Like Print* (above), but respect GetTraceParameters().
   void LogRead(int rt_code, PrintRegisterFormat format, uintptr_t address) {
@@ -2608,6 +2616,9 @@ class Simulator : public DecoderVisitor {
   }
   void LogPWrite(int rt_code, uintptr_t address) {
     if (ShouldTraceWrites()) PrintPWrite(rt_code, address);
+  }
+  void LogWriteU64(uint64_t x, uintptr_t address) {
+    if (ShouldTraceWrites()) PrintWriteU64(x, address);
   }
   void LogMemTransfer(uintptr_t dst, uintptr_t src, uint8_t value) {
     if (ShouldTraceWrites()) PrintMemTransfer(dst, src, value);
@@ -5006,7 +5017,7 @@ class Simulator : public DecoderVisitor {
   uint32_t Crc32Checksum(uint32_t acc, T val, uint32_t poly);
   uint32_t Crc32Checksum(uint32_t acc, uint64_t val, uint32_t poly);
 
-  void SysOp_W(int op, int64_t val);
+  bool SysOp_W(int op, int64_t val);
 
   template <typename T>
   T FPRecipSqrtEstimate(T op);
@@ -5455,6 +5466,9 @@ class Simulator : public DecoderVisitor {
 
   // A configurable size of SVE vector registers.
   unsigned vector_length_;
+
+  // DC ZVA enable (= 0) status and block size.
+  unsigned dczid_ = (0 << 4) | 4;  // 2^4 words => 64-byte block size.
 
   // Representation of memory attributes such as MTE tagging and BTI page
   // protection in addition to branch interceptions.
