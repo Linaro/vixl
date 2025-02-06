@@ -1,5 +1,5 @@
-VIXL: ARMv8 Runtime Code Generation Library
-===========================================
+VIXL: ARMv8 Runtime Code Generation Library 8.0.0
+=================================================
 
 Contents:
 
