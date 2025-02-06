@@ -91,7 +91,7 @@ def Lint(filename, progress_prefix = ''):
   printer.Print(outerr)
 
   # Find the number of errors in this file.
-  res = re.search('Total errors found: (\d+)', outerr)
+  res = re.search(r'Total errors found: (\d+)', outerr)
   if res:
     n_errors_str = res.string[res.start(1):res.end(1)]
     n_errors = int(n_errors_str)
@@ -192,7 +192,7 @@ def IsCppLintAvailable():
     return retcode == 0
 
 
-CPP_EXT_REGEXP = re.compile('\.(cc|h)$')
+CPP_EXT_REGEXP = re.compile(r'\.(cc|h)$')
 def IsLinterInput(filename):
   # lint all C++ files.
   return CPP_EXT_REGEXP.search(filename) != None
