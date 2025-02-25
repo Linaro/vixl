@@ -7611,6 +7611,7 @@ TEST(system) {
   __ Nop();
   __ Esb();
   __ Csdb();
+  __ Yield();
   END();
 
   if (CAN_RUN()) {

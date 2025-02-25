@@ -6133,6 +6133,8 @@ void Assembler::sm4ekey(const VRegister& vd, const VRegister& vn, const VRegiste
   Emit(0xce60c800 | Rd(vd) | Rn(vn) | Rm(vm));
 }
 
+void Assembler::yield() { hint(YIELD); }
+
 // Note:
 // For all ToImm instructions below, a difference in case
 // for the same letter indicates a negated bit.

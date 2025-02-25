@@ -3130,6 +3130,8 @@ TEST(hint) {
   COMPARE_MACRO(Hint(42), "hint #42");
   COMPARE_MACRO(Hint(127), "hint #127");
 
+  COMPARE_MACRO(Yield(), "yield");
+
   CLEANUP();
 }
 

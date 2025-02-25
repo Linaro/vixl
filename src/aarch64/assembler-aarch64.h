@@ -2081,6 +2081,9 @@ class Assembler : public vixl::internal::AssemblerBase {
   // Prefetch from pc + imm19 << 2 (allowing unallocated hints).
   void prfm(int op, int64_t imm19);
 
+  // Yield.
+  void yield();
+
   // Move instructions. The default shift of -1 indicates that the move
   // instruction will calculate an appropriate 16-bit immediate and left shift
   // that is equal to the 64-bit immediate argument. If an explicit left shift
