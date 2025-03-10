@@ -5971,17 +5971,18 @@ void Simulator::VisitBitfield(const Instruction* instr) {
 
   if (instr->GetSixtyFourBits() != instr->GetBitN()) {
     VisitUnallocated(instr);
+    return;
   }
 
   if ((instr->GetSixtyFourBits() == 0) && ((S > 31) || (R > 31))) {
     VisitUnallocated(instr);
+    return;
   }
 
   int diff = S - R;
   uint64_t mask;
   if (diff >= 0) {
     mask = ~UINT64_C(0) >> (64 - (diff + 1));
-    mask = (static_cast<unsigned>(diff) < (reg_size - 1)) ? mask : reg_mask;
   } else {
     mask = ~UINT64_C(0) >> (64 - (S + 1));
     mask = RotateRight(mask, R, reg_size);
