@@ -1,0 +1,33 @@
+# SPDX-FileCopyrightText: 2021 VIXL authors
+# SPDX-License-Identifier: BSD-3-Clause
+
+option(
+  'target',
+  type: 'array',
+  choices: ['auto', 'all', 'aarch32', 'a32', 't32', 'aarch64', 'a64'],
+  value: ['auto'],
+  description: 'Target ISA/Architecture'
+)
+
+option(
+  'simulator',
+  type: 'combo',
+  choices: ['auto', 'aarch64', 'none'],
+  value: 'auto',
+  description: 'Simulators to include'
+)
+
+option(
+  'code_buffer_allocator',
+  type: 'combo',
+  choices: ['auto', 'malloc', 'mmap'],
+  value: 'auto',
+  description: 'Configure the allocation mechanism in the CodeBuffer'
+)
+
+option(
+  'doc',
+  type: 'feature',
+  value: 'auto',
+  description: 'Convert documentation to HTML (requires the `markdown` program)'
+)
