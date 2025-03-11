@@ -1836,7 +1836,7 @@ void Simulator::PrintSystemRegister(SystemRegister id) {
 void Simulator::PrintGCS(bool is_push, uint64_t addr, size_t entry) {
   const char* arrow = is_push ? "<-" : "->";
   fprintf(stream_,
-          "# %sgcs0x%04" PRIx64 "[%" PRIu64 "]: %s %s 0x%016" PRIxPTR "\n",
+          "# %sgcs0x%04" PRIx64 "[%zx]: %s %s 0x%016" PRIx64 "\n",
           clr_flag_name,
           gcs_,
           entry,

@@ -2577,7 +2577,7 @@ class Simulator : public DecoderVisitor {
   }
   void PrintWriteU64(uint64_t x, uintptr_t address) {
     fprintf(stream_,
-            "#      0x%016lx -> %s0x%016" PRIxPTR "%s\n",
+            "#      0x%016" PRIx64 " -> %s0x%016" PRIxPTR "%s\n",
             x,
             clr_memory_address,
             address,
