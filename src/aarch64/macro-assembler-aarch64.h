@@ -7880,6 +7880,12 @@ class MacroAssembler : public Assembler, public MacroAssemblerInterface {
   void Umax(const Register& rd, const Register& rn, const Operand& op);
   void Umin(const Register& rd, const Register& rn, const Operand& op);
 
+  void Yield() {
+    VIXL_ASSERT(allow_macro_instructions_);
+    SingleEmissionCheckScope guard(this);
+    yield();
+  }
+
   template <typename T>
   Literal<T>* CreateLiteralDestroyedWithPool(T value) {
     return new Literal<T>(value,
