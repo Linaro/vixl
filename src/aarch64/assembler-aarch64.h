@@ -3389,6 +3389,18 @@ class Assembler : public vixl::internal::AssemblerBase {
              const VRegister& vm,
              int vm_index);
 
+  // AES single round decryption
+  void aesd(const VRegister& vd, const VRegister& vn);
+
+  // AES single round encryption
+  void aese(const VRegister& vd, const VRegister& vn);
+
+  // AES mix columns
+  void aesmc(const VRegister& vd, const VRegister& vn);
+
+  // AES inverse mix columns
+  void aesimc(const VRegister& vd, const VRegister& vn);
+
   // Signed saturating rounding doubling multiply subtract returning high half
   // [Armv8.1].
   void sqrdmlsh(const VRegister& vd, const VRegister& vn, const VRegister& vm);

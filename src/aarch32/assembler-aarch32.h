@@ -1161,12 +1161,14 @@ class Assembler : public internal::AssemblerBase {
                         QRegister /*rd*/,
                         QRegister /*rm*/) {
     USE(type);
-    VIXL_ASSERT((type == kVabs) || (type == kVcls) || (type == kVclz) ||
-                (type == kVcnt) || (type == kVneg) || (type == kVpadal) ||
-                (type == kVpaddl) || (type == kVqabs) || (type == kVqneg) ||
-                (type == kVrecpe) || (type == kVrev16) || (type == kVrev32) ||
-                (type == kVrev64) || (type == kVrsqrte) || (type == kVswp) ||
-                (type == kVtrn) || (type == kVuzp) || (type == kVzip));
+    VIXL_ASSERT((type == kAesd) || (type == kAese) || (type == kAesimc) ||
+                (type == kAesimc) || (type == kVabs) || (type == kVcls) ||
+                (type == kVclz) || (type == kVcnt) || (type == kVneg) ||
+                (type == kVpadal) || (type == kVpaddl) || (type == kVqabs) ||
+                (type == kVqneg) || (type == kVrecpe) || (type == kVrev16) ||
+                (type == kVrev32) || (type == kVrev64) || (type == kVrsqrte) ||
+                (type == kVswp) || (type == kVtrn) || (type == kVuzp) ||
+                (type == kVzip));
     UnimplementedDelegate(type);
   }
   virtual void Delegate(InstructionType type,
@@ -1970,6 +1972,18 @@ class Assembler : public internal::AssemblerBase {
   void adr(EncodingSize size, Register rd, Location* location) {
     adr(al, size, rd, location);
   }
+
+  void aesd(Condition cond, DataType dt, QRegister rd, QRegister rm);
+  void aesd(QRegister rd, QRegister rm) { aesd(al, Untyped8, rd, rm); }
+
+  void aese(Condition cond, DataType dt, QRegister rd, QRegister rm);
+  void aese(QRegister rd, QRegister rm) { aese(al, Untyped8, rd, rm); }
+
+  void aesimc(Condition cond, DataType dt, QRegister rd, QRegister rm);
+  void aesimc(QRegister rd, QRegister rm) { aesimc(al, Untyped8, rd, rm); }
+
+  void aesmc(Condition cond, DataType dt, QRegister rd, QRegister rm);
+  void aesmc(QRegister rd, QRegister rm) { aesmc(al, Untyped8, rd, rm); }
 
   void and_(Condition cond,
             EncodingSize size,

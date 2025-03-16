@@ -46,6 +46,14 @@ const char* ToCString(InstructionType type) {
       return "addw";
     case kAdr:
       return "adr";
+    case kAesd:
+      return "aesd";
+    case kAese:
+      return "aese";
+    case kAesimc:
+      return "aesimc";
+    case kAesmc:
+      return "aesmc";
     case kAnd:
       return "and";
     case kAnds:
