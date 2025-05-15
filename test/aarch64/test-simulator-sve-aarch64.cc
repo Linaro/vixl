@@ -162,24 +162,15 @@ TEST_SVE(sve_matmul) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x0aa6e1f6,
-        0xba2d4547,
-        0x0e72a647,
-        0x15b8fc1b,
-        0x92eddc98,
-        0xe0c72bcf,
-        0x36b4e3ba,
-        0x1041114e,
-        0x4d44ebd4,
-        0xfe0e3cbf,
-        0x81c43455,
-        0x678617c5,
-        0xf72fac1f,
-        0xabdcd4e4,
-        0x108864bd,
-        0x035f6eca,
+        0x0aa6e1f6,  // vl128
+        0xba2d4547,  // vl256
+        0x15b8fc1b,  // vl512
+        0x1041114e,  // vl1024
+        0x035f6eca,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -246,24 +237,15 @@ TEST_SVE(sve_fmatmul_s) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x98a55a30,
-        0x590b7715,
-        0x4562ccf3,
-        0x1f8653a6,
-        0x5fe174d5,
-        0xb300dcb8,
-        0x3cefa79e,
-        0xa22484c7,
-        0x380697ec,
-        0xde9e699b,
-        0x99d21870,
-        0x456cb46b,
-        0x207d2615,
-        0xecaf9678,
-        0x0949e2d2,
-        0xa764c43f,
+        0x98a55a30,  // vl128
+        0x590b7715,  // vl256
+        0x1f8653a6,  // vl512
+        0xa22484c7,  // vl1024
+        0xa764c43f,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -373,24 +355,15 @@ TEST_SVE(neon_pmull) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0xfc0d1c14,
-        0x4cb040a3,
-        0x4b913ebe,
-        0xfa35b836,
-        0x78745d20,
-        0x6666b09a,
-        0xee2868f4,
-        0x1936a795,
-        0x1025244a,
-        0xe8551950,
-        0xae73af02,
-        0x0fdd5fc7,
-        0x22e9827b,
-        0x384ce1ac,
-        0xc833cbeb,
-        0x255baab5,
+        0xfc0d1c14,  // vl128
+        0x4cb040a3,  // vl256
+        0xfa35b836,  // vl512
+        0x1936a795,  // vl1024
+        0x255baab5,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -477,24 +450,15 @@ TEST_SVE(neon_sha1_2reg) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x78683885,
-        0x59574c2a,
-        0x449978bf,
-        0x0ddab775,
-        0x1a043ef3,
-        0xf501e2e7,
-        0xa219e725,
-        0xf17f57c8,
-        0x4ccdbf99,
-        0x419d4fc3,
-        0x7302571d,
-        0xd6bee170,
-        0x7d81c301,
-        0xbaa7d729,
-        0xf33f0bc4,
-        0xff8b070a,
+        0x78683885,  // vl128
+        0x59574c2a,  // vl256
+        0x0ddab775,  // vl512
+        0xf17f57c8,  // vl1024
+        0xff8b070a,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -581,24 +545,15 @@ TEST_SVE(neon_sha1_3reg) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x2a8b4c0d,
-        0x114e25bb,
-        0x4f035af9,
-        0x23db7966,
-        0x3d106b42,
-        0x62651fcf,
-        0x44c20879,
-        0xadf71d73,
-        0xe6858f82,
-        0x93a74ae5,
-        0xc270310e,
-        0x3d07058c,
-        0x69f83d0e,
-        0x28c5813b,
-        0xbb9de2c1,
-        0xe06b94cd,
+        0x2a8b4c0d,  // vl128
+        0x114e25bb,  // vl256
+        0x23db7966,  // vl512
+        0xadf71d73,  // vl1024
+        0xe06b94cd,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -685,24 +640,15 @@ TEST_SVE(neon_sha2h) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0xdd0eb379,
-        0x15384d69,
-        0x32bbc73a,
-        0xc5879e77,
-        0x9241294d,
-        0xfc01bad8,
-        0xf5e79af5,
-        0xee66e696,
-        0x535158e8,
-        0x09cfa8b6,
-        0x8cd83eae,
-        0x93ff18b0,
-        0x561444e4,
-        0xa6249eea,
-        0x830e4c73,
-        0xb516eaae,
+        0xdd0eb379,  // vl128
+        0x15384d69,  // vl256
+        0xc5879e77,  // vl512
+        0xee66e696,  // vl1024
+        0xb516eaae,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -789,24 +735,15 @@ TEST_SVE(neon_sha2su0) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x029b78a8,
-        0x479a8911,
-        0x6bdbdb48,
-        0x5ef3718b,
-        0x695ce173,
-        0x586543d0,
-        0xd00a22be,
-        0xe63a91b9,
-        0x42bb89a2,
-        0xea48ee79,
-        0x9788ac35,
-        0x1e8599a3,
-        0xd0d2d6ee,
-        0xfe7aaaf7,
-        0x77da6831,
-        0xb93fb875,
+        0x029b78a8,  // vl128
+        0x479a8911,  // vl256
+        0x5ef3718b,  // vl512
+        0xe63a91b9,  // vl1024
+        0xb93fb875,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -893,24 +830,15 @@ TEST_SVE(neon_sha2su1) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0xa864e589,
-        0xc588dfe0,
-        0x171add38,
-        0x884ca9db,
-        0x5f47fb6a,
-        0x0bd024c5,
-        0xa6921cce,
-        0x01dc8899,
-        0x0f5b4b19,
-        0x948260c1,
-        0x4d4faafe,
-        0x76ee7ff7,
-        0xd9a56156,
-        0x63c8e138,
-        0xe687f7c3,
-        0x51785434,
+        0xa864e589,  // vl128
+        0xc588dfe0,  // vl256
+        0x884ca9db,  // vl512
+        0x01dc8899,  // vl1024
+        0x51785434,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1057,24 +985,15 @@ TEST_SVE(neon_sha3) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x4cc56293,
-        0xee8bac03,
-        0xc1253ac9,
-        0x9fe5aa0f,
-        0x43df27f4,
-        0x19f03be6,
-        0xd26c928b,
-        0x7b9da4c4,
-        0xe13149a7,
-        0x9fa11ed9,
-        0xe02cc4dd,
-        0x7848dfe7,
-        0x5ed1726f,
-        0x983e0123,
-        0x34166240,
-        0xc4ee172f,
+        0x4cc56293,  // vl128
+        0xee8bac03,  // vl256
+        0x9fe5aa0f,  // vl512
+        0x7b9da4c4,  // vl1024
+        0xc4ee172f,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1201,24 +1120,15 @@ TEST_SVE(neon_sha512) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0xaace5a02,
-        0x912905de,
-        0xc62c0756,
-        0xac6646d5,
-        0xd3c2e6af,
-        0x029ae35f,
-        0xf5e83b54,
-        0x49f8d50c,
-        0xc5175320,
-        0xb51c8ebd,
-        0x2dc184b0,
-        0x01e01875,
-        0x28df0d5a,
-        0x01d2fff2,
-        0x5f5f5909,
-        0x6aead9d8,
+        0xaace5a02,  // vl128
+        0x912905de,  // vl256
+        0xac6646d5,  // vl512
+        0x49f8d50c,  // vl1024
+        0x6aead9d8,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1305,24 +1215,15 @@ TEST_SVE(neon_sha512su0) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x3598e921,
-        0x7e3ee16c,
-        0x4856987c,
-        0x193bda79,
-        0x84154d6f,
-        0x861f1795,
-        0xb74d39b3,
-        0x9653d8b3,
-        0x6690a066,
-        0x00a29b51,
-        0xb2c795ce,
-        0xcbd03b05,
-        0x9fb2aaec,
-        0x0216b732,
-        0x96eb6864,
-        0x4024f5c7,
+        0x3598e921,  // vl128
+        0x7e3ee16c,  // vl256
+        0x193bda79,  // vl512
+        0x9653d8b3,  // vl1024
+        0x4024f5c7,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1409,24 +1310,15 @@ TEST_SVE(neon_aes) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x3e0cc74f,
-        0x7f17ba2e,
-        0xd59f8e91,
-        0x9f15a51b,
-        0x11d92e66,
-        0xcd53d015,
-        0xbc652785,
-        0x6974fa54,
-        0x953d342e,
-        0xf1aa56b3,
-        0xde8ca1d3,
-        0xba408b82,
-        0x48094fa4,
-        0xb757bcf1,
-        0x2cc5be58,
-        0x6e7a0f58,
+        0x3e0cc74f,  // vl128
+        0x7f17ba2e,  // vl256
+        0x9f15a51b,  // vl512
+        0x6974fa54,  // vl1024
+        0x6e7a0f58,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1513,24 +1405,15 @@ TEST_SVE(neon_aesmc) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x8db8a9d0,
-        0xb13d8e1e,
-        0x9f33ca70,
-        0x38f7ef7a,
-        0x65352b29,
-        0xc4257260,
-        0xf49587c2,
-        0xb3f61256,
-        0x8ef4a534,
-        0x6e061aa9,
-        0x7270527d,
-        0x3e1f82f9,
-        0x1fe79e60,
-        0x985cab68,
-        0xe77b4484,
-        0xe3817f4e,
+        0x8db8a9d0,  // vl128
+        0xb13d8e1e,  // vl256
+        0x38f7ef7a,  // vl512
+        0xb3f61256,  // vl1024
+        0xe3817f4e,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1577,24 +1460,15 @@ TEST_SVE(neon_sm3) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x73d36ae8,
-        0xcbcda2db,
-        0x6ee9ad3d,
-        0xa6857a16,
-        0xa238ec05,
-        0x1bc82d1d,
-        0xe4530773,
-        0xfb0d092e,
-        0xe62aff0a,
-        0xf56a593f,
-        0x3967d590,
-        0xebcd14a0,
-        0xa7bedcb8,
-        0x867fa43c,
-        0x1679eab5,
-        0x0a836861,
+        0x73d36ae8,  // vl128
+        0xcbcda2db,  // vl256
+        0xa6857a16,  // vl512
+        0xfb0d092e,  // vl1024
+        0x0a836861,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1681,24 +1555,15 @@ TEST_SVE(neon_sm3partw12) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x720d7419,
-        0x31445e06,
-        0xd2aee240,
-        0x45a27e4b,
-        0xd6c46f08,
-        0xcaed7f9e,
-        0x734820c7,
-        0x377e1f38,
-        0x12e03585,
-        0x1b9cbe63,
-        0x1d58d49a,
-        0xc160a9dc,
-        0x22c2fe25,
-        0x86b7af0f,
-        0xfeae7bf5,
-        0xf8dfcc40,
+        0x720d7419,  // vl128
+        0x31445e06,  // vl256
+        0x45a27e4b,  // vl512
+        0x377e1f38,  // vl1024
+        0xf8dfcc40,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1765,24 +1630,15 @@ TEST_SVE(neon_sm3tt1) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0xc6055fe3,
-        0xa2c33f98,
-        0x1cc9a227,
-        0xf29eb254,
-        0xd1739d6e,
-        0x1c4fff34,
-        0x0c182795,
-        0x96e46836,
-        0x43d010c9,
-        0xd7c4f94c,
-        0x78c387f2,
-        0x4319fef3,
-        0x72407eef,
-        0xa77d3869,
-        0x3c81c49a,
-        0x68cc20ef,
+        0xc6055fe3,  // vl128
+        0xa2c33f98,  // vl256
+        0xf29eb254,  // vl512
+        0x96e46836,  // vl1024
+        0x68cc20ef,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1849,24 +1705,15 @@ TEST_SVE(neon_sm3tt2) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0xa6e513e2,
-        0x6bf4ae47,
-        0x74e074db,
-        0xae1a57e0,
-        0x0db67f09,
-        0x85332e49,
-        0xc40d6565,
-        0x07ed81aa,
-        0xfa0e10bb,
-        0x9addadfa,
-        0xa9cea561,
-        0xa481e17b,
-        0x7c2be34e,
-        0xd4cf493f,
-        0x8b30cc5e,
-        0xe44416d3,
+        0xa6e513e2,  // vl128
+        0x6bf4ae47,  // vl256
+        0xae1a57e0,  // vl512
+        0x07ed81aa,  // vl1024
+        0xe44416d3,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -1933,24 +1780,15 @@ TEST_SVE(neon_sm4e) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x11b138f9,
-        0x5993c196,
-        0xb9eef6b5,
-        0xf96d88cf,
-        0x8e92bd49,
-        0x04d27185,
-        0x8833f291,
-        0x77933d5b,
-        0x135500cc,
-        0xe5ca977f,
-        0x3e4536af,
-        0xb169aa9d,
-        0xe0b4425b,
-        0x35c1f76e,
-        0x54e3448a,
-        0x4dbf0c92,
+        0x11b138f9,  // vl128
+        0x5993c196,  // vl256
+        0xf96d88cf,  // vl512
+        0x77933d5b,  // vl1024
+        0x4dbf0c92,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 
@@ -2017,24 +1855,15 @@ TEST_SVE(neon_sm4ekey) {
   if (CAN_RUN()) {
     RUN();
     uint32_t expected_hashes[] = {
-        0x317aafac,
-        0xbacd34de,
-        0x3e92f0b2,
-        0x3043dbe3,
-        0x6dda4d17,
-        0x6e59ba0d,
-        0xa29887cf,
-        0x3bee1f56,
-        0xacd43191,
-        0x97ab7ada,
-        0x39ebcf53,
-        0xea7b411e,
-        0xd8e1efe9,
-        0x2b99fc57,
-        0xf5f62e02,
-        0xd50621d1,
+        0x317aafac,  // vl128
+        0xbacd34de,  // vl256
+        0x3043dbe3,  // vl512
+        0x3bee1f56,  // vl1024
+        0xd50621d1,  // vl2048
     };
-    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - 1], x0);
+    ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(
+                        core.GetSVELaneCount(kQRegSize))],
+                    x0);
   }
 }
 

@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
   masm.GetCPUFeatures()->Combine(CPUFeatures::kSVE);
 
   std::map<int, Simulator *> sim_vl;
-  for (int i = 128; i <= 2048; i += 128) {
+  for (int i = 128; i <= 2048; i += i) {
     sim_vl[i] = new Simulator(new Decoder());
     sim_vl[i]->SetVectorLengthInBits(i);
   }
@@ -211,6 +211,7 @@ int main(int argc, char **argv) {
       // Disallow "unimplemented" instructions.
       std::string buffer_s(buffer);
       if (buffer_s.find("unimplemented") != std::string::npos) continue;
+      if (buffer_s.find("unallocated") != std::string::npos) continue;
 
       // Disallow instructions with "sp" in their arguments, as we don't support
       // instructions operating on memory, and the OS expects sp to be valid for
@@ -318,8 +319,9 @@ int main(int argc, char **argv) {
   }
   printf("    };\n");
   printf(
-      "    ASSERT_EQUAL_64(expected_hashes[core.GetSVELaneCount(kQRegSize) - "
-      "1], x0);\n");
+      "    "
+      "ASSERT_EQUAL_64(expected_hashes[WhichPowerOf2(core.GetSVELaneCount("
+      "kQRegSize))], x0);\n");
   printf("  }\n}\n");
 
   return 0;

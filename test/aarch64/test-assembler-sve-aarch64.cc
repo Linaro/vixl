@@ -20709,8 +20709,7 @@ void Test_sve_fmatmul(Test* config) {
   if (CAN_RUN()) {
     RUN();
 
-    int vl = core.GetSVELaneCount(kDRegSize);
-    if (vl >= 4) {  // VL256 or longer.
+    if (core.GetSVELaneCount(kDRegSize) >= 4) {  // VL256 or longer.
       ASSERT_EQUAL_SVE(z1, z2);
       ASSERT_EQUAL_SVE(z4, z5);
 
