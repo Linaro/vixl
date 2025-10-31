@@ -1,6 +1,24 @@
 VIXL: ARMv8 Runtime Code Generation Library
 ===========================================
 
+NOTICE
+======
+
+VIXL is now maintained in the repository at [the Arm GitLab site][vixl]. __This
+repository is no longer updated.__
+
+The new repository forked at commit c7b4c0875f37b95f5e2615ac1b050bbadd98f9b2:
+
+ * [this repository](https://github.com/Linaro/vixl/commit/c7b4c0875f37b95f5e2615ac1b050bbadd98f9b2)
+ * [new repository](https://gitlab.arm.com/runtimes/vixl/-/commit/c7b4c0875f37b95f5e2615ac1b050bbadd98f9b2)
+
+This repository will be monitored for issues, but we encourage you to submit pull
+requests [here](https://gitlab.arm.com/runtimes/vixl/-/merge_requests) instead.
+
+Your existing GitHub credentials will work for logging into the new site.
+
+---
+
 Contents:
 
  * Overview
@@ -24,15 +42,7 @@ VIXL contains three components.
     assembler. The simulator allows generated code to be run on another
     architecture without the need for a full ISA model.
 
-The VIXL git repository can be found [on GitHub][vixl].
-
-Build and Test Status
----------------------
-
-  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit)](https://ci.linaro.org/job/linaro-art-vixlpresubmit/) Simulator
-  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit-native-armv8)](https://ci.linaro.org/job/linaro-art-vixlpresubmit-native-armv8/) Native
-  * [![Build Status](https://ci.linaro.org/buildStatus/icon?job=linaro-art-vixlpresubmit-macos)](https://ci.linaro.org/job/linaro-art-vixlpresubmit-macos/) MacOS
-
+The VIXL git repository can be found [on GitLab][vixl].
 
 Licence
 =======
@@ -202,7 +212,7 @@ selection.
 Bug reports
 ===========
 
-Bug reports may be made in the Issues section of GitHub, or sent to
+Bug reports may be made in the Issues section of GitLab, or sent to
 vixl@arm.com. Please provide any steps required to recreate a bug, along with
 build environment and host system information.
 
@@ -257,8 +267,8 @@ aarch32_examples` or `scons aarch64_examples` from the root directory, or use
 [cpplint]: https://github.com/google/styleguide/tree/gh-pages/cpplint
            "Google's cpplint.py script."
 
-[vixl]: https://github.com/Linaro/vixl
-        "The VIXL repository on GitHub."
+[vixl]: https://gitlab.arm.com/runtimes/vixl
+        "The VIXL repository on GitLab."
 
 [getting-started-aarch32]: doc/aarch32/getting-started-aarch32.md
                            "Introduction to VIXL for AArch32."
