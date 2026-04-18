@@ -324,6 +324,17 @@ class CPU {
   // I and D cache line size in bytes.
   static unsigned icache_line_size_;
   static unsigned dcache_line_size_;
+
+  // IDC -- Data cache clean requirements for instruction to data
+  // coherence. Data cache clean to the Point of Unification is not
+  // required for instruction to data coherence.
+  static bool IDC;
+
+  // DIC -- Instruction cache invalidation requirements for data to
+  // instruction coherence. If true, Instruction cache invalidation to
+  // the Point of Unification is not required for data to instruction
+  // coherence.
+  static bool DIC;
 };
 
 }  // namespace aarch64
