@@ -4452,6 +4452,24 @@ void Assembler::usdot(const VRegister& vd,
   Emit(VFormat(vd) | 0x0e809c00 | Rm(vm) | Rn(vn) | Rd(vd));
 }
 
+// clang-format off
+#define NEON_CRYPTO_AES_LIST(V) \
+  V(aesd,   NEON_AESD)          \
+  V(aese,   NEON_AESE)          \
+  V(aesmc,  NEON_AESMC)         \
+  V(aesimc, NEON_AESIMC)
+// clang-format on
+
+#define VIXL_DEFINE_ASM_FUNC(FN, VEC_OP)                         \
+  void Assembler::FN(const VRegister& vd, const VRegister& vn) { \
+    VIXL_ASSERT(CPUHas(CPUFeatures::kNEON, CPUFeatures::kAES));  \
+    VIXL_ASSERT(vd.Is16B() && vn.Is16B());                       \
+                                                                 \
+    Emit(VEC_OP | Rn(vn) | Rd(vd));                              \
+  }
+NEON_CRYPTO_AES_LIST(VIXL_DEFINE_ASM_FUNC)
+#undef VIXL_DEFINE_ASM_FUNC
+
 void Assembler::faddp(const VRegister& vd, const VRegister& vn) {
   VIXL_ASSERT(CPUHas(CPUFeatures::kFP, CPUFeatures::kNEON));
   VIXL_ASSERT((vd.Is1S() && vn.Is2S()) || (vd.Is1D() && vn.Is2D()) ||
